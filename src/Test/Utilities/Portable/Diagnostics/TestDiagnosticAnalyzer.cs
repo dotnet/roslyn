@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -21,8 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected static readonly ImmutableArray<TLanguageKindEnum> AllSyntaxKinds = GetAllEnumValues<TLanguageKindEnum>();
 
-        protected static readonly ImmutableArray<string> AllAnalyzerMemberNames = new string[] { "AnalyzeCodeBlock", "AnalyzeCompilation", "AnalyzeNode", "AnalyzeSemanticModel", "AnalyzeSymbol", "AnalyzeSyntaxTree", "Initialize", "SupportedDiagnostics" }.ToImmutableArray();
-        // protected static readonly ImmutableArray<string> AllAbstractMemberNames = ImmutableArray<string>.Empty.AddRange(GetAbstractMemberNames(typeof(CompilationStartAnalysisScope)).Distinct());
+        protected static readonly ImmutableArray<string> AllAnalyzerMemberNames = new string[] { "AnalyzeCodeBlock", "AnalyzeCompilation", "AnalyzeNode", "AnalyzeSemanticModel", "AnalyzeSymbol", "AnalyzeSyntaxTree", "AnalyzeAdditionalFile", "Initialize", "SupportedDiagnostics" }.ToImmutableArray();
 
         protected static readonly DiagnosticDescriptor DefaultDiagnostic =
 #pragma warning disable RS1029 // Do not use reserved diagnostic IDs.
@@ -50,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             context.RegisterCodeBlockAction(this.AnalyzeCodeBlock);
             context.RegisterSymbolAction(this.AnalyzeSymbol, AllSymbolKinds.ToArray());
             context.RegisterSyntaxTreeAction(this.AnalyzeSyntaxTree);
+            context.RegisterAdditionalFileAction(this.AnalyzeAdditionalFile);
             context.RegisterSyntaxNodeAction<TLanguageKindEnum>(this.AnalyzeNode, AllSyntaxKinds.ToArray());
         }
 
@@ -89,6 +86,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
             OnAbstractMember("SyntaxTree");
+            OnOptions(context.Options);
+        }
+
+        private void AnalyzeAdditionalFile(AdditionalFileAnalysisContext context)
+        {
+            OnAbstractMember("AdditionalFile");
             OnOptions(context.Options);
         }
 

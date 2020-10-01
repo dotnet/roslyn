@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -221,8 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool conversionMustBePerformedOnOriginalExpression(BoundConversion expr, ConversionKind kind)
             {
-                // These are conversions from-expression that do not produce a constant,
-                // and which must be performed on the original expression, not on a copy of it.
+                // These are conversions from-expression that
+                // must be performed on the original expression, not on a copy of it.
                 switch (kind)
                 {
                     case ConversionKind.AnonymousFunction:       // a lambda cannot be saved without a target type
@@ -230,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.InterpolatedString:      // an interpolated string must be saved in interpolated form
                     case ConversionKind.SwitchExpression:        // a switch expression must have its arms converted
                     case ConversionKind.StackAllocToPointerType: // a stack alloc is not well-defined without an enclosing conversion
+                    case ConversionKind.ConditionalExpression:   // a conditional expression must have its alternatives converted
                     case ConversionKind.StackAllocToSpanType:
                     case ConversionKind.ObjectCreation:
                         return true;

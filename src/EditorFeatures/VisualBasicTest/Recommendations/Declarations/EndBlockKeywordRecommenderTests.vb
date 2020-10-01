@@ -224,6 +224,7 @@ End |</ClassDeclaration>, "Function", "Sub")
         <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         <WorkItem(530599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Async Function EndFunctionDoesNotSuggestEndSubTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Function Goo()
 |</ClassDeclaration>, "End Sub")

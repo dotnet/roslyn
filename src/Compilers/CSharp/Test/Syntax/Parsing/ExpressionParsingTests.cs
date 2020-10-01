@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -86,6 +88,79 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.InterpolatedStringText);
                 {
                     N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNestedAltInterpolatedVerbatimString_CSharp73()
+        {
+            UsingExpression("$@\"aaa{@$\"bbb\nccc\"}ddd\"", TestOptions.Regular7_3,
+                // (1,8): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '8.0' or greater.
+                // $@"aaa{@$"bbb
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(1, 8)
+                );
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "aaa");
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InterpolatedStringExpression);
+                    {
+                        N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                        N(SyntaxKind.InterpolatedStringText);
+                        {
+                            N(SyntaxKind.InterpolatedStringTextToken, "bbb\nccc");
+                        }
+                        N(SyntaxKind.InterpolatedStringEndToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "ddd");
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNestedAltInterpolatedVerbatimString_CSharp8()
+        {
+            UsingExpression("$@\"aaa{@$\"bbb\nccc\"}ddd\"", TestOptions.Regular8);
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "aaa");
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InterpolatedStringExpression);
+                    {
+                        N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                        N(SyntaxKind.InterpolatedStringText);
+                        {
+                            N(SyntaxKind.InterpolatedStringTextToken, "bbb\nccc");
+                        }
+                        N(SyntaxKind.InterpolatedStringEndToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "ddd");
                 }
                 N(SyntaxKind.InterpolatedStringEndToken);
             }

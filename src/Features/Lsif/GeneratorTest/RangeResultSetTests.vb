@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <InlineData("class C { void M(string s) { string local = """"; M([|local|]); } }", Nothing, Nothing)>
         <InlineData("using [|S|] = System.String;", Nothing, Nothing)>
         <InlineData("class C { [|global|]::System.String s; }", "<global namespace>", WellKnownSymbolMonikerSchemes.DotnetNamespace)>
-        Public Async Sub ReferenceMoniker(code As String, expectedMoniker As String, expectedMonikerScheme As String)
+        Public Async Function ReferenceMoniker(code As String, expectedMoniker As String, expectedMonikerScheme As String) As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
@@ -35,12 +35,12 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 
             Assert.Equal(expectedMoniker, monikerVertex?.Identifier)
             Assert.Equal(expectedMonikerScheme, monikerVertex?.Scheme)
-        End Sub
+        End Function
 
         <Theory>
         <InlineData("// Comment")>
         <InlineData("extern alias A;")>
-        Public Async Sub NoRangesAtAll(code As String)
+        Public Async Function NoRangesAtAll(code As String) As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
@@ -54,10 +54,10 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                     </Workspace>))
 
             Assert.Empty(lsif.Vertices.OfType(Of Range))
-        End Sub
+        End Function
 
         <Fact>
-        Public Async Sub DefinitionIncludedInDefinitionResult()
+        Public Async Function DefinitionIncludedInDefinitionResult() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
@@ -75,10 +75,10 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             ' The definition vertex should point back to our range
             Dim referencedRange = Assert.Single(lsif.GetLinkedVertices(Of Graph.Range)(definitionsVertex, "item"))
             Assert.Same(rangeVertex, referencedRange)
-        End Sub
+        End Function
 
         <Fact>
-        Public Async Sub ReferenceIncludedInReferenceResult()
+        Public Async Function ReferenceIncludedInReferenceResult() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
@@ -96,10 +96,10 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             ' The references vertex should point back to our range
             Dim referencedRange = Assert.Single(lsif.GetLinkedVertices(Of Graph.Range)(referencesVertex, "item"))
             Assert.Same(rangeVertex, referencedRange)
-        End Sub
+        End Function
 
         <Fact>
-        Public Async Sub ReferenceIncludedInSameReferenceResultForMultipleFiles()
+        Public Async Function ReferenceIncludedInSameReferenceResultForMultipleFiles() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                 Dim referencedRanges = lsif.GetLinkedVertices(Of Graph.Range)(referencesVertex, "item")
                 Assert.Contains(rangeVertex, referencedRanges)
             Next
-        End Sub
+        End Function
 
         <Theory>
         <InlineData("class A { public const int C = 42 + 42; }", "class B { public const int C = 42 + 42; }")> ' case for built-in operators
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                         /// <see cref=""A.M()"" />
                         public void M2() { }
                     }")> ' case for crefs
-        Public Async Sub NoCrossDocumentReferencesWithoutAMoniker(file1 As String, file2 As String)
+        Public Async Function NoCrossDocumentReferencesWithoutAMoniker(file1 As String, file2 As String) As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
@@ -162,11 +162,11 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                     Continue For
                 End If
 
-                Dim documents As New HashSet(Of Graph.Document)
+                Dim documents As New HashSet(Of Graph.LsifDocument)
 
                 ' Let's now enumerate all the documents and ranges to see which documents contain a range that links to
                 ' this resultSet
-                For Each document In lsif.Vertices.OfType(Of Graph.Document)
+                For Each document In lsif.Vertices.OfType(Of Graph.LsifDocument)
                     For Each range In lsif.GetLinkedVertices(Of Graph.Range)(document, "contains")
                         If lsif.GetLinkedVertices(Of Graph.ResultSet)(range, "next").Contains(resultSetVertex) Then
                             documents.Add(document)
@@ -178,6 +178,6 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                     Assert.Single(documents)
                 End If
             Next
-        End Sub
+        End Function
     End Class
 End Namespace

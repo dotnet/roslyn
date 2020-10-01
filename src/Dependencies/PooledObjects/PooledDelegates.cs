@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private static class DefaultDelegatePool<T>
             where T : class, new()
         {
-            public static readonly ObjectPool<T> Instance = new ObjectPool<T>(() => new T(), 20);
+            public static readonly ObjectPool<T> Instance = new(() => new T(), 20);
         }
 
         private static Releaser GetPooledDelegate<TPooled, TArg, TUnboundDelegate, TBoundDelegate>(TUnboundDelegate unboundDelegate, TArg argument, out TBoundDelegate boundDelegate)

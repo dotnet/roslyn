@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         {
         }
 
-        public static AddParameterService Instance = new AddParameterService();
+        public static AddParameterService Instance = new();
 
         public bool HasCascadingDeclarations(IMethodSymbol method)
         {
@@ -268,11 +271,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
         }
 
-        private static List<SyntaxTrivia> GetDesiredLeadingIndentation(
+        private static ImmutableArray<SyntaxTrivia> GetDesiredLeadingIndentation(
             SyntaxGenerator generator, ISyntaxFactsService syntaxFacts,
             SyntaxNode node, bool includeLeadingNewLine)
         {
-            var triviaList = new List<SyntaxTrivia>();
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var triviaList);
             if (includeLeadingNewLine)
             {
                 triviaList.Add(generator.ElasticCarriageReturnLineFeed);
@@ -296,7 +299,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 triviaList.Add(lastWhitespace);
             }
 
-            return triviaList;
+            return triviaList.ToImmutable();
         }
 
         private static bool ShouldPlaceParametersOnNewLine(

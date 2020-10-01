@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.SQLite.Interop;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
-        private readonly ConcurrentDictionary<string, int> _stringToIdMap = new ConcurrentDictionary<string, int>();
+        private readonly ConcurrentDictionary<string, int> _stringToIdMap = new();
 
         private bool TryFetchStringTable(SqlConnection connection)
         {
@@ -88,7 +90,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // values.
             try
             {
-                stringId = connection.RunInTransaction(s_insertStringIntoDataBase, (self: this, connection, value));
+                stringId = connection.RunInTransaction(
+                    static t => t.self.InsertStringIntoDatabase_MustRunInTransaction(t.connection, t.value),
+                    (self: this, connection, value));
 
                 Contract.ThrowIfTrue(stringId == null);
                 return stringId;
@@ -108,9 +112,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             return null;
         }
-
-        private static readonly Func<(SQLitePersistentStorage self, SqlConnection connection, string value), int> s_insertStringIntoDataBase =
-            t => t.self.InsertStringIntoDatabase_MustRunInTransaction(t.connection, t.value);
 
         private int InsertStringIntoDatabase_MustRunInTransaction(SqlConnection connection, string value)
         {

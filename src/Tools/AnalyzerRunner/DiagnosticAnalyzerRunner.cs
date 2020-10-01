@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -464,6 +466,7 @@ namespace AnalyzerRunner
             WriteLine($"Symbol End Actions:             {telemetry.SymbolEndActionsCount}", ConsoleColor.White);
             WriteLine($"Syntax Node Actions:            {telemetry.SyntaxNodeActionsCount}", ConsoleColor.White);
             WriteLine($"Syntax Tree Actions:            {telemetry.SyntaxTreeActionsCount}", ConsoleColor.White);
+            WriteLine($"Additional File Actions:        {telemetry.AdditionalFileActionsCount}", ConsoleColor.White);
 
             WriteLine($"Suppression Actions:            {telemetry.SuppressionActionsCount}", ConsoleColor.White);
         }

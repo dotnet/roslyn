@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         protected static bool TryInitializeLibraries() => s_initialized.Value;
 
-        private static readonly Lazy<bool> s_initialized = new Lazy<bool>(() => TryInitializeLibrariesLazy());
+        private static readonly Lazy<bool> s_initialized = new(() => TryInitializeLibrariesLazy());
 
         private static bool TryInitializeLibrariesLazy()
         {

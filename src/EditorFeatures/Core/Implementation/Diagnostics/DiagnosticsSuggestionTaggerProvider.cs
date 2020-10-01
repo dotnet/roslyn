@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
         {
             // We always want suggestion tags to be two characters long.
-            return base.AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
+            return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
         }
     }
 }

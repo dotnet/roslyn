@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// be managed even if it had no fields.  e.g. struct S { S s; } is not managed, but struct S { S s; object o; }
         /// is because we can point to object.
         /// </summary>
-        internal static ManagedKind GetManagedKind(NamedTypeSymbol type)
+        internal static ManagedKind GetManagedKind(NamedTypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var (isManaged, hasGenerics) = IsManagedTypeHelper(type);
             var definitelyManaged = isManaged == ThreeState.True;
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Otherwise, we have to build and inspect the closure of depended-upon types.
                 var hs = PooledHashSet<Symbol>.GetInstance();
-                var result = DependsOnDefinitelyManagedType(type, hs);
+                var result = DependsOnDefinitelyManagedType(type, hs, ref useSiteDiagnostics);
                 definitelyManaged = result.definitelyManaged;
                 hasGenerics = hasGenerics || result.hasGenerics;
                 hs.Free();
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static TypeSymbol NonPointerType(this FieldSymbol field) =>
             field.HasPointerType ? null : field.Type;
 
-        private static (bool definitelyManaged, bool hasGenerics) DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure)
+        private static (bool definitelyManaged, bool hasGenerics) DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)type != null);
 
@@ -190,10 +192,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
+                    fieldType.AddUseSiteDiagnostics(ref useSiteDiagnostics);
                     NamedTypeSymbol fieldNamedType = fieldType as NamedTypeSymbol;
                     if ((object)fieldNamedType == null)
                     {
-                        if (fieldType.IsManagedType)
+                        if (fieldType.IsManagedType(ref useSiteDiagnostics))
                         {
                             return (true, hasGenerics);
                         }
@@ -215,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             case ThreeState.Unknown:
                                 if (!fieldNamedType.OriginalDefinition.KnownCircularStruct)
                                 {
-                                    var (definitelyManaged, childHasGenerics) = DependsOnDefinitelyManagedType(fieldNamedType, partialClosure);
+                                    var (definitelyManaged, childHasGenerics) = DependsOnDefinitelyManagedType(fieldNamedType, partialClosure, ref useSiteDiagnostics);
                                     hasGenerics = hasGenerics || childHasGenerics;
                                     if (definitelyManaged)
                                     {

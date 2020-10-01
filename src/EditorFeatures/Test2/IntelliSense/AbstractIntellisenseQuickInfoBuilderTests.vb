@@ -21,7 +21,7 @@ Imports VSQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfo
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <UseExportProvider>
     Public MustInherit Class AbstractIntellisenseQuickInfoBuilderTests
-        Protected Async Function GetQuickInfoItemAsync(quickInfoItem As QuickInfoItem) As Task(Of VSQuickInfoItem)
+        Protected Shared Async Function GetQuickInfoItemAsync(quickInfoItem As QuickInfoItem) As Task(Of VSQuickInfoItem)
             Dim workspaceDefinition =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -44,11 +44,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
                 Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
-                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, quickInfoItem, cursorBuffer.CurrentSnapshot, document, threadingContext, streamingPresenter, CancellationToken.None)
+                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, quickInfoItem, document, threadingContext, streamingPresenter, CancellationToken.None)
             End Using
         End Function
 
-        Protected Async Function GetQuickInfoItemAsync(workspaceDefinition As XElement, language As String) As Task(Of VSQuickInfoItem)
+        Protected Shared Async Function GetQuickInfoItemAsync(workspaceDefinition As XElement, language As String) As Task(Of VSQuickInfoItem)
             Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
                 Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
-                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, cursorBuffer.CurrentSnapshot, document, threadingContext, streamingPresenter, CancellationToken.None)
+                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, document, threadingContext, streamingPresenter, CancellationToken.None)
             End Using
         End Function
     End Class

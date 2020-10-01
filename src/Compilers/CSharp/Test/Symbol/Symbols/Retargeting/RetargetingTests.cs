@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
@@ -981,12 +981,12 @@ class C1<T>
 unsafe class Source : Il
 {{
     public override {mOverriddenSignature} M() => throw null;
-}}", new[] { retargeted1Ref, consistentRef, ilRef }, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Standard);
+}}", new[] { retargeted1Ref, consistentRef, ilRef }, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Standard);
 
                 originalComp.VerifyDiagnostics();
 
                 var retargetedComp = CreateCompilation("", references: new[] { originalComp.ToMetadataReference(), retargeted2Ref, consistentRef, ilRef },
-                                                       options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview,
+                                                       options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9,
                                                        targetFramework: TargetFramework.Standard);
 
                 retargetedComp.VerifyDiagnostics();
@@ -1006,6 +1006,154 @@ unsafe class Source : Il
 ";
                 }
             }
+        }
+
+        [Fact]
+        public void RetargetedUnmanagedCallersOnlyData()
+        {
+            var originalIdentity = new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true);
+            // Custom corlib is necessary as the CallConv type must be defined in corlib, and we need to make
+            // sure that it's retargeted correctly.
+            string corlibSource = @"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public abstract partial class Enum : ValueType {}
+    public class String { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Type { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) {}
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { Method = 0x0040, }
+    namespace Runtime
+    {
+        namespace InteropServices
+        {
+            [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+            public sealed class UnmanagedCallersOnlyAttribute : Attribute
+            {
+                public UnmanagedCallersOnlyAttribute()
+                {
+                }
+
+                public Type[] CallConvs;
+                public string EntryPoint;
+            }
+        }
+        namespace CompilerServices
+        {
+            public sealed class CallConvCdecl {}
+        }
+    }
+}
+";
+            var beforeRetargeting = CreateCompilation(originalIdentity, new[] { corlibSource }, new MetadataReference[0]);
+            beforeRetargeting.VerifyDiagnostics();
+
+            var unmanagedCallersOnlyAssembly = CreateEmptyCompilation(@"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) } )]
+    public static void M(int s) {}
+}
+", new[] { beforeRetargeting.ToMetadataReference() });
+            unmanagedCallersOnlyAssembly.VerifyDiagnostics();
+
+            var afterRetargeting = CreateCompilation(originalIdentity.WithVersion(new Version(2, 0, 0, 0)), new[] { corlibSource }, new MetadataReference[0]);
+            afterRetargeting.VerifyDiagnostics();
+
+            var finalComp = CreateEmptyCompilation(@"C.M(1);", options: TestOptions.ReleaseExe, references: new[] { afterRetargeting.ToMetadataReference(), unmanagedCallersOnlyAssembly.ToMetadataReference() });
+            finalComp.VerifyDiagnostics(
+                // (1,1): error CS8901: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // C.M(1);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "C.M(1)").WithArguments("C.M(int)").WithLocation(1, 1)
+            );
+
+            var m = finalComp.GetTypeByMetadataName("C").GetMethod("M");
+            var unmanagedCallersOnlyData = m.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);
+            Assert.IsType<RetargetingMethodSymbol>(m);
+            var containingAssembly = unmanagedCallersOnlyData.CallingConventionTypes.Single().ContainingAssembly;
+            Assert.NotSame(containingAssembly, beforeRetargeting.Assembly);
+            Assert.Same(containingAssembly, afterRetargeting.Assembly);
+        }
+
+        [Fact]
+        public void RetargetedUnmanagedCallersOnlyEmptyData()
+        {
+            var originalIdentity = new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true);
+            // Custom corlib is necessary as the CallConv type must be defined in corlib, and we need to make
+            // sure that it's retargeted correctly.
+            string corlibSource = @"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public abstract partial class Enum : ValueType {}
+    public class String { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Type { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) {}
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { Method = 0x0040, }
+    namespace Runtime
+    {
+        namespace InteropServices
+        {
+            [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+            public sealed class UnmanagedCallersOnlyAttribute : Attribute
+            {
+                public UnmanagedCallersOnlyAttribute()
+                {
+                }
+
+                public Type[] CallConvs;
+                public string EntryPoint;
+            }
+        }
+        namespace CompilerServices
+        {
+            public sealed class CallConvCdecl {}
+        }
+    }
+}
+";
+            var beforeRetargeting = CreateCompilation(originalIdentity, new[] { corlibSource }, new MetadataReference[0]);
+            beforeRetargeting.VerifyDiagnostics();
+
+            var unmanagedCallersOnlyAssembly = CreateEmptyCompilation(@"
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly]
+    public static void M(int s) {}
+}
+", new[] { beforeRetargeting.ToMetadataReference() });
+            unmanagedCallersOnlyAssembly.VerifyDiagnostics();
+
+            var afterRetargeting = CreateCompilation(originalIdentity.WithVersion(new Version(2, 0, 0, 0)), new[] { corlibSource }, new MetadataReference[0]);
+            afterRetargeting.VerifyDiagnostics();
+
+            var finalComp = CreateEmptyCompilation(@"C.M(1);", options: TestOptions.ReleaseExe, references: new[] { afterRetargeting.ToMetadataReference(), unmanagedCallersOnlyAssembly.ToMetadataReference() });
+            finalComp.VerifyDiagnostics(
+                // (1,1): error CS8901: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // C.M(1);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "C.M(1)").WithArguments("C.M(int)").WithLocation(1, 1)
+            );
         }
     }
 

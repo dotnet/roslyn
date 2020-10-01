@@ -6,7 +6,7 @@ Imports System.Threading
 Imports Microsoft.Cci
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Partial Class SynthesizedStaticLocalBackingField
+    Partial Friend Class SynthesizedStaticLocalBackingField
         Implements IContextualNamedEntity
 
         Private _metadataWriter As MetadataWriter

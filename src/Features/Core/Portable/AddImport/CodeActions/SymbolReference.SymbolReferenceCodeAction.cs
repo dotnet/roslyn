@@ -2,8 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -24,18 +29,34 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
             }
 
-            protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+            {
+                var changedSolution = await GetChangedSolutionAsync(isPreview: true, cancellationToken).ConfigureAwait(false);
+                if (changedSolution == null)
+                {
+                    return Array.Empty<CodeActionOperation>();
+                }
+
+                return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
+            }
+
+            protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            {
+                return GetChangedSolutionAsync(isPreview: false, cancellationToken);
+            }
+
+            private async Task<Solution> GetChangedSolutionAsync(bool isPreview, CancellationToken cancellationToken)
             {
                 var updatedDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
                 // Defer to subtype to add any p2p or metadata refs as appropriate.
-                var updatedProject = UpdateProject(updatedDocument.Project);
+                var updatedProject = await UpdateProjectAsync(updatedDocument.Project, isPreview, cancellationToken).ConfigureAwait(false);
 
                 var updatedSolution = updatedProject.Solution;
                 return updatedSolution;
             }
 
-            protected abstract Project UpdateProject(Project project);
+            protected abstract Task<Project> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken);
         }
     }
 }

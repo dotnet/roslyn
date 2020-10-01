@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
@@ -487,6 +490,65 @@ class CustomAttribute : System.Attribute
     }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WorkItem(46595, "https://github.com/dotnet/roslyn/issues/46595")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddParameter_Formatting_PreserveIndentBraces()
+        {
+            var markup =
+@"public class C
+    {
+    public void M$$()
+        {
+        }
+    }";
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", CallSiteKind.Value, "12345"), "int")};
+            var expectedUpdatedCode =
+@"public class C
+    {
+    public void M(int a)
+        {
+        }
+    }";
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode,
+                options: Option(CSharpFormattingOptions2.IndentBraces, true));
+        }
+
+        [WorkItem(46595, "https://github.com/dotnet/roslyn/issues/46595")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddParameter_Formatting_PreserveIndentBraces_Editorconfig()
+        {
+            var markup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+public class C
+    {
+    public void M$$()
+        {
+        }
+    }
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+csharp_indent_braces = true
+        </AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", CallSiteKind.Value, "12345"), "int")};
+            var expectedUpdatedCode = @"
+public class C
+    {
+    public void M(int a)
+        {
+        }
+    }
+        ";
+
+            await TestChangeSignatureViaCommandAsync("XML", markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
     }
 }

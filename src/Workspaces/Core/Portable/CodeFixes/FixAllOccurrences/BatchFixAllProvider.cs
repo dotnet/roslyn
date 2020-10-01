@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         #region "AbstractFixAllProvider methods"
 
-        public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+        public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
             if (fixAllContext.Document != null)
             {
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         #endregion
 
-        private async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             await Task.WhenAll(fixerTasks).ConfigureAwait(false);
         }
 
-        private async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -198,19 +199,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
-            Debug.Assert(!diagnostics.IsDefault);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var registerCodeFix = GetRegisterCodeFixAction(fixAllState, fixes);
-            var context = new CodeFixContext(
-                project, diagnostics, registerCodeFix, cancellationToken);
-
-            // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
-            // a buggy extension that throws can't bring down the host?
-            return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
-        public virtual async Task<CodeAction> TryGetMergedFixAsync(
+        public virtual async Task<CodeAction?> TryGetMergedFixAsync(
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -337,8 +329,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var totalChangesIntervalTree = SimpleIntervalTree.Create(new TextChangeIntervalIntrospector(), Array.Empty<TextChange>());
 
-            var oldDocument = oldSolution.GetDocument(orderedDocuments[0].document.Id);
-            var differenceService = oldSolution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+            var oldDocument = oldSolution.GetRequiredDocument(orderedDocuments[0].document.Id);
+            var differenceService = oldSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
 
             foreach (var (_, currentDocument) in orderedDocuments)
             {
@@ -381,6 +373,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var changedSolution = await codeAction.GetChangedSolutionInternalAsync(
                 cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (changedSolution is null)
+            {
+                // No changed documents
+                return;
+            }
 
             var solutionChanges = new SolutionChanges(changedSolution, oldSolution);
 
@@ -393,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             foreach (var documentId in documentIdsWithChanges)
             {
-                var changedDocument = changedSolution.GetDocument(documentId);
+                var changedDocument = changedSolution.GetRequiredDocument(documentId);
 
                 documentIdToChangedDocuments.GetOrAdd(documentId, s_getValue).Add(
                     (codeAction, changedDocument));

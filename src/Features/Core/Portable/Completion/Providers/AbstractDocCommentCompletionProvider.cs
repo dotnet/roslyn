@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly ImmutableArray<string> s_topLevelSingleUseTagNames = ImmutableArray.Create(SummaryElementName, RemarksElementName, ExampleElementName, CompletionListElementName);
 
         private static readonly Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)> s_tagMap =
-            new Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)>
+            new Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)>()
             {
                 //                                        tagOpen                                  textBeforeCaret       $$  textAfterCaret                            tagClose
                 { ExceptionElementName,              ($"<{ExceptionElementName}",              $" {CrefAttributeName}=\"",  "\"",                                      null) },
@@ -199,11 +202,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract IEnumerable<string> GetKeywordNames();
 
-        protected IEnumerable<CompletionItem> GetTopLevelItems(ISymbol symbol, TSyntax syntax)
+        protected ImmutableArray<CompletionItem> GetTopLevelItems(ISymbol symbol, TSyntax syntax)
         {
-            var items = new List<CompletionItem>();
+            using var _1 = ArrayBuilder<CompletionItem>.GetInstance(out var items);
+            using var _2 = PooledHashSet<string>.GetInstance(out var existingTopLevelTags);
 
-            var existingTopLevelTags = new HashSet<string>(GetExistingTopLevelElementNames(syntax));
+            existingTopLevelTags.AddAll(GetExistingTopLevelElementNames(syntax));
 
             items.AddRange(s_topLevelSingleUseTagNames.Except(existingTopLevelTags).Select(GetItem));
             items.AddRange(s_topLevelRepeatableTagNames.Select(GetItem));
@@ -234,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return items;
+            return items.ToImmutable();
         }
 
         protected IEnumerable<CompletionItem> GetItemTagItems()

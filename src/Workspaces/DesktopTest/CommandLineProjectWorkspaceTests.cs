@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var tempFile = tempDirectory.CreateFile("CSharpClass.cs");
             tempFile.WriteAllText("class CSharpClass { }");
 
-            using var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices);
+            using var ws = new AdhocWorkspace();
             var commandLine = @"CSharpClass.cs /out:goo.dll /target:library";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, tempDirectory.Path, ws);
             ws.AddProject(info);

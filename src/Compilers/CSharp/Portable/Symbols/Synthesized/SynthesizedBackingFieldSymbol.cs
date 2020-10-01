@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -16,13 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedBackingFieldSymbol : FieldSymbolWithAttributesAndModifiers
     {
-        private readonly SourceOrRecordPropertySymbol _property;
+        private readonly SourcePropertySymbolBase _property;
         private readonly string _name;
         internal bool HasInitializer { get; }
         protected override DeclarationModifiers Modifiers { get; }
 
         public SynthesizedBackingFieldSymbol(
-            SourceOrRecordPropertySymbol property,
+            SourcePropertySymbolBase property,
             string name,
             bool isReadOnly,
             bool isStatic,
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override IAttributeTargetSymbol AttributeOwner
-            => _property;
+            => _property.AttributesOwner;
 
         internal override Location ErrorLocation
             => _property.Location;

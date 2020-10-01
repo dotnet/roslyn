@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -19,10 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
 {
     public partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestWorkspaceFixture>
     {
-        public TypeInferrerTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         protected override async Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, TestMode mode)
         {
             var root = await document.GetSyntaxRootAsync();
@@ -33,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
 
             if (mode == TestMode.Position)
             {
-                int position = node?.SpanStart ?? textSpan.Start;
-                inferredType = typeInference.InferType(await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), CancellationToken.None), position, objectAsDefault: true, cancellationToken: CancellationToken.None);
+                var position = node?.SpanStart ?? textSpan.Start;
+                inferredType = typeInference.InferType(await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None), position, objectAsDefault: true, cancellationToken: CancellationToken.None);
             }
             else
             {
-                inferredType = typeInference.InferType(await document.GetSemanticModelForSpanAsync(node?.Span ?? textSpan, CancellationToken.None), node, objectAsDefault: true, cancellationToken: CancellationToken.None);
+                inferredType = typeInference.InferType(await document.ReuseExistingSpeculativeModelAsync(node?.Span ?? textSpan, CancellationToken.None), node, objectAsDefault: true, cancellationToken: CancellationToken.None);
             }
 
             var typeSyntax = inferredType.GenerateTypeSyntax().NormalizeWhitespace();
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
             await TestAsync(text, expectedType, mode);
         }
 
-        private ExpressionSyntax FindExpressionSyntaxFromSpan(SyntaxNode root, TextSpan textSpan)
+        private static ExpressionSyntax FindExpressionSyntaxFromSpan(SyntaxNode root, TextSpan textSpan)
         {
             var token = root.FindToken(textSpan.Start);
             var currentNode = token.Parent;

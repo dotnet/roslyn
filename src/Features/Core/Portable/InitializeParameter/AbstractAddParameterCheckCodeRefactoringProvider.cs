@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             // Great.  There was no null check.  Offer to add one.
-            var result = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
             result.Add(new MyCodeAction(
                 FeaturesResources.Add_null_check,
                 c => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c)));
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c)));
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private async Task<Document> UpdateDocumentForRefactoringAsync(
@@ -231,6 +233,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             if (!parameter.Type.IsReferenceType &&
                 !parameter.Type.IsNullable())
+            {
+                return false;
+            }
+
+            if (parameter.RefKind == RefKind.Out)
             {
                 return false;
             }

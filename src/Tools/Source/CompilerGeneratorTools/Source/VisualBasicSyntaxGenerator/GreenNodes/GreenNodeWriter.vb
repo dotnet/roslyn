@@ -85,7 +85,7 @@ Friend Class GreenNodeWriter
     ' Generate a class declaration for a node structure.
     Private Sub GenerateNodeStructureClass(nodeStructure As ParseNodeStructure)
         ' XML comment
-        GenerateXmlComment(_writer, nodeStructure, 4)
+        GenerateXmlComment(_writer, nodeStructure, 4, includeRemarks:=False)
 
         ' Class name
         _writer.Write("    ")
@@ -848,15 +848,15 @@ Friend Class GreenNodeWriter
         ' visit all children
         For i = 0 To allChildren.Count - 1
             If allChildren(i).IsList Then
-                _writer.WriteLine("            Dim {0} = VisitList(node.{1})" + vbCrLf +
+                _writer.WriteLine("            Dim {0} = VisitList(node.{1})" + Environment.NewLine +
                                   "            If node.{2} IsNot {0}.Node Then anyChanges = True",
                                   ChildNewVarName(allChildren(i)), ChildPropertyName(allChildren(i)), ChildVarName(allChildren(i)))
             ElseIf KindTypeStructure(allChildren(i).ChildKind).IsToken Then
-                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + vbCrLf +
+                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + Environment.NewLine +
                                   "            If node.{3} IsNot {0} Then anyChanges = True",
                                   ChildNewVarName(allChildren(i)), BaseTypeReference(allChildren(i)), ChildPropertyName(allChildren(i)), ChildVarName(allChildren(i)))
             Else
-                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + vbCrLf +
+                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + Environment.NewLine +
                                   "            If node.{2} IsNot {0} Then anyChanges = True",
                                   ChildNewVarName(allChildren(i)), ChildPropertyTypeRef(nodeStructure, allChildren(i)), ChildVarName(allChildren(i)))
             End If

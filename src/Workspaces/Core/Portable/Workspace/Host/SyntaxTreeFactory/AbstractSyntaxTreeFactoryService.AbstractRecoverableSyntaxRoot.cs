@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -25,24 +22,19 @@ namespace Microsoft.CodeAnalysis.Host
             public readonly ValueSource<TextAndVersion> TextSource;
             public readonly Encoding Encoding;
             public readonly int Length;
-            public readonly ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions;
 
             public SyntaxTreeInfo(
                 string filePath,
                 ParseOptions options,
                 ValueSource<TextAndVersion> textSource,
                 Encoding encoding,
-                int length,
-                ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
+                int length)
             {
-                RoslynDebug.Assert(diagnosticOptions is object);
-
                 FilePath = filePath ?? string.Empty;
                 Options = options;
                 TextSource = textSource;
                 Encoding = encoding;
                 Length = length;
-                DiagnosticOptions = diagnosticOptions;
             }
 
             internal bool TryGetText([NotNullWhen(true)] out SourceText? text)
@@ -70,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Host
                     Options,
                     TextSource,
                     Encoding,
-                    Length,
-                    DiagnosticOptions);
+                    Length);
             }
 
             internal SyntaxTreeInfo WithOptionsAndLength(ParseOptions options, int length)
@@ -81,20 +72,7 @@ namespace Microsoft.CodeAnalysis.Host
                     options,
                     TextSource,
                     Encoding,
-                    length,
-                    DiagnosticOptions);
-            }
-
-            internal SyntaxTreeInfo WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
-            {
-                RoslynDebug.Assert(options is object);
-                return new SyntaxTreeInfo(
-                    FilePath,
-                    Options,
-                    TextSource,
-                    Encoding,
-                    Length,
-                    options);
+                    length);
             }
         }
 

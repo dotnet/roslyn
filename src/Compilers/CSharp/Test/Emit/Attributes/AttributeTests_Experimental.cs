@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -256,7 +258,7 @@ class A
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { DeprecatedAttributeSource, ExperimentalAttributeSource, source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { DeprecatedAttributeSource, ExperimentalAttributeSource, source }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (7,9): warning CS0618: 'local1()' is obsolete: ''
                 //         local1(); // 1

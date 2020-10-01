@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -374,7 +376,7 @@ return 0;
                     // error CS8805: Program using top-level statements must be an executable.
                     DiagnosticResult.CompilerError("CS8805"),
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -402,7 +404,7 @@ return 0;
                     // /0/Test1.cs(2,1): error CS8802: Only one compilation unit can have top-level statements.
                     DiagnosticResult.CompilerError("CS8802").WithSpan("/0/Test1.cs", 2, 1, 2, 7),
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -426,7 +428,7 @@ return 0;
                         return solution.WithProjectCompilationOptions(projectId, compilationOptions.WithOutputKind(OutputKind.ConsoleApplication));
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -461,7 +463,7 @@ return 0;
                         return solution.WithProjectCompilationOptions(projectId, compilationOptions.WithOutputKind(OutputKind.ConsoleApplication));
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -2542,7 +2544,6 @@ static class MyClass3
             {
                 TestState = { Sources = { source1, source2 } },
                 FixedState = { Sources = { fixedSource1, fixedSource2 } },
-                NumberOfFixAllInDocumentIterations = 2,
             }.RunAsync();
         }
 
@@ -2571,6 +2572,34 @@ static partial class B
             {
                 TestState = { Sources = { source1, source2 } },
                 FixedState = { Sources = { source1, source2 } },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task UsedExtensionMethod_ReferencedFromExtendedPartialMethod()
+        {
+            var source1 = @"
+static partial class B
+{
+    public static void Entry() => PartialMethod();
+    public static partial void PartialMethod();
+}";
+            var source2 = @"
+static partial class B
+{
+    public static partial void PartialMethod()
+    {
+        UsedMethod();
+    }
+
+    private static void UsedMethod() { }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source1, source2 } },
+                FixedState = { Sources = { source1, source2 } },
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                         {
                             var textVersion = snapshot.Version;
                             var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                            return await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan, item, snapshot, document, _threadingContext, _streamingPresenter, cancellationToken).ConfigureAwait(false);
+                            return await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan, item, document, _threadingContext, _streamingPresenter, cancellationToken).ConfigureAwait(false);
                         }
 
                         return null;

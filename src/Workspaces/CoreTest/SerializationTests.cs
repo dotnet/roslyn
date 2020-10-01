@@ -2,8 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -24,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solution = new AdhocWorkspace().CurrentSolution
                     .AddProject(pid, "test", "test", LanguageNames.CSharp)
-                    .AddMetadataReference(pid, TestReferences.NetFx.v4_0_30319.mscorlib)
+                    .AddMetadataReference(pid, TestMetadata.Net451.mscorlib)
                     .AddDocument(did, "goo.cs", SourceText.From(sourceText));
 
             return solution.GetDocument(did);

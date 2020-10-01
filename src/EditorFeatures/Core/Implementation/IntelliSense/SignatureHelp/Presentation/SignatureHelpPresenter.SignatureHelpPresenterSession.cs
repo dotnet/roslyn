@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             private readonly ISignatureHelpBroker _sigHelpBroker;
             private readonly ITextView _textView;
-            private readonly ITextBuffer _subjectBuffer;
 
             public event EventHandler<EventArgs> Dismissed;
             public event EventHandler<SignatureHelpItemEventArgs> ItemSelected;
@@ -40,13 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             public SignatureHelpPresenterSession(
                 IThreadingContext threadingContext,
                 ISignatureHelpBroker sigHelpBroker,
-                ITextView textView,
-                ITextBuffer subjectBuffer)
+                ITextView textView)
                 : base(threadingContext)
             {
                 _sigHelpBroker = sigHelpBroker;
                 _textView = textView;
-                _subjectBuffer = subjectBuffer;
             }
 
             public void PresentItems(

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2847,14 +2849,14 @@ class C
         [Fact]
         public void MethodUpdate_UpdateParameterToNullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void M(string s)
     {
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void M(string? s)
@@ -2873,7 +2875,7 @@ class C
         [Fact]
         public void MethodUpdate_UpdateParameterToNonNullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void M(string? s)
@@ -2881,7 +2883,7 @@ class C
         
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void M(string s)
@@ -5174,7 +5176,7 @@ partial class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var syntaxMap = GetSyntaxMap(src1, src2);
+            _ = GetSyntaxMap(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "public C(int x)"));
@@ -7286,7 +7288,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var syntaxMap = GetSyntaxMap(src1, src2);
+            _ = GetSyntaxMap(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "public C(int x)"));

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,19 +13,19 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
-#endif
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
 {
     public partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UseIsNullCheckForReferenceEqualsTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         private static readonly ParseOptions CSharp7 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7);
-#if !CODE_STYLE
-        private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharp9);
-#endif
+        private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(), new CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider());
@@ -158,8 +160,6 @@ class C
 }", new TestParameters(parseOptions: CSharp7));
         }
 
-#if !CODE_STYLE
-
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestNegated_CSharp9()
@@ -186,8 +186,6 @@ class C
     }
 }", new TestParameters(parseOptions: CSharp9));
         }
-
-#endif
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestNotInCSharp6()
@@ -320,8 +318,6 @@ class C
 ", new TestParameters(parseOptions: CSharp7));
         }
 
-#if !CODE_STYLE
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp9()
         {
@@ -350,8 +346,6 @@ class C
 }
 ", new TestParameters(parseOptions: CSharp9));
         }
-
-#endif
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -414,8 +408,6 @@ class C
 ", new TestParameters(parseOptions: CSharp7));
         }
 
-#if !CODE_STYLE
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp9()
         {
@@ -445,8 +437,6 @@ class C
 }
 ", new TestParameters(parseOptions: CSharp9));
         }
-
-#endif
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]

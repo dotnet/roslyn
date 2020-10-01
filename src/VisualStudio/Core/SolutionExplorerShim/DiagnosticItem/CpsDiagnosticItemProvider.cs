@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -75,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 if (targetFrameworkMoniker == null)
                 {
-                    targetFrameworkMoniker = GetTargetFrameworkMoniker(parent, targetFrameworkMoniker);
+                    targetFrameworkMoniker = GetTargetFrameworkMoniker(parent);
                 }
 
                 if (NestedHierarchyHasProjectTreeCapability(parent, "ProjectRoot"))
@@ -91,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// Given an item determines if it represents a particular target frmework.
         /// If so, it returns the corresponding TargetFrameworkMoniker.
         /// </summary>
-        private static string GetTargetFrameworkMoniker(IVsHierarchyItem item, string targetFrameworkMoniker)
+        private static string GetTargetFrameworkMoniker(IVsHierarchyItem item)
         {
             var hierarchy = item.HierarchyIdentity.NestedHierarchy;
             var itemId = item.HierarchyIdentity.NestedItemID;

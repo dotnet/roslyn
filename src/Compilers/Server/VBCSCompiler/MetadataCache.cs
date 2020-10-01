@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal class MetadataAndSymbolCache
     {
-        // Store 100 entries -- arbitrary number
-        private const int CacheSize = 100;
+        // Store 500 entries -- Out of ~8.7M projects, only about 4,000 had more than 500 references
+        private const int CacheSize = 500;
         private readonly ConcurrentLruCache<FileKey, Metadata> _metadataCache =
             new ConcurrentLruCache<FileKey, Metadata>(CacheSize);
 

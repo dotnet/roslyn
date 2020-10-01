@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.SimpleProgram,
-                name: SimpleProgramNamedTypeSymbol.UnspeakableName,
+                name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                 arity: 0,
                 modifiers: DeclarationModifiers.Internal | DeclarationModifiers.Partial | DeclarationModifiers.Static,
                 declFlags: (hasAwaitExpressions ? SingleTypeDeclaration.TypeDeclarationFlags.HasAwaitExpressions : SingleTypeDeclaration.TypeDeclarationFlags.None) |

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (method.IsConstructor())
                 {
                     return Cast<TDeclarationNode>(ConstructorGenerator.AddConstructorTo(
-                        typeDeclaration, method, Workspace, options, availableIndices));
+                        typeDeclaration, method, options, availableIndices));
                 }
 
                 if (method.IsDestructor())
@@ -150,13 +152,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (method.MethodKind == MethodKind.Conversion)
                 {
                     return Cast<TDeclarationNode>(ConversionGenerator.AddConversionTo(
-                        typeDeclaration, method, Workspace, options, availableIndices));
+                        typeDeclaration, method, options, availableIndices));
                 }
 
                 if (method.MethodKind == MethodKind.UserDefinedOperator)
                 {
                     return Cast<TDeclarationNode>(OperatorGenerator.AddOperatorTo(
-                        typeDeclaration, method, Workspace, options, availableIndices));
+                        typeDeclaration, method, options, availableIndices));
                 }
 
                 return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(
@@ -229,12 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (destination is TypeDeclarationSyntax)
             {
                 return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
-                    Cast<TypeDeclarationSyntax>(destination), property, Workspace, options, availableIndices));
+                    Cast<TypeDeclarationSyntax>(destination), property, options, availableIndices));
             }
             else
             {
                 return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
-                    Cast<CompilationUnitSyntax>(destination), property, Workspace, options, availableIndices));
+                    Cast<CompilationUnitSyntax>(destination), property, options, availableIndices));
             }
         }
 
@@ -482,6 +484,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
             }
+            else if (destinationMember is CompilationUnitSyntax compilationUnit && options is null)
+            {
+                // This path supports top-level statement insertion. It only applies when 'options'
+                // is null so the fallback code below can handle cases where the insertion location
+                // is provided through options.BestLocation.
+                //
+                // Insert the new global statement(s) at the end of any current global statements.
+                // This code relies on 'LastIndexOf' returning -1 when no matching element is found.
+                var insertionIndex = compilationUnit.Members.LastIndexOf(memberDeclaration => memberDeclaration.IsKind(SyntaxKind.GlobalStatement)) + 1;
+                var wrappedStatements = StatementGenerator.GenerateStatements(statements).Select(generated => SyntaxFactory.GlobalStatement(generated)).ToArray();
+                return Cast<TDeclarationNode>(compilationUnit.WithMembers(compilationUnit.Members.InsertRange(insertionIndex, wrappedStatements)));
+            }
+            else if (destinationMember is StatementSyntax statement && statement.IsParentKind(SyntaxKind.GlobalStatement))
+            {
+                // We are adding a statement to a global statement in script, where the CompilationUnitSyntax is not a
+                // statement container. If the global statement is not already a block, create a block which can hold
+                // both the original statement and any new statements we are adding to it.
+                var block = statement as BlockSyntax ?? SyntaxFactory.Block(statement);
+                return Cast<TDeclarationNode>(block.AddStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+            }
             else
             {
                 return AddStatementsWorker(destinationMember, statements, options, cancellationToken);
@@ -587,17 +609,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (method.IsConstructor())
             {
                 return ConstructorGenerator.GenerateConstructorDeclaration(
-                    method, Workspace, options, options.ParseOptions);
+                    method, options, options.ParseOptions);
             }
             else if (method.IsUserDefinedOperator())
             {
                 return OperatorGenerator.GenerateOperatorDeclaration(
-                    method, Workspace, options, options.ParseOptions);
+                    method, options, options.ParseOptions);
             }
             else if (method.IsConversion())
             {
                 return ConversionGenerator.GenerateConversionDeclaration(
-                    method, Workspace, options, options.ParseOptions);
+                    method, options, options.ParseOptions);
             }
             else if (method.IsLocalFunction())
             {
@@ -615,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
             return PropertyGenerator.GeneratePropertyOrIndexer(
-                property, destination, Workspace, options, options.ParseOptions);
+                property, destination, options, options.ParseOptions);
         }
 
         public override SyntaxNode CreateNamedTypeDeclaration(

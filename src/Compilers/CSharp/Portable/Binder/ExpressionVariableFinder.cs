@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GotoCaseStatement:
                     break;
                 case SyntaxKind.ArgumentList:
-                    Debug.Assert(node.Parent is ConstructorInitializerSyntax);
+                    Debug.Assert(node.Parent is ConstructorInitializerSyntax || node.Parent is PrimaryConstructorBaseTypeSyntax);
                     break;
                 case SyntaxKind.RecordDeclaration:
                     Debug.Assert(((RecordDeclarationSyntax)node).ParameterList is object);
@@ -397,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.ParameterList is object);
 
-            if (node.BaseWithArguments is SimpleBaseTypeSyntax baseWithArguments)
+            if (node.PrimaryConstructorBaseType is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 VisitNodeToBind(baseWithArguments);
             }

@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var optionService = workspaceServices.GetService<IOptionService>();
-            var errorReportingService = workspaceServices.GetService<IErrorReportingService>();
-            var errorLoggerService = workspaceServices.GetService<IErrorLoggerService>();
+            var optionService = workspaceServices.GetRequiredService<IOptionService>();
+            var errorReportingService = workspaceServices.GetRequiredService<IErrorReportingService>();
+            var errorLoggerService = workspaceServices.GetRequiredService<IErrorLoggerService>();
             return new ExtensionManager(optionService, errorReportingService, errorLoggerService, _errorHandlers);
         }
 

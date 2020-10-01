@@ -15,7 +15,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         public string MethodName { get; }
 
-        public ExportLspMethodAttribute(string methodName) : base(typeof(IRequestHandler))
+        public string? LanguageName { get; }
+
+        /// <summary>
+        /// Whether or not handling this method results in changes to the current solution state.
+        /// Mutating requests will block all subsequent requests from starting until after they have
+        /// completed and mutations have been applied. See <see cref="RequestExecutionQueue"/>.
+        /// </summary>
+        public bool MutatesSolutionState { get; }
+
+        public ExportLspMethodAttribute(string methodName, bool mutatesSolutionState, string? languageName = null) : base(typeof(IRequestHandler))
         {
             if (string.IsNullOrEmpty(methodName))
             {
@@ -23,6 +32,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             MethodName = methodName;
+            MutatesSolutionState = mutatesSolutionState;
+            LanguageName = languageName;
         }
     }
 }

@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var symbolsMatch = GetParameterSymbolsMatchFunction(
+            var symbolsMatchAsync = GetParameterSymbolsMatchFunction(
                 symbol, document.Project.Solution, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, symbol.Name, document, semanticModel, symbolsMatch, cancellationToken);
+                symbol, symbol.Name, document, semanticModel, symbolsMatchAsync, cancellationToken);
         }
 
-        private static Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetParameterSymbolsMatchFunction(
+        private static Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
             IParameterSymbol parameter, Solution solution, CancellationToken cancellationToken)
         {
             // Get the standard function for comparing parameters.  This function will just 
@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 anonymousDelegateParameter, findParentNode: null, solution: solution, cancellationToken: cancellationToken);
 
             // Return a new function which is a compound of the two functions we have.
-            return (token, model) =>
+            return async (token, model) =>
             {
                 // First try the standard function.
-                var result = standardFunction(token, model);
+                var result = await standardFunction(token, model).ConfigureAwait(false);
                 if (!result.matched)
                 {
                     // If it fails, fall back to the anon-delegate function.
-                    result = anonParameterFunc(token, model);
+                    result = await anonParameterFunc(token, model).ConfigureAwait(false);
                 }
 
                 return result;
@@ -131,18 +131,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var document = solution.GetDocument(parameterNode.SyntaxTree);
                     if (document != null)
                     {
-                        var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+                        var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
                         if (semanticFacts.ExposesAnonymousFunctionParameterNames)
                         {
-                            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                             var lambdaNode = parameter.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
                             var convertedType = semanticModel.GetTypeInfo(lambdaNode, cancellationToken).ConvertedType;
 
                             if (convertedType != null)
                             {
-                                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                                var container = GetContainer(semanticModel, parameterNode, syntaxFactsService);
+                                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                                var container = GetContainer(semanticModel, parameterNode, syntaxFacts);
                                 if (container != null)
                                 {
                                     CascadeBetweenAnonymousFunctionParameters(
@@ -165,12 +165,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ArrayBuilder<ISymbol> results,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             foreach (var token in container.DescendantTokens())
             {
                 if (IdentifiersMatch(syntaxFacts, parameter.Name, token))
                 {
-                    var symbol = semanticModel.GetDeclaredSymbol(token.Parent, cancellationToken);
+                    var symbol = semanticModel.GetDeclaredSymbol(token.GetRequiredParent(), cancellationToken);
                     if (symbol is IParameterSymbol &&
                         symbol.ContainingSymbol.IsAnonymousFunction() &&
                         SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(parameter.ContainingSymbol, symbol.ContainingSymbol, syntaxFacts.IsCaseSensitive) &&

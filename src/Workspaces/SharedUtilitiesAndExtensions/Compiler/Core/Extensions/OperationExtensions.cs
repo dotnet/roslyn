@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -53,14 +55,12 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation is IDeclarationPatternOperation)
             {
-#if !CODE_STYLE
                 while (operation.Parent is IBinaryPatternOperation ||
                        operation.Parent is INegatedPatternOperation ||
                        operation.Parent is IRelationalPatternOperation)
                 {
                     operation = operation.Parent;
                 }
-#endif
 
                 switch (operation.Parent)
                 {

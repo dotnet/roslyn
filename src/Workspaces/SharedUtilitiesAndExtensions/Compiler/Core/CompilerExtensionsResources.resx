@@ -147,6 +147,9 @@
   <data name="Parameter_preferences" xml:space="preserve">
     <value>Parameter preferences</value>
   </data>
+  <data name="Suppression_preferences" xml:space="preserve">
+    <value>Suppression preferences</value>
+  </data>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>

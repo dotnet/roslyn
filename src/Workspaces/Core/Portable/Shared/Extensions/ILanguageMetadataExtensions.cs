@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,8 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class ILanguageMetadataExtensions
     {
-        [return: MaybeNull]
-        public static TInterface ToSpecificLanguage<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services, string languageName)
+        public static TInterface? ToSpecificLanguage<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services, string languageName)
             where TMetadata : ILanguageMetadata
         {
             return services.Where(s => s.Metadata.Language == languageName).Select(s => s.Value).FirstOrDefault();

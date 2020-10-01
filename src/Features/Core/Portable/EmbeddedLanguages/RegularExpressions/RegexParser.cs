@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -171,11 +173,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             var root = new RegexCompilationUnit(expression, _currentToken);
 
             var seenDiagnostics = new HashSet<EmbeddedDiagnostic>();
-            var diagnostics = ArrayBuilder<EmbeddedDiagnostic>.GetInstance();
+            using var _ = ArrayBuilder<EmbeddedDiagnostic>.GetInstance(out var diagnostics);
             CollectDiagnostics(root, seenDiagnostics, diagnostics);
 
             return new RegexTree(
-                _lexer.Text, root, diagnostics.ToImmutableAndFree(),
+                _lexer.Text, root, diagnostics.ToImmutable(),
                 _captureNamesToSpan, _captureNumbersToSpan);
         }
 
@@ -259,7 +261,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexSequenceNode ParseSequence(bool consumeCloseParen)
         {
-            using var _ = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
+            using var _1 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
             while (ShouldConsumeSequenceElement(consumeCloseParen))
             {
                 var last = builder.Count == 0 ? null : builder.Last();
@@ -269,10 +271,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // We wil commonly get tons of text nodes in a row.  For example, the
             // regex `abc` will be three text nodes in a row.  To help save on memory
             // try to merge that into one single text node.
-            var sequence = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            using var _2 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var sequence);
             MergeTextNodes(builder, sequence);
 
-            return new RegexSequenceNode(sequence.ToImmutableAndFree());
+            return new RegexSequenceNode(sequence.ToImmutable());
         }
 
         private static void MergeTextNodes(ArrayBuilder<RegexExpressionNode> list, ArrayBuilder<RegexExpressionNode> final)
@@ -665,7 +667,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         private RegexSimpleGroupingNode ParseSimpleGroup(RegexToken openParenToken)
-            => new RegexSimpleGroupingNode(
+            => new(
                 openParenToken, ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
 
         private RegexExpressionNode ParseGroupingEmbeddedExpression(RegexOptions embeddedOptions)
@@ -1122,22 +1124,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         private RegexNonCapturingGroupingNode ParseNonCapturingGroupingNode(RegexToken openParenToken, RegexToken questionToken)
-            => new RegexNonCapturingGroupingNode(
+            => new(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
 
         private RegexPositiveLookaheadGroupingNode ParsePositiveLookaheadGrouping(RegexToken openParenToken, RegexToken questionToken)
-            => new RegexPositiveLookaheadGroupingNode(
+            => new(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options & ~RegexOptions.RightToLeft), ParseGroupingCloseParen());
 
         private RegexNegativeLookaheadGroupingNode ParseNegativeLookaheadGrouping(RegexToken openParenToken, RegexToken questionToken)
-            => new RegexNegativeLookaheadGroupingNode(
+            => new(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options & ~RegexOptions.RightToLeft), ParseGroupingCloseParen());
 
         private RegexAtomicGroupingNode ParseAtomicGrouping(RegexToken openParenToken, RegexToken questionToken)
-            => new RegexAtomicGroupingNode(
+            => new(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
 
@@ -1168,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexNestedOptionsGroupingNode ParseNestedOptionsGroupingNode(
             RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken)
-            => new RegexNestedOptionsGroupingNode(
+            => new(
                 openParenToken, questionToken, optionsToken, _currentToken,
                 ParseGroupingEmbeddedExpression(GetNewOptionsFromToken(_options, optionsToken)), ParseGroupingCloseParen());
 
@@ -1237,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // trivia is not allowed anywhere in a character class
             ConsumeCurrentToken(allowTrivia: false);
 
-            using var _ = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
+            using var _1 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
             while (_currentToken.Kind != RegexKind.EndOfFile)
             {
                 Debug.Assert(_currentToken.VirtualChars.Length == 1);
@@ -1255,7 +1257,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // We wil commonly get tons of text nodes in a row.  For example, the
             // regex `[abc]` will be three text nodes in a row.  To help save on memory
             // try to merge that into one single text node.
-            var contents = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            using var _2 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var contents);
             MergeTextNodes(builder, contents);
 
             if (closeBracketToken.IsMissing)
@@ -1265,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     GetTokenStartPositionSpan(_currentToken)));
             }
 
-            var components = new RegexSequenceNode(contents.ToImmutableAndFree());
+            var components = new RegexSequenceNode(contents.ToImmutable());
             return caretToken.IsMissing
                 ? (RegexBaseCharacterClassNode)new RegexCharacterClassNode(openBracketToken, components, closeBracketToken)
                 : new RegexNegatedCharacterClassNode(openBracketToken, caretToken, components, closeBracketToken);

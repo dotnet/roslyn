@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// <summary>
         /// Annotation to mark the namespace encapsulating the type that has been moved
         /// </summary>
-        public static SyntaxAnnotation NamespaceScopeMovedAnnotation = new SyntaxAnnotation(nameof(MoveTypeOperationKind.MoveTypeNamespaceScope));
+        public static SyntaxAnnotation NamespaceScopeMovedAnnotation = new(nameof(MoveTypeOperationKind.MoveTypeNamespaceScope));
 
         public abstract Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken);
         public abstract Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
@@ -100,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return ImmutableArray<CodeAction>.Empty;
             }
 
-            var actions = new List<CodeAction>();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
             var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
             var isNestedType = IsNestedType(state.TypeNode);
 
@@ -146,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             Debug.Assert(actions.Count != 0, "No code actions found for MoveType Refactoring");
 
-            return actions.ToImmutableArray();
+            return actions.ToImmutable();
         }
 
         private CodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind) =>
@@ -212,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return namesMatch;
         }
 
-        private static IEnumerable<string> GetSuggestedFileNames(
+        private static ImmutableArray<string> GetSuggestedFileNames(
             TTypeDeclarationSyntax typeNode,
             bool isNestedType,
             string typeName,
@@ -230,11 +233,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode, semanticModel, cancellationToken);
                 var dottedName = typeNameParts.Join(".") + fileExtension;
 
-                return new List<string> { standaloneName, dottedName };
+                return ImmutableArray.Create(standaloneName, dottedName);
             }
             else
             {
-                return SpecializedCollections.SingletonEnumerable(standaloneName);
+                return ImmutableArray.Create(standaloneName);
             }
         }
 

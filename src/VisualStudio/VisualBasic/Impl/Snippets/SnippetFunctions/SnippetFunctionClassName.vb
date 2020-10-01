@@ -8,15 +8,14 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFunctions
     Friend NotInheritable Class SnippetFunctionClassName
         Inherits AbstractSnippetFunctionClassName
 
-        Public Sub New(snippetExpansionClient As SnippetExpansionClient, textView As ITextView, subjectBuffer As ITextBuffer, fieldName As String)
-            MyBase.New(snippetExpansionClient, textView, subjectBuffer, fieldName)
+        Public Sub New(snippetExpansionClient As SnippetExpansionClient, subjectBuffer As ITextBuffer, fieldName As String)
+            MyBase.New(snippetExpansionClient, subjectBuffer, fieldName)
         End Sub
 
         Protected Overrides Function GetContainingClassName(document As Document, subjectBufferFieldSpan As SnapshotSpan, cancellationToken As CancellationToken, ByRef value As String, ByRef hasDefaultValue As Integer) As Integer

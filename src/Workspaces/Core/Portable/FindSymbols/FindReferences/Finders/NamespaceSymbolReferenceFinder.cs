@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespaceSymbol>
     {
-        private static readonly SymbolDisplayFormat s_globalNamespaceFormat = new SymbolDisplayFormat(SymbolDisplayGlobalNamespaceStyle.Included);
+        private static readonly SymbolDisplayFormat s_globalNamespaceFormat = new(SymbolDisplayGlobalNamespaceStyle.Included);
 
         protected override bool CanFind(INamespaceSymbol symbol)
             => true;
@@ -42,22 +42,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var identifierName = GetNamespaceIdentifierName(symbol);
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
                 document, semanticModel, identifierName, cancellationToken).ConfigureAwait(false);
-            var nonAliasReferences = FindReferencesInTokens(symbol,
+            var nonAliasReferences = await FindReferencesInTokensAsync(symbol,
                 document,
                 semanticModel,
                 tokens,
-                t => syntaxFactsService.TextMatch(t.ValueText, identifierName),
-                cancellationToken);
+                t => syntaxFacts.TextMatch(t.ValueText, identifierName),
+                cancellationToken).ConfigureAwait(false);
 
             var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             var suppressionReferences = ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId)
                 ? await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel,
-                    syntaxFactsService, docCommentId, cancellationToken).ConfigureAwait(false)
+                    syntaxFacts, docCommentId, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
             return nonAliasReferences.Concat(aliasReferences).Concat(suppressionReferences);

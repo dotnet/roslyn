@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition.Hosting;
 using System.IO;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestCreateWithRequiredServices()
         {
             var commandLine = @"goo.cs";
-            var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices); // includes non-portable services too
+            var ws = new AdhocWorkspace();
             _ = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory", ws);
         }
 

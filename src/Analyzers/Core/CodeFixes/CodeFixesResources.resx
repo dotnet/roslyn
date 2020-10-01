@@ -138,10 +138,13 @@
   <data name="Remove_redundant_assignment" xml:space="preserve">
     <value>Remove redundant assignment</value>
   </data>
-  <data name="Remove_redundant_suppression" xml:space="preserve">
-    <value>Remove redundant suppression</value>
-  </data>
   <data name="Update_suppression_format" xml:space="preserve">
     <value>Update suppression format</value>
+  </data>
+  <data name="Suppress_or_Configure_issues" xml:space="preserve">
+    <value>Suppress or Configure issues</value>
+  </data>
+  <data name="Fix_all_occurrences_in" xml:space="preserve">
+    <value>Fix all occurrences in</value>
   </data>
 </root>

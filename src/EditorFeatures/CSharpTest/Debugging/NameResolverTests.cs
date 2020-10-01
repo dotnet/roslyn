@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     [UseExportProvider]
     public class NameResolverTests
     {
-        private async Task TestAsync(string text, string searchText, params string[] expectedNames)
+        private static async Task TestAsync(string text, string searchText, params string[] expectedNames)
         {
             using var workspace = TestWorkspace.CreateCSharp(text);
 

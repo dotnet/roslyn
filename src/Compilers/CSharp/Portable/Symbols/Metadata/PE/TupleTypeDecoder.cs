@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
@@ -166,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case SymbolKind.TypeParameter:
                     return type;
 
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     return DecodeFunctionPointerType((FunctionPointerTypeSymbol)type);
 
                 case SymbolKind.PointerType:

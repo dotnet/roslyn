@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -87,17 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// if our ref count actually reaches 0.  Otherwise, we always try to compute the initial
             /// set of tags for our view/buffer.
             /// </summary>
-            private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new CancellationTokenSource();
-
-            /// <summary>
-            /// Whether or not we've gotten any change notifications from our <see cref="ITaggerEventSource"/>.
-            /// The first time we hear about changes, we fast track getting tags and reporting 
-            /// them to the UI.
-            /// 
-            /// We use an int so we can use <see cref="Interlocked.CompareExchange(ref int, int, int)"/> 
-            /// to read/set this.
-            /// </summary>
-            private int _seenEventSourceChanged;
+            private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new();
 
             public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
             public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;

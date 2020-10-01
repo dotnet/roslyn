@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Linq;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                     return null;
                 }
 
-                var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, cancellationToken).ConfigureAwait(false);
                 var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
                 {

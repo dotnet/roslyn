@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -48,11 +50,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ImmutableDictionary<string, string> parameterToNewMemberMap,
             bool addNullChecks,
             bool preferThrowExpression,
-            bool generateProperties)
+            bool generateProperties,
+            bool isContainedInUnsafeType)
         {
             var newMembers = generateProperties
-                ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap)
-                : CreateFieldsForParameters(parameters, parameterToNewMemberMap);
+                ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType)
+                : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType);
             var statements = factory.CreateAssignmentStatements(
                 semanticModel, parameters, parameterToExistingMemberMap, parameterToNewMemberMap,
                 addNullChecks, preferThrowExpression).SelectAsArray(
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: containingTypeOpt.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
-                modifiers: new DeclarationModifiers(),
+                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(p => p.RequiresUnsafeModifier())),
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> CreateFieldsForParameters(
-            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewFieldMap)
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewFieldMap, bool isContainedInUnsafeType)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var parameter in parameters)
@@ -107,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
                         attributes: default,
                         accessibility: Accessibility.Private,
-                        modifiers: default,
+                        modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
                         type: parameter.Type,
                         name: fieldName));
                 }
@@ -117,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> CreatePropertiesForParameters(
-            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewPropertyMap)
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewPropertyMap, bool isContainedInUnsafeType)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var parameter in parameters)
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     result.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                         attributes: default,
                         accessibility: Accessibility.Public,
-                        modifiers: default,
+                        modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
                         type: parameter.Type,
                         refKind: RefKind.None,
                         explicitInterfaceImplementations: ImmutableArray<IPropertySymbol>.Empty,
@@ -182,8 +185,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var identifier = factory.IdentifierName(parameter.Name);
             var nullExpr = factory.NullLiteralExpression();
-            var condition = factory.SupportsPatterns(semanticModel.SyntaxTree.Options)
-                ? factory.IsPatternExpression(identifier, factory.ConstantPattern(nullExpr))
+            var condition = factory.SyntaxGeneratorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options)
+                ? factory.SyntaxGeneratorInternal.IsPatternExpression(identifier, factory.SyntaxGeneratorInternal.ConstantPattern(nullExpr))
                 : factory.ReferenceEqualsExpression(identifier, nullExpr);
 
             // generates: if (s == null) throw new ArgumentNullException(nameof(s))

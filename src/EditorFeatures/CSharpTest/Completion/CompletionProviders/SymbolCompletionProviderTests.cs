@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,10 +12,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -24,15 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
     [UseExportProvider]
     public partial class SymbolCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public SymbolCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(SymbolCompletionProvider);
 
-        protected override ComposableCatalog GetExportCatalog()
-            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(SourceCodeKind.Regular)]
@@ -1297,7 +1293,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
         public async Task PositionalPatternSecondPosition()
         {
@@ -8074,7 +8070,7 @@ class A
 
         [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task WithinChainOfConditionalAccesses()
+        public async Task WithinChainOfConditionalAccesses1()
         {
             var markup = @"
 class Program
@@ -8091,6 +8087,48 @@ class B { public C c; }
 class C { public D d; }
 class D { public int e; }";
             await VerifyItemExistsAsync(markup, "b");
+        }
+
+        [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithinChainOfConditionalAccesses2()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a;
+        var x = a?.b?.$$c?.d.e;
+    }
+}
+
+class A { public B b; }
+class B { public C c; }
+class C { public D d; }
+class D { public int e; }";
+            await VerifyItemExistsAsync(markup, "c");
+        }
+
+        [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithinChainOfConditionalAccesses3()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a;
+        var x = a?.b?.c?.$$d.e;
+    }
+}
+
+class A { public B b; }
+class B { public C c; }
+class C { public D d; }
+class D { public int e; }";
+            await VerifyItemExistsAsync(markup, "d");
         }
 
         [WorkItem(843466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843466")]
@@ -10690,6 +10728,24 @@ class C
         $$
     }
 }", "Local");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1152109, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1152109")]
+        public async Task NoItemWithEmptyDisplayName()
+        {
+            var markup = @"
+class C
+{
+    static void M()
+    {
+        int$$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(
+                markup, "",
+                matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
     }
 }

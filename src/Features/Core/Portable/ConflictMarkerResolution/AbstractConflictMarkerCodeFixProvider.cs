@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -293,7 +291,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private async Task<SyntaxNode> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            string equivalenceKey, CancellationToken cancellationToken)
+            string? equivalenceKey, CancellationToken cancellationToken)
         {
             Debug.Assert(
                 equivalenceKey == TakeTopEquivalenceKey ||

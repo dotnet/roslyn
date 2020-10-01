@@ -182,13 +182,13 @@ End Module
 
         End Sub
 
-        Private Function GetPeekResultCollection(element As XElement) As PeekResultCollection
+        Private Shared Function GetPeekResultCollection(element As XElement) As PeekResultCollection
             Using workspace = TestWorkspace.Create(element)
                 Return GetPeekResultCollection(workspace)
             End Using
         End Function
 
-        Private Function GetPeekResultCollection(workspace As TestWorkspace) As PeekResultCollection
+        Private Shared Function GetPeekResultCollection(workspace As TestWorkspace) As PeekResultCollection
             Dim document = workspace.Documents.FirstOrDefault(Function(d) d.CursorPosition.HasValue)
 
             If document Is Nothing Then

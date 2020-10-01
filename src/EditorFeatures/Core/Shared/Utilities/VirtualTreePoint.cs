@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             return ComparerWithState.CompareTo(this, other, s_comparers);
         }
 
-        private readonly static ImmutableArray<Func<VirtualTreePoint, IComparable>> s_comparers =
+        private static readonly ImmutableArray<Func<VirtualTreePoint, IComparable>> s_comparers =
             ImmutableArray.Create<Func<VirtualTreePoint, IComparable>>(p => p.Position, prop => prop.VirtualSpaces);
 
         public bool Equals(VirtualTreePoint other)

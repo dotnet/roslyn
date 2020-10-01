@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -347,7 +346,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Empty(testAccessor.GetFileUrisInPublishDiagnostics());
         }
 
-        private async Task<(InProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(Workspace workspace, IDiagnosticService diagnosticService,
+        private async Task<(InProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(TestWorkspace workspace, IDiagnosticService diagnosticService,
             int expectedNumberOfCallbacks, params Document[] documentsToPublish)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
@@ -374,16 +373,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             return (languageServer.GetTestAccessor(), callback.Results);
 
-            static InProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, Workspace workspace, IDiagnosticService mockDiagnosticService)
+            static InProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
             {
-                var protocol = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<LanguageServerProtocol>();
+                var protocol = workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
+                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+                var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
 
-                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, clientName: null);
+                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, listenerProvider, solutionProvider, clientName: null);
                 return languageServer;
             }
         }
 
-        private void SetupMockWithDiagnostics(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId, IEnumerable<DiagnosticData> diagnostics)
+        private void SetupMockWithDiagnostics(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
         {
             diagnosticServiceMock.Setup(d => d.GetDiagnostics(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), documentId,
                     It.IsAny<object>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
@@ -391,7 +392,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         }
 
         private void SetupMockDiagnosticSequence(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId,
-            IEnumerable<DiagnosticData> firstDiagnostics, IEnumerable<DiagnosticData> secondDiagnostics)
+            ImmutableArray<DiagnosticData> firstDiagnostics, ImmutableArray<DiagnosticData> secondDiagnostics)
         {
             diagnosticServiceMock.SetupSequence(d => d.GetDiagnostics(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), documentId,
                     It.IsAny<object>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
@@ -399,11 +400,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 .Returns(secondDiagnostics);
         }
 
-        private async Task<IEnumerable<DiagnosticData>> CreateMockDiagnosticDataAsync(Document document, string id)
+        private async Task<ImmutableArray<DiagnosticData>> CreateMockDiagnosticDataAsync(Document document, string id)
         {
             var descriptor = new DiagnosticDescriptor(id, "", "", "", DiagnosticSeverity.Error, true);
             var location = Location.Create(await document.GetRequiredSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false), new TextSpan());
-            return new DiagnosticData[] { DiagnosticData.Create(Diagnostic.Create(descriptor, location), document) };
+            return ImmutableArray.Create(DiagnosticData.Create(Diagnostic.Create(descriptor, location), document));
         }
 
         private async Task<ImmutableArray<DiagnosticData>> CreateMockDiagnosticDatasWithMappedLocationAsync(Document document, params (string diagnosticId, string mappedFilePath)[] diagnostics)
@@ -430,7 +431,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     diagnostic.Properties,
                     document.Project.Id,
                     GetDataLocation(document, mappedFilePath),
-                    null,
+                    additionalLocations: default,
                     document.Project.Language,
                     diagnostic.Descriptor.Title.ToString(),
                     diagnostic.Descriptor.Description.ToString(),

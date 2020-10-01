@@ -124,6 +124,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                                     Return CaseCorrectIdentifierIfNamesDiffer(token, newToken, otherPartParam, namesMustBeEqualIgnoringCase:=True)
                                 End If
                             End If
+                        Else
+                            ' Named tuple expression
+                            Dim nameColonEquals = TryCast(token.Parent?.Parent, NameColonEqualsSyntax)
+                            If nameColonEquals IsNot Nothing AndAlso TypeOf nameColonEquals.Parent?.Parent Is TupleExpressionSyntax Then
+                                Return newToken
+                            End If
                         End If
                     End If
                 End If

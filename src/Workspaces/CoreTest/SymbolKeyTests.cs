@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -623,19 +625,67 @@ class C
             var document = workspace.AddDocument(project.Id, "testdocument", sourceText);
 
             var firstModel = await document.GetSemanticModelAsync();
-            var tree1 = await document.GetSyntaxTreeAsync();
-            var basemethod1 = tree1.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
+
+            // Ensure we prime the reuse cache with the true semantic model.
+            var firstReusedModel = await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None);
+            Assert.False(firstReusedModel.IsSpeculativeSemanticModel);
 
             // Modify the document so we can use the old semantic model as a base.
             var updated = sourceText.WithChanges(new TextChange(new TextSpan(position, 0), "insertion"));
             workspace.TryApplyChanges(document.WithText(updated).Project.Solution);
 
             document = workspace.CurrentSolution.GetDocument(document.Id);
-            var tree2 = await document.GetSyntaxTreeAsync();
-            var basemethod2 = tree2.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
 
-            var service = CSharp.CSharpSemanticFactsService.Instance;
-            var m = service.TryGetSpeculativeSemanticModel(firstModel, basemethod1, basemethod2, out var testModel);
+            // Now, the second time we try to get a speculative model, we should succeed.
+            var testModel = await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None);
+            Assert.True(testModel.IsSpeculativeSemanticModel);
+
+            var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
+
+            // This should not throw an exception.
+            Assert.NotEqual(default, SymbolKey.Create(xSymbol));
+        }
+
+        [Fact, WorkItem(11193, "https://github.com/dotnet/roslyn/issues/11193")]
+        public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel_InProperty()
+        {
+            var markup = @"
+class C
+{
+    int Prop
+    {
+        get
+        {
+            System.Func<int> lambda = () => 
+            {
+                int x;
+                $$
+            }
+        }
+    }
+}";
+            MarkupTestFile.GetPosition(markup, out var text, out int position);
+
+            var sourceText = SourceText.From(text);
+            var workspace = new AdhocWorkspace();
+            var project = workspace.AddProject("Test", LanguageNames.CSharp);
+            var document = workspace.AddDocument(project.Id, "testdocument", sourceText);
+
+            var firstModel = await document.GetSemanticModelAsync();
+
+            // Ensure we prime the reuse cache with the true semantic model.
+            var firstReusedModel = await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None);
+            Assert.False(firstReusedModel.IsSpeculativeSemanticModel);
+
+            // Modify the document so we can use the old semantic model as a base.
+            var updated = sourceText.WithChanges(new TextChange(new TextSpan(position, 0), "insertion"));
+            workspace.TryApplyChanges(document.WithText(updated).Project.Solution);
+
+            document = workspace.CurrentSolution.GetDocument(document.Id);
+
+            // Now, the second time we try to get a speculative model, we should succeed.
+            var testModel = await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None);
+            Assert.True(testModel.IsSpeculativeSemanticModel);
 
             var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
 
@@ -966,6 +1016,52 @@ class C
             var comp = GetCompilation(source, LanguageNames.CSharp);
             var fields = GetDeclaredSymbols(comp).OfType<IFieldSymbol>().Select(f => f.Type);
             TestRoundTrip(fields, comp);
+        }
+
+        [Fact]
+        public void TestGenericErrorType()
+        {
+            var source1 = @"
+public class C
+{
+    public Goo<X> G() { }
+}";
+
+            // We don't add metadata to the second compilation, so even `System.Collections.IEnumerable` will be an
+            // error type.
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp, "File1.cs");
+            var tree = compilation1.SyntaxTrees.Single();
+            var root = tree.GetRoot();
+            var node = root.DescendantNodes().OfType<CSharp.Syntax.GenericNameSyntax>().Single();
+
+            var semanticModel = compilation1.GetSemanticModel(tree);
+            var symbol = semanticModel.GetTypeInfo(node).Type;
+
+            {
+                // Ensure we don't crash getting these symbol keys.
+                var id = SymbolKey.CreateString(symbol);
+                Assert.NotNull(id);
+
+                // Validate that if the client does ask to resolve locations that we
+                // do not crash if those locations cannot be found.
+                var found = SymbolKey.ResolveString(id, compilation1).GetAnySymbol();
+                Assert.NotNull(found);
+
+                Assert.Equal(symbol.Name, found.Name);
+                Assert.Equal(symbol.Kind, found.Kind);
+            }
+
+            {
+                // Ensure we don't crash getting these symbol keys.
+                var id = SymbolKey.CreateString(symbol.OriginalDefinition);
+                Assert.NotNull(id);
+
+                var found = SymbolKey.ResolveString(id, compilation1).GetAnySymbol();
+                Assert.NotNull(found);
+
+                Assert.Equal(symbol.Name, found.Name);
+                Assert.Equal(symbol.Kind, found.Kind);
+            }
         }
 
         private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -127,7 +125,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var originalNamespaceName = semanticModel.GetDeclaredSymbol(originalNamespaceDeclarations.First(), cancellationToken).ToDisplayString();
+            var originalNamespaceName = semanticModel.GetRequiredDeclaredSymbol(originalNamespaceDeclarations.First(), cancellationToken).ToDisplayString();
             var solution = document.Project.Solution;
 
             // Only loop as many top level namespace declarations as we originally had. 
@@ -135,7 +133,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // rule out namespaces that didn't need to be changed
             for (var i = 0; i < originalNamespaceDeclarations.Length; i++)
             {
-                var namespaceName = semanticModel.GetDeclaredSymbol(originalNamespaceDeclarations[i], cancellationToken).ToDisplayString();
+                var namespaceName = semanticModel.GetRequiredDeclaredSymbol(originalNamespaceDeclarations[i], cancellationToken).ToDisplayString();
                 if (namespaceName != originalNamespaceName)
                 {
                     // Skip all namespaces that didn't match the original namespace name that 

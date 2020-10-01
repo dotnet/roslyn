@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if DEBUG
 //#define CHECK_LOCALS // define CHECK_LOCALS to help debug some rewriting problems that would otherwise cause code-gen failures
 
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _allCapturedVariables = allCapturedVars.ToImmutable();
         }
 
-#nullable restore
+#nullable disable
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
@@ -1188,6 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // It needs to run before the exception variable is accessed.
             // To ensure that, we will make exception variable a sequence that performs prologue as its side-effects.
             BoundExpression rewrittenExceptionSource = null;
+            var rewrittenFilterPrologue = (BoundStatementList)this.Visit(node.ExceptionFilterPrologueOpt);
             var rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
             if (node.ExceptionSourceOpt != null)
             {
@@ -1205,12 +1208,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (prologue.Count > 0)
             {
                 Debug.Assert(rewrittenFilter != null);
-                rewrittenFilter = new BoundSequence(
-                    rewrittenFilter.Syntax,
-                    ImmutableArray.Create<LocalSymbol>(),
-                    prologue.ToImmutable(),
-                    rewrittenFilter,
-                    rewrittenFilter.Type);
+                var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance(prologue.Count);
+                foreach (var p in prologue)
+                {
+                    prologueBuilder.Add(new BoundExpressionStatement(p.Syntax, p) { WasCompilerGenerated = true });
+                }
+                if (rewrittenFilterPrologue != null)
+                {
+                    prologueBuilder.AddRange(rewrittenFilterPrologue.Statements);
+                }
+
+                rewrittenFilterPrologue = new BoundStatementList(rewrittenFilter.Syntax, prologueBuilder.ToImmutableAndFree());
             }
 
             // done with this.
@@ -1225,6 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenCatchLocals,
                 rewrittenExceptionSource,
                 exceptionTypeOpt,
+                rewrittenFilterPrologue,
                 rewrittenFilter,
                 rewrittenBlock,
                 node.IsSynthesizedAsyncCatchAll);
@@ -1301,6 +1310,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitType(node.Type));
             }
             return base.VisitDelegateCreationExpression(node);
+        }
+
+        public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            if (node.TargetMethod.MethodKind == MethodKind.LocalFunction)
+            {
+                Debug.Assert(node.TargetMethod is { RequiresInstanceReceiver: false, IsStatic: true });
+                ImmutableArray<BoundExpression> arguments = default;
+                ImmutableArray<RefKind> argRefKinds = default;
+
+                RemapLocalFunction(
+                    node.Syntax,
+                    node.TargetMethod,
+                    out BoundExpression receiver,
+                    out MethodSymbol remappedMethod,
+                    ref arguments,
+                    ref argRefKinds);
+
+                Debug.Assert(arguments.IsDefault &&
+                             argRefKinds.IsDefault &&
+                             receiver.Kind == BoundKind.TypeExpression &&
+                             remappedMethod is { RequiresInstanceReceiver: false, IsStatic: true });
+
+                return node.Update(remappedMethod, node.Type);
+            }
+
+            return base.VisitFunctionPointerLoad(node);
         }
 
         public override BoundNode VisitConversion(BoundConversion conversion)

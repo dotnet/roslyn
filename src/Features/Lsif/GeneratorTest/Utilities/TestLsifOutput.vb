@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
 
             For Each testDocument In _workspace.Documents
                 Dim documentVertex = _testLsifJsonWriter.Vertices _
-                                                        .OfType(Of Graph.Document) _
+                                                        .OfType(Of Graph.LsifDocument) _
                                                         .Where(Function(d) d.Uri.LocalPath = testDocument.FilePath) _
                                                         .Single()
                 Dim rangeVertices = GetLinkedVertices(Of Range)(documentVertex, "contains")

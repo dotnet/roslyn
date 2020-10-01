@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,13 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
     /// </summary>
     internal abstract class CodeCleanUpFixer : ICodeCleanUpFixer
     {
-        [Obsolete("use one without cancellationtoken", error: true)]
-        public virtual Task<bool> FixAsync(ICodeCleanUpScope scope, ICodeCleanUpExecutionContext context, CancellationToken _)
-        {
-            // cancellation token will be removed in next API update
-            return FixAsync(scope, context);
-        }
-
         public abstract Task<bool> FixAsync(ICodeCleanUpScope scope, ICodeCleanUpExecutionContext context);
     }
 }

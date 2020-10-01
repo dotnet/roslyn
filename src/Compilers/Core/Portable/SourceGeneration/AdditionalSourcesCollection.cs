@@ -9,8 +9,6 @@ using System.IO;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class AdditionalSourcesCollection
@@ -64,6 +62,11 @@ namespace Microsoft.CodeAnalysis
             if (this.Contains(hintName))
             {
                 throw new ArgumentException(CodeAnalysisResources.HintNameUniquePerGenerator, nameof(hintName));
+            }
+
+            if (source.Encoding is null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.SourceTextRequiresEncoding, nameof(source));
             }
 
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var pointer = (PointerTypeSymbol)type;
                         return customModifierCountForTypeWithAnnotations(pointer.PointedAtTypeWithAnnotations);
                     }
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     {
                         return ((FunctionPointerTypeSymbol)type).Signature.CustomModifierCount();
                     }
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         TypeWithAnnotations pointedAtType = pointer.PointedAtTypeWithAnnotations;
                         return checkTypeWithAnnotations(pointedAtType, flagNonDefaultArraySizesOrLowerBounds);
                     }
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     {
                         var funcPtr = (FunctionPointerTypeSymbol)type;
                         if (!funcPtr.Signature.RefCustomModifiers.IsEmpty || checkTypeWithAnnotations(funcPtr.Signature.ReturnTypeWithAnnotations, flagNonDefaultArraySizesOrLowerBounds))

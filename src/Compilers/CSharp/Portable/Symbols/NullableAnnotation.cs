@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -27,13 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         Oblivious,
 
         /// <summary>
-        /// Type is annotated with '?' - string?, T? where T : class; and for int?, T? where T : struct.
+        /// Type is annotated with '?' - string?, T?.
         /// </summary>
-        /// <remarks>
-        /// A type must be known to be a (non-nullable)
-        /// type in order to be <see cref="Annotated"/>.  Therefore type parameters typically cannot be <see cref="Annotated"/> --
-        /// only a type parameter that is constrained to a non-nullable type can be <see cref="Annotated"/>.
-        /// </remarks>
         Annotated,
     }
 }

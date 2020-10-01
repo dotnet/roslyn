@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,8 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SourceConstructorSymbolBase(
             SourceMemberContainerTypeSymbol containingType,
             Location location,
-            CSharpSyntaxNode syntax)
-            : base(containingType, syntax.GetReference(), ImmutableArray.Create(location), SyntaxFacts.HasYieldOperations(syntax))
+            CSharpSyntaxNode syntax,
+            bool isIterator)
+            : base(containingType, syntax.GetReference(), ImmutableArray.Create(location), isIterator)
         {
             Debug.Assert(
                 syntax.IsKind(SyntaxKind.ConstructorDeclaration) ||
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken arglistToken;
             _lazyParameters = ParameterHelpers.MakeParameters(
                 signatureBinder, this, parameterList, out arglistToken,
-                allowRefOrOut: true,
+                allowRefOrOut: AllowRefOrOut,
                 allowThis: false,
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
@@ -72,7 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         protected abstract ParameterListSyntax GetParameterList();
-#nullable restore
+
+        protected abstract bool AllowRefOrOut { get; }
+#nullable disable
 
         internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
@@ -133,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
+        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext)
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         public override RefKind RefKind

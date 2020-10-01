@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -289,9 +292,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.New(stateMachineType.Constructor.AsMember(frameType), F.Literal(initialState))));
         }
 
-        protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType)
+        protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies)
         {
-            return F.Return(F.Local(stateMachineVariable));
+            var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            bodyBuilder.Add(GenerateParameterStorage(stateMachineVariable, proxies));
+
+            // return local;
+            bodyBuilder.Add(
+                F.Return(
+                    F.Local(stateMachineVariable)));
+
+            return F.Block(bodyBuilder.ToImmutableAndFree());
         }
 
         private void GenerateMoveNextAndDispose(

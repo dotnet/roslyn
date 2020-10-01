@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -188,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private ImmutableHashSet<string> GetAnalyzersWithLoadErrors()
         {
-            if (_analyzersFolder.Workspace is VisualStudioWorkspaceImpl vsWorkspace)
+            if (_analyzersFolder.Workspace is VisualStudioWorkspaceImpl)
             {
                 /*
                 var vsProject = vsWorkspace.DeferredState?.ProjectTracker.GetProject(_analyzersFolder.ProjectId);

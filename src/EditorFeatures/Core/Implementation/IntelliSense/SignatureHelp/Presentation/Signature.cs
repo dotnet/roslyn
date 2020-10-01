@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -198,19 +200,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             _parameters = parameters.ToReadOnlyCollection();
         }
 
-        private void AddRange(IList<TaggedText> values, List<TaggedText> parts, List<TaggedText> prettyPrintedParts)
+        private static void AddRange(IList<TaggedText> values, List<TaggedText> parts, List<TaggedText> prettyPrintedParts)
         {
             parts.AddRange(values);
             prettyPrintedParts.AddRange(values);
         }
 
-        private void Append(string text, StringBuilder content, StringBuilder prettyPrintedContent)
+        private static void Append(string text, StringBuilder content, StringBuilder prettyPrintedContent)
         {
             content.Append(text);
             prettyPrintedContent.Append(text);
         }
 
-        private IList<TaggedText> AddOptionalBrackets(bool isOptional, IList<TaggedText> list)
+        private static IList<TaggedText> AddOptionalBrackets(bool isOptional, IList<TaggedText> list)
         {
             if (isOptional)
             {

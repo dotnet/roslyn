@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -57,7 +60,8 @@ namespace IdeBenchmarks
 
             _storageService = new SQLitePersistentStorageService(new LocationService());
 
-            _storage = _storageService.GetStorageWorker(_workspace.CurrentSolution);
+            var solution = _workspace.CurrentSolution;
+            _storage = _storageService.GetStorageWorker(_workspace, (SolutionKey)solution, solution);
             if (_storage == NoOpPersistentStorage.Instance)
             {
                 throw new InvalidOperationException("We didn't properly get the sqlite storage instance.");

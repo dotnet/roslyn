@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Partial Class SourceModuleSymbol
+    Partial Friend Class SourceModuleSymbol
         ' A class to hold the bound project-level imports, and associated binding diagnostics.
         Private NotInheritable Class BoundImports
             ' can be Nothing if no member imports

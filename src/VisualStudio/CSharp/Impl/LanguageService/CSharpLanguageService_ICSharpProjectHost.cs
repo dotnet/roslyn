@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -24,9 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 projectName,
                 hierarchy,
                 this.SystemServiceProvider,
-                this.Package.ComponentModel.GetService<IThreadingContext>(),
-                this.HostDiagnosticUpdateSource,
-                this.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ICommandLineParserService>());
+                this.Package.ComponentModel.GetService<IThreadingContext>());
 
             projectRoot.SetProjectSite(project);
         }

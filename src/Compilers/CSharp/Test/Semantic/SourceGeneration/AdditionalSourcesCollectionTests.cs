@@ -16,8 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class AdditionalSourcesCollectionTests
@@ -148,6 +146,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             asc.RemoveSource(removeHintName);
             var sources = asc.ToImmutableAndFree();
             Assert.Empty(sources);
+        }
+
+        [Fact]
+        public void SourceTextRequiresEncoding()
+        {
+            AdditionalSourcesCollection asc = new AdditionalSourcesCollection();
+
+            // fine
+            asc.Add("file1.cs", SourceText.From("", Encoding.UTF8));
+            asc.Add("file2.cs", SourceText.From("", Encoding.UTF32));
+            asc.Add("file3.cs", SourceText.From("", Encoding.Unicode));
+
+            // no encoding
+            Assert.Throws<ArgumentException>(() => asc.Add("file4.cs", SourceText.From("")));
+
+            // explicit null encoding
+            Assert.Throws<ArgumentException>(() => asc.Add("file5.cs", SourceText.From("", encoding: null)));
         }
     }
 }

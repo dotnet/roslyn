@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -192,8 +194,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         // Used to aid the investigation of https://github.com/dotnet/roslyn/issues/7364
         private class NullTextBufferException : Exception
         {
+#pragma warning disable IDE0052 // Remove unread private members
             private readonly Document _document;
             private readonly SourceText _text;
+#pragma warning restore IDE0052 // Remove unread private members
 
             public NullTextBufferException(Document document, SourceText text)
                 : base("Cannot retrieve textbuffer from document.")

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,13 +34,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public string GetSolutionFileName(string relativeFileName)
         {
             return Path.Combine(this.SolutionDirectory.Path, relativeFileName);
-        }
-
-        protected void CreateFiles(params string[] fileNames)
-        {
-            var fileNamesAndContent = Array.ConvertAll(fileNames, fileName => (fileName, (object)Resources.GetText(fileName)));
-            var fileSet = new FileSet(fileNamesAndContent);
-            CreateFiles(fileSet);
         }
 
         protected void CreateFiles(IEnumerable<(string filePath, object fileContent)> fileNamesAndContent)
@@ -175,18 +170,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Project\Program.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReference_Program),
                 (@"Library\Library.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReference_Library),
                 (@"Library\Class1.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReference_Class1));
-        }
-
-        protected static FileSet GetNetCoreMultiTFMFiles_ProjectReferenceWithReversedTFMs()
-        {
-            return new FileSet(
-                (@"NuGet.Config", Resources.NuGet_Config),
-                (@"Directory.Build.props", Resources.Directory_Build_props),
-                (@"Directory.Build.targets", Resources.Directory_Build_targets),
-                (@"Project\Project.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Project),
-                (@"Project\Program.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Program),
-                (@"Library\Library.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Library),
-                (@"Library\Class1.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Class1));
         }
 
         protected static FileSet GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp()

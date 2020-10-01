@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -267,6 +269,48 @@ class Program
             _ => throw new Exception(),
         };
         return value;
+    }
+}");
+        }
+        [WorkItem(44572, "https://github.com/dotnet/roslyn/issues/44572")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestImplicitConversion()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
+
+class C
+{
+    public C(String s) => _s = s;
+    private readonly String _s;
+    public static implicit operator String(C value) => value._s;
+    public static implicit operator C(String value) => new C(value);
+    
+    public bool method(C c)
+    {
+        [|switch|] (c)
+        {
+            case ""A"": return true;
+            default: return false;
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    public C(String s) => _s = s;
+    private readonly String _s;
+    public static implicit operator String(C value) => value._s;
+    public static implicit operator C(String value) => new C(value);
+    
+    public bool method(C c)
+    {
+        return ((string)c) switch
+        {
+            ""A"" => true,
+            _ => false,
+        };
     }
 }");
         }

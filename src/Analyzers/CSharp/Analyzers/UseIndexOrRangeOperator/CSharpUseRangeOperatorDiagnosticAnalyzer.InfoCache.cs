@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 {
                     var substringMethod = stringType.GetMembers(nameof(string.Substring))
                                                     .OfType<IMethodSymbol>()
-                                                    .FirstOrDefault(m => IsSliceLikeMethod(m));
+                                                    .FirstOrDefault(m => IsTwoArgumentSliceLikeMethod(m));
 
                     _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
                 }
@@ -54,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             private static IMethodSymbol GetSliceLikeMethod(INamedTypeSymbol namedType)
                 => namedType.GetMembers()
                             .OfType<IMethodSymbol>()
-                            .Where(m => IsSliceLikeMethod(m))
+                            .Where(m => IsTwoArgumentSliceLikeMethod(m))
                             .FirstOrDefault();
 
             public bool TryGetMemberInfo(IMethodSymbol method, out MemberInfo memberInfo)
             {
-                if (!IsSliceLikeMethod(method))
+                if (!IsTwoArgumentSliceLikeMethod(method))
                 {
                     memberInfo = default;
                     return false;
@@ -69,9 +71,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return memberInfo.LengthLikeProperty != null;
             }
 
+            public bool TryGetMemberInfoOneArgument(IMethodSymbol method, out MemberInfo memberInfo)
+            {
+                if (!IsOneArgumentSliceLikeMethod(method))
+                {
+                    memberInfo = default;
+                    return false;
+                }
+
+                if (!_methodToMemberInfo.TryGetValue(method, out memberInfo))
+                {
+                    // Find overload of our method that is a slice-like method with two arguments.
+                    // Computing member info for this method will also check that the containing type
+                    // has an int32 'Length' or 'Count' property, and has a suitable indexer,
+                    // so we don't have to.
+                    var overloadWithTwoArguments = method.ContainingType
+                        .GetMembers(method.Name)
+                        .OfType<IMethodSymbol>()
+                        .FirstOrDefault(s => IsTwoArgumentSliceLikeMethod(s));
+                    if (overloadWithTwoArguments is null)
+                    {
+                        memberInfo = default;
+                        return false;
+                    }
+
+                    // Since the search is expensive, we keep both the original one-argument and
+                    // two-arguments overload as keys in the cache, pointing to the same
+                    // member information object.
+                    var newMemberInfo = _methodToMemberInfo.GetOrAdd(overloadWithTwoArguments, _ => ComputeMemberInfo(overloadWithTwoArguments, requireRangeMember: true));
+                    _methodToMemberInfo.GetOrAdd(method, _ => newMemberInfo);
+                    memberInfo = newMemberInfo;
+                }
+
+                return memberInfo.LengthLikeProperty != null;
+            }
+
             private MemberInfo ComputeMemberInfo(IMethodSymbol sliceLikeMethod, bool requireRangeMember)
             {
-                Debug.Assert(IsSliceLikeMethod(sliceLikeMethod));
+                Debug.Assert(IsTwoArgumentSliceLikeMethod(sliceLikeMethod));
 
                 // Check that the type has an int32 'Length' or 'Count' property. If not, we don't
                 // consider it something indexable.
@@ -106,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     var actualSliceMethod =
                         sliceLikeMethod.ContainingType.GetMembers(nameof(Span<int>.Slice))
                                                       .OfType<IMethodSymbol>()
-                                                      .FirstOrDefault(s => IsSliceLikeMethod(s));
+                                                      .FirstOrDefault(s => IsTwoArgumentSliceLikeMethod(s));
                     if (actualSliceMethod != null)
                     {
                         return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);

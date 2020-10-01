@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-#if !CODE_STYLE
-
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Precedence;
@@ -89,5 +85,3 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
         }
     }
 }
-
-#endif

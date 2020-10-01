@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -242,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        static internal void DecodeSkipLocalsInitAttribute<T>(CSharpCompilation compilation, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal static void DecodeSkipLocalsInitAttribute<T>(CSharpCompilation compilation, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, ISkipLocalsInitAttributeTarget, new()
         {
             arguments.GetOrCreateData<T>().HasSkipLocalsInitAttribute = true;
@@ -253,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        static internal void DecodeMemberNotNullAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal static void DecodeMemberNotNullAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
         {
             var value = arguments.Attribute.CommonConstructorArguments[0];
@@ -303,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             arguments.Diagnostics.Add(ErrorCode.WRN_MemberNotNullBadMember, arguments.AttributeSyntaxOpt.Location, memberName);
         }
 
-        static internal void DecodeMemberNotNullWhenAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal static void DecodeMemberNotNullWhenAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
         {
             var value = arguments.Attribute.CommonConstructorArguments[1];
@@ -370,8 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 TypedConstant firstArg = ctorArgs.First();
-                TypeSymbol firstArgType = (TypeSymbol)firstArg.TypeInternal;
-                if ((object)firstArgType != null && firstArgType.Equals(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction)))
+                var firstArgType = (TypeSymbol?)firstArg.TypeInternal;
+                if (firstArgType is object && firstArgType.Equals(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction)))
                 {
                     return DecodeSecurityAction(firstArg, targetSymbol, nodeOpt, diagnostics, out hasErrors);
                 }
@@ -387,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)targetSymbol != null);
             Debug.Assert(targetSymbol.Kind == SymbolKind.Assembly || targetSymbol.Kind == SymbolKind.NamedType || targetSymbol.Kind == SymbolKind.Method);
+            Debug.Assert(typedValue.ValueInternal is object);
 
             int securityAction = (int)typedValue.ValueInternal;
             bool isPermissionRequestAction;
@@ -527,15 +526,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     PermissionSetAttributeTypeHasRequiredProperty(attrType, filePropName))
                 {
                     // resolve file prop path
-                    var fileName = (string)namedArg.Value.ValueInternal;
+                    var fileName = (string?)namedArg.Value.ValueInternal;
                     var resolver = compilation.Options.XmlReferenceResolver;
 
-                    resolvedFilePath = (resolver != null) ? resolver.ResolveReference(fileName, baseFilePath: null) : null;
+                    resolvedFilePath = (resolver != null && fileName != null) ? resolver.ResolveReference(fileName, baseFilePath: null) : null;
 
                     if (resolvedFilePath == null)
                     {
                         // CS7053: Unable to resolve file path '{0}' specified for the named argument '{1}' for PermissionSet attribute
-                        Location argSyntaxLocation = nodeOpt != null ? nodeOpt.GetNamedArgumentSyntax(filePropName).Location : NoLocation.Singleton;
+                        Location argSyntaxLocation = nodeOpt?.GetNamedArgumentSyntax(filePropName)?.Location ?? NoLocation.Singleton;
                         diagnostics.Add(ErrorCode.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, fileName ?? "<null>", filePropName);
                     }
                     else if (!PermissionSetAttributeTypeHasRequiredProperty(attrType, hexPropName))
@@ -629,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!this.HasErrors);
 
-            var guidString = (string)this.CommonConstructorArguments[0].ValueInternal;
+            var guidString = (string?)this.CommonConstructorArguments[0].ValueInternal;
 
             // Native compiler allows only a specific GUID format: "D" format (32 digits separated by hyphens)
             Guid guid;
@@ -641,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 guidString = String.Empty;
             }
 
-            return guidString;
+            return guidString!;
         }
 
         private protected sealed override bool IsStringProperty(string memberName)

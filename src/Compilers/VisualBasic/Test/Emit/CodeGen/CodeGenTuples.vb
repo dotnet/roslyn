@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <CompilerTrait(CompilerFeature.Tuples)>
@@ -6305,7 +6306,7 @@ BC35000: Requested operation is not available because the runtime library functi
 
         <Fact>
         Public Sub MissingMemberAccessWithExtensionWithVB15()
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -6328,7 +6329,7 @@ Module Extensions
 End Module
     </file>
 </compilation>,
-                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                references:={ValueTupleRef, Net451.SystemRuntime, Net451.SystemCore},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             comp.AssertTheseDiagnostics(<errors>
@@ -6445,8 +6446,8 @@ End Module
                          </compilation>
             ' When VB 15 shipped, no tuple element would be found/inferred, so the extension method was called.
             ' The VB 15.3 compiler disallows that, even when LanguageVersion is 15.
-            Dim comp15 = CreateCompilationWithMscorlib40AndVBRuntime(source,
-                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+            Dim comp15 = CreateCompilationWithMscorlib45AndVBRuntime(source,
+                references:={ValueTupleRef, Net451.SystemRuntime, Net451.SystemCore},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             comp15.AssertTheseDiagnostics(<errors>
 BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or greater to access an element by its inferred name.
@@ -6455,7 +6456,7 @@ BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or
                                           </errors>)
 
             Dim verifier15_3 = CompileAndVerify(source,
-                references:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                allReferences:={ValueTupleRef, Net451.mscorlib, Net451.SystemCore, Net451.SystemRuntime, Net451.MicrosoftVisualBasic},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
                 expectedOutput:="lambda")
             verifier15_3.VerifyDiagnostics()

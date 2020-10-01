@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -432,6 +430,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
+        }
+
+        internal SynthesizedAttributeData? TrySynthesizeAttribute(
+            SpecialMember constructor,
+            bool isOptionalUse = false)
+        {
+            var ctorSymbol = (MethodSymbol)this.GetSpecialTypeMember(constructor);
+
+            if ((object)ctorSymbol == null)
+            {
+                Debug.Assert(isOptionalUse);
+                return null;
+            }
+
+            return new SynthesizedAttributeData(
+                ctorSymbol,
+                arguments: ImmutableArray<TypedConstant>.Empty,
+                namedArguments: ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
         }
 
         internal SynthesizedAttributeData? SynthesizeDecimalConstantAttribute(decimal value)
@@ -964,45 +980,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static class NativeIntegerTransformsEncoder
         {
-            internal static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol booleanType)
+            internal static void Encode(ArrayBuilder<bool> builder, TypeSymbol type)
             {
-                var builder = ArrayBuilder<bool>.GetInstance();
-                type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder, isNested), builder);
-                Debug.Assert(builder.Any());
-                Debug.Assert(builder.Contains(true));
-
-                var result = builder.SelectAsArray((flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), booleanType);
-                builder.Free();
-                return result;
+                type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder), builder);
             }
 
-            private static bool AddFlags(TypeSymbol type, ArrayBuilder<bool> builder, bool isNestedNamedType)
+            private static bool AddFlags(TypeSymbol type, ArrayBuilder<bool> builder)
             {
-                switch (type.TypeKind)
+                switch (type.SpecialType)
                 {
-                    case TypeKind.Array:
-                    case TypeKind.Pointer:
-                    case TypeKind.FunctionPointer:
-                    case TypeKind.TypeParameter:
-                    case TypeKind.Dynamic:
-                        builder.Add(false);
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                        builder.Add(type.IsNativeIntegerType);
                         break;
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                    case TypeKind.Interface:
-                    case TypeKind.Delegate:
-                    case TypeKind.Enum:
-                    case TypeKind.Error:
-                        // For nested named types, a single false is encoded for the entire type name, followed by flags for all of the type arguments.
-                        if (!isNestedNamedType)
-                        {
-                            builder.Add(type.IsNativeIntegerType);
-                        }
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
                 }
-
                 // Continue walking types
                 return false;
             }

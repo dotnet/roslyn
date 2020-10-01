@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -83,19 +85,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             public readonly TestWorkspace Workspace;
             public readonly EditSession EditSession;
 
+            private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(
+                typeof(DummyLanguageService));
+
             public Validator(
                 string[] markedSource,
                 ImmutableArray<ActiveStatementDebugInfo> activeStatements,
                 ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
                 Func<Solution, Solution> adjustSolution = null,
-                CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
+                CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput,
+                bool openDocuments = false)
             {
-                var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTracker)));
-
-                var exportProvider = exportProviderFactory.CreateExportProvider();
-
-                Workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), exportProvider: exportProvider, openDocuments: true);
+                Workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), composition: s_composition, openDocuments: openDocuments);
 
                 if (adjustSolution != null)
                 {
@@ -115,8 +116,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
-
-                Assert.IsType<TestActiveStatementSpanTracker>(Workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
 
                 var telemetry = new EditSessionTelemetry();
                 EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements), mockDebuggeModuleProvider.Object);
@@ -877,7 +876,8 @@ class Test2
                 return solution;
             });
 
-            var validator = new Validator(markedSource, activeStatements, adjustSolution: adjustSolution);
+            var validator = new Validator(markedSource, activeStatements, adjustSolution: adjustSolution, openDocuments: true);
+
             var baseActiveStatementsMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
             var docs = validator.GetDocumentIds();
 

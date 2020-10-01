@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -57,19 +59,11 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var installerService = GetPackageInstallerService(document);
             var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
-                ? await installerService.TryGetPackageSourcesAsync(allowSwitchToMainThread: false, context.CancellationToken).ConfigureAwait(false)
+                ? installerService.TryGetPackageSources()
                 : ImmutableArray<PackageSource>.Empty;
 
-            if (packageSources is null)
-            {
-                // Information about package sources is not available. This code fix cannot provide results for NuGet
-                // packages at this time, but future invocations of the code fix will work. For the current code fix
-                // operation, just treat the package sources as empty.
-                packageSources = ImmutableArray<PackageSource>.Empty;
-            }
-
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
-                document, span, diagnostics, MaxResults, symbolSearchService, searchReferenceAssemblies, packageSources.Value, cancellationToken).ConfigureAwait(false);
+                document, span, diagnostics, MaxResults, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
 
             foreach (var (diagnostic, fixes) in fixesForDiagnostic)
             {

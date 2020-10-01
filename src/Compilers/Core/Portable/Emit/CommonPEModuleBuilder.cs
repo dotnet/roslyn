@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -33,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Emit
         internal Cci.IMethodReference DebugEntryPoint;
 
         private readonly ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody> _methodBodyMap;
-        private readonly TokenMap _referencesInILMap = new TokenMap(MetadataEntityReferenceComparer.ConsiderEverything);
-        private readonly ItemTokenMap<string> _stringsInILMap = new ItemTokenMap<string>();
-        private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new ItemTokenMap<Cci.DebugSourceDocument>();
+        private readonly TokenMap _referencesInILMap = new();
+        private readonly ItemTokenMap<string> _stringsInILMap = new();
+        private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new();
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
@@ -335,9 +337,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return _stringsInILMap.GetItem(token);
         }
 
-        public IEnumerable<object> ReferencesInIL(out int count)
+        public ReadOnlySpan<object> ReferencesInIL()
         {
-            return _referencesInILMap.GetAllItemsAndCount(out count);
+            return _referencesInILMap.GetAllItems();
         }
 
         /// <summary>
@@ -469,8 +471,6 @@ namespace Microsoft.CodeAnalysis.Emit
         where TEmbeddedTypesManager : CommonEmbeddedTypesManager
         where TModuleCompilationState : ModuleCompilationState<TNamedTypeSymbol, TMethodSymbol>
     {
-        private readonly Cci.RootModuleType _rootModuleType = new Cci.RootModuleType();
-
         internal readonly TSourceModuleSymbol SourceModule;
         internal readonly TCompilation Compilation;
 
@@ -479,6 +479,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private HashSet<string> _namesOfTopLevelTypes;
 
         internal readonly TModuleCompilationState CompilationState;
+        public Cci.RootModuleType RootModuleType { get; } = new Cci.RootModuleType();
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
@@ -562,9 +563,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 Dispatch(typeReferenceIndexer);
             }
 
-            AddTopLevelType(names, _rootModuleType);
-            VisitTopLevelType(typeReferenceIndexer, _rootModuleType);
-            yield return _rootModuleType;
+            AddTopLevelType(names, RootModuleType);
+            VisitTopLevelType(typeReferenceIndexer, RootModuleType);
+            yield return RootModuleType;
 
             foreach (var typeDef in GetAnonymousTypeDefinitions(context))
             {

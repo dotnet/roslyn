@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -56,18 +58,9 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             GC.KeepAlive(featureWaiter);
         }
 
-        public void WaitForAllAsyncOperations(params string[] featureNames)
-        {
-            WaitForAllAsyncOperations(TimeSpan.FromMilliseconds(-1), featureNames);
-        }
-
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
         {
-            var task = _provider.WaitAllAsync(
-                featureNames,
-#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-                eventProcessingAction: () => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle));
-#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+            var task = _provider.WaitAllAsync(featureNames, timeout: timeout);
 
             if (timeout == TimeSpan.FromMilliseconds(-1))
             {

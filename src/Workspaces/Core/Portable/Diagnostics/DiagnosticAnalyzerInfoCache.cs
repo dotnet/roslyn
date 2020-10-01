@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <see cref="DiagnosticAnalyzer"/> instance, <see cref="DiagnosticDescriptor"/>s.
     /// Thread-safe.
     /// </summary>
-    internal sealed class DiagnosticAnalyzerInfoCache
+    internal sealed partial class DiagnosticAnalyzerInfoCache
     {
         /// <summary>
         /// Supported descriptors of each <see cref="DiagnosticAnalyzer"/>. 

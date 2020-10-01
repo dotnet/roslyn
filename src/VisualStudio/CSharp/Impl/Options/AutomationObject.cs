@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
@@ -665,6 +667,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferSwitchExpression); }
             set { SetXmlOption(CSharpCodeStyleOptions.PreferSwitchExpression, value); }
+        }
+
+        public string Style_PreferPatternMatching
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferPatternMatching); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferPatternMatching, value); }
         }
 
         public string Style_PreferPatternMatchingOverAsWithNullCheck

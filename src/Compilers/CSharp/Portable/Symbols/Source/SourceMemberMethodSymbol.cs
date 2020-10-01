@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -419,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // override explicitly (see GetExplicitImplementationOverrides
             // in NamedTypeSymbolAdapter.cs).
             return this.IsOverride ?
-                this.RequiresExplicitOverride() :
+                this.RequiresExplicitOverride(out _) :
                 this.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
         }
 
@@ -874,6 +876,12 @@ done:
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(this, nullableContextValue));
             }
 
+            if (this.RequiresExplicitOverride(out _))
+            {
+                // On platforms where it is present, add PreserveBaseOverridesAttribute when a methodimpl is used to override a class method.
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizePreserveBaseOverridesAttribute());
+            }
+
             bool isAsync = this.IsAsync;
             bool isIterator = this.IsIterator;
 
@@ -923,7 +931,7 @@ done:
         /// Checks to see if a body is legal given the current modifiers.
         /// If it is not, a diagnostic is added with the current type.
         /// </summary>
-        protected void CheckModifiersForBody(SyntaxNode declarationSyntax, Location location, DiagnosticBag diagnostics)
+        protected void CheckModifiersForBody(Location location, DiagnosticBag diagnostics)
         {
             if (IsExtern && !IsAbstract)
             {

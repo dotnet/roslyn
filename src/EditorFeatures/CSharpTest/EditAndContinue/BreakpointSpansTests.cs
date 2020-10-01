@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -21,16 +23,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
     {
         #region Helpers 
 
-        private void TestSpan(string markup, ParseOptions options = null)
+        private static void TestSpan(string markup, ParseOptions options = null)
             => Test(markup, isMissing: false, isLine: false, options: options);
 
-        private void TestMissing(string markup)
+        private static void TestMissing(string markup)
             => Test(markup, isMissing: true, isLine: false);
 
-        private void TestLine(string markup)
+        private static void TestLine(string markup)
             => Test(markup, isMissing: false, isLine: true);
 
-        private void Test(string markup, bool isMissing, bool isLine, ParseOptions options = null)
+        private static void Test(string markup, bool isMissing, bool isLine, ParseOptions options = null)
         {
             MarkupTestFile.GetPositionAndSpan(
                 markup, out var source, out var position, out TextSpan? expectedSpan);
@@ -55,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             }
         }
 
-        private void TestAll(string markup)
+        private static void TestAll(string markup)
         {
             MarkupTestFile.GetPositionAndSpans(markup,
                 out var source, out var position, out ImmutableArray<TextSpan> expectedSpans);
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
         {
             TextSpan lastSpan = default;
             var endPosition = root.Span.End;
-            for (int p = position; p < endPosition; p++)
+            for (var p = position; p < endPosition; p++)
             {
                 if (BreakpointSpans.TryGetClosestBreakpointSpan(root, p, out var span) && span.Start > lastSpan.Start)
                 {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         private class RequiresUnsafeModifierVisitor : SymbolVisitor<bool>
         {
-            private readonly HashSet<ISymbol> _visited = new HashSet<ISymbol>();
+            private readonly HashSet<ISymbol> _visited = new();
 
             public override bool DefaultVisit(ISymbol node)
             {
@@ -71,8 +73,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-#if !CODE_STYLE
-
             public override bool VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
             {
                 if (!_visited.Add(symbol))
@@ -82,8 +82,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 return true;
             }
-
-#endif
 
             public override bool VisitProperty(IPropertySymbol symbol)
             {

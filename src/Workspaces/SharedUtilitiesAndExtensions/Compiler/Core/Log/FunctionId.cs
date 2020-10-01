@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
     /// <summary>
@@ -365,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeAnalysisService_GetDesignerAttributesAsync = 294,
 
         ServiceHubRemoteHostClient_CreateAsync = 295,
-        PinnedRemotableDataScope_GetRemotableData = 296,
+        // obsolete: PinnedRemotableDataScope_GetRemotableData = 296,
 
         RemoteHost_Connect = 297,
         RemoteHost_Disconnect = 298,
@@ -395,8 +397,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ProjectState_ComputeChecksumsAsync = 316,
         DocumentState_ComputeChecksumsAsync = 317,
 
-        SolutionSynchronizationService_GetRemotableData = 318,
-        SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync = 319,
+        // obsolete: SolutionSynchronizationService_GetRemotableData = 318,
+        // obsolete: SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync = 319,
 
         SolutionChecksumUpdater_SynchronizePrimaryWorkspace = 320,
 
@@ -493,5 +495,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         DependentTypeFinder_FindAndCacheDerivedClassesAsync = 430,
         DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 431,
         DependentTypeFinder_FindAndCacheImplementingTypesAsync = 432,
+
+        RemoteSemanticClassificationCacheService_ExceptionInCacheRead = 440,
+        FeatureNotAvailable = 441,
+
+        LSPCompletion_MissingLSPCompletionTriggerKind = 450,
     }
 }

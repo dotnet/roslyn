@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -133,7 +135,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string InvalidSuppressMessageAttributeDiagnosticId = "IDE0076";
         public const string LegacyFormatSuppressMessageAttributeDiagnosticId = "IDE0077";
 
+        public const string UsePatternCombinatorsDiagnosticId = "IDE0078";
+
+        public const string RemoveUnnecessarySuppressionDiagnosticId = "IDE0079";
+
         public const string RemoveConfusingSuppressionForIsExpressionDiagnosticId = "IDE0080";
+        public const string RemoveUnnecessaryByValDiagnosticId = "IDE0081";
+
+        public const string ConvertTypeOfToNameOfDiagnosticId = "IDE0082";
+
+        public const string UseNotPatternDiagnosticId = "IDE0083";
+        public const string UseIsNotExpressionDiagnosticId = "IDE0084";
+
+        public const string UseImplicitObjectCreationDiagnosticId = "IDE0090";
+
+        public const string RemoveRedundantEqualityDiagnosticId = "IDE0100";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

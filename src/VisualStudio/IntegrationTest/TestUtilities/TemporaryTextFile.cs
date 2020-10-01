@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 
@@ -12,9 +14,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     /// </summary>
     public class TemporaryTextFile : IDisposable
     {
-        private string _fileName;
-        private string _content;
-        private string _path;
+        private readonly string _fileName;
+        private readonly string _content;
+        private readonly string _path;
 
         public TemporaryTextFile(string fileName, string content)
         {
@@ -28,7 +30,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             IntegrationHelper.CreateDirectory(_path, deleteExisting: true);
 
-            using (FileStream stream = File.Create(FullName))
+            using (var stream = File.Create(FullName))
             {
             }
 

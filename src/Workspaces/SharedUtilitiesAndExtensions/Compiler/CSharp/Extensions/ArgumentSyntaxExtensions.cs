@@ -41,23 +41,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// is true, the last parameter will be returned if it is params parameter and the index of
         /// the specified argument is greater than the number of parameters.
         /// </summary>
-        public static IParameterSymbol DetermineParameter(
+        public static IParameterSymbol? DetermineParameter(
             this ArgumentSyntax argument,
             SemanticModel semanticModel,
             bool allowParams = false,
             CancellationToken cancellationToken = default)
         {
-            if (!(argument.Parent is BaseArgumentListSyntax argumentList))
+            if (argument.Parent is not BaseArgumentListSyntax argumentList ||
+                argumentList.Parent is null)
             {
                 return null;
             }
 
-            if (!(argumentList.Parent is ExpressionSyntax invocableExpression))
+            // Get the symbol as long if it's not null or if there is only one candidate symbol
+            var symbolInfo = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken);
+            var symbol = symbolInfo.Symbol;
+            if (symbol == null && symbolInfo.CandidateSymbols.Length == 1)
             {
-                return null;
+                symbol = symbolInfo.CandidateSymbols[0];
             }
 
-            var symbol = semanticModel.GetSymbolInfo(invocableExpression, cancellationToken).Symbol;
             if (symbol == null)
             {
                 return null;

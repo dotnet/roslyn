@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -1381,11 +1383,6 @@ class C
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-            {
-                { new OptionKey2(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
-            };
-
             AssertFormatAfterTypeChar(code, expected);
         }
 
@@ -1410,11 +1407,6 @@ class C
     {
 }
 ";
-
-            var optionSet = new Dictionary<OptionKey2, object>
-            {
-                { new OptionKey2(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
-            };
 
             AssertFormatAfterTypeChar(code, expected);
         }
@@ -2242,7 +2234,7 @@ using System.B;
             AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
         }
 
-        private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
+        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(code);
             if (changedOptionSet != null)

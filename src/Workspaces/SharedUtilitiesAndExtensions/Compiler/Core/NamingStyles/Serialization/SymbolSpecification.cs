@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -276,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         internal static SymbolSpecification FromXElement(XElement symbolSpecificationElement)
-            => new SymbolSpecification(
+            => new(
                 id: Guid.Parse(symbolSpecificationElement.Attribute(nameof(ID)).Value),
                 symbolSpecName: symbolSpecificationElement.Attribute(nameof(Name)).Value,
                 symbolKindList: GetSymbolKindListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableSymbolKindList))),
@@ -365,9 +367,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             internal XElement CreateXElement()
                 => SymbolKind.HasValue ? new XElement(nameof(SymbolKind), SymbolKind) :
-                   TypeKind.HasValue ? new XElement(nameof(TypeKind), TypeKind) :
-                   MethodKind.HasValue ? new XElement(nameof(MethodKind), MethodKind) :
+                   TypeKind.HasValue ? new XElement(nameof(TypeKind), GetTypeKindString(TypeKind.Value)) :
+                   MethodKind.HasValue ? new XElement(nameof(MethodKind), GetMethodKindString(MethodKind.Value)) :
                    throw ExceptionUtilities.Unreachable;
+
+            private static string GetTypeKindString(TypeKind typeKind)
+            {
+                // We have two members in TypeKind that point to the same value, Struct and Structure. Because of this,
+                // Enum.ToString(), which under the covers uses a binary search, isn't stable which one it will pick and it can
+                // change if other TypeKinds are added. This ensures we keep using the same string consistently.
+                return typeKind switch
+                {
+                    CodeAnalysis.TypeKind.Structure => nameof(CodeAnalysis.TypeKind.Struct),
+                    _ => typeKind.ToString()
+                };
+            }
+
+            private static string GetMethodKindString(MethodKind methodKind)
+            {
+                // We ehave some members in TypeKind that point to the same value. Because of this,
+                // Enum.ToString(), which under the covers uses a binary search, isn't stable which one it will pick and it can
+                // change if other MethodKinds are added. This ensures we keep using the same string consistently.
+                return methodKind switch
+                {
+
+                    CodeAnalysis.MethodKind.SharedConstructor => nameof(CodeAnalysis.MethodKind.StaticConstructor),
+                    CodeAnalysis.MethodKind.AnonymousFunction => nameof(CodeAnalysis.MethodKind.LambdaMethod),
+                    _ => methodKind.ToString()
+                };
+            }
 
             public bool ShouldReuseInSerialization => false;
 
@@ -407,13 +435,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             internal static SymbolKindOrTypeKind AddSymbolKindFromXElement(XElement symbolKindElement)
-                => new SymbolKindOrTypeKind((SymbolKind)Enum.Parse(typeof(SymbolKind), symbolKindElement.Value));
+                => new((SymbolKind)Enum.Parse(typeof(SymbolKind), symbolKindElement.Value));
 
             internal static SymbolKindOrTypeKind AddTypeKindFromXElement(XElement typeKindElement)
-                => new SymbolKindOrTypeKind((TypeKind)Enum.Parse(typeof(TypeKind), typeKindElement.Value));
+                => new((TypeKind)Enum.Parse(typeof(TypeKind), typeKindElement.Value));
 
             internal static SymbolKindOrTypeKind AddMethodKindFromXElement(XElement methodKindElement)
-                => new SymbolKindOrTypeKind((MethodKind)Enum.Parse(typeof(MethodKind), methodKindElement.Value));
+                => new((MethodKind)Enum.Parse(typeof(MethodKind), methodKindElement.Value));
 
             public override bool Equals(object obj)
                 => Equals((SymbolKindOrTypeKind)obj);
@@ -511,10 +539,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             internal XElement CreateXElement()
-                => new XElement(nameof(ModifierKind), ModifierKindWrapper);
+                => new(nameof(ModifierKind), ModifierKindWrapper);
 
             internal static ModifierKind FromXElement(XElement modifierElement)
-                => new ModifierKind((ModifierKindEnum)Enum.Parse(typeof(ModifierKindEnum), modifierElement.Value));
+                => new((ModifierKindEnum)Enum.Parse(typeof(ModifierKindEnum), modifierElement.Value));
 
             public bool ShouldReuseInSerialization => false;
 
@@ -522,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 => writer.WriteInt32((int)ModifierKindWrapper);
 
             public static ModifierKind ReadFrom(ObjectReader reader)
-                => new ModifierKind((ModifierKindEnum)reader.ReadInt32());
+                => new((ModifierKindEnum)reader.ReadInt32());
 
             public override bool Equals(object obj)
                 => obj is ModifierKind kind && Equals(kind);

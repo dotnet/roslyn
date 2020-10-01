@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -793,5 +797,14 @@ namespace Roslyn.Test.Utilities
                 Assert.True(false, builder.ToString());
             }
         }
+
+#nullable enable
+        public static void NotNull<T>([NotNull] T value)
+        {
+            Assert.NotNull(value);
+            Debug.Assert(value is object);
+        }
+
+#nullable disable
     }
 }

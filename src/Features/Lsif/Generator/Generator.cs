@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
         public void GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices)
         {
-            var projectVertex = new Graph.Project(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
+            var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
             _lsifJsonWriter.Write(projectVertex);
             _lsifJsonWriter.Write(new Event(Event.EventKind.Begin, projectVertex.GetId(), _idFactory));
 
-            var documentIds = new ConcurrentBag<Id<Graph.Document>>();
+            var documentIds = new ConcurrentBag<Id<Graph.LsifDocument>>();
 
             // We create a ResultSetTracker to track all top-level symbols in the project. We don't want all writes to immediately go to
             // the JSON file -- we support parallel processing, so we'll accumulate them and then apply at once to avoid a lot
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// lets us link symbols across files, and will only talk about "top level" symbols that aren't things like locals that can't
         /// leak outside a file.
         /// </remarks>
-        private static Id<Graph.Document> GenerateForDocument(
+        private static Id<Graph.LsifDocument> GenerateForDocument(
             SemanticModel semanticModel,
             HostLanguageServices languageServices,
             IResultSetTracker topLevelSymbolsResultSetTracker,
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var syntaxFactsService = languageServices.GetRequiredService<ISyntaxFactsService>();
             var semanticFactsService = languageServices.GetRequiredService<ISemanticFactsService>();
 
-            var documentVertex = new Graph.Document(new Uri(syntaxTree.FilePath), GetLanguageKind(semanticModel.Language), idFactory);
+            var documentVertex = new Graph.LsifDocument(new Uri(syntaxTree.FilePath), GetLanguageKind(semanticModel.Language), idFactory);
 
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -428,6 +426,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
+                SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(identifier.Text, this.DeclaringCompilation, diagnostics, location);
+
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object?)tpEnclosing != null)
                 {
@@ -459,9 +459,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext)
         {
-            if (_lazyTypeParameterConstraints.IsDefault)
+            if (!_lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext))
             {
                 var syntax = Syntax;
                 var diagnostics = DiagnosticBag.GetInstance();
@@ -470,13 +470,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
-                    syntax.Identifier.GetLocation(),
+                    canIgnoreNullableContext,
                     diagnostics);
                 lock (_declarationDiagnostics)
                 {
-                    if (_lazyTypeParameterConstraints.IsDefault)
+                    canIgnoreNullableContext = constraints.IgnoresNullableContext();
+                    if (!_lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext))
                     {
-                        _declarationDiagnostics.AddRange(diagnostics);
+                        if (!canIgnoreNullableContext)
+                        {
+                            _declarationDiagnostics.AddRange(diagnostics);
+                        }
                         _lazyTypeParameterConstraints = constraints;
                     }
                 }

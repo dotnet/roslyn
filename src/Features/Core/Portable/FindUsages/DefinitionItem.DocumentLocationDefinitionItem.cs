@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return SourceSpans[0].CanNavigateTo();
             }
 
-            public override bool TryNavigateTo(Workspace workspace, NavigationBehavior navigationBehavior)
+            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab)
             {
                 if (Properties.ContainsKey(NonNavigable))
                 {
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return TryNavigateToMetadataSymbol(workspace, symbolKey);
                 }
 
-                return SourceSpans[0].TryNavigateTo(navigationBehavior);
+                return SourceSpans[0].TryNavigateTo(showInPreviewTab, activateTab);
             }
 
             private bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey)

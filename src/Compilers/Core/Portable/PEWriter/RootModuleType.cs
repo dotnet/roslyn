@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -18,6 +17,21 @@ namespace Microsoft.Cci
     /// </summary>
     internal class RootModuleType : INamespaceTypeDefinition
     {
+        private IReadOnlyList<IMethodDefinition>? _methods;
+
+        public void SetStaticConstructorBody(ImmutableArray<byte> il)
+        {
+            Debug.Assert(_methods is null);
+
+            _methods = SpecializedCollections.SingletonReadOnlyList(
+                new RootModuleStaticConstructor(containingTypeDefinition: this, il));
+        }
+
+        public IEnumerable<IMethodDefinition> GetMethods(EmitContext context)
+        {
+            return _methods ??= SpecializedCollections.EmptyReadOnlyList<IMethodDefinition>();
+        }
+
         public TypeDefinitionHandle TypeDef
         {
             get { return default(TypeDefinitionHandle); }
@@ -136,11 +150,6 @@ namespace Microsoft.Cci
         public LayoutKind Layout
         {
             get { return LayoutKind.Auto; }
-        }
-
-        public IEnumerable<IMethodDefinition> GetMethods(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<IMethodDefinition>();
         }
 
         public IEnumerable<INestedTypeDefinition> GetNestedTypes(EmitContext context)

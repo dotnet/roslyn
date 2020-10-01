@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string[] IEquatableValueTC<string>.RandomValues(int count, Random random, int scope)
             {
                 Debug.Assert(count > 0);
-                Debug.Assert(scope > count);
+                Debug.Assert(scope >= count);
                 string[] result = new string[count];
                 int next = 0;
                 for (int i = 0; i < scope; i++)

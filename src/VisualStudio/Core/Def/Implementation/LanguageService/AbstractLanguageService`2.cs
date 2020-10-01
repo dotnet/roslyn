@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -98,11 +100,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // First, acquire any services we need throughout our lifetime.
             this.GetServices();
 
-            var componentModel = this.Package.ComponentModel;
+            // TODO: Is the below access to component model required or can be removed?
+            _ = this.Package.ComponentModel;
 
             // Start off a background task to prime some components we'll need for editing
             VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.BackgroundThread,
-                () => PrimeLanguageServiceComponentsOnBackground(componentModel));
+                () => PrimeLanguageServiceComponentsOnBackground());
 
             // Next, make any connections to these services.
             this.ConnectToServices();
@@ -196,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             UninitializeLanguageDebugInfo();
         }
 
-        private void PrimeLanguageServiceComponentsOnBackground(IComponentModel componentModel)
+        private void PrimeLanguageServiceComponentsOnBackground()
         {
             var formatter = this.Workspace.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
             if (formatter != null)
@@ -319,7 +322,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private bool StartsWithRegionTag(ITextSnapshotLine line)
         {
-            var snapshot = line.Snapshot;
             var start = line.GetFirstNonWhitespacePosition();
             if (start != null)
             {

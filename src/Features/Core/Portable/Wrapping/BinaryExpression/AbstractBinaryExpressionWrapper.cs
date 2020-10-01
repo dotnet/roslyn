@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -99,9 +101,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
         private ImmutableArray<SyntaxNodeOrToken> GetExpressionsAndOperators(
             PrecedenceKind precedence, TBinaryExpressionSyntax binaryExpr)
         {
-            var result = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var result);
             AddExpressionsAndOperators(precedence, binaryExpr, result);
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private void AddExpressionsAndOperators(

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -863,12 +865,20 @@ namespace Microsoft.Cci
                 portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
             }
 
-            WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
+            if (portabilityPolicy != 0)
+            {
+                WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
+            }
+
+            var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
+            var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
+            if (optimizationLevel != OptimizationLevel.Debug || debugPlusMode)
+            {
+                WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
+            }
 
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
-
-            WriteValue(CompilationOptionNames.Optimization, module.CommonCompilation.Options.OptimizationLevel.ToPdbSerializedString(module.CommonCompilation.Options.DebugPlusMode));
 
             module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
 

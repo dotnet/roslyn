@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -50,8 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return parenthesized.WithTriviaFrom(expression);
         }
 
-#if !CODE_STYLE
-
         public static PatternSyntax Parenthesize(
             this PatternSyntax pattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
@@ -68,8 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 ? result.WithAdditionalAnnotations(Simplifier.Annotation)
                 : result;
         }
-
-#endif
 
         public static CastExpressionSyntax Cast(
             this ExpressionSyntax expression,

@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         ''' <summary>
         ''' Declarations outside of any namespace in the file are considered to be in the project's root namespace
         ''' </summary>
-        Private Async Function VerifyContainsAsync(ParamArray recommendations As String()) As Task
+        Private Shared Async Function VerifyContainsAsync(ParamArray recommendations As String()) As Task
             Await VerifyRecommendationsContainAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, recommendations)
             Await VerifyRecommendationsContainAsync(<File>|</File>, recommendations)
             Await VerifyRecommendationsContainAsync(
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         ''' <summary>
         ''' Declarations outside of any namespace in the file are considered to be in the project's root namespace
         ''' </summary>
-        Private Async Function VerifyMissingAsync(ParamArray recommendations As String()) As Task
+        Private Shared Async Function VerifyMissingAsync(ParamArray recommendations As String()) As Task
             Await VerifyRecommendationsMissingAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, recommendations)
             Await VerifyRecommendationsMissingAsync(<File>|</File>, recommendations)
             Await VerifyRecommendationsMissingAsync(

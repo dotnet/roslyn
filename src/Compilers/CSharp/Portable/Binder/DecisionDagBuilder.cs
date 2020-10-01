@@ -11,9 +11,6 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -583,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(MakeTestsAndBindings(input, bin.Left, bindings));
                 builder.Add(MakeTestsAndBindings(input, bin.Right, bindings));
                 var result = Tests.OrSequence.Create(builder);
-                if (bin.InputType.Equals(bin.ConvertedType))
+                if (bin.InputType.Equals(bin.NarrowedType))
                 {
                     output = input;
                     return result;
@@ -592,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder = ArrayBuilder<Tests>.GetInstance(2);
                     builder.Add(result);
-                    output = MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.ConvertedType, isExplicitTest: false, tests: builder);
+                    output = MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
                     return Tests.AndSequence.Create(builder);
                 }
             }
@@ -601,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(MakeTestsAndBindings(input, bin.Left, out var leftOutput, bindings));
                 builder.Add(MakeTestsAndBindings(leftOutput, bin.Right, out var rightOutput, bindings));
                 output = rightOutput;
-                Debug.Assert(bin.HasErrors || output.Type.Equals(bin.ConvertedType, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(bin.HasErrors || output.Type.Equals(bin.NarrowedType, TypeCompareKind.AllIgnoreOptions));
                 return Tests.AndSequence.Create(builder);
             }
         }
@@ -640,15 +637,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ImmutableArray<StateForCase> cases)
         {
-            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
-
             // Build the state machine underlying the decision dag
             DecisionDag decisionDag = MakeDecisionDag(cases);
 
-            // Note: It is useful for debugging the dag state table construction to view `decisionDag.Dump()` here.
+            // Note: It is useful for debugging the dag state table construction to set a breakpoint
+            // here and view `decisionDag.Dump()`.
+            ;
 
             // Compute the bound decision dag corresponding to each node of decisionDag, and store
             // it in node.Dag.
+            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
             ComputeBoundDecisionDagNodes(decisionDag, defaultDecision);
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
@@ -679,29 +677,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var state = new DagState(cases, remainingValues);
                 if (uniqueState.TryGetValue(state, out DagState? existingState))
                 {
-                    var newRemainingValues = existingState.RemainingValues;
-                    bool changed = false;
+                    // We found an existing state that matches.  Update its set of possible remaining values
+                    // of each temp by taking the union of the sets on each incoming edge.
+                    var newRemainingValues = ImmutableDictionary.CreateBuilder<BoundDagTemp, IValueSet>();
                     foreach (var (dagTemp, valuesForTemp) in remainingValues)
                     {
-                        if (newRemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
+                        // If one incoming edge does not have a set of possible values for the temp,
+                        // that means the temp can take on any value of its type.
+                        if (existingState.RemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
                         {
                             var newExistingValuesForTemp = existingValuesForTemp.Union(valuesForTemp);
-                            if (!newExistingValuesForTemp.Equals(existingValuesForTemp))
-                            {
-                                newRemainingValues = newRemainingValues.SetItem(dagTemp, newExistingValuesForTemp);
-                                changed = true;
-                            }
-                        }
-                        else
-                        {
-                            newRemainingValues = newRemainingValues.Add(dagTemp, valuesForTemp);
-                            changed = true;
+                            newRemainingValues.Add(dagTemp, newExistingValuesForTemp);
                         }
                     }
 
-                    if (changed)
+                    if (existingState.RemainingValues.Count != newRemainingValues.Count ||
+                        !existingState.RemainingValues.All(kv => newRemainingValues.TryGetValue(kv.Key, out IValueSet? values) && kv.Value.Equals(values)))
                     {
-                        existingState.UpdateRemainingValues(newRemainingValues);
+                        existingState.UpdateRemainingValues(newRemainingValues.ToImmutable());
                         if (!workList.Contains(existingState))
                             workList.Push(existingState);
                     }
@@ -809,7 +802,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ComputeBoundDecisionDagNodes(DecisionDag decisionDag, BoundLeafDecisionDagNode defaultDecision)
         {
-            RoslynDebug.Assert(_defaultLabel != null);
+            Debug.Assert(_defaultLabel != null);
+            Debug.Assert(defaultDecision != null);
+
+            // Process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
+            bool wasAcyclic = decisionDag.TryGetTopologicallySortedReachableStates(out ImmutableArray<DagState> sortedStates);
+            if (!wasAcyclic)
+            {
+                // Since we intend the set of DagState nodes to be acyclic by construction, we do not expect
+                // this to occur. Just in case it does due to bugs, we recover gracefully to avoid crashing the
+                // compiler in production.  If you find that this happens (the assert fails), please modify the
+                // DagState construction process to avoid creating a cyclic state graph.
+                Debug.Assert(wasAcyclic); // force failure in debug builds
+
+                // If the dag contains a cycle, return a short-circuit dag instead.
+                decisionDag.RootNode.Dag = defaultDecision;
+                return;
+            }
 
             // We "intern" the dag nodes, so that we only have a single object representing one
             // semantic node. We do this because different states may end up mapping to the same
@@ -819,8 +828,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _ = uniqifyDagNode(defaultDecision);
 
-            // Process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
-            ImmutableArray<DagState> sortedStates = decisionDag.TopologicallySortedReachableStates();
             for (int i = sortedStates.Length - 1; i >= 0; i--)
             {
                 var state = sortedStates[i];
@@ -991,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 IValueSet fromTestPassing = valueFac.Related(relation.Operator(), value);
                 IValueSet fromTestFailing = fromTestPassing.Complement();
-                if (values.TryGetValue(test.Input, out IValueSet tempValuesBeforeTest))
+                if (values.TryGetValue(test.Input, out IValueSet? tempValuesBeforeTest))
                 {
                     fromTestPassing = fromTestPassing.Intersect(tempValuesBeforeTest);
                     fromTestFailing = fromTestFailing.Intersect(tempValuesBeforeTest);
@@ -1332,10 +1339,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public ImmutableArray<DagState> TopologicallySortedReachableStates()
+            /// <summary>
+            /// Produce the states in topological order.
+            /// </summary>
+            /// <param name="result">Topologically sorted <see cref="DagState"/> nodes.</param>
+            /// <returns>True if the graph was acyclic.</returns>
+            public bool TryGetTopologicallySortedReachableStates(out ImmutableArray<DagState> result)
             {
-                // Now process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
-                return TopologicalSort.IterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(this.RootNode), Successor);
+                return TopologicalSort.TryIterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(this.RootNode), Successor, out result);
             }
 
 #if DEBUG
@@ -1345,7 +1356,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             internal string Dump()
             {
-                var allStates = this.TopologicallySortedReachableStates();
+                if (!this.TryGetTopologicallySortedReachableStates(out var allStates))
+                {
+                    return "(the dag contains a cycle!)";
+                }
+
                 var stateIdentifierMap = PooledDictionary<DagState, int>.GetInstance();
                 for (int i = 0; i < allStates.Length; i++)
                 {
@@ -1822,6 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 remainingTests.RemoveAt(i);
                                 break;
                             case False f:
+                                remainingTests.Free();
                                 return f;
                             case AndSequence seq:
                                 var testsToInsert = seq.RemainingTests;
@@ -1891,6 +1907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 remainingTests.RemoveAt(i);
                                 break;
                             case True t:
+                                remainingTests.Free();
                                 return t;
                             case OrSequence seq:
                                 remainingTests.RemoveAt(i);

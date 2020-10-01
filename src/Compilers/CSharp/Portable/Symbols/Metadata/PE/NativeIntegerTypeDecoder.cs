@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     internal struct NativeIntegerTypeDecoder
     {
-        private class ErrorTypeException : Exception { }
+        private sealed class ErrorTypeException : Exception { }
 
         internal static TypeSymbol TransformType(TypeSymbol type, EntityHandle handle, PEModuleSymbol containingModule)
         {
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 type;
         }
 
-        private static TypeSymbol TransformType(TypeSymbol type, ImmutableArray<bool> transformFlags)
+        internal static TypeSymbol TransformType(TypeSymbol type, ImmutableArray<bool> transformFlags)
         {
             var decoder = new NativeIntegerTypeDecoder(transformFlags);
             try
@@ -79,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return TransformFunctionPointerType((FunctionPointerTypeSymbol)type);
                 case TypeKind.TypeParameter:
                 case TypeKind.Dynamic:
-                    IgnoreIndex();
                     return type;
                 case TypeKind.Class:
                 case TypeKind.Struct:
@@ -95,16 +92,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol TransformNamedType(NamedTypeSymbol type)
         {
-            int index = Increment();
-
             if (!type.IsGenericType)
             {
-                return _transformFlags[index] ? TransformTypeDefinition(type) : type;
-            }
-
-            if (_transformFlags[index])
-            {
-                throw new UnsupportedSignatureContent();
+                switch (type.SpecialType)
+                {
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                        if (_index >= _transformFlags.Length)
+                        {
+                            throw new UnsupportedSignatureContent();
+                        }
+                        return (_transformFlags[_index++], type.IsNativeIntegerType) switch
+                        {
+                            (false, true) => type.NativeIntegerUnderlyingType,
+                            (true, false) => type.AsNativeInteger(),
+                            _ => type,
+                        };
+                }
             }
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
@@ -129,20 +133,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ArrayTypeSymbol TransformArrayType(ArrayTypeSymbol type)
         {
-            IgnoreIndex();
             return type.WithElementType(TransformTypeWithAnnotations(type.ElementTypeWithAnnotations));
         }
 
         private PointerTypeSymbol TransformPointerType(PointerTypeSymbol type)
         {
-            IgnoreIndex();
             return type.WithPointedAtType(TransformTypeWithAnnotations(type.PointedAtTypeWithAnnotations));
         }
 
         private FunctionPointerTypeSymbol TransformFunctionPointerType(FunctionPointerTypeSymbol type)
         {
-            IgnoreIndex();
-
             var transformedReturnType = TransformTypeWithAnnotations(type.Signature.ReturnTypeWithAnnotations);
             var transformedParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
             var paramsModified = false;
@@ -175,36 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             else
             {
                 return type;
-            }
-        }
-
-        private int Increment()
-        {
-            if (_index < _transformFlags.Length)
-            {
-                return _index++;
-            }
-            throw new UnsupportedSignatureContent();
-        }
-
-        private void IgnoreIndex()
-        {
-            var index = Increment();
-            if (_transformFlags[index])
-            {
-                throw new UnsupportedSignatureContent();
-            }
-        }
-
-        private static NamedTypeSymbol TransformTypeDefinition(NamedTypeSymbol type)
-        {
-            switch (type.SpecialType)
-            {
-                case SpecialType.System_IntPtr:
-                case SpecialType.System_UIntPtr:
-                    return type.AsNativeInteger();
-                default:
-                    throw new UnsupportedSignatureContent();
             }
         }
     }

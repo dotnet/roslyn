@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -95,10 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // (3,25): error CS1002: ; expected
                   //     const double d1 = 0endOfDirective.Span;
                   Diagnostic(ErrorCode.ERR_SemicolonExpected, "ndOfDirective").WithLocation(3, 25),
-                  // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                  // (3,43): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                   //     const double d1 = 0endOfDirective.Span;
                   Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43),
-                  // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                  // (3,43): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                   //     const double d1 = 0endOfDirective.Span;
                   Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43)
                 );

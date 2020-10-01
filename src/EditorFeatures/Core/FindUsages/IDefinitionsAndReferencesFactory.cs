@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -17,6 +19,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal static class DefinitionItemExtensions
     {
-        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_namePartsFormat = new(
             memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
         public static DefinitionItem ToNonClassifiedDefinitionItem(
@@ -145,6 +148,22 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                                     document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
 
                             sourceLocations.Add(documentLocation);
+                        }
+                        else
+                        {
+                            // Was this a source generated tree? If so, we don't have a document representaion (yet) so
+                            // we'll create a metadata symbol which will later be handled by the symbol navigation service
+                            // that way. Once we represent generated source trees as propery documents, we'll update the code above
+                            // to correctly make this item.
+                            var project = solution.GetOriginatingProject(definition);
+                            var generatorRunResult = await project.GetGeneratorDriverRunResultAsync(cancellationToken).ConfigureAwait(false);
+
+                            if (generatorRunResult.TryGetGeneratorAndHint(location.SourceTree, out _, out _))
+                            {
+                                return DefinitionItem.CreateMetadataDefinition(
+                                    tags, displayParts, nameDisplayParts, solution,
+                                    definition, properties, displayIfNoReferences);
+                            }
                         }
                     }
                 }

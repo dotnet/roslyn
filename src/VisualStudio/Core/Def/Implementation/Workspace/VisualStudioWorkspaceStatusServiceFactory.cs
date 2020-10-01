@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel;
 using System.Composition;
@@ -38,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
         }
 
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             if (workspaceServices.Workspace is VisualStudioWorkspace vsWorkspace)
@@ -46,14 +49,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.PartialLoadMode))
                 {
                     // don't enable partial load mode for ones that are not in experiment yet
-                    return WorkspaceStatusService.Default;
+                    return new WorkspaceStatusService();
                 }
 
                 // only VSWorkspace supports partial load mode
                 return new Service(_serviceProvider, _listener);
             }
 
-            return WorkspaceStatusService.Default;
+            return new WorkspaceStatusService();
         }
 
         /// <summary>
@@ -62,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         private class Service : IWorkspaceStatusService
         {
-            private readonly SemaphoreSlim _initializationGate = new SemaphoreSlim(initialCount: 1);
+            private readonly SemaphoreSlim _initializationGate = new(initialCount: 1);
             private readonly IAsyncServiceProvider2 _serviceProvider;
 
             private bool _initialized = false;

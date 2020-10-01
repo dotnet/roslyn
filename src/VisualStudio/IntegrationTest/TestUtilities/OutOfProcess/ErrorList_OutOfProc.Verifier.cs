@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -13,7 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     {
         public class Verifier
         {
-            private ErrorList_OutOfProc _errorList;
+            private readonly ErrorList_OutOfProc _errorList;
             private readonly VisualStudioInstance _instance;
 
             public Verifier(ErrorList_OutOfProc errorList, VisualStudioInstance instance)
@@ -24,7 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             public void NoBuildErrors()
             {
-                _instance.SolutionExplorer.BuildSolution(waitForBuildToFinish: true);
+                _instance.SolutionExplorer.BuildSolution();
                 NoErrors();
             }
 

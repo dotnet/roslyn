@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.IO;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         }
 
         protected override IChecksummedPersistentStorage? TryOpenDatabase(
-            Solution solution, string workingFolderPath, string databaseFilePath)
+            SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath)
         {
             if (!TryInitializeLibraries())
             {
@@ -59,9 +58,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
             try
             {
                 sqlStorage = new SQLitePersistentStorage(
-                     workingFolderPath, solution.FilePath, databaseFilePath, dbOwnershipLock, _faultInjectorOpt);
+                     workingFolderPath, solutionKey.FilePath, databaseFilePath, dbOwnershipLock, _faultInjectorOpt);
 
-                sqlStorage.Initialize(solution);
+                sqlStorage.Initialize(bulkLoadSnapshot);
 
                 return sqlStorage;
             }

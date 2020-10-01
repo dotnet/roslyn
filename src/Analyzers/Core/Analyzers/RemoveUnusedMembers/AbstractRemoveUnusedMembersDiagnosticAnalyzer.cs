@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -696,7 +698,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
 
             private bool IsEntryPoint(IMethodSymbol methodSymbol)
-                => (methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName || methodSymbol.Name == "$Main") &&
+                => (methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName || methodSymbol.Name == "<Main>$") &&  // https://github.com/dotnet/roslyn/issues/45110 Switch to using WellKnownMemberNames.TopLevelStatementsEntryPointMethodName
+                                                                                                                          // once src\CodeStyle\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj is able to use the latest version of the type.
                    methodSymbol.IsStatic &&
                    (methodSymbol.ReturnsVoid ||
                     methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 
@@ -20,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             double INumericTC<double>.MaxValue => double.PositiveInfinity;
 
             double FloatingTC<double>.NaN => double.NaN;
+
+            double INumericTC<double>.Zero => 0.0;
 
             /// <summary>
             /// The implementation of Next depends critically on the internal representation of an IEEE floating-point
