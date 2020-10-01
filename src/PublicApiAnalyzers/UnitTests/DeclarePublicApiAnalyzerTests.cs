@@ -1224,11 +1224,15 @@ C<T>.Nested.Nested() -> void
                 );
         }
 
+        #endregion
+
+        #region Fix tests
+
         [Fact]
         public async Task ShippedTextWithMissingImplicitStructConstructor()
         {
             var source = @"
-public struct C
+public struct {|RS0016:C|}
 {
 }
 ";
@@ -1236,19 +1240,16 @@ public struct C
             var shippedText = @"
 C";
             var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
 
-            // Test0.cs(2,15): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
-            string arg = string.Format(PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, "C");
-
-            await VerifyCSharpAsync(source, shippedText, unshippedText,
-                GetCSharpResultAt(2, 15, DeclarePublicApiAnalyzer.DeclareNewApiRule, arg)).ConfigureAwait(false);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
         public async Task ShippedTextWithMissingImplicitStructConstructorWithOtherOverloadsAsync()
         {
             var source = @"
-public struct C
+public struct {|RS0016:C|}
 {
     public C(int value)
     {
@@ -1260,18 +1261,10 @@ public struct C
 C
 C.C(int value) -> void";
             var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
 
-            // Test0.cs(2,15): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
-            string arg = string.Format(PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, "C");
-
-            await VerifyCSharpAsync(source, shippedText, unshippedText,
-                GetCSharpResultAt(2, 15, DeclarePublicApiAnalyzer.DeclareNewApiRule, arg)).ConfigureAwait(false);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
-
-
-        #endregion
-
-        #region Fix tests
 
         [Fact]
         public async Task TestSimpleMissingMember_Fix()
