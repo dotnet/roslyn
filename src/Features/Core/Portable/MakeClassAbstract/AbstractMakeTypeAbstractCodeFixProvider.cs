@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MakeTypeAbstract
 {
-    internal abstract class AbstractMakeClassAbstractCodeFixProvider<TClassDeclarationSyntax> : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractMakeTypeAbstractCodeFixProvider<TTypeDeclarationSyntax> : SyntaxEditorBasedCodeFixProvider
         where TTypeDeclarationSyntax : SyntaxNode
     {
         protected abstract bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out TTypeDeclarationSyntax? typeDeclaration);
