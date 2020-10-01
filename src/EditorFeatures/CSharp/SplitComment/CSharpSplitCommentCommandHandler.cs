@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
     internal partial class CSharpSplitCommentCommandHandler : AbstractSplitCommentCommandHandler
     {
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSplitCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
