@@ -10,12 +10,18 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveNewModifier;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveNewModifier
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveNewModifier)]
     public class RemoveNewModifierCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public RemoveNewModifierCodeFixProviderTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new RemoveNewModifierCodeFixProvider());
 

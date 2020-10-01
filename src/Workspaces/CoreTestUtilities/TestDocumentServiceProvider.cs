@@ -4,7 +4,12 @@
 
 #nullable disable
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -17,15 +22,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 CanApplyChange = canApplyChange,
                 SupportDiagnostics = supportDiagnostics
             };
+
+            SpanMappingService = new TestSpanMappingService();
         }
 
         public IDocumentOperationService DocumentOperationService { get; }
+
+        public ISpanMappingService SpanMappingService { get; }
 
         public TService GetService<TService>() where TService : class, IDocumentService
         {
             if (DocumentOperationService is TService service)
             {
                 return service;
+            }
+            else if (SpanMappingService is TService spanMappingService)
+            {
+                return spanMappingService;
             }
 
             return null;
@@ -39,6 +52,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public bool CanApplyChange { get; set; }
             public bool SupportDiagnostics { get; set; }
+        }
+
+        private class TestSpanMappingService : ISpanMappingService
+        {
+            public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(ImmutableArray<MappedSpanResult>.Empty);
+            }
         }
     }
 }
