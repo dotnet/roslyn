@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             var cancelEvent = new AutoResetEvent(false);
             var doneEvent = new AutoResetEvent(false);
 
-            var source = new CancellationTokenSource();
+            var source = CancellationTokenSourceFactory.Create();
             var cancellationToken = source.Token;
 
             var actionRan = false;
@@ -145,8 +146,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             var cancelEvent = new AutoResetEvent(false);
             var doneEvent = new AutoResetEvent(false);
 
-            var source1 = new CancellationTokenSource();
-            var source2 = new CancellationTokenSource();
+            var source1 = CancellationTokenSourceFactory.Create();
+            var source2 = CancellationTokenSourceFactory.Create();
             var token1 = source1.Token;
             var token2 = source2.Token;
 
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             var cancelEvent = new AutoResetEvent(false);
             var doneEvent = new AutoResetEvent(false);
 
-            var source = new CancellationTokenSource();
+            var source = CancellationTokenSourceFactory.Create();
             var cancellationToken = source.Token;
 
             var action1Ran = false;

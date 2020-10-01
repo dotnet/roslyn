@@ -1008,7 +1008,7 @@ class A
             public CancellationTestAnalyzer(AnalyzerRegisterActionKind actionKind)
             {
                 _actionKind = actionKind;
-                _cancellationTokenSource = new CancellationTokenSource();
+                _cancellationTokenSource = CancellationTokenSourceFactory.Create();
                 CanceledCompilations = new ConcurrentSet<Compilation>();
             }
 

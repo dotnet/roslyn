@@ -795,10 +795,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         suspended = false;
 
                         // Create a new cancellation source to allow higher priority requests to suspend our analysis.
-                        using (cancellationSource = new CancellationTokenSource())
+                        using (cancellationSource = CancellationTokenSourceFactory.Create())
                         {
                             // Link the cancellation source with client supplied cancellation source, so the public API callee can also cancel analysis.
-                            using var linkedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationSource.Token, cancellationToken);
+                            using var linkedCancellationSource = CancellationTokenSourceFactory.CreateLinkedTokenSource(cancellationSource.Token, cancellationToken);
 
                             try
                             {

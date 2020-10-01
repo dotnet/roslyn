@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static void CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore(Func<AsyncLazy<object>, CancellationToken, object> doGetValue, bool includeSynchronousComputation)
         {
             var computations = 0;
-            var requestCancellationTokenSource = new CancellationTokenSource();
+            var requestCancellationTokenSource = CancellationTokenSourceFactory.Create();
             object createdObject = null;
 
             Func<CancellationToken, object> synchronousComputation = c =>

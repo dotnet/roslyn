@@ -136,7 +136,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var callback = new TodoCommentsListener();
 
-            var cancellationTokenSource = new CancellationTokenSource();
+            var cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
             using var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsDiscoveryService>(callback, cancellationTokenSource.Token);
 
@@ -204,7 +204,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
             var remoteWorkspace = client.GetRemoteWorkspace();
 
-            var cancellationTokenSource = new CancellationTokenSource();
+            var cancellationTokenSource = CancellationTokenSourceFactory.Create();
             var solution = workspace.CurrentSolution;
 
             // Ensure remote workspace is in sync with normal workspace.

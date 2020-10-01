@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -897,7 +898,7 @@ End Enum";
             source.TrySetException(new OperationCanceledException());
             Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifier(source.Task, waitForResult, CancellationToken.None));
             Assert.False(RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
-            Assert.False(RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, new CancellationTokenSource().Token));
+            Assert.False(RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationTokenSourceFactory.Create().Token));
 
             source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();
             Assert.Throws<OperationCanceledException>(() => RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, new CancellationToken(canceled: true)));

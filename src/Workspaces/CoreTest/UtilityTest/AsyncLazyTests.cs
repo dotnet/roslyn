@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var synchronousComputationStartedEvent = new ManualResetEvent(initialState: false);
             var synchronousComputationShouldCompleteEvent = new ManualResetEvent(initialState: false);
 
-            var requestCancellationTokenSource = new CancellationTokenSource();
+            var requestCancellationTokenSource = CancellationTokenSourceFactory.Create();
 
             // First, create an async lazy that will only ever do synchronous computations.
             var lazy = new AsyncLazy<int>(
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }, synchronousComputeFunction: synchronousComputation, cacheResult: false);
 
-            var cancellationTokenSource = new CancellationTokenSource();
+            var cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
             // Create a task that will cancel the request once it's started
             Task.Run(() =>
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueAsyncThatIsCancelledReturnsTaskCancelledWithCorrectToken()
         {
-            var cancellationTokenSource = new CancellationTokenSource();
+            var cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
             var lazy = new AsyncLazy<object>(c => Task.Run((Func<object>)(() =>
             {

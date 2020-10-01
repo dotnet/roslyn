@@ -1,1 +1,7 @@
-
+Roslyn.Utilities.CancellationTokenSourceFactory
+static Roslyn.Utilities.CancellationTokenSourceFactory.Create(string sourcePath = null, int sourceLine = 0) -> System.Threading.CancellationTokenSource
+static Roslyn.Utilities.CancellationTokenSourceFactory.CreateLinkedTokenSource(System.Threading.CancellationToken cancellationToken, string sourcePath = null, int sourceLine = 0) -> System.Threading.CancellationTokenSource
+static Roslyn.Utilities.CancellationTokenSourceFactory.CreateLinkedTokenSource(System.Threading.CancellationToken cancellationToken1, System.Threading.CancellationToken cancellationToken2, string sourcePath = null, int sourceLine = 0) -> System.Threading.CancellationTokenSource
+static Roslyn.Utilities.CancellationTokenSourceFactory.GetUnexpectedCancellationMessage(System.OperationCanceledException exception, System.Threading.CancellationToken cancellationToken) -> string
+static Roslyn.Utilities.CancellationTokenSourceFactory.TryAddLocation(System.Threading.CancellationToken cancellationToken, string sourcePath, int sourceLine) -> void
+static Roslyn.Utilities.CancellationTokenSourceFactory.TryAddLocation(System.Threading.CancellationTokenSource source, string sourcePath, int sourceLine) -> void

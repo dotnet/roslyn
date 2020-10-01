@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -905,7 +906,7 @@ class C
 
             Assert.Single(compilation.SyntaxTrees);
 
-            CancellationTokenSource cts = new CancellationTokenSource();
+            CancellationTokenSource cts = CancellationTokenSourceFactory.Create();
 
             var testGenerator = new CallbackGenerator(
                 onInit: (i) => { },

@@ -1823,7 +1823,7 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class DiagnosticSuppressorForId_ThrowsOperationCancelledException : DiagnosticSuppressor
         {
-            public CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
+            public CancellationTokenSource CancellationTokenSource { get; } = CancellationTokenSourceFactory.Create();
             public SuppressionDescriptor SuppressionDescriptor { get; }
             public DiagnosticSuppressorForId_ThrowsOperationCancelledException(string suppressedDiagnosticId)
             {
@@ -2254,7 +2254,7 @@ namespace Microsoft.CodeAnalysis
                 "Category",
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private readonly CancellationTokenSource _cancellationTokenSource = CancellationTokenSourceFactory.Create();
             public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);

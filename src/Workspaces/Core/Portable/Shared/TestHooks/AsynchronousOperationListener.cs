@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public AsynchronousOperationListener(string featureName, bool enableDiagnosticTokens)
         {
             _featureName = featureName;
-            _expeditedDelayCancellationTokenSource = new CancellationTokenSource();
+            _expeditedDelayCancellationTokenSource = CancellationTokenSourceFactory.Create();
             TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
         }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 _pendingTasks.Clear();
 
                 // Replace the cancellation source used for expediting waits.
-                var oldSource = Interlocked.Exchange(ref _expeditedDelayCancellationTokenSource, new CancellationTokenSource());
+                var oldSource = Interlocked.Exchange(ref _expeditedDelayCancellationTokenSource, CancellationTokenSourceFactory.Create());
                 oldSource.Dispose();
             }
 

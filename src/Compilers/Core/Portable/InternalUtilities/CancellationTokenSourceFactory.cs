@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace Roslyn.Utilities
 {
-    internal static class CancellationTokenSourceFactory
+    public static class CancellationTokenSourceFactory
     {
         private static readonly ConditionalWeakTable<CancellationTokenSource, Tuple<string, int>> s_tokenCreators = new();
         private static readonly object s_guard = new();
@@ -26,7 +26,7 @@ namespace Roslyn.Utilities
 
         private static CancellationTokenSource AddLocation(CancellationTokenSource source, string? sourcePath, int sourceLine)
         {
-            Contract.ThrowIfNull(sourcePath);
+            RoslynDebug.AssertNotNull(sourcePath);
             lock (s_guard)
             {
                 s_tokenCreators.Add(source, Tuple.Create(sourcePath, sourceLine));
@@ -39,11 +39,11 @@ namespace Roslyn.Utilities
             => (CancellationTokenSource?)s_tokenSourceField.Value?.GetValue(cancellationToken);
 
 #pragma warning disable CA1068 // CancellationToken parameters must come last
-        internal static void TryAddLocation(CancellationToken cancellationToken, string sourcePath, int sourceLine)
+        public static void TryAddLocation(CancellationToken cancellationToken, string sourcePath, int sourceLine)
             => TryAddLocation(GetSource(cancellationToken), sourcePath, sourceLine);
 #pragma warning restore
 
-        internal static void TryAddLocation(CancellationTokenSource? source, string sourcePath, int sourceLine)
+        public static void TryAddLocation(CancellationTokenSource? source, string sourcePath, int sourceLine)
         {
             if (source == null)
             {
@@ -63,16 +63,16 @@ namespace Roslyn.Utilities
             => AddLocation(new CancellationTokenSource(), sourcePath, sourceLine);
 
 #pragma warning disable CA1068 // CancellationToken parameters must come last
-        internal static CancellationTokenSource CreateLinkedTokenSource(CancellationToken cancellationToken, [CallerFilePath] string? sourcePath = null, [CallerLineNumber] int sourceLine = 0)
+        public static CancellationTokenSource CreateLinkedTokenSource(CancellationToken cancellationToken, [CallerFilePath] string? sourcePath = null, [CallerLineNumber] int sourceLine = 0)
             => AddLocation(CancellationTokenSource.CreateLinkedTokenSource(cancellationToken), sourcePath, sourceLine);
 #pragma warning restore
 
 #pragma warning disable CA1068 // CancellationToken parameters must come last
-        internal static CancellationTokenSource CreateLinkedTokenSource(CancellationToken cancellationToken1, CancellationToken cancellationToken2, [CallerFilePath] string? sourcePath = null, [CallerLineNumber] int sourceLine = 0)
+        public static CancellationTokenSource CreateLinkedTokenSource(CancellationToken cancellationToken1, CancellationToken cancellationToken2, [CallerFilePath] string? sourcePath = null, [CallerLineNumber] int sourceLine = 0)
             => AddLocation(CancellationTokenSource.CreateLinkedTokenSource(cancellationToken1, cancellationToken2), sourcePath, sourceLine);
 #pragma warning restore
 
-        internal static bool TryGetCreationSourceLocation(CancellationToken cancellationToken, [NotNullWhen(true)] out string? sourcePath, out int sourceLine)
+        private static bool TryGetCreationSourceLocation(CancellationToken cancellationToken, [NotNullWhen(true)] out string? sourcePath, out int sourceLine)
         {
             var source = (CancellationTokenSource?)s_tokenSourceField.Value?.GetValue(cancellationToken);
 
@@ -90,7 +90,7 @@ namespace Roslyn.Utilities
             return false;
         }
 
-        internal static string GetUnexpectedCancellationMessage(OperationCanceledException exception, CancellationToken cancellationToken)
+        public static string GetUnexpectedCancellationMessage(OperationCanceledException exception, CancellationToken cancellationToken)
         {
             var sourceLocation = TryGetCreationSourceLocation(exception.CancellationToken, out var sourcePath, out var sourceLine) ?
                 $"{sourcePath}({sourceLine})" : "unknown";

@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         public TestWaitContext(int maxUpdates)
         {
-            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource = CancellationTokenSourceFactory.Create();
             _maxUpdates = maxUpdates;
             _progressTracker = new ProgressTracker((_1, _2, _3) => UpdateProgress());
         }

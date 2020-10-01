@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             var asyncToken = EmptyAsyncToken.Instance;
             var ran = false;
 
-            var source = new CancellationTokenSource();
+            var source = CancellationTokenSourceFactory.Create();
             source.Cancel();
 
             Service.RegisterNotification(() => { waitEvent.WaitOne(); }, asyncToken, CancellationToken.None);
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
                         return false;
                     }
 
-                    var source = new CancellationTokenSource();
+                    var source = CancellationTokenSourceFactory.Create();
 
                     Service.RegisterNotification(() =>
                     {

@@ -4,6 +4,7 @@
 
 using System.Threading;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             : base(allowCancellation: false, defaultDescription: "")
         {
             _maxUpdates = maxUpdates;
-            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource = CancellationTokenSourceFactory.Create();
         }
 
         public TestUIThreadOperationContext()

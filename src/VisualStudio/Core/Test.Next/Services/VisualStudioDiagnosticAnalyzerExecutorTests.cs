@@ -109,7 +109,7 @@ End Class";
 
                 for (var i = 0; i < 5; i++)
                 {
-                    var source = new CancellationTokenSource();
+                    var source = CancellationTokenSourceFactory.Create();
 
                     try
                     {
