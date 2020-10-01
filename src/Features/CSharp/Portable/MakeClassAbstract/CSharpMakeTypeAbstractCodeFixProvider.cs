@@ -12,8 +12,8 @@ using Microsoft.CodeAnalysis.MakeClassAbstract;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeClassAbstract
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpMakeClassAbstractCodeFixProvider)), Shared]
-    internal sealed class CSharpMakeClassAbstractCodeFixProvider : AbstractMakeClassAbstractCodeFixProvider<ClassDeclarationSyntax>
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpMakeTypeAbstractCodeFixProvider)), Shared]
+    internal sealed class CSharpMakeTypeAbstractCodeFixProvider : AbstractMakeTypeAbstractCodeFixProvider<TypeDeclarationSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -23,26 +23,23 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeClassAbstract
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
                ImmutableArray.Create(
-                   "CS0513" // 'C.M()' is abstract but it is contained in non-abstract class 'C'
+                   "CS0513" // 'C.M()' is abstract but it is contained in non-abstract type 'C'
                );
 
-        protected override bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out ClassDeclarationSyntax? classDeclaration)
+        protected override bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out TypeDeclarationSyntax? typeDeclaration)
         {
             classDeclaration = null;
 
-            switch (node?.Kind())
+            switch (node)
             {
-                case SyntaxKind.MethodDeclaration:
-                    var method = (MethodDeclarationSyntax)node;
+                case MethodDeclarationSyntax method:
                     if (method.Body != null || method.ExpressionBody != null)
                     {
                         return false;
                     }
                     break;
 
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                    var accessor = (AccessorDeclarationSyntax)node;
+                case AccessorDeclarationSyntax accessor:
                     if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
                         return false;
@@ -54,14 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeClassAbstract
             }
 
             var enclosingType = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
-            if (!enclosingType.IsKind(SyntaxKind.ClassDeclaration))
+            if (!enclosingType.IsKind(SyntaxKind.ClassDeclaration) || !enclosingType.IsKind(SyntaxKind.RecordDeclaration))
             {
                 return false;
             }
 
-            classDeclaration = (ClassDeclarationSyntax)enclosingType;
-
-            return !classDeclaration.Modifiers.Any(SyntaxKind.AbstractKeyword) && !classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword);
+            return !enclosingType.Modifiers.Any(SyntaxKind.AbstractKeyword) && !enclosingType.Modifiers.Any(SyntaxKind.StaticKeyword);
         }
     }
 }
