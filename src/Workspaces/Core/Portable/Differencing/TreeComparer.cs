@@ -6,9 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Differencing
 {
     // Based on general algorithm described in  
