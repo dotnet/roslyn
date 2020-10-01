@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var replacementStart = token.SpanStart;
             if (removeConditionalAccess)
             {
-                if (token.Parent is MemberBindingExpressionSyntax memberBinding && memberBinding.GetParentConditionalAccessExpression() is ConditionalAccessExpressionSyntax conditional)
+                if (token.Parent is MemberBindingExpressionSyntax memberBinding && memberBinding.GetParentConditionalAccessExpression() is { } conditional)
                 {
                     replacementStart = conditional.OperatorToken.SpanStart;
                 }
