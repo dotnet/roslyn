@@ -6,8 +6,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Test.Utilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
@@ -176,9 +180,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return Create(workspaceElement, exportProvider: exportProvider);
         }
 
+        public TestWorkspace WithLogger(ITestOutputHelper logger)
+        {
+            if (logger != null && Services.GetService<IRemoteHostClientProvider>() is InProcRemoteHostClientProvider remoteHostProvider)
+            {
+                remoteHostProvider.TraceListener = new XunitTraceListener(logger);
+            }
+
+            return this;
+        }
+
         #region C#
 
-        public static TestWorkspace CreateCSharp(
+            public static TestWorkspace CreateCSharp(
             string file,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,

@@ -7,11 +7,16 @@ Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Text
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     <Trait(Traits.Feature, Traits.Features.Classification)>
     Public Class SyntacticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
+
+        Public Sub New(testOutput As ITestOutputHelper)
+            MyBase.New(testOutput)
+        End Sub
 
         Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
             Using workspace = CreateWorkspace(code, testHost)

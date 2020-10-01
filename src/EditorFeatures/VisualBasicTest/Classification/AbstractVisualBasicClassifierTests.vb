@@ -6,10 +6,15 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Remote.Testing
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public MustInherit Class AbstractVisualBasicClassifierTests
         Inherits AbstractClassifierTests
+
+        Public Sub New(logger As ITestOutputHelper)
+            MyBase.New(logger)
+        End Sub
 
         Protected Shared Function CreateWorkspace(code As String, testHost As TestHost) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))

@@ -134,13 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 TestWorkspace.Create(workspaceMarkupOrCode, openDocuments: false, composition: composition) :
                 TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: new[] { workspaceMarkupOrCode }, composition: composition);
 
-#if !CODE_STYLE
-            if (parameters.testHost == TestHost.OutOfProcess && _logger != null)
-            {
-                var remoteHostProvider = (InProcRemoteHostClientProvider)workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
-                remoteHostProvider.TraceListener = new XunitTraceListener(_logger);
-            }
-#endif
+            workspace = workspace.WithLogger(_logger);
+
             InitializeWorkspace(workspace, parameters);
 
             // For CodeStyle layer testing, we create an .editorconfig at project root

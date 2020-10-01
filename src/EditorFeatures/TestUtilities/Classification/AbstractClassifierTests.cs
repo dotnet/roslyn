@@ -17,13 +17,19 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 {
     [UseExportProvider]
     public abstract class AbstractClassifierTests
     {
-        protected AbstractClassifierTests() { }
+        public readonly ITestOutputHelper TestOutput;
+
+        protected AbstractClassifierTests(ITestOutputHelper testOutput)
+        {
+            TestOutput = testOutput;
+        }
 
         protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions parseOptions, TestHost testHost);
 

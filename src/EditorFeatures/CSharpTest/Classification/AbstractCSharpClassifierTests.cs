@@ -8,15 +8,21 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public abstract class AbstractCSharpClassifierTests : AbstractClassifierTests
     {
-        protected static TestWorkspace CreateWorkspace(string code, ParseOptions options, TestHost testHost)
+        public AbstractCSharpClassifierTests(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
+        protected TestWorkspace CreateWorkspace(string code, ParseOptions options, TestHost testHost)
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
-            return TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition);
+            return TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition).WithLogger(TestOutput);
         }
 
         protected override async Task DefaultTestAsync(string code, string allCode, TestHost testHost, FormattedClassification[] expected)
