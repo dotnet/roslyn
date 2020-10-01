@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     int badArg = firstSupported.Result.BadArgumentsOpt[0];
                     IdentifierNameSyntax badName = arguments.Names[badArg];
-                    diagnostics.Add(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, new SourceLocation(badName));
+                    diagnostics.Add(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, badName.GetLocation());
                     return;
                 }
                 // If there are multiple supported candidates, we don't have a good way to choose the best
