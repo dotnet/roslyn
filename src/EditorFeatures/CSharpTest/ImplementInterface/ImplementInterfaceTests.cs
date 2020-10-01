@@ -351,7 +351,7 @@ class Class : IInterface
 " + s_tupleElementNamesAttribute);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInMethod_Explicitly()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -381,7 +381,7 @@ class Class : IInterface
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInProperty()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -418,7 +418,7 @@ class Class : IInterface
 " + s_tupleElementNamesAttribute);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInEvent()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -7007,7 +7007,7 @@ class Issue2785<T> : IList<object>
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task LongTuple()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
