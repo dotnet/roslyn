@@ -63,12 +63,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task OperatorIsNotOfferedAfterNumberLiteral()
+        {
+            // User may want to type a floating point literal.
+            await VerifyNoItemsExistAsync(@"
+public class C
+{
+    public static C operator +(C a, C b) => default;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        1.$$
+    }
+}
+", SourceCodeKind.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIsSuggestedAfterDot()
         {
             await VerifyItemExistsAsync(@"
 public class C
 {
-    public static C operator +(C _, C _) => default;
+    public static C operator +(C a, C b) => default;
 }
 
 public class Program
@@ -80,6 +101,40 @@ public class Program
     }
 }
 ", "+");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("c.$$", true)]
+        [InlineData("c.$$;", true)]
+        [InlineData("c.a$$", true)]
+        [InlineData("c.ab$$", true)]
+        [InlineData("c.abc$$", true)]
+        [InlineData("c.abcd$$", true)]
+        [InlineData("c. a$$", true)]
+        [InlineData("c.$$a", true)]
+        [InlineData("c.$$ a", true)]
+        [InlineData("c?.$$", true)]
+        public async Task OperatorSuggestionOnPartiallyWrittenMember(string expression, bool isOffered)
+        {
+            var verifyAction = isOffered
+                ? new Func<string, Task>(markup => VerifyItemExistsAsync(markup, "+"))
+                : new Func<string, Task>(markup => VerifyNoItemsExistAsync(markup));
+            await verifyAction(@$"
+public class C
+{{
+    public static C operator +(C a, C b) => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {expression}
+    }}
+}}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -113,7 +168,6 @@ public class C
     public static C operator <<(C a, int b) => null;
     public static C operator >>(C a, int b) => null;
     public static C operator ~(C a) => null;
-
 }
 
 public class Program
@@ -233,7 +287,7 @@ public class Program
             await VerifyCustomCommitProviderAsync($@"
 public class C
 {{
-    public static C operator {binaryOperator}(C _, C _) => default;
+    public static C operator {binaryOperator}(C a, C b) => default;
 }}
 
 public class Program
@@ -247,7 +301,7 @@ public class Program
 ", binaryOperator, @$"
 public class C
 {{
-    public static C operator {binaryOperator}(C _, C _) => default;
+    public static C operator {binaryOperator}(C a, C b) => default;
 }}
 
 public class Program
@@ -335,13 +389,12 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        [MemberData(nameof(PrefixOperators))]
         public async Task OperatorDuplicateOperatorsAreListedBoth()
         {
             var items = await GetCompletionItemsAsync($@"
 public class C
 {{
-    public static C operator +(C _, C_) => default;
+    public static C operator +(C a, C b) => default;
     public static C operator +(C _) => default;
 }}
 
@@ -369,13 +422,12 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        [MemberData(nameof(PrefixOperators))]
         public async Task OperatorDuplicateOperatorsAreCompleted()
         {
             await VerifyCustomCommitProviderAsync($@"
 public class C
 {{
-    public static C operator +(C _, C_) => default;
+    public static C operator +(C a, C b) => default;
     public static C operator +(C _) => default;
 }}
 
@@ -390,7 +442,7 @@ public class Program
 ", "+", @$"
 public class C
 {{
-    public static C operator +(C _, C_) => default;
+    public static C operator +(C a, C b) => default;
     public static C operator +(C _) => default;
 }}
 
@@ -400,6 +452,87 @@ public class Program
     {{
         var c = new C();
         c + $$
+    }}
+}}
+");
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("c.$$",
+                    "c + $$")]
+        [InlineData("c. $$",
+                    "c + $$ ")]
+        [InlineData("c .$$",
+                    "c  + $$")]
+        [InlineData("c.$$;",
+                    "c + $$;")]
+        [InlineData("c.abc$$",
+                    "c + $$")]
+        [InlineData("c.a$$bc",
+                    "c + $$")]
+        [InlineData("c.$$abc",
+                    "c + $$abc")]
+        [InlineData("c.$$ abc",
+                    "c + $$ abc")]
+        [InlineData("(true ? c : c).$$",
+                    "(true ? c : c) + $$")]
+        [InlineData("c?.$$",
+                    "c + $$")]
+        [InlineData("(true ? c : c)?.$$",
+                    "(true ? c : c) + $$")]
+        [InlineData("c? .$$",
+                    "c + $$")]
+        [InlineData("c ? .$$",
+                    "c  + $$")]
+        [InlineData("c?.CProp.$$",
+                    "c?.CProp + $$")]
+        [InlineData("c?.CProp?.$$",
+                    "c?.CProp + $$")]
+        [InlineData("c.CProp.CProp?.$$",
+                    "c.CProp.CProp + $$")]
+        [InlineData("c?.CProp.CProp.$$",
+                    "c?.CProp.CProp + $$")]
+        [InlineData("c[0].$$",
+                    "c[0] + $$")]
+        [InlineData("c[0]?.$$",
+                    "c[0] + $$")]
+        [InlineData("c?.CProp[0].$$",
+                    "c?.CProp[0] + $$")]
+        [InlineData("c.CProp[0].CProp?.$$",
+                    "c.CProp[0].CProp + $$")]
+        public async Task OperatorInfixOfferingsAndCompletions(string expression, string completion)
+        {
+            await VerifyCustomCommitProviderAsync($@"
+public class C
+{{
+    public static C operator +(C a, C b) => default;
+    public C CProp {{ get; }}
+    public C this[int _] => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {expression}
+    }}
+}}
+", "+", @$"
+public class C
+{{
+    public static C operator +(C a, C b) => default;
+    public C CProp {{ get; }}
+    public C this[int _] => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {completion}
     }}
 }}
 ");
