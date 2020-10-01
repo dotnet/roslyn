@@ -880,6 +880,12 @@ public interface ISourceGenerator
 }
 ```
 
+Users attempting to use a generator targeting the preview APIs against a later version of Roslyn will see an exception similar to:
+
+```csharp
+CSC : warning CS8032: An instance of analyzer Generator.HelloWorldGenerator cannot be created from Generator.dll : Method 'Initialize' in type 'Generator.HelloWorldGenerator' from assembly 'Generator, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation. [Consumer.csproj]
+```
+
 The required action from the user is to rename the parameter types of the `Initialize` and `Execute` methods to match.
 
 **Rename `RunFullGeneration` to `RunGeneratorsAndUpdateCompilation`**  
