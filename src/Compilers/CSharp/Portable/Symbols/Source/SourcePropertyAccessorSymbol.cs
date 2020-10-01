@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -182,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 diagnostics);
         }
-#nullable restore
+#nullable disable
 
         internal sealed override bool IsExpressionBodied
             => _isExpressionBodied;
@@ -361,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
         }
-#nullable restore
+#nullable disable
 
         private static DeclarationModifiers GetAccessorModifiers(DeclarationModifiers propertyModifiers) =>
             propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly);
@@ -450,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
+        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext)
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         public sealed override RefKind RefKind

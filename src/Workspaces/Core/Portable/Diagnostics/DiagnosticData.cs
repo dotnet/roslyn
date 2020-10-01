@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly int WarningLevel;
 
         [DataMember(Order = 8)]
-        public readonly IReadOnlyList<string> CustomTags;
+        public readonly ImmutableArray<string> CustomTags;
 
         [DataMember(Order = 9)]
         public readonly ImmutableDictionary<string, string?> Properties;
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly DiagnosticDataLocation? DataLocation;
 
         [DataMember(Order = 12)]
-        public readonly IReadOnlyCollection<DiagnosticDataLocation> AdditionalLocations;
+        public readonly ImmutableArray<DiagnosticDataLocation> AdditionalLocations;
 
         /// <summary>
         /// Language name (<see cref="LanguageNames"/>) or null if the diagnostic is not associated with source code.
@@ -97,11 +95,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
             int warningLevel,
-            IReadOnlyList<string> customTags,
+            ImmutableArray<string> customTags,
             ImmutableDictionary<string, string?> properties,
             ProjectId? projectId,
             DiagnosticDataLocation? location = null,
-            IReadOnlyCollection<DiagnosticDataLocation>? additionalLocations = null,
+            ImmutableArray<DiagnosticDataLocation> additionalLocations = default,
             string? language = null,
             string? title = null,
             string? description = null,
@@ -122,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             ProjectId = projectId;
             DataLocation = location;
-            AdditionalLocations = additionalLocations ?? Array.Empty<DiagnosticDataLocation>();
+            AdditionalLocations = additionalLocations.NullToEmpty();
 
             Language = language;
             Title = title;
@@ -361,13 +359,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static DiagnosticData Create(Diagnostic diagnostic, OptionSet options)
         {
             Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
-            return Create(diagnostic, projectId: null, language: null, options, location: null, additionalLocations: null, additionalProperties: null);
+            return Create(diagnostic, projectId: null, language: null, options, location: null, additionalLocations: default, additionalProperties: null);
         }
 
         public static DiagnosticData Create(Diagnostic diagnostic, Project project)
         {
             Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
-            return Create(diagnostic, project.Id, project.Language, project.Solution.Options, location: null, additionalLocations: null, additionalProperties: null);
+            return Create(diagnostic, project.Id, project.Language, project.Solution.Options, location: null, additionalLocations: default, additionalProperties: null);
         }
 
         public static DiagnosticData Create(Diagnostic diagnostic, TextDocument document)
@@ -406,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string? language,
             OptionSet options,
             DiagnosticDataLocation? location,
-            IReadOnlyCollection<DiagnosticDataLocation>? additionalLocations,
+            ImmutableArray<DiagnosticDataLocation> additionalLocations,
             ImmutableDictionary<string, string?>? additionalProperties)
         {
             return new DiagnosticData(

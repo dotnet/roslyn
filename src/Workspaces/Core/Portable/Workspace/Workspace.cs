@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,6 +16,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.EditorConfig;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -41,10 +40,10 @@ namespace Microsoft.CodeAnalysis
         private readonly IOptionService _optionService;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
-        private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
+        private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
 
         // this lock guards all the mutable fields (do not share lock with derived classes)
-        private readonly NonReentrantLock _stateLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
+        private readonly NonReentrantLock _stateLock = new(useThisInstanceForSynchronization: true);
 
         // Current solution.
         private Solution _latestSolution;
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new empty solution instance associated with this workspace, and with the given options.
         /// </summary>
         private Solution CreateSolution(SolutionInfo solutionInfo, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            => new Solution(this, solutionInfo.Attributes, options, analyzerReferences);
+            => new(this, solutionInfo.Attributes, options, analyzerReferences);
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
@@ -375,6 +374,14 @@ namespace Microsoft.CodeAnalysis
 
             (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
             _optionService.UnregisterWorkspace(this);
+
+            // Directly dispose IRemoteHostClientProvider if necessary. This is a test hook to ensure RemoteWorkspace
+            // gets disposed in unit tests as soon as TestWorkspace gets disposed. This would be superseded by direct
+            // support for IDisposable in https://github.com/dotnet/roslyn/pull/47951.
+            if (Services.GetService<IRemoteHostClientProvider>() is IDisposable disposableService)
+            {
+                disposableService.Dispose();
+            }
         }
 
         #region Host API

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
@@ -13,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         private struct ProjectState
         {
-            public static readonly ProjectState Disabled = new ProjectState(isEnabled: false, ImmutableDictionary<string, string>.Empty);
+            public static readonly ProjectState Disabled = new(isEnabled: false, ImmutableDictionary<string, string>.Empty);
 
             public readonly bool IsEnabled;
 

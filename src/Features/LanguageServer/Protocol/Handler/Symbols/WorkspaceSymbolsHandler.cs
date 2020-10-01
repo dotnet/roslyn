@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -34,7 +32,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var solution = context.Solution;
 
             var searchTasks = Task.WhenAll(solution.Projects.Select(project => SearchProjectAsync(project, request, cancellationToken)));
-            return (await searchTasks.ConfigureAwait(false)).SelectMany(s => s).ToArray();
+            var result = await searchTasks.ConfigureAwait(false);
+            return result.SelectMany(a => a).ToArray();
 
             // local functions
             static async Task<ImmutableArray<SymbolInformation>> SearchProjectAsync(Project project, WorkspaceSymbolParams request, CancellationToken cancellationToken)
@@ -50,13 +49,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         request.Query,
                         searchService.KindsProvided,
                         cancellationToken).ConfigureAwait(false);
+
                     var projectSymbolsTasks = Task.WhenAll(items.Select(item => CreateSymbolInformation(item, cancellationToken)));
-                    return (await projectSymbolsTasks.ConfigureAwait(false)).ToImmutableArray();
+                    var result = await projectSymbolsTasks.ConfigureAwait(false);
+                    return result.WhereNotNull().ToImmutableArray();
                 }
 
                 return ImmutableArray.Create<SymbolInformation>();
 
-                static async Task<SymbolInformation> CreateSymbolInformation(INavigateToSearchResult result, CancellationToken cancellationToken)
+                static async Task<SymbolInformation?> CreateSymbolInformation(INavigateToSearchResult result, CancellationToken cancellationToken)
                 {
                     var location = await ProtocolConversions.TextSpanToLocationAsync(result.NavigableItem.Document, result.NavigableItem.SourceSpan, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfNull(location);

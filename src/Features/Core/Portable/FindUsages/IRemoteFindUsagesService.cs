@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         private readonly Solution _solution;
         private readonly IFindUsagesContext _context;
-        private readonly Dictionary<int, DefinitionItem> _idToDefinition = new Dictionary<int, DefinitionItem>();
+        private readonly Dictionary<int, DefinitionItem> _idToDefinition = new();
 
         public FindUsagesServerCallback(Solution solution, IFindUsagesContext context)
         {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
     internal abstract partial class AbstractGenerateEqualsAndGetHashCodeService : IGenerateEqualsAndGetHashCodeService
     {
         private const string GetHashCodeName = nameof(object.GetHashCode);
-        private static readonly SyntaxAnnotation s_specializedFormattingAnnotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_specializedFormattingAnnotation = new();
 
         protected abstract bool TryWrapWithUnchecked(
             ImmutableArray<SyntaxNode> statements, out ImmutableArray<SyntaxNode> wrappedStatements);

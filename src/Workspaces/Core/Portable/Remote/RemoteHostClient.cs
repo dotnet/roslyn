@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -108,12 +107,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Invokes a remote API that streams results back to the caller.
+        /// Invokes a remote API that streams data back to the caller via a pipe.
         /// </summary>
         public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
             Solution solution,
-            Func<TService, PinnedSolutionInfo, Stream, CancellationToken, ValueTask> invocation,
-            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
+            Func<TService, PinnedSolutionInfo, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             object? callbackTarget,
             CancellationToken cancellationToken)
             where TService : class

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -134,9 +136,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             // 4. Changing the document should generate a new cached item.
             var currentDocText = await document.GetTextAsync();
             var changedSourceText = currentDocText.WithChanges(new TextChange(new TextSpan(0, 0), "class D { } \n"));
-            var docId = ((TestWorkspace)workspace).Documents.First().Id;
-            ((TestWorkspace)workspace).ChangeDocument(docId, changedSourceText);
-            UpdateSolutionProvider((TestWorkspace)workspace, workspace.CurrentSolution);
+            var docId = workspace.Documents.First().Id;
+            workspace.ChangeDocument(docId, changedSourceText);
+            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
             var updatedDocument = GetDocument(workspace, CreateTextDocumentIdentifier(caretLocation.Uri));
 
             await RunCodeActionsAndAssertActionsInCacheAsync(workspace, cache, caretLocation, updatedDocument);

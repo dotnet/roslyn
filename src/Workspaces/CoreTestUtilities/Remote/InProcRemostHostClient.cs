@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -34,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private readonly RemoteEndPoint _endPoint;
         private readonly TraceSource _logger;
 
-        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, RemoteHostTestData testData)
+        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, TraceListener? traceListener, RemoteHostTestData testData)
         {
-            var inprocServices = new InProcRemoteServices(services, testData);
+            var inprocServices = new InProcRemoteServices(services, traceListener, testData);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubService.RemoteHost).ConfigureAwait(false);
 
@@ -116,6 +115,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             var assetStorage = _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8);
 
+            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
+            await TaskScheduler.Default;
+
 #pragma warning disable ISB001 // Dispose of proxies - caller disposes
             var proxy = await _inprocServices.ServiceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
 #pragma warning restore
@@ -191,7 +193,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             {
                 var pipePair = FullDuplexStream.CreatePipePair();
 
-                var clientConnection = descriptor.ConstructRpcConnection(pipePair.Item2);
+                var clientConnection = descriptor
+                    .WithTraceSource(_services.ServiceProvider.TraceSource)
+                    .ConstructRpcConnection(pipePair.Item2);
 
                 Contract.ThrowIfFalse(options.ClientRpcTarget is null == descriptor.ClientInterface is null);
 
@@ -218,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         private sealed class InProcRemoteServices
         {
-            private readonly ServiceProvider _serviceProvider;
+            public readonly ServiceProvider ServiceProvider;
             private readonly Dictionary<ServiceMoniker, Func<object>> _inProcBrokeredServicesMap = new();
             private readonly Dictionary<ServiceMoniker, BrokeredServiceBase.IFactory> _remoteBrokeredServicesMap = new();
             private readonly Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase>> _factoryMap = new();
@@ -226,11 +230,19 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             public readonly IServiceBroker ServiceBroker;
 
-            public InProcRemoteServices(HostWorkspaceServices workspaceServices, RemoteHostTestData testData)
+            public InProcRemoteServices(HostWorkspaceServices workspaceServices, TraceListener? traceListener, RemoteHostTestData testData)
             {
-                var remoteLogger = new TraceSource("inprocRemoteClient");
+                var remoteLogger = new TraceSource("InProcRemoteClient")
+                {
+                    Switch = { Level = SourceLevels.Verbose },
+                };
 
-                _serviceProvider = new ServiceProvider(remoteLogger, testData);
+                if (traceListener != null)
+                {
+                    remoteLogger.Listeners.Add(traceListener);
+                }
+
+                ServiceProvider = new ServiceProvider(remoteLogger, testData);
 
                 ServiceBroker = new InProcServiceBroker(this);
 
@@ -258,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
             }
 
-            public RemoteHostTestData TestData => _serviceProvider.TestData;
+            public RemoteHostTestData TestData => ServiceProvider.TestData;
 
             public void RegisterService(RemoteServiceName name, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceFactory)
             {
@@ -270,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             {
                 var factory = _factoryMap[serviceName];
                 var streams = FullDuplexStream.CreatePair();
-                return Task.FromResult<Stream>(new WrappedStream(factory(streams.Item1, _serviceProvider, default), streams.Item2));
+                return Task.FromResult<Stream>(new WrappedStream(factory(streams.Item1, ServiceProvider, default), streams.Item2));
             }
 
             public void RegisterInProcBrokeredService(ServiceDescriptor serviceDescriptor, Func<object> serviceFactory)
@@ -292,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                     // Currently don't support callback creation as we don't have in-proc service with callbacks yet.
                     Contract.ThrowIfFalse(descriptor.ClientInterface == null);
 
-                    var serviceConnection = descriptor.WithTraceSource(_serviceProvider.TraceSource).ConstructRpcConnection(pipe);
+                    var serviceConnection = descriptor.WithTraceSource(ServiceProvider.TraceSource).ConstructRpcConnection(pipe);
                     var service = inProcFactory();
 
                     serviceConnection.AddLocalRpcTarget(service);
@@ -303,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                 if (_remoteBrokeredServicesMap.TryGetValue(descriptor.Moniker, out var remoteFactory))
                 {
-                    return remoteFactory.Create(pipe, _serviceProvider, options, ServiceBroker);
+                    return remoteFactory.Create(pipe, ServiceProvider, options, ServiceBroker);
                 }
 
                 throw ExceptionUtilities.UnexpectedValue(descriptor.Moniker);

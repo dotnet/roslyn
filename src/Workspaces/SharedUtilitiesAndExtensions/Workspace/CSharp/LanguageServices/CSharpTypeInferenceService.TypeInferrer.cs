@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1230,18 +1232,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
+                var enumerableType = forEachStatementSyntax.AwaitKeyword == default
+                    ? this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
+                    : this.Compilation.GetTypeByMetadataName(typeof(IAsyncEnumerable<>).FullName);
+
+                enumerableType ??= this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+
                 // foreach (int v = Goo())
                 var variableTypes = GetTypes(forEachStatementSyntax.Type);
                 if (!variableTypes.Any())
                 {
                     return CreateResult(
-                        this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
+                        enumerableType
                             .Construct(Compilation.GetSpecialType(SpecialType.System_Object)));
                 }
 
-                var type = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-
-                return variableTypes.Select(v => new TypeInferenceInfo(type.Construct(v.InferredType)));
+                return variableTypes.Select(v => new TypeInferenceInfo(enumerableType.Construct(v.InferredType)));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInForStatement(ForStatementSyntax forStatement, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)

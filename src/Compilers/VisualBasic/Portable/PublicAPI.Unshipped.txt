@@ -1,1 +1,1 @@
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSyntaxTreeOptionsProvider(provider As Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
+

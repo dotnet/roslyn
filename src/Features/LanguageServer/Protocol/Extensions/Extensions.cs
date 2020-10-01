@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -26,26 +24,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
-        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri? documentUri)
         {
-            return GetDocuments<Document>(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
+            return GetDocuments(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
         }
 
-        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
+        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri? documentUri)
         {
-            return GetDocuments<TextDocument>(solution, documentUri, (s, i) => s.GetRequiredTextDocument(i));
+            return GetDocuments(solution, documentUri, (s, i) => s.GetRequiredTextDocument(i));
         }
 
-        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri documentUri, Func<Solution, DocumentId, T> getDocument) where T : TextDocument
+        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri? documentUri, Func<Solution, DocumentId, T> getDocument) where T : TextDocument
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
             //       separator
-            var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
+            var documentIds = solution.GetDocumentIdsWithFilePath(documentUri?.AbsolutePath);
 
             if (!documentIds.Any())
             {
-                documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
+                documentIds = solution.GetDocumentIdsWithFilePath(documentUri?.LocalPath);
             }
 
             return documentIds.SelectAsArray(id => getDocument(solution, id));
@@ -65,17 +63,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return (null, solution);
         }
 
-        public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
+        public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri? uri, string? clientName)
         {
-            return GetDocuments<Document>(solutionProvider, uri, (s, u, c) => s.GetDocuments(u), clientName);
+            return GetDocuments(solutionProvider, uri, (s, u, c) => s.GetDocuments(u), clientName);
         }
 
-        public static ImmutableArray<TextDocument> GetTextDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
+        public static ImmutableArray<TextDocument> GetTextDocuments(this ILspSolutionProvider solutionProvider, Uri? uri, string? clientName)
         {
-            return GetDocuments<TextDocument>(solutionProvider, uri, (s, u, c) => s.GetTextDocuments(u), clientName);
+            return GetDocuments(solutionProvider, uri, (s, u, c) => s.GetTextDocuments(u), clientName);
         }
 
-        private static ImmutableArray<T> GetDocuments<T>(this ILspSolutionProvider solutionProvider, Uri uri, Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments, string? clientName) where T : TextDocument
+        private static ImmutableArray<T> GetDocuments<T>(
+            this ILspSolutionProvider solutionProvider,
+            Uri? uri,
+            Func<ILspSolutionProvider, Uri?, string?, ImmutableArray<T>> getDocuments, string? clientName) where T : TextDocument
         {
             var documents = getDocuments(solutionProvider, uri, clientName);
 
@@ -98,9 +99,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             });
         }
 
-        public static Document? GetDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
+        public static Document? GetDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier? documentIdentifier, string? clientName = null)
         {
-            return GetDocument<Document>(solutionProvider, documentIdentifier, (s, d, c) => s.GetDocuments(d, c), clientName);
+            return GetDocument(solutionProvider, documentIdentifier, (s, d, c) => s.GetDocuments(d, c), clientName);
         }
 
         public static TextDocument? GetTextDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
@@ -108,9 +109,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return GetDocument<TextDocument>(solutionProvider, documentIdentifier, (s, d, c) => s.GetTextDocuments(d, c), clientName);
         }
 
-        private static T? GetDocument<T>(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments, string? clientName = null) where T : TextDocument
+        private static T? GetDocument<T>(
+            this ILspSolutionProvider solutionProvider,
+            TextDocumentIdentifier? documentIdentifier,
+            Func<ILspSolutionProvider, Uri?, string?, ImmutableArray<T>> getDocuments,
+            string? clientName = null) where T : TextDocument
         {
-            var documents = getDocuments(solutionProvider, documentIdentifier.Uri, clientName);
+            var documents = getDocuments(solutionProvider, documentIdentifier?.Uri, clientName);
 
             if (documents.Length == 0)
             {

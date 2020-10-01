@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
@@ -60,6 +62,6 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         }
 
         public DocumentKey Rehydrate()
-            => new DocumentKey(Project.Rehydrate(), Id, FilePath, Name);
+            => new(Project.Rehydrate(), Id, FilePath, Name);
     }
 }

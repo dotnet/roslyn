@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -16,7 +14,7 @@ namespace Roslyn.Utilities
     internal static class AsyncLazy
     {
         public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction, bool cacheResult)
-            => new AsyncLazy<T>(asynchronousComputeFunction, cacheResult);
+            => new(asynchronousComputeFunction, cacheResult);
     }
 
     /// <summary>
@@ -62,7 +60,7 @@ namespace Roslyn.Utilities
         /// by using a single lock for all AsyncLazy instances.  Only trivial and non-reentrant work
         /// should be done while holding the lock.
         /// </summary>
-        private static readonly NonReentrantLock s_gate = new NonReentrantLock(useThisInstanceForSynchronization: true);
+        private static readonly NonReentrantLock s_gate = new(useThisInstanceForSynchronization: true);
 
         /// <summary>
         /// The hash set of all currently outstanding asynchronous requests. Null if there are no requests,

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -43,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
 
         private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos
-            = new ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>>();
+            = new();
 
         /// <summary>
         /// Remote service connection. Created on demand when we startup and then
@@ -55,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
         private readonly TaskCompletionSource<AsyncBatchingWorkQueue<DocumentAndComments>> _workQueueSource
-            = new TaskCompletionSource<AsyncBatchingWorkQueue<DocumentAndComments>>();
+            = new();
 
         public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
 

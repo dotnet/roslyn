@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
     internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
     {
-        internal static readonly CSharpSyntaxFacts Instance = new CSharpSyntaxFacts();
+        internal static readonly CSharpSyntaxFacts Instance = new();
 
         protected CSharpSyntaxFacts()
         {
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
             => node.GetRootConditionalAccessExpression();
 
-#nullable restore
+#nullable disable
 
         public bool IsObjectCreationExpressionType(SyntaxNode node)
             => node.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation) &&
@@ -548,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 #nullable enable
         public bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberBindingExpressionSyntax;
-#nullable restore
+#nullable disable
 
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
@@ -571,6 +573,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode GetTargetOfMemberBinding(SyntaxNode node)
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
+
+        public SyntaxNode GetNameOfMemberBindingExpression(SyntaxNode node)
+            => ((MemberBindingExpressionSyntax)node).Name;
 
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
             => (node as MemberAccessExpressionSyntax)?.Expression;
@@ -1693,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 #nullable enable
         public bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node)
             => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
-#nullable restore
+#nullable disable
 
         public IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node)
             => IsExecutableBlock(node)

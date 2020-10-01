@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -53,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// </summary>
     internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspace
     {
-        private static readonly IntPtr s_docDataExisting_Unknown = new IntPtr(-1);
+        private static readonly IntPtr s_docDataExisting_Unknown = new(-1);
         private const string AppCodeFolderName = "App_Code";
 
         private readonly IThreadingContext _threadingContext;
@@ -65,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ITextBufferCloneService _textBufferCloneService;
 
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         /// <summary>
         /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
@@ -74,18 +72,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
-        private readonly Dictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = new Dictionary<ProjectId, string?>();
+        private readonly Dictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = new();
 
         /// <summary>
         /// A map to fetch the path to a rule set file for a project. This right now is only used to implement
         /// <see cref="TryGetRuleSetPathForProject(ProjectId)"/> and any other use is extremely suspicious, since direct use of this is out of
         /// sync with the Workspace if there is active batching happening.
         /// </summary>
-        private readonly Dictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = new Dictionary<ProjectId, Func<string?>>();
+        private readonly Dictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = new();
 
-        private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new Dictionary<string, List<VisualStudioProject>>();
+        private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new();
 
-        private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new Dictionary<string, UIContext?>();
+        private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new();
 
         /// <summary>
         /// A set of documents that were added by <see cref="VisualStudioProject.AddSourceTextContainer"/>, and aren't otherwise
@@ -1559,7 +1557,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
+        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new();
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
@@ -1616,7 +1614,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private sealed class ProjectReferenceInformation
         {
-            public readonly List<string> OutputPaths = new List<string>();
+            public readonly List<string> OutputPaths = new();
             public readonly List<(string path, ProjectReference projectReference)> ConvertedProjectReferences = new List<(string path, ProjectReference)>();
         }
 
@@ -1626,7 +1624,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// any bug by a project adding the wrong output path means we could end up with some duplication.
         /// In that case, we'll temporarily have two until (hopefully) somebody removes it.
         /// </summary>
-        private readonly Dictionary<string, List<ProjectId>> _projectsByOutputPath = new Dictionary<string, List<ProjectId>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<ProjectId>> _projectsByOutputPath = new(StringComparer.OrdinalIgnoreCase);
 
         public void AddProjectOutputPath(ProjectId projectId, string outputPath)
         {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -828,13 +830,14 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class CompilationAnalyzerWithSeverity : DiagnosticAnalyzer
         {
+            public const string DiagnosticId = "ID1000";
             public CompilationAnalyzerWithSeverity(
                 DiagnosticSeverity severity,
                 bool configurable)
             {
                 var customTags = !configurable ? new[] { WellKnownDiagnosticTags.NotConfigurable } : Array.Empty<string>();
                 Descriptor = new DiagnosticDescriptor(
-                    "ID1000",
+                    DiagnosticId,
                     "Description1",
                     string.Empty,
                     "Analysis",

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -62,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 XmlDoc.Delimiter("///"),
                 XmlDoc.Delimiter("<"),
                 XmlDoc.Name("param"),
-                XmlDoc.AttributeName(" "),
                 XmlDoc.AttributeName("name"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("'"),
@@ -636,7 +637,6 @@ namespace C
                 XmlDoc.Text(" "),
                 XmlDoc.Delimiter("<"),
                 XmlDoc.Name("param"),
-                XmlDoc.AttributeName(" "),
                 XmlDoc.AttributeName("name"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("\""),
@@ -671,7 +671,6 @@ class Program<T>
                 XmlDoc.Text(" "),
                 XmlDoc.Delimiter("<"),
                 XmlDoc.Name("see"),
-                XmlDoc.AttributeName(" "),
                 XmlDoc.AttributeName("cref"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("\""),
@@ -713,7 +712,6 @@ namespace N
                 XmlDoc.Text("  "),
                 XmlDoc.Delimiter("<"),
                 XmlDoc.Name("see"),
-                XmlDoc.AttributeName(" "),
                 XmlDoc.AttributeName("cref"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("\""),
@@ -790,7 +788,6 @@ class MyClass
                 XmlDoc.Text(" "),
                 XmlDoc.Delimiter("<"),
                 XmlDoc.Name("see"),
-                XmlDoc.AttributeName(" "),
                 XmlDoc.AttributeName("cref"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("\""),
