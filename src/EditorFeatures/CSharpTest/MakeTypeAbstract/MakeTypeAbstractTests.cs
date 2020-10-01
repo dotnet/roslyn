@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeTypeAbstract
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpMakeTypeAbstractCodeFixProvider());
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMethod(string typeKind)
@@ -43,7 +43,7 @@ public abstract {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMethodEnclosingClassWithoutAccessibility(string typeKind)
@@ -61,7 +61,7 @@ abstract {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMethodEnclosingClassDocumentationComment(string typeKind)
@@ -85,7 +85,7 @@ public abstract {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestPropertyGetter(string typeKind)
@@ -103,7 +103,7 @@ public abstract {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestPropertySetter(string typeKind)
@@ -121,7 +121,7 @@ public abstract {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestIndexerGetter(string typeKind)
@@ -139,7 +139,7 @@ public abstract {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestIndexerSetter(string typeKind)
@@ -157,7 +157,7 @@ public abstract {typeKind} Foo
 }}");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41654"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41654"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestPartialClass()
         {
             await TestInRegularAndScript1Async(
@@ -181,7 +181,7 @@ public partial class Foo
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestEventAdd(string typeKind)
@@ -194,7 +194,7 @@ public {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestEventRemove(string typeKind)
@@ -207,7 +207,7 @@ public {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMethodWithBody(string typeKind)
@@ -220,7 +220,7 @@ public {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestPropertyGetterWithArrowBody(string typeKind)
@@ -233,7 +233,7 @@ public {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestPropertyGetterWithBody(string typeKind)
@@ -249,7 +249,7 @@ public {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestStructNestedInClass(string typeKind)
@@ -265,7 +265,7 @@ public {typeKind} C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMethodEnclosingClassStatic(string typeKind)
@@ -278,7 +278,7 @@ public static {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task FixAll()
         {
             await TestInRegularAndScript1Async(
