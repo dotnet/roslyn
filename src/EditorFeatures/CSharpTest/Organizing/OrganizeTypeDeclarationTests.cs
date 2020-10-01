@@ -979,18 +979,18 @@ $@"{typeKind} Program
 }}";
 
             var final =
-@"class Program
-{
+$@"{typeKind} Program
+{{
     // A
     void A()
-    {
-    }
+    {{
+    }}
 
     // B
     void B()
-    {
-    }
-}";
+    {{
+    }}
+}}";
             await CheckAsync(initial, final);
         }
 
