@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 {
     internal class SplitCommentOptions
     {
-        public static PerLanguageOption<bool> Enabled =
-           new PerLanguageOption<bool>(nameof(SplitCommentOptions), nameof(Enabled), defaultValue: true,
+        public static PerLanguageOption2<bool> Enabled =
+           new PerLanguageOption2<bool>(nameof(SplitCommentOptions), nameof(Enabled), defaultValue: true,
                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitComments"));
     }
 

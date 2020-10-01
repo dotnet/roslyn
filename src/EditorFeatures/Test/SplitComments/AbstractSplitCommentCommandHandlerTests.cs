@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
             string inputMarkup,
             string? expectedOutputMarkup,
             Action callback,
+            bool enabled,
             bool useTabs)
         {
             if (useTabs)
@@ -51,8 +52,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 
             using var workspace = this.CreateWorkspace(inputMarkup);
 
-            if (useTabs)
-                workspace.SetOptions(workspace.Options.WithChangedOption(FormattingOptions.UseTabs, workspace.Projects.Single().Language, true));
+            var language = workspace.Projects.Single().Language;
+            workspace.SetOptions(
+                workspace.Options.WithChangedOption(FormattingOptions.UseTabs, language, useTabs)
+                                 .WithChangedOption(SplitCommentOptions.Enabled, language, enabled));
 
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
@@ -95,17 +98,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
         /// this known test infrastructure issue. This bug does not represent a product
         /// failure.
         /// </summary>
-        protected void TestHandled(string inputMarkup, string expectedOutputMarkup, bool useTabs = false)
+        protected void TestHandled(string inputMarkup, string expectedOutputMarkup, bool enabled = true, bool useTabs = false)
         {
             TestWorker(
                 inputMarkup, expectedOutputMarkup,
                 callback: () =>
                 {
                     Assert.True(false, "Should not reach here.");
-                }, useTabs);
+                }, enabled, useTabs);
         }
 
-        protected void TestNotHandled(string inputMarkup, bool useTabs = false)
+        protected void TestNotHandled(string inputMarkup, bool enabled = true, bool useTabs = false)
         {
             var notHandled = false;
             TestWorker(
@@ -113,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
                 callback: () =>
                 {
                     notHandled = true;
-                }, useTabs);
+                }, enabled, useTabs);
 
             Assert.True(notHandled);
         }
