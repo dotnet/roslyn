@@ -255,14 +255,14 @@ public {typeKind} Foo
         public async Task TestStructNestedInClass(string typeKind)
         {
             await TestMissingInRegularAndScriptAsync(
-@"
-public class C
-{
+$@"
+public {typeKind} C
+{{
     public struct S
-    {
+    {{
         public abstract void [|Foo|]();
-    }
-}");
+    }}
+}}");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
