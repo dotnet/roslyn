@@ -36,9 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, SemanticModel semanticModel, int position)
         {
+            var containerIsNullable = container.IsNullable();
+            container = container.RemoveNullableIfPresent();
             var allMembers = container.GetMembers();
             var operators = from m in allMembers.OfType<IMethodSymbol>()
-                            where m.IsUserDefinedOperator() && !IsExcludedOperator(m)
+                            where m.IsUserDefinedOperator() && !IsExcludedOperator(m) && (containerIsNullable ? m.IsLiftable() : true)
                             select SymbolCompletionItem.CreateWithSymbolId(
                                 displayText: m.GetOperatorSignOfOperator(),
                                 filterText: "",

@@ -5,6 +5,8 @@
 #nullable enable
 
 using System;
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -166,6 +168,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 default:
                     throw ExceptionUtilities.UnexpectedValue(m.Name);
             }
+        }
+
+        internal static bool IsLiftable(this IMethodSymbol symbol)
+        {
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#lifted-operators
+
+            // Common for all:
+            if (symbol.IsUserDefinedOperator() && symbol.Parameters.All(p => p.Type.IsValueType))
+            {
+                switch (symbol.Name)
+                {
+                    // Unary
+                    case WellKnownMemberNames.UnaryPlusOperatorName:
+                    case WellKnownMemberNames.IncrementOperatorName:
+                    case WellKnownMemberNames.UnaryNegationOperatorName:
+                    case WellKnownMemberNames.DecrementOperatorName:
+                    case WellKnownMemberNames.LogicalNotOperatorName:
+                    case WellKnownMemberNames.OnesComplementOperatorName:
+                        return symbol.Parameters.Length == 1 && symbol.ReturnType.IsValueType;
+                    // Binary 
+                    case WellKnownMemberNames.AdditionOperatorName:
+                    case WellKnownMemberNames.SubtractionOperatorName:
+                    case WellKnownMemberNames.MultiplyOperatorName:
+                    case WellKnownMemberNames.DivisionOperatorName:
+                    case WellKnownMemberNames.ModulusOperatorName:
+                    case WellKnownMemberNames.BitwiseAndOperatorName:
+                    case WellKnownMemberNames.BitwiseOrOperatorName:
+                    case WellKnownMemberNames.ExclusiveOrOperatorName:
+                    case WellKnownMemberNames.LeftShiftOperatorName:
+                    case WellKnownMemberNames.RightShiftOperatorName:
+                        return symbol.Parameters.Length == 2 && symbol.ReturnType.IsValueType;
+                    // Equality + Relational 
+                    case WellKnownMemberNames.EqualityOperatorName:
+                    case WellKnownMemberNames.InequalityOperatorName:
+
+                    case WellKnownMemberNames.LessThanOperatorName:
+                    case WellKnownMemberNames.GreaterThanOperatorName:
+                    case WellKnownMemberNames.LessThanOrEqualOperatorName:
+                    case WellKnownMemberNames.GreaterThanOrEqualOperatorName:
+                        return symbol.Parameters.Length == 2 && symbol.ReturnType.SpecialType == SpecialType.System_Boolean;
+                }
+            }
+
+            return false;
         }
     }
 }
