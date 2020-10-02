@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
+            if (request.Context.TriggerCharacter == null)
+            {
+                return null;
+            }
+
             // C# and VB share the same LSP language server, and thus share the same default trigger characters.
             // We need to ensure the trigger character is valid in the document's language. For example, the '{'
             // character, while a trigger character in VB, is not a trigger character in C#.

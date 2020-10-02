@@ -251,8 +251,8 @@ namespace Roslyn.Test.Utilities
                     TextDocument = requestParameters.TextDocument,
                     Position = requestParameters.Position,
                     CompletionTrigger = new CompletionTrigger(ProtocolConversions.LSPToRoslynCompletionTriggerKind(requestParameters.Context.TriggerKind), char.Parse(requestParameters.Context.TriggerCharacter))
-                },
-                Preselect = preselect,
+                }),
+                Preselect = preselect
             };
 
             if (tags != null)
