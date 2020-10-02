@@ -13,7 +13,7 @@ cd <roslyn-git-directory>
 ./build.sh --restore
 ```
 
-The script will install .NET Core to `.dotnet` directory if it is not found on `$PATH`. It will then restore required NuGet packages and build `Compilers.sln` solution. The option `--restore` (or `-r`) is only needed when building for the first time, or when NuGet references change.
+The script will install .NET Core to `.dotnet` directory if it is not found on `$PATH`. It will then restore required NuGet packages and build `Compilers.slnf` solution. The option `--restore` (or `-r`) is only needed when building for the first time, or when NuGet references change.
 
 ## Using the compiler
 
