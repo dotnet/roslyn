@@ -283,6 +283,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                     }
                 }
             }
+            else if (syntaxFacts.IsImplicitObjectCreationExpression(invocationOrCreation))
+            {
+                var constructor = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
+                if (_regexType.Equals(constructor?.ContainingType))
+                {
+                    // Argument to "new Regex".  Need to do deeper analysis
+                    return AnalyzeStringLiteral(
+                        argumentNode, cancellationToken, out options);
+                }
+            }
 
             return false;
         }
