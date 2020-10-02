@@ -22,7 +22,8 @@ namespace IOperationGenerator
             "IConditionalAccessInstanceOperation",
             "IDefaultValueOperation",
             "ITypeOfOperation",
-            "ISizeOfOperation"
+            "ISizeOfOperation",
+            "IOmittedArgumentOperation"
         };
     }
 }

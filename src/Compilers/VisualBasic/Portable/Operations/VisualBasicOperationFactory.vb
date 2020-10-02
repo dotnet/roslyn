@@ -468,9 +468,8 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundOmittedArgumentOperation(boundOmittedArgument As BoundOmittedArgument) As IOmittedArgumentOperation
             Dim syntax As SyntaxNode = boundOmittedArgument.Syntax
             Dim type As ITypeSymbol = boundOmittedArgument.Type
-            Dim constantValue As ConstantValue = boundOmittedArgument.ConstantValueOpt
             Dim isImplicit As Boolean = boundOmittedArgument.WasCompilerGenerated
-            Return New OmittedArgumentOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New OmittedArgumentOperation(_semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundParenthesizedOperation(boundParenthesized As BoundParenthesized) As IParenthesizedOperation

@@ -6576,10 +6576,12 @@ oneMoreTime:
             return new DiscardPatternOperation(pat.InputType, pat.NarrowedType, semanticModel: null, pat.Syntax, IsImplicit(pat));
         }
 
+#nullable enable
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
         {
-            return new OmittedArgumentOperation(semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            return new OmittedArgumentOperation(semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
+#nullable disable
 
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
         {

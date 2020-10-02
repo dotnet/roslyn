@@ -1845,7 +1845,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IOmittedArgumentOperation" Base="IOperation">
+  <Node Name="IOmittedArgumentOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an argument value that has been omitted in an invocation.

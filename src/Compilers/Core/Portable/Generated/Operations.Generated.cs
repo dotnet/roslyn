@@ -2086,6 +2086,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Expression { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents an argument value that has been omitted in an invocation.
     /// <para>
@@ -2104,6 +2105,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IOmittedArgumentOperation : IOperation
     {
     }
+    #nullable disable
     /// <summary>
     /// Represents an initializer for a field, property, parameter or a local variable declaration.
     /// <para>
@@ -6753,14 +6755,22 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class OmittedArgumentOperation : OperationOld, IOmittedArgumentOperation
+    #nullable enable
+    internal sealed partial class OmittedArgumentOperation : Operation, IOmittedArgumentOperation
     {
-        internal OmittedArgumentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.OmittedArgument, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal OmittedArgumentOperation(SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Type = type;
+        }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.OmittedArgument;
         public override void Accept(OperationVisitor visitor) => visitor.VisitOmittedArgument(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitOmittedArgument(this, argument);
     }
+    #nullable disable
     internal abstract partial class BaseSymbolInitializerOperation : OperationOld, ISymbolInitializerOperation
     {
         protected BaseSymbolInitializerOperation(ImmutableArray<ILocalSymbol> locals, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9208,6 +9218,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (SizeOfOperation)operation;
             return new SizeOfOperation(internalOperation.TypeOperand, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, object? argument)
+        {
+            var internalOperation = (OmittedArgumentOperation)operation;
+            return new OmittedArgumentOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #nullable disable
