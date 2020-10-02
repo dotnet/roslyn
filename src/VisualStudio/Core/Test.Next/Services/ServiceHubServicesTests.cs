@@ -138,10 +138,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsService>(callback, cancellationTokenSource.Token);
+            using var connection = await client.CreateConnectionAsync(
+                WellKnownServiceHubService.RemoteTodoCommentsService,
+                callback,
+                cancellationTokenSource.Token);
 
-            var invokeTask = connection.TryInvokeAsync(
-                (service, cancellationToken) => service.ComputeTodoCommentsAsync(cancellationToken),
+            var invokeTask = connection.RunRemoteAsync(
+                nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
+                solution: null,
+                arguments: Array.Empty<object>(),
                 cancellationTokenSource.Token);
 
             var data = await callback.Data;
@@ -164,7 +169,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             cancellationTokenSource.Cancel();
 
-            Assert.True(await invokeTask);
+            await invokeTask;
         }
 
         private class TodoCommentsListener : ITodoCommentsListener
@@ -173,10 +178,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
             public Task<(DocumentId, ImmutableArray<TodoCommentData>)> Data => _dataSource.Task;
 
-            public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+            public Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
             {
                 _dataSource.SetResult((documentId, data));
-                return new ValueTask();
+                return Task.CompletedTask;
             }
         }
 
@@ -216,10 +221,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var callback = new DesignerAttributeListener();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeService>(callback, cancellationTokenSource.Token);
+            using var connection = await client.CreateConnectionAsync(
+                WellKnownServiceHubService.RemoteDesignerAttributeService,
+                callback,
+                cancellationTokenSource.Token);
 
-            var invokeTask = connection.TryInvokeAsync(
-                (service, cancellationToken) => service.StartScanningForDesignerAttributesAsync(cancellationToken),
+            var invokeTask = connection.RunRemoteAsync(
+                nameof(IRemoteDesignerAttributeService.StartScanningForDesignerAttributesAsync),
+                solution: null,
+                arguments: Array.Empty<object>(),
                 cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
@@ -231,7 +241,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             cancellationTokenSource.Cancel();
 
-            Assert.True(await invokeTask);
+            await invokeTask;
         }
 
         private class DesignerAttributeListener : IDesignerAttributeListener
@@ -240,13 +250,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 = new TaskCompletionSource<ImmutableArray<DesignerAttributeData>>();
             public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
-            public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-                => new ValueTask();
+            public Task OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+                => Task.CompletedTask;
 
-            public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
+            public Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
                 _infosSource.SetResult(infos);
-                return new ValueTask();
+                return Task.CompletedTask;
             }
         }
 

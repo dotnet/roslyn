@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             _map = map;
         }
 
-        public ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(
+        public Task<ImmutableArray<(Checksum, object)>> GetAssetsAsync(
             int serviceId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             var results = new List<(Checksum, object)>();
@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 }
             }
 
-            return new ValueTask<ImmutableArray<(Checksum, object)>>(results.ToImmutableArray());
+            return Task.FromResult(results.ToImmutableArray());
         }
 
-        public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => new ValueTask<bool>(false);
+        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
     }
 }

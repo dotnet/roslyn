@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -11,29 +13,23 @@ using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteTodoCommentsService : BrokeredServiceBase, IRemoteTodoCommentsService
+    internal partial class RemoteTodoCommentsService : ServiceBase, IRemoteTodoCommentsService
     {
-        internal sealed class Factory : FactoryBase<IRemoteTodoCommentsService, ITodoCommentsListener>
+        public RemoteTodoCommentsService(
+            Stream stream, IServiceProvider serviceProvider)
+            : base(serviceProvider, stream)
         {
-            protected override IRemoteTodoCommentsService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<ITodoCommentsListener> callback)
-                => new RemoteTodoCommentsService(arguments, callback);
+            StartService();
         }
 
-        private readonly RemoteCallback<ITodoCommentsListener> _callback;
-
-        public RemoteTodoCommentsService(in ServiceConstructionArguments arguments, RemoteCallback<ITodoCommentsListener> callback)
-            : base(arguments)
+        public Task ComputeTodoCommentsAsync(CancellationToken cancellation)
         {
-            _callback = callback;
-        }
-
-        public ValueTask ComputeTodoCommentsAsync(CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(cancellationToken =>
+            return RunServiceAsync(() =>
             {
                 var workspace = GetWorkspace();
+                var endpoint = this.EndPoint;
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteTodoCommentsIncrementalAnalyzerProvider(_callback);
+                var analyzerProvider = new RemoteTodoCommentsIncrementalAnalyzerProvider(endpoint);
 
                 registrationService.AddAnalyzerProvider(
                     analyzerProvider,
@@ -42,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Remote
                         highPriorityForActiveFile: false,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
-                return default;
-            }, cancellationToken);
+                return Task.CompletedTask;
+            }, cancellation);
         }
     }
 }

@@ -16,16 +16,17 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteCallback<ITodoCommentsListener> _callback;
+        private readonly RemoteEndPoint _endPoint;
 
-        public RemoteTodoCommentsIncrementalAnalyzer(RemoteCallback<ITodoCommentsListener> callback)
-            => _callback = callback;
+        public RemoteTodoCommentsIncrementalAnalyzer(RemoteEndPoint endPoint)
+            => _endPoint = endPoint;
 
-        protected override async ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+        protected override Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
         {
-            await _callback.InvokeAsync(
-                (callback, cancellationToken) => callback.ReportTodoCommentDataAsync(documentId, data, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            return _endPoint.InvokeAsync(
+                nameof(ITodoCommentsListener.ReportTodoCommentDataAsync),
+                new object[] { documentId, data },
+                cancellationToken);
         }
     }
 }

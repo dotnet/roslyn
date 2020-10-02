@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
@@ -17,26 +16,28 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteCallback<IDesignerAttributeListener> _callback;
+        private readonly RemoteEndPoint _endPoint;
 
-        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteCallback<IDesignerAttributeListener> callback)
+        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
             : base(workspace)
         {
-            _callback = callback;
+            _endPoint = endPoint;
         }
 
-        protected override async ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+        protected override Task ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
-            await _callback.InvokeAsync(
-                (callback, cancellationToken) => callback.OnProjectRemovedAsync(projectId, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            return _endPoint.InvokeAsync(
+                nameof(IDesignerAttributeListener.OnProjectRemovedAsync),
+                new object[] { projectId },
+                cancellationToken);
         }
 
-        protected override async ValueTask ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
+        protected override Task ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
-            await _callback.InvokeAsync(
-               (callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(data.ToImmutableArray(), cancellationToken),
-               cancellationToken).ConfigureAwait(false);
+            return _endPoint.InvokeAsync(
+                nameof(IDesignerAttributeListener.ReportDesignerAttributeDataAsync),
+                new object[] { data },
+                cancellationToken);
         }
     }
 }

@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,24 +17,12 @@ using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteSemanticClassificationCacheService : BrokeredServiceBase, IRemoteSemanticClassificationCacheService
+    internal partial class CodeAnalysisService : IRemoteSemanticClassificationCacheService
     {
-        internal sealed class Factory : FactoryBase<IRemoteSemanticClassificationCacheService>
-        {
-            protected override IRemoteSemanticClassificationCacheService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteSemanticClassificationCacheService(arguments);
-        }
-
-        public RemoteSemanticClassificationCacheService(in ServiceConstructionArguments arguments)
-            : base(arguments)
-        {
-        }
-
         /// <summary>
         /// Key we use to look this up in the persistence store for a particular document.
         /// </summary>
@@ -70,13 +57,13 @@ namespace Microsoft.CodeAnalysis.Remote
             return textChecksum;
         }
 
-        public ValueTask CacheSemanticClassificationsAsync(
+        public Task CacheSemanticClassificationsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(async () =>
             {
                 // Once fully loaded, we can clear any of the cached information we stored during load.
                 if (isFullyLoaded)
@@ -180,10 +167,10 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
+        public Task<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
             SerializableDocumentKey documentKey, TextSpan textSpan, Checksum checksum, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(async () =>
             {
                 var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
                     documentKey.Rehydrate(), checksum, cancellationToken).ConfigureAwait(false);

@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     /// </summary>
     internal interface IRemoteDesignerAttributeService
     {
-        ValueTask StartScanningForDesignerAttributesAsync(CancellationToken cancellation);
+        Task StartScanningForDesignerAttributesAsync(CancellationToken cancellation);
     }
 }

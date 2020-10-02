@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal interface IRemoteSemanticClassificationService
     {
-        ValueTask<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
+        Task<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
             PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan span, CancellationToken cancellationToken);
     }
 
