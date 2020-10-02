@@ -207,12 +207,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // We convert the code fixes and refactorings to UnifiedSuggestedActionSets instead of
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
-                    var fixes = GetCodeFixes(
-                        supportsFeatureService, requestedActionCategories, workspace,
-                        document, range, addOperationScope, cancellationToken);
-                    var refactorings = GetRefactorings(
-                        supportsFeatureService, requestedActionCategories, workspace,
-                        document, selectionOpt, addOperationScope, cancellationToken);
+                    var (fixes, refactorings) = ThreadingContext.JoinableTaskFactory.Run(async () =>
+                    {
+                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (this method manages affinity using JTF)
+                        var fixes = await GetCodeFixesAsync(
+                            supportsFeatureService, requestedActionCategories, workspace,
+                            document, range, addOperationScope, cancellationToken);
+                        var refactorings = await GetRefactoringsAsync(
+                            supportsFeatureService, requestedActionCategories, workspace,
+                            document, selectionOpt, addOperationScope, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+
+                        return (fixes, refactorings);
+                    });
 
                     var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selectionOpt);
                     if (!filteredSets.HasValue)
@@ -277,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     };
             }
 
-            private ImmutableArray<UnifiedSuggestedActionSet> GetCodeFixes(
+            private async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync(
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
@@ -286,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Func<string, IDisposable?> addOperationScope,
                 CancellationToken cancellationToken)
             {
-                this.AssertIsForeground();
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 if (_owner._codeFixService == null ||
                     !supportsFeatureService.SupportsCodeFixes(_subjectBuffer) ||
@@ -299,9 +308,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // See https://github.com/dotnet/roslyn/issues/29589
                 const bool includeSuppressionFixes = true;
 
-                return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (this method manages affinity using JTF)
+                return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, _owner._codeFixService, document, range.Span.ToTextSpan(),
-                    includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken).WaitAndGetResult(cancellationToken);
+                    includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
@@ -319,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private ImmutableArray<UnifiedSuggestedActionSet> GetRefactorings(
+            private async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync(
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
@@ -328,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Func<string, IDisposable?> addOperationScope,
                 CancellationToken cancellationToken)
             {
-                this.AssertIsForeground();
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 if (!selectionOpt.HasValue)
                 {
@@ -350,9 +361,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // then we want to filter out refactorings outside the selection span.
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
-                return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (this method manages affinity using JTF)
+                return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
                     workspace, _owner._codeRefactoringService, document, selection, isBlocking: true,
-                    addOperationScope, filterOutsideSelection, cancellationToken).WaitAndGetResult(cancellationToken);
+                    addOperationScope, filterOutsideSelection, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
             }
 
             public Task<bool> HasSuggestedActionsAsync(
