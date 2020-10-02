@@ -29,11 +29,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
             Dim currentTrivia = trivia
             While currentTrivia <> Nothing AndAlso currentTrivia.SpanStart > 0
                 Dim previousTrivia = root.FindTrivia(currentTrivia.SpanStart - 1)
-                If previousTrivia.Kind() = SyntaxKind.LineContinuationTrivia Then
+                If previousTrivia.IsKind(SyntaxKind.LineContinuationTrivia) Then
                     Return False
                 End If
 
-                If previousTrivia.Kind() = SyntaxKind.WhitespaceTrivia Then
+                If previousTrivia.IsKind(SyntaxKind.WhitespaceTrivia) Then
                     currentTrivia = previousTrivia
                     Continue While
                 End If
