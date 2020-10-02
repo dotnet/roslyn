@@ -111,17 +111,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
-        public void TestCommentWithMultipleLeadingSpaces()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [InlineData("X[||]Test Comment")]
+        [InlineData("X [||]Test Comment")]
+        [InlineData("X[||] Test Comment")]
+        [InlineData("X [||] Test Comment")]
+        public void TestCommentWithMultipleLeadingSpaces(string commentValue)
         {
             TestHandled(
-@"public class Program
-{
+@$"public class Program
+{{
     public static void Main(string[] args) 
-    { 
-        //    X[||]Test Comment
-    }
-}",
+    {{ 
+        //    {commentValue}
+    }}
+}}",
 @"public class Program
 {
     public static void Main(string[] args) 
