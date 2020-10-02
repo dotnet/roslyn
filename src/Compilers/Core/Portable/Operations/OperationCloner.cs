@@ -112,11 +112,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new BranchOperation(operation.Target, operation.BranchKind, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitEmpty(IEmptyOperation operation, object argument)
-        {
-            return new EmptyOperation(((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitReturn(IReturnOperation operation, object argument)
         {
             return new ReturnOperation(Visit(operation.ReturnedValue), operation.Kind, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

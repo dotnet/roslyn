@@ -1529,14 +1529,14 @@ namespace Microsoft.CodeAnalysis.Operations
             return new BranchOperation(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IEmptyOperation CreateBoundNoOpStatementOperation(BoundNoOpStatement boundNoOpStatement)
         {
             SyntaxNode syntax = boundNoOpStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundNoOpStatement.WasCompilerGenerated;
-            return new EmptyOperation(_semanticModel, syntax, type, constantValue, isImplicit);
+            return new EmptyOperation(_semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private IConditionalOperation CreateBoundIfStatementOperation(BoundIfStatement boundIfStatement)
         {

@@ -352,6 +352,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         BranchKind BranchKind { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents an empty or no-op operation.
     /// <para>
@@ -370,6 +371,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IEmptyOperation : IOperation
     {
     }
+    #nullable disable
     /// <summary>
     /// Represents a return from the method with an optional return value.
     /// <para>
@@ -4005,14 +4007,19 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitBranch(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitBranch(this, argument);
     }
-    internal sealed partial class EmptyOperation : OperationOld, IEmptyOperation
+    #nullable enable
+    internal sealed partial class EmptyOperation : Operation, IEmptyOperation
     {
-        internal EmptyOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Empty, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal EmptyOperation(SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit) { }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Empty;
         public override void Accept(OperationVisitor visitor) => visitor.VisitEmpty(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitEmpty(this, argument);
     }
+    #nullable disable
     internal abstract partial class BaseReturnOperation : OperationOld, IReturnOperation
     {
         internal BaseReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9047,6 +9054,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable;
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this);
         private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this);
+        public override IOperation VisitEmpty(IEmptyOperation operation, object? argument)
+        {
+            var internalOperation = (EmptyOperation)operation;
+            return new EmptyOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
     }
     #nullable disable
     #endregion

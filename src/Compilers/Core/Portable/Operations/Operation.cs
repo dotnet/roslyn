@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
-        protected static readonly IOperation s_unset = new EmptyOperation(
-            semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
+        protected static readonly IOperation s_unset = new EmptyOperation(semanticModel: null, syntax: null!, isImplicit: true);
         protected static readonly IBlockOperation s_unsetBlock = new BlockOperation(
             operations: ImmutableArray<IOperation>.Empty, locals: default, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IArrayInitializerOperation s_unsetArrayInitializer = new ArrayInitializerOperation(

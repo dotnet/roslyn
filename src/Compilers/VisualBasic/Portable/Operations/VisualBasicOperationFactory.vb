@@ -1396,7 +1396,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundNoOpStatement.WasCompilerGenerated
-            Return New EmptyOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New EmptyOperation(_semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundStopStatementOperation(boundStopStatement As BoundStopStatement) As IStopOperation
