@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _endPoint = endPoint;
         }
 
-        protected override async Task ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+        protected override Task ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             return _endPoint.InvokeAsync(
                 nameof(IDesignerAttributeListener.OnProjectRemovedAsync),
@@ -37,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 nameof(IDesignerAttributeListener.ReportDesignerAttributeDataAsync),
                 new object[] { data },
                 cancellationToken);
->>>>>>> b294776b098... Revert ISB services 2
         }
     }
 }
