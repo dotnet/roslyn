@@ -3,15 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-        internal sealed class FindLiteralsServerCallback : IRemoteSymbolFinderService.ICallback
+        internal sealed class FindLiteralsServerCallback
         {
             private readonly Solution _solution;
             private readonly IStreamingFindLiteralReferencesProgress _progress;
@@ -24,35 +22,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _progress = progress;
             }
 
-            public ValueTask AddItemsAsync(int count)
+            public Task AddItemsAsync(int count)
                 => _progress.ProgressTracker.AddItemsAsync(count);
 
-            public ValueTask ItemCompletedAsync()
+            public Task ItemCompletedAsync()
                 => _progress.ProgressTracker.ItemCompletedAsync();
 
-            public async ValueTask OnLiteralReferenceFoundAsync(DocumentId documentId, TextSpan span)
+            public async Task OnReferenceFoundAsync(
+                DocumentId documentId, TextSpan span)
             {
                 var document = _solution.GetDocument(documentId);
                 await _progress.OnReferenceFoundAsync(document, span).ConfigureAwait(false);
             }
-
-            public ValueTask OnCompletedAsync()
-                => throw ExceptionUtilities.Unreachable;
-
-            public ValueTask OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
-                => throw ExceptionUtilities.Unreachable;
-
-            public ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId)
-                => throw ExceptionUtilities.Unreachable;
-
-            public ValueTask OnFindInDocumentStartedAsync(DocumentId documentId)
-                => throw ExceptionUtilities.Unreachable;
-
-            public ValueTask OnReferenceFoundAsync(SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
-                => throw ExceptionUtilities.Unreachable;
-
-            public ValueTask OnStartedAsync()
-                => throw ExceptionUtilities.Unreachable;
         }
     }
 }

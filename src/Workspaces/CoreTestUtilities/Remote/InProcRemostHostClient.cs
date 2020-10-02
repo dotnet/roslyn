@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Pipelines;
 using System.Runtime.Remoting;
 using System.Text;
 using System.Threading;
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, TraceListener? traceListener, RemoteHostTestData testData)
         {
-            var inprocServices = new InProcRemoteServices(services, traceListener, testData);
+            var inprocServices = new InProcRemoteServices(traceListener, testData);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubService.RemoteHost).ConfigureAwait(false);
 
@@ -105,29 +104,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public void RegisterService(RemoteServiceName serviceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceCreator)
             => _inprocServices.RegisterService(serviceName, serviceCreator);
 
-        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
-        {
-            var options = new ServiceActivationOptions();
-
-            if (callbackTarget is not null)
-            {
-                options.ClientRpcTarget = callbackTarget;
-            }
-
-            var assetStorage = _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8);
-
-            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-            await TaskScheduler.Default;
-
-#pragma warning disable ISB001 // Dispose of proxies - caller disposes
-            var proxy = await _inprocServices.ServiceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
-#pragma warning restore
-
-            Contract.ThrowIfNull(proxy);
-            return new BrokeredServiceConnection<T>(proxy, assetStorage, _workspaceServices.GetRequiredService<IErrorReportingService>(), shutdownCancellationService: null);
-        }
-
         public override async Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate service specific information 
@@ -176,63 +152,13 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             }
         }
 
-        private sealed class InProcServiceBroker : IServiceBroker
-        {
-            private readonly InProcRemoteServices _services;
-
-            public InProcServiceBroker(InProcRemoteServices services)
-            {
-                _services = services;
-            }
-
-            public event EventHandler<BrokeredServicesChangedEventArgs>? AvailabilityChanged { add { } remove { } }
-
-            // This method is currently not needed for our IServiceBroker usage patterns.
-            public ValueTask<IDuplexPipe?> GetPipeAsync(ServiceMoniker serviceMoniker, ServiceActivationOptions options, CancellationToken cancellationToken)
-                => throw ExceptionUtilities.Unreachable;
-
-            public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor descriptor, ServiceActivationOptions options, CancellationToken cancellationToken) where T : class
-            {
-                var pipePair = FullDuplexStream.CreatePipePair();
-
-                var clientConnection = descriptor
-                    .WithTraceSource(_services.ServiceProvider.TraceSource)
-                    .ConstructRpcConnection(pipePair.Item2);
-
-                Contract.ThrowIfFalse(options.ClientRpcTarget is null == descriptor.ClientInterface is null);
-
-                if (descriptor.ClientInterface != null)
-                {
-                    Contract.ThrowIfNull(options.ClientRpcTarget);
-                    clientConnection.AddLocalRpcTarget(options.ClientRpcTarget);
-                }
-
-                // Clear RPC target so that the server connection is forced to create a new proxy for the callback
-                // instead of just invoking the callback object directly (this emulates the product that does
-                // not serialize the callback object over).
-                options.ClientRpcTarget = null;
-
-                // Creates service instance and connects it to the pipe. 
-                // We don't need to store the instance anywhere.
-                _ = _services.CreateBrokeredService(descriptor, pipePair.Item1, options);
-
-                clientConnection.StartListening();
-
-                return new ValueTask<T?>(clientConnection.ConstructRpcClient<T>());
-            }
-        }
-
         private sealed class InProcRemoteServices
         {
             public readonly ServiceProvider ServiceProvider;
-            private readonly Dictionary<ServiceMoniker, Func<object>> _inProcBrokeredServicesMap = new();
-            private readonly Dictionary<ServiceMoniker, BrokeredServiceBase.IFactory> _remoteBrokeredServicesMap = new();
             private readonly Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase>> _factoryMap = new();
             private readonly Dictionary<string, WellKnownServiceHubService> _serviceNameMap = new();
 
-            public readonly IServiceBroker ServiceBroker;
-
-            public InProcRemoteServices(HostWorkspaceServices workspaceServices, TraceListener? traceListener, RemoteHostTestData testData)
+            public InProcRemoteServices(TraceListener? traceListener, RemoteHostTestData testData)
             {
                 var remoteLogger = new TraceSource("InProcRemoteClient")
                 {
@@ -246,29 +172,12 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                 ServiceProvider = new ServiceProvider(remoteLogger, testData);
 
-                ServiceBroker = new InProcServiceBroker(this);
-
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
-                RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
-                RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDesignerAttributeDiscoveryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteProjectTelemetryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteTodoCommentsDiscoveryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDiagnosticAnalyzerService.Factory());
-                RegisterRemoteBrokeredService(new RemoteSemanticClassificationService.Factory());
-                RegisterRemoteBrokeredService(new RemoteSemanticClassificationCacheService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDocumentHighlightsService.Factory());
-                RegisterRemoteBrokeredService(new RemoteEncapsulateFieldService.Factory());
-                RegisterRemoteBrokeredService(new RemoteRenamerService.Factory());
-                RegisterRemoteBrokeredService(new RemoteConvertTupleToStructCodeRefactoringService.Factory());
-                RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
-                RegisterRemoteBrokeredService(new RemoteSymbolFinderService.Factory());
-                RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
-                RegisterRemoteBrokeredService(new RemoteMissingImportDiscoveryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
-                RegisterRemoteBrokeredService(new RemoteGlobalNotificationDeliveryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
+                RegisterService(WellKnownServiceHubService.CodeAnalysis, (s, p, o) => new CodeAnalysisService(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, (s, p, o) => new RemoteSymbolSearchUpdateEngine(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteDesignerAttributeService, (s, p, o) => new RemoteDesignerAttributeService(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteProjectTelemetryService, (s, p, o) => new RemoteProjectTelemetryService(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteTodoCommentsService, (s, p, o) => new RemoteTodoCommentsService(s, p));
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
             }
 
@@ -285,42 +194,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 var factory = _factoryMap[serviceName];
                 var streams = FullDuplexStream.CreatePair();
                 return Task.FromResult<Stream>(new WrappedStream(factory(streams.Item1, ServiceProvider, default), streams.Item2));
-            }
-
-            public void RegisterInProcBrokeredService(ServiceDescriptor serviceDescriptor, Func<object> serviceFactory)
-            {
-                _inProcBrokeredServicesMap.Add(serviceDescriptor.Moniker, serviceFactory);
-            }
-
-            public void RegisterRemoteBrokeredService(BrokeredServiceBase.IFactory serviceFactory)
-            {
-                var moniker = ServiceDescriptors.GetServiceDescriptor(serviceFactory.ServiceType, isRemoteHost64Bit: IntPtr.Size == 8).Moniker;
-                _remoteBrokeredServicesMap.Add(moniker, serviceFactory);
-            }
-
-            public object CreateBrokeredService(ServiceRpcDescriptor descriptor, IDuplexPipe pipe, ServiceActivationOptions options)
-            {
-                if (_inProcBrokeredServicesMap.TryGetValue(descriptor.Moniker, out var inProcFactory))
-                {
-                    // This code is similar to service creation implemented in BrokeredServiceBase.FactoryBase.
-                    // Currently don't support callback creation as we don't have in-proc service with callbacks yet.
-                    Contract.ThrowIfFalse(descriptor.ClientInterface == null);
-
-                    var serviceConnection = descriptor.WithTraceSource(ServiceProvider.TraceSource).ConstructRpcConnection(pipe);
-                    var service = inProcFactory();
-
-                    serviceConnection.AddLocalRpcTarget(service);
-                    serviceConnection.StartListening();
-
-                    return service;
-                }
-
-                if (_remoteBrokeredServicesMap.TryGetValue(descriptor.Moniker, out var remoteFactory))
-                {
-                    return remoteFactory.Create(pipe, ServiceProvider, options, ServiceBroker);
-                }
-
-                throw ExceptionUtilities.UnexpectedValue(descriptor.Moniker);
             }
 
             private sealed class WrappedStream : Stream

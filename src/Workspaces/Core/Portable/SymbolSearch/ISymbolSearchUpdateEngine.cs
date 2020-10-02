@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// </summary>
     internal interface ISymbolSearchUpdateEngine
     {
-        ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken);
+        Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory);
 
-        ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+        Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken);
-        ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+        Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName, CancellationToken cancellationToken);
-        ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken);
     }
 }
