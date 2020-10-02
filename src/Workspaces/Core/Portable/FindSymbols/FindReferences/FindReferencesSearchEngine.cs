@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private ValueTask HandleLocationAsync(ISymbol symbol, ReferenceLocation location)
+        private Task HandleLocationAsync(ISymbol symbol, ReferenceLocation location)
             => _progress.OnReferenceFoundAsync(symbol, location);
     }
 }

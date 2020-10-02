@@ -5,15 +5,13 @@
 #nullable enable
 
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal interface IRemoteGlobalNotificationDeliveryService
     {
-        ValueTask OnGlobalOperationStartedAsync(CancellationToken cancellationToken);
+        void OnGlobalOperationStarted();
 
-        ValueTask OnGlobalOperationStoppedAsync(IReadOnlyList<string> operations, bool cancelled, CancellationToken cancellationToken);
+        void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled);
     }
 }

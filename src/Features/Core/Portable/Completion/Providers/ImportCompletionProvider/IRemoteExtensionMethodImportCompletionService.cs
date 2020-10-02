@@ -4,7 +4,7 @@
 
 #nullable enable
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface IRemoteExtensionMethodImportCompletionService
     {
-        public ValueTask<SerializableUnimportedExtensionMethods> GetUnimportedExtensionMethodsAsync(
+        Task<(IList<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             int position,
             string receiverTypeSymbolKeyData,
-            ImmutableArray<string> namespaceInScope,
+            string[] namespaceInScope,
             bool forceIndexCreation,
             CancellationToken cancellationToken);
     }
