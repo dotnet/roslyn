@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
@@ -40,7 +41,11 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         protected sealed override ITypeSymbol GetSwitchType(ISwitchExpressionOperation switchExpression)
-            => switchExpression.Value.Type;
+        {
+            var type = switchExpression.Value.Type;
+            RoslynDebug.AssertNotNull(type);
+            return type;
+        }
 
         protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation switchOperation)
             => PopulateSwitchExpressionHelpers.GetMissingEnumMembers(switchOperation);
