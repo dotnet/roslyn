@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.ProjectTelemetry
     /// </summary>
     internal interface IProjectTelemetryListener
     {
-        ValueTask ReportProjectTelemetryDataAsync(ProjectTelemetryData data, CancellationToken cancellationToken);
+        Task ReportProjectTelemetryDataAsync(ProjectTelemetryData data, CancellationToken cancellationToken);
     }
 }

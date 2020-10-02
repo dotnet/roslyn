@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
@@ -11,28 +13,21 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteDesignerAttributeService : BrokeredServiceBase, IRemoteDesignerAttributeService
+    internal sealed class RemoteDesignerAttributeService : ServiceBase, IRemoteDesignerAttributeService
     {
-        internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeService, IDesignerAttributeListener>
+        public RemoteDesignerAttributeService(
+            Stream stream, IServiceProvider serviceProvider)
+            : base(serviceProvider, stream)
         {
-            protected override IRemoteDesignerAttributeService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IDesignerAttributeListener> callback)
-                => new RemoteDesignerAttributeService(arguments, callback);
+            StartService();
         }
 
-        private readonly RemoteCallback<IDesignerAttributeListener> _callback;
-
-        public RemoteDesignerAttributeService(in ServiceConstructionArguments arguments, RemoteCallback<IDesignerAttributeListener> callback)
-            : base(arguments)
+        public Task StartScanningForDesignerAttributesAsync(CancellationToken cancellation)
         {
-            _callback = callback;
-        }
-
-        public ValueTask StartScanningForDesignerAttributesAsync(CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(cancellationToken =>
+            return RunServiceAsync(() =>
             {
                 var registrationService = GetWorkspace().Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteDesignerAttributeIncrementalAnalyzerProvider(_callback);
+                var analyzerProvider = new RemoteDesignerAttributeIncrementalAnalyzerProvider(this.EndPoint);
 
                 registrationService.AddAnalyzerProvider(
                     analyzerProvider,
@@ -41,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Remote
                         highPriorityForActiveFile: true,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
-                return default;
-            }, cancellationToken);
+                return Task.CompletedTask;
+            }, cancellation);
         }
     }
 }

@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -16,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </remarks>
     internal class RemoteProjectTelemetryIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly RemoteCallback<IProjectTelemetryListener> _callback;
+        private readonly RemoteEndPoint _endPoint;
 
-        public RemoteProjectTelemetryIncrementalAnalyzerProvider(RemoteCallback<IProjectTelemetryListener> callback)
+        public RemoteProjectTelemetryIncrementalAnalyzerProvider(RemoteEndPoint endPoint)
         {
-            _callback = callback;
+            _endPoint = endPoint;
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new RemoteProjectTelemetryIncrementalAnalyzer(_callback);
+            => new RemoteProjectTelemetryIncrementalAnalyzer(_endPoint);
     }
 }

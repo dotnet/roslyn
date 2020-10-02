@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -18,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteCallback<IProjectTelemetryListener> _callback;
+        private readonly RemoteEndPoint _endPoint;
 
         private readonly object _gate = new object();
         private readonly Dictionary<ProjectId, ProjectTelemetryData> _projectToData = new Dictionary<ProjectId, ProjectTelemetryData>();
 
-        public RemoteProjectTelemetryIncrementalAnalyzer(RemoteCallback<IProjectTelemetryListener> callback)
-            => _callback = callback;
+        public RemoteProjectTelemetryIncrementalAnalyzer(RemoteEndPoint endPoint)
+            => _endPoint = endPoint;
 
         /// <summary>
         /// Collects data from <paramref name="project"/> and reports it to the telemetry service.
@@ -69,12 +68,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 _projectToData[projectId] = info;
             }
 
-            // cancel whenever the analyzer runner cancels or the client disconnects and the request is canceled:
-            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
-
-            await _callback.InvokeAsync(
-                (callback, cancellationToken) => callback.ReportProjectTelemetryDataAsync(info, cancellationToken),
-                linkedSource.Token).ConfigureAwait(false);
+            await _endPoint.InvokeAsync(
+                nameof(IProjectTelemetryListener.ReportProjectTelemetryDataAsync),
+                new object[] { info },
+                cancellationToken).ConfigureAwait(false);
         }
 
         public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)

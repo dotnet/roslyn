@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Remote.Services;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class CodeAnalysisService : IRemoteGlobalNotificationDeliveryService
+    internal partial class CodeAnalysisService : ServiceBase, IRemoteGlobalNotificationDeliveryService
     {
         /// <summary>
         /// Remote API.

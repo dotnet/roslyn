@@ -10,33 +10,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteProjectTelemetryService : BrokeredServiceBase, IRemoteProjectTelemetryService
+    internal partial class RemoteProjectTelemetryService : ServiceBase, IRemoteProjectTelemetryService
     {
-        internal sealed class Factory : FactoryBase<IRemoteProjectTelemetryService, IProjectTelemetryListener>
+        public RemoteProjectTelemetryService(
+            Stream stream, IServiceProvider serviceProvider)
+            : base(serviceProvider, stream)
         {
-            protected override IRemoteProjectTelemetryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IProjectTelemetryListener> callback)
-                => new RemoteProjectTelemetryService(arguments, callback);
+            StartService();
         }
 
-        private readonly RemoteCallback<IProjectTelemetryListener> _callback;
-
-        public RemoteProjectTelemetryService(in ServiceConstructionArguments arguments, RemoteCallback<IProjectTelemetryListener> callback)
-            : base(arguments)
+        public Task ComputeProjectTelemetryAsync(CancellationToken cancellation)
         {
-            _callback = callback;
-        }
-
-        public ValueTask ComputeProjectTelemetryAsync(CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(cancellationToken =>
+            return RunServiceAsync(() =>
             {
                 var workspace = GetWorkspace();
+                var endpoint = this.EndPoint;
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteProjectTelemetryIncrementalAnalyzerProvider(_callback);
+                var analyzerProvider = new RemoteProjectTelemetryIncrementalAnalyzerProvider(endpoint);
 
                 registrationService.AddAnalyzerProvider(
                     analyzerProvider,
@@ -45,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Remote
                         highPriorityForActiveFile: false,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
-                return default;
-            }, cancellationToken);
+                return Task.CompletedTask;
+            }, cancellation);
         }
     }
 }

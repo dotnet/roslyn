@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.ProjectTelemetry
     /// </summary>
     internal interface IRemoteProjectTelemetryService
     {
-        ValueTask ComputeProjectTelemetryAsync(CancellationToken cancellation);
+        Task ComputeProjectTelemetryAsync(CancellationToken cancellation);
     }
 }
