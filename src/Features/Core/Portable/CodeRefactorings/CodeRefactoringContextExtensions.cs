@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// Use this helper to register multiple refactorings (<paramref name="actions"/>).
         /// </summary>
-        private static void RegisterRefactorings<TCodeAction>(
-            CodeRefactoringContext context, ImmutableArray<TCodeAction> actions, TextSpan? applicableToSpan = null)
+        internal static void RegisterRefactorings<TCodeAction>(
+            this CodeRefactoringContext context, ImmutableArray<TCodeAction> actions, TextSpan? applicableToSpan = null)
             where TCodeAction : CodeAction
         {
             if (!actions.IsDefault)
