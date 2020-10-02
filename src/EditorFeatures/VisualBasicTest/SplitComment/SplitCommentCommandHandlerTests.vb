@@ -161,6 +161,15 @@ End Module
 
         <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        Public Sub TestNotAtEndOfFile()
+            TestNotHandled(
+"Module Program
+    Sub Main(args As String())
+        ' Test Comment[||]")
+        End Sub
+
+        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
         Public Sub TestSplitCommentOutOfMethod()
             TestHandled(
 "Module Program
