@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return new(serviceInterface, (descriptor32, descriptor64));
         }
 
-        public static ServiceRpcDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit)
+        public static ServiceJsonRpcDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit)
         {
             var (descriptor32, descriptor64) = Descriptors[serviceType];
             return isRemoteHost64Bit ? descriptor64 : descriptor32;

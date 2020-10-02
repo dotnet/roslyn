@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Reflection;
 using MessagePack;
@@ -73,6 +74,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected override JsonRpcConnection CreateConnection(JsonRpc jsonRpc)
         {
+            //if (Moniker == SolutionAssetProvider.ServiceDescriptor.Moniker)
+            //{
+            //    jsonRpc.Disconnected +=
+            //        delegate
+            //        {
+            //            jsonRpc.TraceSource?.TraceInformation($"Disconnected '{Moniker}': {new StackTrace()}");
+            //            //Debugger.Launch();
+            //        };
+            //}
+
             jsonRpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
             var connection = base.CreateConnection(jsonRpc);
             connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
@@ -96,6 +107,19 @@ namespace Microsoft.CodeAnalysis.Remote
 
             result = (ServiceDescriptor)result.Clone();
             typeof(ServiceJsonRpcDescriptor).GetProperty(nameof(MultiplexingStreamOptions))!.SetValue(result, value: null);
+            return result;
+        }
+
+        public new ServiceDescriptor WithMultiplexingStream(MultiplexingStream.Options multiplexingStreamOptions)
+        {
+            var baseResult = base.WithMultiplexingStream(multiplexingStreamOptions);
+            if (baseResult is ServiceDescriptor serviceDescriptor)
+                return serviceDescriptor;
+
+            // Work around incorrect implementation in 16.8 Preview 2
+            var result = (ServiceDescriptor)WithMultiplexingStream((MultiplexingStream?)null);
+            result = (ServiceDescriptor)result.Clone();
+            typeof(ServiceJsonRpcDescriptor).GetProperty(nameof(MultiplexingStreamOptions))!.SetValue(result, value: multiplexingStreamOptions?.GetFrozenCopy());
             return result;
         }
 

@@ -71,6 +71,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit: IntPtr.Size == 8);
                 var serviceHubTraceSource = (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
+
+                if (descriptor.MultiplexingStreamOptions is not null && serviceHubTraceSource is not null)
+                {
+                    descriptor = ((ServiceDescriptor)descriptor).WithMultiplexingStream(
+                        new MultiplexingStream.Options(descriptor.MultiplexingStreamOptions) { TraceSource = serviceHubTraceSource });
+                }
+
                 var serverConnection = descriptor.WithTraceSource(serviceHubTraceSource).ConstructRpcConnection(pipe);
 
                 var args = new ServiceConstructionArguments(hostProvidedServices, serviceBroker);

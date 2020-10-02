@@ -9,22 +9,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Runtime.Remoting;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubService.RemoteHost).ConfigureAwait(false);
 
-            var instance = new InProcRemoteHostClient(services, inprocServices, remoteHostStream);
+            var instance = new InProcRemoteHostClient(services, inprocServices, traceListener, remoteHostStream);
 
             // make sure connection is done right
             var uiCultureLCIDE = 0;
@@ -61,10 +59,19 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private InProcRemoteHostClient(
             HostWorkspaceServices services,
             InProcRemoteServices inprocServices,
+            TraceListener? traceListener,
             Stream stream)
         {
             _workspaceServices = services;
-            _logger = new TraceSource("Default");
+            _logger = new TraceSource("Default")
+            {
+                Switch = { Level = SourceLevels.Information },
+            };
+
+            if (traceListener != null)
+            {
+                _logger.Listeners.Add(traceListener);
+            }
 
             _inprocServices = inprocServices;
 
@@ -147,7 +154,10 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         }
 
         private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
-            => Dispose();
+        {
+            _logger?.TraceInformation($"Closing InProcRemoteHostClient ({e.Reason}) Exception: {e.Exception})");
+            Dispose();
+        }
 
         public sealed class ServiceProvider : IServiceProvider
         {
@@ -193,7 +203,21 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor descriptor, ServiceActivationOptions options, CancellationToken cancellationToken) where T : class
             {
-                var pipePair = FullDuplexStream.CreatePipePair();
+                var fullDuplexStreams = FullDuplexStream.CreatePair();
+
+                if (descriptor.Moniker == SolutionAssetProvider.ServiceDescriptor.Moniker)
+                {
+                    //MonitorForDisposal(ref fullDuplexStreams.Item1, descriptor, 1, _services.ServiceProvider.TraceSource);
+                    //MonitorForDisposal(ref fullDuplexStreams.Item2, descriptor, 2, _services.ServiceProvider.TraceSource);
+                }
+
+                var pipePair = (fullDuplexStreams.Item1.UsePipe(), fullDuplexStreams.Item2.UsePipe());
+
+                if (((ServiceJsonRpcDescriptor)descriptor).MultiplexingStreamOptions is { } multiplexingStreamOptions && _services.ServiceProvider.TraceSource is { } traceSource)
+                {
+                    descriptor = (ServiceDescriptor)((ServiceDescriptor)descriptor).WithMultiplexingStream(
+                        new MultiplexingStream.Options(multiplexingStreamOptions) { TraceSource = traceSource });
+                }
 
                 var clientConnection = descriptor
                     .WithTraceSource(_services.ServiceProvider.TraceSource)
@@ -214,11 +238,26 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                 // Creates service instance and connects it to the pipe. 
                 // We don't need to store the instance anywhere.
-                _ = _services.CreateBrokeredService(descriptor, pipePair.Item1, options);
+                _ = _services.CreateBrokeredService((ServiceDescriptor)descriptor, pipePair.Item1, options);
 
                 clientConnection.StartListening();
 
                 return new ValueTask<T?>(clientConnection.ConstructRpcClient<T>());
+
+                //static void MonitorForDisposal(ref Stream stream, ServiceRpcDescriptor descriptor, int item, TraceSource traceSource)
+                //{
+                //    if (traceSource is null)
+                //        return;
+
+                //    var wrappedStream = new MonitoringStream(stream);
+                //    wrappedStream.Disposed +=
+                //        delegate
+                //        {
+                //            traceSource?.TraceInformation($"Disposing pipe {item} for '{descriptor.Moniker}': {new StackTrace()}");
+                //            //Debugger.Launch();
+                //        };
+                //    stream = wrappedStream;
+                //}
             }
         }
 
@@ -236,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             {
                 var remoteLogger = new TraceSource("InProcRemoteClient")
                 {
-                    Switch = { Level = SourceLevels.Verbose },
+                    Switch = { Level = SourceLevels.Information },
                 };
 
                 if (traceListener != null)
@@ -298,13 +337,19 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 _remoteBrokeredServicesMap.Add(moniker, serviceFactory);
             }
 
-            public object CreateBrokeredService(ServiceRpcDescriptor descriptor, IDuplexPipe pipe, ServiceActivationOptions options)
+            public object CreateBrokeredService(ServiceJsonRpcDescriptor descriptor, IDuplexPipe pipe, ServiceActivationOptions options)
             {
                 if (_inProcBrokeredServicesMap.TryGetValue(descriptor.Moniker, out var inProcFactory))
                 {
                     // This code is similar to service creation implemented in BrokeredServiceBase.FactoryBase.
                     // Currently don't support callback creation as we don't have in-proc service with callbacks yet.
                     Contract.ThrowIfFalse(descriptor.ClientInterface == null);
+
+                    if (descriptor.MultiplexingStreamOptions is not null && ServiceProvider.TraceSource is { } traceSource)
+                    {
+                        descriptor = ((ServiceDescriptor)descriptor).WithMultiplexingStream(
+                            new MultiplexingStream.Options(descriptor.MultiplexingStreamOptions) { TraceSource = traceSource });
+                    }
 
                     var serviceConnection = descriptor.WithTraceSource(ServiceProvider.TraceSource).ConstructRpcConnection(pipe);
                     var service = inProcFactory();
