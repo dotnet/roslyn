@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                                 displayTextSuffix: $"{optionalNullableQuestionmark})",
                                                 filterText: typeName,
                                                 sortText: SortText(typeName),
-                                                glyph: typeSymbol.GetGlyph(),
+                                                glyph: Glyph.Operator,
                                                 rules: CompletionItemRules.Default,
                                                 properties: CreatePropertiesBag(
                                                     (MinimalTypeNamePropertyName, $"{typeName}{optionalNullableQuestionmark}"),
