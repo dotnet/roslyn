@@ -133,6 +133,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             }.RunAsync();
         }
 
+        [WorkItem(48070, "https://github.com/dotnet/roslyn/issues/48070")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(UnusedValuePreference.DiscardVariable)]
+        [InlineData(UnusedValuePreference.UnusedLocalVariable)]
+        public async Task Initialization_ConstantValue_DontCopyLeadingTriviaDirectives(object option)
+        {
+            var source =
+@"class C {
+    void M()
+    {
+        #region
+        int value = 3;
+        #endregion
+
+        int? {|IDE0059:x|} = null;
+        int y = value + value;
+        
+        x = y;
+        System.Console.WriteLine(x);
+    }
+}";
+            var fixedSource =
+@"class C {
+    void M()
+    {
+        #region
+        int value = 3;
+
+        #endregion
+        int y = value + value;
+
+        int? x = y;
+        System.Console.WriteLine(x);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
+                },
+            }.RunAsync();
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_ConstantValue_RemoveUnsuedParametersSuppressed()
         {
