@@ -124,6 +124,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
                 return false;
 
             var splitCommentService = document.GetRequiredLanguageService<ISplitCommentService>();
+
+            // if the user hits enter at `/$$/` we don't want to consider this a comment continuation.
+            if (position < (trivia.SpanStart + splitCommentService.CommentStart.Length))
+                return false;
+
             if (!splitCommentService.IsAllowed(root, trivia))
                 return false;
 
@@ -135,44 +140,55 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 
             subjectBuffer.Replace(
                 GetReplacementSpan(triviaLine, position),
-                GetReplacementText(textView, document, options, triviaLine, trivia));
+                GetReplacementText(textView, document, options, triviaLine, trivia, position));
 
             transaction.Complete();
             return true;
         }
 
         private static string GetReplacementText(
-            ITextView textView, Document document, DocumentOptionSet options, ITextSnapshotLine triviaLine, SyntaxTrivia trivia)
+            ITextView textView, Document document, DocumentOptionSet options, ITextSnapshotLine triviaLine, SyntaxTrivia trivia, int position)
         {
             // We're inside a comment.  Instead of inserting just a newline here, insert
             // 1. a newline
             // 2. spaces up to the indentation of the current comment
-            // 3. the comment prefix
+            // 3. the comment prefix (extended out for repeated chars).
 
             // Then, depending on if the current comment starts with whitespace or not, we will insert those same spaces
             // to match.
 
             var commentStartColumn = triviaLine.GetColumnFromLineOffset(trivia.SpanStart - triviaLine.Start, textView.Options);
 
-            var service = document.GetRequiredLanguageService<ISplitCommentService>();
             var useTabs = options.GetOption(FormattingOptions.UseTabs);
             var tabSize = options.GetOption(FormattingOptions.TabSize);
 
-            var leadingWhitespace = GetWhitespaceAfterCommentStart(document, trivia, triviaLine);
-
+            var prefix = GetCommentPrefix(triviaLine.Snapshot, trivia, position);
             var replacementText = options.GetOption(FormattingOptions.NewLine) +
                 commentStartColumn.CreateIndentationString(useTabs, tabSize) +
-                service.CommentStart +
-                leadingWhitespace;
+                prefix +
+                GetWhitespaceAfterCommentPrefix(trivia, triviaLine, prefix);
 
             return replacementText;
         }
 
-        private static string GetWhitespaceAfterCommentStart(Document document, SyntaxTrivia trivia, ITextSnapshotLine triviaLine)
+        private static string GetCommentPrefix(ITextSnapshot snapshot, SyntaxTrivia trivia, int position)
         {
-            var service = document.GetRequiredLanguageService<ISplitCommentService>();
+            // Consume as many of the comment start character as we can.  That way if someone has something like
+            // `//// $$Goo` then hitting enter will respect that the next line should start with `////`.
 
-            var startIndex = trivia.SpanStart + service.CommentStart.Length;
+            var triviaPrefixStart = trivia.SpanStart;
+            var triviaPrefixEnd = triviaPrefixStart;
+
+            var triviaStartChar = snapshot[trivia.SpanStart];
+            while (snapshot[triviaPrefixEnd] == triviaStartChar && triviaPrefixEnd < position)
+                triviaPrefixEnd++;
+
+            return snapshot.GetText(Span.FromBounds(triviaPrefixStart, triviaPrefixEnd));
+        }
+
+        private static string GetWhitespaceAfterCommentPrefix(SyntaxTrivia trivia, ITextSnapshotLine triviaLine, string commentPrefix)
+        {
+            var startIndex = trivia.SpanStart + commentPrefix.Length;
             var endIndex = startIndex;
 
             while (endIndex < triviaLine.End && char.IsWhiteSpace(triviaLine.Snapshot[endIndex]))

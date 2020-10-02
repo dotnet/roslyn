@@ -32,6 +32,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestMissingInSlashes()
+        {
+            TestNotHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        /[||]/Test Comment
+    }
+}");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
         public void TestMissingWithMultiSelection()
         {
             TestNotHandled(
@@ -62,6 +76,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
     { 
         //
         //Test Comment
+    }
+}");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestSplitStartOfQuadComment()
+        {
+            TestHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        ////[||]Test Comment
+    }
+}",
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        ////
+        ////Test Comment
+    }
+}");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestSplitMiddleOfQuadComment()
+        {
+            TestHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        //[||]//Test Comment
+    }
+}",
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        //
+        ////Test Comment
     }
 }");
         }
@@ -132,6 +190,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
     { 
         //    X
         //    Test Comment
+    }
+}");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [InlineData("X[||]Test Comment")]
+        [InlineData("X [||]Test Comment")]
+        [InlineData("X[||] Test Comment")]
+        [InlineData("X [||] Test Comment")]
+        public void TestQuadCommentWithMultipleLeadingSpaces(string commentValue)
+        {
+            TestHandled(
+@$"public class Program
+{{
+    public static void Main(string[] args) 
+    {{ 
+        ////    {commentValue}
+    }}
+}}",
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        ////    X
+        ////    Test Comment
     }
 }");
         }

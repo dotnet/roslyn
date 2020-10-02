@@ -35,6 +35,63 @@ End Module
 
         <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        Public Sub TestSplitStartOfDoubleComment1()
+            TestHandled(
+"Module Program
+    Sub Main(args As String())
+        ''[||]Test Comment
+    End Sub
+End Module
+",
+"Module Program
+    Sub Main(args As String())
+        ''
+        ''Test Comment
+    End Sub
+End Module
+")
+        End Sub
+
+        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        Public Sub TestSplitStartOfDoubleComment2()
+            TestHandled(
+"Module Program
+    Sub Main(args As String())
+        '' [||]Test Comment
+    End Sub
+End Module
+",
+"Module Program
+    Sub Main(args As String())
+        ''
+        '' Test Comment
+    End Sub
+End Module
+")
+        End Sub
+
+        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        Public Sub TestSplitStartOfDoubleComment3()
+            TestHandled(
+"Module Program
+    Sub Main(args As String())
+        ''[||] Test Comment
+    End Sub
+End Module
+",
+"Module Program
+    Sub Main(args As String())
+        ''
+        '' Test Comment
+    End Sub
+End Module
+")
+        End Sub
+
+        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
         Public Sub TestSplitStartOfCommentWithLeadingSpace1()
             TestHandled(
 "Module Program
