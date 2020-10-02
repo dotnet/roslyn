@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.Serialization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -22,64 +23,32 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [DataContract]
     internal sealed class DiagnosticData : IEquatable<DiagnosticData?>
     {
-        [DataMember(Order = 0)]
         public readonly string Id;
-
-        [DataMember(Order = 1)]
         public readonly string Category;
-
-        [DataMember(Order = 2)]
         public readonly string? Message;
-
-        [DataMember(Order = 3)]
         public readonly string? ENUMessageForBingSearch;
 
-        [DataMember(Order = 4)]
         public readonly DiagnosticSeverity Severity;
-
-        [DataMember(Order = 5)]
         public readonly DiagnosticSeverity DefaultSeverity;
-
-        [DataMember(Order = 6)]
         public readonly bool IsEnabledByDefault;
-
-        [DataMember(Order = 7)]
         public readonly int WarningLevel;
-
-        [DataMember(Order = 8)]
         public readonly IReadOnlyList<string> CustomTags;
-
-        [DataMember(Order = 9)]
         public readonly ImmutableDictionary<string, string?> Properties;
 
-        [DataMember(Order = 10)]
         public readonly ProjectId? ProjectId;
-
-        [DataMember(Order = 11)]
         public readonly DiagnosticDataLocation? DataLocation;
-
-        [DataMember(Order = 12)]
         public readonly IReadOnlyCollection<DiagnosticDataLocation> AdditionalLocations;
 
         /// <summary>
         /// Language name (<see cref="LanguageNames"/>) or null if the diagnostic is not associated with source code.
         /// </summary>
-        [DataMember(Order = 13)]
         public readonly string? Language;
 
-        [DataMember(Order = 14)]
         public readonly string? Title;
-
-        [DataMember(Order = 15)]
         public readonly string? Description;
-
-        [DataMember(Order = 16)]
         public readonly string? HelpLink;
-
-        [DataMember(Order = 17)]
         public readonly bool IsSuppressed;
 
         /// <summary>

@@ -62,6 +62,47 @@ namespace Microsoft.CodeAnalysis.Rename
                 new SearchResult(locations, implicitLocations, referencedSymbols));
         }
 
+        private static RenameLocations Create(
+            ISymbol symbol,
+            Solution solution,
+            RenameOptionSet options,
+            SearchResult originalSymbolResult,
+            ImmutableArray<SearchResult> overloadsResult,
+            ImmutableArray<RenameLocation> stringsResult,
+            ImmutableArray<RenameLocation> commentsResult)
+        {
+            var mergedLocations = ImmutableHashSet.CreateBuilder<RenameLocation>();
+            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var mergedReferencedSymbols);
+            using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(out var mergedImplicitLocations);
+
+            if (options.RenameInStrings)
+                mergedLocations.AddRange(stringsResult);
+
+            if (options.RenameInComments)
+                mergedLocations.AddRange(commentsResult);
+
+            var renameMethodGroupReferences = options.RenameOverloads || !GetOverloadedSymbols(symbol).Any();
+            var overloadsToMerge = options.RenameOverloads
+                ? overloadsResult.NullToEmpty()
+                : ImmutableArray<SearchResult>.Empty;
+            foreach (var result in overloadsToMerge.Concat(originalSymbolResult))
+            {
+                mergedLocations.AddRange(renameMethodGroupReferences
+                    ? result.Locations
+                    : result.Locations.Where(x => x.CandidateReason != CandidateReason.MemberGroup));
+
+                mergedImplicitLocations.AddRange(result.ImplicitLocations);
+                mergedReferencedSymbols.AddRange(result.ReferencedSymbols);
+            }
+
+            return new RenameLocations(
+                symbol, solution, options,
+                new SearchResult(
+                    mergedLocations.ToImmutable(),
+                    mergedImplicitLocations.ToImmutable(),
+                    mergedReferencedSymbols.ToImmutable()));
+        }
+
         /// <summary>
         /// Find the locations that need to be renamed.
         /// </summary>
@@ -80,24 +121,26 @@ namespace Microsoft.CodeAnalysis.Rename
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                     if (client != null)
                     {
-                        var options = SerializableRenameOptionSet.Dehydrate(optionSet);
-
-                        var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
+                        var result = await client.RunRemoteAsync<SerializableRenameLocations?>(
+                            WellKnownServiceHubService.CodeAnalysis,
+                            nameof(IRemoteRenamer.FindRenameLocationsAsync),
                             solution,
-                            (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, cancellationToken),
+                            new object[]
+                            {
+                                serializedSymbol,
+                                SerializableRenameOptionSet.Dehydrate(optionSet),
+                            },
                             callbackTarget: null,
                             cancellationToken).ConfigureAwait(false);
 
-                        if (result.HasValue && result.Value != null)
+                        if (result != null)
                         {
-                            var rehydrated = await TryRehydrateAsync(
-                                solution, result.Value, cancellationToken).ConfigureAwait(false);
+                            var rehydrated = await RenameLocations.TryRehydrateAsync(
+                                solution, result, cancellationToken).ConfigureAwait(false);
 
                             if (rehydrated != null)
                                 return rehydrated;
                         }
-
-                        // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
                     }
                 }
             }

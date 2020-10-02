@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,18 +25,18 @@ namespace Microsoft.CodeAnalysis.UnitTesting.ExternalAccess
             CodeLensDescriptorContext descriptorContext,
             CancellationToken cancellationToken)
         {
-            var callerMethods = await callbackService.InvokeAsync<ImmutableArray<ReferenceMethodDescriptor>?>(
+            var callerMethods = await callbackService.InvokeAsync<IEnumerable<ReferenceMethodDescriptor>>(
                 provider,
                 nameof(ICodeLensContext.FindReferenceMethodsAsync),
                 new object[] { descriptor, descriptorContext },
                 cancellationToken).ConfigureAwait(false);
 
-            if (!callerMethods.HasValue || callerMethods.Value.IsEmpty)
+            if (callerMethods == null || !callerMethods.Any())
             {
                 return Empty;
             }
 
-            return callerMethods.Value.SelectAsArray(m => (
+            return callerMethods.Select(m => (
                 MethodFullyQualifiedName: m.FullName,
                 MethodFilePath: m.FilePath,
                 MethodOutputFilePath: m.OutputFilePath));

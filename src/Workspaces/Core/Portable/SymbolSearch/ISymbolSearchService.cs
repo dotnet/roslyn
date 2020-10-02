@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// Implementations should return results in order from best to worst (from their
         /// perspective).
         /// </summary>
-        ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+        Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken);
 
         /// <summary>
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// Implementations should return results in order from best to worst (from their
         /// perspective).
         /// </summary>
-        ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+        Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName, CancellationToken cancellationToken);
 
         /// <summary>
@@ -51,18 +50,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// Implementations should return results in order from best to worst (from their
         /// perspective).
         /// </summary>
-        ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken);
     }
 
-    [DataContract]
     internal abstract class PackageResult
     {
-        [DataMember(Order = 0)]
         public readonly string PackageName;
-
-        [DataMember(Order = 1)]
-        public readonly int Rank;
+        internal readonly int Rank;
 
         protected PackageResult(string packageName, int rank)
         {
@@ -71,45 +66,37 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
     }
 
-    [DataContract]
-    internal sealed class PackageWithTypeResult : PackageResult
+    internal class PackageWithTypeResult : PackageResult
     {
-        [DataMember(Order = 2)]
+        public readonly IList<string> ContainingNamespaceNames;
         public readonly string TypeName;
-
-        [DataMember(Order = 3)]
         public readonly string? Version;
-
-        [DataMember(Order = 4)]
-        public readonly ImmutableArray<string> ContainingNamespaceNames;
 
         public PackageWithTypeResult(
             string packageName,
-            int rank,
             string typeName,
-            string? version,
-            ImmutableArray<string> containingNamespaceNames)
+            string version,
+            int rank,
+            IList<string> containingNamespaceNames)
             : base(packageName, rank)
         {
             TypeName = typeName;
-            Version = version;
+            Version = string.IsNullOrWhiteSpace(version) ? null : version;
             ContainingNamespaceNames = containingNamespaceNames;
         }
     }
 
-    [DataContract]
-    internal sealed class PackageWithAssemblyResult : PackageResult, IEquatable<PackageWithAssemblyResult?>, IComparable<PackageWithAssemblyResult?>
+    internal class PackageWithAssemblyResult : PackageResult, IEquatable<PackageWithAssemblyResult?>, IComparable<PackageWithAssemblyResult?>
     {
-        [DataMember(Order = 2)]
         public readonly string? Version;
 
         public PackageWithAssemblyResult(
             string packageName,
-            int rank,
-            string version)
+            string version,
+            int rank)
             : base(packageName, rank)
         {
-            Version = version;
+            Version = string.IsNullOrWhiteSpace(version) ? null : version;
         }
 
         public override int GetHashCode()
@@ -133,22 +120,16 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             ImmutableArray.Create<Func<PackageWithAssemblyResult, IComparable>>(p => p.Rank, p => p.PackageName);
     }
 
-    [DataContract]
-    internal sealed class ReferenceAssemblyWithTypeResult
+    internal class ReferenceAssemblyWithTypeResult
     {
-        [DataMember(Order = 0)]
+        public readonly IList<string> ContainingNamespaceNames;
         public readonly string AssemblyName;
-
-        [DataMember(Order = 1)]
         public readonly string TypeName;
-
-        [DataMember(Order = 2)]
-        public readonly ImmutableArray<string> ContainingNamespaceNames;
 
         public ReferenceAssemblyWithTypeResult(
             string assemblyName,
             string typeName,
-            ImmutableArray<string> containingNamespaceNames)
+            IList<string> containingNamespaceNames)
         {
             AssemblyName = assemblyName;
             TypeName = typeName;
@@ -165,13 +146,22 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         {
         }
 
-        public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
-            => new(ImmutableArray<PackageWithTypeResult>.Empty);
+        public Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+            string source, string name, int arity, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyList<PackageWithTypeResult>();
+        }
 
-        public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
-            => new(ImmutableArray<PackageWithAssemblyResult>.Empty);
+        public Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+            string source, string assemblyName, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyList<PackageWithAssemblyResult>();
+        }
 
-        public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
-            => new(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
+        public Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            string name, int arity, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyList<ReferenceAssemblyWithTypeResult>();
+        }
     }
 }

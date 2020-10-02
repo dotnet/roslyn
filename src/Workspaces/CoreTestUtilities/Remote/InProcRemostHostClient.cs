@@ -249,26 +249,15 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 ServiceBroker = new InProcServiceBroker(this);
 
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
+                RegisterService(WellKnownServiceHubService.CodeAnalysis, (s, p, o) => new CodeAnalysisService(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, (s, p, o) => new RemoteSymbolSearchUpdateEngine(s, p));
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
-                RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDesignerAttributeDiscoveryService.Factory());
+                RegisterRemoteBrokeredService(new RemoteDesignerAttributeService.Factory());
                 RegisterRemoteBrokeredService(new RemoteProjectTelemetryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteTodoCommentsDiscoveryService.Factory());
+                RegisterRemoteBrokeredService(new RemoteTodoCommentsService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDiagnosticAnalyzerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSemanticClassificationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSemanticClassificationCacheService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDocumentHighlightsService.Factory());
-                RegisterRemoteBrokeredService(new RemoteEncapsulateFieldService.Factory());
-                RegisterRemoteBrokeredService(new RemoteRenamerService.Factory());
-                RegisterRemoteBrokeredService(new RemoteConvertTupleToStructCodeRefactoringService.Factory());
-                RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
-                RegisterRemoteBrokeredService(new RemoteSymbolFinderService.Factory());
-                RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
-                RegisterRemoteBrokeredService(new RemoteMissingImportDiscoveryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
-                RegisterRemoteBrokeredService(new RemoteGlobalNotificationDeliveryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
             }
 

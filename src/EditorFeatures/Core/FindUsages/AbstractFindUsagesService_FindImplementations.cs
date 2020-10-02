@@ -51,11 +51,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // results as it finds them.  When we hear about results we'll forward them to
                 // the 'progress' parameter which will then update the UI.
                 var serverCallback = new FindUsagesServerCallback(solution, context);
-                var symbolAndProjectId = SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken);
 
-                await client.TryInvokeAsync<IRemoteFindUsagesService>(
+                await client.RunRemoteAsync(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteFindUsagesService.FindImplementationsAsync),
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.FindImplementationsAsync(solutionInfo, symbolAndProjectId, cancellationToken),
+                    new object[]
+                    {
+                        SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
+                    },
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
             }

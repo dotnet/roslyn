@@ -44,18 +44,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
+                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.FindSolutionSourceDeclarationsWithNormalQueryAsync(solutionInfo, name, ignoreCase, criteria, cancellationToken),
-                    callbackTarget: SymbolFinder.EmptyServerCallback.Instance,
+                    new object[] { name, ignoreCase, criteria },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<ISymbol>.Empty;
-                }
-
-                return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
+                return await RehydrateAsync(solution, result, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
@@ -83,18 +80,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
+                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
                     project.Solution,
-                    (service, solutionInfo, cancellationToken) => service.FindProjectSourceDeclarationsWithNormalQueryAsync(solutionInfo, project.Id, name, ignoreCase, criteria, cancellationToken),
-                    callbackTarget: SymbolFinder.EmptyServerCallback.Instance,
+                    new object[] { project.Id, name, ignoreCase, criteria },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<ISymbol>.Empty;
-                }
-
-                return await RehydrateAsync(project.Solution, result.Value, cancellationToken).ConfigureAwait(false);
+                return await RehydrateAsync(project.Solution, result, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
@@ -117,18 +111,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
+                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithPatternAsync),
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.FindSolutionSourceDeclarationsWithPatternAsync(solutionInfo, pattern, criteria, cancellationToken),
-                    callbackTarget: SymbolFinder.EmptyServerCallback.Instance,
+                    new object[] { pattern, criteria },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<ISymbol>.Empty;
-                }
-
-                return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
+                return await RehydrateAsync(solution, result, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindSourceDeclarationsWithPatternInCurrentProcessAsync(
@@ -151,18 +142,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
+                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
                     project.Solution,
-                    (service, solutionInfo, cancellationToken) => service.FindProjectSourceDeclarationsWithPatternAsync(solutionInfo, project.Id, pattern, criteria, cancellationToken),
-                    callbackTarget: SymbolFinder.EmptyServerCallback.Instance,
+                    new object[] { project.Id, pattern, criteria },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<ISymbol>.Empty;
-                }
-
-                return await RehydrateAsync(project.Solution, result.Value, cancellationToken).ConfigureAwait(false);
+                return await RehydrateAsync(project.Solution, result, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindSourceDeclarationsWithPatternInCurrentProcessAsync(

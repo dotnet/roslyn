@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -113,8 +112,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
             Solution solution,
-            Func<TService, PinnedSolutionInfo, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+            Func<TService, PinnedSolutionInfo, Stream, CancellationToken, ValueTask> invocation,
+            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
             object? callbackTarget,
             CancellationToken cancellationToken)
             where TService : class

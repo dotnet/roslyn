@@ -143,7 +143,6 @@ class {|Definition:C1|}
                 Dim root = Await startDocument.GetSyntaxRootAsync()
                 Dim node = root.FindNode(originalDocument.AnnotatedSpans("Original").First()).AncestorsAndSelf().OfType(Of ClassDeclarationSyntax).First()
                 Dim results = Await codelensService.FindReferenceLocationsAsync(workspace.CurrentSolution, startDocument.Id, node, CancellationToken.None)
-                Assert.True(results.HasValue)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()
@@ -153,7 +152,7 @@ class {|Definition:C1|}
 
                 Dim actual = New List(Of (String, LinePosition, String))
 
-                For Each result In results.Value
+                For Each result In results
                     actual.Add((result.FilePath, New LinePosition(result.LineNumber, result.ColumnNumber), result.ReferenceLineText))
                 Next
 
