@@ -75,7 +75,7 @@ public {typeKind} Foo
 {{
     public abstract void [|M|]();
 }}",
-@"
+$@"
 /// <summary>
 /// Some class comment.
 /// </summary>
