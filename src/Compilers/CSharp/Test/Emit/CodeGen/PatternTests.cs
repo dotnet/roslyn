@@ -4388,6 +4388,69 @@ class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
+        [Fact]
+        [WorkItem(48259, "https://github.com/dotnet/roslyn/issues/48259")]
+        public void SwitchExpressionAsExceptionFilter_03()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public static class Program
+{
+    static async Task Main()
+    {
+        var ex = new ArgumentException();
+        try
+        {
+            throw ex;
+        }
+        catch (Exception e) when (e switch { InvalidOperationException => true, _ => false })
+        {
+            return;
+        }
+        Console.WriteLine(""correct"");
+    }
+}
+";
+            var expectedOutput = "correct";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(48259, "https://github.com/dotnet/roslyn/issues/48259")]
+        public void SwitchExpressionAsExceptionFilter_04()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public static class Program
+{
+    static async Task Main()
+    {
+        var ex = new ArgumentException();
+        try
+        {
+            throw ex;
+        }
+        catch (Exception e) when (e switch { ArgumentException => true, _ => false })
+        {
+            Console.WriteLine(""correct"");
+            return;
+        }
+        Console.WriteLine(""wrong"");
+    }
+}
+";
+            var expectedOutput = "correct";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
         #endregion Miscellaneous
 
         #region Target Typed Switch
