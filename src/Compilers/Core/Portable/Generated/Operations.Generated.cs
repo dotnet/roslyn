@@ -623,6 +623,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </remarks>
         ImmutableArray<IArgumentOperation> Arguments { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents a textual literal numeric, string, etc.
     /// <para>
@@ -642,6 +643,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface ILiteralOperation : IOperation
     {
     }
+    #nullable disable
     /// <summary>
     /// Represents a type conversion.
     /// <para>
@@ -4503,14 +4505,23 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class LiteralOperation : OperationOld, ILiteralOperation
+    #nullable enable
+    internal sealed partial class LiteralOperation : Operation, ILiteralOperation
     {
-        internal LiteralOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Literal, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal LiteralOperation(SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            OperationConstantValue = constantValue;
+            Type = type;
+        }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.Literal;
         public override void Accept(OperationVisitor visitor) => visitor.VisitLiteral(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLiteral(this, argument);
     }
+    #nullable disable
     internal abstract partial class BaseConversionOperation : OperationOld, IConversionOperation
     {
         internal BaseConversionOperation(IConvertibleConversion conversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9094,6 +9105,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (EndOperation)operation;
             return new EndOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitLiteral(ILiteralOperation operation, object? argument)
+        {
+            var internalOperation = (LiteralOperation)operation;
+            return new LiteralOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
     }
     #nullable disable

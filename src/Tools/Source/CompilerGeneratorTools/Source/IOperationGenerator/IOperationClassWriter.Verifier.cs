@@ -56,6 +56,24 @@ namespace IOperationGenerator
                 if (node.SkipChildrenGeneration || node.SkipClassGeneration)
                     continue;
 
+                if (node.HasTypeText is not (null or "true" or "false"))
+                {
+                    Console.WriteLine($"{node.Name} has unexpected value for {nameof(Node.HasType)}: {node.HasTypeText}");
+                    error = true;
+                }
+
+                if (node.HasConstantValueText is not (null or "true" or "false"))
+                {
+                    Console.WriteLine($"{node.Name} has unexpected value for {nameof(Node.HasConstantValue)}: {node.HasConstantValueText}");
+                    error = true;
+                }
+
+                if (node.HasConstantValue && !node.HasType)
+                {
+                    Console.WriteLine($"{node.Name} is marked as having a constant value without having a type");
+                    error = true;
+                }
+
                 var properties = GetAllGeneratedIOperationProperties(node).Where(p => !p.IsInternal).Select(p => p.Name).ToList();
 
                 if (properties.Count < 2)

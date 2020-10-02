@@ -440,7 +440,7 @@ namespace IOperationGenerator
                 node = null!;
             }
 
-            writeConstructor(type.IsAbstract ? "protected" : "internal", @class, allProps, baseProperties, type, hasType, multipleValidKinds, hasConstantValue);
+            writeConstructor(type.IsAbstract ? "protected" : "internal", @class, allProps, baseProperties, type, hasType, hasConstantValue, multipleValidKinds);
 
             foreach (var property in type.Properties.Where(p => !p.SkipGeneration))
             {
@@ -569,7 +569,7 @@ namespace IOperationGenerator
 
                     if (hasConstantValue)
                     {
-                        WriteLine("OperationConstant = constantValue;");
+                        WriteLine("OperationConstantValue = constantValue;");
                     }
 
                     if (hasType)

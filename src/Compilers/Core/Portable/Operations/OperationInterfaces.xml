@@ -577,7 +577,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ILiteralOperation" Base="IOperation">
+  <Node Name="ILiteralOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a textual literal numeric, string, etc.

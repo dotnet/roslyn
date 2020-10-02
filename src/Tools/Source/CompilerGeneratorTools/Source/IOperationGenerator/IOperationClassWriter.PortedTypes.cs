@@ -14,7 +14,8 @@ namespace IOperationGenerator
             "IEmptyOperation",
             "IBranchOperation",
             "IEndOperation",
-            "IStopOperation"
+            "IStopOperation",
+            "ILiteralOperation"
         };
     }
 }

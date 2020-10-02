@@ -639,14 +639,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ParameterReferenceOperation(parameter, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         internal ILiteralOperation CreateBoundLiteralOperation(BoundLiteral boundLiteral, bool @implicit = false)
         {
             SyntaxNode syntax = boundLiteral.Syntax;
-            ITypeSymbol type = boundLiteral.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundLiteral.ConstantValue;
+            ITypeSymbol? type = boundLiteral.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundLiteral.ConstantValue;
             bool isImplicit = boundLiteral.WasCompilerGenerated || @implicit;
             return new LiteralOperation(_semanticModel, syntax, type, constantValue, isImplicit);
         }
+#nullable disable
 
         private IAnonymousObjectCreationOperation CreateBoundAnonymousObjectCreationExpressionOperation(BoundAnonymousObjectCreationExpression boundAnonymousObjectCreationExpression)
         {
