@@ -1,3 +1,5 @@
+## Building RoslynEx
+
 To start working with RoslynEx, first run `restore && build` from the root of the repo.
 
 You can then open Compilers.sln in VS 2019 version 16.8.0 Preview or newer. (Roslyn.sln will work too, but is unnecessarily big for most tasks.)

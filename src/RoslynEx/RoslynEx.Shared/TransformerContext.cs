@@ -35,10 +35,14 @@ namespace RoslynEx
         public Compilation Compilation { get; }
 
         /// <summary>
-        /// Allows access to global options provided by an analyzer config
+        /// Allows access to global options provided by an analyzer config,
+        /// which can in turn come from the csproj file.
         /// </summary>
         public AnalyzerConfigOptions GlobalOptions { get; }
 
+        /// <summary>
+        /// Adds a managed resource to the assembly.
+        /// </summary>
         public void AddManifestResource(ResourceDescription resource) => ManifestResources.Add(resource);
 
         /// <summary>

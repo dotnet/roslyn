@@ -11,3 +11,10 @@ Existing code transformers that use RoslynEx include:
 * [RoslynEx.Costura](https://github.com/postsharp/RoslynEx.Costura): bundles .NET Framework applications into a single executable file
 
 See the above projects to learn how to use RoslynEx to write your own source transformers.
+
+### See also
+
+* [API](src/RoslynEx/doc/API.md)
+* [Building](src/RoslynEx/doc/Building.md)
+* [Component diagram](src/RoslynEx/doc/Component%20diagram.md)
+* [Properties](src/RoslynEx/doc/Properties.md)
