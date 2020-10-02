@@ -140,14 +140,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 
             subjectBuffer.Replace(
                 GetReplacementSpan(triviaLine, position),
-                GetReplacementText(textView, document, options, triviaLine, trivia, position));
+                GetReplacementText(textView, options, triviaLine, trivia, position));
 
             transaction.Complete();
             return true;
         }
 
         private static string GetReplacementText(
-            ITextView textView, Document document, DocumentOptionSet options, ITextSnapshotLine triviaLine, SyntaxTrivia trivia, int position)
+            ITextView textView, DocumentOptionSet options, ITextSnapshotLine triviaLine, SyntaxTrivia trivia, int position)
         {
             // We're inside a comment.  Instead of inserting just a newline here, insert
             // 1. a newline

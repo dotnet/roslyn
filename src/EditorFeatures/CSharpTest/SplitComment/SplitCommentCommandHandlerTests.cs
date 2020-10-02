@@ -32,6 +32,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestMissingWithAllWhitespaceSelection()
+        {
+            TestNotHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        // [|  |] Test Comment
+    }
+}");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
         public void TestMissingInSlashes()
         {
             TestNotHandled(
