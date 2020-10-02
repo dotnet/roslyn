@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// as this structure. We can then pick out this broken pattern, and convert
     /// it to null instead of true.
     /// </summary>
-    [StructLayout]
+    [StructLayout(LayoutKind.Auto)]
     internal struct HACK_VariantStructure
     {
         private readonly short _type;
