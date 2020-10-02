@@ -38,6 +38,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var containerIsNullable = container.IsNullable() || // int? id; id.$$ -> (byte?)
                 (container.IsValueType && isAccessedByConditionalAccess); // System.Diagnostics.Process p; p?.Id.$$ -> (byte?)
             container = container.RemoveNullableIfPresent();
+
+            var builder = ImmutableArray.CreateBuilder<CompletionItem>();
+            builder.AddRange(GetUserDefinedConversionsOfType(semanticModel, container, containerIsNullable, position));
+            builder.AddRange(GetBuiltInNumericConversions(semanticModel, container, containerIsNullable, position));
+            builder.AddRange(GetBuiltInEnumConversions(semanticModel, container, containerIsNullable, position));
+
+            return builder.ToImmutable();
+        }
+
+        private ImmutableArray<CompletionItem> GetUserDefinedConversionsOfType(SemanticModel semanticModel, ITypeSymbol container, bool containerIsNullable, int position)
+        {
             var allMembers = container.GetMembers();
             var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
                                          where
@@ -48,21 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                          let typeName = m.ReturnType.ToMinimalDisplayString(semanticModel, position)
                                          // Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
                                          let optionalNullableQuestionmark = containerIsNullable && m.ReturnType.IsStructType() ? "?" : ""
-                                         select SymbolCompletionItem.CreateWithSymbolId(
-                                             displayTextPrefix: "(",
-                                             displayText: typeName, // The type to convert to
-                                             displayTextSuffix: $"{optionalNullableQuestionmark})",
-                                             filterText: typeName,
-                                             sortText: SortText(typeName),
-                                             symbols: ImmutableList.Create(m),
-                                             rules: CompletionItemRules.Default,
-                                             contextPosition: position,
-                                             properties: CreatePropertiesBag((MinimalTypeNamePropertyName, $"{typeName}{optionalNullableQuestionmark}")));
-            var builder = ImmutableArray.CreateBuilder<CompletionItem>();
-            builder.AddRange(allExplicitConversions);
-            builder.AddRange(GetBuiltInNumericConversions(semanticModel, container, containerIsNullable, position));
-            builder.AddRange(GetBuiltInEnumConversions(semanticModel, container, containerIsNullable, position));
-            return builder.ToImmutable();
+                                         select CreateSymbolCompletionItem(m, typeName, optionalNullableQuestionmark, position);
+            return allExplicitConversions.ToImmutableArray();
         }
 
         private ImmutableArray<CompletionItem> GetBuiltInNumericConversions(SemanticModel semanticModel, ITypeSymbol container, bool containerIsNullable, int position)
@@ -120,19 +118,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var conversionCompletionItems = from specialType in specialTypes
                                             let typeSymbol = semanticModel.Compilation.GetSpecialType(specialType)
                                             let typeName = typeSymbol.ToMinimalDisplayString(semanticModel, position)
-                                            select CommonCompletionItem.Create(
-                                                displayTextPrefix: "(",
-                                                displayText: typeName,
-                                                displayTextSuffix: $"{optionalNullableQuestionmark})",
-                                                filterText: typeName,
-                                                sortText: SortText(typeName),
-                                                glyph: Glyph.Operator,
-                                                rules: CompletionItemRules.Default,
-                                                properties: CreatePropertiesBag(
-                                                    (MinimalTypeNamePropertyName, $"{typeName}{optionalNullableQuestionmark}"),
-                                                    ("ContextPosition", position.ToString())));
+                                            select CreateCommonCompletionItem(typeName, optionalNullableQuestionmark, position);
             return conversionCompletionItems.ToImmutableArray();
         }
+
+        private CompletionItem CreateSymbolCompletionItem(IMethodSymbol methodSymbol, string targetTypeName, string optionalNullableQuestionmark, int position)
+            => SymbolCompletionItem.CreateWithSymbolId(
+                displayTextPrefix: "(",
+                displayText: targetTypeName,
+                displayTextSuffix: $"{optionalNullableQuestionmark})",
+                filterText: targetTypeName,
+                sortText: SortText(targetTypeName),
+                symbols: ImmutableList.Create(methodSymbol),
+                rules: CompletionItemRules.Default,
+                contextPosition: position,
+                properties: CreatePropertiesBag((MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}")));
+
+        private CompletionItem CreateCommonCompletionItem(string targetTypeName, string optionalNullableQuestionmark, int position)
+            => CommonCompletionItem.Create(
+                displayTextPrefix: "(",
+                displayText: targetTypeName,
+                displayTextSuffix: $"{optionalNullableQuestionmark})",
+                filterText: targetTypeName,
+                sortText: SortText(targetTypeName),
+                glyph: Glyph.Operator,
+                rules: CompletionItemRules.Default,
+                properties: CreatePropertiesBag(
+                    (MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}"),
+                    ("ContextPosition", position.ToString())));
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
         {
