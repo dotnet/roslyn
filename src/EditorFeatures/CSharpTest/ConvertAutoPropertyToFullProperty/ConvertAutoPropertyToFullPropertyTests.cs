@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
             => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
 
         [Theory, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
-        [InlineData("set")]
-        [InlineData("init"), WorkItem(48133, "https://github.com/dotnet/roslyn/issues/48133")]
+        [InlineData("set"), InlineData("init")]
+        [WorkItem(48133, "https://github.com/dotnet/roslyn/issues/48133")]
         public async Task SimpleAutoPropertyTest(string setter)
         {
             var text = $@"
