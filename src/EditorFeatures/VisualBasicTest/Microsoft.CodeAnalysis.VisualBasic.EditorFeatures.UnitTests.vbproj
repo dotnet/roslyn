@@ -39,7 +39,6 @@
     <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
     <ProjectReference Include="..\DiagnosticsTestUtilities\Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities.csproj" />
     <ProjectReference Include="..\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
-    <ProjectReference Include="..\Test\Microsoft.CodeAnalysis.EditorFeatures.UnitTests.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 
             var snapshotSpans = new List<SnapshotSpan>();
             foreach (var selection in originalSelections)
-                snapshotSpans.Add(selection.ToSnapshotSpan(originalSnapshot));
+                snapshotSpans.Add(new SnapshotSpan(originalSnapshot, new Span(selection.Start, selection.Length)));
 
             view.SetMultiSelection(snapshotSpans);
 
