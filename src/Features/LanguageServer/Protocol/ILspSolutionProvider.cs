@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// </summary>
         /// <param name="documentUri">the document's file path URI.</param>
         /// <returns>the documents in the correct workspace and solution context</returns>
-        ImmutableArray<Document> GetDocuments(Uri? documentUri);
+        ImmutableArray<Document> GetDocuments(Uri documentUri);
 
         /// <summary>
         /// Finds the workspace and solution containing the specified document URI
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// </summary>
         /// <param name="documentUri">the document's file path URI.</param>
         /// <returns>the text documents in the correct workspace and solution context</returns>
-        ImmutableArray<TextDocument> GetTextDocuments(Uri? documentUri);
+        ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri);
 
         /// <summary>
         /// Return the latest solution from the main workspace that we know about.
