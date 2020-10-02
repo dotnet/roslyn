@@ -84,7 +84,7 @@ End Module
 "Module Program
     Sub Main(args As String())
         ''
-        '' Test Comment
+        ''Test Comment
     End Sub
 End Module
 ")
@@ -122,7 +122,7 @@ End Module
 "Module Program
     Sub Main(args As String())
         '
-        ' Test Comment
+        'Test Comment
     End Sub
 End Module
 ")

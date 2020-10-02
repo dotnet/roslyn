@@ -56,27 +56,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             var subjectBuffer = args.SubjectBuffer;
             var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
 
-            // Don't split comments if there is any actual selection.
-            if (spans.Count != 1 || !spans[0].IsEmpty)
+            // Don't do anything special if there is multi-selection.  It's not clear what sort of semantics that should have.
+            if (spans.Count != 1)
                 return false;
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
                 return false;
 
-            var splitCommentService = document.GetRequiredLanguageService<ISplitCommentService>();
+            // If there is a selection, ensure that it's all on one-line.  It's not clear what sort of semantics we
+            // would want if this spanned multiple lines.
+            var selectionSpan = spans[0].Span;
+            var position = selectionSpan.Start;
+            var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(position);
+            var endLine = subjectBuffer.CurrentSnapshot.GetLineFromPosition(selectionSpan.End);
+            if (line.LineNumber != endLine.LineNumber)
+                return false;
 
-            var position = spans[0].Start;
             // Quick check.  If the line doesn't contain a comment in it before the caret,
             // then no point in doing any more expensive synchronous work.
-            var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(position);
+            var splitCommentService = document.GetRequiredLanguageService<ISplitCommentService>();
             if (!LineProbablyContainsComment(splitCommentService, line, position))
                 return false;
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Split_comment))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
-                var result = SplitCommentAsync(textView, subjectBuffer, document, position, cancellationToken).WaitAndGetResult(cancellationToken);
+                var result = SplitCommentAsync(textView, subjectBuffer, document, selectionSpan, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (result == null)
                     return false;
 
@@ -120,7 +126,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         }
 
         private static async Task<(Span replacementSpan, string replacementText)?> SplitCommentAsync(
-            ITextView textView, ITextBuffer subjectBuffer, Document document, int position, CancellationToken cancellationToken)
+            ITextView textView,
+            ITextBuffer subjectBuffer,
+            Document document,
+            Span selectionSpan,
+            CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var enabled = options.GetOption(SplitCommentOptions.Enabled);
@@ -129,14 +139,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
-            var trivia = root.FindTrivia(position);
+            var trivia = root.FindTrivia(selectionSpan.Start);
             if (syntaxKinds.SingleLineCommentTrivia != trivia.RawKind)
                 return null;
 
             var splitCommentService = document.GetRequiredLanguageService<ISplitCommentService>();
 
             // if the user hits enter at `/$$/` we don't want to consider this a comment continuation.
-            if (position < (trivia.SpanStart + splitCommentService.CommentStart.Length))
+            if (selectionSpan.Start < (trivia.SpanStart + splitCommentService.CommentStart.Length))
                 return null;
 
             if (!splitCommentService.IsAllowed(root, trivia))
@@ -145,7 +155,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             var textSnapshot = subjectBuffer.CurrentSnapshot;
             var triviaLine = textSnapshot.GetLineFromPosition(trivia.SpanStart);
 
-            return (GetReplacementSpan(triviaLine, position), GetReplacementText(textView, options, triviaLine, trivia, position));
+            var replacementSpan = GetReplacementSpan(triviaLine, selectionSpan);
+            var replacementText = GetReplacementText(textView, options, triviaLine, trivia, selectionSpan.Start);
+            return (replacementSpan, replacementText);
         }
 
         private static string GetReplacementText(
@@ -168,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             var replacementText = options.GetOption(FormattingOptions.NewLine) +
                 commentStartColumn.CreateIndentationString(useTabs, tabSize) +
                 prefix +
-                GetWhitespaceAfterCommentPrefix(trivia, triviaLine, prefix);
+                GetWhitespaceAfterCommentPrefix(trivia, triviaLine, prefix, position);
 
             return replacementText;
         }
@@ -188,25 +200,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             return snapshot.GetText(Span.FromBounds(triviaPrefixStart, triviaPrefixEnd));
         }
 
-        private static string GetWhitespaceAfterCommentPrefix(SyntaxTrivia trivia, ITextSnapshotLine triviaLine, string commentPrefix)
+        private static string GetWhitespaceAfterCommentPrefix(SyntaxTrivia trivia, ITextSnapshotLine triviaLine, string commentPrefix, int position)
         {
             var startIndex = trivia.SpanStart + commentPrefix.Length;
             var endIndex = startIndex;
 
-            while (endIndex < triviaLine.End && char.IsWhiteSpace(triviaLine.Snapshot[endIndex]))
+            while (endIndex < position && char.IsWhiteSpace(triviaLine.Snapshot[endIndex]))
                 endIndex++;
 
             return triviaLine.Snapshot.GetText(Span.FromBounds(startIndex, endIndex));
         }
 
-        private static Span GetReplacementSpan(ITextSnapshotLine triviaLine, int position)
+        private static Span GetReplacementSpan(ITextSnapshotLine triviaLine, Span selectionSpan)
         {
             var textSnapshot = triviaLine.Snapshot;
 
             // When hitting enter in a comment consume the whitespace around the caret.  That way the previous line
             // doesn't have trailing whitespace, and the text following the caret is placed at the right location.
-            var replacementStart = position;
-            var replacementEnd = position;
+            var replacementStart = selectionSpan.Start;
+            var replacementEnd = selectionSpan.End;
             while (replacementStart > triviaLine.Start && textSnapshot[replacementStart - 1] == ' ')
                 replacementStart--;
 

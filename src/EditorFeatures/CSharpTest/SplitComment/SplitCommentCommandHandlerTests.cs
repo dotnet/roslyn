@@ -18,28 +18,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
-        public void TestMissingWithSelection()
+        public void TestWithSelection()
         {
-            TestNotHandled(
+            TestHandled(
 @"public class Program
 {
     public static void Main(string[] args) 
     { 
         //[|Test|] Comment
     }
+}",
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        //
+        //Comment
+    }
 }");
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
-        public void TestMissingWithAllWhitespaceSelection()
+        public void TestWithAllWhitespaceSelection()
         {
-            TestNotHandled(
+            TestHandled(
 @"public class Program
 {
     public static void Main(string[] args) 
     { 
         // [|  |] Test Comment
+    }
+}",
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        //
+        // Test Comment
     }
 }");
         }
@@ -54,6 +70,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
     public static void Main(string[] args) 
     { 
         /[||]/Test Comment
+    }
+}");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestMissingAtEndOfFile()
+        {
+            TestNotHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        //Test Comment[||]");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestMissingBeforeSlashes()
+        {
+            TestNotHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        [||]//Test Comment
     }
 }");
         }
@@ -177,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
     public static void Main(string[] args) 
     { 
         //
-        // Test Comment
+        //Test Comment
     }
 }");
         }
@@ -214,6 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         [InlineData("X [||]Test Comment")]
         [InlineData("X[||] Test Comment")]
         [InlineData("X [||] Test Comment")]
+        [InlineData("X[| |]Test Comment")]
         public void TestQuadCommentWithMultipleLeadingSpaces(string commentValue)
         {
             TestHandled(
