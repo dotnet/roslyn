@@ -21,6 +21,75 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
 {
     public class RemoveUnusedMembersTests
     {
+        private const string DynamicDependencyAttribute = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(
+        AttributeTargets.Constructor | AttributeTargets.Field | AttributeTargets.Method,
+        AllowMultiple = true, Inherited = false)]
+    public sealed class DynamicDependencyAttribute : Attribute
+    {
+        public DynamicDependencyAttribute(string memberSignature)
+        {
+            MemberSignature = memberSignature;
+        }
+
+        public DynamicDependencyAttribute(string memberSignature, Type type)
+        {
+            MemberSignature = memberSignature;
+            Type = type;
+        }
+
+        public DynamicDependencyAttribute(string memberSignature, string typeName, string assemblyName)
+        {
+            MemberSignature = memberSignature;
+            TypeName = typeName;
+            AssemblyName = assemblyName;
+        }
+
+        public DynamicDependencyAttribute(DynamicallyAccessedMemberTypes memberTypes, Type type)
+        {
+            MemberTypes = memberTypes;
+            Type = type;
+        }
+
+        public DynamicDependencyAttribute(DynamicallyAccessedMemberTypes memberTypes, string typeName, string assemblyName)
+        {
+            MemberTypes = memberTypes;
+            TypeName = typeName;
+            AssemblyName = assemblyName;
+        }
+
+        public string MemberSignature { get; }
+        public DynamicallyAccessedMemberTypes MemberTypes { get; }
+        public Type Type { get; }
+        public string TypeName { get; }
+        public string AssemblyName { get; }
+        public string Condition { get; set; }
+    }
+
+    [Flags]
+    public enum DynamicallyAccessedMemberTypes
+    {
+        None = 0,
+        PublicParameterlessConstructor = 0x0001,
+        PublicConstructors = 0x0002 | PublicParameterlessConstructor,
+        NonPublicConstructors = 0x0004,
+        PublicMethods = 0x0008,
+        NonPublicMethods = 0x0010,
+        PublicFields = 0x0020,
+        NonPublicFields = 0x0040,
+        PublicNestedTypes = 0x0080,
+        NonPublicNestedTypes = 0x0100,
+        PublicProperties = 0x0200,
+        NonPublicProperties = 0x0400,
+        PublicEvents = 0x0800,
+        NonPublicEvents = 0x1000,
+        All = ~None
+    }
+}
+";
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public void TestStandardProperties()
             => VerifyCS.VerifyStandardProperties();
@@ -2638,6 +2707,28 @@ public class MyClass
     public static void PublicExtensionMethod(this string s) => s.PrivateExtensionMethod();
     private static void PrivateExtensionMethod(this string s) { }
 }";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(48206, "https://github.com/dotnet/roslyn/issues/48206")]
+        public async Task DynamicDependencySimpleCase()
+        {
+            var code = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+
+class Program
+{
+    static void Main() => new Program().Bar();
+
+    [DynamicDependency(""Foo"")]
+    private void Bar() => typeof(Program).GetMethod(""Foo"", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(this, null);
+
+    private void Foo() => Console.WriteLine(""Hello"");
+}" + DynamicDependencyAttribute;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }

@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol _eventArgsType;
+            private readonly INamedTypeSymbol _dynamicDependencyAttributeType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _genericTaskType = compilation.TaskOfTType();
                 _debuggerDisplayAttributeType = compilation.DebuggerDisplayAttributeType();
                 _structLayoutAttributeType = compilation.StructLayoutAttributeType();
+                _dynamicDependencyAttributeType = compilation.DynamicDependencyAttributeType();
                 _eventArgsType = compilation.EventArgsType();
                 _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
                 _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(compilation));
@@ -382,6 +384,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 var first = true;
                 PooledHashSet<ISymbol> symbolsReferencedInDocComments = null;
                 ArrayBuilder<string> debuggerDisplayAttributeArguments = null;
+                ArrayBuilder<string> dynamicDependencyAttributeArguments = null;
                 try
                 {
                     var entryPoint = symbolEndContext.Compilation.GetEntryPoint(symbolEndContext.CancellationToken);
@@ -420,6 +423,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                 // This set is computed once and used for all the iterations of the loop.
                                 debuggerDisplayAttributeArguments = GetDebuggerDisplayAttributeArguments(namedType);
 
+                                dynamicDependencyAttributeArguments = GetDynamicDependencyAttributeArguments(namedType);
+
                                 first = false;
                             }
 
@@ -428,6 +433,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             // In future, we can consider improving this heuristic to parse the embedded expression
                             // and resolve symbol references.
                             if (debuggerDisplayAttributeArguments.Any(arg => arg.Contains(member.Name)))
+                            {
+                                continue;
+                            }
+
+                            if (dynamicDependencyAttributeArguments.Any(signature => signature.Contains(member.Name)))
                             {
                                 continue;
                             }
@@ -536,6 +546,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             {
                 var builder = ArrayBuilder<string>.GetInstance();
                 AddDebuggerDisplayAttributeArguments(namedTypeSymbol, builder);
+                return builder;
+            }
+
+            private ArrayBuilder<string> GetDynamicDependencyAttributeArguments(INamedTypeSymbol namedTypeSymbol)
+            {
+                var builder = ArrayBuilder<string>.GetInstance();
+                foreach (var member in namedTypeSymbol.GetMembers())
+                {
+                    var attribute = member.GetAttributes().FirstOrDefault(a => a.AttributeClass == _dynamicDependencyAttributeType);
+                    if (attribute?.ConstructorArguments.Length == 1 && attribute.ConstructorArguments[0].Value is string signature)
+                    {
+                        builder.Add(signature);
+                    }
+                }
                 return builder;
             }
 

@@ -74,6 +74,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? StructLayoutAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.StructLayoutAttribute).FullName!);
 
+        public static INamedTypeSymbol? DynamicDependencyAttributeType(this Compilation compilation)
+            // TODO: Remove the hard-coded string once DynamicDependencyAttribute is available.
+            => compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute");
+
         public static INamedTypeSymbol? DesignerCategoryAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
 
