@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
                     return false;
             }
 
-            var typeDeclaration = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+            typeDeclaration = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
             if (!typeDeclaration.IsKind(SyntaxKind.ClassDeclaration) || !typeDeclaration.IsKind(SyntaxKind.RecordDeclaration))
             {
                 return false;
