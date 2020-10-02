@@ -3282,6 +3282,7 @@ oneMoreTime:
             }
         }
 
+#nullable enable
         public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentConditionalAccessInstance != null);
@@ -3289,6 +3290,7 @@ oneMoreTime:
             _currentConditionalAccessInstance = null;
             return result;
         }
+#nullable disable
 
         public override IOperation VisitExpressionStatement(IExpressionStatementOperation operation, int? captureIdForResult)
         {

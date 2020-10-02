@@ -1486,6 +1486,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation WhenNotNull { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents the value of a conditionally-accessed operation within <see cref="IConditionalAccessOperation.WhenNotNull" />.
     /// For a conditional access operation of the form <c>someExpr?.Member</c>, this operation is used as the InstanceReceiver for the right operation <c>Member</c>.
@@ -1507,6 +1508,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IConditionalAccessInstanceOperation : IOperation
     {
     }
+    #nullable disable
     /// <summary>
     /// Represents an interpolated string.
     /// <para>
@@ -5926,14 +5928,22 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class ConditionalAccessInstanceOperation : OperationOld, IConditionalAccessInstanceOperation
+    #nullable enable
+    internal sealed partial class ConditionalAccessInstanceOperation : Operation, IConditionalAccessInstanceOperation
     {
-        internal ConditionalAccessInstanceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.ConditionalAccessInstance, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal ConditionalAccessInstanceOperation(SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Type = type;
+        }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.ConditionalAccessInstance;
         public override void Accept(OperationVisitor visitor) => visitor.VisitConditionalAccessInstance(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitConditionalAccessInstance(this, argument);
     }
+    #nullable disable
     internal abstract partial class BaseInterpolatedStringOperation : OperationOld, IInterpolatedStringOperation
     {
         internal BaseInterpolatedStringOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9150,6 +9160,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (InstanceReferenceOperation)operation;
             return new InstanceReferenceOperation(internalOperation.ReferenceKind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, object? argument)
+        {
+            var internalOperation = (ConditionalAccessInstanceOperation)operation;
+            return new ConditionalAccessInstanceOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #nullable disable

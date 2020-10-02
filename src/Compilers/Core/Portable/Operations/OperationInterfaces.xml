@@ -1363,7 +1363,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IConditionalAccessInstanceOperation" Base="IOperation">
+  <Node Name="IConditionalAccessInstanceOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents the value of a conditionally-accessed operation within <see cref="IConditionalAccessOperation.WhenNotNull" />.

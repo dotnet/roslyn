@@ -1436,14 +1436,15 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyConditionalAccessOperation(this, boundConditionalAccess, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IConditionalAccessInstanceOperation CreateBoundConditionalReceiverOperation(BoundConditionalReceiver boundConditionalReceiver)
         {
             SyntaxNode syntax = boundConditionalReceiver.Syntax;
-            ITypeSymbol type = boundConditionalReceiver.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundConditionalReceiver.ConstantValue;
+            ITypeSymbol? type = boundConditionalReceiver.GetPublicTypeSymbol();
             bool isImplicit = boundConditionalReceiver.WasCompilerGenerated;
-            return new ConditionalAccessInstanceOperation(_semanticModel, syntax, type, constantValue, isImplicit);
+            return new ConditionalAccessInstanceOperation(_semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private IFieldInitializerOperation CreateBoundFieldEqualsValueOperation(BoundFieldEqualsValue boundFieldEqualsValue)
         {

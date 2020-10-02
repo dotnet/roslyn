@@ -205,11 +205,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ConditionalAccessOperation(Visit(operation.WhenNotNull), Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, object argument)
-        {
-            return new ConditionalAccessInstanceOperation(((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, object argument)
         {
             return new PlaceholderOperation(operation.PlaceholderKind, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

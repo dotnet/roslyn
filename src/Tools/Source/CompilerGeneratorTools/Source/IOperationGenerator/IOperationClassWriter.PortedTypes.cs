@@ -18,7 +18,8 @@ namespace IOperationGenerator
             "ILiteralOperation",
             "ILocalReferenceOperation",
             "IParameterReferenceOperation",
-            "IInstanceReferenceOperation"
+            "IInstanceReferenceOperation",
+            "IConditionalAccessInstanceOperation"
         };
     }
 }

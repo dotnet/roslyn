@@ -883,9 +883,8 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundConditionalAccessReceiverPlaceholderOperation(boundConditionalAccessReceiverPlaceholder As BoundConditionalAccessReceiverPlaceholder) As IConditionalAccessInstanceOperation
             Dim syntax As SyntaxNode = boundConditionalAccessReceiverPlaceholder.Syntax
             Dim type As ITypeSymbol = boundConditionalAccessReceiverPlaceholder.Type
-            Dim constantValue As ConstantValue = boundConditionalAccessReceiverPlaceholder.ConstantValueOpt
             Dim isImplicit As Boolean = boundConditionalAccessReceiverPlaceholder.WasCompilerGenerated
-            Return New ConditionalAccessInstanceOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ConditionalAccessInstanceOperation(_semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundParameterOperation(boundParameter As BoundParameter) As IParameterReferenceOperation
@@ -989,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                         ' to get the expression being conditionally accessed, and return an IConditionalAccessInstanceOperation
                         ' instead of a PlaceholderOperation
                         syntax = If(TryCast(syntax, ConditionalAccessExpressionSyntax)?.Expression, syntax)
-                        Return New ConditionalAccessInstanceOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+                        Return New ConditionalAccessInstanceOperation(_semanticModel, syntax, type, isImplicit)
 
                     Case BoundKind.SelectStatement
                         placeholderKind = PlaceholderKind.SwitchOperationExpression
