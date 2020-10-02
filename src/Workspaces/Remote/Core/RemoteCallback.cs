@@ -7,10 +7,7 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using MessagePack;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Nerdbank.Streams;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -28,12 +25,9 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly T _callback;
 
-        public readonly CancellationTokenSource ClientDisconnectedSource;
-
-        public RemoteCallback(T callback, CancellationTokenSource clientDisconnectedSource)
+        public RemoteCallback(T callback)
         {
             _callback = callback;
-            ClientDisconnectedSource = clientDisconnectedSource;
         }
 
         public async ValueTask InvokeAsync(Func<T, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
@@ -44,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(cancellationToken);
+                throw OnUnexpectedException(exception, cancellationToken);
             }
         }
 
@@ -56,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(cancellationToken);
+                throw OnUnexpectedException(exception, cancellationToken);
             }
         }
 
@@ -74,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(cancellationToken);
+                throw OnUnexpectedException(exception, cancellationToken);
             }
         }
 
@@ -85,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote
         //   3) Remote exception - an exception was thrown by the callee
         //   4) Cancelation
         //
-        private bool ReportUnexpectedException(Exception exception, CancellationToken cancellationToken)
+        private static bool ReportUnexpectedException(Exception exception, CancellationToken cancellationToken)
         {
             if (exception is IOException)
             {
@@ -97,13 +91,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
+                    // Cancellation was requested and expected
                     return false;
                 }
-
-                // It is not guaranteed that RPC only throws OCE when our token is signaled.
-                // Signal the cancelation source that our token is linked to and throw new cancellation
-                // exception in OnUnexpectedException.
-                ClientDisconnectedSource.Cancel();
 
                 return true;
             }
@@ -116,8 +106,6 @@ namespace Microsoft.CodeAnalysis.Remote
             // as any observation of ConnectionLostException indicates a bug (e.g. https://github.com/microsoft/vs-streamjsonrpc/issues/549).
             if (exception is ConnectionLostException)
             {
-                ClientDisconnectedSource.Cancel();
-
                 return true;
             }
 
@@ -125,11 +113,17 @@ namespace Microsoft.CodeAnalysis.Remote
             return FatalError.ReportWithoutCrashAndPropagate(exception);
         }
 
-        private static Exception OnUnexpectedException(CancellationToken cancellationToken)
+        private static Exception OnUnexpectedException(Exception exception, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // If this is hit the cancellation token passed to the service implementation did not use the correct token.
+            if (exception is ConnectionLostException)
+            {
+                throw new OperationCanceledException(exception.Message, exception);
+            }
+
+            // If this is hit the cancellation token passed to the service implementation did not use the correct token,
+            // and the resulting exception was not a ConnectionLostException.
             return ExceptionUtilities.Unreachable;
         }
     }
