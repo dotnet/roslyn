@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var context = await GetContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-            
+
             return context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext
                 ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext))
                 : ImmutableArray<ChangeSignatureCodeAction>.Empty;

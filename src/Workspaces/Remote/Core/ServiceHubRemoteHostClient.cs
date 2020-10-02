@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = RemoteHostOptions.IsServiceHubProcess64Bit(services)));
 
-
                 var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
 
                 var remoteHostStream = await RequestServiceAsync(services, hubClient, WellKnownServiceHubService.RemoteHost, cancellationToken).ConfigureAwait(false);
