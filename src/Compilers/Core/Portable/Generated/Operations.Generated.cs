@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -9033,6 +9035,22 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
     #endregion
+    #region Cloner
+    #nullable enable
+    internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
+    {
+        private static readonly OperationCloner s_instance = new OperationCloner();
+        /// <summary>Deep clone given IOperation</summary>
+        public static T CloneOperation<T>(T operation) where T : IOperation => s_instance.Visit(operation);
+        public OperationCloner() { }
+        private T Visit<T>(T node) where T : IOperation => (T)Visit(node, argument: null);
+        public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable;
+        private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this);
+        private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this);
+    }
+    #nullable disable
+    #endregion
+    
     #region Visitors
     public abstract partial class OperationVisitor
     {

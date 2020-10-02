@@ -124,6 +124,13 @@ namespace IOperationGenerator
                         WriteUsing("Microsoft.CodeAnalysis.FlowAnalysis");
                     }
 
+                    WriteUsing("Microsoft.CodeAnalysis.PooledObjects");
+
+                    if (@namespace == "Operations")
+                    {
+                        WriteUsing("Roslyn.Utilities");
+                    }
+
                     Blank();
                     WriteStartNamespace(@namespace);
 
@@ -139,6 +146,7 @@ namespace IOperationGenerator
                     {
                         Blank();
                         WriteClasses();
+                        WriteCloner();
                         WriteVisitors();
                     }
 
@@ -391,7 +399,230 @@ namespace IOperationGenerator
 
         private void WriteClassNew(AbstractNode type)
         {
-            // PROTOTYPE(iop): implement
+            WriteLine("#nullable enable");
+            var allProps = GetAllProperties(type);
+            bool hasSkippedProperties = !GetAllProperties(type, includeSkipGenerationProperties: true).SequenceEqual(allProps);
+            var ioperationProperties = allProps.Where(p => IsIOperationType(p.Type)).ToList();
+            var publicIOperationProps = ioperationProperties.Where(p => !p.IsInternal).ToList();
+            string typeName = type.Name[1..];
+            var lazyChildren = @"_lazyChildren";
+            var hasType = false;
+            var hasConstantValue = false;
+            var multipleValidKinds = (type.OperationKind?.Entries?.Where(e => e.EditorBrowsable != false).Count() ?? 0) > 1;
+
+            IEnumerable<Property>? baseProperties = null;
+            if (_typeMap[type.Base] is { } baseNode)
+            {
+                baseProperties = GetAllProperties(baseNode);
+            }
+
+            var @class = type.IsAbstract ? $"Base{typeName}" : typeName;
+            var @base = type.Base[1..];
+            if (@base != "Operation")
+            {
+                @base = $"Base{@base}";
+            }
+
+            writeClassHeader(type.IsAbstract ? "abstract" : "sealed", @class, @base, type.Name);
+
+            if (type is Node node)
+            {
+                if (publicIOperationProps.Count != 0)
+                {
+                    WriteLine($"private IEnumerable<IOperation> {lazyChildren};");
+                }
+
+                hasType = node.HasType;
+                hasConstantValue = node.HasConstantValue;
+            }
+            else
+            {
+                node = null!;
+            }
+
+            writeConstructor(type.IsAbstract ? "protected" : "internal", @class, allProps, baseProperties, type, hasType, multipleValidKinds, hasConstantValue);
+
+            foreach (var property in type.Properties.Where(p => !p.SkipGeneration))
+            {
+                writeProperty(property, propExtensibility: string.Empty);
+            }
+
+            if (node != null)
+            {
+                if (publicIOperationProps.Count > 0)
+                {
+                    WriteLine("public override IEnumerable<IOperation> Children");
+                    Brace();
+                    WriteLine("get");
+                    Brace();
+
+                    WriteLine($"if ({lazyChildren} is null)");
+                    Brace();
+                    WriteLine($"var builder = ArrayBuilder<IOperation>.GetInstance({publicIOperationProps.Count});");
+                    foreach (var prop in publicIOperationProps)
+                    {
+                        WriteLine($"if ({prop.Name} is not null) builder.Add({prop.Name};");
+                    }
+
+                    WriteLine($"Interlocked.CompareExchange(ref {lazyChildren}, builder.ToImmutableAndFree(), null);");
+                    Unbrace();
+
+                    WriteLine($"return {lazyChildren};");
+                    Unbrace();
+                    Unbrace();
+                }
+                else
+                {
+                    WriteLine("public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();");
+                }
+
+                WriteLine($"public override ITypeSymbol? Type {(node.HasType ? "{ get; }" : "=> null;")}");
+
+                WriteLine($"internal override ConstantValue? OperationConstantValue {(hasConstantValue ? "{ get; }" : "=> null;")}");
+
+                if (multipleValidKinds)
+                {
+                    WriteLine("public override OperationKind Kind { get; }");
+                }
+                else
+                {
+                    var kind = node.IsInternal ? "None" : $"{getKind(node)}";
+                    WriteLine($"public override OperationKind Kind => OperationKind.{kind};");
+                }
+
+                writeAcceptMethods(GetVisitorName(node));
+            }
+
+            Unbrace();
+            WriteLine("#nullable disable");
+
+            void writeClassHeader(string extensibility, string @class, string baseType, string @interface)
+            {
+                WriteLine($"internal {extensibility} partial class {@class} : {baseType}, {@interface}");
+                Brace();
+            }
+
+            void writeConstructor(string accessibility, string @class, IEnumerable<Property> properties, IEnumerable<Property>? baseProperties, AbstractNode type, bool hasType, bool hasConstantValue, bool multipleValidKinds)
+            {
+                Write($"{accessibility} {@class}(");
+                foreach (var prop in properties)
+                {
+                    if (prop.Type == "CommonConversion")
+                    {
+                        Write($"IConvertibleConversion {prop.Name.ToCamelCase()}, ");
+                    }
+                    else
+                    {
+                        Write($"{prop.Type} {prop.Name.ToCamelCase()}, ");
+                    }
+                }
+
+                if (type.IsAbstract || multipleValidKinds)
+                {
+                    Write("OperationKind kind, ");
+                }
+
+                var typeParameterString = hasType ? "ITypeSymbol? type, " : string.Empty;
+                var constantValueString = hasConstantValue ? "ConstantValue? constantValue, " : string.Empty;
+                Write($"SemanticModel? semanticModel, SyntaxNode syntax, {typeParameterString}{constantValueString}bool isImplicit");
+
+                WriteLine(")");
+                Indent();
+                Write(": base(");
+
+                if (baseProperties is object)
+                {
+                    foreach (var prop in baseProperties)
+                    {
+                        Write($"{prop.Name.ToCamelCase()}, ");
+                    }
+                }
+                Write("semanticModel, syntax, isImplicit)");
+
+                Outdent();
+
+                List<Property> propsToInitialize = type.Properties.Where(p => !p.SkipGeneration).ToList();
+
+                if (propsToInitialize.Count == 0 && !hasType)
+                {
+                    // Note: our formatting style is a space here
+                    WriteLine(" { }");
+                }
+                else
+                {
+                    Blank();
+                    Brace();
+                    foreach (var prop in propsToInitialize)
+                    {
+                        if (prop.Type == "CommonConversion")
+                        {
+                            WriteLine($"{prop.Name}Convertible = {prop.Name.ToCamelCase()};");
+                        }
+                        else
+                        {
+                            var initializer = IsIOperationType(prop.Type) ?
+                                $"SetParentOperation({prop.Name.ToCamelCase()}, this)" :
+                                prop.Name.ToCamelCase();
+                            WriteLine($"{prop.Name} = {initializer};");
+                        }
+                    }
+
+                    if (hasConstantValue)
+                    {
+                        WriteLine("OperationConstant = constantValue;");
+                    }
+
+                    if (hasType)
+                    {
+                        WriteLine("Type = type;");
+                    }
+
+                    if (multipleValidKinds)
+                    {
+                        WriteLine("Kind = kind;");
+                    }
+
+                    Unbrace();
+                }
+            }
+
+            void writeProperty(Property prop, string propExtensibility)
+            {
+                if (prop.Type == "CommonConversion")
+                {
+                    // Common conversions need an internal property for the IConvertibleConversion
+                    // version of the property, and the public version needs to call ToCommonConversion
+                    WriteLine($"internal IConvertibleConversion {prop.Name}Convertible {{ get; }}");
+                    WriteLine($"public CommonConversion {prop.Name} => {prop.Name}Convertible.ToCommonConversion();");
+                }
+                else
+                {
+                    WriteLine($"public {propExtensibility}{prop.Type} {prop.Name} {{ get; }}");
+                }
+            }
+
+            void writeAcceptMethods(string visitorName)
+            {
+                WriteLine($"public override void Accept(OperationVisitor visitor) => visitor.{visitorName}(this);");
+                WriteLine($"public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.{visitorName}(this, argument);");
+
+            }
+
+            string getKind(Node node)
+            {
+                while (node.OperationKind?.Include == false)
+                {
+                    node = (Node?)_typeMap[node.Base] ??
+                        throw new InvalidOperationException($"{node.Name} is not being included in OperationKind, but has no base type!");
+                }
+
+                if (node.OperationKind?.Entries.Count > 0)
+                {
+                    return node.OperationKind.Entries.Where(e => e.EditorBrowsable != false).Single().Name;
+                }
+
+                return GetSubName(node.Name);
+            }
         }
 
         private void WriteClassOld(AbstractNode type)
@@ -754,6 +985,71 @@ namespace IOperationGenerator
 
                 return GetSubName(node.Name);
             }
+        }
+
+        private void WriteCloner()
+        {
+            WriteLine("#region Cloner");
+            WriteLine("#nullable enable");
+
+            WriteLine(@"internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>");
+            Brace();
+
+            WriteLine("private static readonly OperationCloner s_instance = new OperationCloner();");
+            WriteLine("/// <summary>Deep clone given IOperation</summary>");
+            WriteLine("public static T CloneOperation<T>(T operation) where T : IOperation => s_instance.Visit(operation);");
+            WriteLine("public OperationCloner() { }");
+            WriteLine("private T Visit<T>(T node) where T : IOperation => (T)Visit(node, argument: null);");
+            WriteLine("public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable;");
+            WriteLine("private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this);");
+            WriteLine("private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this);");
+
+            foreach (var node in _tree.Types.OfType<Node>())
+            {
+                const string internalName = "internalOperation";
+
+                if (!PortedTypes.Contains(node.Name)) continue;
+
+                string nameMinusI = node.Name[1..];
+                WriteLine($"public override IOperation {GetVisitorName(node)}({node.Name} operation, object? argument)");
+                Brace();
+                WriteLine($"var {internalName} = ({nameMinusI})operation;");
+                Write($"return new {nameMinusI}(");
+
+                foreach (var prop in GetAllProperties(node))
+                {
+                    if (IsIOperationType(prop.Type))
+                    {
+                        Write(IsImmutableArray(prop.Type, out _) ? "VisitArray" : "Visit");
+                        Write($"({internalName}.{prop.Name}), ");
+                    }
+                    else
+                    {
+                        Write($"{internalName}.{prop.Name}, ");
+                    }
+                }
+
+                Write($"{internalName}.OwningSemanticModel, {internalName}.Syntax, ");
+
+                if (node.HasType)
+                {
+                    Write($"{internalName}.Type, ");
+                }
+
+                if (node.HasConstantValue)
+                {
+                    Write($"{internalName}.OperationConstantValue, ");
+                }
+
+                WriteLine($"{internalName}.IsImplicit);");
+                Unbrace();
+            }
+
+            Unbrace();
+
+            WriteLine("#nullable disable");
+            WriteLine("#endregion");
+            WriteLine("");
         }
 
         private void WriteVisitors()

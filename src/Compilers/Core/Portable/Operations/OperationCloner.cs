@@ -2,62 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
-    internal sealed class OperationCloner : OperationVisitor<object, IOperation>
+    internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
+#nullable disable
     {
-        private static readonly OperationCloner s_instance = new OperationCloner();
-
-        /// <summary>
-        /// Deep clone given IOperation
-        /// </summary>
-        public static T CloneOperation<T>(T operation) where T : IOperation
-        {
-            return s_instance.Visit(operation);
-        }
-
-        private OperationCloner()
-        {
-        }
-
-        private T Visit<T>(T node) where T : IOperation
-        {
-            return (T)Visit(node, argument: null);
-        }
-
         public IOperation Visit(IOperation operation)
         {
             return Visit(operation, argument: null);
         }
 
-        public override IOperation DefaultVisit(IOperation operation, object argument)
-        {
-            // this should never reach, otherwise, there is missing override for IOperation type
-            throw ExceptionUtilities.Unreachable;
-        }
-
         internal override IOperation VisitNoneOperation(IOperation operation, object argument)
         {
             return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.GetConstantValue(), operation.IsImplicit, operation.Type);
-        }
-
-        private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation
-        {
-            // clone the array
-            return nodes.SelectAsArray(n => Visit(n));
-        }
-
-        private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation
-        {
-            // clone the array
-            return nodes.SelectAsArray(n => (n.Item1, Visit(n.Item2)));
         }
 
         public override IOperation VisitBlock(IBlockOperation operation, object argument)
