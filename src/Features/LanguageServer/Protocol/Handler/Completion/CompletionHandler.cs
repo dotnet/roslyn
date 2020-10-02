@@ -2,19 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -26,10 +27,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName, mutatesSolutionState: false)]
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
+        private readonly ImmutableHashSet<string> _csharpTriggerCharacters;
+        private readonly ImmutableHashSet<string> _vbTriggerCharacters;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionHandler()
+        public CompletionHandler(
+            [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
         {
+            _csharpTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
+                lz => GetTriggerCharacters(lz.Value)).Select(c => c.ToString()).ToImmutableHashSet();
+            _vbTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.VisualBasic).SelectMany(
+                lz => GetTriggerCharacters(lz.Value)).Select(c => c.ToString()).ToImmutableHashSet();
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
@@ -38,6 +47,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var document = context.Document;
             if (document == null)
+            {
+                return null;
+            }
+
+            // C# and VB share the same LSP language server, and thus share the same default trigger characters.
+            // We need to ensure the trigger character is valid in the document's language. For example, the '{'
+            // character, while a trigger character in VB, is not a trigger character in C#.
+            var triggerCharacter = char.Parse(request.Context.TriggerCharacter);
+            if (request.Context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter && !char.IsLetterOrDigit(triggerCharacter) &&
+                !IsValidTriggerCharacterForDocument(document, request.Context.TriggerCharacter))
             {
                 return null;
             }
@@ -60,7 +79,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, true);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
+            // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
+            var triggerKind = ProtocolConversions.LSPToRoslynCompletionTriggerKind(request.Context.TriggerKind);
+            var completionTrigger = new CompletionTrigger(triggerKind, triggerCharacter);
+
+            var list = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
                 return null;
@@ -68,40 +93,126 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var lspVSClientCapability = context.ClientCapabilities?.HasVisualStudioLspCapability() == true;
 
+            var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>>();
             return new LSP.VSCompletionList
             {
-                Items = list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability)).ToArray(),
+                Items = list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability, completionTrigger, commitCharactersRuleCache)).ToArray(),
                 SuggesstionMode = list.SuggestionModeItem != null,
             };
 
-            // local functions
-            static LSP.CompletionItem CreateLSPCompletionItem(LSP.CompletionParams request, CompletionItem item, bool useVSCompletionItem)
+            // Local functions
+            bool IsValidTriggerCharacterForDocument(Document document, string triggerCharacter)
+            {
+                if (document.Project.Language == LanguageNames.CSharp)
+                {
+                    return _csharpTriggerCharacters.Contains(triggerCharacter);
+                }
+                else if (document.Project.Language == LanguageNames.VisualBasic)
+                {
+                    return _vbTriggerCharacters.Contains(triggerCharacter);
+                }
+
+                // Typescript still calls into this for completion.
+                // Since we don't know what their trigger characters are, just return true.
+                return true;
+            }
+
+            static LSP.CompletionItem CreateLSPCompletionItem(
+                LSP.CompletionParams request,
+                CompletionItem item,
+                bool useVSCompletionItem,
+                CompletionTrigger completionTrigger,
+                Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache)
             {
                 if (useVSCompletionItem)
                 {
-                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item);
+                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item, completionTrigger, commitCharacterRulesCache);
                     vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
                     return vsCompletionItem;
                 }
                 else
                 {
-                    var roslynCompletionItem = CreateCompletionItem<RoslynCompletionItem>(request, item);
-                    roslynCompletionItem.Tags = item.Tags.ToArray();
+                    var roslynCompletionItem = CreateCompletionItem<LSP.CompletionItem>(request, item, completionTrigger, commitCharacterRulesCache);
                     return roslynCompletionItem;
                 }
             }
 
-            static TCompletionItem CreateCompletionItem<TCompletionItem>(LSP.CompletionParams request, CompletionItem item) where TCompletionItem : LSP.CompletionItem, new()
-                => new TCompletionItem
+            static TCompletionItem CreateCompletionItem<TCompletionItem>(
+                LSP.CompletionParams request,
+                CompletionItem item,
+                CompletionTrigger completionTrigger,
+                Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache) where TCompletionItem : LSP.CompletionItem, new()
+            {
+                var completeDisplayText = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix;
+                var completionItem = new TCompletionItem
                 {
-                    Label = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix,
-                    InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : item.DisplayText,
+                    Label = completeDisplayText,
+                    InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : completeDisplayText,
                     SortText = item.SortText,
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
-                    Data = new CompletionResolveData { TextDocument = request.TextDocument, Position = request.Position, DisplayText = item.DisplayText },
+                    Data = new CompletionResolveData
+                    {
+                        TextDocument = request.TextDocument,
+                        Position = request.Position,
+                        DisplayText = item.DisplayText,
+                        CompletionTrigger = completionTrigger,
+                    },
                     Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
+                    CommitCharacters = GetCommitCharacters(item, commitCharacterRulesCache)
                 };
+
+                return completionItem;
+            }
+
+            static string[]? GetCommitCharacters(CompletionItem item, Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> currentRuleCache)
+            {
+                var commitCharacterRules = item.Rules.CommitCharacterRules;
+
+                // If the item doesn't have any special rules, just use the default commit characters.
+                if (commitCharacterRules.IsEmpty)
+                {
+                    return null;
+                }
+
+                if (currentRuleCache.TryGetValue(commitCharacterRules, out var currentRules))
+                {
+                    return currentRules.ToArray();
+                }
+
+                using var _ = PooledHashSet<char>.GetInstance(out var commitCharacters);
+                commitCharacters.AddAll(CompletionRules.Default.DefaultCommitCharacters);
+                foreach (var rule in commitCharacterRules)
+                {
+                    switch (rule.Kind)
+                    {
+                        case CharacterSetModificationKind.Add:
+                            commitCharacters.UnionWith(rule.Characters);
+                            continue;
+                        case CharacterSetModificationKind.Remove:
+                            commitCharacters.ExceptWith(rule.Characters);
+                            continue;
+                        case CharacterSetModificationKind.Replace:
+                            commitCharacters.Clear();
+                            commitCharacters.AddRange(rule.Characters);
+                            break;
+                    }
+                }
+
+                var commitCharacterSet = commitCharacters.Select(c => c.ToString()).ToImmutableArray();
+                currentRuleCache.Add(item.Rules.CommitCharacterRules, commitCharacterSet);
+                return commitCharacterSet.ToArray();
+            }
+        }
+
+        internal static ImmutableHashSet<char> GetTriggerCharacters(CompletionProvider provider)
+        {
+            if (provider is LSPCompletionProvider lspProvider)
+            {
+                return lspProvider.TriggerCharacters;
+            }
+
+            return ImmutableHashSet<char>.Empty;
         }
 
         private static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)

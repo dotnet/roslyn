@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -2021,7 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
-#nullable restore
+#nullable disable
 
         private static BinaryOperatorKind SyntaxKindToBinaryOperatorKind(SyntaxKind kind)
         {
@@ -2765,7 +2767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindValueKind.RValue;
             }
         }
-#nullable restore
+#nullable disable
 
         private BoundLiteral BindIntegralMinValConstants(PrefixUnaryExpressionSyntax node, BoundExpression operand, DiagnosticBag diagnostics)
         {

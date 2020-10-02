@@ -23,7 +23,7 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.8.0-4.20469.1</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.9.0-1.20476.2</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
@@ -206,6 +206,7 @@
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>4.5.1</SystemIOPipesAccessControlVersion>
+    <SystemIOPipelinesVersion>4.7.0</SystemIOPipelinesVersion>
     <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
     <SystemResourcesExtensionsVersion>4.7.1</SystemResourcesExtensionsVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>4.7.1</SystemRuntimeCompilerServicesUnsafeVersion>

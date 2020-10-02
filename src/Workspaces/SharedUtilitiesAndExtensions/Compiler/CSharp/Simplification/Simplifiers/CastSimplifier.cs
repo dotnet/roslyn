@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -454,6 +456,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // even bother removing this.
             if (IsTypeLessExpressionNotInTargetTypedLocation(castNode, castedExpressionType))
                 return true;
+
+            // If we have something like `(nuint)(nint)x` where x is an IntPtr then the nint cast cannot be removed
+            // as IntPtr to nuint is invalid.
+            if (IsIntPtrToNativeIntegerNestedCast(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
+                return true;
+
+            return false;
+        }
+
+        private static bool IsIntPtrToNativeIntegerNestedCast(ExpressionSyntax castNode, ITypeSymbol castType, ITypeSymbol castedExpressionType, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (castedExpressionType == null)
+            {
+                return false;
+            }
+
+            if (castType.SpecialType is not (SpecialType.System_IntPtr or SpecialType.System_UIntPtr))
+            {
+                return false;
+            }
+
+            if (castNode.WalkUpParentheses().Parent is CastExpressionSyntax castExpression)
+            {
+                var parentCastType = semanticModel.GetTypeInfo(castExpression, cancellationToken).Type;
+
+                if (parentCastType == null)
+                {
+                    return false;
+                }
+
+                var oppositeType = castType.SpecialType == SpecialType.System_IntPtr ? SpecialType.System_UIntPtr : SpecialType.System_IntPtr;
+
+                // Given (nuint)(nint)myIntPtr we would normally suggest removing the (nint) cast as being identity
+                // but it is required as a means to get from IntPtr to nuint, and vice versa from UIntPtr to nint,
+                // so we check for an identity cast from [U]IntPtr to n[u]int, and a parent cast to the opposite.
+                if (castedExpressionType.SpecialType == castType.SpecialType &&
+                    !castedExpressionType.IsNativeIntegerType &&
+                    castType.IsNativeIntegerType &&
+                    parentCastType.IsNativeIntegerType &&
+                    parentCastType.SpecialType == oppositeType)
+                {
+                    return true;
+                }
+            }
 
             return false;
         }

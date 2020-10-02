@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -238,8 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Returns true if constraintClauses was updated with value.
-        // Returns false if constraintClauses already had a value with expected 'IgnoresNullableContext'
-        // or was updated to a value with the expected 'IgnoresNullableContext' value on another thread.
+        // Returns false if constraintClauses already had a value with sufficient 'IgnoresNullableContext'
+        // or was updated to a value with sufficient 'IgnoresNullableContext' on another thread.
         internal static bool InterlockedUpdate(ref ImmutableArray<TypeParameterConstraintClause> constraintClauses, ImmutableArray<TypeParameterConstraintClause> value)
         {
             bool canIgnoreNullableContext = value.IgnoresNullableContext();
