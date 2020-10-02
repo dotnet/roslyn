@@ -1144,25 +1144,25 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DefaultValueOperation(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IInstanceReferenceOperation CreateBoundBaseReferenceOperation(BoundBaseReference boundBaseReference)
         {
             InstanceReferenceKind referenceKind = InstanceReferenceKind.ContainingTypeInstance;
             SyntaxNode syntax = boundBaseReference.Syntax;
-            ITypeSymbol type = boundBaseReference.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundBaseReference.ConstantValue;
+            ITypeSymbol? type = boundBaseReference.GetPublicTypeSymbol();
             bool isImplicit = boundBaseReference.WasCompilerGenerated;
-            return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit);
         }
 
         private IInstanceReferenceOperation CreateBoundThisReferenceOperation(BoundThisReference boundThisReference)
         {
             InstanceReferenceKind referenceKind = InstanceReferenceKind.ContainingTypeInstance;
             SyntaxNode syntax = boundThisReference.Syntax;
-            ITypeSymbol type = boundThisReference.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundThisReference.ConstantValue;
+            ITypeSymbol? type = boundThisReference.GetPublicTypeSymbol();
             bool isImplicit = boundThisReference.WasCompilerGenerated;
-            return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private IOperation CreateBoundAssignmentOperatorOrMemberInitializerOperation(BoundAssignmentOperator boundAssignmentOperator)
         {
@@ -1415,15 +1415,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyAddressOfOperation(this, reference, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IInstanceReferenceOperation CreateBoundImplicitReceiverOperation(BoundImplicitReceiver boundImplicitReceiver)
         {
             InstanceReferenceKind referenceKind = InstanceReferenceKind.ImplicitReceiver;
             SyntaxNode syntax = boundImplicitReceiver.Syntax;
-            ITypeSymbol type = boundImplicitReceiver.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundImplicitReceiver.ConstantValue;
+            ITypeSymbol? type = boundImplicitReceiver.GetPublicTypeSymbol();
             bool isImplicit = boundImplicitReceiver.WasCompilerGenerated;
-            return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private IConditionalAccessOperation CreateBoundConditionalAccessOperation(BoundConditionalAccess boundConditionalAccess)
         {
@@ -2175,6 +2176,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyPropertySubpatternOperation(this, subpattern, matchedType, syntax, _semanticModel);
         }
 
+#nullable enable
         internal IOperation CreatePropertySubpatternMember(Symbol symbol, ITypeSymbol matchedType, SyntaxNode syntax)
         {
             var nameSyntax = (syntax is SubpatternSyntax subpatSyntax ? subpatSyntax.NameColon?.Name : null) ?? syntax;
@@ -2185,14 +2187,14 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         var constantValue = field.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
                         var receiver = new InstanceReferenceOperation(
-                            InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, constantValue, isImplicit: true);
+                            InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, isImplicit: true);
                         return new FieldReferenceOperation(
                             field.GetPublicSymbol(), isDeclaration: false, receiver, _semanticModel, nameSyntax, field.Type.GetPublicSymbol(), constantValue, isImplicit: isImplicit);
                     }
                 case PropertySymbol property:
                     {
                         var receiver = new InstanceReferenceOperation(
-                            InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, constantValue: null, isImplicit: true);
+                            InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, isImplicit: true);
                         return new PropertyReferenceOperation(
                             property.GetPublicSymbol(), ImmutableArray<IArgumentOperation>.Empty, receiver, _semanticModel, nameSyntax, property.Type.GetPublicSymbol(),
                             constantValue: null, isImplicit: isImplicit);
@@ -2208,10 +2210,9 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             InstanceReferenceKind referenceKind = InstanceReferenceKind.ImplicitReceiver;
             SyntaxNode syntax = placeholder.Syntax;
-            ITypeSymbol type = placeholder.GetPublicTypeSymbol();
-            ConstantValue constantValue = placeholder.ConstantValue;
+            ITypeSymbol? type = placeholder.GetPublicTypeSymbol();
             bool isImplicit = placeholder.WasCompilerGenerated;
-            return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit);
         }
     }
 }

@@ -17,7 +17,8 @@ namespace IOperationGenerator
             "IStopOperation",
             "ILiteralOperation",
             "ILocalReferenceOperation",
-            "IParameterReferenceOperation"
+            "IParameterReferenceOperation",
+            "IInstanceReferenceOperation"
         };
     }
 }

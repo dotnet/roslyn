@@ -1232,6 +1232,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IArrayInitializerOperation Initializer { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents an implicit/explicit reference to an instance.
     /// <para>
@@ -1257,6 +1258,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         InstanceReferenceKind ReferenceKind { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an operation that tests if a value is of a specific type.
     /// <para>
@@ -5489,18 +5491,24 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class InstanceReferenceOperation : OperationOld, IInstanceReferenceOperation
+    #nullable enable
+    internal sealed partial class InstanceReferenceOperation : Operation, IInstanceReferenceOperation
     {
-        internal InstanceReferenceOperation(InstanceReferenceKind referenceKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.InstanceReference, semanticModel, syntax, type, constantValue, isImplicit)
+        internal InstanceReferenceOperation(InstanceReferenceKind referenceKind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             ReferenceKind = referenceKind;
+            Type = type;
         }
         public InstanceReferenceKind ReferenceKind { get; }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.InstanceReference;
         public override void Accept(OperationVisitor visitor) => visitor.VisitInstanceReference(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInstanceReference(this, argument);
     }
+    #nullable disable
     internal abstract partial class BaseIsTypeOperation : OperationOld, IIsTypeOperation
     {
         internal BaseIsTypeOperation(ITypeSymbol typeOperand, bool isNegated, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9137,6 +9145,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ParameterReferenceOperation)operation;
             return new ParameterReferenceOperation(internalOperation.Parameter, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, object? argument)
+        {
+            var internalOperation = (InstanceReferenceOperation)operation;
+            return new InstanceReferenceOperation(internalOperation.ReferenceKind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #nullable disable

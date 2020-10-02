@@ -5839,6 +5839,7 @@ oneMoreTime:
             return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
         }
 
+#nullable enable
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
         {
             if (operation.Initializers.IsEmpty)
@@ -5848,7 +5849,9 @@ oneMoreTime:
             }
 
             ImplicitInstanceInfo savedCurrentImplicitInstance = _currentImplicitInstance;
+            Debug.Assert(operation.Type is not null);
             _currentImplicitInstance = new ImplicitInstanceInfo((INamedTypeSymbol)operation.Type);
+            Debug.Assert(_currentImplicitInstance.AnonymousTypePropertyValues is not null);
 
             SpillEvalStack();
 
@@ -5867,7 +5870,7 @@ oneMoreTime:
                 Debug.Assert(((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind == InstanceReferenceKind.ImplicitReceiver);
 
                 var visitedPropertyInstance = new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, semanticModel: null,
-                    propertyReference.Instance.Syntax, propertyReference.Instance.Type, propertyReference.Instance.GetConstantValue(), IsImplicit(propertyReference.Instance));
+                    propertyReference.Instance.Syntax, propertyReference.Instance.Type, IsImplicit(propertyReference.Instance));
                 IOperation visitedTarget = new PropertyReferenceOperation(propertyReference.Property, ImmutableArray<IArgumentOperation>.Empty, visitedPropertyInstance,
                     semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.GetConstantValue(), IsImplicit(propertyReference));
                 IOperation visitedValue = visitAndCaptureInitializer(propertyReference.Property, simpleAssignment.Value);
@@ -5903,6 +5906,7 @@ oneMoreTime:
                 return captured;
             }
         }
+#nullable disable
 
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
         {
@@ -6009,6 +6013,7 @@ oneMoreTime:
             }
         }
 
+#nullable enable
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
             if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
@@ -6028,10 +6033,10 @@ oneMoreTime:
             }
             else
             {
-                return new InstanceReferenceOperation(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type,
-                                                       operation.GetConstantValue(), IsImplicit(operation));
+                return new InstanceReferenceOperation(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
             }
         }
+#nullable disable
 
         public override IOperation VisitDynamicInvocation(IDynamicInvocationOperation operation, int? captureIdForResult)
         {
@@ -6392,7 +6397,6 @@ oneMoreTime:
             VisitInitializer(rewrittenTarget: parameterRef, initializer: operation);
             return FinishVisitingStatement(operation);
         }
-#nullable disable
 
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
         {
@@ -6400,10 +6404,10 @@ oneMoreTime:
 
             foreach (IFieldSymbol fieldSymbol in operation.InitializedFields)
             {
-                IInstanceReferenceOperation instance = fieldSymbol.IsStatic ?
+                IInstanceReferenceOperation? instance = fieldSymbol.IsStatic ?
                     null :
                     new InstanceReferenceOperation(InstanceReferenceKind.ContainingTypeInstance, semanticModel: null,
-                        operation.Syntax, fieldSymbol.ContainingType, constantValue: null, isImplicit: true);
+                        operation.Syntax, fieldSymbol.ContainingType, isImplicit: true);
                 var fieldRef = new FieldReferenceOperation(fieldSymbol, isDeclaration: false, instance, semanticModel: null,
                     operation.Syntax, fieldSymbol.Type, constantValue: null, isImplicit: true);
                 VisitInitializer(rewrittenTarget: fieldRef, initializer: operation);
@@ -6421,7 +6425,7 @@ oneMoreTime:
                 var instance = propertySymbol.IsStatic ?
                     null :
                     new InstanceReferenceOperation(InstanceReferenceKind.ContainingTypeInstance, semanticModel: null,
-                        operation.Syntax, propertySymbol.ContainingType, constantValue: null, isImplicit: true);
+                        operation.Syntax, propertySymbol.ContainingType, isImplicit: true);
 
                 ImmutableArray<IArgumentOperation> arguments;
                 if (!propertySymbol.Parameters.IsEmpty)
@@ -6451,6 +6455,7 @@ oneMoreTime:
 
             return FinishVisitingStatement(operation);
         }
+#nullable disable
 
         private void VisitInitializer(IOperation rewrittenTarget, ISymbolInitializerOperation initializer)
         {

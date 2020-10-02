@@ -1138,7 +1138,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IInstanceReferenceOperation" Base="IOperation">
+  <Node Name="IInstanceReferenceOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an implicit/explicit reference to an instance.
