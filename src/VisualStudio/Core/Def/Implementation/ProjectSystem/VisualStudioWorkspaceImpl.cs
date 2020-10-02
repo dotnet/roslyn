@@ -455,6 +455,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.ChangeAnalyzerConfigDocument:
                 case ApplyChangesKind.AddSolutionAnalyzerReference:
                 case ApplyChangesKind.RemoveSolutionAnalyzerReference:
+                case ApplyChangesKind.ChangeProjectInfo:
                     return true;
 
                 default:

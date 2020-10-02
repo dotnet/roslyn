@@ -30,5 +30,6 @@ namespace Microsoft.CodeAnalysis
         ChangeAnalyzerConfigDocument = 19,
         AddSolutionAnalyzerReference = 20,
         RemoveSolutionAnalyzerReference = 21,
+        ChangeProjectInfo = 22
     }
 }

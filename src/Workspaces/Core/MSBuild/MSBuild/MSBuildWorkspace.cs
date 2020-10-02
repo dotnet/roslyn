@@ -279,6 +279,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 case ApplyChangesKind.RemoveProjectReference:
                 case ApplyChangesKind.AddAnalyzerReference:
                 case ApplyChangesKind.RemoveAnalyzerReference:
+                case ApplyChangesKind.ChangeProjectInfo:
                     return true;
                 default:
                     return false;
