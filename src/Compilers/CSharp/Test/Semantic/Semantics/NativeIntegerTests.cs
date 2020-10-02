@@ -7243,8 +7243,6 @@ $@"{{
             conversions(sourceType: "nint", destType: "int", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4"));
             conversions(sourceType: "nint", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4"));
             conversions(sourceType: "nint", destType: "long", expectedImplicitIL: conv("conv.i8"), expectedExplicitIL: conv("conv.i8"));
-            // https://github.com/dotnet/roslyn/issues/42457: Investigate why this conversion (and other conversions from nint to ulong and from nuint to long)
-            // use differently signed opcodes for unchecked and checked conversions. (Why conv.i8 but conv.ovf.u8 here for instance?)
             conversions(sourceType: "nint", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i8"), expectedCheckedIL: conv("conv.ovf.u8"));
             conversions(sourceType: "nint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
             conversions(sourceType: "nint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
@@ -12528,6 +12526,78 @@ class B : A
             Assert.Equal("nint[] modopt(System.Int32) B.F2()", type.GetMember("F2").ToTestDisplayString());
             Assert.Equal("nint[] modopt(System.Int32) B.F3()", type.GetMember("F3").ToTestDisplayString());
             Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F4()", type.GetMember("F4").ToTestDisplayString());
+        }
+
+        [WorkItem(42457, "https://github.com/dotnet/roslyn/issues/42457")]
+        [Fact]
+        public void Int64Conversions()
+        {
+            convert(fromType: "nint", toType: "ulong", "int.MinValue", "18446744071562067968", "conv.i8", "System.OverflowException", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "ulong", "int.MaxValue", "2147483647", "conv.i8", "2147483647", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "nuint", "int.MinValue", IntPtr.Size == 4 ? "2147483648" : "18446744071562067968", "conv.u", "System.OverflowException", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", "int.MaxValue", "2147483647", "conv.u", "2147483647", "conv.ovf.u");
+
+            convert(fromType: "nuint", toType: "long", "uint.MaxValue", "4294967295", "conv.u8", "4294967295", "conv.ovf.i8.un");
+            convert(fromType: "nuint", toType: "nint", "uint.MaxValue", IntPtr.Size == 4 ? "-1" : "4294967295", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "4294967295", "conv.ovf.i.un");
+
+            string nintMinValue = IntPtr.Size == 4 ? int.MinValue.ToString() : long.MinValue.ToString();
+            string nintMaxValue = IntPtr.Size == 4 ? int.MaxValue.ToString() : long.MaxValue.ToString();
+            string nuintMaxValue = IntPtr.Size == 4 ? uint.MaxValue.ToString() : ulong.MaxValue.ToString();
+
+            convert(fromType: "nint", toType: "ulong", nintMinValue, IntPtr.Size == 4 ? "18446744071562067968" : "9223372036854775808", "conv.i8", "System.OverflowException", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "ulong", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.i8", IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "nuint", nintMinValue, IntPtr.Size == 4 ? "2147483648" : "9223372036854775808", "conv.u", "System.OverflowException", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.u", IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u");
+
+            convert(fromType: "nuint", toType: "long", nuintMaxValue, IntPtr.Size == 4 ? "4294967295" : "-1", "conv.u8", IntPtr.Size == 4 ? "4294967295" : "System.OverflowException", "conv.ovf.i8.un");
+            convert(fromType: "nuint", toType: "nint", nuintMaxValue, "-1", "conv.i", "System.OverflowException", "conv.ovf.i.un");
+
+            void convert(string fromType, string toType, string fromValue, string toValueUnchecked, string toConvUnchecked, string toValueChecked, string toConvChecked)
+            {
+                string source =
+$@"using System;
+class Program
+{{
+    static {toType} Convert({fromType} value) => ({toType})(value);
+    static {toType} ConvertChecked({fromType} value) => checked(({toType})(value));
+    static object Execute(Func<object> f)
+    {{
+        try
+        {{
+            return f();
+        }}
+        catch (Exception e)
+        {{
+            return e.GetType().FullName;
+        }}
+    }}
+    static void Main()
+    {{
+        {fromType} value = ({fromType})({fromValue});
+        Console.WriteLine(Execute(() => Convert(value)));
+        Console.WriteLine(Execute(() => ConvertChecked(value)));
+    }}
+}}";
+                var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+$@"{toValueUnchecked}
+{toValueChecked}");
+                verifier.VerifyIL("Program.Convert",
+    $@"{{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  {toConvUnchecked}
+  IL_0002:  ret
+}}");
+                verifier.VerifyIL("Program.ConvertChecked",
+    $@"{{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  {toConvChecked}
+  IL_0002:  ret
+}}");
+            }
         }
 
         [WorkItem(44810, "https://github.com/dotnet/roslyn/issues/44810")]
