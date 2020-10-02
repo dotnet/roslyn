@@ -978,8 +978,8 @@ class A
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
             var diagnosticsMap = await diagnosticComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
-            var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
-            var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();
+            var builder = diagnosticsMap.AnalysisResult.Values.Single();
+            var diagnostic = kind == AnalysisKind.Syntax ? builder.SyntaxLocals.Values.Single().Single() : builder.SemanticLocals.Values.Single().Single();
             Assert.Equal(CancellationTestAnalyzer.NonCanceledDiagnosticId, diagnostic.Id);
         }
 

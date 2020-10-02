@@ -20,47 +20,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public StreamingFindReferencesProgressAdapter(IFindReferencesProgress progress)
         {
             _progress = progress;
-            ProgressTracker = new StreamingProgressTracker((current, max) =>
+            this.ProgressTracker = new StreamingProgressTracker((current, max) =>
             {
                 _progress.ReportProgress(current, max);
-                return default;
+                return Task.CompletedTask;
             });
         }
 
-        public ValueTask OnCompletedAsync()
+        public Task OnCompletedAsync()
         {
             _progress.OnCompleted();
-            return default;
+            return Task.CompletedTask;
         }
 
-        public ValueTask OnDefinitionFoundAsync(ISymbol symbol)
+        public Task OnDefinitionFoundAsync(ISymbol symbol)
         {
             _progress.OnDefinitionFound(symbol);
-            return default;
+            return Task.CompletedTask;
         }
 
-        public ValueTask OnFindInDocumentCompletedAsync(Document document)
+        public Task OnFindInDocumentCompletedAsync(Document document)
         {
             _progress.OnFindInDocumentCompleted(document);
-            return default;
+            return Task.CompletedTask;
         }
 
-        public ValueTask OnFindInDocumentStartedAsync(Document document)
+        public Task OnFindInDocumentStartedAsync(Document document)
         {
             _progress.OnFindInDocumentStarted(document);
-            return default;
+            return Task.CompletedTask;
         }
 
-        public ValueTask OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location)
+        public Task OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location)
         {
             _progress.OnReferenceFound(symbol, location);
-            return default;
+            return Task.CompletedTask;
         }
 
-        public ValueTask OnStartedAsync()
+        public Task OnStartedAsync()
         {
             _progress.OnStarted();
-            return default;
+            return Task.CompletedTask;
         }
     }
 }

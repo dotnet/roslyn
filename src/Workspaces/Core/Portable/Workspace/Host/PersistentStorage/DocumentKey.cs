@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.PersistentStorage
@@ -30,34 +29,26 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         }
 
         public static explicit operator DocumentKey(Document document)
-            => new((ProjectKey)document.Project, document.Id, document.FilePath, document.Name);
+            => new DocumentKey((ProjectKey)document.Project, document.Id, document.FilePath, document.Name);
 
         public SerializableDocumentKey Dehydrate()
-            => new(Project.Dehydrate(), Id, FilePath, Name);
+        {
+            return new SerializableDocumentKey
+            {
+                Project = Project.Dehydrate(),
+                Id = Id,
+                FilePath = FilePath,
+                Name = Name,
+            };
+        }
     }
 
-    [DataContract]
-    internal readonly struct SerializableDocumentKey
+    internal class SerializableDocumentKey
     {
-        [DataMember(Order = 0)]
-        public readonly SerializableProjectKey Project;
-
-        [DataMember(Order = 1)]
-        public readonly DocumentId Id;
-
-        [DataMember(Order = 2)]
-        public readonly string FilePath;
-
-        [DataMember(Order = 3)]
-        public readonly string Name;
-
-        public SerializableDocumentKey(SerializableProjectKey project, DocumentId id, string filePath, string name)
-        {
-            Project = project;
-            Id = id;
-            FilePath = filePath;
-            Name = name;
-        }
+        public SerializableProjectKey Project;
+        public DocumentId Id;
+        public string FilePath;
+        public string Name;
 
         public DocumentKey Rehydrate()
             => new DocumentKey(Project.Rehydrate(), Id, FilePath, Name);

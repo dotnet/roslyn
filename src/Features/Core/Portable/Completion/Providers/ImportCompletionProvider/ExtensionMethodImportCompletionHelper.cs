@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
@@ -34,52 +35,39 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
-            SerializableUnimportedExtensionMethods items;
+            async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetItemsAsync()
+            {
+                var project = document.Project;
+
+                var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var result = await client.RunRemoteAsync<(IList<SerializableImportCompletionItem> items, StatisticCounter counter)>(
+                        WellKnownServiceHubService.CodeAnalysis,
+                        nameof(IRemoteExtensionMethodImportCompletionService.GetUnimportedExtensionMethodsAsync),
+                        project.Solution,
+                        new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol, cancellationToken), namespaceInScope.ToArray(), forceIndexCreation },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    return (result.items.ToImmutableArray(), result.counter);
+                }
+
+                return await GetUnimportedExtensionMethodsInCurrentProcessAsync(document, position, receiverTypeSymbol, namespaceInScope, forceIndexCreation, cancellationToken).ConfigureAwait(false);
+            }
 
             var ticks = Environment.TickCount;
 
-            var project = document.Project;
-            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-            if (client != null)
-            {
-                var receiverTypeSymbolKeyData = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
+            var (items, counter) = await GetItemsAsync().ConfigureAwait(false);
 
-                var result = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods>(
-                    project.Solution,
-                    (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
-                        solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(), forceIndexCreation, cancellationToken),
-                    callbackTarget: null,
-                    cancellationToken).ConfigureAwait(false);
+            counter.TotalTicks = Environment.TickCount - ticks;
+            counter.TotalExtensionMethodsProvided = items.Length;
+            counter.Report();
 
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<SerializableImportCompletionItem>.Empty;
-                }
-
-                items = result.Value;
-            }
-            else
-            {
-                items = await GetUnimportedExtensionMethodsInCurrentProcessAsync(document, position, receiverTypeSymbol, namespaceInScope, forceIndexCreation, cancellationToken).ConfigureAwait(false);
-            }
-
-            // report telemetry:
-            var totalTicks = Environment.TickCount - ticks;
-
-            CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(totalTicks);
-            CompletionProvidersLogger.LogExtensionMethodCompletionMethodsProvidedDataPoint(items.CompletionItems.Length);
-            CompletionProvidersLogger.LogExtensionMethodCompletionGetSymbolsTicksDataPoint(items.GetSymbolsTicks);
-            CompletionProvidersLogger.LogExtensionMethodCompletionCreateItemsTicksDataPoint(items.CreateItemsTicks);
-
-            if (items.IsPartialResult)
-            {
-                CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
-            }
-
-            return items.CompletionItems;
+            return items;
         }
 
-        public static async Task<SerializableUnimportedExtensionMethods> GetUnimportedExtensionMethodsInCurrentProcessAsync(
+        public static async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsInCurrentProcessAsync(
             Document document,
             int position,
             ITypeSymbol receiverTypeSymbol,
@@ -87,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
+            var counter = new StatisticCounter();
             var ticks = Environment.TickCount;
 
             // First find symbols of all applicable extension methods.
@@ -95,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 document, position, receiverTypeSymbol, namespaceInScope, cancellationToken).ConfigureAwait(false);
             var (extentsionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceIndexCreation, cancellationToken).ConfigureAwait(false);
 
-            var getSymbolsTicks = Environment.TickCount - ticks;
+            counter.GetSymbolsTicks = Environment.TickCount - ticks;
             ticks = Environment.TickCount;
 
             var items = ConvertSymbolsToCompletionItems(extentsionMethodSymbols, cancellationToken);
@@ -114,11 +103,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         s_indexingTask = symbolComputer.PopulateIndicesAsync(CancellationToken.None);
                     }
                 }
+
+                counter.PartialResult = true;
             }
 
-            var createItemsTicks = Environment.TickCount - ticks;
+            counter.CreateItemsTicks = Environment.TickCount - ticks;
 
-            return new SerializableUnimportedExtensionMethods(items, isPartialResult, getSymbolsTicks, createItemsTicks);
+            return (items, counter);
 
         }
 
@@ -186,6 +177,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             name = GetFullyQualifiedNamespaceName(symbol.ContainingNamespace, stringCache) + "." + symbol.Name;
             stringCache[symbol] = name;
             return name;
+        }
+    }
+
+    internal sealed class StatisticCounter
+    {
+        public bool PartialResult { get; set; }
+        public int TotalTicks { get; set; }
+        public int TotalExtensionMethodsProvided { get; set; }
+        public int GetSymbolsTicks { get; set; }
+        public int CreateItemsTicks { get; set; }
+
+        public void Report()
+        {
+            CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(TotalTicks);
+            CompletionProvidersLogger.LogExtensionMethodCompletionMethodsProvidedDataPoint(TotalExtensionMethodsProvided);
+            CompletionProvidersLogger.LogExtensionMethodCompletionGetSymbolsTicksDataPoint(GetSymbolsTicks);
+            CompletionProvidersLogger.LogExtensionMethodCompletionCreateItemsTicksDataPoint(CreateItemsTicks);
+
+            if (PartialResult)
+            {
+                CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
+            }
         }
     }
 }

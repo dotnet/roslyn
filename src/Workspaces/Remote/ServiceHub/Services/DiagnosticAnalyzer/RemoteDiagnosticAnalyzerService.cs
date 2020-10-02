@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -36,12 +35,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// since in proc and out of proc runs quite differently due to concurrency and due to possible amount of data
         /// that needs to pass through between processes
         /// </summary>
-        public ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DiagnosticArguments arguments, CancellationToken cancellationToken)
+        public ValueTask CalculateDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DiagnosticArguments arguments, Stream outputStream, CancellationToken cancellationToken)
         {
             // Complete RPC right away so the client can start reading from the stream.
             // The fire-and forget task starts writing to the output stream and the client will read it until it reads all expected data.
 
-            return RunServiceAsync(async cancellationToken =>
+            _ = RunServiceAsync(async cancellationToken =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
                 using (arguments.IsHighPriority ? UserOperationBooster.Boost() : default)
@@ -62,15 +61,15 @@ namespace Microsoft.CodeAnalysis.Remote
                         getTelemetryInfo: arguments.GetTelemetryInfo,
                         cancellationToken).ConfigureAwait(false);
 
+                    using var writer = new ObjectWriter(outputStream, leaveOpen: false, cancellationToken);
+                    var (diagnostics, telemetry) = DiagnosticResultSerializer.WriteDiagnosticAnalysisResults(writer, documentAnalysisKind, result, cancellationToken);
+
                     // save log for debugging
-                    var diagnosticCount = result.Diagnostics.Sum(
-                        entry => entry.diagnosticMap.Syntax.Length + entry.diagnosticMap.Semantic.Length + entry.diagnosticMap.NonLocal.Length + entry.diagnosticMap.Other.Length);
-
-                    Log(TraceEventType.Information, $"diagnostics: {diagnosticCount}, telemetry: {result.Telemetry.Length}");
-
-                    return result;
+                    Log(TraceEventType.Information, $"diagnostics: {diagnostics}, telemetry: {telemetry}");
                 }
             }, cancellationToken);
+
+            return default;
         }
 
         public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken)

@@ -6,10 +6,11 @@
 
 using System;
 using System.IO;
-using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Nerdbank.Streams;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -60,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Invokes a remote API that streams results back to the caller.
         /// </summary>
         public async ValueTask<TResult> InvokeAsync<TResult>(
-            Func<T, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+            Func<T, Stream, CancellationToken, ValueTask> invocation,
+            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken)
         {
             try

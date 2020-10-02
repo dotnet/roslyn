@@ -16,20 +16,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         IStreamingProgressTracker ProgressTracker { get; }
 
-        ValueTask OnStartedAsync();
-        ValueTask OnCompletedAsync();
+        Task OnStartedAsync();
+        Task OnCompletedAsync();
 
-        ValueTask OnFindInDocumentStartedAsync(Document document);
-        ValueTask OnFindInDocumentCompletedAsync(Document document);
+        Task OnFindInDocumentStartedAsync(Document document);
+        Task OnFindInDocumentCompletedAsync(Document document);
 
-        ValueTask OnDefinitionFoundAsync(ISymbol symbol);
-        ValueTask OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location);
+        Task OnDefinitionFoundAsync(ISymbol symbol);
+        Task OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location);
     }
 
     internal interface IStreamingFindLiteralReferencesProgress
     {
         IStreamingProgressTracker ProgressTracker { get; }
 
-        ValueTask OnReferenceFoundAsync(Document document, TextSpan span);
+        Task OnReferenceFoundAsync(Document document, TextSpan span);
     }
 }

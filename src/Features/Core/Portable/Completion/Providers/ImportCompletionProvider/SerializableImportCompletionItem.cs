@@ -4,29 +4,15 @@
 
 #nullable enable
 
-using System.Runtime.Serialization;
-
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    [DataContract]
     internal readonly struct SerializableImportCompletionItem
     {
-        [DataMember(Order = 0)]
         public readonly string SymbolKeyData;
-
-        [DataMember(Order = 1)]
-        public readonly string Name;
-
-        [DataMember(Order = 2)]
         public readonly int Arity;
-
-        [DataMember(Order = 3)]
+        public readonly string Name;
         public readonly Glyph Glyph;
-
-        [DataMember(Order = 4)]
         public readonly string ContainingNamespace;
-
-        [DataMember(Order = 5)]
         public readonly int AdditionalOverloadCount;
 
         public SerializableImportCompletionItem(string symbolKeyData, string name, int arity, Glyph glyph, string containingNamespace, int additionalOverloadCount)

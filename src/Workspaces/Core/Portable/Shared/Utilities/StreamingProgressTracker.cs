@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,36 +11,41 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// <summary>
     /// Utility class that can be used to track the progress of an operation in a threadsafe manner.
     /// </summary>
-    internal sealed class StreamingProgressTracker : IStreamingProgressTracker
+    internal class StreamingProgressTracker : IStreamingProgressTracker
     {
         private int _completedItems;
         private int _totalItems;
 
-        private readonly Func<int, int, ValueTask>? _updateAction;
+        private readonly Func<int, int, Task> _updateActionOpt;
 
-        public StreamingProgressTracker(Func<int, int, ValueTask>? updateAction = null)
-            => _updateAction = updateAction;
+        public StreamingProgressTracker()
+            : this(null)
+        {
+        }
 
-        public ValueTask AddItemsAsync(int count)
+        public StreamingProgressTracker(Func<int, int, Task> updateActionOpt)
+            => _updateActionOpt = updateActionOpt;
+
+        public Task AddItemsAsync(int count)
         {
             Interlocked.Add(ref _totalItems, count);
             return UpdateAsync();
         }
 
-        public ValueTask ItemCompletedAsync()
+        public Task ItemCompletedAsync()
         {
             Interlocked.Increment(ref _completedItems);
             return UpdateAsync();
         }
 
-        private ValueTask UpdateAsync()
+        private Task UpdateAsync()
         {
-            if (_updateAction == null)
+            if (_updateActionOpt == null)
             {
-                return default;
+                return Task.CompletedTask;
             }
 
-            return _updateAction(_completedItems, _totalItems);
+            return _updateActionOpt(_completedItems, _totalItems);
         }
     }
 }

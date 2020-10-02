@@ -41,18 +41,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var solution = project.Solution;
 
-                var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
+                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.FindAllDeclarationsWithNormalQueryAsync(solutionInfo, project.Id, query.Name, query.Kind, criteria, cancellationToken),
-                    callbackTarget: SymbolFinder.EmptyServerCallback.Instance,
+                    new object[] { project.Id, query.Name, query.Kind, criteria },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<ISymbol>.Empty;
-                }
-
-                return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
+                return await RehydrateAsync(solution, result, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(

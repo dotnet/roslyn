@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal interface IStreamingProgressTracker
     {
-        ValueTask AddItemsAsync(int count);
-        ValueTask ItemCompletedAsync();
+        Task AddItemsAsync(int count);
+        Task ItemCompletedAsync();
     }
 }

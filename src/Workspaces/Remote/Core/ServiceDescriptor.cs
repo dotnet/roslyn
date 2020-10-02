@@ -5,10 +5,6 @@
 #nullable enable
 
 using System;
-using System.IO.Pipelines;
-using System.Reflection;
-using MessagePack;
-using MessagePack.Resolvers;
 using Microsoft.ServiceHub.Framework;
 using Nerdbank.Streams;
 using StreamJsonRpc;
@@ -37,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }.GetFrozenCopy();
 
         private ServiceDescriptor(ServiceMoniker serviceMoniker, Type? clientInterface)
-            : base(serviceMoniker, clientInterface, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader, s_multiplexingStreamOptions)
+            : base(serviceMoniker, clientInterface, Formatters.UTF8, MessageDelimiters.HttpLikeHeaders, s_multiplexingStreamOptions)
         {
         }
 
@@ -56,18 +52,11 @@ namespace Microsoft.CodeAnalysis.Remote
             => new ServiceDescriptor(this);
 
         protected override IJsonRpcMessageFormatter CreateFormatter()
-            => ConfigureFormatter((MessagePackFormatter)base.CreateFormatter());
+            => ConfigureFormatter((JsonMessageFormatter)base.CreateFormatter());
 
-        private static readonly MessagePackSerializerOptions s_options = StandardResolverAllowPrivate.Options
-            .WithSecurity(MessagePackSecurity.UntrustedData.WithHashCollisionResistant(false))
-            .WithResolver(CompositeResolver.Create(
-                MessagePackFormatters.GetFormatters(),
-                new IFormatterResolver[] { ImmutableCollectionMessagePackResolver.Instance, StandardResolverAllowPrivate.Instance }));
-
-        private static MessagePackFormatter ConfigureFormatter(MessagePackFormatter formatter)
+        internal static JsonMessageFormatter ConfigureFormatter(JsonMessageFormatter formatter)
         {
-            // See https://github.com/neuecc/messagepack-csharp.
-            formatter.SetMessagePackSerializerOptions(s_options);
+            formatter.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
             return formatter;
         }
 
@@ -77,31 +66,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var connection = base.CreateConnection(jsonRpc);
             connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
             return connection;
-        }
-
-        public override ServiceRpcDescriptor WithMultiplexingStream(MultiplexingStream? multiplexingStream)
-        {
-            var baseResult = base.WithMultiplexingStream(multiplexingStream);
-            if (baseResult is ServiceDescriptor)
-                return baseResult;
-
-            // work around incorrect implementation in 16.8 Preview 2
-            if (MultiplexingStream == multiplexingStream)
-                return this;
-
-            var result = (ServiceDescriptor)Clone();
-            typeof(ServiceRpcDescriptor).GetProperty(nameof(MultiplexingStream))!.SetValue(result, multiplexingStream);
-            if (result.MultiplexingStreamOptions is null)
-                return result;
-
-            result = (ServiceDescriptor)result.Clone();
-            typeof(ServiceJsonRpcDescriptor).GetProperty(nameof(MultiplexingStreamOptions))!.SetValue(result, value: null);
-            return result;
-        }
-
-        internal static class TestAccessor
-        {
-            public static MessagePackSerializerOptions Options => s_options;
         }
     }
 }
