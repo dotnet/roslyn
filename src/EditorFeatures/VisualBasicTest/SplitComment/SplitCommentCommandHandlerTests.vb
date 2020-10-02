@@ -259,5 +259,47 @@ End Namespace
 End Module
 ")
         End Sub
+
+        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <InlineData("X[||]Test Comment")>
+        <InlineData("X [||]Test Comment")>
+        <InlineData("X[||] Test Comment")>
+        <InlineData("X [||] Test Comment")>
+        Public Sub TestCommentWithMultipleLeadingSpaces(commentValue As String)
+            TestHandled(
+$"public class Program
+    public sub Goo()
+        '    {commentValue}
+    end sub
+end class",
+"public class Program
+    public sub Goo()
+        '    X
+        '    Test Comment
+    end sub
+end class")
+        End Sub
+
+        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <InlineData("X[||]Test Comment")>
+        <InlineData("X [||]Test Comment")>
+        <InlineData("X[||] Test Comment")>
+        <InlineData("X [||] Test Comment")>
+        Public Sub TestQuadCommentWithMultipleLeadingSpaces(commentValue As String)
+            TestHandled(
+$"public class Program
+    public sub Goo()
+        ''''    {commentValue}
+    end sub
+end class",
+"public class Program
+    public sub Goo()
+        ''''    X
+        ''''    Test Comment
+    end sub
+end class")
+        End Sub
     End Class
 End Namespace
