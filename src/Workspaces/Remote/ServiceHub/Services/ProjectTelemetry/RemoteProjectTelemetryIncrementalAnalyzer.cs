@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteCallback<IProjectTelemetryListener> _callback;
+        private readonly RemoteEndPoint _endPoint;
 
         private readonly object _gate = new object();
         private readonly Dictionary<ProjectId, ProjectTelemetryData> _projectToData = new Dictionary<ProjectId, ProjectTelemetryData>();
 
-        public RemoteProjectTelemetryIncrementalAnalyzer(RemoteCallback<IProjectTelemetryListener> callback)
-            => _callback = callback;
+        public RemoteProjectTelemetryIncrementalAnalyzer(RemoteEndPoint endPoint)
+            => _endPoint = endPoint;
 
         /// <summary>
         /// Collects data from <paramref name="project"/> and reports it to the telemetry service.
@@ -45,14 +45,16 @@ namespace Microsoft.CodeAnalysis.Remote
             var documentsCount = project.DocumentIds.Count;
             var additionalDocumentsCount = project.AdditionalDocumentIds.Count;
 
-            var info = new ProjectTelemetryData(
-                projectId: projectId,
-                language: language,
-                analyzerReferencesCount: analyzerReferencesCount,
-                projectReferencesCount: projectReferencesCount,
-                metadataReferencesCount: metadataReferencesCount,
-                documentsCount: documentsCount,
-                additionalDocumentsCount: additionalDocumentsCount);
+            var info = new ProjectTelemetryData
+            {
+                ProjectId = projectId,
+                Language = language,
+                AnalyzerReferencesCount = analyzerReferencesCount,
+                ProjectReferencesCount = projectReferencesCount,
+                MetadataReferencesCount = metadataReferencesCount,
+                DocumentsCount = documentsCount,
+                AdditionalDocumentsCount = additionalDocumentsCount,
+            };
 
             lock (_gate)
             {
@@ -66,8 +68,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 _projectToData[projectId] = info;
             }
 
-            await _callback.InvokeAsync(
-                (callback, cancellationToken) => callback.ReportProjectTelemetryDataAsync(info, cancellationToken),
+            await _endPoint.InvokeAsync(
+                nameof(IProjectTelemetryListener.ReportProjectTelemetryDataAsync),
+                new object[] { info },
                 cancellationToken).ConfigureAwait(false);
         }
 

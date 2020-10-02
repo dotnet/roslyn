@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -14,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Text
     /// Immutable abstract representation of a span of text.  For example, in an error diagnostic that reports a
     /// location, it could come from a parsed string, text from a tool editor buffer, etc.
     /// </summary>
-    [DataContract]
     public readonly struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
     {
         /// <summary>
@@ -40,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Start point of the span.
         /// </summary>
-        [DataMember(Order = 0)]
         public int Start { get; }
 
         /// <summary>
@@ -51,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Length of the span.
         /// </summary>
-        [DataMember(Order = 1)]
         public int Length { get; }
 
         /// <summary>

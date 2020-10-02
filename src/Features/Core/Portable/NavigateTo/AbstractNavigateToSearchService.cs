@@ -38,13 +38,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 var solution = document.Project.Solution;
 
-                var result = await client.TryInvokeAsync<IRemoteNavigateToSearchService, ImmutableArray<SerializableNavigateToSearchResult>>(
+                var result = await client.RunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
+                    new object[] { document.Id, searchPattern, kinds.ToArray() },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                return result.HasValue ? result.Value.SelectAsArray(r => r.Rehydrate(solution)) : ImmutableArray<INavigateToSearchResult>.Empty;
+                return result.SelectAsArray(r => r.Rehydrate(solution));
             }
 
             return await SearchDocumentInCurrentProcessAsync(
@@ -58,14 +60,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (client != null)
             {
                 var solution = project.Solution;
-                var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
-                var result = await client.TryInvokeAsync<IRemoteNavigateToSearchService, ImmutableArray<SerializableNavigateToSearchResult>>(
+
+                var result = await client.RunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), cancellationToken),
+                    new object[] { project.Id, priorityDocuments.Select(d => d.Id).ToArray(), searchPattern, kinds.ToArray() },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                return result.HasValue ? result.Value.SelectAsArray(r => r.Rehydrate(solution)) : ImmutableArray<INavigateToSearchResult>.Empty;
+                return result.SelectAsArray(r => r.Rehydrate(solution));
             }
 
             return await SearchProjectInCurrentProcessAsync(

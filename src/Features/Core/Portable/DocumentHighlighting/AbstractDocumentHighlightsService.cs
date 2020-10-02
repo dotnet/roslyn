@@ -30,18 +30,20 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
+                var result = await client.RunRemoteAsync<IList<SerializableDocumentHighlights>>(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), cancellationToken),
+                    new object[]
+                    {
+                        document.Id,
+                        position,
+                        documentsToSearch.Select(d => d.Id).ToArray()
+                    },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<DocumentHighlights>.Empty;
-                }
-
-                return result.Value.SelectAsArray(h => h.Rehydrate(solution));
+                return result.SelectAsArray(h => h.Rehydrate(solution));
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
@@ -98,6 +100,19 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return default;
         }
 
+        private static async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            // see whether we can use the symbol as it is
+            var currentSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (currentSemanticModel == semanticModel)
+            {
+                return symbol;
+            }
+
+            // get symbols from current document again
+            return await SymbolFinder.FindSymbolAtPositionAsync(currentSemanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
+        }
+
         private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
             ISymbol symbol,
             Document document,
@@ -109,7 +124,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             {
                 var progress = new StreamingProgressCollector();
 
-                var options = FindSymbols.FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(
                     symbol, document.Project.Solution, progress,
                     documentsToSearch, options, cancellationToken).ConfigureAwait(false);
@@ -149,7 +164,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
             ImmutableArray<ReferencedSymbol> references, Document startingDocument,
             IImmutableSet<Document> documentsToSearch, ISymbol symbol,
-            FindSymbols.FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var solution = startingDocument.Project.Solution;
             references = references.FilterToItemsToShow(options);

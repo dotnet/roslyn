@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Callback object we pass to the OOP server to hear about the result 
         /// of the FindReferencesEngine as it executes there.
         /// </summary>
-        internal sealed class FindReferencesServerCallback : IRemoteSymbolFinderService.ICallback, IEqualityComparer<SerializableSymbolAndProjectId>
+        internal sealed class FindReferencesServerCallback : IEqualityComparer<SerializableSymbolAndProjectId>
         {
             private readonly Solution _solution;
             private readonly IStreamingFindReferencesProgress _progress;
@@ -37,25 +35,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _definitionMap = new Dictionary<SerializableSymbolAndProjectId, ISymbol>(this);
             }
 
-            public ValueTask AddItemsAsync(int count) => _progress.ProgressTracker.AddItemsAsync(count);
-            public ValueTask ItemCompletedAsync() => _progress.ProgressTracker.ItemCompletedAsync();
+            public Task AddItemsAsync(int count) => _progress.ProgressTracker.AddItemsAsync(count);
+            public Task ItemCompletedAsync() => _progress.ProgressTracker.ItemCompletedAsync();
 
-            public ValueTask OnStartedAsync() => _progress.OnStartedAsync();
-            public ValueTask OnCompletedAsync() => _progress.OnCompletedAsync();
+            public Task OnStartedAsync() => _progress.OnStartedAsync();
+            public Task OnCompletedAsync() => _progress.OnCompletedAsync();
 
-            public ValueTask OnFindInDocumentStartedAsync(DocumentId documentId)
+            public Task OnFindInDocumentStartedAsync(DocumentId documentId)
             {
                 var document = _solution.GetDocument(documentId);
                 return _progress.OnFindInDocumentStartedAsync(document);
             }
 
-            public ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId)
+            public Task OnFindInDocumentCompletedAsync(DocumentId documentId)
             {
                 var document = _solution.GetDocument(documentId);
                 return _progress.OnFindInDocumentCompletedAsync(document);
             }
 
-            public async ValueTask OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
+            public async Task OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
             {
                 var symbol = await definition.TryRehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await _progress.OnDefinitionFoundAsync(symbol).ConfigureAwait(false);
             }
 
-            public async ValueTask OnReferenceFoundAsync(
+            public async Task OnReferenceFoundAsync(
                 SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
             {
                 ISymbol symbol;
@@ -99,9 +97,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             int IEqualityComparer<SerializableSymbolAndProjectId>.GetHashCode(SerializableSymbolAndProjectId obj)
                 => obj.SymbolKeyData.GetHashCode();
-
-            public ValueTask OnLiteralReferenceFoundAsync(DocumentId documentId, TextSpan span)
-                => throw ExceptionUtilities.Unreachable;
         }
     }
 }

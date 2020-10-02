@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,75 +11,46 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>> FindTypesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>?> TryFindRemoteTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
-            IImmutableSet<Project>? projects,
+            IImmutableSet<Project> projects,
             bool transitive,
-            DependentTypesKind kind,
+            FunctionId functionId,
+            string remoteFunctionName,
             CancellationToken cancellationToken)
         {
-            if (SerializableSymbolAndProjectId.TryCreate(type, solution, cancellationToken, out var serializedType))
-            {
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
-                {
-                    var projectIds = projects?.SelectAsArray(p => p.Id) ?? default;
-
-                    var result = await client.TryInvokeAsync<IRemoteDependentTypeFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
-                        solution,
-                        (service, solutionInfo, cancellationToken) => service.FindTypesAsync(solutionInfo, serializedType, projectIds, transitive, kind, cancellationToken),
-                        callbackTarget: null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (!result.HasValue)
-                    {
-                        return ImmutableArray<INamedTypeSymbol>.Empty;
-                    }
-
-                    return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
-                }
-
-                // TODO: Do not fall back to in-proc https://github.com/dotnet/roslyn/issues/47557
-            }
-
-            return await FindTypesInCurrentProcessAsync(type, solution, projects, transitive, kind, cancellationToken).ConfigureAwait(false);
-        }
-
-        public static async Task<ImmutableArray<INamedTypeSymbol>> FindTypesInCurrentProcessAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project>? projects,
-            bool transitive,
-            DependentTypesKind kind,
-            CancellationToken cancellationToken)
-        {
-            var functionId = kind switch
-            {
-                DependentTypesKind.DerivedClasses => FunctionId.DependentTypeFinder_FindAndCacheDerivedClassesAsync,
-                DependentTypesKind.DerivedInterfaces => FunctionId.DependentTypeFinder_FindAndCacheDerivedInterfacesAsync,
-                DependentTypesKind.ImplementingTypes => FunctionId.DependentTypeFinder_FindAndCacheImplementingTypesAsync,
-                _ => throw ExceptionUtilities.UnexpectedValue(kind)
-            };
-
             using (Logger.LogBlock(functionId, cancellationToken))
             {
-                var task = kind switch
+                if (SerializableSymbolAndProjectId.TryCreate(type, solution, cancellationToken, out var serializedType))
                 {
-                    DependentTypesKind.DerivedClasses => FindDerivedClassesInCurrentProcessAsync(type, solution, projects, transitive, cancellationToken),
-                    DependentTypesKind.DerivedInterfaces => FindDerivedInterfacesInCurrentProcessAsync(type, solution, projects, transitive, cancellationToken),
-                    DependentTypesKind.ImplementingTypes => FindImplementingTypesInCurrentProcessAsync(type, solution, projects, transitive, cancellationToken),
-                    _ => throw ExceptionUtilities.UnexpectedValue(kind)
-                };
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    if (client != null)
+                    {
+                        var result = await client.RunRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                            WellKnownServiceHubService.CodeAnalysis,
+                            remoteFunctionName,
+                            solution,
+                            new object?[]
+                            {
+                                serializedType,
+                                projects?.Select(p => p.Id).ToArray(),
+                                transitive,
+                            },
+                            null,
+                            cancellationToken).ConfigureAwait(false);
 
-                return await task.ConfigureAwait(false);
+                        return await RehydrateAsync(solution, result, cancellationToken).ConfigureAwait(false);
+                    }
+                }
             }
+
+            return null;
         }
 
         private static async Task<ImmutableArray<INamedTypeSymbol>> RehydrateAsync(Solution solution, ImmutableArray<SerializableSymbolAndProjectId> values, CancellationToken cancellationToken)

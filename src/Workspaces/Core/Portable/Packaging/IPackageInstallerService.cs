@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -43,13 +42,9 @@ namespace Microsoft.CodeAnalysis.Packaging
         event EventHandler PackageSourcesChanged;
     }
 
-    [DataContract]
-    internal readonly struct PackageSource : IEquatable<PackageSource>
+    internal struct PackageSource : IEquatable<PackageSource>
     {
-        [DataMember(Order = 0)]
         public readonly string Name;
-
-        [DataMember(Order = 1)]
         public readonly string Source;
 
         public PackageSource(string name, string source)
@@ -59,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Packaging
         }
 
         public override bool Equals(object obj)
-            => obj is PackageSource source && Equals(source);
+            => Equals((PackageSource)obj);
 
         public bool Equals(PackageSource other)
             => Name == other.Name && Source == other.Source;
