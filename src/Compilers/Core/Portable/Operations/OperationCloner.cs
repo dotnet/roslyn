@@ -497,12 +497,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new MethodBodyOperation(((Operation)operation).OwningSemanticModel, operation.Syntax, Visit(operation.BlockBody), Visit(operation.ExpressionBody));
         }
 
-        public override IOperation VisitDiscardOperation(IDiscardOperation operation, object argument)
-        {
-            return new DiscardOperation(
-                operation.DiscardSymbol, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitDiscardPattern(IDiscardPatternOperation operation, object argument)
         {
             return new DiscardPatternOperation(operation.InputType, operation.NarrowedType, operation.SemanticModel, operation.Syntax, operation.IsImplicit);

@@ -23,7 +23,8 @@ namespace IOperationGenerator
             "IDefaultValueOperation",
             "ITypeOfOperation",
             "ISizeOfOperation",
-            "IOmittedArgumentOperation"
+            "IOmittedArgumentOperation",
+            "IDiscardOperation"
         };
     }
 }

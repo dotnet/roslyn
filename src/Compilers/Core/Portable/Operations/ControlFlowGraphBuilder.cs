@@ -6566,10 +6566,12 @@ oneMoreTime:
                                                      operation.Kind, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, int? captureIdForResult)
         {
-            return new DiscardOperation(operation.DiscardSymbol, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            return new DiscardOperation(operation.DiscardSymbol, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitDiscardPattern(IDiscardPatternOperation pat, int? captureIdForResult)
         {

@@ -2811,6 +2811,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Initializer { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents a discard operation.
     /// <para>
@@ -2832,6 +2833,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IDiscardSymbol DiscardSymbol { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a coalesce assignment operation with a target and a conditionally-evaluated value:
     /// (1) <see cref="IAssignmentOperation.Target" /> is evaluated for null. If it is null, <see cref="IAssignmentOperation.Value" /> is evaluated and assigned to target.
@@ -7976,18 +7978,24 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class DiscardOperation : OperationOld, IDiscardOperation
+    #nullable enable
+    internal sealed partial class DiscardOperation : Operation, IDiscardOperation
     {
-        internal DiscardOperation(IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Discard, semanticModel, syntax, type, constantValue, isImplicit)
+        internal DiscardOperation(IDiscardSymbol discardSymbol, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             DiscardSymbol = discardSymbol;
+            Type = type;
         }
         public IDiscardSymbol DiscardSymbol { get; }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Discard;
         public override void Accept(OperationVisitor visitor) => visitor.VisitDiscardOperation(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDiscardOperation(this, argument);
     }
+    #nullable disable
     internal sealed partial class FlowCaptureReferenceOperation : OperationOld, IFlowCaptureReferenceOperation
     {
         internal FlowCaptureReferenceOperation(CaptureId id, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9223,6 +9231,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (OmittedArgumentOperation)operation;
             return new OmittedArgumentOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitDiscardOperation(IDiscardOperation operation, object? argument)
+        {
+            var internalOperation = (DiscardOperation)operation;
+            return new DiscardOperation(internalOperation.DiscardSymbol, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #nullable disable

@@ -2506,7 +2506,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDiscardOperation" Base="IOperation" VisitorName="VisitDiscardOperation">
+  <Node Name="IDiscardOperation" Base="IOperation" VisitorName="VisitDiscardOperation" HasType="true">
     <Comments>
       <summary>
         Represents a discard operation.

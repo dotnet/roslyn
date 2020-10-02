@@ -2124,6 +2124,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return Create(boundRangeVariable.Value);
         }
 
+#nullable enable
         private IOperation CreateBoundDiscardExpressionOperation(BoundDiscardExpression boundNode)
         {
             return new DiscardOperation(
@@ -2131,9 +2132,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 _semanticModel,
                 boundNode.Syntax,
                 boundNode.GetPublicTypeSymbol(),
-                boundNode.ConstantValue,
                 isImplicit: boundNode.WasCompilerGenerated);
         }
+#nullable disable
 
         private IOperation CreateFromEndIndexExpressionOperation(BoundFromEndIndexExpression boundIndex)
         {
