@@ -1665,7 +1665,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDefaultValueOperation" Base="IOperation">
+  <Node Name="IDefaultValueOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a default value operation.

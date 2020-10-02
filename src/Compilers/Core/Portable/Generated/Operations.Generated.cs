@@ -1858,6 +1858,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Target { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents a default value operation.
     /// <para>
@@ -1876,6 +1877,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IDefaultValueOperation : IOperation
     {
     }
+    #nullable disable
     /// <summary>
     /// Represents an operation that gets <see cref="System.Type" /> for the given <see cref="TypeOperand" />.
     /// <para>
@@ -6383,14 +6385,23 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class DefaultValueOperation : OperationOld, IDefaultValueOperation
+    #nullable enable
+    internal sealed partial class DefaultValueOperation : Operation, IDefaultValueOperation
     {
-        internal DefaultValueOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.DefaultValue, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal DefaultValueOperation(SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            OperationConstantValue = constantValue;
+            Type = type;
+        }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.DefaultValue;
         public override void Accept(OperationVisitor visitor) => visitor.VisitDefaultValue(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDefaultValue(this, argument);
     }
+    #nullable disable
     internal sealed partial class TypeOfOperation : OperationOld, ITypeOfOperation
     {
         internal TypeOfOperation(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9165,6 +9176,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ConditionalAccessInstanceOperation)operation;
             return new ConditionalAccessInstanceOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitDefaultValue(IDefaultValueOperation operation, object? argument)
+        {
+            var internalOperation = (DefaultValueOperation)operation;
+            return new DefaultValueOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
     }
     #nullable disable

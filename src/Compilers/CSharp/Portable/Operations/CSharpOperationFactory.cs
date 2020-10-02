@@ -1127,10 +1127,11 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyArrayInitializerOperation(this, boundArrayInitialization, _semanticModel, syntax, constantValue, isImplicit);
         }
 
+#nullable enable
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)
         {
             SyntaxNode syntax = boundDefaultLiteral.Syntax;
-            ConstantValue constantValue = boundDefaultLiteral.ConstantValue;
+            ConstantValue? constantValue = boundDefaultLiteral.ConstantValue;
             bool isImplicit = boundDefaultLiteral.WasCompilerGenerated;
             return new DefaultValueOperation(_semanticModel, syntax, type: null, constantValue, isImplicit);
         }
@@ -1138,13 +1139,12 @@ namespace Microsoft.CodeAnalysis.Operations
         private IDefaultValueOperation CreateBoundDefaultExpressionOperation(BoundDefaultExpression boundDefaultExpression)
         {
             SyntaxNode syntax = boundDefaultExpression.Syntax;
-            ITypeSymbol type = boundDefaultExpression.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundDefaultExpression.ConstantValue;
+            ITypeSymbol? type = boundDefaultExpression.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundDefaultExpression.ConstantValue;
             bool isImplicit = boundDefaultExpression.WasCompilerGenerated;
             return new DefaultValueOperation(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-#nullable enable
         private IInstanceReferenceOperation CreateBoundBaseReferenceOperation(BoundBaseReference boundBaseReference)
         {
             InstanceReferenceKind referenceKind = InstanceReferenceKind.ContainingTypeInstance;

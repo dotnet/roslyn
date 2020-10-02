@@ -3137,7 +3137,8 @@ oneMoreTime:
                    MakeInvalidOperation(ITypeSymbolHelpers.GetNullableUnderlyingType(value.Type), value);
         }
 
-        public override IOperation VisitConditionalAccess(IConditionalAccessOperation operation, int? captureIdForResult)
+#nullable enable
+        public override IOperation? VisitConditionalAccess(IConditionalAccessOperation operation, int? captureIdForResult)
         {
             SpillEvalStack();
 
@@ -3175,7 +3176,7 @@ oneMoreTime:
             {
                 testExpression = currentConditionalAccess.Operation;
                 SyntaxNode testExpressionSyntax = testExpression.Syntax;
-                ITypeSymbol testExpressionType = testExpression.Type;
+                ITypeSymbol? testExpressionType = testExpression.Type;
 
                 PushOperand(Visit(testExpression));
                 SpillEvalStack();
@@ -3221,6 +3222,7 @@ oneMoreTime:
 
                 if (_currentStatement != operation)
                 {
+                    Debug.Assert(_currentStatement is not null);
                     var expressionStatement = (IExpressionStatementOperation)_currentStatement;
                     result = new ExpressionStatementOperation(result, semanticModel: null, expressionStatement.Syntax,
                                                      expressionStatement.Type, expressionStatement.GetConstantValue(),
@@ -3268,6 +3270,7 @@ oneMoreTime:
 
                 SyntaxNode defaultValueSyntax = (operation.Operation == testExpression ? testExpression : operation).Syntax;
 
+                Debug.Assert(operation.Type is not null);
                 AddStatement(new FlowCaptureOperation(resultCaptureId,
                                              defaultValueSyntax,
                                              new DefaultValueOperation(semanticModel: null, defaultValueSyntax, operation.Type,
@@ -3282,7 +3285,6 @@ oneMoreTime:
             }
         }
 
-#nullable enable
         public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentConditionalAccessInstance != null);
@@ -6616,10 +6618,12 @@ oneMoreTime:
             return new ConversionOperation(Visit(operation.Operand), ((BaseConversionOperation)operation).ConversionConvertible, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, int? captureIdForResult)
         {
             return new DefaultValueOperation(semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
         {
