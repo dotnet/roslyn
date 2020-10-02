@@ -410,14 +410,15 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+#nullable enable
         private IPlaceholderOperation CreateBoundDeconstructValuePlaceholderOperation(BoundDeconstructValuePlaceholder boundDeconstructValuePlaceholder)
         {
             SyntaxNode syntax = boundDeconstructValuePlaceholder.Syntax;
-            ITypeSymbol type = boundDeconstructValuePlaceholder.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundDeconstructValuePlaceholder.ConstantValue;
+            ITypeSymbol? type = boundDeconstructValuePlaceholder.GetPublicTypeSymbol();
             bool isImplicit = boundDeconstructValuePlaceholder.WasCompilerGenerated;
-            return new PlaceholderOperation(PlaceholderKind.Unspecified, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new PlaceholderOperation(PlaceholderKind.Unspecified, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private IDeconstructionAssignmentOperation CreateBoundDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator boundDeconstructionAssignmentOperator)
         {

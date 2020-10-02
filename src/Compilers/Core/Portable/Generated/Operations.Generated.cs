@@ -3131,6 +3131,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IObjectOrCollectionInitializerOperation Initializer { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents a general placeholder when no more specific kind of placeholder is available.
     /// A placeholder is an expression whose meaning is inferred from context.
@@ -3143,6 +3144,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         PlaceholderKind PlaceholderKind { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a reference through a pointer.
     /// <para>
@@ -8749,18 +8751,24 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class PlaceholderOperation : OperationOld, IPlaceholderOperation
+    #nullable enable
+    internal sealed partial class PlaceholderOperation : Operation, IPlaceholderOperation
     {
-        internal PlaceholderOperation(PlaceholderKind placeholderKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+        internal PlaceholderOperation(PlaceholderKind placeholderKind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             PlaceholderKind = placeholderKind;
+            Type = type;
         }
         public PlaceholderKind PlaceholderKind { get; }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.None;
         public override void Accept(OperationVisitor visitor) => visitor.VisitPlaceholder(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPlaceholder(this, argument);
     }
+    #nullable disable
     internal abstract partial class BasePointerIndirectionReferenceOperation : OperationOld, IPointerIndirectionReferenceOperation
     {
         internal BasePointerIndirectionReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9236,6 +9244,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (DiscardOperation)operation;
             return new DiscardOperation(internalOperation.DiscardSymbol, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, object? argument)
+        {
+            var internalOperation = (PlaceholderOperation)operation;
+            return new PlaceholderOperation(internalOperation.PlaceholderKind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #nullable disable

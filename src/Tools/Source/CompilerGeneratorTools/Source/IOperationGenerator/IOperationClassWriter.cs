@@ -1011,7 +1011,7 @@ namespace IOperationGenerator
                 if (!PortedTypes.Contains(node.Name)) continue;
 
                 string nameMinusI = node.Name[1..];
-                WriteLine($"public override IOperation {GetVisitorName(node)}({node.Name} operation, object? argument)");
+                WriteLine($"{(node.IsInternal ? "internal" : "public")} override IOperation {GetVisitorName(node)}({node.Name} operation, object? argument)");
                 Brace();
                 WriteLine($"var {internalName} = ({nameMinusI})operation;");
                 Write($"return new {nameMinusI}(");

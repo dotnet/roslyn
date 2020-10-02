@@ -972,7 +972,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundRValuePlaceholderOperation(boundRValuePlaceholder As BoundRValuePlaceholder) As IOperation
             Dim syntax As SyntaxNode = boundRValuePlaceholder.Syntax
             Dim type As ITypeSymbol = boundRValuePlaceholder.Type
-            Dim constantValue As ConstantValue = boundRValuePlaceholder.ConstantValueOpt
             Dim isImplicit As Boolean = boundRValuePlaceholder.WasCompilerGenerated
 
             Dim knownParent As BoundNode = TryGetParent(boundRValuePlaceholder)
@@ -1006,7 +1005,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 End Select
             End If
 
-            Return New PlaceholderOperation(placeholderKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New PlaceholderOperation(placeholderKind, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundIfStatementOperation(boundIfStatement As BoundIfStatement) As IConditionalOperation

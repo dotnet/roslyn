@@ -6583,7 +6583,6 @@ oneMoreTime:
         {
             return new OmittedArgumentOperation(semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
-#nullable disable
 
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
         {
@@ -6616,7 +6615,7 @@ oneMoreTime:
             }
 
             Debug.Fail("All placeholders should be handled above. Have we introduced a new scenario where placeholders are used?");
-            return new PlaceholderOperation(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            return new PlaceholderOperation(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)

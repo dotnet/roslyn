@@ -2861,7 +2861,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IPlaceholderOperation" Base="IOperation" Internal="true">
+  <Node Name="IPlaceholderOperation" Base="IOperation" Internal="true" HasType="true">
     <Comments>
       <summary>
         Represents a general placeholder when no more specific kind of placeholder is available.
