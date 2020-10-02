@@ -113,10 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
+            var (attributeLists, returnNullableAnnotation) = GenerateAttributes(method, options, explicitInterfaceSpecifier != null);
             var methodDeclaration = SyntaxFactory.MethodDeclaration(
-                attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
+                attributeLists: attributeLists,
                 modifiers: GenerateModifiers(method, destination, options),
-                returnType: method.GenerateReturnTypeSyntax(),
+                returnType: method.GenerateReturnTypeSyntax(returnNullableAnnotation),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: method.Name.ToIdentifierToken(),
                 typeParameterList: GenerateTypeParameterList(method, options),
@@ -187,18 +188,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return localFunctionDeclaration;
         }
 
-        private static SyntaxList<AttributeListSyntax> GenerateAttributes(
+        private static (SyntaxList<AttributeListSyntax>, NullableAnnotation) GenerateAttributes(
             IMethodSymbol method, CodeGenerationOptions options, bool isExplicit)
         {
-            var attributes = new List<AttributeListSyntax>();
-
-            if (!isExplicit)
+            if (isExplicit)
             {
-                attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options));
-                attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), options, SyntaxFactory.Token(SyntaxKind.ReturnKeyword)));
+                return (default, method.ReturnNullableAnnotation);
             }
 
-            return attributes.ToSyntaxList();
+            var returnTypeAttributes = method.GetReturnTypeAttributes();
+            var returnNullableAnnotation = method.ReturnNullableAnnotation;
+
+            (returnTypeAttributes, returnNullableAnnotation) = AdjustNullableAnnotationByAttributes(
+                method.ReturnType, method.RefKind, returnTypeAttributes, returnNullableAnnotation, isParameter: false);
+
+            using var _ = ArrayBuilder<AttributeListSyntax>.GetInstance(out var attributes);
+
+            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options));
+            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(returnTypeAttributes, options, SyntaxFactory.Token(SyntaxKind.ReturnKeyword)));
+
+            return (attributes.ToSyntaxList(), returnNullableAnnotation);
         }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(

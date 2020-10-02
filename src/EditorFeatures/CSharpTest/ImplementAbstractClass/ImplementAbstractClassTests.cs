@@ -1911,5 +1911,174 @@ record B(int i) : A
     }
 }", parseOptions: TestOptions.RegularPreview);
         }
+
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestFlowAnalysisAttributeOnNonNullableReferenceType()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class [|Class|] : Base<string>
+{
+}",
+@"#nullable enable
+
+abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class Class : Base<string>
+{
+    protected override string? MethodAllowNull(string? value)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override string MethodDisallowNull(string value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestFlowAnalysisAttributeOnNullableReferenceType()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class [|Class|] : Base<string?>
+{
+}",
+@"#nullable enable
+
+abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class Class : Base<string?>
+{
+    protected override string? MethodAllowNull(string? value)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override string MethodDisallowNull(string value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestFlowAnalysisAttributeOnNonNullableValueType()
+        {
+            await TestInRegularAndScript1Async(
+@"abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class [|Class<T>|] : Base<T> where T : struct
+{
+}",
+@"abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class Class<T> : Base<T> where T : struct
+{
+    protected override T MethodAllowNull(T value)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override T MethodDisallowNull(T value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestFlowAnalysisAttributeOnNullableValueType()
+        {
+            await TestInRegularAndScript1Async(
+@"abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class [|Class<T>|] : Base<T?> where T : struct
+{
+}",
+@"abstract class Base<T>
+{
+    [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
+}
+
+class Class<T> : Base<T?> where T : struct
+{
+    protected override T? MethodAllowNull(T? value)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected override T? MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T? value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
     }
 }
