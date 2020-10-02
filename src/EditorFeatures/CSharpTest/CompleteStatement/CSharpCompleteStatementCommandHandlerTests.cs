@@ -64,9 +64,7 @@ public class Class1
     {expectedSignature};$$
 }}";
 
-            // These cases are not currently handled. If support is added in the future, 'expected' should be correct.
-            _ = expected;
-            VerifyNoSpecialSemicolonHandling(code);
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]

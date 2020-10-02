@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
             else if (syntaxFacts.IsStatement(currentNode)
-                || currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause))
+                || CanHaveSemicolon(currentNode))
             {
                 MoveCaretToFinalPositionInStatement(currentNode, args, caret, isInsideDelimiters);
                 return;
@@ -202,6 +202,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
         }
+
+        private static bool CanHaveSemicolon(SyntaxNode currentNode)
+            => currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause)
+                || currentNode is RecordDeclarationSyntax { OpenBraceToken: { IsMissing: true } }
+                || (currentNode is MethodDeclarationSyntax method && method.Modifiers.Any(SyntaxKind.AbstractKeyword));
 
         private static bool IsInConditionOfDoStatement(SyntaxNode currentNode, SnapshotPoint caret)
         {
@@ -257,6 +262,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.ArrowExpressionClause:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     // These statement types end in a semicolon. 
                     // if the original caret was inside any delimiters, `caret` will be after the outermost delimiter
                     targetPosition = caret;
