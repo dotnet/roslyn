@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, SemanticModel semanticModel, int position)
         {
-            var containerIsNullable = container.IsNullable() || // var int? id = null; id.$$                
-                (container.IsValueType && isAccessedByConditionalAccess); // var p = new System.Diagnostics.Process(); p?.Id.$$;
+            var containerIsNullable = container.IsNullable() || // int? id; id.$$ -> (byte?)
+                (container.IsValueType && isAccessedByConditionalAccess); // System.Diagnostics.Process p; p?.Id.$$ -> (byte?)
             container = container.RemoveNullableIfPresent();
             var allMembers = container.GetMembers();
             var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
