@@ -1095,5 +1095,25 @@ public class Program
             var expected = new[] { "byte", "char", "decimal", "double", "float", "int", "long", "sbyte", "short", "uint", "ulong", "ushort" };
             AssertEx.SetEqual(items.Select(i => i.DisplayText), expected);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        // built-in enum conversions:
+        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
+        public async Task ExplicitBuildInEnumConversionDescriptionIsLikeAConversionOperatorDescrition()
+        {
+            var items = await GetCompletionItemsAsync(@"
+public enum E { One }
+public class Program
+{
+    public void Main()
+    {
+        var e = E.One;
+        e.$$
+    }
+}
+", SourceCodeKind.Regular);
+            var expected = new[] { "byte", "char", "decimal", "double", "float", "int", "long", "sbyte", "short", "uint", "ulong", "ushort" };
+        }
     }
 }
