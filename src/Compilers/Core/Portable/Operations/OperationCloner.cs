@@ -159,11 +159,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new StopOperation(((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitEnd(IEndOperation operation, object argument)
-        {
-            return new EndOperation(((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitInvocation(IInvocationOperation operation, object argument)
         {
             return new InvocationOperation(operation.TargetMethod, Visit(operation.Instance), operation.IsVirtual, VisitArray(operation.Arguments), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

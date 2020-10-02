@@ -571,6 +571,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IStopOperation : IOperation
     {
     }
+    #nullable enable
     /// <summary>
     /// Represents an operation that stops the execution of code abruptly.
     /// <para>
@@ -589,6 +590,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IEndOperation : IOperation
     {
     }
+    #nullable disable
     /// <summary>
     /// Represents an operation for raising an event.
     /// <para>
@@ -4415,14 +4417,19 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitStop(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitStop(this, argument);
     }
-    internal sealed partial class EndOperation : OperationOld, IEndOperation
+    #nullable enable
+    internal sealed partial class EndOperation : Operation, IEndOperation
     {
-        internal EndOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.End, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal EndOperation(SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit) { }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.End;
         public override void Accept(OperationVisitor visitor) => visitor.VisitEnd(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitEnd(this, argument);
     }
+    #nullable disable
     internal abstract partial class BaseRaiseEventOperation : OperationOld, IRaiseEventOperation
     {
         internal BaseRaiseEventOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9070,6 +9077,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (EmptyOperation)operation;
             return new EmptyOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitEnd(IEndOperation operation, object? argument)
+        {
+            var internalOperation = (EndOperation)operation;
+            return new EndOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
     }
     #nullable disable

@@ -1403,10 +1403,8 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundEndStatementOperation(boundEndStatement As BoundEndStatement) As IEndOperation
             Dim syntax As SyntaxNode = boundEndStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundEndStatement.WasCompilerGenerated
-            Return New EndOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New EndOperation(_semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundWithStatementOperation(boundWithStatement As BoundWithStatement) As IWithStatementOperation
