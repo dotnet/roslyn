@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
+using Roslyn.SyntaxVisualizer.Control.SymbolDisplay;
 using SystemInformation = System.Windows.Forms.SystemInformation;
 
 namespace Roslyn.SyntaxVisualizer.Control
@@ -995,6 +996,8 @@ namespace Roslyn.SyntaxVisualizer.Control
                 kindTextLabel.Visibility = Visibility.Hidden;
                 typeValueLabel.Content = string.Empty;
                 kindValueLabel.Content = string.Empty;
+
+                _propertyGrid.SelectedObject = null;
             }
             else
             {
@@ -1002,9 +1005,9 @@ namespace Roslyn.SyntaxVisualizer.Control
                 kindTextLabel.Visibility = Visibility.Visible;
                 typeValueLabel.Content = symbol.GetType().Name;
                 kindValueLabel.Content = symbol.Kind.ToString();
-            }
 
-            _propertyGrid.SelectedObject = symbol;
+                _propertyGrid.SelectedObject = new SymbolPropertyGridAdapter(symbol);
+            }
         }
 
         private static TreeViewItem FindTreeViewItem(DependencyObject source)
