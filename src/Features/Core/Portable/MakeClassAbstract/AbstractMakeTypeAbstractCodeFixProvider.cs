@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.MakeTypeAbstract
             {
                 if (IsValidRefactoringContext(diagnostics[i].Location?.FindNode(cancellationToken), out var typeDeclaration))
                 {
-                    editor.ReplaceNode(type,
+                    editor.ReplaceNode(typeDeclaration,
                         (currentTypeDeclaration, generator) => generator.WithModifiers(currentTypeDeclaration, DeclarationModifiers.Abstract));
                 }
             }
