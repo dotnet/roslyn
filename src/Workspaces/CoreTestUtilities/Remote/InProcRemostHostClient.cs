@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, TraceListener? traceListener, RemoteHostTestData testData)
         {
-            var inprocServices = new InProcRemoteServices(services, traceListener, testData);
+            var inprocServices = new InProcRemoteServices(traceListener, testData);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubService.RemoteHost).ConfigureAwait(false);
 
@@ -155,11 +155,10 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private sealed class InProcRemoteServices
         {
             public readonly ServiceProvider ServiceProvider;
-            private readonly Dictionary<ServiceMoniker, Func<object>> _inProcBrokeredServicesMap = new();
             private readonly Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase>> _factoryMap = new();
             private readonly Dictionary<string, WellKnownServiceHubService> _serviceNameMap = new();
 
-            public InProcRemoteServices(HostWorkspaceServices workspaceServices, TraceListener? traceListener, RemoteHostTestData testData)
+            public InProcRemoteServices(TraceListener? traceListener, RemoteHostTestData testData)
             {
                 var remoteLogger = new TraceSource("InProcRemoteClient")
                 {
@@ -196,7 +195,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 var streams = FullDuplexStream.CreatePair();
                 return Task.FromResult<Stream>(new WrappedStream(factory(streams.Item1, ServiceProvider, default), streams.Item2));
             }
-
 
             private sealed class WrappedStream : Stream
             {
