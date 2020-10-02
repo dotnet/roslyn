@@ -897,9 +897,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim parameter As IParameterSymbol = boundParameter.ParameterSymbol
             Dim syntax As SyntaxNode = boundParameter.Syntax
             Dim type As ITypeSymbol = boundParameter.Type
-            Dim constantValue As ConstantValue = boundParameter.ConstantValueOpt
             Dim isImplicit As Boolean = boundParameter.WasCompilerGenerated
-            Return New ParameterReferenceOperation(parameter, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ParameterReferenceOperation(parameter, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundLocalOperation(boundLocal As BoundLocal) As IOperation

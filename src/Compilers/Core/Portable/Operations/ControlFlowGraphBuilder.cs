@@ -6293,13 +6293,13 @@ oneMoreTime:
             return new LocalReferenceOperation(operation.Local, operation.IsDeclaration, semanticModel: null, operation.Syntax,
                                                 operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
-#nullable disable
 
         public override IOperation VisitParameterReference(IParameterReferenceOperation operation, int? captureIdForResult)
         {
             return new ParameterReferenceOperation(operation.Parameter, semanticModel: null, operation.Syntax,
-                                                    operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                                                   operation.Type, IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitFieldReference(IFieldReferenceOperation operation, int? captureIdForResult)
         {
@@ -6382,15 +6382,17 @@ oneMoreTime:
             return new IsTypeOperation(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
             var parameterRef = new ParameterReferenceOperation(operation.Parameter, semanticModel: null,
-                operation.Syntax, operation.Parameter.Type, constantValue: null, isImplicit: true);
+                operation.Syntax, operation.Parameter.Type, isImplicit: true);
             VisitInitializer(rewrittenTarget: parameterRef, initializer: operation);
             return FinishVisitingStatement(operation);
         }
+#nullable disable
 
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
         {

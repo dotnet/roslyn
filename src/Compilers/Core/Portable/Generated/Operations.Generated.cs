@@ -792,6 +792,7 @@ namespace Microsoft.CodeAnalysis.Operations
         bool IsDeclaration { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a reference to a parameter.
     /// <para>
@@ -815,6 +816,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IParameterSymbol Parameter { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a reference to a member of a class, struct, or interface.
     /// <para>
@@ -4736,18 +4738,24 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLocalReference(this, argument);
     }
     #nullable disable
-    internal sealed partial class ParameterReferenceOperation : OperationOld, IParameterReferenceOperation
+    #nullable enable
+    internal sealed partial class ParameterReferenceOperation : Operation, IParameterReferenceOperation
     {
-        internal ParameterReferenceOperation(IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.ParameterReference, semanticModel, syntax, type, constantValue, isImplicit)
+        internal ParameterReferenceOperation(IParameterSymbol parameter, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Parameter = parameter;
+            Type = type;
         }
         public IParameterSymbol Parameter { get; }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.ParameterReference;
         public override void Accept(OperationVisitor visitor) => visitor.VisitParameterReference(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitParameterReference(this, argument);
     }
+    #nullable disable
     internal abstract partial class BaseMemberReferenceOperation : OperationOld, IMemberReferenceOperation
     {
         protected BaseMemberReferenceOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9124,6 +9132,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (LocalReferenceOperation)operation;
             return new LocalReferenceOperation(internalOperation.Local, internalOperation.IsDeclaration, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitParameterReference(IParameterReferenceOperation operation, object? argument)
+        {
+            var internalOperation = (ParameterReferenceOperation)operation;
+            return new ParameterReferenceOperation(internalOperation.Parameter, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #nullable disable

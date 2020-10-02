@@ -631,17 +631,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyEventAssignmentOperation(this, boundEventAssignmentOperator, adds, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IParameterReferenceOperation CreateBoundParameterOperation(BoundParameter boundParameter)
         {
             IParameterSymbol parameter = boundParameter.ParameterSymbol.GetPublicSymbol();
             SyntaxNode syntax = boundParameter.Syntax;
-            ITypeSymbol type = boundParameter.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundParameter.ConstantValue;
+            ITypeSymbol? type = boundParameter.GetPublicTypeSymbol();
             bool isImplicit = boundParameter.WasCompilerGenerated;
-            return new ParameterReferenceOperation(parameter, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ParameterReferenceOperation(parameter, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         internal ILiteralOperation CreateBoundLiteralOperation(BoundLiteral boundLiteral, bool @implicit = false)
         {
             SyntaxNode syntax = boundLiteral.Syntax;

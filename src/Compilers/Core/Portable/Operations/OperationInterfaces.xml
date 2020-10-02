@@ -724,7 +724,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IParameterReferenceOperation" Base="IOperation">
+  <Node Name="IParameterReferenceOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a reference to a parameter.
