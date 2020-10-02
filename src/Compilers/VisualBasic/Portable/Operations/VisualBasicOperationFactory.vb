@@ -747,9 +747,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim typeOperand As ITypeSymbol = boundGetType.SourceType.Type
             Dim syntax As SyntaxNode = boundGetType.Syntax
             Dim type As ITypeSymbol = boundGetType.Type
-            Dim constantValue As ConstantValue = boundGetType.ConstantValueOpt
             Dim isImplicit As Boolean = boundGetType.WasCompilerGenerated
-            Return New TypeOfOperation(typeOperand, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New TypeOfOperation(typeOperand, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundLateInvocationOperation(boundLateInvocation As BoundLateInvocation) As IOperation

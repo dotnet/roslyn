@@ -1878,6 +1878,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an operation that gets <see cref="System.Type" /> for the given <see cref="TypeOperand" />.
     /// <para>
@@ -1901,6 +1902,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ITypeSymbol TypeOperand { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an operation to compute the size of a given type.
     /// <para>
@@ -6402,18 +6404,24 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDefaultValue(this, argument);
     }
     #nullable disable
-    internal sealed partial class TypeOfOperation : OperationOld, ITypeOfOperation
+    #nullable enable
+    internal sealed partial class TypeOfOperation : Operation, ITypeOfOperation
     {
-        internal TypeOfOperation(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.TypeOf, semanticModel, syntax, type, constantValue, isImplicit)
+        internal TypeOfOperation(ITypeSymbol typeOperand, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             TypeOperand = typeOperand;
+            Type = type;
         }
         public ITypeSymbol TypeOperand { get; }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.TypeOf;
         public override void Accept(OperationVisitor visitor) => visitor.VisitTypeOf(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTypeOf(this, argument);
     }
+    #nullable disable
     internal sealed partial class SizeOfOperation : OperationOld, ISizeOfOperation
     {
         internal SizeOfOperation(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9181,6 +9189,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (DefaultValueOperation)operation;
             return new DefaultValueOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitTypeOf(ITypeOfOperation operation, object? argument)
+        {
+            var internalOperation = (TypeOfOperation)operation;
+            return new TypeOfOperation(internalOperation.TypeOperand, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #nullable disable

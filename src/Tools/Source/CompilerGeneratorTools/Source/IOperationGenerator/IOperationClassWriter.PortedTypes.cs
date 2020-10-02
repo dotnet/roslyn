@@ -20,7 +20,8 @@ namespace IOperationGenerator
             "IParameterReferenceOperation",
             "IInstanceReferenceOperation",
             "IConditionalAccessInstanceOperation",
-            "IDefaultValueOperation"
+            "IDefaultValueOperation",
+            "ITypeOfOperation"
         };
     }
 }

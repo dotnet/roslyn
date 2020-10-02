@@ -1676,7 +1676,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="ITypeOfOperation" Base="IOperation">
+  <Node Name="ITypeOfOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an operation that gets <see cref="System.Type" /> for the given <see cref="TypeOperand" />.

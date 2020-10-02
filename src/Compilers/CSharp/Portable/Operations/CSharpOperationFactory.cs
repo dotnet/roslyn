@@ -1099,15 +1099,17 @@ namespace Microsoft.CodeAnalysis.Operations
             return new SizeOfOperation(typeOperand, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private ITypeOfOperation CreateBoundTypeOfOperatorOperation(BoundTypeOfOperator boundTypeOfOperator)
         {
-            ITypeSymbol typeOperand = boundTypeOfOperator.SourceType.GetPublicTypeSymbol();
+            ITypeSymbol? typeOperand = boundTypeOfOperator.SourceType.GetPublicTypeSymbol();
+            Debug.Assert(typeOperand is not null);
             SyntaxNode syntax = boundTypeOfOperator.Syntax;
-            ITypeSymbol type = boundTypeOfOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundTypeOfOperator.ConstantValue;
+            ITypeSymbol? type = boundTypeOfOperator.GetPublicTypeSymbol();
             bool isImplicit = boundTypeOfOperator.WasCompilerGenerated;
-            return new TypeOfOperation(typeOperand, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new TypeOfOperation(typeOperand, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private IArrayCreationOperation CreateBoundArrayCreationOperation(BoundArrayCreation boundArrayCreation)
         {

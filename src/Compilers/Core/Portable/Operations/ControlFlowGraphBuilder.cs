@@ -6359,10 +6359,12 @@ oneMoreTime:
                                                 operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitTypeOf(ITypeOfOperation operation, int? captureIdForResult)
         {
-            return new TypeOfOperation(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            return new TypeOfOperation(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitParenthesized(IParenthesizedOperation operation, int? captureIdForResult)
         {
