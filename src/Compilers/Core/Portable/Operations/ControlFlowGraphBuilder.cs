@@ -1336,6 +1336,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             _currentBasicBlock = null;
         }
 
+#nullable enable
         public override IOperation VisitBlock(IBlockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
@@ -1346,6 +1347,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             return FinishVisitingStatement(operation);
         }
+#nullable disable
 
         private void StartVisitingStatement(IOperation operation)
         {
@@ -6962,6 +6964,7 @@ oneMoreTime:
             return GetCaptureReference(captureOutput, operation);
         }
 
+#nullable enable
         private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ImmutableArray<IOperation> statements)
         {
             IOperation saveCurrentStatement = _currentStatement;
@@ -6974,8 +6977,6 @@ oneMoreTime:
                 locals: ImmutableArray<ILocalSymbol>.Empty,
                 ((Operation)operation).OwningSemanticModel,
                 operation.Syntax,
-                operation.Type,
-                operation.GetConstantValue(),
                 isImplicit: true);
 
             HandleUsingOperationParts(
@@ -6987,6 +6988,7 @@ oneMoreTime:
             FinishVisitingStatement(operation);
             _currentStatement = saveCurrentStatement;
         }
+#nullable disable
 
         public IOperation Visit(IOperation operation)
         {

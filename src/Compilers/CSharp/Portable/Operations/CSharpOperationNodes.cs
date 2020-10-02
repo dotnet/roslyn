@@ -350,24 +350,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyBlockOperation : LazyBlockOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundBlock _block;
-
-        internal CSharpLazyBlockOperation(CSharpOperationFactory operationFactory, BoundBlock block, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _block = block;
-        }
-
-        protected override ImmutableArray<IOperation> CreateOperations()
-        {
-            return _operationFactory.CreateFromArray<BoundStatement, IOperation>(_block.Statements);
-        }
-    }
-
     internal sealed class CSharpLazyCatchClauseOperation : LazyCatchClauseOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

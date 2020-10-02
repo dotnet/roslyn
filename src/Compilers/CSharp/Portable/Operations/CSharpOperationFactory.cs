@@ -1485,17 +1485,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyParameterInitializerOperation(this, value, boundParameterEqualsValue.Locals.GetPublicSymbols(), parameter, kind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IBlockOperation CreateBoundBlockOperation(BoundBlock boundBlock)
         {
+            ImmutableArray<IOperation> operations = CreateFromArray<BoundStatement, IOperation>(boundBlock.Statements);
             ImmutableArray<ILocalSymbol> locals = boundBlock.Locals.GetPublicSymbols();
             SyntaxNode syntax = boundBlock.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundBlock.WasCompilerGenerated;
-            return new CSharpLazyBlockOperation(this, boundBlock, locals, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new BlockOperation(operations, locals, _semanticModel, syntax, isImplicit);
         }
 
-#nullable enable
         private IBranchOperation CreateBoundContinueStatementOperation(BoundContinueStatement boundContinueStatement)
         {
             ILabelSymbol target = boundContinueStatement.Label.GetPublicSymbol();

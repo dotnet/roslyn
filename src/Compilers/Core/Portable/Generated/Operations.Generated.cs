@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IInvalidOperation : IOperation
     {
     }
+    #nullable enable
     /// <summary>
     /// Represents a block containing a sequence of operations and local declarations.
     /// <para>
@@ -59,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<ILocalSymbol> Locals { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a variable declaration statement.
     /// </summary>
@@ -3345,57 +3347,38 @@ namespace Microsoft.CodeAnalysis.Operations
     #endregion
 
     #region Implementations
-    internal abstract partial class BaseBlockOperation : OperationOld, IBlockOperation
+    #nullable enable
+    internal sealed partial class BlockOperation : Operation, IBlockOperation
     {
-        internal BaseBlockOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Block, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal BlockOperation(ImmutableArray<IOperation> operations, ImmutableArray<ILocalSymbol> locals, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            Operations = SetParentOperation(operations, this);
             Locals = locals;
         }
-        public abstract ImmutableArray<IOperation> Operations { get; }
+        public ImmutableArray<IOperation> Operations { get; }
         public ImmutableArray<ILocalSymbol> Locals { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                foreach (var child in Operations)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (!Operations.IsEmpty) builder.AddRange(Operations);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Block;
         public override void Accept(OperationVisitor visitor) => visitor.VisitBlock(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitBlock(this, argument);
     }
-    internal sealed partial class BlockOperation : BaseBlockOperation, IBlockOperation
-    {
-        internal BlockOperation(ImmutableArray<IOperation> operations, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operations = SetParentOperation(operations, this);
-        }
-        public override ImmutableArray<IOperation> Operations { get; }
-    }
-    internal abstract partial class LazyBlockOperation : BaseBlockOperation, IBlockOperation
-    {
-        private ImmutableArray<IOperation> _lazyOperations;
-        internal LazyBlockOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract ImmutableArray<IOperation> CreateOperations();
-        public override ImmutableArray<IOperation> Operations
-        {
-            get
-            {
-                if (_lazyOperations.IsDefault)
-                {
-                    ImmutableArray<IOperation> operations = CreateOperations();
-                    SetParentOperation(operations, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyOperations, operations);
-                }
-                return _lazyOperations;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseVariableDeclarationGroupOperation : OperationOld, IVariableDeclarationGroupOperation
     {
         internal BaseVariableDeclarationGroupOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9175,6 +9158,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable;
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this);
         private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this);
+        public override IOperation VisitBlock(IBlockOperation operation, object? argument)
+        {
+            var internalOperation = (BlockOperation)operation;
+            return new BlockOperation(VisitArray(internalOperation.Operations), internalOperation.Locals, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
         public override IOperation VisitBranch(IBranchOperation operation, object? argument)
         {
             var internalOperation = (BranchOperation)operation;

@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.GetConstantValue(), operation.IsImplicit, operation.Type);
         }
 
-        public override IOperation VisitBlock(IBlockOperation operation, object argument)
-        {
-            return new BlockOperation(VisitArray(operation.Operations), operation.Locals, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, object argument)
         {
             return new VariableDeclarationGroupOperation(VisitArray(operation.Declarations), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

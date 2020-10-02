@@ -429,7 +429,7 @@ namespace IOperationGenerator
             {
                 if (publicIOperationProps.Count != 0)
                 {
-                    WriteLine($"private IEnumerable<IOperation> {lazyChildren};");
+                    WriteLine($"private IEnumerable<IOperation>? {lazyChildren};");
                 }
 
                 hasType = node.HasType;
@@ -461,7 +461,14 @@ namespace IOperationGenerator
                     WriteLine($"var builder = ArrayBuilder<IOperation>.GetInstance({publicIOperationProps.Count});");
                     foreach (var prop in publicIOperationProps)
                     {
-                        WriteLine($"if ({prop.Name} is not null) builder.Add({prop.Name};");
+                        if (IsImmutableArray(prop.Type, out _))
+                        {
+                            WriteLine($"if (!{prop.Name}.IsEmpty) builder.AddRange({prop.Name});");
+                        }
+                        else
+                        {
+                            WriteLine($"if ({prop.Name} is not null) builder.Add({prop.Name});");
+                        }
                     }
 
                     WriteLine($"Interlocked.CompareExchange(ref {lazyChildren}, builder.ToImmutableAndFree(), null);");

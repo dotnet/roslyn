@@ -193,23 +193,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyBlockOperation
-        Inherits LazyBlockOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _block As BoundBlock
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, block As BoundBlock, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(locals, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _block = block
-        End Sub
-
-        Protected Overrides Function CreateOperations() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundStatement, IOperation)(_block.Statements)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyCatchClauseOperation
         Inherits LazyCatchClauseOperation
 

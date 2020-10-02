@@ -1238,12 +1238,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockOperation
+            Dim operations As ImmutableArray(Of IOperation) = CreateFromArray(Of BoundStatement, IOperation)(boundBlock.Statements)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
             Dim syntax As SyntaxNode = boundBlock.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundBlock.WasCompilerGenerated
-            Return New VisualBasicLazyBlockOperation(Me, boundBlock, locals, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New BlockOperation(operations, locals, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundBadStatementOperation(boundBadStatement As BoundBadStatement) As IInvalidOperation
