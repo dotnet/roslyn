@@ -76,7 +76,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Split_comment))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
-                return SplitCommentAsync(textView, subjectBuffer, document, position, cancellationToken).WaitAndGetResult(cancellationToken);
+                var result = SplitCommentAsync(textView, subjectBuffer, document, position, cancellationToken).WaitAndGetResult(cancellationToken);
+                if (result == null)
+                    return false;
+
+                using var transaction = CaretPreservingEditTransaction.TryCreate(
+                    EditorFeaturesResources.Split_comment, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+                subjectBuffer.Replace(result.Value.replacementSpan, result.Value.replacementText);
+
+                transaction.Complete();
+                return true;
             }
         }
 
@@ -109,41 +119,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             return true;
         }
 
-        private async Task<bool> SplitCommentAsync(
+        private static async Task<(Span replacementSpan, string replacementText)?> SplitCommentAsync(
             ITextView textView, ITextBuffer subjectBuffer, Document document, int position, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var enabled = options.GetOption(SplitCommentOptions.Enabled);
             if (!enabled)
-                return false;
+                return null;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
             var trivia = root.FindTrivia(position);
             if (syntaxKinds.SingleLineCommentTrivia != trivia.RawKind)
-                return false;
+                return null;
 
             var splitCommentService = document.GetRequiredLanguageService<ISplitCommentService>();
 
             // if the user hits enter at `/$$/` we don't want to consider this a comment continuation.
             if (position < (trivia.SpanStart + splitCommentService.CommentStart.Length))
-                return false;
+                return null;
 
             if (!splitCommentService.IsAllowed(root, trivia))
-                return false;
+                return null;
 
             var textSnapshot = subjectBuffer.CurrentSnapshot;
             var triviaLine = textSnapshot.GetLineFromPosition(trivia.SpanStart);
 
-            using var transaction = CaretPreservingEditTransaction.TryCreate(
-                EditorFeaturesResources.Split_comment, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
-
-            subjectBuffer.Replace(
-                GetReplacementSpan(triviaLine, position),
-                GetReplacementText(textView, options, triviaLine, trivia, position));
-
-            transaction.Complete();
-            return true;
+            return (GetReplacementSpan(triviaLine, position), GetReplacementText(textView, options, triviaLine, trivia, position));
         }
 
         private static string GetReplacementText(
