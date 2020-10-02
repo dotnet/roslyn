@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
@@ -18,8 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly RemoteEndPoint _endPoint;
 
-        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
-            : base(workspace)
+        public RemoteDesignerAttributeIncrementalAnalyzer(RemoteEndPoint endPoint)
         {
             _endPoint = endPoint;
         }
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken);
         }
 
-        protected override Task ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
+        protected override Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
             return _endPoint.InvokeAsync(
                 nameof(IDesignerAttributeListener.ReportDesignerAttributeDataAsync),
