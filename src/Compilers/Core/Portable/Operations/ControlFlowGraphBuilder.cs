@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6356,10 +6356,12 @@ oneMoreTime:
             return new SizeOfOperation(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
         {
-            return new StopOperation(semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            return new StopOperation(semanticModel: null, operation.Syntax, IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitIsType(IIsTypeOperation operation, int? captureIdForResult)
         {

@@ -553,6 +553,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </remarks>
         IBlockOperation IgnoredBody { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents an operation to stop or suspend execution of code.
     /// <para>
@@ -571,6 +572,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IStopOperation : IOperation
     {
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents an operation that stops the execution of code abruptly.
@@ -4409,14 +4411,19 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class StopOperation : OperationOld, IStopOperation
+    #nullable enable
+    internal sealed partial class StopOperation : Operation, IStopOperation
     {
-        internal StopOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Stop, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal StopOperation(SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit) { }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Stop;
         public override void Accept(OperationVisitor visitor) => visitor.VisitStop(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitStop(this, argument);
     }
+    #nullable disable
     #nullable enable
     internal sealed partial class EndOperation : Operation, IEndOperation
     {
@@ -9077,6 +9084,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (EmptyOperation)operation;
             return new EmptyOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitStop(IStopOperation operation, object? argument)
+        {
+            var internalOperation = (StopOperation)operation;
+            return new StopOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitEnd(IEndOperation operation, object? argument)
         {

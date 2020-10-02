@@ -1395,10 +1395,8 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundStopStatementOperation(boundStopStatement As BoundStopStatement) As IStopOperation
             Dim syntax As SyntaxNode = boundStopStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundStopStatement.WasCompilerGenerated
-            Return New StopOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New StopOperation(_semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundEndStatementOperation(boundEndStatement As BoundEndStatement) As IEndOperation

@@ -13,7 +13,8 @@ namespace IOperationGenerator
         {
             "IEmptyOperation",
             "IBranchOperation",
-            "IEndOperation"
+            "IEndOperation",
+            "IStopOperation"
         };
     }
 }
