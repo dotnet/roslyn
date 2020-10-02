@@ -26,22 +26,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected override async ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
-            // cancel whenever the analyzer runner cancels or the client disconnects and the request is canceled:
-            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
-
             await _callback.InvokeAsync(
                 (callback, cancellationToken) => callback.OnProjectRemovedAsync(projectId, cancellationToken),
-                linkedSource.Token).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
         }
 
         protected override async ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
-            // cancel whenever the analyzer runner cancels or the client disconnects and the request is canceled:
-            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
-
             await _callback.InvokeAsync(
                (callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(data, cancellationToken),
-               linkedSource.Token).ConfigureAwait(false);
+               cancellationToken).ConfigureAwait(false);
         }
     }
 }
