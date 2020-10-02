@@ -278,7 +278,7 @@ public static {typeKind} Foo
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task FixAll()
         {
             await TestInRegularAndScript1Async(

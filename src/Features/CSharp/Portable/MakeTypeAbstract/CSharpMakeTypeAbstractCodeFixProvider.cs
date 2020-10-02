@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
             }
 
             typeDeclaration = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
-            if (!typeDeclaration.IsKind(SyntaxKind.ClassDeclaration) || !typeDeclaration.IsKind(SyntaxKind.RecordDeclaration))
+            if (!typeDeclaration.IsKind(SyntaxKind.ClassDeclaration) && !typeDeclaration.IsKind(SyntaxKind.RecordDeclaration))
             {
                 return false;
             }
