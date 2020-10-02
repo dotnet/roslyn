@@ -47,6 +47,7 @@ namespace RoslynEx.UnitTests
             yield return new[] { new[] { @"C:\code\RoslynEx\src\file1.cs", @"C:\code\RoslynEx\src\file2.cs" }, new[] { "file1.cs", "file2.cs" } };
             yield return new[] { new[] { @"C:\code\RoslynEx\src\file1.cs", @"E:\code\RoslynEx\src\file2.cs" }, new[] { @"C\code\RoslynEx\src\file1.cs", @"E\code\RoslynEx\src\file2.cs" } };
             yield return new[] { new[] { @"C:\code\RoslynEx\src\file1.cs", @"C:\code\RoslynEx\src\file2.cs", @"C:\code\other.cs" }, new[] { @"RoslynEx\src\file1.cs", @"RoslynEx\src\file2.cs", "other.cs" } };
+            yield return new[] { new[] { @"C:\code\RoslynEx\src\file.cs", "generated.cs" }, new[] { "file.cs", "generated.cs" } };
             yield return new[] { new[] { @"C:\code\RoslynEx\src\file.cs", null }, new[] { "file.cs", "" } };
             yield return new[] { new[] { @"C:\code\RoslynEx\src\file.cs", "" }, new[] { "file.cs", "" } };
         }

@@ -12,6 +12,7 @@ namespace RoslynEx
         public const int ERR_TransformerNotFound = 2;
         public const int ERR_TransformerCycleFound = 3;
         public const int ERR_TransformersNotOrdered = 4;
+        public const int WRN_NoTransformedOutputPathWhenDebuggingTransformed = 5;
 
         public override string CodePrefix => "RE";
 
@@ -180,14 +181,30 @@ namespace RoslynEx
                 severity == DiagnosticSeverity.Error || isWarningAsError ? "error" : "warning",
                 id);
 
-        public override DiagnosticSeverity GetSeverity(int code) => DiagnosticSeverity.Error;
+        public override DiagnosticSeverity GetSeverity(int code) => code switch
+        {
+            ERR_TransformerFailed or
+            ERR_TransformerNotFound or
+            ERR_TransformerCycleFound or
+            ERR_TransformersNotOrdered => DiagnosticSeverity.Error,
+            WRN_NoTransformedOutputPathWhenDebuggingTransformed => DiagnosticSeverity.Warning,
+            _ => throw new ArgumentOutOfRangeException(nameof(code))
+        };
 
         public override LocalizableString GetTitle(int code)
         {
             throw new NotImplementedException();
         }
 
-        public override int GetWarningLevel(int code) => 0;
+        public override int GetWarningLevel(int code) => code switch
+        {
+            ERR_TransformerFailed or
+            ERR_TransformerNotFound or
+            ERR_TransformerCycleFound or
+            ERR_TransformersNotOrdered => 0,
+            WRN_NoTransformedOutputPathWhenDebuggingTransformed => 1,
+            _ => throw new ArgumentOutOfRangeException(nameof(code))
+        };
 
         public override string LoadMessage(int code, CultureInfo? language) =>
             code switch
@@ -196,6 +213,7 @@ namespace RoslynEx
                 ERR_TransformerNotFound => "Transformer '{0}' was not found when resolving transformer order.",
                 ERR_TransformerCycleFound => "Dependencies between transformers form a cycle. Members of this cycle are: {0}",
                 ERR_TransformersNotOrdered => "Transformers '{0}' and '{1}' are not strongly ordered. Their order of execution would not be deterministic.",
+                WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled. This will lead to warnings and errors that point to nonsensical file locations.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 

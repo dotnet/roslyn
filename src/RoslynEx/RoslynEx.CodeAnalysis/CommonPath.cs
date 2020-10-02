@@ -8,7 +8,7 @@ namespace RoslynEx
     static class CommonPath
     {
         /// <summary>
-        /// Takes a list of paths and returns a delegate that changes any of the input paths into a relative path with common path prefix removed.
+        /// Takes a list of paths and returns a delegate that changes any of the input paths into a relative path with common prefix of absolute paths removed.
         /// </summary>
         internal static Func<string?, string> MakePrefixRemover(IEnumerable<string?> paths)
         {
@@ -16,6 +16,9 @@ namespace RoslynEx
 
             return path =>
             {
+                if (!Path.IsPathRooted(path))
+                    return path ?? string.Empty;
+
                 var parts = Split(path).Skip(prefixLength);
 
                 string result = string.Join(Path.DirectorySeparatorChar.ToString(), parts);
@@ -34,14 +37,11 @@ namespace RoslynEx
 
         static ReadOnlyMemory<string> GetPrefix(IEnumerable<string?> paths)
         {
-            return GetPrefix(paths.Select(f =>
-            {
-                string? directoryName = null;
-                if (!string.IsNullOrEmpty(f))
-                    directoryName = Path.GetDirectoryName(f);
+            var directories = paths
+                .Where(Path.IsPathRooted)
+                .Select(f => (ReadOnlyMemory<string>)Split(Path.GetDirectoryName(f)!));
 
-                return (ReadOnlyMemory<string>)Split(directoryName ?? string.Empty);
-            }));
+            return GetPrefix(directories);
         }
 
         static ReadOnlyMemory<string> GetPrefix(IEnumerable<ReadOnlyMemory<string>> directories) => directories.Aggregate(GetPrefix);

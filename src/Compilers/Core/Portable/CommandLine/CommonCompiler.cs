@@ -1043,11 +1043,19 @@ namespace Microsoft.CodeAnalysis
                     var compilationBefore = compilation;
                     compilation = RunTransformers(ref compilationBefore, transfomers, analyzerConfigProvider, diagnostics);
 
+                    bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
                     bool hasTransformedOutputPath = !string.IsNullOrWhiteSpace(Arguments.TransformedFilesOutputDirectory);
 
                     // fix whitespace and embed transformed code into PDB or write it to disk
-                    if (compilation != compilationBefore && (ShouldDebugTransformedCode(analyzerConfigProvider) || hasTransformedOutputPath))
+                    if (compilation != compilationBefore && (shouldDebugTransformedCode || hasTransformedOutputPath))
                     {
+                        if (shouldDebugTransformedCode && !hasTransformedOutputPath)
+                        {
+                            var diagnostic = Diagnostic.Create(new DiagnosticInfo(
+                                RoslynExMessageProvider.Instance, RoslynExMessageProvider.WRN_NoTransformedOutputPathWhenDebuggingTransformed));
+                            diagnostics.Add(diagnostic);
+                        }
+
                         var transformedTrees = compilation.SyntaxTrees.Where(tree => !compilationBefore.ContainsSyntaxTree(tree)).ToList();
                         var prefixRemover = CommonPath.MakePrefixRemover(transformedTrees.Select(t => t.FilePath));
                         var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -1068,9 +1076,7 @@ namespace Microsoft.CodeAnalysis
                             if (!text.CanBeEmbedded)
                                 text = SourceText.From(text.ToString(), Encoding.UTF8);
 
-                            newTree = newTree.WithFilePath(path).WithChangedText(text);
-
-                            compilation = compilation.ReplaceSyntaxTree(tree, newTree);
+                            newTree = newTree.WithChangedText(text);
 
                             if (hasTransformedOutputPath)
                             {
@@ -1080,11 +1086,13 @@ namespace Microsoft.CodeAnalysis
                                     Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
                                 }
 
+                                newTree = newTree.WithFilePath(fullPath);
+
                                 var fileStream = OpenFile(fullPath, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                                 if (fileStream is not null)
                                 {
                                     using var disposer = new NoThrowStreamDisposer(fileStream, fullPath, diagnostics, MessageProvider);
-                                    using var writer = new StreamWriter(fileStream, tree.Encoding);
+                                    using var writer = new StreamWriter(fileStream, tree.Encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
 
                                     text.Write(writer, cancellationToken);
                                     touchedFilesLogger?.AddWritten(fullPath);
@@ -1092,8 +1100,12 @@ namespace Microsoft.CodeAnalysis
                             }
                             else
                             {
+                                newTree = newTree.WithFilePath(path);
+
                                 embeddedTexts = embeddedTexts.Add(EmbeddedText.FromSource(path, text));
                             }
+
+                            compilation = compilation.ReplaceSyntaxTree(tree, newTree);
 
                             void ensurePathIsUnique()
                             {

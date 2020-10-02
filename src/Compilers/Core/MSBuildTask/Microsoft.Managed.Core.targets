@@ -311,6 +311,7 @@
     We will create CompilerTransformedFilesOutputPath if it does not exist.
     -->
   <PropertyGroup>
+    <EmitCompilerTransformedFiles Condition="'$(EmitCompilerTransformedFiles)' == '' and '$(RoslynExDebugTransformedCode)' == 'true'">true</EmitCompilerTransformedFiles>
     <EmitCompilerTransformedFiles Condition="'$(EmitCompilerTransformedFiles)' == ''">false</EmitCompilerTransformedFiles>
     <CompilerTransformedFilesOutputPath Condition="'$(EmitCompilerTransformedFiles)' != 'true'"></CompilerTransformedFilesOutputPath>
     <CompilerTransformedFilesOutputPath Condition="'$(EmitCompilerTransformedFiles)' == 'true' and '$(CompilerTransformedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/transformed</CompilerTransformedFilesOutputPath>
