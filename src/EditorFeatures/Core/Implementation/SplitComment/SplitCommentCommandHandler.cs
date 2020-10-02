@@ -117,11 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             if (!enabled)
                 return false;
 
-            // We're synchronously blocking in the command handler.  So use the direct synchronous path to get a root to
-            // avoid undue blocking on teh threadpool getting around to this work.
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            Contract.ThrowIfNull(root);
-
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
             var trivia = root.FindTrivia(position);
             if (syntaxKinds.SingleLineCommentTrivia != trivia.RawKind)
