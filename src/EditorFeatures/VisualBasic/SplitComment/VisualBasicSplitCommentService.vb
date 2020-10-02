@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
         End Property
 
         Public Function IsAllowed(root As SyntaxNode, trivia As SyntaxTrivia) As Boolean Implements ISplitCommentService.IsAllowed
-            ' we don't allow splitting the comment if there is a preceding line continuation character.  This is
+            ' We don't currently allow splitting the comment if there is a preceding line continuation character.  This is
             ' primarily because this is not a common enough scenario to warrant the extra complexity in this fixer.
 
             Dim currentTrivia = trivia
