@@ -6376,12 +6376,12 @@ oneMoreTime:
             return new AwaitOperation(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
         {
             return new SizeOfOperation(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
-#nullable enable
         public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
         {
             return new StopOperation(semanticModel: null, operation.Syntax, IsImplicit(operation));

@@ -1693,7 +1693,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ISizeOfOperation" Base="IOperation">
+  <Node Name="ISizeOfOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents an operation to compute the size of a given type.

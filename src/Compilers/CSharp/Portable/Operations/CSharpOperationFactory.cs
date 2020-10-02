@@ -1089,17 +1089,18 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyIsTypeOperation(this, valueOperand, typeOperand, isNegated, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private ISizeOfOperation CreateBoundSizeOfOperatorOperation(BoundSizeOfOperator boundSizeOfOperator)
         {
-            ITypeSymbol typeOperand = boundSizeOfOperator.SourceType.GetPublicTypeSymbol();
+            ITypeSymbol? typeOperand = boundSizeOfOperator.SourceType.GetPublicTypeSymbol();
+            Debug.Assert(typeOperand is not null);
             SyntaxNode syntax = boundSizeOfOperator.Syntax;
-            ITypeSymbol type = boundSizeOfOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundSizeOfOperator.ConstantValue;
+            ITypeSymbol? type = boundSizeOfOperator.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundSizeOfOperator.ConstantValue;
             bool isImplicit = boundSizeOfOperator.WasCompilerGenerated;
             return new SizeOfOperation(typeOperand, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-#nullable enable
         private ITypeOfOperation CreateBoundTypeOfOperatorOperation(BoundTypeOfOperator boundTypeOfOperator)
         {
             ITypeSymbol? typeOperand = boundTypeOfOperator.SourceType.GetPublicTypeSymbol();

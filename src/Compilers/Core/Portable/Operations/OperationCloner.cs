@@ -256,11 +256,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new IsTypeOperation(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitSizeOf(ISizeOfOperation operation, object argument)
-        {
-            return new SizeOfOperation(operation.TypeOperand, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, object argument)
         {
             return new AnonymousFunctionOperation(operation.Symbol, Visit(operation.Body), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
