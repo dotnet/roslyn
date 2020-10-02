@@ -262,7 +262,7 @@ class C
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestValueParameterTypeIsUnconstrainedGeneric()
+        public async Task TestValueParameterTypeIsUnconstrainedGeneric_CSharp7()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -288,6 +288,37 @@ class C
     }
 }
 ", new TestParameters(parseOptions: CSharp7));
+        }
+
+        [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsUnconstrainedGeneric_CSharp8()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if ({|FixAllInDocument:ReferenceEquals|}(value, null))
+        {
+            return;
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+    }
+}", new TestParameters(parseOptions: CSharp8));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -504,7 +535,7 @@ class C
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestValueParameterTypeIsBaseConstraintGeneric()
+        public async Task TestValueParameterTypeIsBaseTypeConstraintGeneric()
         {
             await TestInRegularAndScript1Async(
 @"using System;
@@ -531,37 +562,6 @@ class C
         }
     }
 }", new TestParameters(parseOptions: CSharp7));
-        }
-
-        [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestUnconstrainedGenericInCSharp8()
-        {
-            await TestInRegularAndScript1Async(
-@"using System;
-
-class C
-{
-    public static void NotNull<T>(T value)
-    {
-        if ({|FixAllInDocument:ReferenceEquals|}(value, null))
-        {
-            return;
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    public static void NotNull<T>(T value)
-    {
-        if (value is null)
-        {
-            return;
-        }
-    }
-}", new TestParameters(parseOptions: CSharp8));
         }
     }
 }
