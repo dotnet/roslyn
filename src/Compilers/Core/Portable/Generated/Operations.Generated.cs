@@ -325,6 +325,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Operation { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents a branch operation.
     /// <para>
@@ -352,6 +353,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         BranchKind BranchKind { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents an empty or no-op operation.
@@ -3993,10 +3995,11 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class BranchOperation : OperationOld, IBranchOperation
+    #nullable enable
+    internal sealed partial class BranchOperation : Operation, IBranchOperation
     {
-        internal BranchOperation(ILabelSymbol target, BranchKind branchKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Branch, semanticModel, syntax, type, constantValue, isImplicit)
+        internal BranchOperation(ILabelSymbol target, BranchKind branchKind, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Target = target;
             BranchKind = branchKind;
@@ -4004,9 +4007,13 @@ namespace Microsoft.CodeAnalysis.Operations
         public ILabelSymbol Target { get; }
         public BranchKind BranchKind { get; }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Branch;
         public override void Accept(OperationVisitor visitor) => visitor.VisitBranch(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitBranch(this, argument);
     }
+    #nullable disable
     #nullable enable
     internal sealed partial class EmptyOperation : Operation, IEmptyOperation
     {
@@ -9054,6 +9061,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable;
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this);
         private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this);
+        public override IOperation VisitBranch(IBranchOperation operation, object? argument)
+        {
+            var internalOperation = (BranchOperation)operation;
+            return new BranchOperation(internalOperation.Target, internalOperation.BranchKind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
         public override IOperation VisitEmpty(IEmptyOperation operation, object? argument)
         {
             var internalOperation = (EmptyOperation)operation;

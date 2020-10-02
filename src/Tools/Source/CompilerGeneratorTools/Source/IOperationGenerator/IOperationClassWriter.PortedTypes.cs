@@ -11,7 +11,8 @@ namespace IOperationGenerator
     {
         private static readonly HashSet<string> PortedTypes = new HashSet<string>()
         {
-            "IEmptyOperation"
+            "IEmptyOperation",
+            "IBranchOperation"
         };
     }
 }

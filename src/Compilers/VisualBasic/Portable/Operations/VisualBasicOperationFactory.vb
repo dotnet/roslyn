@@ -1350,30 +1350,24 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim target As ILabelSymbol = boundGotoStatement.Label
             Dim branchKind As BranchKind = BranchKind.GoTo
             Dim syntax As SyntaxNode = boundGotoStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundGotoStatement.WasCompilerGenerated
-            Return New BranchOperation(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New BranchOperation(target, branchKind, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundContinueStatementOperation(boundContinueStatement As BoundContinueStatement) As IBranchOperation
             Dim target As ILabelSymbol = boundContinueStatement.Label
             Dim branchKind As BranchKind = BranchKind.Continue
             Dim syntax As SyntaxNode = boundContinueStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundContinueStatement.WasCompilerGenerated
-            Return New BranchOperation(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New BranchOperation(target, branchKind, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundExitStatementOperation(boundExitStatement As BoundExitStatement) As IBranchOperation
             Dim target As ILabelSymbol = boundExitStatement.Label
             Dim branchKind As BranchKind = BranchKind.Break
             Dim syntax As SyntaxNode = boundExitStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundExitStatement.WasCompilerGenerated
-            Return New BranchOperation(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New BranchOperation(target, branchKind, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundSyncLockStatementOperation(boundSyncLockStatement As BoundSyncLockStatement) As ILockOperation

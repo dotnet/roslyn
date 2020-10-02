@@ -1486,15 +1486,14 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyBlockOperation(this, boundBlock, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IBranchOperation CreateBoundContinueStatementOperation(BoundContinueStatement boundContinueStatement)
         {
             ILabelSymbol target = boundContinueStatement.Label.GetPublicSymbol();
             BranchKind branchKind = BranchKind.Continue;
             SyntaxNode syntax = boundContinueStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundContinueStatement.WasCompilerGenerated;
-            return new BranchOperation(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new BranchOperation(target, branchKind, _semanticModel, syntax, isImplicit);
         }
 
         private IBranchOperation CreateBoundBreakStatementOperation(BoundBreakStatement boundBreakStatement)
@@ -1502,11 +1501,10 @@ namespace Microsoft.CodeAnalysis.Operations
             ILabelSymbol target = boundBreakStatement.Label.GetPublicSymbol();
             BranchKind branchKind = BranchKind.Break;
             SyntaxNode syntax = boundBreakStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundBreakStatement.WasCompilerGenerated;
-            return new BranchOperation(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new BranchOperation(target, branchKind, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private IReturnOperation CreateBoundYieldBreakStatementOperation(BoundYieldBreakStatement boundYieldBreakStatement)
         {
@@ -1518,18 +1516,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyReturnOperation(this, returnedValue, OperationKind.YieldBreak, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IBranchOperation CreateBoundGotoStatementOperation(BoundGotoStatement boundGotoStatement)
         {
             ILabelSymbol target = boundGotoStatement.Label.GetPublicSymbol();
             BranchKind branchKind = BranchKind.GoTo;
             SyntaxNode syntax = boundGotoStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundGotoStatement.WasCompilerGenerated;
-            return new BranchOperation(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new BranchOperation(target, branchKind, _semanticModel, syntax, isImplicit);
         }
 
-#nullable enable
         private IEmptyOperation CreateBoundNoOpStatementOperation(BoundNoOpStatement boundNoOpStatement)
         {
             SyntaxNode syntax = boundNoOpStatement.Syntax;
