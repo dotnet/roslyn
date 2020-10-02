@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            if (request.Context.TriggerCharacter == null)
+            if (request.Context?.TriggerCharacter == null)
             {
                 return null;
             }
