@@ -494,13 +494,14 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+#nullable enable
         internal IOperation CreateBoundLocalOperation(BoundLocal boundLocal, bool createDeclaration = true)
         {
             ILocalSymbol local = boundLocal.LocalSymbol.GetPublicSymbol();
             bool isDeclaration = boundLocal.DeclarationKind != BoundLocalDeclarationKind.None;
             SyntaxNode syntax = boundLocal.Syntax;
-            ITypeSymbol type = boundLocal.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundLocal.ConstantValue;
+            ITypeSymbol? type = boundLocal.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundLocal.ConstantValue;
             bool isImplicit = boundLocal.WasCompilerGenerated;
             if (isDeclaration && syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
@@ -512,6 +513,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             return new LocalReferenceOperation(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
         }
+#nullable disable
 
         internal IOperation CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess, bool createDeclaration = true)
         {

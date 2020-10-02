@@ -762,6 +762,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IOperation> Indices { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents a reference to a declared local variable.
     /// <para>
@@ -790,6 +791,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         bool IsDeclaration { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a reference to a parameter.
     /// <para>
@@ -4713,20 +4715,27 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class LocalReferenceOperation : OperationOld, ILocalReferenceOperation
+    #nullable enable
+    internal sealed partial class LocalReferenceOperation : Operation, ILocalReferenceOperation
     {
-        internal LocalReferenceOperation(ILocalSymbol local, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.LocalReference, semanticModel, syntax, type, constantValue, isImplicit)
+        internal LocalReferenceOperation(ILocalSymbol local, bool isDeclaration, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Local = local;
             IsDeclaration = isDeclaration;
+            OperationConstantValue = constantValue;
+            Type = type;
         }
         public ILocalSymbol Local { get; }
         public bool IsDeclaration { get; }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.LocalReference;
         public override void Accept(OperationVisitor visitor) => visitor.VisitLocalReference(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLocalReference(this, argument);
     }
+    #nullable disable
     internal sealed partial class ParameterReferenceOperation : OperationOld, IParameterReferenceOperation
     {
         internal ParameterReferenceOperation(IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9110,6 +9119,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (LiteralOperation)operation;
             return new LiteralOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitLocalReference(ILocalReferenceOperation operation, object? argument)
+        {
+            var internalOperation = (LocalReferenceOperation)operation;
+            return new LocalReferenceOperation(internalOperation.Local, internalOperation.IsDeclaration, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
     }
     #nullable disable

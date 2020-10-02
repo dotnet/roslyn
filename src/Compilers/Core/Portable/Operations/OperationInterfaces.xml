@@ -699,7 +699,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ILocalReferenceOperation" Base="IOperation">
+  <Node Name="ILocalReferenceOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a reference to a declared local variable.

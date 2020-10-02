@@ -175,11 +175,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayElementReferenceOperation(Visit(operation.ArrayReference), VisitArray(operation.Indices), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitLocalReference(ILocalReferenceOperation operation, object argument)
-        {
-            return new LocalReferenceOperation(operation.Local, operation.IsDeclaration, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitParameterReference(IParameterReferenceOperation operation, object argument)
         {
             return new ParameterReferenceOperation(operation.Parameter, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

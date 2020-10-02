@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -3517,6 +3517,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
+#nullable enable
         private void AddExceptionStore(ITypeSymbol exceptionType, IOperation exceptionDeclarationOrExpression)
         {
             if (exceptionDeclarationOrExpression != null)
@@ -3552,6 +3553,7 @@ oneMoreTime:
                         isImplicit: true));
                 }
             }
+#nullable disable
         }
 
         public override IOperation VisitCatchClause(ICatchClauseOperation operation, int? captureIdForResult)
@@ -3686,12 +3688,13 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
+#nullable enable
         private void HandleUsingOperationParts(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous)
         {
             var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
             EnterRegion(usingRegion);
 
-            ITypeSymbol iDisposable = isAsynchronous
+            ITypeSymbol? iDisposable = isAsynchronous
                 ? _compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable)?.GetITypeSymbol()
                 : _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
@@ -3736,7 +3739,7 @@ oneMoreTime:
             Debug.Assert(_currentRegion == usingRegion);
             LeaveRegion();
 
-            void processQueue(ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)> resourceQueueOpt)
+            void processQueue(ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>? resourceQueueOpt)
             {
                 if (resourceQueueOpt == null || resourceQueueOpt.Count == 0)
                 {
@@ -3758,7 +3761,7 @@ oneMoreTime:
                 return resource.Type == null || resource.Type.Kind == SymbolKind.DynamicType;
             }
 
-            void processResource(IOperation resource, ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)> resourceQueueOpt)
+            void processResource(IOperation resource, ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>? resourceQueueOpt)
             {
                 // When ResourceType is a non-nullable value type, the expansion is:
                 //
@@ -3785,7 +3788,7 @@ oneMoreTime:
                 //   finally { if (d != null) d.Dispose(); }
                 // }
 
-                RegionBuilder resourceRegion = null;
+                RegionBuilder? resourceRegion = null;
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
@@ -3823,6 +3826,7 @@ oneMoreTime:
                 AppendNewBlock(afterTryFinally, linkToPrevious: false);
             }
         }
+#nullable disable
 
         private void AddDisposingFinally(IOperation resource, bool knownToImplementIDisposable, ITypeSymbol iDisposable, bool isAsynchronous)
         {
@@ -3903,6 +3907,7 @@ oneMoreTime:
                                            semanticModel: null, operand.Syntax, iDisposable, constantValue, isImplicit: true);
         }
 
+#nullable enable
         public override IOperation VisitLock(ILockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
@@ -3961,13 +3966,13 @@ oneMoreTime:
             lockedValue = PopOperand();
             PopStackFrame(frame);
 
-            var enterMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2)?.GetISymbol();
+            var enterMethod = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2)?.GetISymbol();
             bool legacyMode = (enterMethod == null);
 
             if (legacyMode)
             {
                 Debug.Assert(baseLockStatement.LockTakenSymbol == null);
-                enterMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter)?.GetISymbol();
+                enterMethod = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter)?.GetISymbol();
 
                 // Monitor.Enter($lock);
                 if (enterMethod == null)
@@ -3996,10 +4001,12 @@ oneMoreTime:
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndFinally));
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
 
-            IOperation lockTaken = null;
+            IOperation? lockTaken = null;
             if (!legacyMode)
             {
                 // Monitor.Enter($lock, ref $lockTaken);
+                Debug.Assert(baseLockStatement.LockTakenSymbol is not null);
+                Debug.Assert(enterMethod is not null);
                 lockTaken = new LocalReferenceOperation(baseLockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
                                                          baseLockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
                 AddStatement(new InvocationOperation(enterMethod, instance: null, isVirtual: false,
@@ -4040,6 +4047,7 @@ oneMoreTime:
             if (!legacyMode)
             {
                 // if ($lockTaken)
+                Debug.Assert(baseLockStatement.LockTakenSymbol is not null);
                 IOperation condition = new LocalReferenceOperation(baseLockStatement.LockTakenSymbol, isDeclaration: false, semanticModel: null, lockedValue.Syntax,
                                                                     baseLockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
                 ConditionalBranch(condition, jumpIfTrue: false, endOfFinally);
@@ -4047,7 +4055,7 @@ oneMoreTime:
             }
 
             // Monitor.Exit($lock);
-            var exitMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Exit)?.GetISymbol();
+            var exitMethod = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Exit)?.GetISymbol();
             lockedValue = OperationCloner.CloneOperation(lockedValue);
 
             if (exitMethod == null)
@@ -4093,7 +4101,7 @@ oneMoreTime:
 
             ForEachLoopOperationInfo info = ((BaseForEachLoopOperation)operation).Info;
 
-            RegionBuilder regionForCollection = null;
+            RegionBuilder? regionForCollection = null;
 
             if (!operation.Locals.IsEmpty && operation.LoopControlVariable.Kind == OperationKind.VariableDeclarator)
             {
@@ -4188,7 +4196,7 @@ oneMoreTime:
 
             return FinishVisitingStatement(operation);
 
-            IOperation applyConversion(IConvertibleConversion conversionOpt, IOperation operand, ITypeSymbol targetType)
+            IOperation applyConversion(IConvertibleConversion? conversionOpt, IOperation operand, ITypeSymbol? targetType)
             {
                 if (conversionOpt?.ToCommonConversion().IsIdentity == false)
                 {
@@ -4309,7 +4317,7 @@ oneMoreTime:
                 return makeInvocation(instance.Syntax, method, method.IsStatic ? null : instance, arguments);
             }
 
-            InvocationOperation makeInvocation(SyntaxNode syntax, IMethodSymbol method, IOperation instanceOpt, ImmutableArray<IArgumentOperation> arguments)
+            InvocationOperation makeInvocation(SyntaxNode syntax, IMethodSymbol method, IOperation? instanceOpt, ImmutableArray<IArgumentOperation> arguments)
             {
                 Debug.Assert(method.IsStatic == (instanceOpt == null));
                 return new InvocationOperation(method, instanceOpt,
@@ -4339,7 +4347,7 @@ oneMoreTime:
 
             if (isObjectLoop)
             {
-                locals = locals.Insert(0, loopObject);
+                locals = locals.Insert(0, loopObject!);
             }
 
             ITypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
@@ -4354,8 +4362,8 @@ oneMoreTime:
             // Handle loop initialization
             int limitValueId = -1;
             int stepValueId = -1;
-            IFlowCaptureReferenceOperation positiveFlag = null;
-            ITypeSymbol stepEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(operation.StepValue.Type);
+            IFlowCaptureReferenceOperation? positiveFlag = null;
+            ITypeSymbol? stepEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(operation.StepValue.Type);
 
             initializeLoop();
 
@@ -4380,6 +4388,7 @@ oneMoreTime:
 
             IOperation tryCallObjectForLoopControlHelper(SyntaxNode syntax, WellKnownMember helper)
             {
+                Debug.Assert(isObjectLoop && loopObject is not null);
                 bool isInitialization = (helper == WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
                 var loopObjectReference = new LocalReferenceOperation(loopObject,
                                                                        isDeclaration: isInitialization,
@@ -4387,12 +4396,12 @@ oneMoreTime:
                                                                        operation.LoopControlVariable.Syntax, loopObject.Type,
                                                                        constantValue: null, isImplicit: true);
 
-                var method = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(helper)?.GetISymbol();
+                var method = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(helper)?.GetISymbol();
                 int parametersCount = WellKnownMembers.GetDescriptor(helper).ParametersCount;
 
                 if (method is null)
                 {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(--parametersCount, fillWithValue: null);
+                    var builder = ArrayBuilder<IOperation?>.GetInstance(--parametersCount, fillWithValue: null);
                     builder[--parametersCount] = loopObjectReference;
                     do
                     {
@@ -4404,7 +4413,7 @@ oneMoreTime:
                 }
                 else
                 {
-                    var builder = ArrayBuilder<IArgumentOperation>.GetInstance(parametersCount, fillWithValue: null);
+                    var builder = ArrayBuilder<IArgumentOperation?>.GetInstance(parametersCount, fillWithValue: null);
 
                     builder[--parametersCount] = new ArgumentOperation(visitLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
                                                                        ArgumentKind.Explicit, method.Parameters[parametersCount],
@@ -4511,7 +4520,7 @@ oneMoreTime:
                              !ITypeSymbolHelpers.IsSignedIntegralType(stepEnumUnderlyingTypeOrSelf) &&
                              !ITypeSymbolHelpers.IsUnsignedIntegralType(stepEnumUnderlyingTypeOrSelf))
                     {
-                        IOperation stepValueIsNull = null;
+                        IOperation? stepValueIsNull = null;
 
                         if (ITypeSymbolHelpers.IsNullableType(stepValue.Type))
                         {
@@ -4519,7 +4528,7 @@ oneMoreTime:
                             stepValue = CallNullableMember(stepValue, SpecialMember.System_Nullable_T_GetValueOrDefault);
                         }
 
-                        ITypeSymbol stepValueEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(stepValue.Type);
+                        ITypeSymbol? stepValueEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(stepValue.Type);
 
                         if (ITypeSymbolHelpers.IsNumericType(stepValueEnumUnderlyingTypeOrSelf))
                         {
@@ -4738,7 +4747,7 @@ oneMoreTime:
                         return;
                     }
 
-                    IOperation eitherLimitOrControlVariableIsNull = null;
+                    IOperation? eitherLimitOrControlVariableIsNull = null;
 
                     if (ITypeSymbolHelpers.IsNullableType(operation.LimitValue.Type))
                     {
@@ -5026,6 +5035,7 @@ oneMoreTime:
                 }
             }
         }
+#nullable disable
 
         private static FlowCaptureReferenceOperation GetCaptureReference(int id, IOperation underlying)
         {
@@ -5397,6 +5407,7 @@ oneMoreTime:
             }
         }
 
+#nullable enable
         private void HandleVariableDeclarator(IVariableDeclarationOperation declaration, IVariableDeclaratorOperation declarator)
         {
             if (declarator.Initializer == null && declaration.Initializer == null)
@@ -5407,7 +5418,7 @@ oneMoreTime:
             ILocalSymbol localSymbol = declarator.Symbol;
 
             // If the local is a static (possible in VB), then we create a semaphore for conditional execution of the initializer.
-            BasicBlockBuilder afterInitialization = null;
+            BasicBlockBuilder? afterInitialization = null;
             if (localSymbol.IsStatic)
             {
                 afterInitialization = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -5422,8 +5433,8 @@ oneMoreTime:
 
             EvalStackFrame frame = PushStackFrame();
 
-            IOperation initializer = null;
-            SyntaxNode assignmentSyntax = null;
+            IOperation? initializer = null;
+            SyntaxNode? assignmentSyntax = null;
             if (declarator.Initializer != null)
             {
                 initializer = Visit(declarator.Initializer.Value);
@@ -5468,6 +5479,7 @@ oneMoreTime:
                 AppendNewBlock(afterInitialization);
             }
         }
+#nullable disable
 
         public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, int? captureIdForResult)
         {
@@ -6275,11 +6287,13 @@ oneMoreTime:
             return new LiteralOperation(semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitLocalReference(ILocalReferenceOperation operation, int? captureIdForResult)
         {
             return new LocalReferenceOperation(operation.Local, operation.IsDeclaration, semanticModel: null, operation.Syntax,
                                                 operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitParameterReference(IParameterReferenceOperation operation, int? captureIdForResult)
         {
