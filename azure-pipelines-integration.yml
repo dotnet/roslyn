@@ -20,21 +20,20 @@ jobs:
     name: NetCorePublic-Pool
     queue: buildpool.windows.10.amd64.vs2019.pre.open
   strategy:
-    maxParallel: 2
+    maxParallel: 4
     matrix:
       debug_32:
         _configuration: Debug
         _oop64bit: false
-      # 64-bit disabled for https://github.com/dotnet/roslyn/issues/40476
-      # debug_64:
-      #   _configuration: Debug
-      #   _oop64bit: true
+      debug_64:
+        _configuration: Debug
+        _oop64bit: true
       release_32:
         _configuration: Release
         _oop64bit: false
-      # release_64:
-      #   _configuration: Release
-      #   _oop64bit: true
+      release_64:
+        _configuration: Release
+        _oop64bit: true
   timeoutInMinutes: 135
 
   steps:
