@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -70,8 +71,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ShowLightBulb()
             => _textViewWindowInProc.ShowLightBulb();
 
-        public void WaitForLightBulbSession()
-            => _textViewWindowInProc.WaitForLightBulbSession();
+        public void WaitForLightBulbSession(TimeSpan timeout)
+            => _textViewWindowInProc.WaitForLightBulbSession(timeout);
 
         public bool IsLightBulbSessionExpanded()
             => _textViewWindowInProc.IsLightBulbSessionExpanded();
@@ -103,7 +104,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.DiagnosticService);
 
             ShowLightBulb();
-            WaitForLightBulbSession();
+            WaitForLightBulbSession(Helper.HangMitigatingTimeout);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
         }
 
@@ -114,7 +115,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void InvokeCodeActionListWithoutWaiting()
         {
             ShowLightBulb();
-            WaitForLightBulbSession();
+            WaitForLightBulbSession(Helper.HangMitigatingTimeout);
         }
 
         public void InvokeQuickInfo()

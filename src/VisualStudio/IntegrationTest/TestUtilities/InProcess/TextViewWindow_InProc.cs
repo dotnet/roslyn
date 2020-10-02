@@ -81,15 +81,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        public void WaitForLightBulbSession()
+        public void WaitForLightBulbSession(TimeSpan timeout)
         {
+            using var cancellationTokenSource = new CancellationTokenSource(timeout);
+
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
 
                 var view = GetActiveTextView();
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view);
+                await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view).ConfigureAwait(false);
             });
         }
 

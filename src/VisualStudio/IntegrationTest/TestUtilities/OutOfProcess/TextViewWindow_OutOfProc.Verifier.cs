@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 bool blockUntilComplete = true)
             {
                 _textViewWindow.ShowLightBulb();
-                _textViewWindow.WaitForLightBulbSession();
+                _textViewWindow.WaitForLightBulbSession(Helper.HangMitigatingTimeout);
 
                 if (verifyNotShowing)
                 {
