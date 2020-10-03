@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
             Inherits CodeAction.DocumentChangeAction
 
             Public Sub New(createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(FeaturesResources.Remove_shared_keyword_from_module_member, createChangedDocument, FeaturesResources.Remove_shared_keyword_from_module_member)
+                MyBase.New(VBFeaturesResources.Remove_shared_keyword_from_module_member, createChangedDocument, VBFeaturesResources.Remove_shared_keyword_from_module_member)
             End Sub
         End Class
     End Class
