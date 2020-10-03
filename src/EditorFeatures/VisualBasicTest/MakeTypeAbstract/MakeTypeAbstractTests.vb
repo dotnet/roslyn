@@ -5,14 +5,14 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.MakeClassAbstract
+Imports Microsoft.CodeAnalysis.VisualBasic.MakeTypeAbstract
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeClassAbstract
-    Public Class MakeClassAbstractTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeTypeAbstract
+    Public Class MakeTypeAbstractTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (Nothing, New VisualBasicMakeClassAbstractCodeFixProvider())
+            Return (Nothing, New VisualBasicMakeTypeAbstractCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
