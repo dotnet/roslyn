@@ -1312,6 +1312,24 @@ C";
         }
 
         [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructorWithExplicitPrivateCtorWithParameters()
+        {
+            var source = @"
+public struct {|RS0016:C|}
+{
+    private C(string x) {}
+}
+";
+
+            var shippedText = @"
+C";
+            var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
         public async Task ShippedTextWithMissingImplicitStructConstructorWithOtherOverloadsAsync()
         {
             var source = @"
