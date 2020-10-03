@@ -689,8 +689,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     VBError originalVBError = _vbErrorLines.Dequeue();
                     string originalVBErrorString = originalVBError.Message;
 
-                    int column = singleLine.IndexOf('~') + 1;
-                    int endParenthesisLocation = originalVBErrorString.IndexOf(')');
+                    int column = singleLine.IndexOf('^') + 1;
+                    int endParenthesisLocation = originalVBErrorString.IndexOf('^');
 
                     // If for some reason the line does not contain any ~ then something went wrong
                     // so abort and return the original string.
