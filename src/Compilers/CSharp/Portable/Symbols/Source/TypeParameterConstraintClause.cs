@@ -220,13 +220,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal static class TypeParameterConstraintClauseExtensions
     {
-        internal static bool HasValue(this ImmutableArray<TypeParameterConstraintClause> constraintClauses, bool canIgnoreNullableContext)
+        internal static bool HasValue(this ImmutableArray<TypeParameterConstraintClause> constraintClauses, bool useLightweightTypeConstraintBinding)
         {
             if (constraintClauses.IsDefault)
             {
                 return false;
             }
-            return canIgnoreNullableContext || !constraintClauses.IgnoresNullableContext();
+            return useLightweightTypeConstraintBinding || !constraintClauses.IgnoresNullableContext();
         }
 
         internal static bool IgnoresNullableContext(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
@@ -244,11 +244,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // or was updated to a value with sufficient 'IgnoresNullableContext' on another thread.
         internal static bool InterlockedUpdate(ref ImmutableArray<TypeParameterConstraintClause> constraintClauses, ImmutableArray<TypeParameterConstraintClause> value)
         {
-            bool canIgnoreNullableContext = value.IgnoresNullableContext();
+            bool useLightweightTypeConstraintBinding = value.IgnoresNullableContext();
             while (true)
             {
                 var comparand = constraintClauses;
-                if (comparand.HasValue(canIgnoreNullableContext))
+                if (comparand.HasValue(useLightweightTypeConstraintBinding))
                 {
                     return false;
                 }

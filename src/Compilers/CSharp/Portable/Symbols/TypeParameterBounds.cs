@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal static class TypeParameterBoundsExtensions
     {
-        internal static bool HasValue(this TypeParameterBounds? boundsOpt, bool canIgnoreNullableContext)
+        internal static bool HasValue(this TypeParameterBounds? boundsOpt, bool useLightweightTypeConstraintBinding)
         {
             if (boundsOpt == TypeParameterBounds.Unset)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            return canIgnoreNullableContext || !boundsOpt.IgnoresNullableContext;
+            return useLightweightTypeConstraintBinding || !boundsOpt.IgnoresNullableContext;
         }
 
         // Returns true if bounds was updated with value.
@@ -100,11 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // or was updated to a value with sufficient 'IgnoresNullableContext' on another thread.
         internal static bool InterlockedUpdate(ref TypeParameterBounds? bounds, TypeParameterBounds? value)
         {
-            bool canIgnoreNullableContext = (value?.IgnoresNullableContext == true);
+            bool useLightweightTypeConstraintBinding = (value?.IgnoresNullableContext == true);
             while (true)
             {
                 var comparand = bounds;
-                if (comparand != TypeParameterBounds.Unset && comparand.HasValue(canIgnoreNullableContext))
+                if (comparand != TypeParameterBounds.Unset && comparand.HasValue(useLightweightTypeConstraintBinding))
                 {
                     return false;
                 }

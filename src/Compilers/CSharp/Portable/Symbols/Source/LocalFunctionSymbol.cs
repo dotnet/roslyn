@@ -459,9 +459,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext)
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool useLightweightTypeConstraintBinding)
         {
-            if (!_lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext))
+            if (!_lazyTypeParameterConstraints.HasValue(useLightweightTypeConstraintBinding))
             {
                 var syntax = Syntax;
                 var diagnostics = DiagnosticBag.GetInstance();
@@ -470,14 +470,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
-                    canIgnoreNullableContext,
+                    useLightweightTypeConstraintBinding,
                     diagnostics);
                 lock (_declarationDiagnostics)
                 {
-                    canIgnoreNullableContext = constraints.IgnoresNullableContext();
-                    if (!_lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext))
+                    useLightweightTypeConstraintBinding = constraints.IgnoresNullableContext();
+                    if (!_lazyTypeParameterConstraints.HasValue(useLightweightTypeConstraintBinding))
                     {
-                        if (!canIgnoreNullableContext)
+                        if (!useLightweightTypeConstraintBinding)
                         {
                             _declarationDiagnostics.AddRange(diagnostics);
                         }

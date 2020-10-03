@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return null;
+                return new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedUnboundGenericName);
             }
         }
 
