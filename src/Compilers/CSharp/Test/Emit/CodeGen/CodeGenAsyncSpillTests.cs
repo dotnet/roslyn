@@ -6445,7 +6445,7 @@ unsafe struct TestStruct
    }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: string.Empty);
+            var verifier = CompileAndVerify(source, expectedOutput: string.Empty, options: TestOptions.UnsafeDebugExe);
             verifier.VerifyDiagnostics();
         }
     }
