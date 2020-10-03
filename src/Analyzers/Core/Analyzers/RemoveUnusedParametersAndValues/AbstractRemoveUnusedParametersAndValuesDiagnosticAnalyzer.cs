@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -99,6 +101,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             UnusedValueAssignmentOption = unusedValueAssignmentOption;
         }
 
+        protected abstract bool IsRecordDeclaration(SyntaxNode node);
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);

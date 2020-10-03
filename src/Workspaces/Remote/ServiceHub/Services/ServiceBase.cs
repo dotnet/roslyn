@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         static ServiceBase()
         {
-            // Use a TraceListener hook to intercept assertion failures and report them through FatalError.
-            WatsonTraceListener.Install();
+            WatsonReporter.InitializeFatalErrorHandlers();
         }
 
         protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)

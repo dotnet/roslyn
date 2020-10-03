@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             bool isConfigurable = true,
             LocalizableString? description = null,
             params string[] customTags)
-            => new DiagnosticDescriptor(
+            => new(
                     id, title, messageFormat,
                     DiagnosticCategory.Style,
                     DiagnosticSeverity.Hidden,

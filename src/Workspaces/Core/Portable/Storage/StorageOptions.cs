@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -17,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public const string OptionName = "FeatureManager/Storage";
 
-        public static readonly Option<StorageDatabase> Database = new Option<StorageDatabase>(
+        public static readonly Option<StorageDatabase> Database = new(
             OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite);
 
-        public static readonly Option<bool> SQLiteInMemoryWriteCache = new Option<bool>(
+        public static readonly Option<bool> SQLiteInMemoryWriteCache = new(
             OptionName, nameof(SQLiteInMemoryWriteCache), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SQLiteInMemoryWriteCache)));
     }

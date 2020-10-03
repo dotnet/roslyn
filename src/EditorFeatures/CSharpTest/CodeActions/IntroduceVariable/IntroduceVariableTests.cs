@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -7772,6 +7774,42 @@ public class P
     {
         string {|Rename:v|} = $"""";
         s.Bar(v);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(44656, "https://github.com/dotnet/roslyn/issues/44656")]
+        public async Task ImplicitObjectCreation()
+        {
+            await TestInRegularAndScriptAsync(@"
+class A
+{
+    public void Create(A a, B b)
+    {
+    }
+}
+
+class B
+{
+    void M()
+    {
+        new A().Create(new A(), [|new(1)|]);
+    }
+}", @"
+class A
+{
+    public void Create(A a, B b)
+    {
+    }
+}
+
+class B
+{
+    void M()
+    {
+        B {|Rename:b|} = new(1);
+        new A().Create(new A(), b);
     }
 }");
         }

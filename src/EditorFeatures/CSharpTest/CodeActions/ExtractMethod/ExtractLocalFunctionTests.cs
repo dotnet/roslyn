@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
@@ -4746,14 +4748,61 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TopLevelStatement_ArgumentInInvocation()
         {
-            // ExtractLocalFunction currently disabled in the presence of top-level statements
-            // https://github.com/dotnet/roslyn/issues/44260
-
             var code = @"
 System.Console.WriteLine([|""string""|]);
 ";
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method },
-                new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)));
+            var expected = @"
+System.Console.WriteLine({|Rename:NewMethod|}());
+
+static string NewMethod()
+{
+    return ""string"";
+}";
+
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+        }
+
+        [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TopLevelStatement_InBlock_ArgumentInInvocation()
+        {
+            var code = @"
+{
+    System.Console.WriteLine([|""string""|]);
+}
+";
+            var expected = @"
+{
+    System.Console.WriteLine({|Rename:NewMethod|}());
+
+    static string NewMethod()
+    {
+        return ""string"";
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+        }
+
+        [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TopLevelStatement_ArgumentInInvocation_InInteractive()
+        {
+            var code = @"
+System.Console.WriteLine([|""string""|]);
+";
+            var expected =
+@"{
+    System.Console.WriteLine({|Rename:NewMethod|}());
+
+    static string NewMethod()
+    {
+        return ""string"";
+    }
+}";
+
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
         }
     }
 }

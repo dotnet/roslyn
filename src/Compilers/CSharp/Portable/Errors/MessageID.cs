@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -215,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExtensionGetAsyncEnumerator = MessageBase + 12788,
         IDS_Parameter = MessageBase + 12789,
         IDS_Return = MessageBase + 12790,
+        IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -347,6 +346,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureModuleInitializers: // semantic check on method attribute
                 case MessageID.IDS_FeatureDefaultTypeParameterConstraint:
                     return LanguageVersion.CSharp9;
+
+                case MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers: //semantic check
+                    return LanguageVersion.Preview;
 
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:

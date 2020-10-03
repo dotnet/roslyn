@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -23,10 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public OverrideCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(OverrideCompletionProvider);
 
@@ -3041,6 +3040,48 @@ namespace NS3
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Bar(NS2.Baz baz)", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47941, "https://github.com/dotnet/roslyn/issues/47941")]
+        public async Task OverrideInRecordWithoutExplicitOverriddenMember()
+        {
+            await VerifyItemExistsAsync(@"record Program
+{
+    override $$
+}", "ToString()");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47941, "https://github.com/dotnet/roslyn/issues/47941")]
+        public async Task OverrideInRecordWithExplicitOverriddenMember()
+        {
+            await VerifyItemIsAbsentAsync(@"record Program
+{
+    public override string ToString() => "";
+
+    override $$
+}", "ToString()");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47973, "https://github.com/dotnet/roslyn/issues/47973")]
+        public async Task NoCloneInOverriddenRecord()
+        {
+            // Currently WellKnownMemberNames.CloneMethodName is not public, so we can't reference it directly.  We
+            // could hardcode in the value "<Clone>$", however if the compiler ever changed the name and we somehow
+            // started showing it in completion, this test would continue to pass.  So this allows us to at least go
+            // back and explicitly validate this scenario even in that event.
+            var cloneMemberName = (string)typeof(WellKnownMemberNames).GetField("CloneMethodName", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+            Assert.Equal("<Clone>$", cloneMemberName);
+
+            await VerifyItemIsAbsentAsync(@"
+record Base();
+
+record Program : Base
+{
+    override $$
+}", cloneMemberName);
         }
     }
 }

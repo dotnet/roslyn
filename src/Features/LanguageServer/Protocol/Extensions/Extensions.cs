@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -48,6 +47,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             return documentIds.SelectAsArray(id => getDocument(solution, id));
+        }
+
+        public static (Document?, Solution) GetDocumentAndSolution(this ILspSolutionProvider provider, TextDocumentIdentifier? textDocument, string? clientName)
+        {
+            var solution = provider.GetCurrentSolutionForMainWorkspace();
+            if (textDocument != null)
+            {
+                var document = provider.GetDocument(textDocument, clientName);
+                var solutionOfDocument = document?.Project.Solution;
+
+                return (document, solutionOfDocument ?? solution);
+            }
+
+            return (null, solution);
         }
 
         public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)

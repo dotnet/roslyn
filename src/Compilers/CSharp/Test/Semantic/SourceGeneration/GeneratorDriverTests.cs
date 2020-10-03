@@ -19,8 +19,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class GeneratorDriverTests
@@ -720,8 +718,8 @@ class C { }
 
             var filePaths = outputCompilation.SyntaxTrees.Skip(1).Select(t => t.FilePath).ToArray();
             Assert.Equal(new[] {
-                $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}_source.cs",
-                $"{generator2.GetType().Module.ModuleVersionId}_{generator2.GetType().FullName}_source.cs"
+                Path.Combine(generator.GetType().Assembly.GetName().Name!, generator.GetType().FullName!, "source.cs"),
+                Path.Combine(generator2.GetType().Assembly.GetName().Name!, generator2.GetType().FullName!, "source.cs")
             }, filePaths);
         }
 

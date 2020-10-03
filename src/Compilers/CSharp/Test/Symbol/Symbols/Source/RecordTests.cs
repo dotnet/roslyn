@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -77,7 +75,7 @@ record C(int x, string y)
                 // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12),
-                // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
                 );
@@ -106,7 +104,7 @@ record C(int x, string y)
     }
 }");
             comp.VerifyDiagnostics(
-                // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b) // overload
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
                 );
@@ -232,6 +230,9 @@ record C(int X, int Y)
                 // (4,17): error CS8872: 'C.Equals(C)' must allow overriding because the containing record is not sealed.
                 //     public bool Equals(C c) => throw null;
                 Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("C.Equals(C)").WithLocation(4, 17),
+                // (4,17): warning CS8851: 'C' defines 'Equals' but not 'GetHashCode'
+                //     public bool Equals(C c) => throw null;
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("C").WithLocation(4, 17),
                 // (5,26): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
                 //     public override bool Equals(object o) => false;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "C").WithLocation(5, 26)
@@ -266,7 +267,11 @@ record C(int X, int Y)
         Console.WriteLine(c.Equals(c));
     }
     public virtual bool Equals(C c) => false;
-}", expectedOutput: "False").VerifyDiagnostics();
+}", expectedOutput: "False").VerifyDiagnostics(
+    // (10,25): warning CS8851: 'C' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(C c) => false;
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("C").WithLocation(10, 25)
+);
         }
 
         [Fact]
@@ -304,7 +309,11 @@ sealed record C(int X, int Y)
     }
     public bool Equals(C c) => X == c.X && Y == c.Y;
 }", expectedOutput: @"True
-False").VerifyDiagnostics();
+False").VerifyDiagnostics(
+    // (13,17): warning CS8851: 'C' defines 'Equals' but not 'GetHashCode'
+    //     public bool Equals(C c) => X == c.X && Y == c.Y;
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("C").WithLocation(13, 17)
+);
 
             verifier.VerifyIL("C.Equals(object)", @"
 {

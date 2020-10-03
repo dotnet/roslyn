@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -144,9 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingTypeParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        internal override void EnsureAllConstraintsAreResolved()
+        internal override void EnsureAllConstraintsAreResolved(bool canIgnoreNullableContext)
         {
-            _underlyingTypeParameter.EnsureAllConstraintsAreResolved();
+            _underlyingTypeParameter.EnsureAllConstraintsAreResolved(canIgnoreNullableContext);
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()

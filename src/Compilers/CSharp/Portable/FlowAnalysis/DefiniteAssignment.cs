@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if DEBUG
 // We use a struct rather than a class to represent the state for efficiency
 // for data flow analysis, with 32 bits of data inline. Merely copying the state
@@ -1979,7 +1981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MarkFieldsUsed(type);
             }
         }
-#nullable restore
+#nullable disable
 
         protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
         {
@@ -2056,7 +2058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
             }
         }
-#nullable restore
+#nullable disable
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {

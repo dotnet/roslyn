@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -124,6 +122,11 @@ namespace Microsoft.CodeAnalysis
         /// Absolute path of the documentation comment XML file or null if not specified.
         /// </summary>
         public string? DocumentationPath { get; internal set; }
+
+        /// <summary>
+        /// Absolute path of the directory to place generated files in, or <c>null</c> to not emit any generated files.
+        /// </summary>
+        public string? GeneratedFilesOutputDirectory { get; internal set; }
 
         /// <summary>
         /// Options controlling the generation of a SARIF log file containing compilation or

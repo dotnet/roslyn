@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -125,7 +127,10 @@ $@"<Workspace>
             };
 
         private static async Task<WorkspaceEdit> RunRenameAsync(Solution solution, LSP.Location renameLocation, string renamevalue)
-           => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.RenameParams, LSP.WorkspaceEdit>(LSP.Methods.TextDocumentRenameName,
-               CreateRenameParams(renameLocation, renamevalue), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        {
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.RenameParams, LSP.WorkspaceEdit>(queue, LSP.Methods.TextDocumentRenameName,
+                          CreateRenameParams(renameLocation, renamevalue), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
     }
 }

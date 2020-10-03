@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,7 +31,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var completionParams = CreateCompletionParams(
                 locations["caret"].Single(), triggerCharacter: "\0", triggerKind: LSP.CompletionTriggerKind.Invoked);
-            var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" }, completionParams);
+
+            var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
+                completionParams, commitCharacters: CompletionRules.Default.DefaultCommitCharacters);
 
             var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -92,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var completionParams = CreateCompletionParams(locations["caret"].Single(), triggerCharacter: "\0", LSP.CompletionTriggerKind.Invoked);
             var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
-                completionParams, preselect: true);
+                completionParams, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{'));
 
             var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -125,10 +130,75 @@ namespace M
             Assert.True(results.SuggesstionMode);
         }
 
+        [Fact]
+        public async Task TestGetDateAndTimeCompletionsAsync()
+        {
+            var markup =
+@"using System;
+class A
+{
+    void M()
+    {
+        DateTime.Now.ToString(""{|caret:|});
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(), triggerCharacter: "\"", triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+            var expected = CreateCompletionItem("d", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, sortText: "0000");
+
+            var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
+            AssertJsonEquals(expected, results.Items.First());
+        }
+
+        [Fact]
+        public async Task TestGetRegexCompletionsAsync()
+        {
+            var markup =
+@"using System.Text.RegularExpressions;
+class A
+{
+    void M()
+    {
+        new Regex(""\\{|caret:|}"");
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(), triggerCharacter: "\\", triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+            var expected = CreateCompletionItem("\\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, sortText: "0000");
+
+            var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
+            AssertJsonEquals(expected, results.Items.First());
+        }
+
+        [Fact]
+        [WorkItem(47743, "https://github.com/dotnet/roslyn/issues/47743")]
+        public async Task TestGetRegexCompletionsTargetTypedAsync()
+        {
+            var markup =
+@"using System.Text.RegularExpressions;
+class A
+{
+    void M()
+    {
+        Regex r = new(""\\{|caret:|}"");
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(), triggerCharacter: "\\", triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+            var expected = CreateCompletionItem("\\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, sortText: "0000");
+
+            var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
+            AssertJsonEquals(expected, results.Items.First());
+        }
+
         private static async Task<LSP.CompletionList> RunGetCompletionsAsync(Solution solution, LSP.CompletionParams completionParams)
         {
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName,
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(queue, LSP.Methods.TextDocumentCompletionName,
                 completionParams, clientCapabilities, null, CancellationToken.None);
         }
     }

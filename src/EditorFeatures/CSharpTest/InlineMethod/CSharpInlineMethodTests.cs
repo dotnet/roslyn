@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod;
@@ -47,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                             ("File2", expectedMarkUpForFile2),
                         }
                     },
-                    CodeActionValidationMode = CodeActionValidationMode.None
+                    CodeActionValidationMode = CodeActionValidationMode.None,
+                    LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
                 };
                 test.FixedState.ExpectedDiagnostics.AddRange(diagnosticResults);
                 await test.RunAsync().ConfigureAwait(false);
@@ -71,7 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                     {
                         Sources = { expectedMarkUp },
                     },
-                    CodeActionValidationMode = CodeActionValidationMode.None
+                    CodeActionValidationMode = CodeActionValidationMode.None,
+                    LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
                 };
                 test.FixedState.ExpectedDiagnostics.AddRange(diagnosticResults);
                 await test.RunAsync().ConfigureAwait(false);
@@ -3522,8 +3526,47 @@ public partial class TestClass
 ##}");
 
         [Fact]
+        public Task TestForExtendedPartialMethod1()
+            => TestVerifier.TestInRegularScriptsInDifferentFilesAsync(
+            @"
+public partial class TestClass
+{
+    void Caller()
+    {
+        Call[||]ee();
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private partial void Callee();
+
+    private partial void Callee()
+    {
+        System.Console.WriteLine(""10"");
+    }
+}",
+                @"
+public partial class TestClass
+{
+    void Caller()
+    {
+        System.Console.WriteLine(""10"");
+    }
+}", @"
+public partial class TestClass
+{
+    private partial void Callee();
+
+    private partial void Callee()
+    {
+        System.Console.WriteLine(""10"");
+    }
+}", keepInlinedMethod: true);
+
+        [Fact]
         public Task TestForPartialMethod2()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
+            => TestVerifier.TestInRegularAndScriptInTheSameFileAsync(
             @"
 public partial class TestClass
 {
@@ -3554,11 +3597,51 @@ public partial class TestClass
 {
     partial void Caller();
     partial void Callee();
-##
+
     partial void Callee()
     {
         System.Console.WriteLine(""10"");
     }
-##}");
+}", keepInlinedMethod: true);
+
+        [Fact]
+        public Task TestForExtendedPartialMethod2()
+            => TestVerifier.TestInRegularAndScriptInTheSameFileAsync(
+            @"
+public partial class TestClass
+{
+    private partial void Caller()
+    {
+        Call[||]ee();
+    }
+}
+public partial class TestClass
+{
+    private partial void Caller();
+    private partial void Callee();
+
+    private partial void Callee()
+    {
+        System.Console.WriteLine(""10"");
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private partial void Caller()
+    {
+        System.Console.WriteLine(""10"");
+    }
+}
+public partial class TestClass
+{
+    private partial void Caller();
+    private partial void Callee();
+
+    private partial void Callee()
+    {
+        System.Console.WriteLine(""10"");
+    }
+}", keepInlinedMethod: true);
     }
 }

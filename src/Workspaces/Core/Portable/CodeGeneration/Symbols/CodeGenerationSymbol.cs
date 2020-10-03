@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal abstract class CodeGenerationSymbol : ISymbol
     {
         protected static ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]> annotationsTable =
-            new ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]>();
+            new();
 
         private ImmutableArray<AttributeData> _attributes;
 
