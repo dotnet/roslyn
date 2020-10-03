@@ -1126,7 +1126,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics, basesBeingResolved, qualifierOpt, node, plainName, node.Arity, options);
             NamedTypeSymbol resultType;
 
-            if (isUnboundTypeExpr)
+            if ((Flags & BinderFlags.LightweightTypeConstraintBinding) != 0)
+            {
+                resultType = unconstructedType.Construct(PlaceholderTypeArgumentSymbol.CreateTypeArguments(unconstructedType.TypeParameters), unbound: false);
+            }
+            else if (isUnboundTypeExpr)
             {
                 if (!IsUnboundTypeAllowed(node))
                 {

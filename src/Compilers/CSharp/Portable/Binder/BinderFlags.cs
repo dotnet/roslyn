@@ -113,9 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         InEEMethodBinder = 1 << 30,
 
         /// <summary>
-        /// Assume '#nullable disable' context.
+        /// Skip binding type arguments in type constraints
         /// </summary>
-        IgnoreNullableContext = 1u << 31,
+        LightweightTypeConstraintBinding = 1u << 31,
 
         // Groups
 

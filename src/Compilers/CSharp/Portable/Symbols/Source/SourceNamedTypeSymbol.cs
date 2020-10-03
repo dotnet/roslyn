@@ -321,7 +321,7 @@ next:;
                         // to avoid checking constraints when binding type names.
                         Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
                         binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(
-                            BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (canIgnoreNullableContext ? BinderFlags.IgnoreNullableContext : 0));
+                            BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (canIgnoreNullableContext ? BinderFlags.LightweightTypeConstraintBinding : 0));
 
                         constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, canIgnoreNullableContext, ref isValueTypeOverride, diagnostics);
                     }

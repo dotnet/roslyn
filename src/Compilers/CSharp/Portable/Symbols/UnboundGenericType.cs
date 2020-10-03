@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly ErrorTypeSymbol Instance = new UnboundArgumentErrorTypeSymbol(string.Empty, new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedUnboundGenericName));
 
         private readonly string _name;
-        private readonly DiagnosticInfo _errorInfo;
+        private readonly DiagnosticInfo? _errorInfo;
 
-        private UnboundArgumentErrorTypeSymbol(string name, DiagnosticInfo errorInfo, TupleExtraData? tupleData = null)
+        private UnboundArgumentErrorTypeSymbol(string name, DiagnosticInfo? errorInfo, TupleExtraData? tupleData = null)
             : base(tupleData)
         {
             _name = name;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo ErrorInfo
+        internal override DiagnosticInfo? ErrorInfo
         {
             get
             {
@@ -117,6 +117,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _errorInfo == null
                 ? _name.GetHashCode()
                 : Hash.Combine(_name, _errorInfo.Code);
+        }
+    }
+
+    /// <summary>
+    /// Used for lightweight binding of type constraints. Instead of binding type arguments,
+    /// we'll just use these placeholders instead. That's good enough binding to compute
+    /// <see cref="TypeSymbol.IsValueType"/> with minimal binding.
+    /// </summary>
+    internal sealed class PlaceholderTypeArgumentSymbol : ErrorTypeSymbol
+    {
+        public static ImmutableArray<TypeWithAnnotations> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters)
+        {
+            var result = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+            foreach (var typeParameter in typeParameters)
+            {
+                result.Add(TypeWithAnnotations.Create(new PlaceholderTypeArgumentSymbol(typeParameter.Name)));
+            }
+            return result.ToImmutableAndFree();
+        }
+
+        private readonly string _name;
+
+        private PlaceholderTypeArgumentSymbol(string name, TupleExtraData? tupleData = null)
+            : base(tupleData)
+        {
+            _name = name;
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new PlaceholderTypeArgumentSymbol(_name, newData);
+        }
+
+        public override string Name
+        {
+            get
+            {
+                return _name;
+            }
+        }
+
+        internal override bool MangleName
+        {
+            get
+            {
+                Debug.Assert(Arity == 0);
+                return false;
+            }
+        }
+
+        internal override DiagnosticInfo? ErrorInfo
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        {
+            if ((object)t2 == (object)this)
+            {
+                return true;
+            }
+
+            return t2 is PlaceholderTypeArgumentSymbol other && string.Equals(other._name, _name, StringComparison.Ordinal);
+        }
+
+        public override int GetHashCode()
+        {
+            return _name.GetHashCode();
         }
     }
 }

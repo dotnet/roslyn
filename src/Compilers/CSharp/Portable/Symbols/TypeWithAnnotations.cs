@@ -468,6 +468,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return newTypeWithModifiers;
             }
 
+            if (newTypeWithModifiers.Type is PlaceholderTypeArgumentSymbol)
+            {
+                return newTypeWithModifiers;
+            }
+
             NullableAnnotation newAnnotation;
 
             Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.DefaultType) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
@@ -489,18 +494,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 newAnnotation = NullableAnnotation;
             }
-            else if (NullableAnnotation != NullableAnnotation.Oblivious)
+            else if (NullableAnnotation.IsNotAnnotated())
             {
-                if (!typeSymbol.IsTypeParameterDisallowingAnnotationInCSharp8())
-                {
-                    newAnnotation = NullableAnnotation;
-                }
-                else
+                if (typeSymbol.IsTypeParameterDisallowingAnnotationInCSharp8() && !newTypeWithModifiers.Type.IsTypeParameterDisallowingAnnotationInCSharp8())
                 {
                     newAnnotation = newTypeWithModifiers.NullableAnnotation;
                 }
+                else
+                {
+                    newAnnotation = NullableAnnotation;
+                }
             }
-            else if (newTypeWithModifiers.NullableAnnotation != NullableAnnotation.Oblivious)
+            else if (newTypeWithModifiers.NullableAnnotation.IsNotAnnotated())
             {
                 newAnnotation = newTypeWithModifiers.NullableAnnotation;
             }
