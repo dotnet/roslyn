@@ -66,8 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
                     var node = nodes.Pop();
                     if (!cancellationToken.IsCancellationRequested)
                     {
-                        if (node.Kind() == SyntaxKind.ClassDeclaration ||
-                            node.Kind() == SyntaxKind.DelegateDeclaration ||
+                        if (node.Kind() == SyntaxKind.DelegateDeclaration ||
                             node.Kind() == SyntaxKind.EnumDeclaration ||
                             node.Kind() == SyntaxKind.InterfaceDeclaration ||
                             node.Kind() == SyntaxKind.StructDeclaration ||
