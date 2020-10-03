@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
         {
             new[] { "class" },
             new[] { "enum" },
-            new[] { "interface"}
+            new[] { "interface" },
+            new[] { "record" },
         };
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
