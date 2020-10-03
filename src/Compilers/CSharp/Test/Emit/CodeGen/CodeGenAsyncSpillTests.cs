@@ -6418,5 +6418,35 @@ public class C
             var verifier = CompileAndVerify(source, expectedOutput: "1");
             verifier.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(48255, "https://github.com/dotnet/roslyn/issues/48255")]
+        public void MakeRefWithStackalloc()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var ts = new TestStruct();
+        Console.WriteLine(ts.ToString());
+    }
+  }
+
+unsafe struct TestStruct
+{
+    public override string ToString()
+    {
+        Span<char> chars = stackalloc char[4];
+        var reference = __makeref(this);
+
+        return string.Empty;
+   }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: string.Empty);
+            verifier.VerifyDiagnostics();
+        }
     }
 }
