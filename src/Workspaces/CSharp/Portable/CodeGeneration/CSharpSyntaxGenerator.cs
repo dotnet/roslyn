@@ -1304,10 +1304,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             switch (declaration)
             {
-                case TypeDeclarationSyntax typeDeclaration:
-                    return this.AsClassMember(member, typeDeclaration.Identifier.Text);
                 case InterfaceDeclarationSyntax:
                     return this.AsInterfaceMember(member);
+                case TypeDeclarationSyntax typeDeclaration:
+                    return this.AsClassMember(member, typeDeclaration.Identifier.Text);
                 case EnumDeclarationSyntax:
                     return this.AsEnumMember(member);
                 case NamespaceDeclarationSyntax:
@@ -1731,12 +1731,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 MethodDeclarationSyntax methodDeclaration => methodDeclaration.Identifier.ValueText,
                 BaseFieldDeclarationSyntax baseFieldDeclaration => this.GetName(baseFieldDeclaration.Declaration),
                 PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Identifier.ValueText,
+                EnumMemberDeclarationSyntax enumMemberDeclaration => enumMemberDeclaration.Identifier.ValueText,
                 EventDeclarationSyntax eventDeclaration => eventDeclaration.Identifier.ValueText,
                 NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Name.ToString(),
                 UsingDirectiveSyntax usingDirective => usingDirective.Name.ToString(),
                 ParameterSyntax parameter => parameter.Identifier.ValueText,
                 LocalDeclarationStatementSyntax localDeclaration => this.GetName(localDeclaration.Declaration),
                 VariableDeclarationSyntax variableDeclaration when variableDeclaration.Variables.Count == 1 => variableDeclaration.Variables[0].Identifier.ValueText,
+                VariableDeclaratorSyntax variableDeclarator => variableDeclarator.Identifier.ValueText,
                 TypeParameterSyntax typeParameter => typeParameter.Identifier.ValueText,
                 AttributeListSyntax attributeList when attributeList.Attributes.Count == 1 => attributeList.Attributes[0].Name.ToString(),
                 AttributeSyntax attribute => attribute.Name.ToString(),
