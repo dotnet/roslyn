@@ -63,19 +63,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                 statement = statement.WithAsClause(initializer.asNewClause)
             End If
 
+            If initializer.arrayBounds IsNot Nothing Then
+                Dim elementType = DirectCast(statement.GetReturnType(), ArrayTypeSyntax).ElementType
+                Dim arrayCreation = SyntaxFactory.ArrayCreationExpression(Nothing, elementType, initializer.arrayBounds, SyntaxFactory.CollectionInitializer())
+                statement = statement.WithTrailingTrivia(SyntaxFactory.Space) _
+                    .WithInitializer(SyntaxFactory.EqualsValue(arrayCreation))
+            End If
+
             Return statement
         End Function
 
-        Private Shared Async Function GetFieldInitializerAsync(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax))
+        Private Shared Async Function GetFieldInitializerAsync(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax, arrayBounds As ArgumentListSyntax))
             Dim identifier = TryCast(Await fieldSymbol.DeclaringSyntaxReferences(0).GetSyntaxAsync(cancellationToken).ConfigureAwait(False), ModifiedIdentifierSyntax)
             Dim declarator = TryCast(identifier?.Parent, VariableDeclaratorSyntax)
             Dim initializer = declarator?.Initializer
+            Dim arrayBounds = identifier?.ArrayBounds
 
             ' We are only interested in the AsClause if it's being used as an initializer:
             '  Dim x As String -- no need to preserve the clause since it will already be the same on the property
             '  Dim x As New Guid("...") -- need to preserve the clause since it's being used as an initializer
             Dim asNewClause = TryCast(declarator.AsClause, AsNewClauseSyntax)
-            Return (initializer, asNewClause)
+            Return (initializer, asNewClause, arrayBounds)
         End Function
     End Class
 End Namespace
