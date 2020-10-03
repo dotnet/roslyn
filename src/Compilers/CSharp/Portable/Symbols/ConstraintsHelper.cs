@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConsList<TypeParameterSymbol> inProgress,
             ImmutableArray<TypeWithAnnotations> constraintTypes,
             bool inherited,
-            bool ignoresNullableContext,
+            bool usedLightweightTypeConstraintBinding,
             CSharpCompilation currentCompilation,
             DiagnosticBag diagnostics)
         {
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, ignoresNullableContext: ignoresNullableContext, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, usedLightweightTypeConstraintBinding: usedLightweightTypeConstraintBinding, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConsList<TypeParameterSymbol> inProgress,
             ImmutableArray<TypeWithAnnotations> constraintTypes,
             bool inherited,
-            bool ignoresNullableContext,
+            bool usedLightweightTypeConstraintBinding,
             CSharpCompilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var bounds = new TypeParameterBounds(constraintTypes, interfaces, effectiveBaseClass, deducedBaseType, ignoresNullableContext);
+            var bounds = new TypeParameterBounds(constraintTypes, interfaces, effectiveBaseClass, deducedBaseType, usedLightweightTypeConstraintBinding);
 
             // Additional constraint checks for overrides.
             if (inherited)

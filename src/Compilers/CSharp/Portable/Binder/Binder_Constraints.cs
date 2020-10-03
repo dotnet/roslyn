@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (constraintTypeBuilder.Count < n)
                 {
-                    return TypeParameterConstraintClause.Create(constraintClause.Constraints, constraintTypeBuilder.ToImmutableAndFree(), constraintClause.IgnoresNullableContext);
+                    return TypeParameterConstraintClause.Create(constraintClause.Constraints, constraintTypeBuilder.ToImmutableAndFree(), constraintClause.UsedLightweightTypeConstraintBinding);
                 }
 
                 constraintTypeBuilder.Free();

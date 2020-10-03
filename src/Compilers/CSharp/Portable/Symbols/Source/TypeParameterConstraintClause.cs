@@ -64,20 +64,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly TypeParameterConstraintClause Empty = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.None,
             ImmutableArray<TypeWithAnnotations>.Empty,
-            ignoresNullableContext: false);
+            usedLightweightTypeConstraintBinding: false);
 
         internal static readonly TypeParameterConstraintClause ObliviousNullabilityIfReferenceType = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType,
             ImmutableArray<TypeWithAnnotations>.Empty,
-            ignoresNullableContext: false);
+            usedLightweightTypeConstraintBinding: false);
 
         internal static TypeParameterConstraintClause Create(
             TypeParameterConstraintKind constraints,
             ImmutableArray<TypeWithAnnotations> constraintTypes,
-            bool ignoresNullableContext)
+            bool usedLightweightTypeConstraintBinding)
         {
             Debug.Assert(!constraintTypes.IsDefault);
-            if (!ignoresNullableContext && constraintTypes.IsEmpty)
+            if (!usedLightweightTypeConstraintBinding && constraintTypes.IsEmpty)
             {
                 switch (constraints)
                 {
@@ -89,13 +89,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return new TypeParameterConstraintClause(constraints, constraintTypes, ignoresNullableContext);
+            return new TypeParameterConstraintClause(constraints, constraintTypes, usedLightweightTypeConstraintBinding);
         }
 
         private TypeParameterConstraintClause(
             TypeParameterConstraintKind constraints,
             ImmutableArray<TypeWithAnnotations> constraintTypes,
-            bool ignoresNullableContext)
+            bool usedLightweightTypeConstraintBinding)
         {
 #if DEBUG
             switch (constraints & TypeParameterConstraintKind.AllReferenceTypeKinds)
@@ -115,12 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
-            this.IgnoresNullableContext = ignoresNullableContext;
+            this.UsedLightweightTypeConstraintBinding = usedLightweightTypeConstraintBinding;
         }
 
         public readonly TypeParameterConstraintKind Constraints;
         public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
-        public readonly bool IgnoresNullableContext;
+        public readonly bool UsedLightweightTypeConstraintBinding; // TODO2
 
         internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty;
 
@@ -220,18 +220,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal static class TypeParameterConstraintClauseExtensions
     {
-        internal static bool HasValue(this ImmutableArray<TypeParameterConstraintClause> constraintClauses, bool useLightweightTypeConstraintBinding)
+        internal static bool HasValue(this ImmutableArray<TypeParameterConstraintClause> constraintClauses, bool usedLightweightTypeConstraintBinding)
         {
             if (constraintClauses.IsDefault)
             {
                 return false;
             }
-            return useLightweightTypeConstraintBinding || !constraintClauses.IgnoresNullableContext();
+            return usedLightweightTypeConstraintBinding || !constraintClauses.UsedLightweightTypeConstraintBinding();
         }
 
-        internal static bool IgnoresNullableContext(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        internal static bool UsedLightweightTypeConstraintBinding(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
-            return constraintClauses.Any(clause => clause.IgnoresNullableContext);
+            return constraintClauses.Any(clause => clause.UsedLightweightTypeConstraintBinding);
         }
 
         internal static bool ContainsOnlyEmptyConstraintClauses(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
@@ -240,11 +240,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Returns true if constraintClauses was updated with value.
-        // Returns false if constraintClauses already had a value with sufficient 'IgnoresNullableContext'
-        // or was updated to a value with sufficient 'IgnoresNullableContext' on another thread.
+        // Returns false if constraintClauses already had a value with sufficient 'UseLightweightTypeConstraintBinding'
+        // or was updated to a value with sufficient 'UseLightweightTypeConstraintBinding' on another thread.
         internal static bool InterlockedUpdate(ref ImmutableArray<TypeParameterConstraintClause> constraintClauses, ImmutableArray<TypeParameterConstraintClause> value)
         {
-            bool useLightweightTypeConstraintBinding = value.IgnoresNullableContext();
+            bool useLightweightTypeConstraintBinding = value.UsedLightweightTypeConstraintBinding();
             while (true)
             {
                 var comparand = constraintClauses;

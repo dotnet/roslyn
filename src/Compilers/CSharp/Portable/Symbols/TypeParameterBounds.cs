@@ -13,17 +13,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// interface set, and effective base type, determined from the declared
     /// constraints, with any cycles removed. The fields are exposed by the
     /// TypeParameterSymbol as ConstraintTypes, Interfaces, and BaseType.
+    ///
+    /// We can compute the bounds with a lightweight binding process (ie. not binding type arguments)
+    /// which is sufficient to determine if the type parameter is a reference or value type for instance.
     /// </summary>
     internal sealed class TypeParameterBounds
     {
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
+        public static readonly TypeParameterBounds NullFromLightweightBinding = new TypeParameterBounds(usedLightweightTypeConstraintBinding: true);
 
         public TypeParameterBounds(
             ImmutableArray<TypeWithAnnotations> constraintTypes,
             ImmutableArray<NamedTypeSymbol> interfaces,
             NamedTypeSymbol effectiveBaseClass,
             TypeSymbol deducedBaseType,
-            bool ignoresNullableContext)
+            bool usedLightweightTypeConstraintBinding)
         {
             Debug.Assert(!constraintTypes.IsDefault);
             Debug.Assert(!interfaces.IsDefault);
@@ -34,14 +38,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.Interfaces = interfaces;
             this.EffectiveBaseClass = effectiveBaseClass;
             this.DeducedBaseType = deducedBaseType;
-            this.IgnoresNullableContext = ignoresNullableContext;
+            this.UsedLightweightTypeConstraintBinding = usedLightweightTypeConstraintBinding;
         }
 
         private TypeParameterBounds()
         {
         }
 
-        public readonly bool IgnoresNullableContext;
+        private TypeParameterBounds(bool usedLightweightTypeConstraintBinding)
+        {
+            Debug.Assert(usedLightweightTypeConstraintBinding);
+            this.UsedLightweightTypeConstraintBinding = true;
+        }
+
+        public readonly bool UsedLightweightTypeConstraintBinding;
 
         /// <summary>
         /// The type parameters, classes, and interfaces explicitly declared as
@@ -92,19 +102,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            return useLightweightTypeConstraintBinding || !boundsOpt.IgnoresNullableContext;
+            return useLightweightTypeConstraintBinding || !boundsOpt.UsedLightweightTypeConstraintBinding;
         }
 
-        // Returns true if bounds was updated with value.
-        // Returns false if bounds already had a value with sufficient 'IgnoresNullableContext'
-        // or was updated to a value with sufficient 'IgnoresNullableContext' on another thread.
+        /// <summary>
+        /// Returns true if bounds was updated with value.
+        /// Returns false if bounds already had a value with sufficient 'useLightweightTypeConstraintBinding'
+        /// or was updated to a value with sufficient 'useLightweightTypeConstraintBinding' on another thread.
+        /// </summary>
         internal static bool InterlockedUpdate(ref TypeParameterBounds? bounds, TypeParameterBounds? value)
         {
-            bool useLightweightTypeConstraintBinding = (value?.IgnoresNullableContext == true);
+            Debug.Assert(value != TypeParameterBounds.Unset);
+            bool valueUsedLightweightTypeConstraintBinding = !value.HasValue(useLightweightTypeConstraintBinding: false);
+
             while (true)
             {
                 var comparand = bounds;
-                if (comparand != TypeParameterBounds.Unset && comparand.HasValue(useLightweightTypeConstraintBinding))
+                if (comparand != TypeParameterBounds.Unset && comparand.HasValue(valueUsedLightweightTypeConstraintBinding))
                 {
                     return false;
                 }

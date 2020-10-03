@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics);
                 lock (_declarationDiagnostics)
                 {
-                    useLightweightTypeConstraintBinding = constraints.IgnoresNullableContext();
+                    useLightweightTypeConstraintBinding = constraints.UsedLightweightTypeConstraintBinding();
                     if (!_lazyTypeParameterConstraints.HasValue(useLightweightTypeConstraintBinding))
                     {
                         if (!useLightweightTypeConstraintBinding)

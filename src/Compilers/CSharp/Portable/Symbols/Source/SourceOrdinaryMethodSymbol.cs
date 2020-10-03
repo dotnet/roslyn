@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     useLightweightTypeConstraintBinding,
                     diagnostics);
                 if (TypeParameterConstraintClauseExtensions.InterlockedUpdate(ref _lazyTypeParameterConstraints, constraints) &&
-                    _lazyTypeParameterConstraints.HasValue(useLightweightTypeConstraintBinding: false))
+                    _lazyTypeParameterConstraints.HasValue(usedLightweightTypeConstraintBinding: false))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }

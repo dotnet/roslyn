@@ -260,7 +260,7 @@ next:;
             {
                 var diagnostics = DiagnosticBag.GetInstance();
                 if (TypeParameterConstraintClauseExtensions.InterlockedUpdate(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(useLightweightTypeConstraintBinding, diagnostics)) &&
-                    _lazyTypeParameterConstraints.HasValue(useLightweightTypeConstraintBinding: false))
+                    _lazyTypeParameterConstraints.HasValue(usedLightweightTypeConstraintBinding: false))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
@@ -442,7 +442,7 @@ next:;
                     }
 
                     builder[i] = TypeParameterConstraintClause.Create(mergedKind,
-                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes, ignoresNullableContext: constraint.IgnoresNullableContext);
+                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes, usedLightweightTypeConstraintBinding: constraint.UsedLightweightTypeConstraintBinding);
                 }
             }
 

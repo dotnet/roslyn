@@ -28,6 +28,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SymbolCompletionState _state;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+
+        /// <summary>
+        /// May hold the following values:
+        /// - <see cref="TypeParameterBounds.Unset"/>
+        /// - <see cref="TypeParameterBounds.NullFromLightweightBinding"/>
+        /// - null (indicates that we did full binding, but have no bounds)
+        /// - an actual value, which may be from lightweight or full binding, depending on <see cref="TypeParameterBounds.UsedLightweightTypeConstraintBinding"/>
+        ///
+        /// The distinction between <see cref="TypeParameterBounds.NullFromLightweightBinding"/> and null
+        /// helps us ensure that we do full binding at some point and thus produce diagnostics.
+        /// </summary>
         private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
 
         protected SourceTypeParameterSymbolBase(string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
@@ -227,8 +238,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var diagnostics = DiagnosticBag.GetInstance();
                 var bounds = this.ResolveBounds(inProgress, useLightweightTypeConstraintBinding, diagnostics);
 
+                if (bounds is null && useLightweightTypeConstraintBinding)
+                {
+                    // We have no bounds, but need to record that we've only done
+                    // lightweight binding of type constraints so far.
+                    bounds = TypeParameterBounds.NullFromLightweightBinding;
+                }
+
                 if (TypeParameterBoundsExtensions.InterlockedUpdate(ref _lazyBounds, bounds) &&
                     _lazyBounds.HasValue(useLightweightTypeConstraintBinding: false))
+                //!useLightweightTypeConstraintBinding) // TODO2
                 {
                     this.CheckConstraintTypeConstraints(diagnostics);
                     this.CheckUnmanagedConstraint(diagnostics);
@@ -240,7 +259,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Free();
             }
 
-            return _lazyBounds;
+            var storedValue = _lazyBounds;
+            // Consumers of these bounds don't need to know about the sentinel value for null from lightweight binding
+            return storedValue == TypeParameterBounds.NullFromLightweightBinding ? null : storedValue;
         }
 
         protected abstract TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, bool useLightweightTypeConstraintBinding, DiagnosticBag diagnostics);
@@ -570,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var constraintTypes = constraintClause.ConstraintTypes;
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, ignoresNullableContext: constraintClause.IgnoresNullableContext, this.DeclaringCompilation, diagnostics);
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, usedLightweightTypeConstraintBinding: constraintClause.UsedLightweightTypeConstraintBinding, this.DeclaringCompilation, diagnostics);
         }
 
         private TypeParameterConstraintKind GetDeclaredConstraints(bool useLightweightTypeConstraintBinding)
@@ -692,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var constraintTypes = constraintClause.ConstraintTypes;
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, ignoresNullableContext: constraintClause.IgnoresNullableContext, this.DeclaringCompilation, diagnostics);
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, usedLightweightTypeConstraintBinding: constraintClause.UsedLightweightTypeConstraintBinding, this.DeclaringCompilation, diagnostics);
         }
 
         internal TypeParameterConstraintKind GetDeclaredConstraints(bool useLightweightTypeConstraintBinding)
@@ -923,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(map != null);
 
             var constraintTypes = map.SubstituteTypes(typeParameter.ConstraintTypesNoUseSiteDiagnostics);
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: true, ignoresNullableContext: false, this.DeclaringCompilation, diagnostics);
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: true, usedLightweightTypeConstraintBinding: false, this.DeclaringCompilation, diagnostics);
         }
 
         /// <summary>
