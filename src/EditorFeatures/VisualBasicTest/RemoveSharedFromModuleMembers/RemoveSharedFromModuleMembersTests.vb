@@ -81,7 +81,7 @@ End Module
         End Function
 
         <Fact>
-        Public Async Function TestFunctionWithSharedInModule() As Task
+        Public Async Function TestSharedFunctionInModule() As Task
             Dim source = "
 Public Module M
     Public {|BC30433:Shared|} Function DoSomething()
@@ -98,7 +98,7 @@ End Module
         End Function
 
         <Fact>
-        Public Async Function TestSubWithSharedInModule() As Task
+        Public Async Function TestSharedSubInModule() As Task
             Dim source = "
 Public Module M
     Public {|BC30433:Shared|} Sub DoSomething()
@@ -109,6 +109,21 @@ End Module
 Public Module M
     Public Sub DoSomething()
     End Sub
+End Module
+"
+            Await VerifyVB.VerifyCodeFixAsync(source, fixedSource)
+        End Function
+
+        <Fact>
+        Public Async Function TestSharedEventInModule() As Task
+            Dim source = "
+Public Module M
+    {|BC30434:Shared|} Event OnSomething()
+End Module
+"
+            Dim fixedSource = "
+Public Module M
+    Event OnSomething()
 End Module
 "
             Await VerifyVB.VerifyCodeFixAsync(source, fixedSource)
