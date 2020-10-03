@@ -19,62 +19,66 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstruc
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new GenerateDefaultConstructorsCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        public async Task TestProtectedBase()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestProtectedBase(string typeKind)
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
-{
-}
+$@"{typeKind} C : [||]B
+{{
+}}
 
-class B
-{
+{typeKind} B
+{{
     protected B(int x)
-    {
-    }
-}",
-@"class C : B
-{
+    {{
+    }}
+}}",
+$@"{typeKind} C : B
+{{
     protected C(int x) : base(x)
-    {
-    }
-}
+    {{
+    }}
+}}
 
-class B
-{
+{typeKind} B
+{{
     protected B(int x)
-    {
-    }
-}");
+    {{
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        public async Task TestPublicBase()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestPublicBase(string typeKind)
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
-{
-}
+$@"{typeKind} C : [||]B
+{{
+}}
 
-class B
-{
+{typeKind} B
+{{
     public B(int x)
-    {
-    }
-}",
-@"class C : B
-{
+    {{
+    }}
+}}",
+$@"{typeKind} C : B
+{{
     public C(int x) : base(x)
-    {
-    }
-}
+    {{
+    }}
+}}
 
-class B
-{
+{typeKind} B
+{{
     public B(int x)
-    {
-    }
-}");
+    {{
+    }}
+}}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
