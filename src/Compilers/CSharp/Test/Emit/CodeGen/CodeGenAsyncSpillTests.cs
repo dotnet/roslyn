@@ -6449,7 +6449,8 @@ unsafe struct TestStruct
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(
                 compilation: comp,
-                expectedOutput: string.Empty
+                expectedOutput: string.Empty,
+                verify: Verification.Fails
                 );
             verifier.VerifyDiagnostics();
         }
