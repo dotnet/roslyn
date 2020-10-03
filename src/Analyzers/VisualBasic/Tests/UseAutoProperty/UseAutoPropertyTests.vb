@@ -1255,5 +1255,39 @@ End Class",
     Public ReadOnly Property Condition As Integer() = New Integer(255) {}
 End Class")
         End Function
+
+        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestArrayInitializerAsync() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    [|Private ReadOnly _Condition() As Integer = { 1, 2, 3 }|]
+    Public Property Condition As Integer()
+        Get
+            Return _Condition
+        End Get
+    End Property
+End Class",
+"Class C
+    Public ReadOnly Property Condition As Integer() = { 1, 2, 3 }
+End Class")
+        End Function
+
+        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestArrayRankAndInitializerAsync() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    [|Private ReadOnly _Condition(10) As Integer = { 1, 2, 3 }|]
+    Public Property Condition As Integer()
+        Get
+            Return _Condition
+        End Get
+    End Property
+End Class",
+"Class C
+    Public ReadOnly Property Condition As Integer() = New Integer(10) { 1, 2, 3 }
+End Class")
+        End Function
     End Class
 End Namespace

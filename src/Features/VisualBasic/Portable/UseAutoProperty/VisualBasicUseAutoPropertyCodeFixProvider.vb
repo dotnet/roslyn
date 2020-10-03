@@ -64,8 +64,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             End If
 
             If initializer.arrayBounds IsNot Nothing Then
-                Dim elementType = DirectCast(statement.GetReturnType(), ArrayTypeSyntax).ElementType
-                Dim arrayCreation = SyntaxFactory.ArrayCreationExpression(Nothing, elementType, initializer.arrayBounds, SyntaxFactory.CollectionInitializer())
+                Dim arrayCreation = SyntaxFactory.ArrayCreationExpression(
+                    Nothing,
+                    DirectCast(statement.GetReturnType(), ArrayTypeSyntax).ElementType,
+                    initializer.arrayBounds,
+                    If(TryCast(initializer.equalsValue?.Value, CollectionInitializerSyntax), SyntaxFactory.CollectionInitializer()))
                 statement = statement.WithTrailingTrivia(SyntaxFactory.Space) _
                     .WithInitializer(SyntaxFactory.EqualsValue(arrayCreation))
             End If
