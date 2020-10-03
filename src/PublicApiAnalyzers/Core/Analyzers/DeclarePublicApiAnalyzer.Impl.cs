@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 if (symbol.Kind == SymbolKind.NamedType)
                 {
                     var namedType = (INamedTypeSymbol)symbol;
-                    if ((namedType.InstanceConstructors.Length == 1 && namedType.TypeKind == TypeKind.Class)
+                    if ((namedType.TypeKind == TypeKind.Class && namedType.InstanceConstructors.Length == 1)
                         || namedType.TypeKind == TypeKind.Struct)
                     {
                         var implicitConstructor = namedType.InstanceConstructors.FirstOrDefault(x => x.IsImplicitlyDeclared);
