@@ -6445,7 +6445,12 @@ unsafe struct TestStruct
    }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: string.Empty, options: TestOptions.UnsafeDebugExe);
+            var comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(
+                compilation: comp,
+                expectedOutput: string.Empty
+                );
             verifier.VerifyDiagnostics();
         }
     }
