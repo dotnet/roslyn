@@ -24,12 +24,12 @@
       </trans-unit>
       <trans-unit id="BlankLinesMessage">
         <source>Avoid multiple blank lines</source>
-        <target state="needs-review-translation">避免多個空白行</target>
+        <target state="translated">避免多個空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="BlankLinesTitle">
         <source>Avoid multiple blank lines</source>
-        <target state="new">Avoid multiple blank lines</target>
+        <target state="translated">避免多個空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="BracePlacementMessage">
