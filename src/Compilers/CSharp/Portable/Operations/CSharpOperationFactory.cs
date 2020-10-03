@@ -2039,16 +2039,18 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyBinaryPatternOperation(this, boundBinaryPattern, _semanticModel);
         }
 
+#nullable enable
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)
         {
+            IOperation value = Create(boundSwitchStatement.Expression);
+            ImmutableArray<ISwitchCaseOperation> cases = CreateFromArray<BoundSwitchSection, ISwitchCaseOperation>(boundSwitchStatement.SwitchSections);
             ImmutableArray<ILocalSymbol> locals = boundSwitchStatement.InnerLocals.GetPublicSymbols();
             ILabelSymbol exitLabel = boundSwitchStatement.BreakLabel.GetPublicSymbol();
             SyntaxNode syntax = boundSwitchStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundSwitchStatement.WasCompilerGenerated;
-            return new CSharpLazySwitchOperation(this, boundSwitchStatement, locals, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new SwitchOperation(locals, value, cases, exitLabel, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private ISwitchCaseOperation CreateBoundSwitchSectionOperation(BoundSwitchSection boundSwitchSection)
         {

@@ -1019,12 +1019,12 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundSelectStatementOperation(boundSelectStatement As BoundSelectStatement) As ISwitchOperation
             RecordParent(boundSelectStatement.ExprPlaceholderOpt, boundSelectStatement)
+            Dim value As IOperation = Create(boundSelectStatement.ExpressionStatement.Expression)
+            Dim cases As ImmutableArray(Of ISwitchCaseOperation) = CreateFromArray(Of BoundCaseBlock, ISwitchCaseOperation)(boundSelectStatement.CaseBlocks)
             Dim exitLabel As ILabelSymbol = boundSelectStatement.ExitLabel
             Dim syntax As SyntaxNode = boundSelectStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundSelectStatement.WasCompilerGenerated
-            Return New VisualBasicLazySwitchOperation(Me, boundSelectStatement, ImmutableArray(Of ILocalSymbol).Empty, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New SwitchOperation(ImmutableArray(Of ILocalSymbol).Empty, value, cases, exitLabel, _semanticModel, syntax, isImplicit)
         End Function
 
         Friend Function CreateBoundCaseBlockClauses(boundCaseBlock As BoundCaseBlock) As ImmutableArray(Of ICaseClauseOperation)

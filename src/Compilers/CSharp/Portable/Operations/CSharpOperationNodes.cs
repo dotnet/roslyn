@@ -1218,29 +1218,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazySwitchOperation : LazySwitchOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly IBoundSwitchStatement _switchStatement;
-
-        internal CSharpLazySwitchOperation(CSharpOperationFactory operationFactory, IBoundSwitchStatement switchStatement, ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _switchStatement = switchStatement;
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_switchStatement.Value);
-        }
-
-        protected override ImmutableArray<ISwitchCaseOperation> CreateCases()
-        {
-            return _operationFactory.CreateFromArray<BoundStatementList, ISwitchCaseOperation>(_switchStatement.Cases);
-        }
-    }
-
     internal sealed class CSharpLazyTryOperation : LazyTryOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

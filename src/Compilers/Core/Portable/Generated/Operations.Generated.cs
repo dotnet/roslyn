@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </remarks>
         ImmutableArray<IVariableDeclarationOperation> Declarations { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents a switch operation with a value to be switched upon and switch cases.
     /// <para>
@@ -126,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ILabelSymbol ExitLabel { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a loop operation.
     /// <para>
@@ -3426,78 +3428,43 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseSwitchOperation : OperationOld, ISwitchOperation
+    #nullable enable
+    internal sealed partial class SwitchOperation : Operation, ISwitchOperation
     {
-        internal BaseSwitchOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Switch, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal SwitchOperation(ImmutableArray<ILocalSymbol> locals, IOperation value, ImmutableArray<ISwitchCaseOperation> cases, ILabelSymbol exitLabel, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Locals = locals;
+            Value = SetParentOperation(value, this);
+            Cases = SetParentOperation(cases, this);
             ExitLabel = exitLabel;
         }
         public ImmutableArray<ILocalSymbol> Locals { get; }
-        public abstract IOperation Value { get; }
-        public abstract ImmutableArray<ISwitchCaseOperation> Cases { get; }
+        public IOperation Value { get; }
+        public ImmutableArray<ISwitchCaseOperation> Cases { get; }
         public ILabelSymbol ExitLabel { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Value is object) yield return Value;
-                foreach (var child in Cases)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Value is not null) builder.Add(Value);
+                    if (!Cases.IsEmpty) builder.AddRange(Cases);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Switch;
         public override void Accept(OperationVisitor visitor) => visitor.VisitSwitch(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitSwitch(this, argument);
     }
-    internal sealed partial class SwitchOperation : BaseSwitchOperation, ISwitchOperation
-    {
-        internal SwitchOperation(ImmutableArray<ILocalSymbol> locals, IOperation value, ImmutableArray<ISwitchCaseOperation> cases, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-            Cases = SetParentOperation(cases, this);
-        }
-        public override IOperation Value { get; }
-        public override ImmutableArray<ISwitchCaseOperation> Cases { get; }
-    }
-    internal abstract partial class LazySwitchOperation : BaseSwitchOperation, ISwitchOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        private ImmutableArray<ISwitchCaseOperation> _lazyCases;
-        internal LazySwitchOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-        protected abstract ImmutableArray<ISwitchCaseOperation> CreateCases();
-        public override ImmutableArray<ISwitchCaseOperation> Cases
-        {
-            get
-            {
-                if (_lazyCases.IsDefault)
-                {
-                    ImmutableArray<ISwitchCaseOperation> cases = CreateCases();
-                    SetParentOperation(cases, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyCases, cases);
-                }
-                return _lazyCases;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseLoopOperation : OperationOld, ILoopOperation
     {
         protected BaseLoopOperation(LoopKind loopKind, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9162,6 +9129,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (BlockOperation)operation;
             return new BlockOperation(VisitArray(internalOperation.Operations), internalOperation.Locals, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitSwitch(ISwitchOperation operation, object? argument)
+        {
+            var internalOperation = (SwitchOperation)operation;
+            return new SwitchOperation(internalOperation.Locals, Visit(internalOperation.Value), VisitArray(internalOperation.Cases), internalOperation.ExitLabel, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitBranch(IBranchOperation operation, object? argument)
         {

@@ -955,27 +955,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazySwitchOperation
-        Inherits LazySwitchOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _selectStatement As BoundSelectStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, selectStatement As BoundSelectStatement, locals As ImmutableArray(Of ILocalSymbol), exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _selectStatement = selectStatement
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_selectStatement.ExpressionStatement.Expression)
-        End Function
-
-        Protected Overrides Function CreateCases() As ImmutableArray(Of ISwitchCaseOperation)
-            Return _operationFactory.CreateFromArray(Of BoundCaseBlock, ISwitchCaseOperation)(_selectStatement.CaseBlocks)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyTryOperation
         Inherits LazyTryOperation
 

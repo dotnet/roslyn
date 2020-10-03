@@ -5061,6 +5061,7 @@ oneMoreTime:
             return result;
         }
 
+#nullable enable
         public override IOperation VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
@@ -5072,7 +5073,7 @@ oneMoreTime:
             var switchRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
             EnterRegion(switchRegion);
 
-            BasicBlockBuilder defaultBody = null; // Adjusted in handleSection
+            BasicBlockBuilder? defaultBody = null; // Adjusted in handleSection
             BasicBlockBuilder @break = GetLabeledOrNewBlock(operation.ExitLabel);
 
             foreach (ISwitchCaseOperation section in operation.Cases)
@@ -5257,6 +5258,7 @@ oneMoreTime:
                 }
             }
         }
+#nullable disable
 
         private IOperation MakeNullable(IOperation operand, ITypeSymbol type)
         {

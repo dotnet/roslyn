@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ConversionOperation(Visit(operation.Operand), ((BaseConversionOperation)operation).ConversionConvertible, operation.IsTryCast, operation.IsChecked, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitSwitch(ISwitchOperation operation, object argument)
-        {
-            return new SwitchOperation(operation.Locals, Visit(operation.Value), VisitArray(operation.Cases), operation.ExitLabel, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, object argument)
         {
             return new SwitchCaseOperation(operation.Locals, ((BaseSwitchCaseOperation)operation).Condition, VisitArray(operation.Clauses), VisitArray(operation.Body), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

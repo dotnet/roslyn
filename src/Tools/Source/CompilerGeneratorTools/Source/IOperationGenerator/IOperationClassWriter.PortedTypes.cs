@@ -26,7 +26,8 @@ namespace IOperationGenerator
             "IOmittedArgumentOperation",
             "IDiscardOperation",
             "IPlaceholderOperation",
-            "IBlockOperation"
+            "IBlockOperation",
+            "ISwitchOperation"
         };
     }
 }
