@@ -9,9 +9,9 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.MakeTypeAbstract
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.MakeClassAbstract
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicMakeClassAbstractCodeFixProvider)), [Shared]>
-    Friend NotInheritable Class VisualBasicMakeClassAbstractCodeFixProvider
+Namespace Microsoft.CodeAnalysis.VisualBasic.MakeTypeAbstract
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicMakeTypeAbstractCodeFixProvider)), [Shared]>
+    Friend NotInheritable Class VisualBasicMakeTypeAbstractCodeFixProvider
         Inherits AbstractMakeTypeAbstractCodeFixProvider(Of ClassStatementSyntax)
 
         <ImportingConstructor>
