@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// constraints for the first type parameter is requested.
         /// Initialized in two steps. Hold a copy if accessing during initialization.
         /// </summary>
-        private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
+        private TypeParameterConstraintClauses _lazyTypeParameterConstraints;
 
         /// <summary>
         /// If this symbol represents a partial method definition or implementation part, its other part (if any).
@@ -285,7 +285,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool useLightweightTypeConstraintBinding)
         {
-            if (!_lazyTypeParameterConstraints.HasValue(useLightweightTypeConstraintBinding))
+            var clauses = _lazyTypeParameterConstraints;
+            if (!clauses.HasValue(useLightweightTypeConstraintBinding))
             {
                 var diagnostics = DiagnosticBag.GetInstance();
                 var syntax = GetSyntax();
@@ -293,14 +294,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.DeclaringCompilation
                     .GetBinderFactory(syntax.SyntaxTree)
                     .GetBinder(syntax.ReturnType, syntax, this);
-                var constraints = this.MakeTypeParameterConstraints(
-                    withTypeParametersBinder,
-                    TypeParameters,
-                    syntax.TypeParameterList,
-                    syntax.ConstraintClauses,
-                    useLightweightTypeConstraintBinding,
-                    diagnostics);
-                if (TypeParameterConstraintClauseExtensions.InterlockedUpdate(ref _lazyTypeParameterConstraints, constraints) &&
+
+                var constraints = new TypeParameterConstraintClauses(
+                    this.MakeTypeParameterConstraints(
+                        withTypeParametersBinder,
+                        TypeParameters,
+                        syntax.TypeParameterList,
+                        syntax.ConstraintClauses,
+                        useLightweightTypeConstraintBinding,
+                        diagnostics),
+                    useLightweightTypeConstraintBinding);
+
+                if (TypeParameterConstraintClausesExtensions.InterlockedUpdate(ref _lazyTypeParameterConstraints, constraints) &&
                     _lazyTypeParameterConstraints.HasValue(usedLightweightTypeConstraintBinding: false))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
@@ -308,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Free();
             }
 
-            return _lazyTypeParameterConstraints;
+            return _lazyTypeParameterConstraints.TypeParameterConstraints;
         }
 
         public override bool IsVararg

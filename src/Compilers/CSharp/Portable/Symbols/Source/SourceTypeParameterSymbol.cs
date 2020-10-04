@@ -247,7 +247,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (TypeParameterBoundsExtensions.InterlockedUpdate(ref _lazyBounds, bounds) &&
                     _lazyBounds.HasValue(useLightweightTypeConstraintBinding: false))
-                //!useLightweightTypeConstraintBinding) // TODO2
                 {
                     this.CheckConstraintTypeConstraints(diagnostics);
                     this.CheckUnmanagedConstraint(diagnostics);

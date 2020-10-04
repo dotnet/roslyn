@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private bool _lazyIsVarArg;
         // Initialized in two steps. Hold a copy if accessing during initialization.
-        private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
+        private TypeParameterConstraintClauses? _lazyTypeParameterConstraints;
         private TypeWithAnnotations.Boxed? _lazyReturnType;
         private TypeWithAnnotations.Boxed? _lazyIteratorElementType;
 
@@ -472,22 +472,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.ConstraintClauses,
                     useLightweightTypeConstraintBinding,
                     diagnostics);
+
                 lock (_declarationDiagnostics)
                 {
-                    useLightweightTypeConstraintBinding = constraints.UsedLightweightTypeConstraintBinding();
+                    //useLightweightTypeConstraintBinding = constraints.UsedLightweightTypeConstraintBinding(); // TODO2 why do we have this here and only here?
                     if (!_lazyTypeParameterConstraints.HasValue(useLightweightTypeConstraintBinding))
                     {
                         if (!useLightweightTypeConstraintBinding)
                         {
                             _declarationDiagnostics.AddRange(diagnostics);
                         }
-                        _lazyTypeParameterConstraints = constraints;
+                        _lazyTypeParameterConstraints = new TypeParameterConstraintClauses(constraints, useLightweightTypeConstraintBinding);
                     }
                 }
                 diagnostics.Free();
             }
 
-            return _lazyTypeParameterConstraints;
+            Debug.Assert(_lazyTypeParameterConstraints is not null);
+            return _lazyTypeParameterConstraints.TypeParameterConstraints;
         }
 
         public override int GetHashCode()

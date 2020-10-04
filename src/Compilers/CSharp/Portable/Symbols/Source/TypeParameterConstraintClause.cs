@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -53,6 +54,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// All bits except those that are involved into describilng various nullability aspects.
         /// </summary>
         AllNonNullableKinds = ReferenceType | ValueType | Constructor | Unmanaged,
+    }
+
+    internal sealed class TypeParameterConstraintClauses
+    {
+        public readonly ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraints;
+        public readonly bool UsedLightweightTypeConstraintBinding;
+
+        public TypeParameterConstraintClauses(ImmutableArray<TypeParameterConstraintClause> typeParameterConstraints, bool usedLightweightTypeConstraintBinding)
+        {
+            TypeParameterConstraints = typeParameterConstraints;
+            UsedLightweightTypeConstraintBinding = usedLightweightTypeConstraintBinding;
+        }
     }
 
     /// <summary>
@@ -120,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public readonly TypeParameterConstraintKind Constraints;
         public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
-        public readonly bool UsedLightweightTypeConstraintBinding; // TODO2
+        public readonly bool UsedLightweightTypeConstraintBinding; // TODO2 remove?
 
         internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty;
 
@@ -218,21 +231,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal static class TypeParameterConstraintClauseExtensions
+    internal static class TypeParameterConstraintClausesExtensions
     {
-        internal static bool HasValue(this ImmutableArray<TypeParameterConstraintClause> constraintClauses, bool usedLightweightTypeConstraintBinding)
+#nullable enable
+        internal static bool HasValue(this TypeParameterConstraintClauses? constraintClauses, bool usedLightweightTypeConstraintBinding)
         {
-            if (constraintClauses.IsDefault)
+            if (constraintClauses is null)
             {
                 return false;
             }
-            return usedLightweightTypeConstraintBinding || !constraintClauses.UsedLightweightTypeConstraintBinding();
+            return usedLightweightTypeConstraintBinding || !constraintClauses.UsedLightweightTypeConstraintBinding;
         }
+#nullable restore
 
-        internal static bool UsedLightweightTypeConstraintBinding(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
-        {
-            return constraintClauses.Any(clause => clause.UsedLightweightTypeConstraintBinding);
-        }
+        // TODO2
+        //internal static bool UsedLightweightTypeConstraintBinding(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        //{
+        //    return constraintClauses.Any(clause => clause.UsedLightweightTypeConstraintBinding);
+        //}
 
         internal static bool ContainsOnlyEmptyConstraintClauses(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
@@ -242,9 +258,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Returns true if constraintClauses was updated with value.
         // Returns false if constraintClauses already had a value with sufficient 'UseLightweightTypeConstraintBinding'
         // or was updated to a value with sufficient 'UseLightweightTypeConstraintBinding' on another thread.
-        internal static bool InterlockedUpdate(ref ImmutableArray<TypeParameterConstraintClause> constraintClauses, ImmutableArray<TypeParameterConstraintClause> value)
+        internal static bool InterlockedUpdate(ref TypeParameterConstraintClauses constraintClauses, TypeParameterConstraintClauses value)
         {
-            bool useLightweightTypeConstraintBinding = value.UsedLightweightTypeConstraintBinding();
+            bool useLightweightTypeConstraintBinding = value.UsedLightweightTypeConstraintBinding;
             while (true)
             {
                 var comparand = constraintClauses;
@@ -252,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return false;
                 }
-                if (ImmutableInterlocked.InterlockedCompareExchange(ref constraintClauses, value, comparand) == comparand)
+                if (Interlocked.CompareExchange(ref constraintClauses, value, comparand) == comparand)
                 {
                     return true;
                 }
