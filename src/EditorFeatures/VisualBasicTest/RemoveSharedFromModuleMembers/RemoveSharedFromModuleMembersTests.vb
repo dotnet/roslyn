@@ -24,6 +24,27 @@ End Module
         End Function
 
         <Fact>
+        Public Async Function TestSharedFieldWithoutAccessModifierInModule() As Task
+            Dim source = "
+Public Module M
+    ' Removing Shared without adding a modifier is a compile error.
+    ' We add Private as it is the default modifier.
+    ' This comment also tests handling the leading trivia.
+    {|BC30593:Shared|} x As Integer
+End Module
+"
+            Dim fixedSource = "
+Public Module M
+    ' Removing Shared without adding a modifier is a compile error.
+    ' We add Private as it is the default modifier.
+    ' This comment also tests handling the leading trivia.
+    Dim x As Integer
+End Module
+"
+            Await VerifyVB.VerifyCodeFixAsync(source, fixedSource)
+        End Function
+
+        <Fact>
         Public Async Function TestSharedAutoPropertyInModule() As Task
             Dim source = "
 Public Module M
@@ -91,6 +112,25 @@ End Module
             Dim fixedSource = "
 Public Module M
     Public Function DoSomething()
+    End Function
+End Module
+"
+            Await VerifyVB.VerifyCodeFixAsync(source, fixedSource)
+        End Function
+
+        <Fact>
+        Public Async Function TestSharedFunctionWithoutAccessModifierInModule() As Task
+            Dim source = "
+Public Module M
+    ' Trivia
+    {|BC30433:Shared|} Function DoSomething()
+    End Function
+End Module
+"
+            Dim fixedSource = "
+Public Module M
+    ' Trivia
+    Function DoSomething()
     End Function
 End Module
 "

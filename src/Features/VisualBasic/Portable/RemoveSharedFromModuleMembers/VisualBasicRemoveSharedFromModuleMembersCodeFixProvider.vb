@@ -52,19 +52,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
                     Continue For
                 End If
                 Dim node = diagnostic.Location.FindNode(cancellationToken)
-                Dim newNode = GetReplacement(node, tokenToRemove)
+                Dim newNode = GetReplacement(document, node)
                 editor.ReplaceNode(node, newNode)
             Next
             Return Task.CompletedTask
         End Function
 
-        Private Shared Function GetReplacement(node As SyntaxNode, tokenToRemove As SyntaxToken) As SyntaxNode
-            If TypeOf node Is FieldDeclarationSyntax Then
-                Dim field = DirectCast(node, FieldDeclarationSyntax)
-                Return field.WithModifiers(field.Modifiers.Remove(tokenToRemove))
-            ElseIf TypeOf node Is MethodBaseSyntax Then
-                Dim method = DirectCast(node, MethodBaseSyntax)
-                Return method.WithModifiers(method.Modifiers.Remove(tokenToRemove))
+        Private Shared Function GetReplacement(document As Document, node As SyntaxNode) As SyntaxNode
+            If TypeOf node Is FieldDeclarationSyntax OrElse
+               TypeOf node Is MethodBaseSyntax Then
+                Dim generator = SyntaxGenerator.GetGenerator(document)
+                Return generator.WithModifiers(node, generator.GetModifiers(node).WithIsStatic(False))
             End If
             Return node
         End Function
