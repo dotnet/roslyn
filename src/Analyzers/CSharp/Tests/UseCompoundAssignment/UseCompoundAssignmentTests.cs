@@ -810,5 +810,110 @@ struct InsertionPoint
     }
 }");
         }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrement()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a + 1;
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestDecrement()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a - 1;
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a--;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestMinusIncrement()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a + (-1);
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a--;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementDouble()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(double a)
+    {
+        a [||]= a + 1.0;
+    }
+}",
+@"public class C
+{
+    void M(double a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementNotOnString()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(string a)
+    {
+        a [||]= a + ""1"";
+    }
+}",
+@"public class C
+{
+    void M(string a)
+    {
+        a += ""1"";
+    }
+}");
+        }
     }
 }
