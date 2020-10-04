@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -65,12 +64,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 _projectToData[projectId] = info;
             }
 
-            // cancel whenever the analyzer runner cancels or the client disconnects and the request is canceled:
-            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
-
             await _callback.InvokeAsync(
                 (callback, cancellationToken) => callback.ReportProjectTelemetryDataAsync(info, cancellationToken),
-                linkedSource.Token).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
         }
 
         public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
