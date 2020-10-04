@@ -116,12 +116,26 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 return;
             }
 
+            var properties = ImmutableDictionary.Create<string, string>();
+            var constant = semanticModel.GetConstantValue(binaryRight, cancellationToken).Value;
+            if (constant != null)
+            {
+                if (constant.Equals(1))
+                {
+                    properties = properties.Add(UseCompoundAssignmentUtilities.ConstantOne, UseCompoundAssignmentUtilities.ConstantOne);
+                }
+                else if (constant.Equals(-1))
+                {
+                    properties = properties.Add(UseCompoundAssignmentUtilities.ConstantOne, UseCompoundAssignmentUtilities.ConstantMinusOne);
+                }
+            }
+
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 assignmentToken.GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
-                properties: null));
+                properties: properties));
         }
     }
 }

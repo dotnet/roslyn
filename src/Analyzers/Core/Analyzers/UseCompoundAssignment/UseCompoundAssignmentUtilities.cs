@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 {
     internal static class UseCompoundAssignmentUtilities
     {
+        internal const string ConstantOne = nameof(ConstantOne);
+        internal const string ConstantMinusOne = nameof(ConstantMinusOne);
+
         public static void GenerateMaps<TSyntaxKind>(
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds,
             out ImmutableDictionary<TSyntaxKind, TSyntaxKind> binaryToAssignmentMap,
