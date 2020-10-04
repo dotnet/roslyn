@@ -570,19 +570,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool useLightweightTypeConstraintBinding)
+        internal override void EnsureAllConstraintsAreResolved(bool canUseLightweightTypeConstraintBinding)
         {
-            useLightweightTypeConstraintBinding = false; // Resolve bounds eagerly.
-            if (!_lazyBounds.HasValue(useLightweightTypeConstraintBinding))
+            canUseLightweightTypeConstraintBinding = false; // Resolve bounds eagerly.
+            if (!_lazyBounds.HasValue(canUseLightweightTypeConstraintBinding))
             {
                 var typeParameters = (_containingSymbol.Kind == SymbolKind.Method) ?
                     ((PEMethodSymbol)_containingSymbol).TypeParameters :
                     ((PENamedTypeSymbol)_containingSymbol).TypeParameters;
-                EnsureAllConstraintsAreResolved(typeParameters, useLightweightTypeConstraintBinding);
+                EnsureAllConstraintsAreResolved(typeParameters, canUseLightweightTypeConstraintBinding);
             }
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool useLightweightTypeConstraintBinding)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool canUseLightweightTypeConstraintBinding)
         {
             var bounds = this.GetBounds(inProgress);
             return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeWithAnnotations>.Empty;
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override DiagnosticInfo GetConstraintsUseSiteErrorInfo()
         {
-            EnsureAllConstraintsAreResolved(useLightweightTypeConstraintBinding: false);
+            EnsureAllConstraintsAreResolved(canUseLightweightTypeConstraintBinding: false);
             Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
             return _lazyConstraintsUseSiteErrorInfo;
         }

@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal static class TypeParameterBoundsExtensions
     {
-        internal static bool HasValue(this TypeParameterBounds? boundsOpt, bool useLightweightTypeConstraintBinding)
+        internal static bool HasValue(this TypeParameterBounds? boundsOpt, bool canUseLightweightTypeConstraintBinding)
         {
             if (boundsOpt == TypeParameterBounds.Unset)
             {
@@ -102,18 +102,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            return useLightweightTypeConstraintBinding || !boundsOpt.UsedLightweightTypeConstraintBinding;
+            return canUseLightweightTypeConstraintBinding || !boundsOpt.UsedLightweightTypeConstraintBinding;
         }
 
         /// <summary>
         /// Returns true if bounds was updated with value.
-        /// Returns false if bounds already had a value with sufficient 'useLightweightTypeConstraintBinding'
-        /// or was updated to a value with sufficient 'useLightweightTypeConstraintBinding' on another thread.
+        /// Returns false if bounds already had a value with sufficient 'canUseLightweightTypeConstraintBinding'
+        /// or was updated to a value with sufficient 'canUseLightweightTypeConstraintBinding' on another thread.
         /// </summary>
         internal static bool InterlockedUpdate(ref TypeParameterBounds? bounds, TypeParameterBounds? value)
         {
             Debug.Assert(value != TypeParameterBounds.Unset);
-            bool valueUsedLightweightTypeConstraintBinding = !value.HasValue(useLightweightTypeConstraintBinding: false);
+            bool valueUsedLightweightTypeConstraintBinding = !value.HasValue(canUseLightweightTypeConstraintBinding: false);
 
             while (true)
             {

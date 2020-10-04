@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool useLightweightTypeConstraintBinding)
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canUseLightweightTypeConstraintBinding)
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations

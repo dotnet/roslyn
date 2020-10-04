@@ -1564,7 +1564,7 @@ class C<T, U, V>
             AssertEx.None(actualTypeParameters, p => p.HasReferenceTypeConstraint);
             AssertEx.None(actualTypeParameters, p => p.HasConstructorConstraint);
             AssertEx.All(actualTypeParameters, p => p.ContainingSymbol == null);
-            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null, useLightweightTypeConstraintBinding: false).Length == 0);
+            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null, canUseLightweightTypeConstraintBinding: false).Length == 0);
             AssertEx.All(actualTypeParameters, p => p.GetInterfaces(null).Length == 0);
 
             foreach (var p in actualTypeParameters)

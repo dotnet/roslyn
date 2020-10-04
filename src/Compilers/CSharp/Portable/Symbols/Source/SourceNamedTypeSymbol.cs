@@ -255,13 +255,13 @@ next:;
         /// <summary>
         /// Returns the constraint clause for the given type parameter.
         /// </summary>
-        internal TypeParameterConstraintClause GetTypeParameterConstraintClause(bool useLightweightTypeConstraintBinding, int ordinal)
+        internal TypeParameterConstraintClause GetTypeParameterConstraintClause(bool canUseLightweightTypeConstraintBinding, int ordinal)
         {
             var clauses = _lazyTypeParameterConstraints;
-            if (!clauses.HasValue(useLightweightTypeConstraintBinding))
+            if (!clauses.HasValue(canUseLightweightTypeConstraintBinding))
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-                var typeParameterConstraints = new TypeParameterConstraintClauses(MakeTypeParameterConstraints(useLightweightTypeConstraintBinding, diagnostics), useLightweightTypeConstraintBinding);
+                var typeParameterConstraints = new TypeParameterConstraintClauses(MakeTypeParameterConstraints(canUseLightweightTypeConstraintBinding, diagnostics), canUseLightweightTypeConstraintBinding);
 
                 if (TypeParameterConstraintClausesExtensions.InterlockedUpdate(ref _lazyTypeParameterConstraints, typeParameterConstraints) &&
                    _lazyTypeParameterConstraints.HasValue(usedLightweightTypeConstraintBinding: false))
@@ -275,7 +275,7 @@ next:;
             return (clauses.TypeParameterConstraints.Length > 0) ? clauses.TypeParameterConstraints[ordinal] : TypeParameterConstraintClause.Empty;
         }
 
-        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(bool useLightweightTypeConstraintBinding, DiagnosticBag diagnostics)
+        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(bool canUseLightweightTypeConstraintBinding, DiagnosticBag diagnostics)
         {
             var typeParameters = this.TypeParameters;
             var results = ImmutableArray<TypeParameterConstraintClause>.Empty;
@@ -325,9 +325,9 @@ next:;
                         // to avoid checking constraints when binding type names.
                         Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
                         binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(
-                            BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (useLightweightTypeConstraintBinding ? BinderFlags.LightweightTypeConstraintBinding : 0));
+                            BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (canUseLightweightTypeConstraintBinding ? BinderFlags.LightweightTypeConstraintBinding : 0));
 
-                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, useLightweightTypeConstraintBinding, ref isValueTypeOverride, diagnostics);
+                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, canUseLightweightTypeConstraintBinding, ref isValueTypeOverride, diagnostics);
                     }
 
                     Debug.Assert(constraints.Length == arity);

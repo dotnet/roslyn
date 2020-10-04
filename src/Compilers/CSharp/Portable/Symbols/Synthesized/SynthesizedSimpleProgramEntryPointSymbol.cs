@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExpressionBodied => false;
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool useLightweightTypeConstraintBinding)
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canUseLightweightTypeConstraintBinding)
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         protected override object MethodChecksLockObject => _declaration;

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> clauses,
-            bool useLightweightTypeConstraintBinding,
+            bool canUseLightweightTypeConstraintBinding,
             ref IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride,
             DiagnosticBag diagnostics,
             bool isForOverride = false)
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(ordinal < n);
 
                     (TypeParameterConstraintClause constraintClause, ArrayBuilder<TypeConstraintSyntax>? typeConstraintNodes) =
-                        this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, isForOverride, useLightweightTypeConstraintBinding: useLightweightTypeConstraintBinding, diagnostics);
+                        this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, isForOverride, canUseLightweightTypeConstraintBinding, diagnostics);
                     if (results[ordinal] == null)
                     {
                         results[ordinal] = constraintClause;
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind and return a single type parameter constraint clause along with syntax nodes corresponding to type constraints.
         /// </summary>
         private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>?) BindTypeParameterConstraints(
-            TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, bool useLightweightTypeConstraintBinding, DiagnosticBag diagnostics)
+            TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, bool canUseLightweightTypeConstraintBinding, DiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
             ArrayBuilder<TypeWithAnnotations>? constraintTypes = null;
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!isForOverride ||
                          (constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType)) != (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType));
 
-            return (TypeParameterConstraintClause.Create(constraints, constraintTypes?.ToImmutableAndFree() ?? ImmutableArray<TypeWithAnnotations>.Empty, useLightweightTypeConstraintBinding), syntaxBuilder);
+            return (TypeParameterConstraintClause.Create(constraints, constraintTypes?.ToImmutableAndFree() ?? ImmutableArray<TypeWithAnnotations>.Empty, canUseLightweightTypeConstraintBinding), syntaxBuilder);
 
             static void reportOverrideWithConstraints(ref bool reportedOverrideWithConstraints, TypeParameterConstraintSyntax syntax, DiagnosticBag diagnostics)
             {

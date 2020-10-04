@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, DiagnosticBag diagnostics) => ImmutableArray<TypeParameterSymbol>.Empty;
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool useLightweightTypeConstraintBinding) => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canUseLightweightTypeConstraintBinding) => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         protected sealed override void PartialMethodChecks(DiagnosticBag diagnostics)
         {

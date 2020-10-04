@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool useLightweightTypeConstraintBinding)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool canUseLightweightTypeConstraintBinding)
         {
-            return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetConstraintTypes(inProgress, useLightweightTypeConstraintBinding));
+            return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetConstraintTypes(inProgress, canUseLightweightTypeConstraintBinding));
         }
 
         internal override bool? IsNotNullable

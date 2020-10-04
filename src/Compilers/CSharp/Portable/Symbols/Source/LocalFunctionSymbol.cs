@@ -459,9 +459,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool useLightweightTypeConstraintBinding)
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canUseLightweightTypeConstraintBinding)
         {
-            if (!_lazyTypeParameterConstraints.HasValue(useLightweightTypeConstraintBinding))
+            if (!_lazyTypeParameterConstraints.HasValue(canUseLightweightTypeConstraintBinding))
             {
                 var syntax = Syntax;
                 var diagnostics = DiagnosticBag.GetInstance();
@@ -470,19 +470,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
-                    useLightweightTypeConstraintBinding,
+                    canUseLightweightTypeConstraintBinding,
                     diagnostics);
 
                 lock (_declarationDiagnostics)
                 {
-                    //useLightweightTypeConstraintBinding = constraints.UsedLightweightTypeConstraintBinding(); // TODO2 why do we have this here and only here?
-                    if (!_lazyTypeParameterConstraints.HasValue(useLightweightTypeConstraintBinding))
+                    //canUseLightweightTypeConstraintBinding = constraints.UsedLightweightTypeConstraintBinding(); // TODO2 why do we have this here and only here?
+                    if (!_lazyTypeParameterConstraints.HasValue(canUseLightweightTypeConstraintBinding))
                     {
-                        if (!useLightweightTypeConstraintBinding)
+                        if (!canUseLightweightTypeConstraintBinding)
                         {
                             _declarationDiagnostics.AddRange(diagnostics);
                         }
-                        _lazyTypeParameterConstraints = new TypeParameterConstraintClauses(constraints, useLightweightTypeConstraintBinding);
+                        _lazyTypeParameterConstraints = new TypeParameterConstraintClauses(constraints, canUseLightweightTypeConstraintBinding);
                     }
                 }
                 diagnostics.Free();

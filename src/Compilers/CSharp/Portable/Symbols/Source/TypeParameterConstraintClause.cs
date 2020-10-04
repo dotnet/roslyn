@@ -256,15 +256,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Returns true if constraintClauses was updated with value.
-        // Returns false if constraintClauses already had a value with sufficient 'UseLightweightTypeConstraintBinding'
-        // or was updated to a value with sufficient 'UseLightweightTypeConstraintBinding' on another thread.
+        // Returns false if constraintClauses already had a value with sufficient 'canUseLightweightTypeConstraintBinding'
+        // or was updated to a value with sufficient 'canUseLightweightTypeConstraintBinding' on another thread.
         internal static bool InterlockedUpdate(ref TypeParameterConstraintClauses constraintClauses, TypeParameterConstraintClauses value)
         {
-            bool useLightweightTypeConstraintBinding = value.UsedLightweightTypeConstraintBinding;
+            bool canUseLightweightTypeConstraintBinding = value.UsedLightweightTypeConstraintBinding;
             while (true)
             {
                 var comparand = constraintClauses;
-                if (comparand.HasValue(useLightweightTypeConstraintBinding))
+                if (comparand.HasValue(canUseLightweightTypeConstraintBinding))
                 {
                     return false;
                 }

@@ -177,11 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool useLightweightTypeConstraintBinding)
+        internal override void EnsureAllConstraintsAreResolved(bool canUseLightweightTypeConstraintBinding)
         {
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool useLightweightTypeConstraintBinding)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool canUseLightweightTypeConstraintBinding)
         {
             return ImmutableArray<TypeWithAnnotations>.Empty;
         }
