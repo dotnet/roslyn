@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             public AssetProvider(SerializationValidator validator)
                 => _validator = validator;
 
-            public override Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+            public override Task<T?> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken) where T : default
                 => _validator.GetValueAsync<T>(checksum);
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Services = services;
         }
 
-        public async Task<T> GetValueAsync<T>(Checksum checksum)
+        public async Task<T?> GetValueAsync<T>(Checksum checksum)
         {
             var data = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
             Contract.ThrowIfNull(data.Value);
@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             foreach (var projectChecksum in solutionObject.Projects)
             {
                 var projectObject = await GetValueAsync<ProjectStateChecksums>(projectChecksum).ConfigureAwait(false);
+                RoslynDebug.AssertNotNull(projectObject);
                 await VerifyAssetAsync(projectObject).ConfigureAwait(false);
             }
         }
@@ -145,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             foreach (var checksum in projectObject.Documents)
             {
                 var documentObject = await GetValueAsync<DocumentStateChecksums>(checksum).ConfigureAwait(false);
+                RoslynDebug.AssertNotNull(documentObject);
                 await VerifyAssetAsync(documentObject).ConfigureAwait(false);
             }
 
@@ -172,12 +174,14 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             foreach (var checksum in projectObject.AdditionalDocuments)
             {
                 var documentObject = await GetValueAsync<DocumentStateChecksums>(checksum).ConfigureAwait(false);
+                RoslynDebug.AssertNotNull(documentObject);
                 await VerifyAssetAsync(documentObject).ConfigureAwait(false);
             }
 
             foreach (var checksum in projectObject.AnalyzerConfigDocuments)
             {
                 var documentObject = await GetValueAsync<DocumentStateChecksums>(checksum).ConfigureAwait(false);
+                RoslynDebug.AssertNotNull(documentObject);
                 await VerifyAssetAsync(documentObject).ConfigureAwait(false);
             }
         }
@@ -193,10 +197,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
         }
 
-        internal async Task<T> VerifyAssetSerializationAsync<T>(
+        internal async Task<T?> VerifyAssetSerializationAsync<T>(
             Checksum checksum,
             WellKnownSynchronizationKind kind,
-            Func<T, WellKnownSynchronizationKind, ISerializerService, SolutionAsset> assetGetter)
+            Func<T?, WellKnownSynchronizationKind, ISerializerService, SolutionAsset> assetGetter)
         {
             // re-create asset from object
             var syncObject = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
@@ -214,6 +218,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var solutionObjectFromSyncObject = await GetValueAsync<SolutionStateChecksums>(solutionChecksum);
             Assert.True(solution.State.TryGetStateChecksums(out var solutionObjectFromSolution));
+            RoslynDebug.AssertNotNull(solutionObjectFromSyncObject);
 
             SolutionStateEqual(solutionObjectFromSolution, solutionObjectFromSyncObject);
         }

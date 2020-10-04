@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(PipeReader pipeReader, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static async ValueTask<ImmutableArray<(Checksum, object?)>> ReadDataAsync(PipeReader pipeReader, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             // We can cancel at entry, but once the pipe operations are scheduled we rely on both operations running to
             // avoid deadlocks (the exception handler in 'copyTask' ensures progress is made in the blocking read).
