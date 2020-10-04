@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             // remove specified Prefix, then look for any other common prefixes
             name = StripCommonPrefixes(name.Substring(Prefix.Length), out var prefix);
 
-            if (prefix != string.Empty)
+            if (prefix != string.Empty && !char.IsDigit(name[0]))
             {
                 // name started with specified prefix, but has at least one additional common prefix 
                 // Example: specified prefix "test_", actual prefix "test_m_"
