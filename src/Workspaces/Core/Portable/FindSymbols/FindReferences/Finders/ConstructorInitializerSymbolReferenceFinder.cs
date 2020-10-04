@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var typeName = methodSymbol.ContainingType.Name;
 
             var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);

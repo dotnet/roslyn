@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -365,9 +367,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return supportedPlatforms;
         }
 
-        protected static int? TryGetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, SymbolInfo currentSymbol) where TSymbol : class, ISymbol
+        protected static int? TryGetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, ISymbol currentSymbol) where TSymbol : class, ISymbol
         {
-            if (currentSymbol.Symbol is TSymbol matched)
+            if (currentSymbol is TSymbol matched)
             {
                 var found = candidates.IndexOf(matched);
                 if (found >= 0)

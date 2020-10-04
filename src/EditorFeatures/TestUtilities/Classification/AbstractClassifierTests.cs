@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -46,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             var span = new TextSpan(start, length);
             var actual = await GetClassificationSpansAsync(allCode, span, parseOptions, testHost);
 
-            actual = actual.Sort((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
+            var actualOrdered = actual.OrderBy((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
 
-            var actualFormatted = actual.Select(a => new FormattedClassification(allCode.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType));
+            var actualFormatted = actualOrdered.Select(a => new FormattedClassification(allCode.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType));
             AssertEx.Equal(expected, actualFormatted);
         }
 

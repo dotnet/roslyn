@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption2<T>), ReadFrom);
         }
 
-        public static CodeStyleOption2<T> Default => new CodeStyleOption2<T>(default, NotificationOption2.Silent);
+        public static CodeStyleOption2<T> Default => new(default, NotificationOption2.Silent);
 
         private const int SerializationVersion = 1;
 
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public XElement ToXElement() =>
-            new XElement("CodeStyleOption", // Ensure that we use "CodeStyleOption" as the name for back compat.
+            new("CodeStyleOption", // Ensure that we use "CodeStyleOption" as the name for back compat.
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
                 new XAttribute("Type", GetTypeNameForSerialization()),
                 new XAttribute(nameof(Value), GetValueForSerialization()),

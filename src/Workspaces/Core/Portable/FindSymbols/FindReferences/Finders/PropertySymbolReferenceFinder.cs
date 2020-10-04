@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -95,8 +93,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 // We want to associate property references to a specific accessor (if an accessor
                 // is being referenced).  Check if this reference would match an accessor. If so, do
                 // not add it.  It will be added by PropertyAccessorSymbolReferenceFinder.
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
                 nameReferences = nameReferences.WhereAsArray(loc =>
                 {

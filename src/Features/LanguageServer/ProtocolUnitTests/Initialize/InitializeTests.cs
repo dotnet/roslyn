@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -23,8 +25,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
         }
 
         private static async Task<LSP.InitializeResult> RunInitializeAsync(Solution solution, LSP.InitializeParams request)
-            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName,
-                request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+        {
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(queue, LSP.Methods.InitializeName,
+                           request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
 
         private static void AssertServerCapabilities(LSP.ServerCapabilities actual)
         {
@@ -37,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
             Assert.True(actual.DocumentHighlightProvider);
 
             Assert.True(actual.CompletionProvider.ResolveProvider);
-            Assert.Equal(new[] { ".", " ", "#", "<", ">", "\"", ":", "[", "(", "~", "=", "{", "/" }.OrderBy(string.Compare),
+            Assert.Equal(new[] { ".", " ", "#", "<", ">", "\"", ":", "[", "(", "~", "=", "{", "/", "\\" }.OrderBy(string.Compare),
                 actual.CompletionProvider.TriggerCharacters.OrderBy(string.Compare));
 
             Assert.Equal(new[] { "(", "," }, actual.SignatureHelpProvider.TriggerCharacters);

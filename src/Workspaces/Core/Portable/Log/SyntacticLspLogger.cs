@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
     internal sealed class SyntacticLspLogger
     {
-        private static readonly HistogramLogAggregator s_histogramLogAggregator = new HistogramLogAggregator(bucketSize: 100, maxBucketValue: 5000);
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(bucketSize: 100, maxBucketValue: 5000);
 
         internal enum RequestType
         {

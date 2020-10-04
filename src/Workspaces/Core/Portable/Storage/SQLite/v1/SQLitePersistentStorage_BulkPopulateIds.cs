@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,8 +15,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
 {
     internal partial class SQLitePersistentStorage
     {
-        private readonly ConcurrentDictionary<ProjectId, object> _projectBulkPopulatedLock = new ConcurrentDictionary<ProjectId, object>();
-        private readonly HashSet<ProjectId> _projectBulkPopulatedMap = new HashSet<ProjectId>();
+        private readonly ConcurrentDictionary<ProjectId, object> _projectBulkPopulatedLock = new();
+        private readonly HashSet<ProjectId> _projectBulkPopulatedMap = new();
 
         /// <remarks>
         /// We have a lot of ID information to put into the DB. IDs for all strings we intend to 

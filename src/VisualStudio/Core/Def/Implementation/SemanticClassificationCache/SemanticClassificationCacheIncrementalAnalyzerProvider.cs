@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Diagnostics;
@@ -61,12 +59,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
                 }
 
                 var statusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+
+                // If we're not fully loaded, then we don't want to cache classifications.  The classifications we have
+                // will likely not be accurate.  And, if we shutdown after that, we'll have cached incomplete classifications.
                 var isFullyLoaded = await statusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-                Debug.Assert(isFullyLoaded, "We should only be called by the incremental analyzer once the solution is fully loaded.");
+                if (!isFullyLoaded)
+                    return;
 
                 await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(
                     document.Project.Solution,
-                    (service, solutionInfo, cancellationToken) => service.CacheSemanticClassificationsAsync(solutionInfo, document.Id, isFullyLoaded, cancellationToken),
+                    (service, solutionInfo, cancellationToken) => service.CacheSemanticClassificationsAsync(solutionInfo, document.Id, cancellationToken),
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }

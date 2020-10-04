@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal partial class CodeFixService : ForegroundThreadAffinitizedObject, ICodeFixService
     {
         private static readonly Comparison<DiagnosticData> s_diagnosticDataComparisonById =
-            new Comparison<DiagnosticData>((d1, d2) => DiagnosticId.CompareOrdinal(d1.Id, d2.Id));
+            new((d1, d2) => DiagnosticId.CompareOrdinal(d1.Id, d2.Id));
 
         private readonly IDiagnosticAnalyzerService _diagnosticService;
 

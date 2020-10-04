@@ -82,6 +82,11 @@
         <target state="translated">在格式化期間執行額外程式碼清除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
+        <source>Prefer implicit object creation when type is apparent</source>
+        <target state="new">Prefer implicit object creation when type is apparent</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">參考相等檢查最好使用 'is null'</target>

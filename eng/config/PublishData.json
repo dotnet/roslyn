@@ -198,7 +198,7 @@
       "version": "3.8.*",
       "packageFeeds": "default",
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-      "channels": [ "dev16.8p3" ],
+      "channels": [ "dev16.8p4" ],
       "vsBranch": "rel/d16.8",
       "vsMajorVersion": 16
     },
@@ -207,7 +207,7 @@
       "version": "3.8.*",
       "packageFeeds": "default",
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-      "channels": [ "dev16.8", "dev16.8p4" ],
+      "channels": [ "dev16.9", "dev16.9p1" ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },

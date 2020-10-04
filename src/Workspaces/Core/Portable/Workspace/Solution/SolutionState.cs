@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -99,7 +97,7 @@ namespace Microsoft.CodeAnalysis
 
             // make sure we don't accidentally capture any state but the list of references:
             static Lazy<HostDiagnosticAnalyzers> CreateLazyHostDiagnosticAnalyzers(IReadOnlyList<AnalyzerReference> analyzerReferences)
-                => new Lazy<HostDiagnosticAnalyzers>(() => new HostDiagnosticAnalyzers(analyzerReferences));
+                => new(() => new HostDiagnosticAnalyzers(analyzerReferences));
         }
 
         public SolutionState(
@@ -1759,7 +1757,7 @@ namespace Microsoft.CodeAnalysis
         /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
         /// </summary>
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap =
-            new ConditionalWeakTable<ISymbol, ProjectId>();
+            new();
 
         private static void RecordSourceOfAssemblySymbol(ISymbol? assemblyOrModuleSymbol, ProjectId projectId)
         {
