@@ -8668,5 +8668,89 @@ class C : [|I|]
     }
 }", index: 1);
         }
+
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementOnRecord_WithSemiColon()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|];
+",
+@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|]
+{
+    public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementOnRecord_WithBracesAndTrivia()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|] { } // hello
+",
+@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|]
+{
+    public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+} // hello
+");
+        }
+
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementOnRecord_WithSemiColonAndTrivia()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|]; // hello
+",
+@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|] // hello
+{
+    public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
     }
 }
