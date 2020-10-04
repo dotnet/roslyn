@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!isForOverride ||
                          (constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType)) != (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType));
 
-            return (TypeParameterConstraintClause.Create(constraints, constraintTypes?.ToImmutableAndFree() ?? ImmutableArray<TypeWithAnnotations>.Empty, canUseLightweightTypeConstraintBinding), syntaxBuilder);
+            return (TypeParameterConstraintClause.Create(constraints, constraintTypes?.ToImmutableAndFree() ?? ImmutableArray<TypeWithAnnotations>.Empty), syntaxBuilder);
 
             static void reportOverrideWithConstraints(ref bool reportedOverrideWithConstraints, TypeParameterConstraintSyntax syntax, DiagnosticBag diagnostics)
             {
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (constraintTypeBuilder.Count < n)
                 {
-                    return TypeParameterConstraintClause.Create(constraintClause.Constraints, constraintTypeBuilder.ToImmutableAndFree(), constraintClause.UsedLightweightTypeConstraintBinding);
+                    return TypeParameterConstraintClause.Create(constraintClause.Constraints, constraintTypeBuilder.ToImmutableAndFree());
                 }
 
                 constraintTypeBuilder.Free();

@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var constraintTypes = constraintClause.ConstraintTypes;
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, usedLightweightTypeConstraintBinding: constraintClause.UsedLightweightTypeConstraintBinding, this.DeclaringCompilation, diagnostics);
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, canUseLightweightTypeConstraintBinding, this.DeclaringCompilation, diagnostics);
         }
 
         private TypeParameterConstraintKind GetDeclaredConstraints(bool canUseLightweightTypeConstraintBinding)
@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var constraintTypes = constraintClause.ConstraintTypes;
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, constraintClause.UsedLightweightTypeConstraintBinding, this.DeclaringCompilation, diagnostics);
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, canUseLightweightTypeConstraintBinding, this.DeclaringCompilation, diagnostics);
         }
 
         internal TypeParameterConstraintKind GetDeclaredConstraints(bool canUseLightweightTypeConstraintBinding)

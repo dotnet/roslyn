@@ -76,21 +76,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static readonly TypeParameterConstraintClause Empty = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.None,
-            ImmutableArray<TypeWithAnnotations>.Empty,
-            usedLightweightTypeConstraintBinding: false);
+            ImmutableArray<TypeWithAnnotations>.Empty);
 
         internal static readonly TypeParameterConstraintClause ObliviousNullabilityIfReferenceType = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType,
-            ImmutableArray<TypeWithAnnotations>.Empty,
-            usedLightweightTypeConstraintBinding: false);
+            ImmutableArray<TypeWithAnnotations>.Empty);
 
         internal static TypeParameterConstraintClause Create(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeWithAnnotations> constraintTypes,
-            bool usedLightweightTypeConstraintBinding)
+            ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
             Debug.Assert(!constraintTypes.IsDefault);
-            if (!usedLightweightTypeConstraintBinding && constraintTypes.IsEmpty)
+            if (constraintTypes.IsEmpty)
             {
                 switch (constraints)
                 {
@@ -102,13 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return new TypeParameterConstraintClause(constraints, constraintTypes, usedLightweightTypeConstraintBinding);
+            return new TypeParameterConstraintClause(constraints, constraintTypes);
         }
 
         private TypeParameterConstraintClause(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeWithAnnotations> constraintTypes,
-            bool usedLightweightTypeConstraintBinding)
+            ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
 #if DEBUG
             switch (constraints & TypeParameterConstraintKind.AllReferenceTypeKinds)
@@ -128,12 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
-            this.UsedLightweightTypeConstraintBinding = usedLightweightTypeConstraintBinding;
         }
 
         public readonly TypeParameterConstraintKind Constraints;
         public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
-        public readonly bool UsedLightweightTypeConstraintBinding; // TODO2 remove?
 
         internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty;
 
@@ -243,12 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return usedLightweightTypeConstraintBinding || !constraintClauses.UsedLightweightTypeConstraintBinding;
         }
 #nullable restore
-
-        // TODO2
-        //internal static bool UsedLightweightTypeConstraintBinding(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
-        //{
-        //    return constraintClauses.Any(clause => clause.UsedLightweightTypeConstraintBinding);
-        //}
 
         internal static bool ContainsOnlyEmptyConstraintClauses(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {

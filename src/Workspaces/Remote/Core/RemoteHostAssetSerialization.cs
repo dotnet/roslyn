@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ImmutableArray<(Checksum, object?)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(out var results);
+            using var _ = ArrayBuilder<(Checksum, object?)>.GetInstance(out var results);
 
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 

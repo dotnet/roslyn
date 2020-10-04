@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ExpressionSyntax GenerateExpressionSyntax(
             this ITypeSymbol typeSymbol)
         {
-            return typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Instance).WithAdditionalAnnotations(Simplifier.Annotation);
+            var expression = typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Instance);
+            RoslynDebug.Assert(expression is not null);
+            return expression.WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
         public static NameSyntax GenerateNameSyntax(
@@ -48,8 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return SyntaxFactory.IdentifierName("var");
             }
 
-            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
-                               .WithAdditionalAnnotations(Simplifier.Annotation);
+            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax));
+            RoslynDebug.Assert(syntax is not null);
+            syntax = syntax.WithAdditionalAnnotations(Simplifier.Annotation);
 
             if (!allowVar)
             {

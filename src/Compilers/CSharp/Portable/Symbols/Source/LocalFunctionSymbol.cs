@@ -475,7 +475,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 lock (_declarationDiagnostics)
                 {
-                    //canUseLightweightTypeConstraintBinding = constraints.UsedLightweightTypeConstraintBinding(); // TODO2 why do we have this here and only here?
                     if (!_lazyTypeParameterConstraints.HasValue(canUseLightweightTypeConstraintBinding))
                     {
                         if (!canUseLightweightTypeConstraintBinding)

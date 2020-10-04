@@ -446,7 +446,7 @@ next:;
                     }
 
                     builder[i] = TypeParameterConstraintClause.Create(mergedKind,
-                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes, usedLightweightTypeConstraintBinding: constraint.UsedLightweightTypeConstraintBinding);
+                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes);
                 }
             }
 
