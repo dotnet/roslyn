@@ -38,8 +38,17 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _);
         }
 
+        private readonly DiagnosticDescriptor _incrementDescriptor = CreateDescriptorWithId(
+            IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+            "Use increment operator", "Use increment operator");
+
+        private readonly DiagnosticDescriptor _decrementDescriptor = CreateDescriptorWithId(
+            IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+            "Use decrement operator", "Use decrement operator");
+
         protected abstract TSyntaxKind GetAnalysisKind();
         protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
+        protected abstract int TryGetIncrementOrDecrement(TSyntaxKind opKind, object constantValue);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -116,17 +125,31 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 return;
             }
 
-            var properties = ImmutableDictionary.Create<string, string>();
             var constant = semanticModel.GetConstantValue(binaryRight, cancellationToken).Value;
             if (constant != null)
             {
-                if (constant.Equals(1))
+                var incrementOrDecrement = TryGetIncrementOrDecrement(binaryKind, constant);
+                if (incrementOrDecrement == 1)
                 {
-                    properties = properties.Add(UseCompoundAssignmentUtilities.ConstantOne, UseCompoundAssignmentUtilities.ConstantOne);
+                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                        _incrementDescriptor,
+                        assignmentToken.GetLocation(),
+                        option.Notification.Severity,
+                        additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+                        properties: ImmutableDictionary.Create<string, string>()
+                            .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
+                    return;
                 }
-                else if (constant.Equals(-1))
+                else if (incrementOrDecrement == -1)
                 {
-                    properties = properties.Add(UseCompoundAssignmentUtilities.ConstantOne, UseCompoundAssignmentUtilities.ConstantMinusOne);
+                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                        _decrementDescriptor,
+                        assignmentToken.GetLocation(),
+                        option.Notification.Severity,
+                        additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+                        properties: ImmutableDictionary.Create<string, string>()
+                            .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
+                    return;
                 }
             }
 
@@ -135,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 assignmentToken.GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
-                properties: properties));
+                properties: null));
         }
     }
 }

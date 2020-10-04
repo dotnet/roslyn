@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 {
     internal static class UseCompoundAssignmentUtilities
     {
-        internal const string ConstantOne = nameof(ConstantOne);
-        internal const string ConstantMinusOne = nameof(ConstantMinusOne);
+        internal const string Increment = nameof(Increment);
+        internal const string Decrement = nameof(Decrement);
 
         public static void GenerateMaps<TSyntaxKind>(
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds,
