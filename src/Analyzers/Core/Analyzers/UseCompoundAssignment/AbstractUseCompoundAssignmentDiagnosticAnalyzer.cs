@@ -36,15 +36,23 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         {
             _syntaxFacts = syntaxFacts;
             UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _);
+
+            var useIncrementMessage = new LocalizableResourceString(
+                nameof(AnalyzersResources.Use_increment_operator), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+            _incrementDescriptor = CreateDescriptorWithId(
+                IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                useIncrementMessage, useIncrementMessage);
+
+            var useDecrementMessage = new LocalizableResourceString(
+                nameof(AnalyzersResources.Use_decrement_operator), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+            _decrementDescriptor = CreateDescriptorWithId(
+                IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                useDecrementMessage, useDecrementMessage);
         }
 
-        private readonly DiagnosticDescriptor _incrementDescriptor = CreateDescriptorWithId(
-            IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
-            "Use increment operator", "Use increment operator");
+        private readonly DiagnosticDescriptor _incrementDescriptor;
 
-        private readonly DiagnosticDescriptor _decrementDescriptor = CreateDescriptorWithId(
-            IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
-            "Use decrement operator", "Use decrement operator");
+        private readonly DiagnosticDescriptor _decrementDescriptor;
 
         protected abstract TSyntaxKind GetAnalysisKind();
         protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
