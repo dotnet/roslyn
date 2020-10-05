@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineParameterNameHints;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -30,16 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
         {
         }
 
-        protected override IEnumerable<InlineParameterHint> AddAllParameterNameHintLocations(
-             SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, CancellationToken cancellationToken)
+        protected override void AddAllParameterNameHintLocations(
+             SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes,
+             ArrayBuilder<InlineParameterHint> result, CancellationToken cancellationToken)
         {
-            var spans = new List<InlineParameterHint>();
             foreach (var node in nodes)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return SpecializedCollections.EmptyEnumerable<InlineParameterHint>();
-                }
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (node is ArgumentSyntax argument)
                 {
@@ -47,9 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
                     {
                         var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                         if (param != null && param.Name != "")
-                        {
-                            spans.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, argument.Span.Start));
-                        }
+                            result.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, argument.Span.Start));
                     }
                 }
                 else if (node is AttributeArgumentSyntax attribute)
@@ -58,13 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
                     {
                         var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                         if (param != null && param.Name != "")
-                        {
-                            spans.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, attribute.SpanStart));
-                        }
+                            result.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, attribute.SpanStart));
                     }
                 }
             }
-            return spans;
         }
 
         /// <summary>
