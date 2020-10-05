@@ -19,66 +19,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstruc
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new GenerateDefaultConstructorsCodeRefactoringProvider();
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestProtectedBase(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestProtectedBase()
         {
             await TestInRegularAndScriptAsync(
-$@"{typeKind} C : [||]B
-{{
-}}
+@"class C : [||]B
+{
+}
 
-{typeKind} B
-{{
+class B
+{
     protected B(int x)
-    {{
-    }}
-}}",
-$@"{typeKind} C : B
-{{
+    {
+    }
+}",
+@"class C : B
+{
     protected C(int x) : base(x)
-    {{
-    }}
-}}
+    {
+    }
+}
 
-{typeKind} B
-{{
+class B
+{
     protected B(int x)
-    {{
-    }}
-}}");
+    {
+    }
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestPublicBase(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestPublicBase()
         {
             await TestInRegularAndScriptAsync(
-$@"{typeKind} C : [||]B
-{{
-}}
+@"class C : [||]B
+{
+}
 
-{typeKind} B
-{{
+class B
+{
     public B(int x)
-    {{
-    }}
-}}",
-$@"{typeKind} C : B
-{{
+    {
+    }
+}",
+@"class C : B
+{
     public C(int x) : base(x)
-    {{
-    }}
-}}
+    {
+    }
+}
 
-{typeKind} B
-{{
+class B
+{
     public B(int x)
-    {{
-    }}
-}}");
+    {
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
@@ -1270,6 +1266,79 @@ sealed class Program : [||]Base
 sealed class Program : Base
 {
     internal Program()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestRecord()
+        {
+            await TestInRegularAndScriptAsync(
+@"record Base
+{
+    public Base(int x)
+    {
+    }
+}
+
+record Sub : [||]Base
+{
+}",
+@"record Base
+{
+    public Base(int x)
+    {
+    }
+}
+
+record Sub : Base
+{
+    public Sub(int x) : base(x)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestRecordWithPositionalParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"record Base(int X)
+{
+}
+
+record Sub : [||]Base
+{
+}",
+@"record Base(int X)
+{
+}
+
+record Sub : Base
+{
+    public Sub(int X) : base(X)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestRecordWithPositionalParameterWithoutBraces()
+        {
+            await TestInRegularAndScriptAsync(
+@"record Base(int X)
+{
+}
+
+record Sub : [||]Base;",
+@"record Base(int X)
+{
+}
+
+record Sub : Base
+{
+    public Sub(int X) : base(X)
     {
     }
 }");
