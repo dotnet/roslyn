@@ -22,11 +22,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As CastExpressionSyntax, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
             Select Case node.Kind
                 Case SyntaxKind.CTypeExpression
-                    Return ValueTaskFactory.FromResult({New CTypeCastExpressionDocumentation()})
+                    Return ValueTaskFactory.FromResult(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New CTypeCastExpressionDocumentation()})
                 Case SyntaxKind.DirectCastExpression
-                    Return ValueTaskFactory.FromResult({New DirectCastExpressionDocumentation()})
+                    Return ValueTaskFactory.FromResult(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New DirectCastExpressionDocumentation()})
                 Case SyntaxKind.TryCastExpression
-                    Return ValueTaskFactory.FromResult({New TryCastExpressionDocumentation()})
+                    Return ValueTaskFactory.FromResult(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New TryCastExpressionDocumentation()})
             End Select
 
             Return ValueTaskFactory.FromResult(SpecializedCollections.EmptyEnumerable(Of AbstractIntrinsicOperatorDocumentation)())
