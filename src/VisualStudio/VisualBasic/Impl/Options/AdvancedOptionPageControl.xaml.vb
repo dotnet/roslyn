@@ -59,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(GenerateXmlDocCommentsForTripleApostrophes, FeatureOnOffOptions.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
             BindToOption(InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments, SplitCommentOptions.Enabled, LanguageNames.VisualBasic)
 
-            BindToOption(DisplayInlineParameterNameHints, InlineParameterNameHintsOptions.Enabled, LanguageNames.VisualBasic)
+            BindToOption(DisplayInlineParameterNameHints, InlineParameterNameHintsOptions.EnabledForParameters, LanguageNames.VisualBasic)
 
             BindToOption(EnableEndConstruct, FeatureOnOffOptions.EndConstruct, LanguageNames.VisualBasic)
             BindToOption(EnableLineCommit, FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)

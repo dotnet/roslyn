@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.InlineParameterNameHints
 {
     internal static class InlineParameterNameHintsOptions
     {
-        public static readonly PerLanguageOption2<bool> Enabled =
+        public static readonly PerLanguageOption2<bool> EnabledForParameters =
             new(nameof(InlineParameterNameHintsOptions),
-                nameof(Enabled),
+                nameof(EnabledForParameters),
                 defaultValue: false,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.Enabled"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.EnabledForParameters"));
     }
 
     [ExportOptionProvider, Shared]
@@ -32,6 +32,6 @@ namespace Microsoft.CodeAnalysis.InlineParameterNameHints
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            InlineParameterNameHintsOptions.Enabled);
+            InlineParameterNameHintsOptions.EnabledForParameters);
     }
 }

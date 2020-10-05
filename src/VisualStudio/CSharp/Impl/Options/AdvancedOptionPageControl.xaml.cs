@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
             BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
 
-            BindToOption(DisplayInlineParameterNameHints, InlineParameterNameHintsOptions.Enabled, LanguageNames.CSharp);
+            BindToOption(DisplayInlineParameterNameHints, InlineParameterNameHintsOptions.EnabledForParameters, LanguageNames.CSharp);
 
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptions.ShowRemarksInQuickInfo, LanguageNames.CSharp);
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.CSharp);
