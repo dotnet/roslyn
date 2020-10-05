@@ -441,9 +441,9 @@ class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (13,26): error CS0701: 'Span<T>' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // (13,26): error CS0701: 'Span<int>' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //     class C1<T> where T: Span<int>
-                Diagnostic(ErrorCode.ERR_BadBoundType, "Span<int>").WithArguments("System.Span<T>").WithLocation(13, 26),
+                Diagnostic(ErrorCode.ERR_BadBoundType, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 26),
                 // (10,14): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         Func<Span<int>> d = ()=>x;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "Span<int>").WithArguments("System.Span<int>").WithLocation(10, 14),
