@@ -213,5 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    && modifierType.Name.StartsWith("CallConv", StringComparison.Ordinal)
                    && modifierType.IsCompilerServicesTopLevelType();
         }
+
+        internal override bool IsRecord => false;
     }
 }
