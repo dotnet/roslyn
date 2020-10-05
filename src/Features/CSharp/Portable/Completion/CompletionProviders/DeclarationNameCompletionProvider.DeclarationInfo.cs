@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 result = IsLastTokenOfType<LocalFunctionStatementSyntax>(token, semanticModel,
                     typeSyntaxGetter: f => f.ReturnType,
                     modifierGetter: f => f.Modifiers,
-                    possibleDeclarationComputer: (_, m) => GetPossibleMemberDeclarations(m),
+                    possibleDeclarationComputer: (_, m) => GetPossibleLocalDeclarations(m),
                     cancellationToken);
                 return result.Type != null;
             }
