@@ -1014,5 +1014,36 @@ namespace System
                 FixedCode = fixedSource,
             }.RunAsync();
         }
+
+        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestSliceOnThis()
+        {
+            var source =
+@"
+class C
+{
+    public int Length => 0;
+    public C Slice(int start, int length) => this;
+
+    public C Foo(int x) => Slice([|1, x - 1|]);
+}";
+            var fixedSource =
+@"
+class C
+{
+    public int Length => 0;
+    public C Slice(int start, int length) => this;
+
+    public C Foo(int x) => this[1..x];
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
     }
 }
