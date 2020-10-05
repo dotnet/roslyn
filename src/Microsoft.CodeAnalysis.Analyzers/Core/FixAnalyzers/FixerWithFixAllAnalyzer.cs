@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                             return _codeActionsWithEquivalenceKey != null && _codeActionsWithEquivalenceKey.Contains(namedType);
                         }
 
-                        // For types in different compilation, perfom the check.
+                        // For types in different compilation, perform the check.
                         return IsCodeActionWithOverriddenEquivlanceKeyCore(namedType);
                     }
                 }
