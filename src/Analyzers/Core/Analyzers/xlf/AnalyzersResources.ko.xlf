@@ -333,8 +333,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Use_decrement_operator">
-        <source>Use decrement operator</source>
-        <target state="new">Use decrement operator</target>
+        <source>Use '--' operator</source>
+        <target state="new">Use '--' operator</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicitly_provided_tuple_name">
@@ -343,8 +343,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Use_increment_operator">
-        <source>Use increment operator</source>
-        <target state="new">Use increment operator</target>
+        <source>Use '++' operator</source>
+        <target state="new">Use '++' operator</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">

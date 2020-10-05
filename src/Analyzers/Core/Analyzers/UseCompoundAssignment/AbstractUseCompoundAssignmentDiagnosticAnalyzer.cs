@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         /// </summary>
         private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _binaryToAssignmentMap;
 
+        private readonly DiagnosticDescriptor _incrementDescriptor;
+
+        private readonly DiagnosticDescriptor _decrementDescriptor;
+
         protected AbstractUseCompoundAssignmentDiagnosticAnalyzer(
             ISyntaxFacts syntaxFacts,
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
@@ -49,10 +53,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
                 useDecrementMessage, useDecrementMessage);
         }
-
-        private readonly DiagnosticDescriptor _incrementDescriptor;
-
-        private readonly DiagnosticDescriptor _decrementDescriptor;
 
         protected abstract TSyntaxKind GetAnalysisKind();
         protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
