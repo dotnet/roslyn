@@ -64,9 +64,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             End If
 
             If initializer.arrayBounds IsNot Nothing Then
+                Dim semanticsModel = Await propertyDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim arrayType = DirectCast(semanticsModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken).Type, IArrayTypeSymbol)
                 Dim arrayCreation = SyntaxFactory.ArrayCreationExpression(
                     Nothing,
-                    DirectCast(statement.GetReturnType(), ArrayTypeSyntax).ElementType,
+                    arrayType.ElementType.GenerateTypeSyntax(),
                     initializer.arrayBounds,
                     If(TryCast(initializer.equalsValue?.Value, CollectionInitializerSyntax), SyntaxFactory.CollectionInitializer()))
                 statement = statement.WithTrailingTrivia(SyntaxFactory.Space) _
