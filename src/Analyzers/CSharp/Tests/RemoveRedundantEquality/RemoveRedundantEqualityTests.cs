@@ -180,6 +180,21 @@ public class C
         }
 
         [Fact]
+        [WorkItem(48236, "https://github.com/dotnet/roslyn/issues/48236")]
+        public async Task TestObjectAgainstNull()
+        {
+            var code = @"
+public class C
+{
+    public bool M1(object x)
+    {
+        return x == null;
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact]
         public async Task TestFixAll()
         {
             var code = @"
