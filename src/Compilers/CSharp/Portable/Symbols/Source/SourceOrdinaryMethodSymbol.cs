@@ -166,9 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
                     declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
                                               BindTypeParameterConstraintClauses(this, TypeParameters, syntax.TypeParameterList, syntax.ConstraintClauses,
-                                                                                 canUseLightweightTypeConstraintBinding: false,
                                                                                  ref isValueTypeOverride,
-                                                                                 diagnostics, isForOverride: true);
+                                                                                 diagnostics,
+                                                                                 isForOverride: true);
                 }
 
                 // Force resolution of nullable type parameter used in the signature of an override or explicit interface implementation
@@ -301,7 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         TypeParameters,
                         syntax.TypeParameterList,
                         syntax.ConstraintClauses,
-                        canUseLightweightTypeConstraintBinding,
                         diagnostics),
                     canUseLightweightTypeConstraintBinding);
 

@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly ErrorTypeSymbol Instance = new UnboundArgumentErrorTypeSymbol(string.Empty, new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedUnboundGenericName));
 
         private readonly string _name;
-        private readonly DiagnosticInfo? _errorInfo;
+        private readonly DiagnosticInfo _errorInfo;
 
-        private UnboundArgumentErrorTypeSymbol(string name, DiagnosticInfo? errorInfo, TupleExtraData? tupleData = null)
+        private UnboundArgumentErrorTypeSymbol(string name, DiagnosticInfo errorInfo, TupleExtraData? tupleData = null)
             : base(tupleData)
         {
             _name = name;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo? ErrorInfo
+        internal override DiagnosticInfo ErrorInfo
         {
             get
             {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo? ErrorInfo
+        internal override DiagnosticInfo ErrorInfo
         {
             get
             {

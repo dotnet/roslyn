@@ -470,7 +470,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
-                    canUseLightweightTypeConstraintBinding,
                     diagnostics);
 
                 lock (_declarationDiagnostics)

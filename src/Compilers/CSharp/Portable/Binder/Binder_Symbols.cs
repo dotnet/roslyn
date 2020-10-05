@@ -1126,11 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics, basesBeingResolved, qualifierOpt, node, plainName, node.Arity, options);
             NamedTypeSymbol resultType;
 
-            if ((Flags & BinderFlags.LightweightTypeConstraintBinding) != 0)
-            {
-                resultType = unconstructedType.Construct(PlaceholderTypeArgumentSymbol.CreateTypeArguments(unconstructedType.TypeParameters), unbound: false);
-            }
-            else if (isUnboundTypeExpr)
+            if (isUnboundTypeExpr)
             {
                 if (!IsUnboundTypeAllowed(node))
                 {
@@ -1152,6 +1148,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     resultType = unconstructedType.AsUnboundGenericType();
                 }
+            }
+            else if ((Flags & BinderFlags.LightweightTypeConstraintBinding) != 0)
+            {
+                resultType = unconstructedType.Construct(PlaceholderTypeArgumentSymbol.CreateTypeArguments(unconstructedType.TypeParameters), unbound: false);
             }
             else
             {

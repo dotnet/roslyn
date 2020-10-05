@@ -327,7 +327,7 @@ next:;
                         binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(
                             BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (canUseLightweightTypeConstraintBinding ? BinderFlags.LightweightTypeConstraintBinding : 0));
 
-                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, canUseLightweightTypeConstraintBinding, ref isValueTypeOverride, diagnostics);
+                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, ref isValueTypeOverride, diagnostics);
                     }
 
                     Debug.Assert(constraints.Length == arity);
