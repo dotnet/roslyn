@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         {
                             return Increment((TExpressionSyntax)leftOfAssign);
                         }
+
                         if (diagnostic.Properties.ContainsKey(UseCompoundAssignmentUtilities.Decrement))
                         {
                             return Decrement((TExpressionSyntax)leftOfAssign);
