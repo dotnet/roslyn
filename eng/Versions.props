@@ -23,7 +23,7 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.8.0-4.20469.1</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.9.0-1.20504.1</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
@@ -171,8 +171,8 @@
     <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
     <MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>
     <MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion>16.0.0</MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion>
-    <MicrosoftVisualStudioThreadingAnalyzersVersion>16.7.54</MicrosoftVisualStudioThreadingAnalyzersVersion>
-    <MicrosoftVisualStudioThreadingVersion>16.7.54</MicrosoftVisualStudioThreadingVersion>
+    <MicrosoftVisualStudioThreadingAnalyzersVersion>16.7.56</MicrosoftVisualStudioThreadingAnalyzersVersion>
+    <MicrosoftVisualStudioThreadingVersion>16.7.56</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>16.6.29925.50</MicrosoftVisualStudioUtilitiesVersion>
     <MicrosoftVisualStudioValidationVersion>15.5.31</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>2.8.0</MicrosoftVisualStudioVsInteractiveWindowVersion>
@@ -183,6 +183,7 @@
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>4.4.0</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
+    <NerdbankStreamsVersion>2.6.81</NerdbankStreamsVersion>
     <NuGetPackagingVersion>4.9.2</NuGetPackagingVersion>
     <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
@@ -206,6 +207,7 @@
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>4.5.1</SystemIOPipesAccessControlVersion>
+    <SystemIOPipelinesVersion>4.7.0</SystemIOPipelinesVersion>
     <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
     <SystemResourcesExtensionsVersion>4.7.1</SystemResourcesExtensionsVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>4.7.1</SystemRuntimeCompilerServicesUnsafeVersion>

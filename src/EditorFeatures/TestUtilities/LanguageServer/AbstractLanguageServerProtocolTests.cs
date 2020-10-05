@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -220,26 +219,31 @@ namespace Roslyn.Test.Utilities
             };
 
         protected static LSP.VSCompletionItem CreateCompletionItem(
-            string text, LSP.CompletionItemKind kind, string[] tags,
-            LSP.CompletionParams requestParameters, bool preselect = false,
-            string[]? commitCharacters = null)
+            string insertText,
+            LSP.CompletionItemKind kind,
+            string[] tags,
+            LSP.CompletionParams requestParameters,
+            bool preselect = false,
+            ImmutableArray<char>? commitCharacters = null,
+            string? sortText = null)
             => new LSP.VSCompletionItem()
             {
-                FilterText = text,
-                InsertText = text,
-                Label = text,
-                SortText = text,
+                FilterText = insertText,
+                InsertText = insertText,
+                Label = insertText,
+                SortText = sortText ?? insertText,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
                 Data = new CompletionResolveData()
                 {
-                    DisplayText = text,
+                    DisplayText = insertText,
                     TextDocument = requestParameters.TextDocument,
-                    Position = requestParameters.Position
+                    Position = requestParameters.Position,
+                    CompletionTrigger = new CompletionTrigger(ProtocolConversions.LSPToRoslynCompletionTriggerKind(requestParameters.Context.TriggerKind), char.Parse(requestParameters.Context.TriggerCharacter))
                 },
                 Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null,
                 Preselect = preselect,
-                CommitCharacters = commitCharacters
+                CommitCharacters = commitCharacters?.Select(c => c.ToString()).ToArray()
             };
 
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)

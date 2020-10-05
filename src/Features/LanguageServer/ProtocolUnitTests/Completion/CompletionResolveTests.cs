@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -28,13 +32,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var tags = new string[] { "Class", "Internal" };
             var completionParams = CreateCompletionParams(locations["caret"].Single(), "\0", LSP.CompletionTriggerKind.Invoked);
+
             var completionItem = CreateCompletionItem
-                ("A", LSP.CompletionItemKind.Class, tags, completionParams);
+                ("A", LSP.CompletionItemKind.Class, tags, completionParams, commitCharacters: CompletionRules.Default.DefaultCommitCharacters);
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
 
             var expected = CreateResolvedCompletionItem(
-                "A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null);
+                "A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null, CompletionRules.Default.DefaultCommitCharacters);
 
             var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(workspace.CurrentSolution, completionItem, clientCapabilities);
             AssertJsonEquals(expected, results);
@@ -48,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         }
 
         private static LSP.VSCompletionItem CreateResolvedCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters,
-            ClassifiedTextElement description, string detail, string documentation, string[] commitCharacters = null)
+            ClassifiedTextElement description, string detail, string documentation, ImmutableArray<char>? commitCharacters = null)
         {
             var resolvedCompletionItem = CreateCompletionItem(text, kind, tags, requestParameters, commitCharacters: commitCharacters);
             resolvedCompletionItem.Detail = detail;

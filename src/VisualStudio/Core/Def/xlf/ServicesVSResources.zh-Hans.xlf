@@ -152,6 +152,11 @@
         <target state="translated">为正规表达式着色</target>
         <note />
       </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="new">Comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">包含成员</target>

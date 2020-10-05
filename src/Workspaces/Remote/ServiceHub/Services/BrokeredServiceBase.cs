@@ -2,18 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.ServiceHub.Framework.Services;
-using Nerdbank.Streams;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -27,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly RemoteWorkspaceManager WorkspaceManager;
 
         protected readonly SolutionAssetSource SolutionAssetSource;
-        protected readonly CancellationTokenSource ClientDisconnectedSource;
         protected readonly ServiceBrokerClient ServiceBrokerClient;
 
         // test data are only available when running tests:
@@ -48,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ServiceBrokerClient = new ServiceBrokerClient(arguments.ServiceBroker);
 #pragma warning restore
 
-            SolutionAssetSource = new SolutionAssetSource(ServiceBrokerClient, arguments.ClientDisconnectedSource);
-            ClientDisconnectedSource = arguments.ClientDisconnectedSource;
+            SolutionAssetSource = new SolutionAssetSource(ServiceBrokerClient);
         }
 
         public void Dispose()
@@ -71,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Remote
         protected async ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
         {
             WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
-            using var _ = LinkToken(ref cancellationToken);
 
             try
             {
@@ -86,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Remote
         protected async ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
         {
             WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
-            using var _ = LinkToken(ref cancellationToken);
 
             try
             {
@@ -96,13 +86,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private CancellationTokenSource? LinkToken(ref CancellationToken cancellationToken)
-        {
-            var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ClientDisconnectedSource.Token);
-            cancellationToken = source.Token;
-            return source;
         }
     }
 }
