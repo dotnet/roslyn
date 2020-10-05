@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (!(analyzerOptions is WorkspaceAnalyzerOptions workspaceAnalyzerOptions))
             {
-                return new ValueTask<OptionSet?>((OptionSet?)null);
+                return ValueTaskFactory.FromResult((OptionSet?)null);
             }
 
             return workspaceAnalyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken);

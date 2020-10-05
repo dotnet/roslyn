@@ -169,14 +169,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class TodoCommentsListener : ITodoCommentsListener
         {
-            private readonly TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)> _dataSource
-                = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            private readonly TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)> _dataSource = new();
+
             public Task<(DocumentId, ImmutableArray<TodoCommentData>)> Data => _dataSource.Task;
 
             public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
             {
                 _dataSource.SetResult((documentId, data));
-                return new ValueTask();
+                return ValueTaskFactory.CompletedTask;
             }
         }
 
@@ -236,17 +236,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class DesignerAttributeListener : IDesignerAttributeListener
         {
-            private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource
-                = new TaskCompletionSource<ImmutableArray<DesignerAttributeData>>();
+            private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource = new();
+
             public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
             public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-                => new ValueTask();
+                => ValueTaskFactory.CompletedTask;
 
             public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
                 _infosSource.SetResult(infos);
-                return new ValueTask();
+                return ValueTaskFactory.CompletedTask;
             }
         }
 

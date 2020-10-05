@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         {
             Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(info);
-            return new ValueTask();
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }
