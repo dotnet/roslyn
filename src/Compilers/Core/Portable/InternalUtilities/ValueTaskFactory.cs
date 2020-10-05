@@ -11,10 +11,9 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class ValueTaskFactory
     {
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a ValueTask wrapper, not an asynchronous method.")]
         public static ValueTask<T> FromResult<T>(T result)
             => new(result);
-#pragma warning restore
 
         public static ValueTask CompletedTask
             => new();
