@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return model.GetSymbolInfo(node, cancellationToken);
             }
 
-            return nodeCache.GetOrAdd(node, n => model.GetSymbolInfo(n, cancellationToken));
+            return nodeCache.GetOrAdd(node, static (n, arg) => arg.model.GetSymbolInfo(n, arg.cancellationToken), (model, cancellationToken));
         }
 
         public static IAliasSymbol GetAliasInfo(
