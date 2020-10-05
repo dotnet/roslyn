@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
 
         protected override bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out TypeDeclarationSyntax? typeDeclaration)
         {
-            typeDeclaration = null;
-
             switch (node)
             {
                 case MethodDeclarationSyntax method:
@@ -50,13 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
                     return false;
             }
 
-            typeDeclaration = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
-            if (!typeDeclaration.IsKind(SyntaxKind.ClassDeclaration) && !typeDeclaration.IsKind(SyntaxKind.RecordDeclaration))
+            var enclosingType = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+            if ((enclosingType.IsKind(SyntaxKind.ClassDeclaration) || enclosingType.IsKind(SyntaxKind.RecordDeclaration) &&
+                !typeDeclaration.Modifiers.Any(SyntaxKind.AbstractKeyword) && !typeDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
-                return false;
+                typeDeclaration = enclosingType;
+                return true;
             }
 
-            return !typeDeclaration.Modifiers.Any(SyntaxKind.AbstractKeyword) && !typeDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword);
+            typeDeclaration = null;
+            return false;
         }
     }
 }
