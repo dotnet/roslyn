@@ -7,9 +7,9 @@ using System.IO;
 
 namespace BuildValidator
 {
-    class FileNameEqualityComparer : IEqualityComparer<FileInfo>
+    internal class FileNameEqualityComparer : IEqualityComparer<FileInfo>
     {
-        public readonly static FileNameEqualityComparer Instance = new FileNameEqualityComparer();
+        public static readonly FileNameEqualityComparer Instance = new FileNameEqualityComparer();
 
         private FileNameEqualityComparer()
         {
