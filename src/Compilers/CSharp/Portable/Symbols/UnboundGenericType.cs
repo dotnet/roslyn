@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedUnboundGenericName); // TODO2
+                return new CSDiagnosticInfo(ErrorCode.Void);
             }
         }
 
