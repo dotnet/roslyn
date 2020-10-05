@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeTypeAbstract
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpMakeTypeAbstractCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestMethod()
         {
             await TestInRegularAndScript1Async(
@@ -41,7 +41,7 @@ public abstract class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestMethodEnclosingClassWithoutAccessibility()
         {
             await TestInRegularAndScript1Async(
@@ -57,7 +57,7 @@ abstract class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestMethodEnclosingClassDocumentationComment()
         {
             await TestInRegularAndScript1Async(
@@ -79,7 +79,7 @@ public abstract class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestPropertyGetter()
         {
             await TestInRegularAndScript1Async(
@@ -95,7 +95,7 @@ public abstract class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestPropertySetter()
         {
             await TestInRegularAndScript1Async(
@@ -111,7 +111,7 @@ public abstract class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestIndexerGetter()
         {
             await TestInRegularAndScript1Async(
@@ -127,7 +127,7 @@ public abstract class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestIndexerSetter()
         {
             await TestInRegularAndScript1Async(
@@ -143,7 +143,7 @@ public abstract class Foo
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41654"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41654"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestPartialClass()
         {
             await TestInRegularAndScript1Async(
@@ -167,7 +167,7 @@ public partial class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestEventAdd()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -178,7 +178,7 @@ public class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestEventRemove()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -189,7 +189,7 @@ public class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestMethodWithBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -200,7 +200,7 @@ public class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestPropertyGetterWithArrowBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -211,7 +211,7 @@ public class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestPropertyGetterWithBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -225,7 +225,7 @@ public class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestStructNestedInClass()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -239,7 +239,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestMethodEnclosingClassStatic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -250,7 +250,7 @@ public static class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestRecord()
         {
             await TestInRegularAndScript1Async(
@@ -266,7 +266,7 @@ public abstract record Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task FixAll()
         {
             await TestInRegularAndScript1Async(
