@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override int SortingGroupIndex => 2;
 
-        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, SemanticModel semanticModel, int position)
+        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, ExpressionSyntax expression, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var containerIsNullable = container.IsNullable() || // int? id; id.$$ -> (byte?)
                 (container.IsValueType && isAccessedByConditionalAccess); // System.Diagnostics.Process p; p?.Id.$$ -> (byte?)
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (container is INamedTypeSymbol namedType)
             {
                 builder.AddRange(GetBuiltInNumericConversions(semanticModel, namedType, containerIsNullable, position));
-                builder.AddRange(GetBuiltInEnumConversions(semanticModel, namedType, containerIsNullable, position));
+                builder.AddRange(GetBuiltInEnumConversions(semanticModel, namedType, expression, containerIsNullable, position, cancellationToken));
             }
 
             return builder.ToImmutable();
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 returnTypeAttributes: ImmutableArray<AttributeData>.Empty);
         }
 
-        private ImmutableArray<CompletionItem> GetBuiltInEnumConversions(SemanticModel semanticModel, INamedTypeSymbol container, bool containerIsNullable, int position)
+        private ImmutableArray<CompletionItem> GetBuiltInEnumConversions(SemanticModel semanticModel, INamedTypeSymbol container, ExpressionSyntax expression, bool containerIsNullable, int position, CancellationToken cancellationToken)
         {
             // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
             // Three kinds of conversions are defined in the spec.
@@ -119,28 +120,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // No suggestion for the other two kinds of conversions:
             // * From sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal to any enum_type.
             // * From any enum_type to any other enum_type.
-            if (!container.IsEnumType())
+            if (container.IsEnumMember() || // SomeEnum.EnumValue.$$
+                (container.IsEnumType() &&  // someEnumVariable.$$
+                    !(semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol is ITypeSymbol typeSymbol && typeSymbol.IsEnumType()))) // but not SomeEnum.$$
             {
-                return ImmutableArray<CompletionItem>.Empty;
+                var convertToSpecialTypes = new[]
+                {
+                    SpecialType.System_SByte,
+                    SpecialType.System_Byte,
+                    SpecialType.System_Int16,
+                    SpecialType.System_UInt16,
+                    SpecialType.System_Int32,
+                    SpecialType.System_UInt32,
+                    SpecialType.System_Int64,
+                    SpecialType.System_UInt64,
+                    SpecialType.System_Char,
+                    SpecialType.System_Single,
+                    SpecialType.System_Double,
+                    SpecialType.System_Decimal,
+                };
+
+                return GetCompletionItemsForSpecialTypes(semanticModel, container, containerIsNullable, position, convertToSpecialTypes);
             }
 
-            var convertToSpecialTypes = new[]
-            {
-                SpecialType.System_SByte,
-                SpecialType.System_Byte,
-                SpecialType.System_Int16,
-                SpecialType.System_UInt16,
-                SpecialType.System_Int32,
-                SpecialType.System_UInt32,
-                SpecialType.System_Int64,
-                SpecialType.System_UInt64,
-                SpecialType.System_Char,
-                SpecialType.System_Single,
-                SpecialType.System_Double,
-                SpecialType.System_Decimal,
-            };
-
-            return GetCompletionItemsForSpecialTypes(semanticModel, container, containerIsNullable, position, convertToSpecialTypes);
+            return ImmutableArray<CompletionItem>.Empty;
         }
 
         private ImmutableArray<CompletionItem> GetCompletionItemsForSpecialTypes(SemanticModel semanticModel, INamedTypeSymbol fromType, bool containerIsNullable, int position, SpecialType[] specialTypes)
