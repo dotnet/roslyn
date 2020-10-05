@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.SQLite.Interop;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
-        private readonly ConcurrentDictionary<string, int> _stringToIdMap = new ConcurrentDictionary<string, int>();
+        private readonly ConcurrentDictionary<string, int> _stringToIdMap = new();
 
         private bool TryFetchStringTable(SqlConnection connection)
         {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -164,7 +166,7 @@ namespace Microsoft.Cci
 
         protected abstract void ReserveMethodToken(IMethodReference methodReference);
 
-        public override abstract void Visit(CommonPEModuleBuilder module);
+        public abstract override void Visit(CommonPEModuleBuilder module);
 
         public override void Visit(IModuleReference moduleReference)
         {
@@ -176,7 +178,7 @@ namespace Microsoft.Cci
 
         protected abstract void RecordModuleReference(IModuleReference moduleReference);
 
-        public override abstract void Visit(IPlatformInvokeInformation platformInvokeInformation);
+        public abstract override void Visit(IPlatformInvokeInformation platformInvokeInformation);
 
         public override void Visit(INamespaceTypeReference namespaceTypeReference)
         {

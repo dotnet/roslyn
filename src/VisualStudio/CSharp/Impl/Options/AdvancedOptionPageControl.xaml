@@ -94,17 +94,24 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="CommentsGuidesGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
+                <StackPanel>
+                    <CheckBox x:Name="GenerateXmlDocCommentsForTripleSlash"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleSlash}" />
+                    <CheckBox x:Name="InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments}"/>
+                    <CheckBox x:Name="InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments}"/>
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>
                     <CheckBox x:Name="DisplayInlineParameterNameHints"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}" />
-                    <CheckBox x:Name="GenerateXmlDocCommentsForTripleSlash"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleSlash}" />
                     <CheckBox x:Name="ShowRemarksInQuickInfo"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
-                    <CheckBox x:Name="InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments}"/>
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
                     <CheckBox x:Name="Split_string_literals_on_enter"

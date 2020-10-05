@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                 closeParenToken: ifStatement.CloseParenToken.WithPrependedLeadingTrivia(ElasticMarker),
                 openBraceToken: block?.OpenBraceToken ?? Token(SyntaxKind.OpenBraceToken),
                 sections: List(sectionList.Cast<SwitchSectionSyntax>()),
-                closeBraceToken: block?.CloseBraceToken ?? Token(SyntaxKind.CloseBraceToken));
+                closeBraceToken: block?.CloseBraceToken.WithoutLeadingTrivia() ?? Token(SyntaxKind.CloseBraceToken));
         }
 
         private static WhenClauseSyntax? AsWhenClause(AnalyzedSwitchLabel label)
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                     statements.AddRange(block.Statements);
                     if (requiresBreak)
                     {
-                        statements.Add(BreakStatement());
+                        statements.Add(BreakStatement().WithLeadingTrivia(block.CloseBraceToken.LeadingTrivia));
                     }
                 }
             }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9563,6 +9565,82 @@ class C
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new&nbsp;C()
     };
 }".Replace("&nbsp;", "\u00A0"));
+        }
+
+        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentationForMultilineWith()
+        {
+            var code = @"record C(int X)
+{
+    C M()
+    {
+        return this with
+{
+X = 1
+};
+    }
+}";
+            var expectedCode = @"record C(int X)
+{
+    C M()
+    {
+        return this with
+        {
+            X = 1
+        };
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentationForMultilineWith_ArrowBody()
+        {
+            var code = @"record C(int X)
+{
+    C M()
+        => this with
+{
+X = 1
+};
+}";
+            var expectedCode = @"record C(int X)
+{
+    C M()
+        => this with
+        {
+            X = 1
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentationForMultilineWith_ArrowBody_WithTrailingComma()
+        {
+            var code = @"record C(int X)
+{
+    C M()
+        => this with
+{
+X = 1,
+};
+}";
+            var expectedCode = @"record C(int X)
+{
+    C M()
+        => this with
+        {
+            X = 1,
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
         }
 
         [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]

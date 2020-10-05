@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
@@ -35,12 +38,23 @@ namespace Microsoft.CodeAnalysis.Completion
             => false;
 
         /// <summary>
+        /// Returns true if the character recently inserted or deleted in the text should trigger completion.
+        /// </summary>
+        /// <param name="languageServices">The language services available on the text document.</param>
+        /// <param name="text">The text that completion is occurring within.</param>
+        /// <param name="caretPosition">The position of the caret after the triggering action.</param>
+        /// <param name="trigger">The triggering action.</param>
+        /// <param name="options">The set of options in effect.</param>
+        internal virtual bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+            => ShouldTriggerCompletion(text, caretPosition, trigger, options);
+
+        /// <summary>
         /// This allows Completion Providers that indicated they were triggered textually to use syntax to
         /// confirm they are really triggered, or decide they are not actually triggered and should become 
         /// an augmenting provider instead.
         /// </summary>
         internal virtual async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
-            => ShouldTriggerCompletion(await document.GetTextAsync(cancellationToken).ConfigureAwait(false), caretPosition, trigger, options);
+            => ShouldTriggerCompletion(document.Project.LanguageServices, await document.GetTextAsync(cancellationToken).ConfigureAwait(false), caretPosition, trigger, options);
 
         /// <summary>
         /// Gets the description of the specified item.

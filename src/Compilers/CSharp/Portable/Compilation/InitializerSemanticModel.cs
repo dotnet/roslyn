@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new InitializerSemanticModel(syntax, owner, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
         }
 
-        internal protected override CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
+        protected internal override CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
         {
             return IsBindableInitializer(node) ? node : base.GetBindableSyntaxNode(node);
         }

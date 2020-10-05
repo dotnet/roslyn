@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         }
 
         public Enumerator GetEnumerator()
-            => new Enumerator(this);
+            => new(this);
 
         public struct Enumerator
         {

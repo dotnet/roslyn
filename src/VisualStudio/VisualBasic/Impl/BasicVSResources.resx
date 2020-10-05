@@ -304,4 +304,7 @@
   <data name="Prefer_IsNot_expression" xml:space="preserve">
     <value>Prefer 'IsNot' expression</value>
   </data>
+  <data name="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments" xml:space="preserve">
+    <value>Insert ' at the start of new lines when writing ' comments</value>
+  </data>
 </root>

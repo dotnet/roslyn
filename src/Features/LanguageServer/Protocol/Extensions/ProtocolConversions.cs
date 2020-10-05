@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +25,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class ProtocolConversions
     {
+        // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same way
+        // which can confuse users
         public static readonly Dictionary<string, LSP.CompletionItemKind> RoslynTagToCompletionItemKind = new Dictionary<string, LSP.CompletionItemKind>()
         {
             { WellKnownTags.Public, LSP.CompletionItemKind.Keyword },
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.Assembly, LSP.CompletionItemKind.File },
             { WellKnownTags.Class, LSP.CompletionItemKind.Class },
             { WellKnownTags.Constant, LSP.CompletionItemKind.Constant },
-            { WellKnownTags.Delegate, LSP.CompletionItemKind.Function },
+            { WellKnownTags.Delegate, LSP.CompletionItemKind.Method },
             { WellKnownTags.Enum, LSP.CompletionItemKind.Enum },
             { WellKnownTags.EnumMember, LSP.CompletionItemKind.EnumMember },
             { WellKnownTags.Event, LSP.CompletionItemKind.Event },
@@ -346,7 +346,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 case Glyph.DelegateProtected:
                 case Glyph.DelegatePrivate:
                 case Glyph.DelegateInternal:
-                    return LSP.SymbolKind.Function;
                 case Glyph.ExtensionMethodPublic:
                 case Glyph.ExtensionMethodProtected:
                 case Glyph.ExtensionMethodPrivate:
@@ -375,9 +374,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     return Glyph.None;
                 case LSP.CompletionItemKind.Method:
                 case LSP.CompletionItemKind.Constructor:
+                case LSP.CompletionItemKind.Function:    // We don't use Function, but map it just in case. It has the same icon as Method in VS and VS Code
                     return Glyph.MethodPublic;
-                case LSP.CompletionItemKind.Function:
-                    return Glyph.DelegatePublic;
                 case LSP.CompletionItemKind.Field:
                     return Glyph.FieldPublic;
                 case LSP.CompletionItemKind.Variable:

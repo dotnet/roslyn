@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var op = symbol.GetPredefinedOperator();
 
             return FindReferencesInDocumentAsync(symbol, document, semanticModel, t =>

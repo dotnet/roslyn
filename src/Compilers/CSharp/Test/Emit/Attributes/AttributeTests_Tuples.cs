@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -95,7 +97,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
     }
 }";
 
-        private static MetadataReference[] s_attributeRefs =
+        private static readonly MetadataReference[] s_attributeRefs =
         {
             ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef
         };

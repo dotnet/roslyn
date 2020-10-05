@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -89,19 +91,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_prefer_throwing_properties
             => ServicesVSResources.prefer_throwing_properties;
 
+        public static string Option_Comments
+            => ServicesVSResources.Comments;
+
         public static string Option_GenerateXmlDocCommentsForTripleSlash
-        {
-            get { return CSharpVSResources.Generate_XML_documentation_comments_for; }
-        }
+            => CSharpVSResources.Generate_XML_documentation_comments_for;
+
+        public static string Option_InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments
+            => CSharpVSResources.Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments;
+
+        public static string Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments
+            => CSharpVSResources.Insert_at_the_start_of_new_lines_when_writing_comments;
 
         public static string Option_ShowRemarksInQuickInfo
         {
             get { return CSharpVSResources.Show_remarks_in_Quick_Info; }
-        }
-
-        public static string Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments
-        {
-            get { return CSharpVSResources.Insert_at_the_start_of_new_lines_when_writing_comments; }
         }
 
         public static string Option_Highlighting
@@ -173,35 +177,35 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_SeparateImportGroups
             => CSharpVSResources.Separate_using_directive_groups;
 
-        public static string Option_Using_Directives =>
-            CSharpVSResources.Using_Directives;
+        public static string Option_Using_Directives
+            => CSharpVSResources.Using_Directives;
 
-        public static string Option_Suggest_usings_for_types_in_reference_assemblies =>
-            CSharpVSResources.Suggest_usings_for_types_in_dotnet_framework_assemblies;
+        public static string Option_Suggest_usings_for_types_in_reference_assemblies
+            => CSharpVSResources.Suggest_usings_for_types_in_dotnet_framework_assemblies;
 
-        public static string Option_Suggest_usings_for_types_in_NuGet_packages =>
-            CSharpVSResources.Suggest_usings_for_types_in_NuGet_packages;
+        public static string Option_Suggest_usings_for_types_in_NuGet_packages
+            => CSharpVSResources.Suggest_usings_for_types_in_NuGet_packages;
 
-        public static string Option_Report_invalid_placeholders_in_string_dot_format_calls =>
-            CSharpVSResources.Report_invalid_placeholders_in_string_dot_format_calls;
+        public static string Option_Report_invalid_placeholders_in_string_dot_format_calls
+            => CSharpVSResources.Report_invalid_placeholders_in_string_dot_format_calls;
 
-        public static string Option_Regular_Expressions =>
-            ServicesVSResources.Regular_Expressions;
+        public static string Option_Regular_Expressions
+            => ServicesVSResources.Regular_Expressions;
 
-        public static string Option_Colorize_regular_expressions =>
-            ServicesVSResources.Colorize_regular_expressions;
+        public static string Option_Colorize_regular_expressions
+            => ServicesVSResources.Colorize_regular_expressions;
 
-        public static string Option_Report_invalid_regular_expressions =>
-            ServicesVSResources.Report_invalid_regular_expressions;
+        public static string Option_Report_invalid_regular_expressions
+            => ServicesVSResources.Report_invalid_regular_expressions;
 
-        public static string Option_Highlight_related_components_under_cursor =>
-            ServicesVSResources.Highlight_related_components_under_cursor;
+        public static string Option_Highlight_related_components_under_cursor
+            => ServicesVSResources.Highlight_related_components_under_cursor;
 
-        public static string Option_Show_completion_list =>
-            ServicesVSResources.Show_completion_list;
+        public static string Option_Show_completion_list
+            => ServicesVSResources.Show_completion_list;
 
-        public static string Option_Editor_Color_Scheme =>
-            ServicesVSResources.Editor_Color_Scheme;
+        public static string Option_Editor_Color_Scheme
+            => ServicesVSResources.Editor_Color_Scheme;
 
         public static string Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page
             => ServicesVSResources.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page;
@@ -212,16 +216,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Edit_color_scheme
             => ServicesVSResources.Editor_Color_Scheme;
 
-        public static string Option_Color_Scheme_VisualStudio2019 =>
-            ServicesVSResources.Visual_Studio_2019;
+        public static string Option_Color_Scheme_VisualStudio2019
+            => ServicesVSResources.Visual_Studio_2019;
 
-        public static string Option_Color_Scheme_VisualStudio2017 =>
-            ServicesVSResources.Visual_Studio_2017;
+        public static string Option_Color_Scheme_VisualStudio2017
+            => ServicesVSResources.Visual_Studio_2017;
 
-        public static SchemeName Color_Scheme_VisualStudio2019_Tag =>
-            SchemeName.VisualStudio2019;
+        public static SchemeName Color_Scheme_VisualStudio2019_Tag
+            => SchemeName.VisualStudio2019;
 
-        public static SchemeName Color_Scheme_VisualStudio2017_Tag =>
-            SchemeName.VisualStudio2017;
+        public static SchemeName Color_Scheme_VisualStudio2017_Tag
+            => SchemeName.VisualStudio2017;
     }
 }

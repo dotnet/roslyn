@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -29,6 +31,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PartialMethodCompletionProvider()
         {
+        }
+
+        protected override bool IncludeAccessibility(IMethodSymbol method, CancellationToken cancellationToken)
+        {
+            var declaration = (MethodDeclarationSyntax)method.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+            foreach (var mod in declaration.Modifiers)
+            {
+                switch (mod.Kind())
+                {
+                    case SyntaxKind.PublicKeyword:
+                    case SyntaxKind.ProtectedKeyword:
+                    case SyntaxKind.InternalKeyword:
+                    case SyntaxKind.PrivateKeyword:
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         protected override SyntaxNode GetSyntax(SyntaxToken token)
@@ -62,22 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override bool IsPartial(IMethodSymbol method)
         {
-            if (method.DeclaredAccessibility != Accessibility.NotApplicable &&
-                method.DeclaredAccessibility != Accessibility.Private)
-            {
-                return false;
-            }
-
-            if (!method.ReturnsVoid)
-            {
-                return false;
-            }
-
-            if (method.IsVirtual)
-            {
-                return false;
-            }
-
             var declarations = method.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).OfType<MethodDeclarationSyntax>();
             return declarations.Any(d => d.Body == null && d.Modifiers.Any(SyntaxKind.PartialKeyword));
         }
@@ -112,12 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             while (IsOnSameLine(token, touchingToken, tree.GetText(cancellationToken)))
             {
-                if (token.IsKind(SyntaxKind.ExternKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword))
-                {
-                    modifiers = default;
-                    return false;
-                }
-
                 if (token.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword))
                 {
                     foundAsync = true;

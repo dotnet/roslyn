@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1036,7 +1038,7 @@ public struct S2
             verifier.VerifyDiagnostics();
         }
 
-        private static string ilreadonlyStructWithWriteableFieldIL = @"
+        private static readonly string ilreadonlyStructWithWriteableFieldIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
        extends [mscorlib]System.Attribute
 {

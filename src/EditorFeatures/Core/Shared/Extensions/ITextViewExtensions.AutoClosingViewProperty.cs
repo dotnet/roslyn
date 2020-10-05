@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text.Editor;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private class AutoClosingViewProperty<TProperty, TTextView> where TTextView : ITextView
         {
             private readonly TTextView _textView;
-            private readonly Dictionary<object, TProperty> _map = new Dictionary<object, TProperty>();
+            private readonly Dictionary<object, TProperty> _map = new();
 
             public static bool GetOrCreateValue(
                 TTextView textView,

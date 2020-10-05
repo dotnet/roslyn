@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal partial class FeatureAttribute
@@ -31,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string NavigateTo = nameof(NavigateTo);
         public const string NavigationBar = nameof(NavigationBar);
         public const string Outlining = nameof(Outlining);
+        public const string PackageInstaller = nameof(PackageInstaller);
         public const string QuickInfo = nameof(QuickInfo);
         public const string ReferenceHighlighting = nameof(ReferenceHighlighting);
         public const string Rename = nameof(Rename);

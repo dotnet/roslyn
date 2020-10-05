@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.IO;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 {
     internal abstract class AbstractAnalyzerState<TKey, TValue, TData>
     {
-        protected readonly ConcurrentDictionary<TKey, CacheEntry> DataCache = new ConcurrentDictionary<TKey, CacheEntry>(concurrencyLevel: 2, capacity: 10);
+        protected readonly ConcurrentDictionary<TKey, CacheEntry> DataCache = new(concurrencyLevel: 2, capacity: 10);
 
         protected abstract TKey GetCacheKey(TValue value);
         protected abstract Solution GetSolution(TValue value);

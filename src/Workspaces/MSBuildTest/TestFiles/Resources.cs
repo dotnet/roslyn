@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -149,6 +151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string ProjectLoadErrorOnMissingDebugType => GetText("ProjectFiles.CSharp.ProjectLoadErrorOnMissingDebugType.csproj");
                 public static string ProjectReference => GetText("ProjectFiles.CSharp.ProjectReference.csproj");
                 public static string ReferencesPortableProject => GetText("ProjectFiles.CSharp.ReferencesPortableProject.csproj");
+                public static string ShouldUnsetParentConfigurationAndPlatform => GetText("ProjectFiles.CSharp.ShouldUnsetParentConfigurationAndPlatform.csproj");
                 public static string Wildcards => GetText("ProjectFiles.CSharp.Wildcards.csproj");
                 public static string WithoutCSharpTargetsImported => GetText("ProjectFiles.CSharp.WithoutCSharpTargetsImported.csproj");
                 public static string WithDiscoverEditorConfigFiles => GetText("ProjectFiles.CSharp.WithDiscoverEditorConfigFiles.csproj");

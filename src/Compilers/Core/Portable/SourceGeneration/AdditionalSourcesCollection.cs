@@ -9,8 +9,6 @@ using System.IO;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class AdditionalSourcesCollection

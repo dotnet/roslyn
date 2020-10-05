@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests : WellKnownAttributesTestBase
     {
-        static string[] s_autoPropAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" };
-        static string[] s_backingFieldAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+        static readonly string[] s_autoPropAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" };
+        static readonly string[] s_backingFieldAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
                 "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" };
 
         #region Function Tests

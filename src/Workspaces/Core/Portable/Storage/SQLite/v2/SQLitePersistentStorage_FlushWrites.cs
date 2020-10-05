@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private void FlushInMemoryDataToDisk()
         {
             // We're writing.  This better always be under the exclusive scheduler.
-            Debug.Assert(TaskScheduler.Current == _readerWriterLock.ExclusiveScheduler);
+            Contract.ThrowIfFalse(TaskScheduler.Current == _readerWriterLock.ExclusiveScheduler);
 
             // Don't flush from a bg task if we've been asked to shutdown.  The shutdown logic in the storage service
             // will take care of the final writes to the main db.

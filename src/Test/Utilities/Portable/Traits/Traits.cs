@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class Traits
@@ -178,6 +180,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseExplicitTypeForConst = "CodeActions.UseExplicitTypeForConst";
             public const string CodeActionsUseExpressionBody = "CodeActions.UseExpressionBody";
             public const string CodeActionsUseFrameworkType = "CodeActions.UseFrameworkType";
+            public const string CodeActionsUseImplicitObjectCreation = "CodeActions.UseImplicitObjectCreation";
             public const string CodeActionsUseImplicitType = "CodeActions.UseImplicitType";
             public const string CodeActionsUseIndexOperator = "CodeActions.UseIndexOperator";
             public const string CodeActionsUseInferredMemberName = "CodeActions.UseInferredMemberName";
@@ -278,6 +281,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string SmartTokenFormatting = nameof(SmartTokenFormatting);
             public const string Snippets = nameof(Snippets);
             public const string SourceGenerators = nameof(SourceGenerators);
+            public const string SplitComment = nameof(SplitComment);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
             public const string SuggestionTags = nameof(SuggestionTags);
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);

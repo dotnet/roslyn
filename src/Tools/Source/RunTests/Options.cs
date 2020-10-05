@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,7 +25,7 @@ namespace RunTests
         /// <summary>
         /// Use HTML output files.
         /// </summary>
-        public bool UseHtml { get; set; }
+        public bool IncludeHtml { get; set; }
 
         /// <summary>
         /// Use the 64 bit test runner.
@@ -40,11 +42,6 @@ namespace RunTests
         /// Use the open integration test runner.
         /// </summary>
         public bool TestVsi { get; set; }
-
-        /// <summary>
-        /// Allow the caching of test results.
-        /// </summary>
-        public bool UseCachedResults { get; set; }
 
         /// <summary>
         /// Display the results files.
@@ -124,7 +121,7 @@ namespace RunTests
                 return false;
             }
 
-            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true, TestResultXmlOutputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults") };
+            var opt = new Options { XunitPath = args[0], IncludeHtml = true, TestResultXmlOutputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults") };
             var index = 1;
             var allGood = true;
             while (index < args.Length)
@@ -138,17 +135,11 @@ namespace RunTests
                 else if (comparer.Equals(current, "-testVsi"))
                 {
                     opt.TestVsi = true;
-                    opt.UseCachedResults = false;
                     index++;
                 }
                 else if (comparer.Equals(current, "-xml"))
                 {
-                    opt.UseHtml = false;
-                    index++;
-                }
-                else if (comparer.Equals(current, "-nocache"))
-                {
-                    opt.UseCachedResults = false;
+                    opt.IncludeHtml = false;
                     index++;
                 }
                 else if (isOption(current, "-tfm", out string targetFrameworkMoniker))

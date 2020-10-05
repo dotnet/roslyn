@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,7 +42,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Installs the keys used for testing into the machine cache on Windows.
         /// </summary>
-        internal unsafe static void InstallKey()
+        internal static unsafe void InstallKey()
         {
             if (ExecutionConditionUtil.IsWindows)
             {
@@ -55,7 +57,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private unsafe static void InstallKey(byte[] keyBlob, string keyName)
+        private static unsafe void InstallKey(byte[] keyBlob, string keyName)
         {
             try
             {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> interfacesAndTheirBaseInterfaces;
 
-            internal readonly static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> EmptyInterfacesAndTheirBaseInterfaces =
+            internal static readonly MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> EmptyInterfacesAndTheirBaseInterfaces =
                                                 new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(0, SymbolEqualityComparer.CLRSignature);
 
             // Key is implemented member (method, property, or event), value is implementing member (from the 
@@ -140,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -623,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return GetManagedKind(ref useSiteDiagnostics);
             }
         }
-#nullable restore
+#nullable disable
 
         internal bool NeedsNullableAttribute()
         {
@@ -641,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SetNullabilityForReferenceTypes(s_setUnknownNullability);
         }
 
-        private readonly static Func<TypeWithAnnotations, TypeWithAnnotations> s_setUnknownNullability =
+        private static readonly Func<TypeWithAnnotations, TypeWithAnnotations> s_setUnknownNullability =
             (type) => type.SetUnknownNullabilityForReferenceTypes();
 
         /// <summary>

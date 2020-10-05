@@ -292,4 +292,11 @@
   <data name="typeof_can_be_converted_ to_nameof" xml:space="preserve">
     <value>'typeof' can be converted  to 'nameof'</value>
   </data>
+  <data name="Use_new" xml:space="preserve">
+    <value>Use 'new(...)'</value>
+    <comment>{Locked="new(...)"} This is a C# construct and should not be localized.</comment>
+  </data>
+  <data name="new_expression_can_be_simplified" xml:space="preserve">
+    <value>'new' expression can be simplified</value>
+  </data>
 </root>

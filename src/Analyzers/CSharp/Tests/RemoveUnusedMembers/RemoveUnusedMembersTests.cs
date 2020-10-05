@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -2570,6 +2572,34 @@ static partial class B
             {
                 TestState = { Sources = { source1, source2 } },
                 FixedState = { Sources = { source1, source2 } },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task UsedExtensionMethod_ReferencedFromExtendedPartialMethod()
+        {
+            var source1 = @"
+static partial class B
+{
+    public static void Entry() => PartialMethod();
+    public static partial void PartialMethod();
+}";
+            var source2 = @"
+static partial class B
+{
+    public static partial void PartialMethod()
+    {
+        UsedMethod();
+    }
+
+    private static void UsedMethod() { }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source1, source2 } },
+                FixedState = { Sources = { source1, source2 } },
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
