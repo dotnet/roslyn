@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -28,12 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 
         protected override int TryGetIncrementOrDecrement(SyntaxKind opKind, object constantValue)
         {
-            if (constantValue is string || constantValue is not IConvertible convertible)
-            {
-                return 0;
-            }
-
-            if (convertible.ToDouble(null) == 1)
+            if (constantValue is
+                (sbyte)1 or (short)1 or (int)1 or (long)1 or
+                (byte)1 or (ushort)1 or (uint)1 or (ulong)1 or
+                1.0 or 1.0f or 1.0m)
             {
                 return opKind switch
                 {
@@ -42,7 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
                     _ => 0
                 };
             }
-            else if (convertible.ToDouble(null) == -1)
+            else if (constantValue is
+                (sbyte)-1 or (short)-1 or (int)-1 or (long)-1 or
+                -1.0 or -1.0f or -1.0m)
             {
                 return opKind switch
                 {
