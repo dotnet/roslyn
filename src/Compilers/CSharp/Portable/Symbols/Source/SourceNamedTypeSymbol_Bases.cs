@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                         foreach (var t in localInterfaces)
                         {
-                            if (t.Equals(baseType, TypeCompareKind.ConsiderEverything))
+                            if (t.Equals(baseType, TypeCompareKind.IgnoreNativeIntegers))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceInBaseList, location, baseType);
                             }

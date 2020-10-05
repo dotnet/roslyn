@@ -13371,5 +13371,72 @@ unsafe class Program
                 //             ToPointer();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(37, 13));
         }
+
+        [Fact]
+        public void DuplicateConstraint()
+        {
+            var source =
+@"interface I<T> { }
+class C1<T, U> where U : I<nint>, I<nint> { }
+class C2<T, U> where U : I<nint>, I<System.IntPtr> { }
+class C3<T, U> where U : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (2,35): error CS0405: Duplicate constraint 'I<nint>' for type parameter 'U'
+                // class C1<T, U> where U : I<nint>, I<nint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<nint>").WithArguments("I<nint>", "U").WithLocation(2, 35),
+                // (3,35): error CS0405: Duplicate constraint 'I<IntPtr>' for type parameter 'U'
+                // class C2<T, U> where U : I<nint>, I<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<System.IntPtr>").WithArguments("I<System.IntPtr>", "U").WithLocation(3, 35),
+                // (4,63): error CS0405: Duplicate constraint 'I<nuint>' for type parameter 'U'
+                // class C3<T, U> where U : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<nuint>").WithArguments("I<nuint>", "U").WithLocation(4, 63));
+        }
+
+        [Fact]
+        public void DuplicateInterface()
+        {
+            var source =
+@"interface I<T> { }
+class C1 : I<nint>, I<nint> { }
+class C2 : I<nint>, I<System.IntPtr> { }
+class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS0528: 'I<nint>' is already listed in interface list
+                // class C1 : I<nint>, I<nint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<nint>").WithArguments("I<nint>").WithLocation(2, 21),
+                // (3,21): error CS0528: 'I<IntPtr>' is already listed in interface list
+                // class C2 : I<nint>, I<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<System.IntPtr>").WithArguments("I<System.IntPtr>").WithLocation(3, 21),
+                // (4,49): error CS0528: 'I<nuint>' is already listed in interface list
+                // class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<nuint>").WithArguments("I<nuint>").WithLocation(4, 49));
+        }
+
+        [Fact]
+        public void TypeUnification()
+        {
+            var source =
+@"interface I<T> { }
+class C1<T> : I<nint>, I<T> { }
+class C2<T> : I<(nint, T)>, I<(T, System.IntPtr)> { }
+class C3<T> : I<(T, T)>, I<(System.UIntPtr, nuint)> { }
+class C4<T> : I<(T, T)>, I<(nint, nuint)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0695: 'C1<T>' cannot implement both 'I<nint>' and 'I<T>' because they may unify for some type parameter substitutions
+                // class C1<T> : I<nint>, I<T> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T>", "I<nint>", "I<T>").WithLocation(2, 7),
+                // (3,7): error CS0695: 'C2<T>' cannot implement both 'I<(nint, T)>' and 'I<(T, IntPtr)>' because they may unify for some type parameter substitutions
+                // class C2<T> : I<(nint, T)>, I<(T, System.IntPtr)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T>", "I<(nint, T)>", "I<(T, System.IntPtr)>").WithLocation(3, 7),
+                // (4,7): error CS0695: 'C3<T>' cannot implement both 'I<(T, T)>' and 'I<(UIntPtr, nuint)>' because they may unify for some type parameter substitutions
+                // class C3<T> : I<(T, T)>, I<(System.UIntPtr, nuint)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T>", "I<(T, T)>", "I<(System.UIntPtr, nuint)>").WithLocation(4, 7));
+        }
     }
 }
