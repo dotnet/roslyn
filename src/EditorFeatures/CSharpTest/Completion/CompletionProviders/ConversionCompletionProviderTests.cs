@@ -1102,7 +1102,7 @@ public class Program
         // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
         public async Task ExplicitBuildInEnumConversionDescriptionIsLikeAConversionOperatorDescrition()
         {
-            var items = await GetCompletionItemsAsync(@"
+            await VerifyItemExistsAsync(@"
 public enum E { One }
 public class Program
 {
@@ -1112,8 +1112,8 @@ public class Program
         e.$$
     }
 }
-", SourceCodeKind.Regular);
-            var expected = new[] { "byte", "char", "decimal", "double", "float", "int", "long", "sbyte", "short", "uint", "ulong", "ushort" };
+", "int", displayTextSuffix: ")", expectedDescriptionOrNull: @"E.explicit operator int(E value)
+Defines an explicit conversion of a E to a int.");
         }
     }
 }

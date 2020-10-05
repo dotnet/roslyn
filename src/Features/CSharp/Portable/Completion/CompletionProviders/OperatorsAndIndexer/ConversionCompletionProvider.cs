@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal class ConversionCompletionProvider : OperatorIndexerCompletionProviderBase
     {
         private const string MinimalTypeNamePropertyName = "MinimalTypeName";
+        private const string ContainerTypeNamePropertyName = "ContainerTypeName";
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -144,10 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private ImmutableArray<CompletionItem> GetCompletionItemsForSpecialTypes(SemanticModel semanticModel, INamedTypeSymbol fromType, bool containerIsNullable, int position, SpecialType[] specialTypes)
         {
+            var containerTypeName = fromType.ToMinimalDisplayString(semanticModel, position);
             var conversionCompletionItems = from specialType in specialTypes
-                                            let typeSymbol = semanticModel.Compilation.GetSpecialType(specialType)
-                                            let typeName = typeSymbol.ToMinimalDisplayString(semanticModel, position)
-                                            select CreateSymbolCompletionItem(CreateMethodSymbolForBuiltInConversion(fromType, typeSymbol), typeName, targetTypeIsNullable: containerIsNullable, position);
+                                            let targetTypeSymbol = semanticModel.Compilation.GetSpecialType(specialType)
+                                            let targetTypeName = targetTypeSymbol.ToMinimalDisplayString(semanticModel, position)
+                                            select CreateCommonCompletionItem(containerTypeName, targetTypeName, targetTypeIsNullable: containerIsNullable, position);
             return conversionCompletionItems.ToImmutableArray();
         }
 
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                            properties: CreatePropertiesBag((MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}")));
         }
 
-        private CompletionItem CreateCommonCompletionItem(string targetTypeName, bool targetTypeIsNullable, int position)
+        private CompletionItem CreateCommonCompletionItem(string containerTypeName, string targetTypeName, bool targetTypeIsNullable, int position)
         {
             var optionalNullableQuestionmark = GetOptionalNullableQuestionMark(targetTypeIsNullable);
             return CommonCompletionItem.Create(
@@ -179,11 +181,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                            rules: CompletionItemRules.Default,
                            properties: CreatePropertiesBag(
                                (MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}"),
+                               (ContainerTypeNamePropertyName, containerTypeName),
                                ("ContextPosition", position.ToString())));
         }
 
         private static string GetOptionalNullableQuestionMark(bool isNullable)
             => isNullable ? "?" : "";
+
+        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.HasSymbols(item)
+                ? await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false)
+                : GetBuildInConversionDescription(item);
+
+        private static CompletionDescription GetBuildInConversionDescription(CompletionItem item)
+        {
+            Contract.ThrowIfFalse(item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var targetTypeName));
+            Contract.ThrowIfFalse(item.Properties.TryGetValue(ContainerTypeNamePropertyName, out var sourceTypeName));
+            var taggedText = new[]
+            {
+                new TaggedText(TextTags.Keyword, sourceTypeName),
+                new TaggedText(TextTags.Punctuation, "."),
+                new TaggedText(TextTags.Keyword, "explicit"),
+                new TaggedText(TextTags.Space, " "),
+                new TaggedText(TextTags.Keyword, "operator"),
+                new TaggedText(TextTags.Space, " "),
+                new TaggedText(TextTags.Keyword, targetTypeName),
+                new TaggedText(TextTags.Punctuation, "("),
+                new TaggedText(TextTags.Keyword, sourceTypeName),
+                new TaggedText(TextTags.Space, " "),
+                new TaggedText(TextTags.Parameter, "value"),
+                new TaggedText(TextTags.Punctuation, ")"),
+                new TaggedText(TextTags.LineBreak, Environment.NewLine),
+                new TaggedText(TextTags.Text, "Defines an explicit conversion of a"),
+                new TaggedText(TextTags.Space, " "),
+                new TaggedText(TextTags.Keyword, sourceTypeName),
+                new TaggedText(TextTags.Space, " "),
+                new TaggedText(TextTags.Text, "to a"),
+                new TaggedText(TextTags.Space, " "),
+                new TaggedText(TextTags.Keyword, targetTypeName),
+                new TaggedText(TextTags.Punctuation, "."),
+            };
+
+            return CompletionDescription.Create(taggedText.ToImmutableArray());
+        }
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
         {
