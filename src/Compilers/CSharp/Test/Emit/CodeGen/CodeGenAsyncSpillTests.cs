@@ -6434,7 +6434,7 @@ class Program
     }
   }
 
-unsafe struct TestStruct
+struct TestStruct
 {
     public override string ToString()
     {
@@ -6445,7 +6445,7 @@ unsafe struct TestStruct
    }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.UnsafeDebugExe);
+            var comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(
                 compilation: comp,
