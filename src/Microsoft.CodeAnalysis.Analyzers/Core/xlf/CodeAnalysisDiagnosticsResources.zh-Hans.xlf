@@ -531,8 +531,8 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
-        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="translated">CodeFixProvider 应提供 FixAll 支持，以允许用户通过单个代码修补程序修复基础诊断的多个实例。有关更多详细信息，请参阅 https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md 中的文档。</target>
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
+        <target state="needs-review-translation">CodeFixProvider 应提供 FixAll 支持，以允许用户通过单个代码修补程序修复基础诊断的多个实例。有关更多详细信息，请参阅 https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md 中的文档。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">

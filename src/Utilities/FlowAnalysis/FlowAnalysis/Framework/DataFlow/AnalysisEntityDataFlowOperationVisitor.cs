@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             foreach (AnalysisEntity dependentInstance in dependentAnalysisEntities)
             {
-                // Clone the dependent instance but with with target as the root.
+                // Clone the dependent instance but with target as the root.
                 AnalysisEntity newAnalysisEntity = AnalysisEntityFactory.CreateWithNewInstanceRoot(dependentInstance, targetAnalysisEntity);
                 var dependentValue = GetAbstractValue(dependentInstance);
                 SetAbstractValue(newAnalysisEntity, dependentValue);
