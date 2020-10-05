@@ -27,7 +27,8 @@ namespace IOperationGenerator
             "IDiscardOperation",
             "IPlaceholderOperation",
             "IBlockOperation",
-            "ISwitchOperation"
+            "ISwitchOperation",
+            "ILabeledOperation"
         };
     }
 }

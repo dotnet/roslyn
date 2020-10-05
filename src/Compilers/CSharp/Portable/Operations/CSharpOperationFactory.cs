@@ -1860,27 +1860,24 @@ namespace Microsoft.CodeAnalysis.Operations
             return variableDeclaration;
         }
 
+#nullable enable
         private ILabeledOperation CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
         {
             ILabelSymbol label = boundLabelStatement.Label.GetPublicSymbol();
-            BoundNode statement = null;
             SyntaxNode syntax = boundLabelStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundLabelStatement.WasCompilerGenerated;
-            return new CSharpLazyLabeledOperation(this, statement, label, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LabeledOperation(label, operation: null, _semanticModel, syntax, isImplicit);
         }
 
         private ILabeledOperation CreateBoundLabeledStatementOperation(BoundLabeledStatement boundLabeledStatement)
         {
             ILabelSymbol label = boundLabeledStatement.Label.GetPublicSymbol();
-            BoundNode labeledStatement = boundLabeledStatement.Body;
+            IOperation labeledStatement = Create(boundLabeledStatement.Body);
             SyntaxNode syntax = boundLabeledStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundLabeledStatement.WasCompilerGenerated;
-            return new CSharpLazyLabeledOperation(this, labeledStatement, label, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LabeledOperation(label, labeledStatement, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private IExpressionStatementOperation CreateBoundExpressionStatementOperation(BoundExpressionStatement boundExpressionStatement)
         {

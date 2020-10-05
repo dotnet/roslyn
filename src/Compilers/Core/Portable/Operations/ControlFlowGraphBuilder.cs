@@ -1408,6 +1408,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     return false;
             }
 
+#nullable enable
             bool visitPossibleUsingDeclarationInLabel(ILabeledOperation labelOperation)
             {
                 var savedCurrentStatement = _currentStatement;
@@ -1421,6 +1422,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 _currentStatement = savedCurrentStatement;
                 return visitedAll;
             }
+#nullable disable
         }
 
         internal override IOperation VisitWithStatement(IWithStatementOperation operation, int? captureIdForResult)
@@ -3595,6 +3597,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
+#nullable enable
         public override IOperation VisitLabeled(ILabeledOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
@@ -3623,7 +3626,7 @@ oneMoreTime:
                 return new BasicBlockBuilder(BasicBlockKind.Block);
             }
 
-            BasicBlockBuilder labeledBlock;
+            BasicBlockBuilder? labeledBlock;
 
             if (_labeledBlocks == null)
             {
@@ -3638,6 +3641,7 @@ oneMoreTime:
             _labeledBlocks.Add(labelOpt, labeledBlock);
             return labeledBlock;
         }
+#nullable disable
 
         public override IOperation VisitBranch(IBranchOperation operation, int? captureIdForResult)
         {

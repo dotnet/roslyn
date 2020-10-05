@@ -1143,8 +1143,14 @@ namespace IOperationGenerator
 
         private string GetSubName(string operationName) => operationName[1..^9];
 
-        private bool IsIOperationType(string typeName) => _typeMap.ContainsKey(typeName) ||
-                                                          (IsImmutableArray(typeName, out var innerType) && IsIOperationType(innerType));
+        private bool IsIOperationType(string typeName)
+        {
+            Debug.Assert(typeName.Length > 0);
+            return _typeMap.ContainsKey(getTypeName(typeName)) ||
+              (IsImmutableArray(typeName, out var innerType) && IsIOperationType(getTypeName(innerType)));
+
+            static string getTypeName(string typeName) => typeName[^1] == '?' ? typeName[..^1] : typeName;
+        }
 
         private static bool IsImmutableArray(string typeName, [NotNullWhen(true)] out string? arrayType)
         {

@@ -843,24 +843,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyLabeledOperation : LazyLabeledOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _operation;
-
-        internal CSharpLazyLabeledOperation(CSharpOperationFactory operationFactory, BoundNode operation, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(label, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _operation = operation;
-        }
-
-        protected override IOperation CreateOperation()
-        {
-            return _operationFactory.Create(_operation);
-        }
-    }
-
     internal sealed class CSharpLazyAnonymousFunctionOperation : LazyAnonymousFunctionOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

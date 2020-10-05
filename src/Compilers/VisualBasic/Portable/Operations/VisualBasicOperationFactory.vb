@@ -1327,12 +1327,10 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundLabelStatementOperation(boundLabelStatement As BoundLabelStatement) As ILabeledOperation
             Dim label As ILabelSymbol = boundLabelStatement.Label
-            Dim statement As BoundNode = Nothing
+            Dim statement As IOperation = Nothing
             Dim syntax As SyntaxNode = boundLabelStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundLabelStatement.WasCompilerGenerated OrElse IsEndSubOrFunctionStatement(syntax)
-            Return New VisualBasicLazyLabeledOperation(Me, statement, label, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LabeledOperation(label, statement, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundGotoStatementOperation(boundGotoStatement As BoundGotoStatement) As IBranchOperation

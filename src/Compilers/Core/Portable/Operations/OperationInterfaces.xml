@@ -333,7 +333,7 @@
         <summary>Label that can be the target of branches.</summary>
       </Comments>
     </Property>
-    <Property Name="Operation" Type="IOperation">
+    <Property Name="Operation" Type="IOperation?">
       <Comments>
         <summary>Operation that has been labeled. In VB, this is always null.</summary>
       </Comments>

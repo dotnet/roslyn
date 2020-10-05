@@ -302,6 +302,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation IgnoredCondition { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents an operation with a label.
     /// <para>
@@ -327,8 +328,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Operation that has been labeled. In VB, this is always null.
         /// </summary>
-        IOperation Operation { get; }
+        IOperation? Operation { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents a branch operation.
@@ -3923,54 +3925,38 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseLabeledOperation : OperationOld, ILabeledOperation
+    #nullable enable
+    internal sealed partial class LabeledOperation : Operation, ILabeledOperation
     {
-        internal BaseLabeledOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Labeled, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal LabeledOperation(ILabelSymbol label, IOperation? operation, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Label = label;
+            Operation = SetParentOperation(operation, this);
         }
         public ILabelSymbol Label { get; }
-        public abstract IOperation Operation { get; }
+        public IOperation? Operation { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Operation is object) yield return Operation;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Operation is not null) builder.Add(Operation);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Labeled;
         public override void Accept(OperationVisitor visitor) => visitor.VisitLabeled(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLabeled(this, argument);
     }
-    internal sealed partial class LabeledOperation : BaseLabeledOperation, ILabeledOperation
-    {
-        internal LabeledOperation(ILabelSymbol label, IOperation operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(label, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operation = SetParentOperation(operation, this);
-        }
-        public override IOperation Operation { get; }
-    }
-    internal abstract partial class LazyLabeledOperation : BaseLabeledOperation, ILabeledOperation
-    {
-        private IOperation _lazyOperation = s_unset;
-        internal LazyLabeledOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(label, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateOperation();
-        public override IOperation Operation
-        {
-            get
-            {
-                if (_lazyOperation == s_unset)
-                {
-                    IOperation operation = CreateOperation();
-                    SetParentOperation(operation, this);
-                    Interlocked.CompareExchange(ref _lazyOperation, operation, s_unset);
-                }
-                return _lazyOperation;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class BranchOperation : Operation, IBranchOperation
     {
@@ -9134,6 +9120,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (SwitchOperation)operation;
             return new SwitchOperation(internalOperation.Locals, Visit(internalOperation.Value), VisitArray(internalOperation.Cases), internalOperation.ExitLabel, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitLabeled(ILabeledOperation operation, object? argument)
+        {
+            var internalOperation = (LabeledOperation)operation;
+            return new LabeledOperation(internalOperation.Label, Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitBranch(IBranchOperation operation, object? argument)
         {

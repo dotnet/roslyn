@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -159,7 +160,8 @@ namespace Microsoft.CodeAnalysis
             //Debug.Assert(result == s_unset || result == parent);
         }
 
-        public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation
+        [return: NotNullIfNotNull("operation")]
+        public static T? SetParentOperation<T>(T? operation, IOperation parent) where T : IOperation
         {
             // explicit cast is not allowed, so using "as" instead
             (operation as Operation)?.SetParentOperation(parent);
