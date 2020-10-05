@@ -9,6 +9,16 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveSharedFromModuleMembers
     Public Class RemoveSharedFromModuleMembersTests
         <Fact>
+        Public Async Function TestProtectedFieldInModule_NoActionIsOffered() As Task
+            Dim source = "
+Public Module M
+    {|BC30593:Protected|} x As Integer
+End Module
+"
+            Await VerifyVB.VerifyCodeFixAsync(source, source)
+        End Function
+
+        <Fact>
         Public Async Function TestSharedFieldInModule() As Task
             Dim source = "
 Public Module M
@@ -39,6 +49,21 @@ Public Module M
     ' We add Private as it is the default modifier.
     ' This comment also tests handling the leading trivia.
     Dim x As Integer
+End Module
+"
+            Await VerifyVB.VerifyCodeFixAsync(source, fixedSource)
+        End Function
+
+        <Fact>
+        Public Async Function TestSharedFieldWithMultipleVariablesInModule() As Task
+            Dim source = "
+Public Module M
+    {|BC30593:Shared|} x, y As Integer
+End Module
+"
+            Dim fixedSource = "
+Public Module M
+    Dim x, y As Integer
 End Module
 "
             Await VerifyVB.VerifyCodeFixAsync(source, fixedSource)

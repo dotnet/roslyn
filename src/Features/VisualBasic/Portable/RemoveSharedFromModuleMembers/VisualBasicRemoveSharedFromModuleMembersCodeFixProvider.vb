@@ -16,11 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
     Friend NotInheritable Class VisualBasicRemoveSharedFromModuleMembersCodeFixProvider
         Inherits SyntaxEditorBasedCodeFixProvider
 
-        <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New()
-        End Sub
-
         ' Methods in a Module cannot be declared '{0}'.
         Private Const BC30433 As String = NameOf(BC30433)
 
@@ -33,24 +28,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
         ' Variables in Modules cannot be declared '{0}'.
         Private Const BC30593 As String = NameOf(BC30593)
 
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(
             BC30433, BC30434, BC30503, BC30593)
 
         Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory = CodeFixCategory.Compile
 
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-            context.RegisterCodeFix(
-                New MyCodeAction(Function(ct) FixAsync(context.Document, context.Diagnostics(0), context.CancellationToken)),
-                context.Diagnostics)
+            For Each diagnostic In context.Diagnostics
+                Dim tokenToRemove = diagnostic.Location.FindToken(context.CancellationToken)
+                If Not tokenToRemove.IsKind(SyntaxKind.SharedKeyword) Then
+                    Continue For
+                End If
+
+                Dim node = diagnostic.Location.FindNode(context.CancellationToken)
+                If TypeOf node IsNot FieldDeclarationSyntax AndAlso TypeOf node IsNot MethodBaseSyntax Then
+                    Continue For
+                End If
+
+                context.RegisterCodeFix(
+                    New MyCodeAction(Function(ct) FixAsync(context.Document, diagnostic, context.CancellationToken)),
+                    diagnostic)
+            Next
+
             Return Task.CompletedTask
         End Function
 
         Protected Overrides Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
             For Each diagnostic In diagnostics
                 Dim tokenToRemove = diagnostic.Location.FindToken(cancellationToken)
-                If Not tokenToRemove.IsKind(SyntaxKind.SharedKeyword) Then
-                    Continue For
-                End If
                 Dim node = diagnostic.Location.FindNode(cancellationToken)
                 Dim newNode = GetReplacement(document, node)
                 editor.ReplaceNode(node, newNode)
@@ -59,12 +69,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
         End Function
 
         Private Shared Function GetReplacement(document As Document, node As SyntaxNode) As SyntaxNode
-            If TypeOf node Is FieldDeclarationSyntax OrElse
-               TypeOf node Is MethodBaseSyntax Then
-                Dim generator = SyntaxGenerator.GetGenerator(document)
-                Return generator.WithModifiers(node, generator.GetModifiers(node).WithIsStatic(False))
-            End If
-            Return node
+            Dim generator = SyntaxGenerator.GetGenerator(document)
+            Return generator.WithModifiers(node, generator.GetModifiers(node).WithIsStatic(False))
         End Function
 
         Private Class MyCodeAction
