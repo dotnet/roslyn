@@ -10,8 +10,10 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -42,8 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var builder = ImmutableArray.CreateBuilder<CompletionItem>();
 
             builder.AddRange(GetUserDefinedConversionsOfType(semanticModel, container, containerIsNullable, position));
-            builder.AddRange(GetBuiltInNumericConversions(semanticModel, container, containerIsNullable, position));
-            builder.AddRange(GetBuiltInEnumConversions(semanticModel, container, containerIsNullable, position));
+            if (container is INamedTypeSymbol namedType)
+            {
+                builder.AddRange(GetBuiltInNumericConversions(semanticModel, namedType, containerIsNullable, position));
+                builder.AddRange(GetBuiltInEnumConversions(semanticModel, namedType, containerIsNullable, position));
+            }
 
             return builder.ToImmutable();
         }
@@ -63,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return allExplicitConversions.ToImmutableArray();
         }
 
-        private ImmutableArray<CompletionItem> GetBuiltInNumericConversions(SemanticModel semanticModel, ITypeSymbol container, bool containerIsNullable, int position)
+        private ImmutableArray<CompletionItem> GetBuiltInNumericConversions(SemanticModel semanticModel, INamedTypeSymbol container, bool containerIsNullable, int position)
         {
             if (container.SpecialType == SpecialType.System_Decimal)
             {
@@ -73,13 +78,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var numericConversions = container.GetBuiltInNumericConversions();
             if (numericConversions is not null)
             {
-                return GetCompletionItemsForSpecialTypes(semanticModel, containerIsNullable, position, numericConversions);
+                return GetCompletionItemsForSpecialTypes(semanticModel, container, containerIsNullable, position, numericConversions);
             }
 
             return ImmutableArray<CompletionItem>.Empty;
         }
 
-        private ImmutableArray<CompletionItem> GetBuiltInEnumConversions(SemanticModel semanticModel, ITypeSymbol container, bool containerIsNullable, int position)
+        private static IMethodSymbol CreateMethodSymbolForBuiltInConversion(INamedTypeSymbol fromType, ITypeSymbol toType)
+        {
+            return new CodeGenerationMethodSymbol(
+                containingType: fromType,
+                attributes: ImmutableArray<AttributeData>.Empty,
+                declaredAccessibility: Accessibility.Public,
+                modifiers: DeclarationModifiers.Static,
+                returnType: toType,
+                refKind: RefKind.None,
+                explicitInterfaceImplementations: ImmutableArray<IMethodSymbol>.Empty,
+                name: WellKnownMemberNames.ExplicitConversionName,
+                typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+                parameters: new IParameterSymbol[] { new CodeGenerationParameterSymbol(
+                    containingType: null,
+                    attributes: ImmutableArray<AttributeData>.Empty,
+                    refKind: RefKind.None,
+                    isParams: false,
+                    type: fromType,
+                    name: "from",
+                    isOptional: false,
+                    hasDefaultValue: false,
+                    defaultValue: null)}.ToImmutableArray(),
+                returnTypeAttributes: ImmutableArray<AttributeData>.Empty);
+        }
+
+        private ImmutableArray<CompletionItem> GetBuiltInEnumConversions(SemanticModel semanticModel, INamedTypeSymbol container, bool containerIsNullable, int position)
         {
             // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
             // Three kinds of conversions are defined in the spec.
@@ -109,15 +139,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 SpecialType.System_Decimal,
             };
 
-            return GetCompletionItemsForSpecialTypes(semanticModel, containerIsNullable, position, convertToSpecialTypes);
+            return GetCompletionItemsForSpecialTypes(semanticModel, container, containerIsNullable, position, convertToSpecialTypes);
         }
 
-        private ImmutableArray<CompletionItem> GetCompletionItemsForSpecialTypes(SemanticModel semanticModel, bool containerIsNullable, int position, SpecialType[] specialTypes)
+        private ImmutableArray<CompletionItem> GetCompletionItemsForSpecialTypes(SemanticModel semanticModel, INamedTypeSymbol fromType, bool containerIsNullable, int position, SpecialType[] specialTypes)
         {
             var conversionCompletionItems = from specialType in specialTypes
                                             let typeSymbol = semanticModel.Compilation.GetSpecialType(specialType)
                                             let typeName = typeSymbol.ToMinimalDisplayString(semanticModel, position)
-                                            select CreateCommonCompletionItem(typeName, targetTypeIsNullable: containerIsNullable, position);
+                                            select CreateSymbolCompletionItem(CreateMethodSymbolForBuiltInConversion(fromType, typeSymbol), typeName, targetTypeIsNullable: containerIsNullable, position);
             return conversionCompletionItems.ToImmutableArray();
         }
 
