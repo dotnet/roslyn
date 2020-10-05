@@ -2,7 +2,7 @@
 <Project>  
   <PropertyGroup>
     <NoWarn>$(NoWarn);NU5125;NU3005</NoWarn>
-
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
