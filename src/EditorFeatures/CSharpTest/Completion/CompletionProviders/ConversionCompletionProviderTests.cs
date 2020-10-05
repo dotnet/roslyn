@@ -1115,5 +1115,30 @@ public class Program
 ", "int", displayTextSuffix: ")", expectedDescriptionOrNull: @"E.explicit operator int(E value)
 Defines an explicit conversion of a E to a int.");
         }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("e.$$", true)]
+        [InlineData("e. $$", true)]
+        [InlineData("e.in$$", true)]
+        [InlineData("E.$$", false)] // Don't infer with enum member suggestion 
+        [InlineData("E.One.$$", true)]
+        public async Task ExplicitBuildInEnumConversionToIntAreOffered(string expression, bool conversionIsOffered)
+        {
+            Func<string, Task> verifyFunc = conversionIsOffered
+                ? markup => VerifyItemExistsAsync(markup, "int", displayTextSuffix: ")")
+                : markup => VerifyNoItemsExistAsync(markup);
+            await verifyFunc(@$"
+public enum E {{ One }}
+public class Program
+{{
+    public void Main()
+    {{
+        var e = E.One;
+        {expression}
+    }}
+}}
+");
+        }
     }
 }
