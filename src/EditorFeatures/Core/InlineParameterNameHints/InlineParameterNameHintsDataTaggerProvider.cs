@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     {
         private readonly IAsynchronousOperationListener _listener;
 
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.InlineParameterNameHints);
+        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineParameterNameHintsOptions.Enabled);
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
