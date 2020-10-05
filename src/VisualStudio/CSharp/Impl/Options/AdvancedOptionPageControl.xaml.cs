@@ -66,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
 
             BindToOption(DisplayInlineParameterNameHints, InlineParameterNameHintsOptions.Enabled, LanguageNames.CSharp);
+
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptions.ShowRemarksInQuickInfo, LanguageNames.CSharp);
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.CSharp);
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.CSharp);
