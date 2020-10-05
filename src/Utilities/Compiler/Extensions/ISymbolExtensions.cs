@@ -375,7 +375,7 @@ namespace Analyzer.Utilities.Extensions
                 return true;
             }
 
-            // this doesnt account for type conversion but FxCop implementation seems doesnt either
+            // this doesn't account for type conversion but FxCop implementation seems doesn't either
             // so this should match FxCop implementation.
             return type2.Equals(type1);
         }
@@ -679,7 +679,7 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="symbol">Symbol to examine.</param>
         /// <param name="attributes">Type symbols of the attributes to check for.</param>
         /// <returns>Boolean array, same size and order as <paramref name="attributes"/>, indicating that the corresponding
-        /// attirbute is present.</returns>
+        /// attribute is present.</returns>
         public static bool[] HasAttributes(this ISymbol symbol, params INamedTypeSymbol?[] attributes)
         {
             bool[] isAttributePresent = new bool[attributes.Length];
@@ -747,18 +747,15 @@ namespace Analyzer.Utilities.Extensions
         }
 
         public static bool IsReadOnly([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            return symbol switch
+            => symbol switch
             {
                 IFieldSymbol field => field.IsReadOnly,
-
                 IPropertySymbol property => property.IsReadOnly,
-
-                // TODO: IMethodSymbol and ITypeSymbol also have IsReadOnly in Microsoft.CodeAnalysis 3.x
-                //       Add these cases once we move to the required Microsoft.CodeAnalysis.nupkg.
-
+#if CODEANALYSIS_V3_OR_BETTER
+                IMethodSymbol method => method.IsReadOnly,
+                ITypeSymbol type => type.IsReadOnly,
+#endif
                 _ => false,
             };
-        }
     }
 }
