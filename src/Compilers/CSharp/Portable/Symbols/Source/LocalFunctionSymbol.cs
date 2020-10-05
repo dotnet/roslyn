@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             _declarationDiagnostics.AddRange(diagnostics);
                         }
-                        _lazyTypeParameterConstraints = new TypeParameterConstraintClauses(constraints, canUseLightweightTypeConstraintBinding);
+                        _lazyTypeParameterConstraints = TypeParameterConstraintClauses.Create(constraints, canUseLightweightTypeConstraintBinding);
                     }
                 }
                 diagnostics.Free();

@@ -61,7 +61,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public readonly ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraints;
         public readonly bool UsedLightweightTypeConstraintBinding;
 
-        public TypeParameterConstraintClauses(ImmutableArray<TypeParameterConstraintClause> typeParameterConstraints, bool usedLightweightTypeConstraintBinding)
+        private static readonly TypeParameterConstraintClauses EmptyFromLightweightBinding =
+            new TypeParameterConstraintClauses(ImmutableArray<TypeParameterConstraintClause>.Empty, usedLightweightTypeConstraintBinding: true);
+        private static readonly TypeParameterConstraintClauses Empty =
+            new TypeParameterConstraintClauses(ImmutableArray<TypeParameterConstraintClause>.Empty, usedLightweightTypeConstraintBinding: false);
+
+        public static TypeParameterConstraintClauses Create(ImmutableArray<TypeParameterConstraintClause> typeParameterConstraints, bool usedLightweightTypeConstraintBinding)
+        {
+            return (typeParameterConstraints.IsEmpty, usedLightweightTypeConstraintBinding) switch
+            {
+                (true, true) => EmptyFromLightweightBinding,
+                (true, false) => Empty,
+                _ => new TypeParameterConstraintClauses(typeParameterConstraints, usedLightweightTypeConstraintBinding)
+            };
+        }
+
+        private TypeParameterConstraintClauses(ImmutableArray<TypeParameterConstraintClause> typeParameterConstraints, bool usedLightweightTypeConstraintBinding)
         {
             TypeParameterConstraints = typeParameterConstraints;
             UsedLightweightTypeConstraintBinding = usedLightweightTypeConstraintBinding;

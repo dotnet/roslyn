@@ -285,8 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canUseLightweightTypeConstraintBinding)
         {
-            var clauses = _lazyTypeParameterConstraints;
-            if (!clauses.HasValue(canUseLightweightTypeConstraintBinding))
+            if (!_lazyTypeParameterConstraints.HasValue(canUseLightweightTypeConstraintBinding))
             {
                 var diagnostics = DiagnosticBag.GetInstance();
                 var syntax = GetSyntax();
@@ -295,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     .GetBinderFactory(syntax.SyntaxTree)
                     .GetBinder(syntax.ReturnType, syntax, this);
 
-                var constraints = new TypeParameterConstraintClauses(
+                var constraints = TypeParameterConstraintClauses.Create(
                     this.MakeTypeParameterConstraints(
                         withTypeParametersBinder,
                         TypeParameters,

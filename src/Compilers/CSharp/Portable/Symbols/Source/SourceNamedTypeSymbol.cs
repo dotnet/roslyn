@@ -261,7 +261,7 @@ next:;
             if (!clauses.HasValue(canUseLightweightTypeConstraintBinding))
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-                var typeParameterConstraints = new TypeParameterConstraintClauses(MakeTypeParameterConstraints(canUseLightweightTypeConstraintBinding, diagnostics), canUseLightweightTypeConstraintBinding);
+                var typeParameterConstraints = TypeParameterConstraintClauses.Create(MakeTypeParameterConstraints(canUseLightweightTypeConstraintBinding, diagnostics), canUseLightweightTypeConstraintBinding);
 
                 if (TypeParameterConstraintClausesExtensions.InterlockedUpdate(ref _lazyTypeParameterConstraints, typeParameterConstraints) &&
                    _lazyTypeParameterConstraints.HasValue(usedLightweightTypeConstraintBinding: false))
