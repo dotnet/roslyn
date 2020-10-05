@@ -3165,6 +3165,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                 }
+                else
+                {
+                    size = BindToTypeForErrorRecovery(size);
+                }
 
                 return size;
             }
