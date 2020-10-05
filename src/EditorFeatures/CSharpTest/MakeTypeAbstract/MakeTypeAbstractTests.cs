@@ -25,139 +25,125 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeTypeAbstract
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpMakeTypeAbstractCodeFixProvider());
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestMethod(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestMethod()
         {
             await TestInRegularAndScript1Async(
-$@"
-public {typeKind} Foo
-{{
+@"
+public class Foo
+{
     public abstract void [|M|]();
-}}",
-$@"
-public abstract {typeKind} Foo
-{{
+}",
+@"
+public abstract class Foo
+{
     public abstract void M();
-}}");
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestMethodEnclosingClassWithoutAccessibility(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestMethodEnclosingClassWithoutAccessibility()
         {
             await TestInRegularAndScript1Async(
-$@"
-{typeKind} Foo
-{{
+@"
+class Foo
+{
     public abstract void [|M|]();
-}}",
-$@"
-abstract {typeKind} Foo
-{{
+}",
+@"
+abstract class Foo
+{
     public abstract void M();
-}}");
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestMethodEnclosingClassDocumentationComment(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestMethodEnclosingClassDocumentationComment()
         {
             await TestInRegularAndScript1Async(
-$@"
+@"
 /// <summary>
 /// Some class comment.
 /// </summary>
-public {typeKind} Foo
-{{
+public class Foo
+{
     public abstract void [|M|]();
-}}",
-$@"
+}",
+@"
 /// <summary>
 /// Some class comment.
 /// </summary>
-public abstract {typeKind} Foo
-{{
+public abstract class Foo
+{
     public abstract void M();
-}}");
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestPropertyGetter(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestPropertyGetter()
         {
             await TestInRegularAndScript1Async(
-$@"
-public {typeKind} Foo
-{{
-    public abstract object P {{ [|get|]; }}
-}}",
-$@"
-public abstract {typeKind} Foo
-{{
-    public abstract object P {{ get; }}
-}}");
+@"
+public class Foo
+{
+    public abstract object P { [|get|]; }
+}",
+@"
+public abstract class Foo
+{
+    public abstract object P { get; }
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestPropertySetter(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestPropertySetter()
         {
             await TestInRegularAndScript1Async(
-$@"
-public {typeKind} Foo
-{{
-    public abstract object P {{ [|set|]; }}
-}}",
-$@"
-public abstract {typeKind} Foo
-{{
-    public abstract object P {{ set; }}
-}}");
+@"
+public class Foo
+{
+    public abstract object P { [|set|]; }
+}",
+@"
+public abstract class Foo
+{
+    public abstract object P { set; }
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestIndexerGetter(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestIndexerGetter()
         {
             await TestInRegularAndScript1Async(
-$@"
-public {typeKind} Foo
-{{
-    public abstract object this[object o] {{ [|get|]; }}
-}}",
-$@"
-public abstract {typeKind} Foo
-{{
-    public abstract object this[object o] {{ get; }}
-}}");
+@"
+public class Foo
+{
+    public abstract object this[object o] { [|get|]; }
+}",
+@"
+public abstract class Foo
+{
+    public abstract object this[object o] { get; }
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestIndexerSetter(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestIndexerSetter()
         {
             await TestInRegularAndScript1Async(
-$@"
-public {typeKind} Foo
-{{
-    public abstract object this[object o] {{ [|set|]; }}
-}}",
-$@"
-public abstract {typeKind} Foo
-{{
-    public abstract object this[object o] {{ set; }}
-}}");
+@"
+public class Foo
+{
+    public abstract object this[object o] { [|set|]; }
+}",
+@"
+public abstract class Foo
+{
+    public abstract object this[object o] { set; }
+}");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41654"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41654"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
         public async Task TestPartialClass()
         {
             await TestInRegularAndScript1Async(
@@ -181,104 +167,106 @@ public partial class Foo
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestEventAdd(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestEventAdd()
         {
             await TestMissingInRegularAndScriptAsync(
-$@"
-public {typeKind} Foo
-{{
-    public abstract event System.EventHandler E {{ [|add|]; }}
-}}");
+@"
+public class Foo
+{
+    public abstract event System.EventHandler E { [|add|]; }
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestEventRemove(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestEventRemove()
         {
             await TestMissingInRegularAndScriptAsync(
-$@"
-public {typeKind} Foo
-{{
-    public abstract event System.EventHandler E {{ [|remove|]; }}
-}}");
+@"
+public class Foo
+{
+    public abstract event System.EventHandler E { [|remove|]; }
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestMethodWithBody(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestMethodWithBody()
         {
             await TestMissingInRegularAndScriptAsync(
-$@"
-public {typeKind} Foo
-{{
+@"
+public class Foo
+{
     public abstract int [|M|]() => 3;
-}}");
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestPropertyGetterWithArrowBody(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestPropertyGetterWithArrowBody()
         {
             await TestMissingInRegularAndScriptAsync(
-$@"
-public {typeKind} Foo
-{{
+@"
+public class Foo
+{
     public abstract int [|P|] => 3;
-}}");
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestPropertyGetterWithBody(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestPropertyGetterWithBody()
         {
             await TestMissingInRegularAndScriptAsync(
-$@"
-public {typeKind} Foo
-{{
+@"
+public class Foo
+{
     public abstract int P
-    {{
-        [|get|] {{ return 1; }}
-    }}
-}}");
+    {
+        [|get|] { return 1; }
+    }
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestStructNestedInClass(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestStructNestedInClass()
         {
             await TestMissingInRegularAndScriptAsync(
-$@"
-public {typeKind} C
-{{
+@"
+public class C
+{
     public struct S
-    {{
+    {
         public abstract void [|Foo|]();
-    }}
-}}");
+    }
+}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task TestMethodEnclosingClassStatic(string typeKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestMethodEnclosingClassStatic()
         {
             await TestMissingInRegularAndScriptAsync(
-$@"
-public static {typeKind} Foo
-{{
+@"
+public static class Foo
+{
     public abstract void [|M|]();
-}}");
+}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestRecord()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public record Foo
+{
+    public abstract void [|M|]();
+}",
+@"
+public abstract record Foo
+{
+    public abstract void M();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
         public async Task FixAll()
         {
             await TestInRegularAndScript1Async(
@@ -293,7 +281,7 @@ public static {typeKind} Foo
         public abstract object this[object o] { get; set; }
     }
 
-    public record C2
+    public class C2
     {
         public abstract void M();
     }
@@ -317,7 +305,7 @@ public static {typeKind} Foo
         public abstract object this[object o] { get; set; }
     }
 
-    public abstract record C2
+    public abstract class C2
     {
         public abstract void M();
     }
