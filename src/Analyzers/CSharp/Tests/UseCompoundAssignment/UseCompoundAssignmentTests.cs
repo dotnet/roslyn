@@ -1008,6 +1008,32 @@ $@"public class C
         }
 
         [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("long")]
+        [InlineData("float")]
+        [InlineData("decimal")]
+        public async Task TestIncrementImplicitLiteralConversion(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a [||]= a + 1;
+    }}
+}}",
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a++;
+    }}
+}}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestIncrementLoopVariable()
         {
