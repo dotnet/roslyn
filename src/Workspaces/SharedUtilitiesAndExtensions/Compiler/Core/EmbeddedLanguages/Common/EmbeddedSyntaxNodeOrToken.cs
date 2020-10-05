@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
@@ -28,9 +30,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         public bool IsNode => Node != null;
 
         public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(TSyntaxNode node)
-            => new EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(node);
+            => new(node);
 
         public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(EmbeddedSyntaxToken<TSyntaxKind> token)
-            => new EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(token);
+            => new(token);
     }
 }

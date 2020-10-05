@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private sealed class AsyncProjectWorkItemQueue : AsyncWorkItemQueue<ProjectId>
             {
-                private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new Dictionary<ProjectId, WorkItem>();
+                private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new();
 
                 public AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
                     : base(progressReporter, workspace)

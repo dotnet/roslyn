@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
             /// Queue of actions we want to perform all at once against the DB in a single transaction.
             /// </summary>
             private readonly MultiDictionary<TWriteQueueKey, Action<SqlConnection>> _writeQueueKeyToWrites =
-                new MultiDictionary<TWriteQueueKey, Action<SqlConnection>>();
+                new();
 
             /// <summary>
             /// The task responsible for writing out all the batched actions we have for a particular
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
             /// so that all reads for the queue observe any previously completed writes.
             /// </summary>
             private readonly Dictionary<TWriteQueueKey, Task> _writeQueueKeyToWriteTask =
-                new Dictionary<TWriteQueueKey, Task>();
+                new();
 
             public Accessor(SQLitePersistentStorage storage)
             {

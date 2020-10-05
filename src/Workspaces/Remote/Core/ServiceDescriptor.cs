@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.IO.Pipelines;
+using System.Reflection;
 using MessagePack;
 using MessagePack.Resolvers;
 using Microsoft.ServiceHub.Framework;
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             => ConfigureFormatter((MessagePackFormatter)base.CreateFormatter());
 
         private static readonly MessagePackSerializerOptions s_options = StandardResolverAllowPrivate.Options
-            .WithSecurity(MessagePackSecurity.UntrustedData)
+            .WithSecurity(MessagePackSecurity.UntrustedData.WithHashCollisionResistant(false))
             .WithResolver(CompositeResolver.Create(
                 MessagePackFormatters.GetFormatters(),
                 new IFormatterResolver[] { ImmutableCollectionMessagePackResolver.Instance, StandardResolverAllowPrivate.Instance }));
@@ -76,6 +75,26 @@ namespace Microsoft.CodeAnalysis.Remote
             var connection = base.CreateConnection(jsonRpc);
             connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
             return connection;
+        }
+
+        public override ServiceRpcDescriptor WithMultiplexingStream(MultiplexingStream? multiplexingStream)
+        {
+            var baseResult = base.WithMultiplexingStream(multiplexingStream);
+            if (baseResult is ServiceDescriptor)
+                return baseResult;
+
+            // work around incorrect implementation in 16.8 Preview 2
+            if (MultiplexingStream == multiplexingStream)
+                return this;
+
+            var result = (ServiceDescriptor)Clone();
+            typeof(ServiceRpcDescriptor).GetProperty(nameof(MultiplexingStream))!.SetValue(result, multiplexingStream);
+            if (result.MultiplexingStreamOptions is null)
+                return result;
+
+            result = (ServiceDescriptor)result.Clone();
+            typeof(ServiceJsonRpcDescriptor).GetProperty(nameof(MultiplexingStreamOptions))!.SetValue(result, value: null);
+            return result;
         }
 
         internal static class TestAccessor

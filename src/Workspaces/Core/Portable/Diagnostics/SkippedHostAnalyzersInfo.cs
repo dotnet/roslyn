@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal readonly struct SkippedHostAnalyzersInfo
     {
-        public static readonly SkippedHostAnalyzersInfo Empty = new SkippedHostAnalyzersInfo(
+        public static readonly SkippedHostAnalyzersInfo Empty = new(
             ImmutableHashSet<DiagnosticAnalyzer>.Empty,
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<string>>.Empty);
 

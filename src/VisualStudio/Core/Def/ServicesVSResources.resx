@@ -1554,4 +1554,7 @@ I agree to all of the foregoing:</value>
   <data name="The_generator_0_that_generated_this_file_has_stopped_generating_this_file" xml:space="preserve">
     <value>The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</value>
   </data>
+  <data name="Comments" xml:space="preserve">
+    <value>Comments</value>
+  </data>
 </root>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -426,6 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (loweredInput.Type.IsTupleType &&
+                    !loweredInput.Type.OriginalDefinition.Equals(_factory.Compilation.GetWellKnownType(WellKnownType.System_ValueTuple_TRest)) &&
                     loweredInput.Syntax.Kind() == SyntaxKind.TupleExpression &&
                     loweredInput is BoundObjectCreationExpression expr &&
                     !decisionDag.TopologicallySortedNodes.Any(n => usesOriginalInput(n)))

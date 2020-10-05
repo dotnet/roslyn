@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ErrorCode
@@ -1917,6 +1919,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InitCannotBeReadonly = 8903,
 
         #endregion diagnostics introduced for C# 9.0
+
+        ERR_UnexpectedVarianceStaticMember = 9100,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

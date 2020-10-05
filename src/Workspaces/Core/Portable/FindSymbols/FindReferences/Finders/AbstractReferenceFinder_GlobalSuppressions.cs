@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// For the above example, "~M:" is the prefix, "C.X" is the core symbol ID and "(System.String)" is the parameter list.
         /// </summary>
-        private static readonly Regex s_docCommentIdPattern = new Regex(@"(~?[A-Z]:)([^([]*)(.*)");
+        private static readonly Regex s_docCommentIdPattern = new(@"(~?[A-Z]:)([^([]*)(.*)");
 
         protected static bool ShouldFindReferencesInGlobalSuppressions(ISymbol symbol, [NotNullWhen(returnValue: true)] out string? documentationCommentId)
         {
