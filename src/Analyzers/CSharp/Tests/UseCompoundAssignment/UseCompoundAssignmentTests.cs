@@ -915,5 +915,30 @@ struct InsertionPoint
     }
 }");
         }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("long")]
+        [InlineData("float")]
+        public async Task TestIncrementLiteralConversion(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a [||]= a + ({typeName})1;
+    }}
+}}",
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a++;
+    }}
+}}");
+        }
     }
 }
