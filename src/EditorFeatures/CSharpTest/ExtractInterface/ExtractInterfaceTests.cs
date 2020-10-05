@@ -536,8 +536,7 @@ abstract record R$$
     public void M() { }
 }";
 
-            var expectedInterfaceCode = @"
-interface IR
+            var expectedInterfaceCode = @"interface IR
 {
     bool Equals(object obj);
     bool Equals(R other);
