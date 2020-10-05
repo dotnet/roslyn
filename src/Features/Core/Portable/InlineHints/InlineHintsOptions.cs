@@ -11,27 +11,27 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.InlineParameterNameHints
+namespace Microsoft.CodeAnalysis.InlineHints
 {
-    internal static class InlineParameterNameHintsOptions
+    internal static class InlineHintsOptions
     {
         public static readonly PerLanguageOption2<bool> EnabledForParameters =
-            new(nameof(InlineParameterNameHintsOptions),
+            new(nameof(InlineHintsOptions),
                 nameof(EnabledForParameters),
                 defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.EnabledForParameters"));
     }
 
     [ExportOptionProvider, Shared]
-    internal sealed class InlineParameterNameHintsOptionsProvider : IOptionProvider
+    internal sealed class InlineHintsOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParameterNameHintsOptionsProvider()
+        public InlineHintsOptionsProvider()
         {
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            InlineParameterNameHintsOptions.EnabledForParameters);
+            InlineHintsOptions.EnabledForParameters);
     }
 }

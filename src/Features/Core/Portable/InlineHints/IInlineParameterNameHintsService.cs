@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.InlineParameterNameHints
+namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal readonly struct InlineParameterHint
     {

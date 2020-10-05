@@ -5,7 +5,7 @@
 using System;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
+namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
     /// <summary>
     /// The simple tag that only holds information regarding the associated parameter name

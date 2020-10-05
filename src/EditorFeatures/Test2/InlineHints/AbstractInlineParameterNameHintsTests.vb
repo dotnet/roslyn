@@ -3,18 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
-Imports Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
-Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.InlineParameterNameHints
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Tagging
+Imports Microsoft.CodeAnalysis.InlineHints
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <[UseExportProvider]>
     Public MustInherit Class AbstractInlineParameterNameHintsTests
 
