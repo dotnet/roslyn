@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         }
                     },
                     ExecuteCommandProvider = new LSP.ExecuteCommandOptions(),
+                    SupportsDiagnosticRequests = true,
                     TextDocumentSync = new LSP.TextDocumentSyncOptions
                     {
                         Change = LSP.TextDocumentSyncKind.None
