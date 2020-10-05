@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
 
                 UnimplementedConstructors =
                     baseType.InstanceConstructors
-                            .WhereAsArray(c => c.IsAccessibleWithin(ClassType) &&
+                            .WhereAsArray(c => c.IsAccessibleWithin(ClassType) && !c.IsImplicitlyDeclared &&
                                                IsMissing(c, classConstructors, isCaseSensitive));
 
                 return UnimplementedConstructors.Length > 0;
