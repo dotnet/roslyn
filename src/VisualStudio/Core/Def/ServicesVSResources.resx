@@ -1566,4 +1566,7 @@ I agree to all of the foregoing:</value>
   <data name="Show_hints_for_literals" xml:space="preserve">
     <value>Show hints for literals</value>
   </data>
+  <data name="Adding_missing_import_statements" xml:space="preserve">
+    <value>Adding missing import statements</value>
+  </data>
 </root>

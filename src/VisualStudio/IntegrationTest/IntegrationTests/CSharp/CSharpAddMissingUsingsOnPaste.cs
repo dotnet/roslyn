@@ -1,0 +1,62 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
+
+namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+{
+    [Collection(nameof(SharedIntegrationHostFixture))]
+    public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
+    {
+        public CSharpAddMissingUsingsOnPaste(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
+        {
+        }
+
+        protected override string LanguageName => LanguageNames.CSharp;
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingImports)]
+        public void VerifyAddUsingsOnPaste()
+        {
+            var markup = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    $$
+}";
+            SetUpEditor(markup);
+
+            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
+            {
+                VisualStudio.Editor.Paste(@"
+Task DoThingAsync() => Task.CompletedTask;");
+
+                telemetry.VerifyFired("vs/ide/vbcs/addusings/onpaste");
+
+                VisualStudio.Editor.Verify.TextContains(@"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    Task DoThingAsync() => Task.CompletedTask;
+");
+
+            }
+        }
+    }
+}
