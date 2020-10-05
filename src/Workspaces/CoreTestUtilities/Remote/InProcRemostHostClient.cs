@@ -384,6 +384,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                 public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => _stream.CopyToAsync(destination, bufferSize, cancellationToken);
 
+#if NET5_0 // Obsolete annotations differ
+                [Obsolete]
+#endif
                 public override object InitializeLifetimeService()
                     => throw new NotSupportedException();
 
