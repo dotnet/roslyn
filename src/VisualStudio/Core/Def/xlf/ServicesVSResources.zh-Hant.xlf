@@ -152,6 +152,11 @@
         <target state="translated">為規則運算式添加色彩</target>
         <note />
       </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="new">Comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">包含的成員</target>
