@@ -247,6 +247,11 @@
         <target state="new">Hide hints when clear based on method and parameter name</target>
         <note />
       </trans-unit>
+      <trans-unit id="Hide_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Hide hints when parameter names differ only by suffix</source>
+        <target state="new">Hide hints when parameter names differ only by suffix</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="translated">突出显示光标下的相关组件</target>

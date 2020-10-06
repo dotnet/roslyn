@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForOtherParameters"));
 
-        public static readonly PerLanguageOption2<bool> HideForParametersThatDifferBySuffix =
+        public static readonly PerLanguageOption2<bool> HideForParametersThatDifferOnlyBySuffix =
             new(nameof(InlineHintsOptions),
-                nameof(HideForParametersThatDifferBySuffix),
+                nameof(HideForParametersThatDifferOnlyBySuffix),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.HideForParametersThatDifferBySuffix"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.HideForParametersThatDifferOnlyBySuffix"));
 
         public static readonly PerLanguageOption2<bool> HideForParametersThatMatchMethodIntent =
             new(nameof(InlineHintsOptions),

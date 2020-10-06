@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             if (!literalParameters && !objectCreationParameters && !otherParameters)
                 return ImmutableArray<InlineParameterHint>.Empty;
 
-            var hideForParametersThatDifferBySuffix = options.GetOption(InlineHintsOptions.HideForParametersThatDifferBySuffix);
+            var hideForParametersThatDifferOnlyBySuffix = options.GetOption(InlineHintsOptions.HideForParametersThatDifferOnlyBySuffix);
             var hideForParametersThatMatchMethodIntent = options.GetOption(InlineHintsOptions.HideForParametersThatMatchMethodIntent);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
             void AddHintsIfAppropriate()
             {
-                if (hideForParametersThatDifferBySuffix && ParametersDifferOnlyBySuffix(buffer))
+                if (hideForParametersThatDifferOnlyBySuffix && ParametersDifferOnlyBySuffix(buffer))
                     return;
 
                 foreach (var hint in buffer)

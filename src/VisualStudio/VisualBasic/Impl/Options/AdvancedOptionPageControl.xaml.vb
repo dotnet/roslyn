@@ -63,7 +63,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(ShowHintsForLiterals, InlineHintsOptions.ForLiteralParameters, LanguageNames.VisualBasic)
             BindToOption(ShowHintsForNewExpressions, InlineHintsOptions.ForObjectCreationParameters, LanguageNames.VisualBasic)
             BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.VisualBasic)
-            BindToOption(HideHintsWhenClearBasedonMethodAndParameterName, InlineHintsOptions.HideForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
+            BindToOption(HideHintsWhenClearBasedOnMethodAndParameterName, InlineHintsOptions.HideForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
+            BindToOption(HideHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.HideForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
 
             BindToOption(EnableEndConstruct, FeatureOnOffOptions.EndConstruct, LanguageNames.VisualBasic)
             BindToOption(EnableLineCommit, FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)
@@ -113,7 +114,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ShowHintsForLiterals.IsEnabled = enabledForParameters
             ShowHintsForNewExpressions.IsEnabled = enabledForParameters
             ShowHintsForEverythingElse.IsEnabled = enabledForParameters
-            HideHintsWhenClearBasedonMethodAndParameterName.IsEnabled = enabledForParameters
+            HideHintsWhenClearBasedOnMethodAndParameterName.IsEnabled = enabledForParameters
+            HideHintsWhenParameterNamesDifferOnlyBySuffix.IsEnabled = enabledForParameters
         End Sub
 
         Private Sub DisplayInlineParameterNameHints_Checked()
