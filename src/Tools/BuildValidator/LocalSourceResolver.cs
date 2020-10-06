@@ -16,7 +16,7 @@ namespace BuildValidator
     /// Roslyn specific implementation for looking for files
     /// in the Roslyn repo
     /// </summary>
-    internal class LocalSourceResolver : ISourceResolver
+    internal class LocalSourceResolver
     {
         private readonly DirectoryInfo _baseDirectory;
         private readonly ILogger _logger;
@@ -29,7 +29,7 @@ namespace BuildValidator
             _logger.LogInformation($"Source Base Directory: {_baseDirectory}");
         }
 
-        public Task<SourceText> ResolveSourceAsync(string name, Encoding encoding)
+        public SourceText ResolveSource(string name, Encoding encoding)
         {
             if (!File.Exists(name))
             {
@@ -40,7 +40,7 @@ namespace BuildValidator
             {
                 using var fileStream = File.OpenRead(name);
                 var sourceText = SourceText.From(fileStream, encoding: encoding);
-                return Task.FromResult(sourceText);
+                return sourceText;
             }
 
             throw new FileNotFoundException(name);
@@ -53,7 +53,7 @@ namespace BuildValidator
 
             while (srcDir != null)
             {
-                var potentialDir = srcDir.GetDirectories().FirstOrDefault(d => d.Name == "src");
+                var potentialDir = srcDir.GetDirectories().FirstOrDefault(IsSourceDirectory);
                 if (potentialDir is null)
                 {
                     srcDir = srcDir.Parent;
@@ -67,10 +67,21 @@ namespace BuildValidator
 
             if (srcDir == null)
             {
-                throw new Exception();
+                throw new Exception("Unable to find src directory");
             }
 
             return srcDir;
+
+            static bool IsSourceDirectory(DirectoryInfo directoryInfo)
+            {
+                if (FileNameEqualityComparer.StringComparer.Equals(directoryInfo.Name, "src"))
+                {
+                    // Check that src/compilers exists to be more accurate about getting the correct src directory
+                    return directoryInfo.GetDirectories().Any(d => FileNameEqualityComparer.StringComparer.Equals(d.Name, "compilers"));
+                }
+
+                return false;
+            }
         }
     }
 }

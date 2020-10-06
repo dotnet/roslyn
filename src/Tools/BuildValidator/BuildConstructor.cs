@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.Extensions.Logging;
 
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
@@ -26,10 +25,10 @@ namespace BuildValidator
     /// </summary>
     internal class BuildConstructor
     {
-        private readonly IMetadataReferenceResolver _referenceResolver;
-        private readonly ISourceResolver _sourceResolver;
+        private readonly LocalReferenceResolver _referenceResolver;
+        private readonly LocalSourceResolver _sourceResolver;
 
-        public BuildConstructor(IMetadataReferenceResolver referenceResolver, ISourceResolver sourceResolver)
+        public BuildConstructor(LocalReferenceResolver referenceResolver, LocalSourceResolver sourceResolver)
         {
             _referenceResolver = referenceResolver;
             _sourceResolver = sourceResolver;
@@ -40,12 +39,12 @@ namespace BuildValidator
             var pdbReader = new CompilationOptionsReader(metadataReader);
             var pdbCompilationOptions = pdbReader.GetCompilationOptions();
 
-            if (pdbCompilationOptions.Count == 0)
+            if (pdbCompilationOptions.Length == 0)
             {
                 throw new InvalidDataException("Did not find compilation options in pdb");
             }
 
-            if (pdbCompilationOptions.TryGetValue("language", out var language))
+            if (pdbCompilationOptions.TryGetUniqueOption("language", out var language))
             {
                 var compilation = language switch
                 {
@@ -66,13 +65,13 @@ namespace BuildValidator
             return await _referenceResolver.ResolveReferencesAsync(referenceInfos).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<SourceText>> GetSourcesAsync(CompilationOptionsReader pdbReader, Encoding encoding)
+        private ImmutableArray<SourceText> GetSources(CompilationOptionsReader pdbReader, Encoding encoding)
         {
             var builder = ImmutableArray.CreateBuilder<SourceText>();
 
             foreach (var srcFile in pdbReader.GetSourceFileNames())
             {
-                var text = await _sourceResolver.ResolveSourceAsync(srcFile, encoding).ConfigureAwait(false);
+                var text = _sourceResolver.ResolveSource(srcFile, encoding);
                 builder.Add(text);
             }
 
@@ -80,14 +79,14 @@ namespace BuildValidator
         }
 
         #region CSharp
-        private async Task<Compilation> CreateCSharpCompilationAsync(CompilationOptionsReader pdbReader, string name)
+        private async Task<Compilation> CreateCSharpCompilationAsync(CompilationOptionsReader pdbReader, string assemblyName)
         {
             var (compilationOptions, parseOptions, encoding) = CreateCSharpCompilationOptions(pdbReader);
             var metadataReferences = await CreateMetadataReferencesAsync(pdbReader).ConfigureAwait(false);
-            var sources = await GetSourcesAsync(pdbReader, encoding).ConfigureAwait(false);
+            var sources = GetSources(pdbReader, encoding);
 
             return CSharpCompilation.Create(
-                name,
+                assemblyName,
                 syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s, options: parseOptions)).ToImmutableArray(),
                 references: metadataReferences,
                 options: compilationOptions);
@@ -97,16 +96,16 @@ namespace BuildValidator
         {
             var pdbCompilationOptions = pdbReader.GetCompilationOptions();
 
-            var langVersionString = pdbCompilationOptions["language-version"];
-            var optimization = pdbCompilationOptions["optimization"];
+            var langVersionString = pdbCompilationOptions.GetUniqueOption("language-version");
+            var optimization = pdbCompilationOptions.GetUniqueOption("optimization");
             // TODO: Check portability policy if needed
             // pdbCompilationOptions.TryGetValue("portability-policy", out var portabilityPolicyString);
-            pdbCompilationOptions.TryGetValue("default-encoding", out var defaultEncoding);
-            pdbCompilationOptions.TryGetValue("fallback-encoding", out var fallbackEncoding);
-            pdbCompilationOptions.TryGetValue("define", out var define);
-            pdbCompilationOptions.TryGetValue("checked", out var checkedString);
-            pdbCompilationOptions.TryGetValue("nullable", out var nullable);
-            pdbCompilationOptions.TryGetValue("unsafe", out var unsafeString);
+            pdbCompilationOptions.TryGetUniqueOption("default-encoding", out var defaultEncoding);
+            pdbCompilationOptions.TryGetUniqueOption("fallback-encoding", out var fallbackEncoding);
+            pdbCompilationOptions.TryGetUniqueOption("define", out var define);
+            pdbCompilationOptions.TryGetUniqueOption("checked", out var checkedString);
+            pdbCompilationOptions.TryGetUniqueOption("nullable", out var nullable);
+            pdbCompilationOptions.TryGetUniqueOption("unsafe", out var unsafeString);
 
             var encodingString = defaultEncoding ?? fallbackEncoding;
             var encoding = encodingString is null
@@ -172,14 +171,14 @@ namespace BuildValidator
         #endregion
 
         #region Visual Basic
-        private async Task<Compilation> CreateVisualBasicCompilationAsync(CompilationOptionsReader pdbReader, string name)
+        private async Task<Compilation> CreateVisualBasicCompilationAsync(CompilationOptionsReader pdbReader, string assemblyName)
         {
             var compilationOptions = CreateVisualBasicCompilationOptions(pdbReader);
             var metadataReferences = await CreateMetadataReferencesAsync(pdbReader).ConfigureAwait(false);
-            var sources = await GetSourcesAsync(pdbReader, Encoding.UTF8).ConfigureAwait(false);
+            var sources = GetSources(pdbReader, Encoding.UTF8);
 
             return VisualBasicCompilation.Create(
-                name,
+                assemblyName,
                 syntaxTrees: sources.Select(s => VisualBasicSyntaxTree.ParseText(s, options: compilationOptions.ParseOptions)).ToImmutableArray(),
                 references: metadataReferences,
                 options: compilationOptions);
@@ -189,11 +188,11 @@ namespace BuildValidator
         {
             var pdbCompilationOptions = pdbReader.GetCompilationOptions();
 
-            var langVersionString = pdbCompilationOptions["language-version"];
-            var optimization = pdbCompilationOptions["optimization"];
-            pdbCompilationOptions.TryGetValue("define", out var define);
-            pdbCompilationOptions.TryGetValue("strict", out var strict);
-            pdbCompilationOptions.TryGetValue("checked", out var checkedString);
+            var langVersionString = pdbCompilationOptions.GetUniqueOption("language-version");
+            var optimization = pdbCompilationOptions.GetUniqueOption("optimization");
+            pdbCompilationOptions.TryGetUniqueOption("define", out var define);
+            pdbCompilationOptions.TryGetUniqueOption("strict", out var strict);
+            pdbCompilationOptions.TryGetUniqueOption("checked", out var checkedString);
 
             VB.LanguageVersion langVersion = default;
             VB.LanguageVersionFacts.TryParse(langVersionString, ref langVersion);

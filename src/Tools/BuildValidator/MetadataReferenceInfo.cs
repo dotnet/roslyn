@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using Microsoft.CodeAnalysis;
 
 namespace BuildValidator
@@ -13,6 +14,7 @@ namespace BuildValidator
         public readonly int Timestamp;
         public readonly int ImageSize;
         public readonly string Name;
+        public readonly FileInfo FileInfo;
         public readonly Guid Mvid;
         public readonly ImmutableArray<string> ExternAliases;
         public readonly MetadataImageKind Kind;
@@ -34,6 +36,12 @@ namespace BuildValidator
             ExternAliases = externAliases;
             Kind = kind;
             EmbedInteropTypes = embedInteropTypes;
+            FileInfo = new FileInfo(name);
+        }
+
+        public override string ToString()
+        {
+            return $"{Name}::{Mvid}::{Timestamp}";
         }
     }
 }

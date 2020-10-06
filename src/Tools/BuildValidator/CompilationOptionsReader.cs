@@ -21,7 +21,7 @@ namespace BuildValidator
 
         private readonly MetadataReader _metadataReader;
 
-        private ImmutableDictionary<string, string>? _compilationOptions;
+        private MetadataCompilationOptions? _compilationOptions;
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
 
         public CompilationOptionsReader(MetadataReader metadataReader)
@@ -29,12 +29,12 @@ namespace BuildValidator
             _metadataReader = metadataReader;
         }
 
-        public ImmutableDictionary<string, string> GetCompilationOptions()
+        public MetadataCompilationOptions GetCompilationOptions()
         {
             if (_compilationOptions is null)
             {
                 var optionsBlob = GetCustomDebugInformationBlobReader(CompilationOptionsGuid);
-                _compilationOptions = ParseCompilationOptions(optionsBlob);
+                _compilationOptions = new MetadataCompilationOptions(ParseCompilationOptions(optionsBlob));
             }
 
             return _compilationOptions;
@@ -132,12 +132,12 @@ namespace BuildValidator
             throw new InvalidDataException($"No blob found for {infoGuid}");
         }
 
-        private static ImmutableDictionary<string, string> ParseCompilationOptions(BlobReader blobReader)
+        private static ImmutableArray<(string, string)> ParseCompilationOptions(BlobReader blobReader)
         {
 
             // Compiler flag bytes are UTF-8 null-terminated key-value pairs
             string? key = null;
-            Dictionary<string, string> kvp = new Dictionary<string, string>();
+            List<(string, string)> options = new List<(string, string)>();
             for (; ; )
             {
                 var nullIndex = blobReader.IndexOf(0);
@@ -161,12 +161,12 @@ namespace BuildValidator
                 }
                 else
                 {
-                    kvp[key] = value;
+                    options.Add((key, value));
                     key = null;
                 }
             }
 
-            return kvp.ToImmutableDictionary();
+            return options.ToImmutableArray();
         }
     }
 }

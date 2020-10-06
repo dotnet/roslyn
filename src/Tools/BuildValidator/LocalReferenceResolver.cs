@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ namespace BuildValidator
     /// Resolves references for a package by looking in local nuget and artifact
     /// directories for Roslyn
     /// </summary>
-    internal class LocalReferenceResolver : IMetadataReferenceResolver
+    internal class LocalReferenceResolver
     {
         private readonly Dictionary<Guid, string> _cache = new Dictionary<Guid, string>();
         private readonly HashSet<DirectoryInfo> _indexDirectories = new HashSet<DirectoryInfo>();
@@ -85,23 +86,48 @@ namespace BuildValidator
 
         public void CacheNames(ImmutableArray<MetadataReferenceInfo> names)
         {
-            var remaining = new HashSet<MetadataReferenceInfo>(names);
             foreach (var directory in _indexDirectories)
             {
                 foreach (var file in directory.GetFiles("*.*", SearchOption.AllDirectories))
                 {
-                    var info = remaining.FirstOrDefault(m => m.Name == file.Name);
-                    if (info.Name == file.Name)
+                    // A single file name can have multiple MVID, so compare by name first then
+                    // open the files to check the MVID 
+                    var potentialMatches = names.Where(m => FileNameEqualityComparer.Instance.Equals(m.FileInfo, file));
+
+                    if (!potentialMatches.Any())
                     {
-                        if (!_cache.ContainsKey(info.Mvid))
+                        continue;
+                    }
+
+                    var mvids = GetMvidsForFile(file);
+
+                    foreach (var match in potentialMatches)
+                    {
+                        if (_cache.ContainsKey(match.Mvid))
                         {
-                            _logger.LogTrace($"Caching [{info.Mvid}, {file.FullName}]");
-                            _cache[info.Mvid] = file.FullName;
+                            continue;
                         }
 
-                        remaining.Remove(info);
+                        if (mvids.Contains(match.Mvid))
+                        {
+                            _logger.LogTrace($"Caching [{match.Mvid}, {file.FullName}]");
+                            _cache[match.Mvid] = file.FullName;
+                        }
                     }
                 }
+            }
+
+            var uncached = names.Where(m => !_cache.ContainsKey(m.Mvid)).ToArray();
+
+            if (uncached.Any())
+            {
+                _logger.LogDebug($"Unable to find files for the following metadata references: {uncached}");
+            }
+
+            static ImmutableArray<Guid> GetMvidsForFile(FileInfo fileInfo)
+            {
+                var assembly = Assembly.ReflectionOnlyLoadFrom(fileInfo.FullName);
+                return assembly.Modules.Select(m => m.ModuleVersionId).ToImmutableArray();
             }
         }
 
@@ -110,7 +136,7 @@ namespace BuildValidator
             var assemblyLocation = typeof(LocalReferenceResolver).Assembly.Location;
             var binDir = Directory.GetParent(assemblyLocation);
 
-            while (binDir != null && !binDir.FullName.EndsWith("artifacts\\bin"))
+            while (binDir != null && !binDir.FullName.EndsWith("artifacts\\bin", FileNameEqualityComparer.StringComparison))
             {
                 binDir = binDir.Parent;
             }
