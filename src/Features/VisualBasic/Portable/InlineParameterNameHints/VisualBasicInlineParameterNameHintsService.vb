@@ -23,14 +23,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
                 semanticModel As SemanticModel,
                 node As SyntaxNode,
                 addHint As Action(Of InlineParameterHint),
-                cancellationToken As CancellationToken)
+                hideForParametersThatDifferBySuffix As Boolean,
+                hideForParametersThatMatchMethodIntent As Boolean,
+                CancellationToken As CancellationToken)
 
             Dim simpleArgument = TryCast(node, SimpleArgumentSyntax)
             If simpleArgument?.Expression IsNot Nothing Then
                 If Not simpleArgument.IsNamed AndAlso simpleArgument.NameColonEquals Is Nothing Then
-                    Dim param = simpleArgument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+                    Dim param = simpleArgument.DetermineParameter(semanticModel, allowParamArray:=False, CancellationToken)
                     If Not String.IsNullOrEmpty(param?.Name) Then
-                        addHint(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start, GetKind(simpleArgument.Expression)))
+                        addHint(New InlineParameterHint(param.GetSymbolKey(CancellationToken), param.Name, simpleArgument.Span.Start, GetKind(simpleArgument.Expression)))
                     End If
                 End If
             End If

@@ -10,9 +10,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <[UseExportProvider]>
     Public MustInherit Class AbstractInlineParameterNameHintsTests
 
-        Protected Async Function VerifyParamHints(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
+        Protected Async Function VerifyParamHints(test As XElement, Optional optionIsEnabled As Boolean = True) As Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineParameterNameHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
+
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.Options.WithChangedOption(
+                        InlineHintsOptions.EnabledForParameters,
+                        workspace.CurrentSolution.Projects.Single().Language,
+                        optionIsEnabled)))
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
