@@ -1245,6 +1245,7 @@ public class Program
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionInheritedConversions()
         {
+            // Base class lookup rule: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#processing-of-user-defined-explicit-conversions
             await VerifyItemExistsAsync(@"
 public class Base {
     public static explicit operator int(Base b) => 0;
