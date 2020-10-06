@@ -13395,7 +13395,7 @@ class C3<T, U> where U : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
         }
 
         [Fact]
-        public void DuplicateInterface()
+        public void DuplicateInterface_01()
         {
             var source =
 @"interface I<T> { }
@@ -13417,7 +13417,37 @@ class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
         }
 
         [Fact]
-        public void TypeUnification()
+        public void DuplicateInterface_02()
+        {
+            var source =
+@"interface I<T> { }
+#nullable enable
+class C1 :
+    I<nint[]>,
+    I<System.IntPtr[]?>
+{ }
+class C2 :
+    I<System.IntPtr[]>,
+#nullable disable
+    I<nint[]>
+{ }
+class C3 :
+    I<System.UIntPtr[]>,
+#nullable enable
+    I<nuint[]?>
+{ }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (3,7): warning CS8645: 'I<IntPtr[]?>' is already listed in the interface list on type 'C1' with different nullability of reference types.
+                // class C1 :
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C1").WithArguments("I<System.IntPtr[]?>", "C1").WithLocation(3, 7),
+                // (15,5): warning CS8645: 'I<nuint[]?>' is already listed in the interface list on type 'C3' with different nullability of reference types.
+                //     I<nuint[]?>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "I<nuint[]?>").WithArguments("I<nuint[]?>", "C3").WithLocation(15, 5));
+        }
+
+        [Fact]
+        public void TypeUnification_01()
         {
             var source =
 @"interface I<T> { }
@@ -13437,6 +13467,35 @@ class C4<T> : I<(T, T)>, I<(nint, nuint)> { }
                 // (4,7): error CS0695: 'C3<T>' cannot implement both 'I<(T, T)>' and 'I<(UIntPtr, nuint)>' because they may unify for some type parameter substitutions
                 // class C3<T> : I<(T, T)>, I<(System.UIntPtr, nuint)> { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T>", "I<(T, T)>", "I<(System.UIntPtr, nuint)>").WithLocation(4, 7));
+        }
+
+        [Fact]
+        public void TypeUnification_02()
+        {
+            var source =
+@"#nullable enable
+interface I<T> { }
+class C1 : I<nint> { }
+class C2 : I<nuint> { }
+class C3 : I<System.IntPtr> { }
+class C4 : I<(nint, nuint[])> { }
+class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var type1 = getInterface(comp, "C1");
+            var type2 = getInterface(comp, "C2");
+            var type3 = getInterface(comp, "C3");
+            var type4 = getInterface(comp, "C4");
+            var type5 = getInterface(comp, "C5");
+
+            Assert.False(TypeUnification.CanUnify(type1, type2));
+            Assert.True(TypeUnification.CanUnify(type1, type3));
+            Assert.True(TypeUnification.CanUnify(type4, type5));
+
+            static TypeSymbol getInterface(CSharpCompilation comp, string typeName) =>
+                comp.GetMember<NamedTypeSymbol>(typeName).InterfacesNoUseSiteDiagnostics().Single();
         }
     }
 }

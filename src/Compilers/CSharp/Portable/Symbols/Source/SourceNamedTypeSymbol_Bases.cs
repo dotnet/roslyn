@@ -185,9 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             Debug.Assert(!other.Equals(@interface, TypeCompareKind.ConsiderEverything));
 
-                            if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                            if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers))
                             {
-                                if (!other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                                if (!other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny | TypeCompareKind.IgnoreNativeIntegers))
                                 {
                                     diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
                                 }
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceInBaseList, location, baseType);
                             }
-                            else if (t.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                            else if (t.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny | TypeCompareKind.IgnoreNativeIntegers))
                             {
                                 // duplicates with ?/! differences are reported later, we report local differences between oblivious and ?/! here
                                 diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, baseType, this);

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool CanUnify(TypeSymbol t1, TypeSymbol t2)
         {
-            if (TypeSymbol.Equals(t1, t2, TypeCompareKind.IgnoreNativeIntegers))
+            if (TypeSymbol.Equals(t1, t2, TypeCompareKind.CLRSignatureCompareOptions))
             {
                 return true;
             }
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var substituted1 = SubstituteAllTypeParameters(substitution, TypeWithAnnotations.Create(t1));
                 var substituted2 = SubstituteAllTypeParameters(substitution, TypeWithAnnotations.Create(t2));
 
-                Debug.Assert(substituted1.Type.Equals(substituted2.Type, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers));
+                Debug.Assert(substituted1.Type.Equals(substituted2.Type, TypeCompareKind.CLRSignatureCompareOptions));
                 Debug.Assert(substituted1.CustomModifiers.SequenceEqual(substituted2.CustomModifiers));
             }
 #endif
@@ -155,7 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NamedTypeSymbol nt2 = (NamedTypeSymbol)t2.Type;
                         if (!nt1.IsGenericType || !nt2.IsGenericType)
                         {
-                            Debug.Assert(!TypeSymbol.Equals(nt1, nt2, TypeCompareKind.IgnoreNativeIntegers));
+                            // AreTypesAndCustomModifiersEqual() returned false above, and custom modifiers
+                            // compared equal in this case block, so the types must be distinct.
+                            Debug.Assert(!nt1.Equals(nt2, TypeCompareKind.CLRSignatureCompareOptions));
                             return false;
                         }
 
@@ -265,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool AreTypesAndCustomModifiersEqual(TypeWithAnnotations t1, TypeWithAnnotations t2)
         {
-            return TypeSymbol.Equals(t1.Type, t2.Type, TypeCompareKind.IgnoreNativeIntegers) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers);
+            return TypeSymbol.Equals(t1.Type, t2.Type, TypeCompareKind.CLRSignatureCompareOptions) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers);
         }
 
         /// <summary>
