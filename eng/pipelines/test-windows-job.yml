@@ -35,11 +35,16 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)\artifacts\bin' 
 
-    - script: eng/rehydrate-tests.cmd
-      displayName: Rehydrate unit tests environment
+    - task: PowerShell@2 
+      displayName: Rehydrate Unit Tests Environment
+      inputs:
+        filePath: eng/rehydrate-tests.ps1
 
-    - script: eng/build.cmd -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+    - task: PowerShell@2 
       displayName: Run Unit Tests
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
