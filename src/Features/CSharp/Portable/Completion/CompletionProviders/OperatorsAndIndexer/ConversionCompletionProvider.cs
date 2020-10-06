@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             container = container.RemoveNullableIfPresent();
 
-            var builder = ImmutableArray.CreateBuilder<CompletionItem>();
+            using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var builder);
 
             builder.AddRange(GetUserDefinedConversionsOfType(semanticModel, container, containerIsNullable, position));
             if (container is INamedTypeSymbol namedType)
