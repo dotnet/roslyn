@@ -34,17 +34,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, ExpressionSyntax expression, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var indexers = (from t in container.GetBaseTypesAndThis()
-                            from i in t.GetIndexers()
-                            select i).ToImmutableArray();
-            if (indexers.Any())
+            var expressionSymbolContainingType = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol?.GetContainingTypeOrThis();
+            var indexers = expressionSymbolContainingType is null
+                ? from t in container.GetBaseTypesAndThis()
+                  from i in t.GetIndexers()
+                  where i.HasPublicResultantVisibility()
+                  select i
+                : from p in container.GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(expressionSymbolContainingType)
+                  where p.IsIndexer
+                  select p;
+            var indexerList = indexers.ToImmutableArray();
+            if (indexerList.Any())
             {
                 var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
                     displayText: "this",
                     displayTextSuffix: "[]",
                     filterText: "this",
                     sortText: SortText(),
-                    symbols: indexers,
+                    symbols: indexerList,
                     rules: CompletionItemRules.Default,
                     contextPosition: position);
                 return ImmutableArray.Create(indexerCompletion);

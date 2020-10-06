@@ -219,5 +219,29 @@ public class Program
 }
 ", "this", displayTextSuffix: "[]");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task IndexerOfBaseTypeIsNotSuggestedIfNotAccessible()
+        {
+            await VerifyNoItemsExistAsync(@"
+public class Base
+{
+    protected int this[int i] => i;
+}
+public class Derived : Base
+{
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var d = new Derived();
+        d.$$
+    }
+}
+");
+        }
     }
 }
