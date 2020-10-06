@@ -41,11 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 return ImmutableArray<CompletionItem>.Empty;
             }
-
+            // User-defined operator declaration constraints:
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/classes#operators
+            // * "An operator declaration must include both a public and a static modifier." -> No need to test for accessibility of members
+            // * "Like other members, operators declared in a base class are inherited by derived classes." -> Search in container.GetBaseTypesAndThis()
+            // Operator lifting and candidate selection:
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#candidate-user-defined-operators
             var containerIsNullable = container.IsNullable();
             container = container.RemoveNullableIfPresent();
-            var allMembers = container.GetMembers();
-            var operators = from m in allMembers.OfType<IMethodSymbol>()
+            var operators = from t in container.GetBaseTypesAndThis()
+                            from m in t.GetMembers().OfType<IMethodSymbol>()
                             where m.IsUserDefinedOperator() && !IsExcludedOperator(m) && (containerIsNullable ? m.IsLiftable() : true)
                             select SymbolCompletionItem.CreateWithSymbolId(
                                 displayText: m.GetOperatorSignOfOperator(),
