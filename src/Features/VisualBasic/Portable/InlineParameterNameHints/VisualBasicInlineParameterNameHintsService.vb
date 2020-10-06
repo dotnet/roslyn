@@ -6,7 +6,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InlineParameterNameHints
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
@@ -19,23 +19,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
         Public Sub New()
         End Sub
 
-        Protected Overrides Function AddAllParameterNameHintLocations(semanticModel As SemanticModel, nodes As IEnumerable(Of SyntaxNode), cancellationToken As CancellationToken) As IEnumerable(Of InlineParameterHint)
-            Dim spans = New List(Of InlineParameterHint)
+        Protected Overrides Sub AddAllParameterNameHintLocations(
+                semanticModel As SemanticModel,
+                nodes As IEnumerable(Of SyntaxNode),
+                result As ArrayBuilder(Of InlineParameterHint),
+                cancellationToken As CancellationToken)
+
             For Each node In nodes
                 cancellationToken.ThrowIfCancellationRequested()
                 Dim simpleArgument = TryCast(node, SimpleArgumentSyntax)
-                If Not simpleArgument Is Nothing Then
+                If simpleArgument IsNot Nothing Then
                     If Not simpleArgument.IsNamed AndAlso simpleArgument.NameColonEquals Is Nothing AndAlso IsExpressionWithNoName(simpleArgument.Expression) Then
                         Dim param = simpleArgument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
                         If param IsNot Nothing AndAlso param.Name.Length > 0 Then
-                            spans.Add(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start))
+                            result.Add(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start))
                         End If
                     End If
                 End If
             Next
-
-            Return spans
-        End Function
+        End Sub
 
         Private Function IsExpressionWithNoName(arg As ExpressionSyntax) As Boolean
             If TypeOf arg Is LiteralExpressionSyntax Then
