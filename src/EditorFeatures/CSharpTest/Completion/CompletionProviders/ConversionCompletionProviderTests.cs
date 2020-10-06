@@ -934,6 +934,56 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitConversionDescriptionIsIsGiven()
+        {
+            await VerifyItemExistsAsync(@"
+public struct S {
+        /// <summary>
+        /// Explicit conversion of <see cref=""S""/> to <see cref=""int""/>.
+        /// </summary>
+        /// <param name=""value"">The <see cref=""S""/> to convert</param>
+        public static explicit operator int(S value) => 0;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var s = new S();
+        s.$$
+    }
+}
+", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"S.explicit operator int(S value)
+Explicit conversion of S to int.");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitConversionDescriptionIsIsGivenLifted()
+        {
+            await VerifyItemExistsAsync(@"
+public struct S {
+        /// <summary>
+        /// Explicit conversion of <see cref=""S""/> to <see cref=""int""/>.
+        /// </summary>
+        /// <param name=""value"">The <see cref=""S""/> to convert</param>
+        public static explicit operator int(S value) => 0;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        S? s = new S();
+        s.$$
+    }
+}
+", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"S.explicit operator int(S value)
+Explicit conversion of S to int.");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInNumericConversionsAreOffered()
         {
             // built-in numeric conversions:
@@ -1003,7 +1053,7 @@ public class Program
         i.$$
     }
 }
-", "byte", displayTextSuffix: ")", expectedDescriptionOrNull: @"int.explicit operator byte(int value)
+", "byte", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"int.explicit operator byte(int value)
 Defines an explicit conversion of a int to a byte.");
         }
 
@@ -1020,7 +1070,7 @@ public class Program
         i.$$
     }
 }
-", "byte", displayTextSuffix: "?)", expectedDescriptionOrNull: @"int.explicit operator byte?(int value)
+", "byte", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"int.explicit operator byte?(int value)
 Defines an explicit conversion of a int to a byte?.");
         }
 
@@ -1144,7 +1194,7 @@ public class Program
         e.$$
     }
 }
-", "int", displayTextSuffix: ")", expectedDescriptionOrNull: @"E.explicit operator int(E value)
+", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"E.explicit operator int(E value)
 Defines an explicit conversion of a E to a int.");
         }
 
@@ -1162,7 +1212,7 @@ public class Program
         e.$$
     }
 }
-", "int", displayTextSuffix: "?)", expectedDescriptionOrNull: @"E.explicit operator int?(E value)
+", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"E.explicit operator int?(E value)
 Defines an explicit conversion of a E to a int?.");
         }
 
