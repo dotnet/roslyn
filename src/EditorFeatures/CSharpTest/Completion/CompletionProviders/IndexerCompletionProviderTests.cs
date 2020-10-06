@@ -42,7 +42,7 @@ public class Program
         c.$$
     }
 }
-", "this", displayTextSuffix:"[]");
+", "this", displayTextSuffix: "[]");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
