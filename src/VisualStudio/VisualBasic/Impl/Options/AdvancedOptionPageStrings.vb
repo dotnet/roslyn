@@ -111,11 +111,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_at_the_end As String =
             ServicesVSResources.at_the_end
 
-        Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String
-            Get
-                Return BasicVSResources.Generate_XML_documentation_comments_for
-            End Get
-        End Property
+        Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String =
+            BasicVSResources.Generate_XML_documentation_comments_for
+
+        Public ReadOnly Property Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments As String =
+            BasicVSResources.Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments
 
         Public ReadOnly Property Option_ShowRemarksInQuickInfo As String
             Get
@@ -181,6 +181,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Block_Structure_Guides As String =
             ServicesVSResources.Block_Structure_Guides
+
+        Public ReadOnly Property Option_Comments As String =
+            ServicesVSResources.Comments
 
         Public ReadOnly Property Option_Show_guides_for_declaration_level_constructs As String =
             ServicesVSResources.Show_guides_for_declaration_level_constructs

@@ -9579,7 +9579,7 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task NoCompletionInLocalFuncGenericParamList()
         {
@@ -9595,7 +9595,7 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task CompletionForAwaitWithoutAsync()
         {
@@ -9697,7 +9697,7 @@ class C
         [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription()
         {
             await VerifyItemExistsAsync(@"
@@ -9715,7 +9715,7 @@ class C
         [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription2()
         {
             await VerifyItemExistsAsync(@"
@@ -10715,7 +10715,7 @@ public class C
         [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionInStaticMethod()
         {
             await VerifyItemExistsAsync(@"

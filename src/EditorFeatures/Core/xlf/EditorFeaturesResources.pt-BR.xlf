@@ -142,6 +142,11 @@
         <target state="translated">Renomear o _arquivo do símbolo</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="new">Split comment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
         <target state="translated">String - caractere de Escape</target>

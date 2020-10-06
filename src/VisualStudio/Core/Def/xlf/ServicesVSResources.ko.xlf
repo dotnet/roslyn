@@ -152,6 +152,11 @@
         <target state="translated">정규식 색 지정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="new">Comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">포함하는 멤버</target>
