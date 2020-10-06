@@ -28,71 +28,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
             For Each node In nodes
                 cancellationToken.ThrowIfCancellationRequested()
                 Dim simpleArgument = TryCast(node, SimpleArgumentSyntax)
-                If simpleArgument IsNot Nothing Then
-                    If Not simpleArgument.IsNamed AndAlso simpleArgument.NameColonEquals Is Nothing AndAlso IsExpressionWithNoName(simpleArgument.Expression) Then
+                If simpleArgument?.Expression IsNot Nothing Then
+                    If Not simpleArgument.IsNamed AndAlso simpleArgument.NameColonEquals Is Nothing Then
                         Dim param = simpleArgument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
-                        If param IsNot Nothing AndAlso param.Name.Length > 0 Then
-                            result.Add(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start))
+                        If Not String.IsNullOrEmpty(param?.Name) Then
+                            result.Add(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start, GetKind(simpleArgument.Expression)))
                         End If
                     End If
                 End If
             Next
         End Sub
 
-        Private Function IsExpressionWithNoName(arg As ExpressionSyntax) As Boolean
-            If TypeOf arg Is LiteralExpressionSyntax Then
-                ' We want to adorn literals no matter what
-                Return True
-            End If
-
-            If TypeOf arg Is InterpolatedStringExpressionSyntax Then
-                ' We want to adorn all types of strings
-                Return True
+        Private Function GetKind(arg As ExpressionSyntax) As InlineParameterHintKind
+            If TypeOf arg Is LiteralExpressionSyntax OrElse
+               TypeOf arg Is InterpolatedStringExpressionSyntax Then
+                Return InlineParameterHintKind.Literal
             End If
 
             If TypeOf arg Is ObjectCreationExpressionSyntax Then
-                ' We want to adorn object invocations that exist as arguments because they are Not declared anywhere
-                ' else in the file
-                ' Example: testMethod(^ New Object()); should show the adornment at the caret  
-                Return True
+                Return InlineParameterHintKind.ObjectCreation
             End If
 
-            If TypeOf arg Is PredefinedCastExpressionSyntax Then
-                Dim cast = DirectCast(arg, PredefinedCastExpressionSyntax)
+            Dim predefinedCast = TryCast(arg, PredefinedCastExpressionSyntax)
+            If predefinedCast IsNot Nothing Then
                 ' Recurse until we find a literal
                 ' If so, then we should add the adornment
-                Return IsExpressionWithNoName(cast.Expression)
+                Return GetKind(predefinedCast.Expression)
             End If
 
-            If TypeOf arg Is TryCastExpressionSyntax Then
-                Dim cast = DirectCast(arg, TryCastExpressionSyntax)
+            Dim cast = TryCast(arg, CastExpressionSyntax)
+            If cast IsNot Nothing Then
                 ' Recurse until we find a literal
                 ' If so, then we should add the adornment
-                Return IsExpressionWithNoName(cast.Expression)
+                Return GetKind(cast.Expression)
             End If
 
-            If TypeOf arg Is CTypeExpressionSyntax Then
-                Dim cast = DirectCast(arg, CTypeExpressionSyntax)
+            Dim unary = TryCast(arg, UnaryExpressionSyntax)
+            If unary IsNot Nothing Then
                 ' Recurse until we find a literal
                 ' If so, then we should add the adornment
-                Return IsExpressionWithNoName(cast.Expression)
+                Return GetKind(unary.Operand)
             End If
 
-            If TypeOf arg Is DirectCastExpressionSyntax Then
-                Dim cast = DirectCast(arg, DirectCastExpressionSyntax)
-                ' Recurse until we find a literal
-                ' If so, then we should add the adornment
-                Return IsExpressionWithNoName(cast.Expression)
-            End If
-
-            If TypeOf arg Is UnaryExpressionSyntax Then
-                Dim negation = DirectCast(arg, UnaryExpressionSyntax)
-                ' Recurse until we find a literal
-                ' If so, then we should add the adornment
-                Return IsExpressionWithNoName(negation.Operand)
-            End If
-
-            Return False
+            Return InlineParameterHintKind.Other
         End Function
     End Class
 End Namespace

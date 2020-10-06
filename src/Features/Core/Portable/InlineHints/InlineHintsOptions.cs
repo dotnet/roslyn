@@ -20,6 +20,24 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 nameof(EnabledForParameters),
                 defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.EnabledForParameters"));
+
+        public static readonly PerLanguageOption2<bool> ForLiteralParameters =
+            new(nameof(InlineHintsOptions),
+                nameof(ForLiteralParameters),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForLiteralParameters"));
+
+        public static readonly PerLanguageOption2<bool> ForObjectCreationParameters =
+            new(nameof(InlineHintsOptions),
+                nameof(ForObjectCreationParameters),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForObjectCreationParameters"));
+
+        public static readonly PerLanguageOption2<bool> ForOtherParameters =
+            new(nameof(InlineHintsOptions),
+                nameof(ForOtherParameters),
+                defaultValue: false,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForOtherParameters"));
     }
 
     [ExportOptionProvider, Shared]
@@ -32,6 +50,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            InlineHintsOptions.EnabledForParameters);
+            InlineHintsOptions.EnabledForParameters,
+            InlineHintsOptions.ForLiteralParameters,
+            InlineHintsOptions.ForObjectCreationParameters,
+            InlineHintsOptions.ForOtherParameters);
     }
 }

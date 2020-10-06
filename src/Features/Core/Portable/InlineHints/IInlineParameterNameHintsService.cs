@@ -14,19 +14,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InlineHints
 {
-    internal readonly struct InlineParameterHint
-    {
-        public readonly SymbolKey ParameterSymbolKey;
-        public readonly string Name;
-        public readonly int Position;
-
-        public InlineParameterHint(SymbolKey parameterSymbolKey, string name, int position)
-        {
-            ParameterSymbolKey = parameterSymbolKey;
-            Name = name;
-            Position = position;
-        }
-    }
 
     internal interface IInlineParameterNameHintsService : ILanguageService
     {

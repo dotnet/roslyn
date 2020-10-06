@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineHints
 {
@@ -18,15 +19,45 @@ namespace Microsoft.CodeAnalysis.InlineHints
     {
         public async Task<ImmutableArray<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var forParameters = options.GetOption(InlineHintsOptions.EnabledForParameters);
+            if (!forParameters)
+                return ImmutableArray<InlineParameterHint>.Empty;
+
+            var literalParameters = options.GetOption(InlineHintsOptions.ForLiteralParameters);
+            var objectCreationParameters = options.GetOption(InlineHintsOptions.ForObjectCreationParameters);
+            var otherParameters = options.GetOption(InlineHintsOptions.ForOtherParameters);
+            if (!literalParameters && !objectCreationParameters && !otherParameters)
+                return ImmutableArray<InlineParameterHint>.Empty;
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var nodes = root.DescendantNodes(textSpan);
 
-            using var _ = ArrayBuilder<InlineParameterHint>.GetInstance(out var result);
-            AddAllParameterNameHintLocations(semanticModel, nodes, result, cancellationToken);
+            using var _1 = ArrayBuilder<InlineParameterHint>.GetInstance(out var buffer);
+            AddAllParameterNameHintLocations(semanticModel, nodes, buffer, cancellationToken);
+
+            using var _2 = ArrayBuilder<InlineParameterHint>.GetInstance(out var result);
+
+            foreach (var hint in buffer)
+            {
+                if (HintMatches(hint, literalParameters, objectCreationParameters, otherParameters))
+                    result.Add(hint);
+            }
+
             return result.ToImmutable();
         }
+
+        private static bool HintMatches(InlineParameterHint hint, bool literalParameters, bool objectCreationParameters, bool otherParameters)
+            => hint.Kind switch
+            {
+                InlineParameterHintKind.Literal => literalParameters,
+                InlineParameterHintKind.ObjectCreation => objectCreationParameters,
+                InlineParameterHintKind.Other => otherParameters,
+                _ => throw ExceptionUtilities.UnexpectedValue(hint.Kind),
+            };
 
         protected abstract void AddAllParameterNameHintLocations(
             SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, ArrayBuilder<InlineParameterHint> result, CancellationToken cancellationToken);

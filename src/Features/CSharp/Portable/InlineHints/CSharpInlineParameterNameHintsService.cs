@@ -37,63 +37,33 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 
                 if (node is ArgumentSyntax argument)
                 {
-                    if (argument.NameColon == null && IsExpressionWithNoName(argument.Expression))
+                    if (argument.NameColon == null)
                     {
                         var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                        if (param != null && param.Name != "")
-                            result.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, argument.Span.Start));
+                        if (!string.IsNullOrEmpty(param?.Name))
+                            result.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, argument.Span.Start, GetKind(argument.Expression)));
                     }
                 }
                 else if (node is AttributeArgumentSyntax attribute)
                 {
-                    if (attribute.NameEquals == null && attribute.NameColon == null && IsExpressionWithNoName(attribute.Expression))
+                    if (attribute.NameEquals == null && attribute.NameColon == null)
                     {
                         var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                        if (param != null && param.Name != "")
-                            result.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, attribute.SpanStart));
+                        if (!string.IsNullOrEmpty(param?.Name))
+                            result.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, attribute.SpanStart, GetKind(attribute.Expression)));
                     }
                 }
             }
         }
 
-        /// <summary>
-        /// Determines if the argument is of a type that should have an adornment appended
-        /// </summary>
-        /// <param name="arg">The argument that is being looked at</param>
-        /// <returns>true when the adornment should be added</returns>
-        private static bool IsExpressionWithNoName(ExpressionSyntax arg)
-        {
-            if (arg is LiteralExpressionSyntax)
+        private static InlineParameterHintKind GetKind(ExpressionSyntax arg)
+            => arg switch
             {
-                // We want to adorn literals no matter what
-                return true;
-            }
-            if (arg is InterpolatedStringExpressionSyntax)
-            {
-                // We want to adorn all types of strings
-                return true;
-            }
-            if (arg is ObjectCreationExpressionSyntax)
-            {
-                // We want to adorn object invocations that exist as arguments because they are not declared anywhere
-                // else in the file
-                // Example: testMethod(^new Object()); should show the adornment at the caret  
-                return true;
-            }
-            if (arg is CastExpressionSyntax cast)
-            {
-                // Recurse until we find a literal
-                // If so, then we should add the adornment
-                return IsExpressionWithNoName(cast.Expression);
-            }
-            if (arg is PrefixUnaryExpressionSyntax negation)
-            {
-                // Recurse until we find a literal
-                // If so, then we should add the adornment
-                return IsExpressionWithNoName(negation.Operand);
-            }
-
-            return false;
-        }
+                LiteralExpressionSyntax or InterpolatedStringExpressionSyntax => InlineParameterHintKind.Literal,
+                ObjectCreationExpressionSyntax => InlineParameterHintKind.ObjectCreation,
+                CastExpressionSyntax cast => GetKind(cast.Expression),
+                PrefixUnaryExpressionSyntax prefix => GetKind(prefix.Operand),
+                _ => InlineParameterHintKind.Other,
+            };
     }
 }
