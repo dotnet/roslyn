@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             new(nameof(InlineHintsOptions),
                 nameof(EnabledForParameters),
                 defaultValue: false,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.EnabledForParameters"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints"));
 
         public static readonly PerLanguageOption2<bool> ForLiteralParameters =
             new(nameof(InlineHintsOptions),
