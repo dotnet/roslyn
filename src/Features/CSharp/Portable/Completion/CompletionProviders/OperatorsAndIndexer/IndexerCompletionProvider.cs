@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, ExpressionSyntax expression, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var expressionSymbolContainingType = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol?.GetContainingTypeOrThis();
+            var expressionSymbolContainingType = (semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol ?? semanticModel.GetEnclosingSymbol(position, cancellationToken))?.GetContainingTypeOrThis();
             var indexers = expressionSymbolContainingType is null
                 ? from t in container.GetBaseTypesAndThis()
                   from i in t.GetIndexers()
