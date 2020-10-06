@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable 
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,6 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 internal static class MinimizeUtil
@@ -26,14 +24,14 @@ internal static class MinimizeUtil
         var duplicateDirectory = Path.Combine(destinationDirectory, duplicateDirectoryName);
         Directory.CreateDirectory(duplicateDirectory);
 
-        InitialWalk();
-        ResolveDuplicates();
-        WriteHydrateFile();
+        initialWalk();
+        resolveDuplicates();
+        writeHydrateFile();
 
         // The goal of initial walk is to
         //  1. Record any PE files as they are eligable for de-dup
         //  2. Hard link all other files into destination directory
-        void InitialWalk()
+        void initialWalk()
         {
             var directories = Directory.EnumerateDirectories(sourceDirectory, "*.UnitTests");
             directories = directories.Concat(Directory.EnumerateDirectories(sourceDirectory, "RunTests"));
@@ -73,13 +71,13 @@ internal static class MinimizeUtil
         }
 
         // Now that we have a complete list of PE files, determine which are duplicates
-        void ResolveDuplicates()
+        void resolveDuplicates()
         {
             foreach (var pair in idToFilePathMap)
             {
                 if (pair.Value.Count > 1)
                 {
-                    CreateHardLink(GetPeFilePath(pair.Key), pair.Value[0].FullPath, IntPtr.Zero);
+                    CreateHardLink(getPeFilePath(pair.Key), pair.Value[0].FullPath, IntPtr.Zero);
                 }
                 else
                 {
@@ -90,11 +88,11 @@ internal static class MinimizeUtil
             }
         }
 
-        string GetPeFileName(Guid mvid) => mvid.ToString();
+        string getPeFileName(Guid mvid) => mvid.ToString();
 
-        string GetPeFilePath(Guid mvid) => Path.Combine(duplicateDirectory, GetPeFileName(mvid));
+        string getPeFilePath(Guid mvid) => Path.Combine(duplicateDirectory, getPeFileName(mvid));
 
-        void WriteHydrateFile()
+        void writeHydrateFile()
         {
             var fileList = new List<string>();
             var grouping = idToFilePathMap
@@ -108,7 +106,7 @@ internal static class MinimizeUtil
             {
                 foreach (var tuple in group)
                 {
-                    var source = Path.Combine(duplicateDirectoryName, GetPeFileName(tuple.Id));
+                    var source = Path.Combine(duplicateDirectoryName, getPeFileName(tuple.Id));
                     var destFileName = Path.Combine(group.Key, Path.GetFileName(tuple.FilePath.FullPath));
                     builder.AppendLine($@"
 mklink /h {destFileName} {source} > nul
