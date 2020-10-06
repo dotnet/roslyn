@@ -117,19 +117,72 @@ public class Program
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        [InlineData("c.$$", "c[$$]")]
-        [InlineData("c. $$", "c[$$] ")]
-        [InlineData("c.$$;", "c[$$];")]
-        [InlineData("c.th$$", "c[$$]")]
-        [InlineData("c.this$$", "c[$$]")]
-        [InlineData("c.th$$;", "c[$$];")]
-        [InlineData("var f = c.$$;", "var f = c[$$];")]
-        [InlineData("var f = c.th$$;", "var f = c[$$];")]
-        [InlineData("c?.$$", "c?[$$]")]
-        [InlineData("c?.this$$", "c?[$$]")]
-        [InlineData("((C)c).$$", "((C)c)[$$]")]
-        [InlineData("(true ? c : c).$$", "(true ? c : c)[$$]")]
+        [InlineData("c.$$",
+                    "c[$$]")]
+        [InlineData("c. $$",
+                    "c[$$] ")]
+        [InlineData("c.$$;",
+                    "c[$$];")]
+        [InlineData("c.th$$",
+                    "c[$$]")]
+        [InlineData("c.this$$",
+                    "c[$$]")]
+        [InlineData("c.th$$;",
+                    "c[$$];")]
+        [InlineData("var f = c.$$;",
+                    "var f = c[$$];")]
+        [InlineData("var f = c.th$$;",
+                    "var f = c[$$];")]
+        [InlineData("c?.$$",
+                    "c?[$$]")]
+        [InlineData("c?.this$$",
+                    "c?[$$]")]
+        [InlineData("((C)c).$$",
+                    "((C)c)[$$]")]
+        [InlineData("(true ? c : c).$$",
+                    "(true ? c : c)[$$]")]
         public async Task IndexerCompletionForDifferentExpressions(string expression, string fixedCode)
+        {
+            await VerifyCustomCommitProviderAsync($@"
+public class C
+{{
+    public int this[int i] => i;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {expression}
+    }}
+}}
+", "this", @$"
+public class C
+{{
+    public int this[int i] => i;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {fixedCode}
+    }}
+}}
+");
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("/* Leading trivia */c.$$",
+                    "/* Leading trivia */c[$$]")]
+        [InlineData("c. $$ /* Trailing trivia */",
+                    "c[$$]  /* Trailing trivia */")]
+        [InlineData("c./* Trivia in between */$$",
+                    "c[$$]/* Trivia in between */")]
+        public async Task IndexerCompletionTriviaTest(string expression, string fixedCode)
         {
             await VerifyCustomCommitProviderAsync($@"
 public class C
