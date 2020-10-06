@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -36,16 +37,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
             var nodes = root.DescendantNodes(textSpan);
 
-            using var _1 = ArrayBuilder<InlineParameterHint>.GetInstance(out var buffer);
-            AddAllParameterNameHintLocations(semanticModel, nodes, buffer, cancellationToken);
-
-            using var _2 = ArrayBuilder<InlineParameterHint>.GetInstance(out var result);
-
-            foreach (var hint in buffer)
-            {
-                if (HintMatches(hint, literalParameters, objectCreationParameters, otherParameters))
-                    result.Add(hint);
-            }
+            using var _1 = ArrayBuilder<InlineParameterHint>.GetInstance(out var result);
+            AddAllParameterNameHintLocations(
+                semanticModel, nodes,
+                hint =>
+                {
+                    if (HintMatches(hint, literalParameters, objectCreationParameters, otherParameters))
+                        result.Add(hint);
+                }, cancellationToken);
 
             return result.ToImmutable();
         }
@@ -60,6 +59,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
             };
 
         protected abstract void AddAllParameterNameHintLocations(
-            SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, ArrayBuilder<InlineParameterHint> result, CancellationToken cancellationToken);
+            SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, Action<InlineParameterHint> addHint, CancellationToken cancellationToken);
     }
 }

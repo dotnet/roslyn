@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
         Protected Overrides Sub AddAllParameterNameHintLocations(
                 semanticModel As SemanticModel,
                 nodes As IEnumerable(Of SyntaxNode),
-                result As ArrayBuilder(Of InlineParameterHint),
+                addHint As Action(Of InlineParameterHint),
                 cancellationToken As CancellationToken)
 
             For Each node In nodes
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
                     If Not simpleArgument.IsNamed AndAlso simpleArgument.NameColonEquals Is Nothing Then
                         Dim param = simpleArgument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
                         If Not String.IsNullOrEmpty(param?.Name) Then
-                            result.Add(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start, GetKind(simpleArgument.Expression)))
+                            addHint(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start, GetKind(simpleArgument.Expression)))
                         End If
                     End If
                 End If

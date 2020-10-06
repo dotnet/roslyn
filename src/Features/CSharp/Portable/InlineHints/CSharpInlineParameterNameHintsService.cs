@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 
         protected override void AddAllParameterNameHintLocations(
              SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes,
-             ArrayBuilder<InlineParameterHint> result, CancellationToken cancellationToken)
+             Action<InlineParameterHint> addHint, CancellationToken cancellationToken)
         {
             foreach (var node in nodes)
             {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     {
                         var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                         if (!string.IsNullOrEmpty(param?.Name))
-                            result.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, argument.Span.Start, GetKind(argument.Expression)));
+                            addHint(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, argument.Span.Start, GetKind(argument.Expression)));
                     }
                 }
                 else if (node is AttributeArgumentSyntax attribute)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     {
                         var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                         if (!string.IsNullOrEmpty(param?.Name))
-                            result.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, attribute.SpanStart, GetKind(attribute.Expression)));
+                            addHint(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, attribute.SpanStart, GetKind(attribute.Expression)));
                     }
                 }
             }
