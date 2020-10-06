@@ -7476,7 +7476,7 @@ class C
         <WorkItem(47511, "https://github.com/dotnet/roslyn/pull/47511")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Function ConversionsOperatorsAndIndexerAreShownBelowMethodsAndPropertiesAndBeforeUnimportedItems() As Task
+        Public Sub ConversionsOperatorsAndIndexerAreShownBelowMethodsAndPropertiesAndBeforeUnimportedItems()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 namespace A
@@ -7531,7 +7531,7 @@ namespace B
                     "ExtensionUnimported" 'Unimported extension methods
                 })
             End Using
-        End Function
+        End Sub
 
         ' Simulates a situation where IntelliCode provides items not included into the Rolsyn original list.
         ' We want to ignore these items in CommitIfUnique.
