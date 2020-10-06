@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// A reference to this field inside a global suppression would be as following:
         ///     [assembly: SuppressMessage("RuleCategory", "RuleId', Scope = "member", Target = "~F:C.Field")]
         /// </summary>
-        protected static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentInsideGlobalSuppressionsAsync(
             Document document,
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,

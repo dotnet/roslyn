@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, op, cancellationToken);
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,

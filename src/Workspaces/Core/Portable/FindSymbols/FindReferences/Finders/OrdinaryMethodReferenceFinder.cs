@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.GetAwaiter;
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,
