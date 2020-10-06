@@ -115,7 +115,20 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         symbol.Locations.Length == 1 &&
                         symbol.Type.IsMutableValueType() == false &&
                         !symbol.IsFixedSizeBuffer &&
-                        !symbol.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, threadStaticAttribute));
+                        !ContainsAttribute(symbol, threadStaticAttribute);
+
+                static bool ContainsAttribute(ISymbol symbol, INamedTypeSymbol attributeSymbol)
+                {
+                    var attributes = symbol.GetAttributes();
+                    foreach (var attribute in attributes)
+                    {
+                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeSymbol))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
 
                 // Method to update the field state for a candidate field written outside constructor and field initializer.
                 void UpdateFieldStateOnWrite(IFieldSymbol field)

@@ -735,6 +735,25 @@ End Module</file>
                                           Diagnostic(ERRID.ERR_IterationVariableShadowLocal1, "sl").WithArguments("sl"),
                                           Diagnostic(ERRID.ERR_IterationVariableShadowLocal1, "sl").WithArguments("sl"))
         End Sub
+
+        <Fact>
+        <WorkItem(48307, "https://github.com/dotnet/roslyn/issues/48307")>
+        Public Sub Bug48307()
+            Dim compilationDef =
+    <compilation name="Bug48307">
+        <file name="a.vb">
+Imports System
+
+Module Module1
+    Sub Main()
+        Dim Length = From s In {""} Select s.Length
+    End Sub
+End Module</file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
+            compilation.VerifyDiagnostics()
+        End Sub
     End Class
 
 End Namespace
