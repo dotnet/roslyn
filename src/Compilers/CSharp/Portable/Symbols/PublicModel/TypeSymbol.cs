@@ -172,13 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ITypeSymbol.IsReadOnly => UnderlyingTypeSymbol.IsReadOnly;
 
-        bool ITypeSymbol.IsRecord
-        {
-            get
-            {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                return SynthesizedRecordClone.FindValidCloneMethod(UnderlyingTypeSymbol, ref useSiteDiagnostics) != null;
-            }
-        }
+        bool ITypeSymbol.IsRecord => UnderlyingTypeSymbol.IsRecord;
     }
 }

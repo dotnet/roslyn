@@ -1553,7 +1553,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.EnumUnderlyingType;
             }
         }
-
-        internal override bool IsRecord => false;
     }
 }
