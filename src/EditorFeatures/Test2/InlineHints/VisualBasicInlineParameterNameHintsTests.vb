@@ -352,5 +352,137 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
 
             Await VerifyParamHints(input)
         End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestNotOnEnableDisableBoolean1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+class A
+    sub EnableLogging(value as boolean)
+    end sub
+
+    sub Main() 
+        EnableLogging(true)
+    end sub
+end class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestNotOnEnableDisableBoolean2() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+class A
+    sub DisableLogging(value as boolean)
+    end sub
+
+    sub Main() 
+        DisableLogging(true)
+    end sub
+end class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestOnEnableDisableNonBoolean1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+class A
+    sub EnableLogging(value as string)
+    end sub
+
+    sub Main() 
+        EnableLogging({|value:"IO"|})
+    end sub
+end class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestOnEnableDisableNonBoolean2() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+class A
+    sub DisableLogging(value as string)
+    end sub
+
+    sub Main() 
+        DisableLogging({|value:"IO"|})
+    end sub
+end class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestOnSetMethodWithClearContext() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+class A
+    sub SetClassification(classification as string)
+    end sub
+
+    sub Main() 
+        SetClassification("IO")
+    end sub
+end class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestOnSetMethodWithUnclearContext() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+class A
+    sub SetClassification(values as string)
+    end sub
+
+    sub Main() 
+        SetClassification({|values:"IO"|})
+    end sub
+end class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
     End Class
 End Namespace
