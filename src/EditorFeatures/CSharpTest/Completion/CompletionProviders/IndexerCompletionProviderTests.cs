@@ -164,12 +164,23 @@ public class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerOverloadsAreEncodedInSymbolsProperty()
+        public async Task IndexerDescriptionIncludesDocCommentsAndOverloadsHint()
         {
-            var completionItems = await GetCompletionItemsAsync(@"
+            await VerifyItemExistsAsync(@"
 public class C
 {
+    /// <summary>
+    /// Returns the index <paramref name=""i""/>
+    /// </summary>
+    /// <param name=""i"">The index</param>
+    /// <returns>Returns the index <paramref name=""i""/></returns>
     public int this[int i] => i;
+
+    /// <summary>
+    /// Returns 1
+    /// </summary>
+    /// <param name=""i"">The index</param>
+    /// <returns>Returns 1</returns>
     public int this[string s] => 1;
 }
 
@@ -181,13 +192,8 @@ public class Program
         c.$$
     }
 }
-", SourceCodeKind.Regular);
-            Assert.Equal(1, completionItems.Length);
-            var indexerCompletionItem = completionItems.Single();
-            Assert.Equal("this", indexerCompletionItem.DisplayText);
-            Assert.True(indexerCompletionItem.Properties.TryGetValue("Symbols", out var symbols));
-            var symbolSplitted = symbols!.Split('|');
-            Assert.Equal(2, symbolSplitted.Length);
+", "this", displayTextSuffix: "[]", expectedDescriptionOrNull: @$"int C.this[int i] {{ get; }} (+ 1 {FeaturesResources.overload})
+Returns the index i");
         }
     }
 }
