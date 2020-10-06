@@ -92,31 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return ImmutableArray<CompletionItem>.Empty;
         }
 
-        private static IMethodSymbol CreateMethodSymbolForBuiltInConversion(INamedTypeSymbol fromType, ITypeSymbol toType)
-        {
-            return new CodeGenerationMethodSymbol(
-                containingType: fromType,
-                attributes: ImmutableArray<AttributeData>.Empty,
-                declaredAccessibility: Accessibility.Public,
-                modifiers: DeclarationModifiers.Static,
-                returnType: toType,
-                refKind: RefKind.None,
-                explicitInterfaceImplementations: ImmutableArray<IMethodSymbol>.Empty,
-                name: WellKnownMemberNames.ExplicitConversionName,
-                typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-                parameters: new IParameterSymbol[] { new CodeGenerationParameterSymbol(
-                    containingType: null,
-                    attributes: ImmutableArray<AttributeData>.Empty,
-                    refKind: RefKind.None,
-                    isParams: false,
-                    type: fromType,
-                    name: "from",
-                    isOptional: false,
-                    hasDefaultValue: false,
-                    defaultValue: null)}.ToImmutableArray(),
-                returnTypeAttributes: ImmutableArray<AttributeData>.Empty);
-        }
-
         private ImmutableArray<CompletionItem> GetBuiltInEnumConversions(SemanticModel semanticModel, INamedTypeSymbol container, ExpressionSyntax expression, bool containerIsNullable, int position, CancellationToken cancellationToken)
         {
             // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
