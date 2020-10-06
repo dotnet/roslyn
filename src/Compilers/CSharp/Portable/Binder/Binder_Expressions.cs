@@ -3167,6 +3167,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                 }
+                else
+                {
+                    size = BindToTypeForErrorRecovery(size);
+                }
 
                 return size;
             }
@@ -4730,7 +4734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 resultKind,
                 implicitReceiver.Type,
-                binderOpt: this,
+                binder: this,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
         }
