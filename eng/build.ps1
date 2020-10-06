@@ -313,10 +313,10 @@ function GetIbcDropName() {
 # Core function for running our unit / integration tests tests
 function TestUsingOptimizedRunner() {
 
-  # Tests need to locate .NET Core SDK
-  $dotnet = InitializeDotNetCli
-
   if ($testVsi) {
+    # Tests need to locate .NET Core SDK
+    $dotnet = InitializeDotNetCli
+
     Deploy-VsixViaTool
 
     if ($ci) {
