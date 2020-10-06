@@ -28,30 +28,25 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         }
 
         protected override void AddAllParameterNameHintLocations(
-             SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes,
+             SemanticModel semanticModel, SyntaxNode node,
              Action<InlineParameterHint> addHint, CancellationToken cancellationToken)
         {
-            foreach (var node in nodes)
+            if (node is ArgumentSyntax argument)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (node is ArgumentSyntax argument)
+                if (argument.NameColon == null)
                 {
-                    if (argument.NameColon == null)
-                    {
-                        var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                        if (!string.IsNullOrEmpty(param?.Name))
-                            addHint(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, argument.Span.Start, GetKind(argument.Expression)));
-                    }
+                    var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                    if (!string.IsNullOrEmpty(param?.Name))
+                        addHint(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, argument.Span.Start, GetKind(argument.Expression)));
                 }
-                else if (node is AttributeArgumentSyntax attribute)
+            }
+            else if (node is AttributeArgumentSyntax attribute)
+            {
+                if (attribute.NameEquals == null && attribute.NameColon == null)
                 {
-                    if (attribute.NameEquals == null && attribute.NameColon == null)
-                    {
-                        var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                        if (!string.IsNullOrEmpty(param?.Name))
-                            addHint(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, attribute.SpanStart, GetKind(attribute.Expression)));
-                    }
+                    var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                    if (!string.IsNullOrEmpty(param?.Name))
+                        addHint(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, attribute.SpanStart, GetKind(attribute.Expression)));
                 }
             }
         }

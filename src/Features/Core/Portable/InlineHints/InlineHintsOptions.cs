@@ -38,6 +38,18 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 nameof(ForOtherParameters),
                 defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForOtherParameters"));
+
+        public static readonly PerLanguageOption2<bool> HideForParametersThatDifferBySuffix =
+            new(nameof(InlineHintsOptions),
+                nameof(HideForParametersThatDifferBySuffix),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.HideForParametersThatDifferBySuffix"));
+
+        public static readonly PerLanguageOption2<bool> HideForParametersThatMatchMethodIntent =
+            new(nameof(InlineHintsOptions),
+                nameof(HideForParametersThatMatchMethodIntent),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.HideForParametersThatMatchMethodIntent"));
     }
 
     [ExportOptionProvider, Shared]

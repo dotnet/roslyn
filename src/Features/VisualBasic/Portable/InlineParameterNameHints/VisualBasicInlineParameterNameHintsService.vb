@@ -21,22 +21,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
 
         Protected Overrides Sub AddAllParameterNameHintLocations(
                 semanticModel As SemanticModel,
-                nodes As IEnumerable(Of SyntaxNode),
+                node As SyntaxNode,
                 addHint As Action(Of InlineParameterHint),
                 cancellationToken As CancellationToken)
 
-            For Each node In nodes
-                cancellationToken.ThrowIfCancellationRequested()
-                Dim simpleArgument = TryCast(node, SimpleArgumentSyntax)
-                If simpleArgument?.Expression IsNot Nothing Then
-                    If Not simpleArgument.IsNamed AndAlso simpleArgument.NameColonEquals Is Nothing Then
-                        Dim param = simpleArgument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
-                        If Not String.IsNullOrEmpty(param?.Name) Then
-                            addHint(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start, GetKind(simpleArgument.Expression)))
-                        End If
+            Dim simpleArgument = TryCast(node, SimpleArgumentSyntax)
+            If simpleArgument?.Expression IsNot Nothing Then
+                If Not simpleArgument.IsNamed AndAlso simpleArgument.NameColonEquals Is Nothing Then
+                    Dim param = simpleArgument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+                    If Not String.IsNullOrEmpty(param?.Name) Then
+                        addHint(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start, GetKind(simpleArgument.Expression)))
                     End If
                 End If
-            Next
+            End If
         End Sub
 
         Private Function GetKind(arg As ExpressionSyntax) As InlineParameterHintKind
