@@ -14,6 +14,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineParameterNameHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                    InlineHintsOptions.EnabledForParameters,
+                    workspace.CurrentSolution.Projects().First().Language,
+                    optionIsEnabled)))
+
                 Dim hostDocument = workspace.Documents.Single()
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
@@ -27,17 +32,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
 
                 Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
                     Function(name) name.Value,
-                    Function(name, span) _
-                    New With {.Name = name.Key,
-                              .Span = span
-                    })
+                    Function(name, span) New With {.Name = name.Key, span})
 
                 For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
                     expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.Span.Start.ToString())
                 Next
 
                 AssertEx.Equal(expectedTags, producedTags)
-
             End Using
         End Function
     End Class
