@@ -63,28 +63,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private void AddUserDefinedConversionsOfType(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, ITypeSymbol container, bool containerIsNullable, int position)
         {
-            var containerOrBaseType = (ITypeSymbol?)container;
-            while (containerOrBaseType is not null)
-            {
-                var allMembers = containerOrBaseType.GetMembers();
-                var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
-                                             where
-                                                 m.IsConversion() && // MethodKind.Conversion
-                                                 m.Name == WellKnownMemberNames.ExplicitConversionName && // op_Explicit
-                                                 m.Parameters.Length == 1 && // Malformed conversion operator may have more or less than one parameter
-                                                 containerOrBaseType.Equals(m.Parameters[0].Type) // Convert from container type to other type
-                                             let typeName = m.ReturnType.ToMinimalDisplayString(semanticModel, position)
-                                             // Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
-                                             select CreateSymbolCompletionItem(m, typeName, targetTypeIsNullable: containerIsNullable && m.ReturnType.IsStructType(), position);
-                builder.AddRange(allExplicitConversions);
+            // Base types are valid sources for user-defined conversions
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#processing-of-user-defined-explicit-conversions
+            // "Find the set of types, D, from which user-defined conversion operators will be considered. This set consists of S0 (if S0 is a class or struct), 
+            // the base classes of S0 (if S0 is a class), T0 (if T0 is a class or struct), and the base classes of T0 (if T0 is a class)."
+            // Note: We only look in the source (aka container), because target could be any type (in scope) of the compilation.
+            // No need to check for accessibility: "An operator declaration must include both a public and a static modifier." https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/classes#operators
+            var allExplicitConversions = from t in container.GetBaseTypesAndThis()
+                                         from m in t.GetMembers(WellKnownMemberNames.ExplicitConversionName).OfType<IMethodSymbol>()
+                                         where
+                                             m.IsConversion() && // MethodKind.Conversion
+                                             m.Parameters.Length == 1 && // Malformed conversion operator may have more or less than one parameter
+                                             t.Equals(m.Parameters[0].Type) // Convert from container type to other type
+                                         let typeName = m.ReturnType.ToMinimalDisplayString(semanticModel, position)
+                                         // Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
+                                         select CreateSymbolCompletionItem(m, typeName, targetTypeIsNullable: containerIsNullable && m.ReturnType.IsStructType(), position);
+            builder.AddRange(allExplicitConversions);
 
-                // Base types are valid sources for user-defined conversions
-                // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#processing-of-user-defined-explicit-conversions
-                // "Find the set of types, D, from which user-defined conversion operators will be considered. This set consists of S0 (if S0 is a class or struct), 
-                // the base classes of S0 (if S0 is a class), T0 (if T0 is a class or struct), and the base classes of T0 (if T0 is a class)."
-                // Note: We only look in the source (aka container), because target could be any type (in scope) of the compilation.
-                containerOrBaseType = containerOrBaseType.BaseType;
-            }
         }
 
         private void AddBuiltInNumericConversions(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol container, bool containerIsNullable, int position)
