@@ -88,26 +88,28 @@ stages:
         zipSources: false
       condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
-    - script: eng\cibuild.cmd
-                -configuration $(BuildConfiguration)
-                -officialBuildId $(Build.BuildNumber)
-                -officialSkipTests $(SkipTests)
-                -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
-                -officialSourceBranchName $(SourceBranchName)
-                -officialIbcDrop $(IbcDrop)
-                /p:RepositoryName=$(Build.Repository.Name)
-                /p:VisualStudioDropAccessToken=$(System.AccessToken)
-                /p:VisualStudioDropName=$(VisualStudio.DropName)
-                /p:DotNetSignType=$(SignType)
-                /p:DotNetPublishToBlobFeed=true
-                /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
-                /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
-                /p:PublishToSymbolServer=true
-                /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-                /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
-                /p:DotnetPublishUsingPipelines=true
+    - task: PowerShell@2
       displayName: Build
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration $(BuildConfiguration)
+                   -officialBuildId $(Build.BuildNumber)
+                   -officialSkipTests $(SkipTests)
+                   -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                   -officialSourceBranchName $(SourceBranchName)
+                   -officialIbcDrop $(IbcDrop)
+                   /p:RepositoryName=$(Build.Repository.Name)
+                   /p:VisualStudioDropAccessToken=$(System.AccessToken)
+                   /p:VisualStudioDropName=$(VisualStudio.DropName)
+                   /p:DotNetSignType=$(SignType)
+                   /p:DotNetPublishToBlobFeed=true
+                   /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
+                   /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
+                   /p:PublishToSymbolServer=true
+                   /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                   /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                   /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
+                   /p:DotnetPublishUsingPipelines=true
       condition: succeeded()
 
     - task: PowerShell@2
