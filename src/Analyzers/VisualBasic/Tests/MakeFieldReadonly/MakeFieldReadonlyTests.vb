@@ -976,7 +976,7 @@ End Class")
 
 Class C
     <ThreadStatic>
-    Private Shared t_obj As Object
+    Private Shared [|t_obj|] As Object
 End Class")
         End Function
     End Class

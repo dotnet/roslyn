@@ -1743,7 +1743,7 @@ public class Repro
 class Program
 {
     [ThreadStatic]
-    private static object t_obj;
+    private static object [|t_obj|];
 }");
         }
     }
