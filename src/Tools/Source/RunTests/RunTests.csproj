@@ -18,5 +18,8 @@
     <PackageReference Include="RestSharp" Version="$(RestSharpVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(XUnitRunnerConsoleVersion)" GeneratePathProperty="true" />
+
+    <None Include="$(PkgXUnit_Runner_Console)\tools\**\*.*" Link="tools\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="always" />
   </ItemGroup>
 </Project>

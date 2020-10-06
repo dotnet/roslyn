@@ -102,7 +102,7 @@ namespace RunTests
 
         internal static Options Parse(string[] args)
         {
-            if (args == null || args.Any(a => a == null) || args.Length < 2)
+            if (args == null || args.Any(a => a == null) || args.Length < 1)
             {
                 return null;
             }
@@ -121,8 +121,8 @@ namespace RunTests
                 return false;
             }
 
-            var opt = new Options { XunitPath = args[0], IncludeHtml = true, TestResultXmlOutputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults") };
-            var index = 1;
+            var opt = new Options { IncludeHtml = true, TestResultXmlOutputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults") };
+            var index = 0;
             var allGood = true;
             while (index < args.Length)
             {
@@ -223,9 +223,10 @@ namespace RunTests
 
             try
             {
-                opt.XunitPath = opt.Test64
-                    ? Path.Combine(opt.XunitPath, "xunit.console.exe")
-                    : Path.Combine(opt.XunitPath, "xunit.console.x86.exe");
+                var xUnitDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+                xUnitDirectory = Path.Combine(xUnitDirectory, @"tools\net472");
+                var xUnitFileName = opt.Test64 ? "xunit.console.exe" : "xunit.console.x86.exe";
+                opt.XunitPath = Path.Combine(xUnitDirectory, xUnitFileName);
             }
             catch (ArgumentException ex)
             {

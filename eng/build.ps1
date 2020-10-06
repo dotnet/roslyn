@@ -347,8 +347,6 @@ function TestUsingOptimizedRunner() {
     ExitWithExitCode 1
   }
 
-  $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net472"
-  $args = "`"$xunitDir`""
   $args += " `"-out:$testResultsDir`""
   $args += " `"-logs:$LogDir`""
   $args += " `"-secondaryLogs:$secondaryLogDir`""
