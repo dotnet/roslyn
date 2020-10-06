@@ -39,8 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, ExpressionSyntax expression, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var containerIsNullable = container.IsNullable() || // int? id; id.$$ -> (byte?)
-                (container.IsValueType && isAccessedByConditionalAccess); // System.Diagnostics.Process p; p?.Id.$$ -> (byte?)
+            // Lifted nullable value types should be suggested if container is nullable or accessed via conditional access.
+            // Container is nullable: int? id; id.$$ -> (byte?)
+            var containerIsNullable = container.IsNullable();
+
+            // Container is access via conditional access: System.Diagnostics.Process p; p?.Id.$$ -> (byte?)
+            containerIsNullable = containerIsNullable || (isAccessedByConditionalAccess && container.IsValueType);
+
             container = container.RemoveNullableIfPresent();
 
             var builder = ImmutableArray.CreateBuilder<CompletionItem>();
@@ -120,9 +125,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // No suggestion for the other two kinds of conversions:
             // * From sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal to any enum_type.
             // * From any enum_type to any other enum_type.
-            if (container.IsEnumMember() || // SomeEnum.EnumValue.$$
+
+            // Suggest after enum members: SomeEnum.EnumValue.$$
+            var suggestBuiltInEnumConversion = container.IsEnumMember();
+
+            // Suggest for enum values, but not after the enum type (don't infer with the enum member listing)
+            suggestBuiltInEnumConversion = suggestBuiltInEnumConversion ||
                 (container.IsEnumType() &&  // someEnumVariable.$$
-                    !(semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol is ITypeSymbol typeSymbol && typeSymbol.IsEnumType()))) // but not SomeEnum.$$
+                    !(semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol is ITypeSymbol typeSymbol && typeSymbol.IsEnumType())); // but not SomeEnum.$$
+
+            if (suggestBuiltInEnumConversion)
             {
                 var convertToSpecialTypes = new[]
                 {
