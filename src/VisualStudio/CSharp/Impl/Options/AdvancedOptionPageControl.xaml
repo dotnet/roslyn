@@ -111,7 +111,20 @@
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints_experimental}">
                 <StackPanel>
                     <CheckBox x:Name="DisplayInlineParameterNameHints"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}"
+                              Checked="DisplayInlineParameterNameHints_Checked"
+                              Unchecked="DisplayInlineParameterNameHints_Unchecked"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Uid="ShowHintsForLiterals"
+                                  x:Name="ShowHintsForLiterals"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_literals}" />
+                        <CheckBox x:Uid="ShowHintsForNewExpressions"
+                                  x:Name="ShowHintsForNewExpressions"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_new_expressions}" />
+                        <CheckBox x:Uid="ShowHintsForEverythingElse"
+                                  x:Name="ShowHintsForEverythingElse"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_everything_else}" />
+                    </StackPanel>
                 </StackPanel>
             </GroupBox>
 

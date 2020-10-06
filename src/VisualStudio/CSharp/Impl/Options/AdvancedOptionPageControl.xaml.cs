@@ -66,6 +66,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
 
             BindToOption(DisplayInlineParameterNameHints, InlineHintsOptions.EnabledForParameters, LanguageNames.CSharp);
+            BindToOption(ShowHintsForLiterals, InlineHintsOptions.ForLiteralParameters, LanguageNames.CSharp);
+            BindToOption(ShowHintsForNewExpressions, InlineHintsOptions.ForObjectCreationParameters, LanguageNames.CSharp);
+            BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.CSharp);
+            UpdateInlineHintsOptions();
 
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptions.ShowRemarksInQuickInfo, LanguageNames.CSharp);
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.CSharp);
@@ -103,6 +107,26 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Custom_VS_Theme_Warning.Visibility = isSupportedTheme ? Visibility.Collapsed : Visibility.Visible;
 
             base.OnLoad();
+        }
+
+        private void UpdateInlineHintsOptions()
+        {
+            var enabledForParameters = this.OptionStore.GetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.CSharp);
+            ShowHintsForLiterals.IsEnabled = enabledForParameters;
+            ShowHintsForNewExpressions.IsEnabled = enabledForParameters;
+            ShowHintsForEverythingElse.IsEnabled = enabledForParameters;
+        }
+
+        private void DisplayInlineParameterNameHints_Checked(object sender, RoutedEventArgs e)
+        {
+            this.OptionStore.SetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.CSharp, true);
+            UpdateInlineHintsOptions();
+        }
+
+        private void DisplayInlineParameterNameHints_Unchecked(object sender, RoutedEventArgs e)
+        {
+            this.OptionStore.SetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.CSharp, false);
+            UpdateInlineHintsOptions();
         }
     }
 }
