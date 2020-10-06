@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,8 +16,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
         protected abstract void AddAllParameterNameHintLocations(
-            SemanticModel semanticModel, SyntaxNode node, Action<InlineParameterHint> addHint,
-            bool hideForParametersThatDifferBySuffix, bool hideForParametersThatMatchMethodIntent,
+            SemanticModel semanticModel,
+            SyntaxNode node,
+            ArrayBuilder<InlineParameterHint> buffer,
             CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -42,26 +42,123 @@ namespace Microsoft.CodeAnalysis.InlineHints
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             using var _1 = ArrayBuilder<InlineParameterHint>.GetInstance(out var result);
-
-            Action<InlineParameterHint> addHint = AddHint;
+            using var _2 = ArrayBuilder<InlineParameterHint>.GetInstance(out var buffer);
 
             foreach (var node in root.DescendantNodes(textSpan))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddAllParameterNameHintLocations(
-                    semanticModel, node, addHint,
-                    hideForParametersThatDifferBySuffix,
-                    hideForParametersThatMatchMethodIntent,
-                    cancellationToken);
+                AddAllParameterNameHintLocations(semanticModel, node, buffer, cancellationToken);
+
+                if (buffer.Count > 0)
+                {
+                    AddHintsIfAppropriate();
+                    buffer.Clear();
+                }
             }
 
             return result.ToImmutable();
 
-            void AddHint(InlineParameterHint hint)
+            void AddHintsIfAppropriate()
             {
-                if (HintMatches(hint, literalParameters, objectCreationParameters, otherParameters))
-                    result.Add(hint);
+                if (hideForParametersThatDifferBySuffix && ParametersDifferOnlyBySuffix(buffer))
+                    return;
+
+                foreach (var hint in buffer)
+                {
+                    if (string.IsNullOrEmpty(hint.Parameter?.Name))
+                        continue;
+
+                    if (hideForParametersThatMatchMethodIntent && MatchesMethodIntent(hint))
+                        continue;
+
+                    if (HintMatches(hint, literalParameters, objectCreationParameters, otherParameters))
+                        result.Add(hint);
+                }
             }
+        }
+
+        private static bool ParametersDifferOnlyBySuffix(ArrayBuilder<InlineParameterHint> parameterHints)
+        {
+            // Only relevant if we have two or more parameters.
+            if (parameterHints.Count <= 1)
+                return false;
+
+            return ParametersDifferOnlyByAlphaSuffix(parameterHints) ||
+                   ParametersDifferOnlyByNumericSuffix(parameterHints);
+
+            static bool ParametersDifferOnlyByAlphaSuffix(ArrayBuilder<InlineParameterHint> parameterHints)
+            {
+                if (!HasAlphaSuffix(parameterHints[0], out var firstPrefix))
+                    return false;
+
+                for (var i = 1; i < parameterHints.Count; i++)
+                {
+                    if (!HasAlphaSuffix(parameterHints[i], out var nextPrefix))
+                        return false;
+
+                    if (!firstPrefix.Span.Equals(nextPrefix.Span, StringComparison.Ordinal))
+                        return false;
+                }
+
+                return true;
+            }
+
+            static bool ParametersDifferOnlyByNumericSuffix(ArrayBuilder<InlineParameterHint> parameterHints)
+            {
+                if (!HasNumericSuffix(parameterHints[0], out var firstPrefix))
+                    return false;
+
+                for (var i = 1; i < parameterHints.Count; i++)
+                {
+                    if (!HasNumericSuffix(parameterHints[i], out var nextPrefix))
+                        return false;
+
+                    if (!firstPrefix.Span.Equals(nextPrefix.Span, StringComparison.Ordinal))
+                        return false;
+                }
+
+                return true;
+            }
+
+            static bool HasAlphaSuffix(InlineParameterHint hint, out ReadOnlyMemory<char> prefix)
+            {
+                var name = hint.Parameter?.Name;
+
+                // Has to end with A-Z
+                // That A-Z can't be following another A-Z (that's just a capitalized word).
+                if (name?.Length >= 2 &&
+                    IsUpperAlpha(name[^1]) &&
+                    !IsUpperAlpha(name[^2]))
+                {
+                    prefix = name.AsMemory()[..^1];
+                    return true;
+                }
+
+                prefix = default;
+                return false;
+            }
+
+            static bool HasNumericSuffix(InlineParameterHint hint, out ReadOnlyMemory<char> prefix)
+            {
+                var name = hint.Parameter?.Name;
+
+                // Has to end with 0-9.  only handles single-digit numeric suffix for now for simplicity
+                if (name?.Length >= 2 &&
+                    IsNumeric(name[^1]))
+                {
+                    prefix = name.AsMemory()[..^1];
+                    return true;
+                }
+
+                prefix = default;
+                return false;
+            }
+
+            static bool IsUpperAlpha(char c)
+                => c is >= 'A' and <= 'Z';
+
+            static bool IsNumeric(char c)
+                => c is >= '0' and <= '9';
         }
 
         private static bool HintMatches(InlineParameterHint hint, bool literalParameters, bool objectCreationParameters, bool otherParameters)
@@ -73,8 +170,24 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 _ => throw ExceptionUtilities.UnexpectedValue(hint.Kind),
             };
 
-        protected static bool MatchesMethodIntent(string methodName, IParameterSymbol parameter)
+        protected static bool MatchesMethodIntent(InlineParameterHint hint)
         {
+            // Methods like `SetColor(color: "y")` `FromResult(result: "x")` `Enable/DisablePolling(bool)` don't need
+            // parameter names to improve clarity.  The parameter is clear from the context of the method name.
+
+            // First, this only applies to methods (as we're looking at the method name itself) so filter down to those.
+            var parameter = hint.Parameter;
+            if (parameter is not { ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.Ordinary } method })
+                return false;
+
+            // We only care when dealing with the first parameter.  Note: we don't have to worry parameter reordering
+            // due to named-parameter use.  That's because this entire feature only works when we don't use
+            // named-parameters.  So, by definition, the parameter/arg must be in the right location.
+            if (method.Parameters[0] != parameter)
+                return false;
+
+            var methodName = method.Name;
+
             // Check for something like `EnableLogging(true)`
             if (TryGetIntent("Enable", methodName, out _) ||
                 TryGetIntent("Disable", methodName, out _))
@@ -86,22 +199,22 @@ namespace Microsoft.CodeAnalysis.InlineHints
             if (TryGetIntent("Set", methodName, out var methodIntent) ||
                 TryGetIntent("From", methodName, out methodIntent))
             {
-                return IntentNameMatchesParameterName(methodIntent.Value, parameter.Name);
+                return IntentNameMatchesParameterName(methodIntent, parameter.Name);
             }
 
             return false;
 
-            static bool TryGetIntent(string prefix, string nameValue, [NotNullWhen(true)] out ReadOnlyMemory<char>? result)
+            static bool TryGetIntent(string prefix, string nameValue, out ReadOnlyMemory<char> result)
             {
                 if (nameValue.Length > prefix.Length &&
                     nameValue.StartsWith(prefix) &&
                     char.IsUpper(nameValue[prefix.Length]))
                 {
-                    result = nameValue.AsMemory().Slice(prefix.Length);
+                    result = nameValue.AsMemory()[prefix.Length..];
                     return true;
                 }
 
-                result = null;
+                result = default;
                 return false;
             }
 

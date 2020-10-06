@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 {
@@ -28,57 +29,47 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         protected override void AddAllParameterNameHintLocations(
              SemanticModel semanticModel,
              SyntaxNode node,
-             Action<InlineParameterHint> addHint,
-             bool hideForParametersThatDifferBySuffix,
-             bool hideForParametersThatMatchMethodIntent,
+             ArrayBuilder<InlineParameterHint> buffer,
              CancellationToken cancellationToken)
         {
-            if (node is ArgumentSyntax argument)
+            if (node is BaseArgumentListSyntax argumentList)
             {
-                if (argument.NameColon != null)
-                    return;
-
-                var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                if (string.IsNullOrEmpty(parameter?.Name))
-                    return;
-
-                if (hideForParametersThatMatchMethodIntent && MatchesMethodIntent(argument, parameter))
-                    return;
-
-                addHint(new InlineParameterHint(parameter.GetSymbolKey(cancellationToken), parameter.Name, argument.Span.Start, GetKind(argument.Expression)));
+                AddArguments(semanticModel, buffer, argumentList, cancellationToken);
             }
-            else if (node is AttributeArgumentSyntax attribute)
+            else if (node is AttributeArgumentListSyntax attributeArgumentList)
             {
-                if (attribute.NameEquals != null || attribute.NameColon != null)
-                    return;
-
-                var parameter = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                if (string.IsNullOrEmpty(parameter?.Name))
-                    return;
-
-                addHint(new InlineParameterHint(parameter.GetSymbolKey(cancellationToken), parameter.Name, attribute.SpanStart, GetKind(attribute.Expression)));
+                AddArguments(semanticModel, buffer, attributeArgumentList, cancellationToken);
             }
         }
 
-        private static bool MatchesMethodIntent(ArgumentSyntax argument, IParameterSymbol parameter)
+        private static void AddArguments(SemanticModel semanticModel, ArrayBuilder<InlineParameterHint> buffer, AttributeArgumentListSyntax argumentList, CancellationToken cancellationToken)
         {
-            // Methods like `SetColor(color: "y")` `FromResult(result: "x")` `Enable/DisablePolling(bool)` don't need
-            // parameter names to improve clarity.  The parameter is clear from the context of the method name.
-            if (argument.Parent is not ArgumentListSyntax argumentList)
-                return false;
+            foreach (var argument in argumentList.Arguments)
+            {
+                if (argument.NameEquals != null || argument.NameColon != null)
+                    continue;
 
-            if (argumentList.Arguments[0] != argument)
-                return false;
+                var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                buffer.Add(new InlineParameterHint(
+                    parameter,
+                    argument.Span.Start,
+                    GetKind(argument.Expression)));
+            }
+        }
 
-            if (argumentList.Parent is not InvocationExpressionSyntax invocationExpression)
-                return false;
+        private static void AddArguments(SemanticModel semanticModel, ArrayBuilder<InlineParameterHint> buffer, BaseArgumentListSyntax argumentList, CancellationToken cancellationToken)
+        {
+            foreach (var argument in argumentList.Arguments)
+            {
+                if (argument.NameColon != null)
+                    continue;
 
-            var invokedExpression = invocationExpression.Expression;
-            var rightMostName = invokedExpression.GetRightmostName();
-            if (rightMostName == null)
-                return false;
-
-            return MatchesMethodIntent(rightMostName.Identifier.ValueText, parameter);
+                var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                buffer.Add(new InlineParameterHint(
+                    parameter,
+                    argument.Span.Start,
+                    GetKind(argument.Expression)));
+            }
         }
 
         private static InlineParameterHintKind GetKind(ExpressionSyntax arg)

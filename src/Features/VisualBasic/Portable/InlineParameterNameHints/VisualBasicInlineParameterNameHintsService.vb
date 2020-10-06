@@ -6,6 +6,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InlineHints
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
@@ -21,56 +22,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
         Protected Overrides Sub AddAllParameterNameHintLocations(
                 semanticModel As SemanticModel,
                 node As SyntaxNode,
-                addHint As Action(Of InlineParameterHint),
-                hideForParametersThatDifferBySuffix As Boolean,
-                hideForParametersThatMatchMethodIntent As Boolean,
-                CancellationToken As CancellationToken)
+                buffer As ArrayBuilder(Of InlineParameterHint),
+                cancellationToken As CancellationToken)
 
-            Dim argument = TryCast(node, SimpleArgumentSyntax)
-            If argument?.Expression Is Nothing Then
-                Return
-            End If
-
-            If argument.IsNamed OrElse argument.NameColonEquals IsNot Nothing Then
-                Return
-            End If
-
-            Dim parameter = argument.DetermineParameter(semanticModel, allowParamArray:=False, CancellationToken)
-            If String.IsNullOrEmpty(parameter?.Name) Then
-                Return
-            End If
-
-            If hideForParametersThatMatchMethodIntent AndAlso MatchesMethodIntent(argument, parameter) Then
-                Return
-            End If
-
-            addHint(New InlineParameterHint(parameter.GetSymbolKey(CancellationToken), parameter.Name, argument.Span.Start, GetKind(argument.Expression)))
-        End Sub
-
-        Private Overloads Shared Function MatchesMethodIntent(argument As ArgumentSyntax, parameter As IParameterSymbol) As Boolean
-            ' Methods Like `SetColor(color: "y")` `FromResult(result: "x")` `Enable/DisablePolling(bool)` don't need
-            ' parameter names to improve clarity.  The parameter Is clear from the context of the method name.
-            Dim argumentList = TryCast(argument.Parent, ArgumentListSyntax)
+            Dim argumentList = TryCast(node, ArgumentListSyntax)
             If argumentList Is Nothing Then
-                Return False
+                Return
             End If
 
-            If argumentList.Arguments(0) IsNot argument Then
-                Return False
-            End If
+            For Each arg In argumentList.Arguments
+                Dim argument = TryCast(arg, SimpleArgumentSyntax)
+                If argument Is Nothing Then
+                    Continue For
+                End If
 
-            Dim invocationExpression = TryCast(argumentList.Parent, InvocationExpressionSyntax)
-            If invocationExpression Is Nothing Then
-                Return False
-            End If
+                If argument?.Expression Is Nothing Then
+                    Continue For
+                End If
 
-            Dim rightMostName = invocationExpression.Expression.GetRightmostName()
-            If rightMostName Is Nothing Then
-                Return False
-            End If
+                If argument.IsNamed OrElse argument.NameColonEquals IsNot Nothing Then
+                    Continue For
+                End If
 
-            Return AbstractInlineParameterNameHintsService.MatchesMethodIntent(rightMostName.Identifier.ValueText, parameter)
-        End Function
+                Dim parameter = argument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+                If String.IsNullOrEmpty(parameter?.Name) Then
+                    Continue For
+                End If
+
+                buffer.Add(New InlineParameterHint(
+                    parameter,
+                    argument.Span.Start,
+                    GetKind(argument.Expression)))
+            Next
+        End Sub
 
         Private Function GetKind(arg As ExpressionSyntax) As InlineParameterHintKind
             If TypeOf arg Is LiteralExpressionSyntax OrElse

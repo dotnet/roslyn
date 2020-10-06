@@ -93,7 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 foreach (var parameterHint in parameterHints)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(new SnapshotSpan(snapshotSpan.Snapshot, parameterHint.Position, 0), new InlineParameterNameHintDataTag(parameterHint.ParameterSymbolKey, parameterHint.Name)));
+                    context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(
+                        new SnapshotSpan(snapshotSpan.Snapshot, parameterHint.Position, 0),
+                        new InlineParameterNameHintDataTag(
+                            parameterHint.Parameter.GetSymbolKey(cancellationToken),
+                            parameterHint.Parameter.Name)));
                 }
             }
         }

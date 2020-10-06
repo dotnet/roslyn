@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim paramNameHintSpans = Await tagService.GetInlineParameterNameHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
 
                 Dim producedTags = From tag In paramNameHintSpans
-                                   Select tag.Name + ":" + tag.Position.ToString
+                                   Select tag.Parameter.Name + ":" + tag.Position.ToString
 
                 Dim expectedTags As New List(Of String)
 

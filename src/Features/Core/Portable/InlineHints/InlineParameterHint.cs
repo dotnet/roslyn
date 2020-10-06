@@ -8,15 +8,16 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal readonly struct InlineParameterHint
     {
-        public readonly SymbolKey ParameterSymbolKey;
-        public readonly string Name;
+        public readonly IParameterSymbol Parameter;
         public readonly int Position;
         public readonly InlineParameterHintKind Kind;
 
-        public InlineParameterHint(SymbolKey parameterSymbolKey, string name, int position, InlineParameterHintKind kind)
+        public InlineParameterHint(
+            IParameterSymbol parameter,
+            int position,
+            InlineParameterHintKind kind)
         {
-            ParameterSymbolKey = parameterSymbolKey;
-            Name = name;
+            Parameter = parameter;
             Position = position;
             Kind = kind;
         }
