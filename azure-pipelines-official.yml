@@ -92,7 +92,14 @@ stages:
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration $(BuildConfiguration)
+        arguments: -ci 
+                   -restore
+                   -build
+                   -pack
+                   -sign
+                   -publish
+                   -binaryLog 
+                   -configuration $(BuildConfiguration)
                    -officialBuildId $(Build.BuildNumber)
                    -officialSkipTests $(SkipTests)
                    -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
