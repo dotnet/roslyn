@@ -6,8 +6,8 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -115,20 +115,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         symbol.Locations.Length == 1 &&
                         symbol.Type.IsMutableValueType() == false &&
                         !symbol.IsFixedSizeBuffer &&
-                        !ContainsAttribute(symbol, threadStaticAttribute);
-
-                static bool ContainsAttribute(ISymbol symbol, INamedTypeSymbol attributeSymbol)
-                {
-                    var attributes = symbol.GetAttributes();
-                    foreach (var attribute in attributes)
-                    {
-                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeSymbol))
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
+                        !symbol.GetAttributes().Any(
+                           static (a, threadStaticAttribute) => SymbolEqualityComparer.Default.Equals(a.AttributeClass, threadStaticAttribute),
+                           threadStaticAttribute);
 
                 // Method to update the field state for a candidate field written outside constructor and field initializer.
                 void UpdateFieldStateOnWrite(IFieldSymbol field)
