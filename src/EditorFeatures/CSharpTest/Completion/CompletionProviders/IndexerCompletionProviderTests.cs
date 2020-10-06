@@ -15,9 +15,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
-    public class IndexerComplitionProviderTests : AbstractCSharpCompletionProviderTests
+    public class IndexerCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public IndexerComplitionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        public IndexerCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
         }
 
