@@ -1,0 +1,75 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.UnitTests.Symbols
+{
+    public class DocumentationCommentIdTests : CommonTestBase
+    {
+        private CSharpCompilation CreateCompilation(string code) =>
+            CreateCSharpCompilation(
+                code, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.NetStandard20));
+
+        [Fact]
+        public void TupleReturnMethod()
+        {
+            string code = @"
+class C
+{
+    (int i, int) DoStuff() => default;
+}";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics();
+
+            var symbol = comp.GetSymbolsWithName("DoStuff").Single();
+
+            var actualDocId = DocumentationCommentId.CreateDeclarationId(symbol);
+
+            string expectedDocId = "M:C.DoStuff~System.ValueTuple{System.Int32,System.Int32}";
+
+            Assert.Equal(expectedDocId, actualDocId);
+
+            var foundSymbols = DocumentationCommentId.GetSymbolsForDeclarationId(expectedDocId, comp);
+
+            Assert.Equal(new[] { symbol }, foundSymbols);
+        }
+
+        [Fact]
+        public void DynamicParameterMethod()
+        {
+            string code = @"
+class C
+{
+    int DoStuff(dynamic dynamic) => 0;
+}";
+
+            var comp = CreateCSharpCompilation(code);
+
+            var symbol = comp.GetSymbolsWithName("DoStuff").Single();
+
+            var actualDocId = DocumentationCommentId.CreateDeclarationId(symbol);
+
+            var expectedDocId = "M:C.DoStuff(System.Object)~System.Int32";
+
+            Assert.Equal(expectedDocId, actualDocId);
+
+            var foundSymbols = DocumentationCommentId.GetSymbolsForDeclarationId(expectedDocId, comp);
+
+            Assert.Equal(new[] { symbol }, foundSymbols);
+        }
+
+        internal override string VisualizeRealIL(
+            IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
+            => throw new NotImplementedException();
+    }
+}
