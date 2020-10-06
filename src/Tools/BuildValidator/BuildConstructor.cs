@@ -34,7 +34,7 @@ namespace BuildValidator
             _sourceResolver = sourceResolver;
         }
 
-        public async Task<Compilation> CreateCompilationAsync(MetadataReader metadataReader, string name)
+        public Compilation CreateCompilation(MetadataReader metadataReader, string name)
         {
             var pdbReader = new CompilationOptionsReader(metadataReader);
             var pdbCompilationOptions = pdbReader.GetCompilationOptions();
@@ -48,8 +48,8 @@ namespace BuildValidator
             {
                 var compilation = language switch
                 {
-                    LanguageNames.CSharp => await CreateCSharpCompilationAsync(pdbReader, name).ConfigureAwait(false),
-                    LanguageNames.VisualBasic => await CreateVisualBasicCompilationAsync(pdbReader, name).ConfigureAwait(false),
+                    LanguageNames.CSharp => CreateCSharpCompilation(pdbReader, name),
+                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(pdbReader, name),
                     _ => throw new InvalidDataException($"{language} is not a known language")
                 };
 
@@ -59,10 +59,10 @@ namespace BuildValidator
             throw new InvalidDataException("Did not find language in compilation options");
         }
 
-        private async Task<ImmutableArray<MetadataReference>> CreateMetadataReferencesAsync(CompilationOptionsReader pdbReader)
+        private ImmutableArray<MetadataReference> CreateMetadataReferences(CompilationOptionsReader pdbReader)
         {
             var referenceInfos = pdbReader.GetMetadataReferences();
-            return await _referenceResolver.ResolveReferencesAsync(referenceInfos).ConfigureAwait(false);
+            return _referenceResolver.ResolveReferences(referenceInfos);
         }
 
         private ImmutableArray<SourceText> GetSources(CompilationOptionsReader pdbReader, Encoding encoding)
@@ -79,10 +79,10 @@ namespace BuildValidator
         }
 
         #region CSharp
-        private async Task<Compilation> CreateCSharpCompilationAsync(CompilationOptionsReader pdbReader, string assemblyName)
+        private Compilation CreateCSharpCompilation(CompilationOptionsReader pdbReader, string assemblyName)
         {
             var (compilationOptions, parseOptions, encoding) = CreateCSharpCompilationOptions(pdbReader);
-            var metadataReferences = await CreateMetadataReferencesAsync(pdbReader).ConfigureAwait(false);
+            var metadataReferences = CreateMetadataReferences(pdbReader);
             var sources = GetSources(pdbReader, encoding);
 
             return CSharpCompilation.Create(
@@ -171,10 +171,10 @@ namespace BuildValidator
         #endregion
 
         #region Visual Basic
-        private async Task<Compilation> CreateVisualBasicCompilationAsync(CompilationOptionsReader pdbReader, string assemblyName)
+        private Compilation CreateVisualBasicCompilation(CompilationOptionsReader pdbReader, string assemblyName)
         {
             var compilationOptions = CreateVisualBasicCompilationOptions(pdbReader);
-            var metadataReferences = await CreateMetadataReferencesAsync(pdbReader).ConfigureAwait(false);
+            var metadataReferences = CreateMetadataReferences(pdbReader);
             var sources = GetSources(pdbReader, Encoding.UTF8);
 
             return VisualBasicCompilation.Create(

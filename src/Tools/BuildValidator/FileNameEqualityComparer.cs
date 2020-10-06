@@ -10,7 +10,7 @@ namespace BuildValidator
 {
     internal class FileNameEqualityComparer : IEqualityComparer<FileInfo>
     {
-        public static readonly StringComparison StringComparison = StringComparison.OrdinalIgnoreCase;
+        public const StringComparison StringComparison = System.StringComparison.OrdinalIgnoreCase;
         public static readonly StringComparer StringComparer = StringComparer.FromComparison(StringComparison);
         public static readonly FileNameEqualityComparer Instance = new FileNameEqualityComparer();
 

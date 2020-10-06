@@ -32,7 +32,7 @@ namespace BuildValidator
             new Regex(@"\.resources?\.")
         };
 
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             Options options;
             try
@@ -71,16 +71,16 @@ namespace BuildValidator
                 .Concat(artifactsDir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
                 .Distinct(FileNameEqualityComparer.Instance);
 
-            await ValidateFilesAsync(filesToValidate, buildConstructor, thisCompilerVersion).ConfigureAwait(false);
+            ValidateFiles(filesToValidate, buildConstructor, thisCompilerVersion);
         }
 
-        private static async Task ValidateFilesAsync(IEnumerable<FileInfo> files, BuildConstructor buildConstructor, string? thisCompilerVersion)
+        private static void ValidateFiles(IEnumerable<FileInfo> files, BuildConstructor buildConstructor, string? thisCompilerVersion)
         {
             var assembliesCompiled = new List<CompilationDiff>();
 
             foreach (var file in files)
             {
-                var compilationDiff = await ValidateFileAsync(file, buildConstructor, thisCompilerVersion).ConfigureAwait(false);
+                var compilationDiff = ValidateFile(file, buildConstructor, thisCompilerVersion);
 
                 if (compilationDiff is null)
                 {
@@ -125,7 +125,7 @@ namespace BuildValidator
             s_logger.LogInformation(sb.ToString());
         }
 
-        private static async Task<CompilationDiff?> ValidateFileAsync(FileInfo file, BuildConstructor buildConstructor, string? thisCompilerVersion)
+        private static CompilationDiff? ValidateFile(FileInfo file, BuildConstructor buildConstructor, string? thisCompilerVersion)
         {
 
             if (s_ignorePatterns.Any(r => r.IsMatch(file.FullName)))
@@ -160,7 +160,7 @@ namespace BuildValidator
 
                 // TODO: Check compilation version using the PEReader
 
-                var compilation = await buildConstructor.CreateCompilationAsync(reader, file.Name).ConfigureAwait(false);
+                var compilation = buildConstructor.CreateCompilation(reader, file.Name);
                 return CompilationDiff.Create(file, compilation);
             }
             catch (Exception e)

@@ -48,7 +48,7 @@ namespace BuildValidator
             return Task.FromResult<MetadataReference>(MetadataReference.CreateFromFile(path));
         }
 
-        public Task<ImmutableArray<MetadataReference>> ResolveReferencesAsync(IEnumerable<MetadataReferenceInfo> references)
+        public ImmutableArray<MetadataReference> ResolveReferences(IEnumerable<MetadataReferenceInfo> references)
         {
             var referenceArray = references.ToImmutableArray();
             CacheNames(referenceArray);
@@ -56,7 +56,7 @@ namespace BuildValidator
             var files = referenceArray.Select(r => _cache[r.Mvid]);
 
             var metadataReferences = files.Select(f => MetadataReference.CreateFromFile(f)).Cast<MetadataReference>().ToImmutableArray();
-            return Task.FromResult(metadataReferences);
+            return metadataReferences;
         }
 
         public string Search(Guid mvid, string name)
