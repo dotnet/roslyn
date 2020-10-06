@@ -4,7 +4,6 @@
 
 #nullable disable
 
-
 namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal enum InlineParameterHintKind
