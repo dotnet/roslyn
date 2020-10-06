@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConsList<TypeParameterSymbol> inProgress,
             ImmutableArray<TypeWithAnnotations> constraintTypes,
             bool inherited,
-            bool usedLightweightTypeConstraintBinding,
+            bool canUseLightweightTypeConstraintBinding,
             CSharpCompilation currentCompilation,
             DiagnosticBag diagnostics)
         {
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, usedLightweightTypeConstraintBinding: usedLightweightTypeConstraintBinding, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, canUseLightweightTypeConstraintBinding: canUseLightweightTypeConstraintBinding, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -90,6 +90,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnosticsBuilder.Free();
+
+            if (bounds is null && canUseLightweightTypeConstraintBinding)
+            {
+                // We have no bounds, but need to record that we've only done
+                // lightweight binding of type constraints so far.
+                bounds = TypeParameterBounds.NullFromLightweightBinding;
+            }
+
             return bounds;
         }
 
@@ -100,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConsList<TypeParameterSymbol> inProgress,
             ImmutableArray<TypeWithAnnotations> constraintTypes,
             bool inherited,
-            bool usedLightweightTypeConstraintBinding,
+            bool canUseLightweightTypeConstraintBinding,
             CSharpCompilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
@@ -299,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var bounds = new TypeParameterBounds(constraintTypes, interfaces, effectiveBaseClass, deducedBaseType, usedLightweightTypeConstraintBinding);
+            var bounds = new TypeParameterBounds(constraintTypes, interfaces, effectiveBaseClass, deducedBaseType, canUseLightweightTypeConstraintBinding);
 
             // Additional constraint checks for overrides.
             if (inherited)

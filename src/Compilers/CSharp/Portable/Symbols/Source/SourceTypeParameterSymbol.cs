@@ -237,14 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var diagnostics = DiagnosticBag.GetInstance();
                 var bounds = this.ResolveBounds(inProgress, canUseLightweightTypeConstraintBinding, diagnostics);
-
-                if (bounds is null && canUseLightweightTypeConstraintBinding)
-                {
-                    // We have no bounds, but need to record that we've only done
-                    // lightweight binding of type constraints so far.
-                    bounds = TypeParameterBounds.NullFromLightweightBinding;
-                }
-
                 if (TypeParameterBoundsExtensions.InterlockedUpdate(ref _lazyBounds, bounds) &&
                     _lazyBounds.HasValue(canUseLightweightTypeConstraintBinding: false))
                 {
@@ -943,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(map != null);
 
             var constraintTypes = map.SubstituteTypes(typeParameter.ConstraintTypesNoUseSiteDiagnostics);
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: true, usedLightweightTypeConstraintBinding: false, this.DeclaringCompilation, diagnostics);
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: true, canUseLightweightTypeConstraintBinding: false, this.DeclaringCompilation, diagnostics);
         }
 
         /// <summary>

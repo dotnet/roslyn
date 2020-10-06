@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class TypeParameterBounds
     {
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
-        public static readonly TypeParameterBounds NullFromLightweightBinding = new TypeParameterBounds(usedLightweightTypeConstraintBinding: true);
+        public static readonly TypeParameterBounds NullFromLightweightBinding = new TypeParameterBounds();
 
         public TypeParameterBounds(
             ImmutableArray<TypeWithAnnotations> constraintTypes,
@@ -43,11 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeParameterBounds()
         {
-        }
-
-        private TypeParameterBounds(bool usedLightweightTypeConstraintBinding)
-        {
-            Debug.Assert(usedLightweightTypeConstraintBinding);
             this.UsedLightweightTypeConstraintBinding = true;
         }
 

@@ -127,34 +127,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class PlaceholderTypeArgumentSymbol : ErrorTypeSymbol
     {
+        private static readonly PlaceholderTypeArgumentSymbol s_instance = new PlaceholderTypeArgumentSymbol();
+
         public static ImmutableArray<TypeWithAnnotations> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters)
         {
             var result = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             foreach (var typeParameter in typeParameters)
             {
-                result.Add(TypeWithAnnotations.Create(new PlaceholderTypeArgumentSymbol(typeParameter.Name)));
+                result.Add(TypeWithAnnotations.Create(s_instance));
             }
             return result.ToImmutableAndFree();
         }
 
-        private readonly string _name;
-
-        private PlaceholderTypeArgumentSymbol(string name, TupleExtraData? tupleData = null)
+        private PlaceholderTypeArgumentSymbol(TupleExtraData? tupleData = null)
             : base(tupleData)
         {
-            _name = name;
         }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            return new PlaceholderTypeArgumentSymbol(_name, newData);
+            return new PlaceholderTypeArgumentSymbol(newData);
         }
 
         public override string Name
         {
             get
             {
-                return _name;
+                return string.Empty;
             }
         }
 
@@ -167,11 +166,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo ErrorInfo
+        internal override DiagnosticInfo? ErrorInfo
         {
             get
             {
-                return new CSDiagnosticInfo(ErrorCode.Void);
+                return null;
             }
         }
 
@@ -182,12 +181,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            return t2 is PlaceholderTypeArgumentSymbol other && string.Equals(other._name, _name, StringComparison.Ordinal);
+            return t2 is PlaceholderTypeArgumentSymbol;
         }
 
         public override int GetHashCode()
         {
-            return _name.GetHashCode();
+            return 0;
         }
     }
 }
