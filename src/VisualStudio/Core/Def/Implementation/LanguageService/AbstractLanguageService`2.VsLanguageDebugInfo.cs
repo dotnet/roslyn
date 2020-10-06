@@ -134,34 +134,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetProximityExpressions, CancellationToken.None))
                 {
                     VsEnumBSTR? enumBSTR = null;
-                    _waitIndicator.Wait(
-                        title: ServicesVSResources.Debugger,
-                        message: ServicesVSResources.Determining_autos,
-                        allowCancel: true,
-                        action: waitContext =>
+
+                    if (_proximityExpressionsService != null)
                     {
-                        var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
-
-                        if (textBuffer != null)
+                        _waitIndicator.Wait(
+                            title: ServicesVSResources.Debugger,
+                            message: ServicesVSResources.Determining_autos,
+                            allowCancel: true,
+                            action: waitContext =>
                         {
-                            var snapshot = textBuffer.CurrentSnapshot;
-                            var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
-                            if (nullablePoint.HasValue)
-                            {
-                                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                                if (document != null)
-                                {
-                                    var point = nullablePoint.Value;
-                                    var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+                            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
 
-                                    if (proximityExpressions != null)
+                            if (textBuffer != null)
+                            {
+                                var snapshot = textBuffer.CurrentSnapshot;
+                                var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
+                                if (nullablePoint.HasValue)
+                                {
+                                    var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                                    if (document != null)
                                     {
-                                        enumBSTR = new VsEnumBSTR(proximityExpressions);
+                                        var point = nullablePoint.Value;
+                                        var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+
+                                        if (proximityExpressions != null)
+                                        {
+                                            enumBSTR = new VsEnumBSTR(proximityExpressions);
+                                        }
                                     }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
 
                     ppEnum = enumBSTR;
                     return ppEnum != null ? VSConstants.S_OK : VSConstants.E_FAIL;
