@@ -934,10 +934,10 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        // built-in numeric conversions:
-        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
-        public async Task ExplicitBuildInNumericConversionsAreOffered()
+        public async Task ExplicitBuiltInNumericConversionsAreOffered()
         {
+            // built-in numeric conversions:
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
             await VerifyCustomCommitProviderAsync(@"
 public class Program
 {
@@ -961,8 +961,6 @@ public class Program
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        // built-in numeric conversions:
-        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
         [InlineData("sbyte", "byte", "char", "uint", "ulong", "ushort")]
         [InlineData("byte", "char", "sbyte")]
         [InlineData("short", "byte", "char", "sbyte", "uint", "ulong", "ushort")]
@@ -975,8 +973,10 @@ public class Program
         [InlineData("float", "byte", "char", "decimal", "int", "long", "sbyte", "short", "uint", "ulong", "ushort")]
         [InlineData("double", "byte", "char", "decimal", "float", "int", "long", "sbyte", "short", "uint", "ulong", "ushort")]
         [InlineData("decimal", "byte", "char", "double", "float", "int", "long", "sbyte", "short", "uint", "ulong", "ushort")]
-        public async Task ExplicitBuildInNumericConversionsAreOfferedAcordingToSpec(string fromType, params string[] toTypes)
+        public async Task ExplicitBuiltInNumericConversionsAreOfferedAcordingToSpec(string fromType, params string[] toTypes)
         {
+            // built-in numeric conversions:
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
             var items = await GetCompletionItemsAsync(@$"
 public class Program
 {{
@@ -992,10 +992,44 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        // built-in numeric conversions:
-        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
-        public async Task ExplicitBuildInNumericConversionsAreLifted()
+        public async Task ExplicitBuiltInNumericConversionDescriptionIsLikeAConversionOperatorDescription()
         {
+            await VerifyItemExistsAsync(@"
+public class Program
+{
+    public void Main()
+    {
+        int i = 0;
+        i.$$
+    }
+}
+", "byte", displayTextSuffix: ")", expectedDescriptionOrNull: @"int.explicit operator byte(int value)
+Defines an explicit conversion of a int to a byte.");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitBuiltInNumericConversionDescriptionIsLikeAConversionOperatorDescriptionLifted()
+        {
+            await VerifyItemExistsAsync(@"
+public class Program
+{
+    public void Main()
+    {
+        int? i = 0;
+        i.$$
+    }
+}
+", "byte", displayTextSuffix: "?)", expectedDescriptionOrNull: @"int.explicit operator byte?(int value)
+Defines an explicit conversion of a int to a byte?.");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitBuiltInNumericConversionsAreLifted()
+        {
+            // built-in numeric conversions:
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
             await VerifyCustomCommitProviderAsync(@"
 public class Program
 {
@@ -1019,10 +1053,10 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        // built-in enum conversions:
-        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
-        public async Task ExplicitBuildInEnumConversionsIsApplied()
+        public async Task ExplicitBuiltInEnumConversionsIsApplied()
         {
+            // built-in enum conversions:
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
             await VerifyCustomCommitProviderAsync(@"
 public enum E { One }
 public class Program
@@ -1048,10 +1082,10 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        // built-in enum conversions:
-        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
-        public async Task ExplicitBuildInEnumConversionsAreLifted()
+        public async Task ExplicitBuiltInEnumConversionsAreLifted()
         {
+            // built-in enum conversions:
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
             await VerifyCustomCommitProviderAsync(@"
 public enum E { One }
 public class Program
@@ -1077,10 +1111,10 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        // built-in enum conversions:
-        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
-        public async Task ExplicitBuildInEnumConversionsAreSortedAndComplete()
+        public async Task ExplicitBuiltInEnumConversionsAreSortedAndComplete()
         {
+            // built-in enum conversions:
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
             var items = await GetCompletionItemsAsync(@"
 public enum E { One }
 public class Program
@@ -1098,9 +1132,7 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        // built-in enum conversions:
-        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
-        public async Task ExplicitBuildInEnumConversionDescriptionIsLikeAConversionOperatorDescrition()
+        public async Task ExplicitBuiltInEnumConversionDescriptionIsLikeAConversionOperatorDescription()
         {
             await VerifyItemExistsAsync(@"
 public enum E { One }
@@ -1116,6 +1148,24 @@ public class Program
 Defines an explicit conversion of a E to a int.");
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitBuiltInEnumConversionDescriptionIsLikeAConversionOperatorDescriptionLifted()
+        {
+            await VerifyItemExistsAsync(@"
+public enum E { One }
+public class Program
+{
+    public void Main()
+    {
+        E? e = E.One;
+        e.$$
+    }
+}
+", "int", displayTextSuffix: "?)", expectedDescriptionOrNull: @"E.explicit operator int?(E value)
+Defines an explicit conversion of a E to a int?.");
+        }
+
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("e.$$", true)]
@@ -1123,7 +1173,7 @@ Defines an explicit conversion of a E to a int.");
         [InlineData("e.in$$", true)]
         [InlineData("E.$$", false)] // Don't infer with enum member suggestion 
         [InlineData("E.One.$$", true)]
-        public async Task ExplicitBuildInEnumConversionToIntAreOffered(string expression, bool conversionIsOffered)
+        public async Task ExplicitBuiltInEnumConversionToIntAreOffered(string expression, bool conversionIsOffered)
         {
             Func<string, Task> verifyFunc = conversionIsOffered
                 ? markup => VerifyItemExistsAsync(markup, "int", displayTextSuffix: ")")
