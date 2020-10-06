@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -34,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     {
         private readonly IAsynchronousOperationListener _listener;
 
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineHintsOptions.EnabledForParameters);
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -48,15 +48,18 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints);
         }
 
+        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions
+            => ImmutableArray.Create(
+                InlineHintsOptions.EnabledForParameters,
+                InlineHintsOptions.ForLiteralParameters,
+                InlineHintsOptions.ForObjectCreationParameters,
+                InlineHintsOptions.ForOtherParameters);
+
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            // TaggerDelay is NearImmediate because we want the renaming and tag creation to be instantaneous
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt, textChangeDelay: TaggerDelay.Short, scrollChangeDelay: TaggerDelay.NearImmediate),
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.NearImmediate, _listener),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLiteralParameters, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForObjectCreationParameters, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForOtherParameters, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.NearImmediate, _listener));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
