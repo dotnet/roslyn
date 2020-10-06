@@ -1240,5 +1240,27 @@ public class Program
 }}
 ");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionInheritedConversions()
+        {
+            await VerifyItemExistsAsync(@"
+public class Base {
+    public static explicit operator int(Base b) => 0;
+}
+public class Derived: Base
+{
+}
+public class Program
+{
+    public void Main()
+    {
+        var d = new Derived();
+        var i = d.$$
+    }
+}
+", "int", displayTextSuffix: ")");
+        }
     }
 }
