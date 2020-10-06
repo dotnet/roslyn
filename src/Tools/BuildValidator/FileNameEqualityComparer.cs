@@ -8,7 +8,7 @@ using System.IO;
 
 namespace BuildValidator
 {
-    internal class FileNameEqualityComparer : IEqualityComparer<FileInfo>
+    internal sealed class FileNameEqualityComparer : IEqualityComparer<FileInfo>
     {
         public const StringComparison StringComparison = System.StringComparison.OrdinalIgnoreCase;
         public static readonly StringComparer StringComparer = StringComparer.FromComparison(StringComparison);
