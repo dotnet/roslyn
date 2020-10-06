@@ -48,18 +48,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints);
         }
 
+        // This option controls whether or not we run at all.
         protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions
-            => ImmutableArray.Create(
-                InlineHintsOptions.EnabledForParameters,
-                InlineHintsOptions.ForLiteralParameters,
-                InlineHintsOptions.ForObjectCreationParameters,
-                InlineHintsOptions.ForOtherParameters);
+            => ImmutableArray.Create(InlineHintsOptions.EnabledForParameters);
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
+            // The options we check here just affect the set of results we return if we run.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt, textChangeDelay: TaggerDelay.Short, scrollChangeDelay: TaggerDelay.NearImmediate),
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.NearImmediate, _listener));
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.NearImmediate, _listener),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLiteralParameters, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForObjectCreationParameters, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForOtherParameters, TaggerDelay.NearImmediate));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
