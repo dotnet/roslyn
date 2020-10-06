@@ -195,5 +195,29 @@ public class Program
 ", "this", displayTextSuffix: "[]", expectedDescriptionOrNull: @$"int C.this[int i] {{ get; }} (+ 1 {FeaturesResources.overload})
 Returns the index i");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task IndexerOfBaseTypeIsSuggestedAfterDot()
+        {
+            await VerifyItemExistsAsync(@"
+public class Base
+{
+    public int this[int i] => i;
+}
+public class Derived : Base
+{
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var d = new Derived();
+        d.$$
+    }
+}
+", "this", displayTextSuffix: "[]");
+        }
     }
 }

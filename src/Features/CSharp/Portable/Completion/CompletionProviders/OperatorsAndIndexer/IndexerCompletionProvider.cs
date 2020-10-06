@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -33,8 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, ExpressionSyntax expression, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var allMembers = container.GetMembers();
-            var indexers = allMembers.OfType<IPropertySymbol>().Where(p => p.IsIndexer).ToImmutableList();
+            var indexers = (from t in container.GetBaseTypesAndThis()
+                            from i in t.GetIndexers()
+                            select i).ToImmutableArray();
             if (indexers.Any())
             {
                 var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
