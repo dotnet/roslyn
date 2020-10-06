@@ -1560,4 +1560,10 @@ I agree to all of the foregoing:</value>
   <data name="Inline_Hints_experimental" xml:space="preserve">
     <value>Inline Hints (experimental)</value>
   </data>
+  <data name="Show_hints_for_everything_else" xml:space="preserve">
+    <value>Show hints for everything else</value>
+  </data>
+  <data name="Show_hints_for_literals" xml:space="preserve">
+    <value>Show hints for literals</value>
+  </data>
 </root>

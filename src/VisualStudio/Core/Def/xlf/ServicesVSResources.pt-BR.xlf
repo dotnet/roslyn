@@ -777,6 +777,16 @@
         <target state="translated">Mostrar a lista de conclusão</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_everything_else">
+        <source>Show hints for everything else</source>
+        <target state="new">Show hints for everything else</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_literals">
+        <source>Show hints for literals</source>
+        <target state="new">Show hints for literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Algumas cores do esquema de cores estão sendo substituídas pelas alterações feitas na página de Ambiente &gt; Opções de Fontes e Cores. Escolha 'Usar Padrões' na página Fontes e Cores para reverter todas as personalizações.</target>

@@ -60,6 +60,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments, SplitCommentOptions.Enabled, LanguageNames.VisualBasic)
 
             BindToOption(DisplayInlineParameterNameHints, InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForLiterals, InlineHintsOptions.ForLiteralParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForNewExpressions, InlineHintsOptions.ForObjectCreationParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.VisualBasic)
+            UpdateInlineHintsOptions()
 
             BindToOption(EnableEndConstruct, FeatureOnOffOptions.EndConstruct, LanguageNames.VisualBasic)
             BindToOption(EnableLineCommit, FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)
@@ -100,6 +104,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Custom_VS_Theme_Warning.Visibility = If(isSupportedTheme, Visibility.Collapsed, Visibility.Visible)
 
             MyBase.OnLoad()
+        End Sub
+
+        Private Sub UpdateInlineHintsOptions()
+            Dim enabledForParameters = Me.OptionStore.GetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic) <> False
+            ShowHintsForLiterals.IsEnabled = enabledForParameters
+            ShowHintsForNewExpressions.IsEnabled = enabledForParameters
+            ShowHintsForEverythingElse.IsEnabled = enabledForParameters
+        End Sub
+
+        Private Sub DisplayInlineParameterNameHints_Checked()
+            Me.OptionStore.SetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic, True)
+            UpdateInlineHintsOptions()
+        End Sub
+
+        Private Sub DisplayInlineParameterNameHints_Unchecked()
+            Me.OptionStore.SetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic, False)
+            UpdateInlineHintsOptions()
         End Sub
     End Class
 End Namespace
