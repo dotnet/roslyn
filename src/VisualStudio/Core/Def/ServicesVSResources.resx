@@ -1566,4 +1566,7 @@ I agree to all of the foregoing:</value>
   <data name="Show_hints_for_literals" xml:space="preserve">
     <value>Show hints for literals</value>
   </data>
+  <data name="Hide_hints_when_clear_based_on_method_and_parameter_name" xml:space="preserve">
+    <value>Hide hints when clear based on method and parameter name</value>
+  </data>
 </root>

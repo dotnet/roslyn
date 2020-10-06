@@ -118,6 +118,9 @@
                         <CheckBox x:Uid="ShowHintsForEverythingElse"
                                   x:Name="ShowHintsForEverythingElse"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_everything_else}" />
+                        <CheckBox x:Uid="HideHintsWhenClearBasedonMethodAndParameterName"
+                                  x:Name="HideHintsWhenClearBasedonMethodAndParameterName"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Hide_hints_when_clear_based_on_method_and_parameter_name}" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>

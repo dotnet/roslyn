@@ -69,6 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowHintsForLiterals, InlineHintsOptions.ForLiteralParameters, LanguageNames.CSharp);
             BindToOption(ShowHintsForNewExpressions, InlineHintsOptions.ForObjectCreationParameters, LanguageNames.CSharp);
             BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.CSharp);
+            BindToOption(HideHintsWhenClearBasedonMethodAndParameterName, InlineHintsOptions.HideForParametersThatMatchMethodIntent, LanguageNames.CSharp);
 
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptions.ShowRemarksInQuickInfo, LanguageNames.CSharp);
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.CSharp);
@@ -116,6 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             ShowHintsForLiterals.IsEnabled = enabledForParameters;
             ShowHintsForNewExpressions.IsEnabled = enabledForParameters;
             ShowHintsForEverythingElse.IsEnabled = enabledForParameters;
+            HideHintsWhenClearBasedonMethodAndParameterName.IsEnabled = enabledForParameters;
         }
 
         private void DisplayInlineParameterNameHints_Checked(object sender, RoutedEventArgs e)

@@ -46,6 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_hints_for_everything_else
             => ServicesVSResources.Show_hints_for_everything_else;
 
+        public static string Option_Hide_hints_when_clear_based_on_method_and_parameter_name
+            => ServicesVSResources.Hide_hints_when_clear_based_on_method_and_parameter_name;
+
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
 

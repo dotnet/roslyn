@@ -242,6 +242,11 @@
         <target state="translated">基于设置生成 .editorconfig 文件</target>
         <note />
       </trans-unit>
+      <trans-unit id="Hide_hints_when_clear_based_on_method_and_parameter_name">
+        <source>Hide hints when clear based on method and parameter name</source>
+        <target state="new">Hide hints when clear based on method and parameter name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="translated">突出显示光标下的相关组件</target>
