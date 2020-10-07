@@ -93,6 +93,30 @@ class C
             Assert.Equal(new[] { symbol }, foundSymbols);
         }
 
+        [Fact]
+        public void NintParameterMethod()
+        {
+            string code = @"
+class C
+{
+    void DoStuff(nint nint) {}
+}";
+
+            var comp = CreateCSharpCompilation(code);
+
+            var symbol = comp.GetSymbolsWithName("DoStuff").Single();
+
+            var actualDocId = DocumentationCommentId.CreateDeclarationId(symbol);
+
+            var expectedDocId = "M:C.DoStuff(System.IntPtr)";
+
+            Assert.Equal(expectedDocId, actualDocId);
+
+            var foundSymbols = DocumentationCommentId.GetSymbolsForDeclarationId(expectedDocId, comp);
+
+            Assert.Equal(new[] { symbol }, foundSymbols);
+        }
+
         internal override string VisualizeRealIL(
             IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
             => throw new NotImplementedException();
