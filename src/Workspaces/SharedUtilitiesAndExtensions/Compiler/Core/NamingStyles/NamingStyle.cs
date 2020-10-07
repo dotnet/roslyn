@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             => CheckFirstAndRestWords(
                 name, nameSpan, s_firstCharIsUpperCase, s_firstCharIsLowerCase,
                 CompilerExtensionsResources.The_first_word_0_must_begin_with_an_upper_case_character,
-                CompilerExtensionsResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0,
+                CompilerExtensionsResources.These_non_leading_words_must_begin_with_a_lower_case_letter_colon_0,
                 out reason);
 
         private static bool DoesCharacterHaveCasing(char c) => char.ToLower(c) != char.ToUpper(c);

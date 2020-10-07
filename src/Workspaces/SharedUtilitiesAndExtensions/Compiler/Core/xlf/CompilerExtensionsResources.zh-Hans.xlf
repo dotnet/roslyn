@@ -9,8 +9,8 @@
       </trans-unit>
       <trans-unit id="Abstract_Method">
         <source>Abstract Method</source>
-        <target state="translated">抽象方法</target>
-        <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+        <target state="needs-review-translation">抽象方法</target>
+        <note>{Locked="Abstract"}{Locked="Method"} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
       <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
         <source>An element with the same key but a different value already exists.</source>
@@ -24,28 +24,28 @@
       </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
-        <target state="translated">以 I 开始</target>
-        <note>{locked:I}</note>
+        <target state="needs-review-translation">以 I 开始</target>
+        <note>{Locked="I"}</note>
       </trans-unit>
       <trans-unit id="Class">
         <source>Class</source>
         <target state="new">Class</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
+        <note>{Locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Delegate">
         <source>Delegate</source>
         <target state="new">Delegate</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
+        <note>{Locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Enum">
         <source>Enum</source>
         <target state="new">Enum</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
+        <note>{Locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Event">
         <source>Event</source>
         <target state="new">Event</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
+        <note>{Locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Cast_is_redundant">
         <source>Cast is redundant.</source>
@@ -65,7 +65,7 @@
       <trans-unit id="Interface">
         <source>Interface</source>
         <target state="new">Interface</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
+        <note>{Locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Language_keywords_vs_BCL_types_preferences">
         <source>Language keywords vs BCL types preferences</source>
@@ -74,8 +74,8 @@
       </trans-unit>
       <trans-unit id="Method">
         <source>Method</source>
-        <target state="translated">方法</target>
-        <note>{locked:method} unless the capitalization should be handled differently</note>
+        <target state="needs-review-translation">方法</target>
+        <note>{Locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Missing_prefix_colon_0">
         <source>Missing prefix: '{0}'</source>
@@ -104,8 +104,8 @@
       </trans-unit>
       <trans-unit id="Non_Field_Members">
         <source>Non-Field Members</source>
-        <target state="translated">非字段成员</target>
-        <note>{locked:field}</note>
+        <target state="needs-review-translation">非字段成员</target>
+        <note>{Locked="Field"}</note>
       </trans-unit>
       <trans-unit id="NotSupported_FixedSizeCollection">
         <source>Collection was of a fixed size.</source>
@@ -144,28 +144,28 @@
       </trans-unit>
       <trans-unit id="Private_Method">
         <source>Private Method</source>
-        <target state="translated">私有方法</target>
-        <note>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+        <target state="needs-review-translation">私有方法</target>
+        <note>{Locked="Private"}{Locked="Method"} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
       <trans-unit id="Private_or_Internal_Field">
         <source>Private or Internal Field</source>
-        <target state="translated">私有或内部字段</target>
-        <note>{locked: private}{locked: internal}{locked:field}</note>
+        <target state="needs-review-translation">私有或内部字段</target>
+        <note>{Locked="Private"}{Locked="Internal"}{Locked="Field"}</note>
       </trans-unit>
       <trans-unit id="Private_or_Internal_Static_Field">
         <source>Private or Internal Static Field</source>
-        <target state="translated">私有或内部静态字段</target>
-        <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
+        <target state="needs-review-translation">私有或内部静态字段</target>
+        <note>{Locked="Private"}{Locked="Internal"}{Locked="Static"}{Locked="Field"}</note>
       </trans-unit>
       <trans-unit id="Property">
         <source>Property</source>
         <target state="new">Property</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
+        <note>{Locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Public_or_Protected_Field">
         <source>Public or Protected Field</source>
-        <target state="translated">公共或受保护的字段</target>
-        <note>{locked: public}{locked: protected}{locked:field}</note>
+        <target state="needs-review-translation">公共或受保护的字段</target>
+        <note>{Locked="Public"}{Locked="Protected"}{Locked="Field"}</note>
       </trans-unit>
       <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
         <source>Segment size must be power of 2 greater than 1</source>
@@ -179,18 +179,18 @@
       </trans-unit>
       <trans-unit id="Static_Field">
         <source>Static Field</source>
-        <target state="translated">静态字段</target>
-        <note>{locked:static}{locked:field} (unless the capitalization should be handled differently)</note>
+        <target state="needs-review-translation">静态字段</target>
+        <note>{Locked="Static"}{Locked="Field"} (unless the capitalization should be handled differently)</note>
       </trans-unit>
       <trans-unit id="Static_Method">
         <source>Static Method</source>
-        <target state="translated">静态方法</target>
-        <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+        <target state="needs-review-translation">静态方法</target>
+        <note>{Locked="Static"}{Locked="Method"} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
       <trans-unit id="Struct">
         <source>Struct</source>
         <target state="new">Struct</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
+        <note>{Locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Suppression_preferences">
         <source>Suppression preferences</source>
@@ -212,9 +212,9 @@
         <target state="translated">第一个字(“{0}”)必须以大写字符开头</target>
         <note />
       </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0">
-        <source>These non-leading words must begin with a lowercase letter: {0}</source>
-        <target state="translated">这些非前导字必须以小写字母开头: {0}</target>
+      <trans-unit id="These_non_leading_words_must_begin_with_a_lower_case_letter_colon_0">
+        <source>These non-leading words must begin with a lower case letter: {0}</source>
+        <target state="needs-review-translation">这些非前导字必须以小写字母开头: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0">
@@ -239,13 +239,13 @@
       </trans-unit>
       <trans-unit id="Types">
         <source>Types</source>
-        <target state="translated">类型</target>
-        <note>{locked:types} unless the capitalization should be handled differently</note>
+        <target state="needs-review-translation">类型</target>
+        <note>{Locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="this_dot_and_Me_dot_preferences">
         <source>this. and Me. preferences</source>
-        <target state="translated">this. 和 Me. 首选项</target>
-        <note />
+        <target state="needs-review-translation">this. 和 Me. 首选项</target>
+        <note>{Locked="this."}{Locked="Me."}</note>
       </trans-unit>
     </body>
   </file>
