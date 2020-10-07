@@ -4259,7 +4259,7 @@ class D
         }
 
         [Fact]
-        public void TargetTypedNewHasUseSiteError()
+        public void ImplicitObjectCreationHasUseSiteError()
         {
             var missing = @"public class Missing { }";
             var missingComp = CreateCompilation(missing, assemblyName: "missing");
@@ -4291,7 +4291,7 @@ class D
         }
 
         [Fact]
-        public void ArgumentOfTargetTypedNewHasUseSiteError()
+        public void ArgumentOfImplicitObjectCreationHasUseSiteError()
         {
             var missing = @"public class Missing { }";
             var missingComp = CreateCompilation(missing, assemblyName: "missing");
