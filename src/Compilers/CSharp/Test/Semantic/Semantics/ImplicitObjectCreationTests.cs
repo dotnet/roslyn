@@ -15,13 +15,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class TargetTypedObjectCreationTests : CSharpTestBase
+    public class ImplicitObjectCreationTests : CSharpTestBase
     {
-        private static readonly CSharpParseOptions TargetTypedObjectCreationTestOptions = TestOptions.Regular9;
+        private static readonly CSharpParseOptions ImplicitObjectCreationTestOptions = TestOptions.Regular9;
 
         private static CSharpCompilation CreateCompilation(string source, CSharpCompilationOptions options = null, IEnumerable<MetadataReference> references = null)
         {
-            return CSharpTestBase.CreateCompilation(source, options: options, parseOptions: TargetTypedObjectCreationTestOptions, references: references);
+            return CSharpTestBase.CreateCompilation(source, options: options, parseOptions: ImplicitObjectCreationTestOptions, references: references);
         }
 
         [Fact]
@@ -370,7 +370,7 @@ class C
             comp.VerifyDiagnostics(
                 // (9,13): error CS8754: There is no target type for 'new()'
                 //         d.M(new());
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(9, 13)
                 );
         }
 
@@ -401,16 +401,16 @@ class C
             comp.VerifyDiagnostics(
                 // (14,23): error CS8754: There is no target type for 'new()'
                 //         Console.Write(new() as C);
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(14, 23),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(14, 23),
                 // (15,23): error CS8754: There is no target type for 'new()'
                 //         Console.Write(new() as S?);
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(15, 23),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(15, 23),
                 // (16,23): error CS8754: There is no target type for 'new()'
                 //         Console.Write(new() as TClass);
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(16, 23),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(16, 23),
                 // (17,23): error CS8754: There is no target type for 'new()'
                 //         Console.Write(new() as TNew);
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(17, 23)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(17, 23)
                 );
         }
 
@@ -453,7 +453,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,17): error CS8754: There is no target type for 'new(int, int)'
                 //         var x = new(5);
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new(2, 3)").WithArguments("new(int, int)").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(2, 3)").WithArguments("new(int, int)").WithLocation(6, 17)
                 );
         }
 
@@ -473,7 +473,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,13): error CS8754: There is no target type for 'new()'
                 //         _ = new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 13)
                 );
         }
 
@@ -803,10 +803,10 @@ class C
             comp.VerifyDiagnostics(
                 // (7,14): error CS8752: The type '<empty anonymous type>' may not be used as the target-type of 'new()'
                 //         x0 = new();
-                Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new()").WithArguments("<empty anonymous type>").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationIllegalTargetType, "new()").WithArguments("<empty anonymous type>").WithLocation(7, 14),
                 // (9,14): error CS8752: The type '<anonymous type: int X>' may not be used as the target-type of 'new()'
                 //         x1 = new(2);
-                Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new(2)").WithArguments("<anonymous type: int X>").WithLocation(9, 14));
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationIllegalTargetType, "new(2)").WithArguments("<anonymous type: int X>").WithLocation(9, 14));
         }
 
         [Fact]
@@ -1026,7 +1026,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,13): error CS8754: There is no target type for 'new()'
                 //        _ = (new()).field;
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 13)
                 );
         }
 
@@ -1138,7 +1138,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,22): error CS8754: There is no target type for 'new()'
                 //         var (_, _) = new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 22),
                 // (6,22): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         var (_, _) = new();
                 Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "new()").WithLocation(6, 22),
@@ -1156,7 +1156,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(6, 17),
                 // (7,26): error CS8754: There is no target type for 'new()'
                 //         (var _, var _) = new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(7, 26),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(7, 26),
                 // (7,26): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (var _, var _) = new();
                 Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "new()").WithLocation(7, 26),
@@ -1174,7 +1174,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "var _").WithLocation(7, 17),
                 // (8,22): error CS8754: There is no target type for 'new()'
                 //         (C _, C _) = new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(8, 22),
                 // (8,22): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (C _, C _) = new();
                 Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "new()").WithLocation(8, 22)
@@ -1810,7 +1810,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 18),
                 // (7,9): error CS8754: There is no target type for 'new()'
                 //         new() { x };
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new() { x }").WithArguments("new()").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new() { x }").WithArguments("new()").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         new() { x };
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new() { x }").WithLocation(7, 9),
@@ -2072,10 +2072,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,16): error CS8754: There is no target type for 'new()'
                 //         using (new())
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 16),
                 // (10,24): error CS8754: There is no target type for 'new()'
                 //         using (var x = new())
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(10, 24),
                 // (14,39): error CS0144: Cannot create an instance of the abstract type or interface 'IDisposable'
                 //         using (System.IDisposable x = new())
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("System.IDisposable").WithLocation(14, 39)
@@ -2148,7 +2148,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,15): error CS8754: There is no target type for 'new()'
                 //         await new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 15),
                 // (11,19): error CS0103: The name 'a' does not exist in the current context
                 //         await new(a);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(11, 19)
@@ -2293,7 +2293,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,30): error CS8754: There is no target type for 'new()'
                 //         var x = new { Prop = new() };
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 30)
                 );
         }
 
@@ -2320,16 +2320,16 @@ class C
             comp.VerifyDiagnostics(
                 // (6,17): error CS8754: There is no target type for 'new()'
                 //         C v1 = +new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 17),
                 // (7,17): error CS8754: There is no target type for 'new()'
                 //         C v2 = -new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(7, 17),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(7, 17),
                 // (8,17): error CS8754: There is no target type for 'new()'
                 //         C v3 = ~new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(8, 17),
                 // (9,17): error CS8754: There is no target type for 'new()'
                 //         C v4 = !new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(9, 17),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(9, 17),
                 // (10,18): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
                 //         C v5 = ++new();
                 Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "new()").WithLocation(10, 18),
@@ -2448,10 +2448,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,9): error CS8754: There is no target type for 'new()'
                 //         new().ToString();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 9),
                 // (7,9): error CS8754: There is no target type for 'new()'
                 //         new()[0].ToString();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(7, 9)
                 );
         }
 
@@ -2554,7 +2554,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,17): error CS8754: There is no target type for 'new()'
                 //         switch (new())
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 17),
                 // (10,17): warning CS0162: Unreachable code detected
                 //                 break;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
@@ -2688,7 +2688,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,15): error CS8754: There is no target type for 'new()'
                 //         lock (new())
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 15)
                 );
         }
 
@@ -2787,7 +2787,7 @@ class C
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(").WithArguments("?").WithLocation(6, 13),
                 // (6,20): error CS8754: There is no target type for 'new()'
                 //         _ = sizeof(new());
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 20)
                 );
         }
 
@@ -2816,7 +2816,7 @@ class C
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "new").WithLocation(6, 20),
                 // (6,20): error CS8754: There is no target type for 'new()'
                 //         _ = typeof(new());
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 20),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 20),
                 // (6,25): error CS1002: ; expected
                 //         _ = typeof(new());
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 25),
@@ -2869,7 +2869,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithIndexAndRange(source, options: TestOptions.DebugExe, parseOptions: TargetTypedObjectCreationTestOptions);
+            var comp = CreateCompilationWithIndexAndRange(source, options: TestOptions.DebugExe, parseOptions: ImplicitObjectCreationTestOptions);
             comp.VerifyDiagnostics();
 
             var expectedOutput =
@@ -2997,10 +2997,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,18): error CS8754: There is no target type for 'new()'
                 //         var p = *new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 18),
                 // (7,17): error CS8754: There is no target type for 'new()'
                 //         var q = new()->F;
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(7, 17)
                 );
         }
 
@@ -3095,7 +3095,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,11): error CS9366: The type 'object[]' may not be used as the target-type of 'new()'
                 //         M(new());
-                Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new()").WithArguments("object[]").WithLocation(6, 11)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationIllegalTargetType, "new()").WithArguments("object[]").WithLocation(6, 11)
                 );
         }
 
@@ -3165,10 +3165,10 @@ class C
             comp.VerifyDiagnostics(
                 // (8,14): error CS9366: The type 'object[]' may not be used as the target-type of 'new'.
                 //         M(o, new());
-                Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new()").WithArguments("object[]").WithLocation(8, 14),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationIllegalTargetType, "new()").WithArguments("object[]").WithLocation(8, 14),
                 // (10,14): error CS9366: The type 'C[]' may not be used as the target-type of 'new'.
                 //         M(c, new());
-                Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new()").WithArguments("C[]").WithLocation(10, 14)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationIllegalTargetType, "new()").WithArguments("C[]").WithLocation(10, 14)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -3280,7 +3280,7 @@ class C
             comp.VerifyDiagnostics(
                 // (7,14): error CS8754: There is no target type for 'new()'
                 //         d.M2(new());
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(7, 14)
                 );
         }
 
@@ -3305,7 +3305,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,11): error CS8752: The type 'dynamic' may not be used as the target type of new()
                 //         F(new());
-                Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new()").WithArguments("dynamic").WithLocation(6, 11)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationIllegalTargetType, "new()").WithArguments("dynamic").WithLocation(6, 11)
                 );
         }
 
@@ -3392,19 +3392,19 @@ class C
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() != new()").WithArguments("!=", "new()").WithLocation(21, 17),
                 // (22,17): error CS8754: There is no target type for 'new()'
                 //         var q = new() && new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(22, 17),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(22, 17),
                 // (22,26): error CS8754: There is no target type for 'new()'
                 //         var q = new() && new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(22, 26),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(22, 26),
                 // (23,17): error CS8754: There is no target type for 'new()'
                 //         var r = new() || new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(23, 17),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(23, 17),
                 // (23,26): error CS8754: There is no target type for 'new()'
                 //         var r = new() || new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(23, 26),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(23, 26),
                 // (24,17): error CS8754: There is no target type for 'new()'
                 //         var s = new() ?? new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(24, 17)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(24, 17)
                 );
         }
 
@@ -3491,13 +3491,13 @@ class C
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() != 1").WithArguments("!=", "new()").WithLocation(21, 13),
                 // (22,13): error CS8754: There is no target type for 'new()'
                 //         _ = new() && 1;
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(22, 13),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(22, 13),
                 // (23,13): error CS8754: There is no target type for 'new()'
                 //         _ = new() || 1;
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(23, 13),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(23, 13),
                 // (24,13): error CS8754: There is no target type for 'new()'
                 //         _ = new() ?? 1;
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(24, 13)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(24, 13)
                 );
         }
 
@@ -3584,10 +3584,10 @@ class C
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 != new()").WithArguments("!=", "new()").WithLocation(21, 13),
                 // (22,18): error CS8754: There is no target type for 'new()'
                 //         _ = 1 && new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(22, 18),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(22, 18),
                 // (23,18): error CS8754: There is no target type for 'new()'
                 //         _ = 1 || new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(23, 18),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(23, 18),
                 // (24,13): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'new()'
                 //         _ = 1 ?? new();
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? new()").WithArguments("??", "int", "new()").WithLocation(24, 13)
@@ -3610,7 +3610,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,27): error CS8754: There is no target type for 'new()'
                 //         foreach (int x in new()) { }
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 27)
                 );
         }
 
@@ -3632,7 +3632,7 @@ static class C
             compilation.VerifyDiagnostics(
                 // (6,27): error CS8754: There is no target type for 'new()'
                 //         var q = from x in new() select x;
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 27),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 27),
                 // (7,43): error CS1942: The type of the expression in the select clause is incorrect.  Type inference failed in the call to 'Select'.
                 //         var p = from x in new int[] { 1 } select new();
                 Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailed, "select").WithArguments("select", "Select").WithLocation(7, 43)
@@ -3659,13 +3659,13 @@ class C
             comp.VerifyDiagnostics(
                 // (6,19): error CS8754: There is no target type for 'new()'
                 //         bool v1 = new() is long;
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 19),
                 // (7,19): error CS8754: There is no target type for 'new()'
                 //         bool v2 = new() is string;
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(7, 19),
                 // (8,19): error CS8754: There is no target type for 'new()'
                 //         bool v3 = new() is new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(8, 19),
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(8, 19),
                 // (10,27): error CS0150: A constant value is expected
                 //         bool v5 = this is new();
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(10, 27)
@@ -3689,7 +3689,7 @@ class Program
             var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (7,32): error CS8754: There is no target type for 'new()'
                 //         Func<object> f = () => new() ?? "hello";
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(7, 32)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(7, 32)
                 );
         }
 
@@ -4099,7 +4099,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TargetTypedObjectCreationTestOptions);
+            var comp = CreateCompilation(source, parseOptions: ImplicitObjectCreationTestOptions);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -4126,14 +4126,14 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TargetTypedObjectCreationTestOptions);
+            var comp = CreateCompilation(source, parseOptions: ImplicitObjectCreationTestOptions);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().Single();
             int nodeLocation = node.Location.SourceSpan.Start;
 
-            var modifiedNode = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement("M(new());", options: TargetTypedObjectCreationTestOptions);
+            var modifiedNode = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement("M(new());", options: ImplicitObjectCreationTestOptions);
             Assert.False(modifiedNode.HasErrors);
 
             bool success = model.TryGetSpeculativeSemanticModel(nodeLocation, modifiedNode, out var speculativeModel);
@@ -4170,7 +4170,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(int[])", "C.M(int)").WithLocation(6, 9),
                 // (7,18): error CS8752: The type 'int[]' may not be used as the target type of new()
                 //         M(array: new());
-                Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new()").WithArguments("int[]").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationIllegalTargetType, "new()").WithArguments("int[]").WithLocation(7, 18)
                 );
         }
 
