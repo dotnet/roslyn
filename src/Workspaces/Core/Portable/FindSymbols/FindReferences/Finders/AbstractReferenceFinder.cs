@@ -638,6 +638,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             void CollectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
                 ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations)
             {
+                if (!syntaxFacts.IsImplicitObjectCreation(node))
+                {
+                    // Avoid binding unrelated nodes
+                    return;
+                }
+
                 var constructor = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
 
                 if (Matches(constructor, originalUnreducedSymbolDefinition))
