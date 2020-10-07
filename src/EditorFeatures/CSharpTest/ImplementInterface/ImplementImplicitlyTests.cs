@@ -210,7 +210,7 @@ class C : IGoo
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         [WorkItem(48027, "https://github.com/dotnet/roslyn/issues/48027")]
-        public async Task TestSingleMemberNoInterface()
+        public async Task TestSingleMemberAndContainingTypeHasNoInterface()
         {
             await TestMissingAsync(
 @"
