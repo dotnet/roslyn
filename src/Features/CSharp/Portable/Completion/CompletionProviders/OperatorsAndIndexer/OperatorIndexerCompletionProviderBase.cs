@@ -94,6 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
+            var expressionSymbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+            if (expressionSymbolInfo.Symbol is INamedTypeSymbol)
+            {
+                // Expression looks like an access to a static member. Operator, indexer and conversions are not applicable.
+                return;
+            }
+
             var completionItems = GetCompletionItemsForTypeSymbol(semanticModel, container, expression, position, isAccessedByConditionalAccess, cancellationToken);
             context.AddItems(completionItems);
         }
