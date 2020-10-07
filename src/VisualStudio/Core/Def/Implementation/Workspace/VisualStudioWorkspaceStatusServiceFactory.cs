@@ -5,17 +5,19 @@
 #nullable disable
 
 using System;
-using System.ComponentModel;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
@@ -26,14 +28,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IAsyncServiceProvider2 _serviceProvider;
+        private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWorkspaceStatusServiceFactory(
-            SVsServiceProvider serviceProvider, IAsynchronousOperationListenerProvider listenerProvider)
+            SVsServiceProvider serviceProvider, IThreadingContext threadingContext, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _serviceProvider = (IAsyncServiceProvider2)serviceProvider;
+            _threadingContext = threadingContext;
 
             // for now, we use workspace so existing tests can automatically wait for full solution load event
             // subscription done in test
@@ -53,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 // only VSWorkspace supports partial load mode
-                return new Service(_serviceProvider, _listener);
+                return new Service(_serviceProvider, _threadingContext, _listener);
             }
 
             return new WorkspaceStatusService();
@@ -67,14 +71,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             private readonly SemaphoreSlim _initializationGate = new(initialCount: 1);
             private readonly IAsyncServiceProvider2 _serviceProvider;
+            private readonly IThreadingContext _threadingContext;
 
             private bool _initialized = false;
 
+            /// <summary>
+            /// A task indicating that the <see cref="Guids.GlobalHubClientPackageGuid"/> package has loaded. Calls to
+            /// <see cref="IServiceBroker.GetProxyAsync"/> may have a main thread dependency if the proffering package
+            /// is not loaded prior to the call.
+            /// </summary>
+            private JoinableTask _loadHubClientPackage;
+
             public event EventHandler StatusChanged;
 
-            public Service(IAsyncServiceProvider2 serviceProvider, IAsynchronousOperationListener listener)
+            public Service(IAsyncServiceProvider2 serviceProvider, IThreadingContext threadingContext, IAsynchronousOperationListener listener)
             {
                 _serviceProvider = serviceProvider;
+                _threadingContext = threadingContext;
 
                 // pre-emptively make sure event is subscribed. if APIs are called before it is done, calls will be blocked
                 // until event subscription is done
@@ -85,6 +98,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // unfortunately, IVsOperationProgressStatusService requires UI thread to let project system to proceed to next stages.
             // this method should only be used with either await or JTF.Run, it should be never used with Task.Wait otherwise, it can
             // deadlock
+            //
+            // This method also ensures the GlobalHubClientPackage package is loaded, since brokered services in Visual
+            // Studio require this package to provide proxy interfaces for invoking out-of-process services.
             public async Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.NoProperty, cancellationToken))
@@ -103,6 +119,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // TODO: WaitForCompletionAsync should accept cancellation directly.
                     //       for now, use WithCancellation to indirectly add cancellation
                     await completionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+
+                    await _loadHubClientPackage.JoinAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -140,6 +158,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
 
                     _initialized = true;
+
+                    _loadHubClientPackage = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                    {
+                        // Use the disposal token, since the caller's cancellation token will apply instead to the
+                        // JoinAsync operation.
+                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+
+                        // Make sure the HubClient package is loaded, since we rely on it for proffered OOP services
+                        var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>().ConfigureAwait(true);
+                        Assumes.Present(shell);
+
+                        await shell.LoadPackageAsync(Guids.GlobalHubClientPackageGuid);
+                    });
 
                     // with IAsyncServiceProvider, to get a service from BG, there is not much else
                     // we can do to avoid this pattern to subscribe to events
