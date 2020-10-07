@@ -131,12 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static ImmutableArray<TypeWithAnnotations> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters)
         {
-            var result = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            foreach (var typeParameter in typeParameters)
-            {
-                result.Add(s_instance);
-            }
-            return result.ToImmutableAndFree();
+            return typeParameters.SelectAsArray(_ => s_instance);
         }
 
         private PlaceholderTypeArgumentSymbol(TupleExtraData? tupleData = null)
