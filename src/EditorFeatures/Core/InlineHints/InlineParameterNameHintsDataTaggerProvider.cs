@@ -93,6 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var parameterHints = await paramNameHintsService.GetInlineParameterNameHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
                 foreach (var parameterHint in parameterHints)
                 {
+                    Contract.ThrowIfNull(parameterHint.Parameter);
+
                     cancellationToken.ThrowIfCancellationRequested();
                     context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(
                         new SnapshotSpan(snapshotSpan.Snapshot, parameterHint.Position, 0),
