@@ -94,6 +94,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="CommentsGuidesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
                 <StackPanel>
@@ -105,11 +106,31 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments}"/>
                 </StackPanel>
             </GroupBox>
+
+            <GroupBox x:Uid="InlineHintsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints_experimental}">
+                <StackPanel>
+                    <CheckBox x:Name="DisplayInlineParameterNameHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}"
+                              Checked="DisplayInlineParameterNameHints_Checked"
+                              Unchecked="DisplayInlineParameterNameHints_Unchecked"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Uid="ShowHintsForLiterals"
+                                  x:Name="ShowHintsForLiterals"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_literals}" />
+                        <CheckBox x:Uid="ShowHintsForNewExpressions"
+                                  x:Name="ShowHintsForNewExpressions"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_new_expressions}" />
+                        <CheckBox x:Uid="ShowHintsForEverythingElse"
+                                  x:Name="ShowHintsForEverythingElse"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_everything_else}" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>
-                    <CheckBox x:Name="DisplayInlineParameterNameHints"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}" />
                     <CheckBox x:Name="ShowRemarksInQuickInfo"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
                     <CheckBox x:Name="RenameTrackingPreview"
@@ -121,19 +142,19 @@
                 </StackPanel>
             </GroupBox>
 
-          <GroupBox x:Uid="RegularExpressionsGroupBox"
-                    Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
-            <StackPanel>
-              <CheckBox x:Name="Colorize_regular_expressions"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
-              <CheckBox x:Name="Report_invalid_regular_expressions"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
-              <CheckBox x:Name="Highlight_related_components_under_cursor"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
-              <CheckBox x:Name="Show_completion_list"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
-            </StackPanel>
-          </GroupBox>
+            <GroupBox x:Uid="RegularExpressionsGroupBox"
+                        Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
+                <StackPanel>
+                    <CheckBox x:Name="Colorize_regular_expressions"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
+                    <CheckBox x:Name="Report_invalid_regular_expressions"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
+                    <CheckBox x:Name="Highlight_related_components_under_cursor"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
+                    <CheckBox x:Name="Show_completion_list"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
+                </StackPanel>
+            </GroupBox>
 
             <GroupBox x:Uid="ClassificationsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">
