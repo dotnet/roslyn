@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 OnRequestServerShutdown($"Error occurred processing queue: {e.Message}.");
-                
+
                 if (work.CallbackAsync != null)
                 {
                     // We've shut down and cancelled any work that was in the queue, but if this exception
