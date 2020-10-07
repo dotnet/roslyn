@@ -5,17 +5,14 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -76,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (container is INamedTypeSymbol namedType)
             {
                 AddBuiltInNumericConversions(builder, semanticModel, namedType, containerIsNullable, position);
-                AddBuiltInEnumConversions(builder, semanticModel, namedType, expression, containerIsNullable, position, cancellationToken);
+                AddBuiltInEnumConversions(builder, semanticModel, namedType, containerIsNullable, position);
             }
 
             return builder.ToImmutable();
@@ -117,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private void AddBuiltInEnumConversions(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol container, ExpressionSyntax expression, bool containerIsNullable, int position, CancellationToken cancellationToken)
+        private void AddBuiltInEnumConversions(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol container, bool containerIsNullable, int position)
         {
             // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
             // Three kinds of conversions are defined in the spec.
@@ -127,13 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // * From sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal to any enum_type.
             // * From any enum_type to any other enum_type.
 
-            // Suggest after enum members: SomeEnum.EnumMember.$$
-            var suggestBuiltInEnumConversion = container.IsEnumMember();
-
-            // Suggest for enum values, but not after the enum type (don't infer with the enum member listing)
-            suggestBuiltInEnumConversion = suggestBuiltInEnumConversion ||
-                (container.IsEnumType() &&  // someEnumVariable.$$
-                    !(semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol is ITypeSymbol typeSymbol && typeSymbol.IsEnumType())); // but not SomeEnum.$$
+            // Suggest after enum members: SomeEnum.EnumMember.$$ 
+            // or on enum values: someEnumVariable.$$
+            var suggestBuiltInEnumConversion = container.IsEnumMember() || container.IsEnumType();
 
             if (suggestBuiltInEnumConversion)
             {
