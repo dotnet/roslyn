@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -661,7 +662,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (symbol.TypeKind)
                     {
-                        case TypeKind.Class when symbol.IsRecord:
+                        // FindValidCloneMethod is called instead of symbol.IsRecord since we want records in VB compilations to display as records.
+                        case TypeKind.Class when FindValidCloneMethod(symbol) is object:
                             AddKeyword(SyntaxKind.RecordKeyword);
                             AddSpace();
                             break;
@@ -705,6 +707,66 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Copy of <see cref="SynthesizedRecordClone.FindValidCloneMethod(TypeSymbol, ref HashSet{DiagnosticInfo}?)"/>
+        /// </summary>
+        private static IMethodSymbol FindValidCloneMethod(ITypeSymbol containingType)
+        {
+            if (containingType.SpecialType == SpecialType.System_Object)
+            {
+                return null;
+            }
+
+            IMethodSymbol candidate = null;
+
+            foreach (var member in containingType.GetMembers(WellKnownMemberNames.CloneMethodName))
+            {
+                if (member is IMethodSymbol
+                    {
+                        DeclaredAccessibility: Accessibility.Public,
+                        IsStatic: false,
+                        Parameters: { Length: 0 },
+                        Arity: 0
+                    } method)
+                {
+                    if (candidate is object)
+                    {
+                        // An ambiguity case, can come from metadata, treat as an error for simplicity.
+                        return null;
+                    }
+
+                    candidate = method;
+                }
+            }
+
+            if (candidate is null ||
+                !(containingType.IsSealed || candidate.IsOverride || candidate.IsVirtual || candidate.IsAbstract) ||
+                !isEqualToOrDerivedFrom(
+                    containingType,
+                    candidate.ReturnType))
+            {
+                return null;
+            }
+
+            return candidate;
+
+            static bool isEqualToOrDerivedFrom(ITypeSymbol one, ITypeSymbol other)
+            {
+                do
+                {
+                    if (one.Equals(other, SymbolEqualityComparer.IgnoreAll))
+                    {
+                        return true;
+                    }
+
+                    one = one.BaseType;
+                }
+                while (one != null);
+
+                return false;
             }
         }
 
