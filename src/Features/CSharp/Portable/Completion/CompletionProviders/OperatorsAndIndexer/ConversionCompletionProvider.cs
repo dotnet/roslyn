@@ -29,6 +29,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private const string MinimalTypeNamePropertyName = "MinimalTypeName";
         private const string ContainerTypeNamePropertyName = "ContainerTypeName";
+        private static readonly SpecialType[] s_BuiltInEnumConversionTargets = new[]
+            {
+                SpecialType.System_SByte,
+                SpecialType.System_Byte,
+                SpecialType.System_Int16,
+                SpecialType.System_UInt16,
+                SpecialType.System_Int32,
+                SpecialType.System_UInt32,
+                SpecialType.System_Int64,
+                SpecialType.System_UInt64,
+                SpecialType.System_Char,
+                SpecialType.System_Single,
+                SpecialType.System_Double,
+                SpecialType.System_Decimal,
+            };
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -108,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // * From sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal to any enum_type.
             // * From any enum_type to any other enum_type.
 
-            // Suggest after enum members: SomeEnum.EnumValue.$$
+            // Suggest after enum members: SomeEnum.EnumMember.$$
             var suggestBuiltInEnumConversion = container.IsEnumMember();
 
             // Suggest for enum values, but not after the enum type (don't infer with the enum member listing)
@@ -118,23 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (suggestBuiltInEnumConversion)
             {
-                var convertToSpecialTypes = new[]
-                {
-                    SpecialType.System_SByte,
-                    SpecialType.System_Byte,
-                    SpecialType.System_Int16,
-                    SpecialType.System_UInt16,
-                    SpecialType.System_Int32,
-                    SpecialType.System_UInt32,
-                    SpecialType.System_Int64,
-                    SpecialType.System_UInt64,
-                    SpecialType.System_Char,
-                    SpecialType.System_Single,
-                    SpecialType.System_Double,
-                    SpecialType.System_Decimal,
-                };
-
-                AddCompletionItemsForSpecialTypes(builder, semanticModel, container, containerIsNullable, position, convertToSpecialTypes);
+                AddCompletionItemsForSpecialTypes(builder, semanticModel, container, containerIsNullable, position, s_BuiltInEnumConversionTargets);
             }
         }
 
