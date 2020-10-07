@@ -22,7 +22,6 @@
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKind.cs" Link="Grammar\SyntaxKind.cs" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs" Link="Grammar\SyntaxKindFacts.cs" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
 
-    <!-- Reference the Source Generator API that matches the toolset that we're building with so they stay in sync -->
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftNetCompilersToolsetVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
 </Project>

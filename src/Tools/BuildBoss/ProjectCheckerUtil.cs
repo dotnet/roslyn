@@ -150,7 +150,7 @@ namespace BuildBoss
             // probably doesn't fall under this rule.
             if (ProjectFilePath.Contains("CompilerGeneratorTools") && packageReference.Name == "Microsoft.CodeAnalysis.Common")
             {
-                yield return "$(MicrosoftNetCompilersToolsetVersion)";
+                yield return "$(SourceGeneratorMicrosoftCodeAnalysisVersion)";
             }
             else
             {
