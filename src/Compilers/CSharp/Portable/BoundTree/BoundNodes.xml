@@ -2174,4 +2174,8 @@
     <Field Name="InitializerExpression" Type="BoundObjectInitializerExpressionBase" />
   </Node>
 
+  <Node Name="BoundGetRuntimeHandleExpression" Base="BoundExpression">
+    <Field Name="Symbol" Type="Symbol" Null="disallow" />
+  </Node>
+
 </Tree>

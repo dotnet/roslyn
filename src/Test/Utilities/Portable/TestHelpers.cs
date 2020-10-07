@@ -101,6 +101,7 @@ namespace Roslyn.Test.Utilities
         {
             Debug.Assert(code is Microsoft.CodeAnalysis.CSharp.ErrorCode ||
                          code is Microsoft.CodeAnalysis.VisualBasic.ERRID ||
+                         code is RoslynEx.ErrorCode ||
                          code is int ||
                          code is string);
 

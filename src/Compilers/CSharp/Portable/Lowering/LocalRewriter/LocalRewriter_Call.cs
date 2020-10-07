@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -224,6 +225,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenArguments[0],
                     rewrittenArguments[1],
                     type);
+            }
+            else if (method.IsStatic &&
+                // global::RoslynEx.Intrinsics
+                method.ContainingType is { Name: nameof(Intrinsics), ContainingNamespace: { Name: nameof(RoslynEx), ContainingNamespace: { IsGlobalNamespace: true } } })
+            {
+                Debug.Assert(temps.IsEmpty);
+                Debug.Assert(rewrittenArguments.Length == 1);
+
+                var constantValue = rewrittenArguments[0].ConstantValue;
+
+                if (constantValue == null)
+                {
+                    return error();
+                }
+                else
+                {
+                    string? docId = constantValue.StringValue;
+
+                    ImmutableArray<ISymbol> symbols = default;
+
+                    if (docId != null)
+                        symbols = DocumentationCommentId.GetSymbolsForDeclarationId(docId, _compilation);
+
+                    if (symbols.IsDefaultOrEmpty || symbols.Length > 1)
+                    {
+                        return error();
+                    }
+
+                    var symbol = symbols.Single();
+
+                    var expectedSymbolKind = method.Name switch
+                    {
+                        nameof(Intrinsics.GetRuntimeMethodHandle) => SymbolKind.Method,
+                        nameof(Intrinsics.GetRuntimeFieldHandle) => SymbolKind.Field,
+                        nameof(Intrinsics.GetRuntimeTypeHandle) => SymbolKind.NamedType,
+                        _ => default
+                    };
+
+                    Debug.Assert(expectedSymbolKind != default);
+
+                    if (symbol.Kind != expectedSymbolKind)
+                        return error();
+
+                    return new BoundGetRuntimeHandleExpression(syntax, symbol.GetSymbol(), method.ReturnType);
+                }
+
+                BoundBadExpression error()
+                {
+                    _diagnostics.Add(new DiagnosticInfo(
+                        RoslynExMessageProvider.Instance, (int)RoslynEx.ErrorCode.ERR_InvalidIntrinsicUse, rewrittenArguments[0].Syntax, method), syntax.Location);
+
+                    return _factory.BadExpression(_compilation.GetSpecialType(SpecialType.System_Void));
+                }
             }
             else if (node == null)
             {

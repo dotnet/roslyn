@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis
                         if (shouldDebugTransformedCode && !hasTransformedOutputPath)
                         {
                             var diagnostic = Diagnostic.Create(new DiagnosticInfo(
-                                RoslynExMessageProvider.Instance, RoslynExMessageProvider.WRN_NoTransformedOutputPathWhenDebuggingTransformed));
+                                RoslynExMessageProvider.Instance, (int)ErrorCode.WRN_NoTransformedOutputPathWhenDebuggingTransformed));
                             diagnostics.Add(diagnostic);
                         }
 

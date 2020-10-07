@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 catch (Exception ex)
                 {
                     var diagnostic = Diagnostic.Create(new DiagnosticInfo(
-                        RoslynExMessageProvider.Instance, RoslynExMessageProvider.ERR_TransformerFailed, transformer.GetType().Name, ex.ToString()));
+                        RoslynExMessageProvider.Instance, (int)RoslynEx.ErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.ToString()));
                     diagnostics.Add(diagnostic);
                 }
             }

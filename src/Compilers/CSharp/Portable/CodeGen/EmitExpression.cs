@@ -327,6 +327,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitLoadFunction((BoundFunctionPointerLoad)expression, used);
                     break;
 
+                case BoundKind.GetRuntimeHandleExpression:
+                    if (used)
+                    {
+                        EmitLdtoken((BoundGetRuntimeHandleExpression)expression);
+                    }
+                    break;
+
                 default:
                     // Code gen should not be invoked if there are errors.
                     Debug.Assert(expression.Kind != BoundKind.BadExpression);
@@ -3108,6 +3115,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 _builder.EmitOpCode(ILOpCode.Castclass);
                 EmitSymbolToken(node.Type, node.Syntax);
+            }
+        }
+
+        private void EmitLdtoken(BoundGetRuntimeHandleExpression node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            switch (node.Symbol)
+            {
+                case TypeSymbol typeSymbol:
+                    EmitSymbolToken(typeSymbol, node.Syntax);
+                    break;
+                case MethodSymbol methodSymbol:
+                    EmitSymbolToken(methodSymbol, node.Syntax, null);
+                    break;
+                case FieldSymbol fieldSymbol:
+                    EmitSymbolToken(fieldSymbol, node.Syntax);
+                    break;
+                default: throw ExceptionUtilities.Unreachable;
             }
         }
 

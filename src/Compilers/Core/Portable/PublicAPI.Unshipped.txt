@@ -12,4 +12,7 @@ RoslynEx.TransformerAttribute.TransformerAttribute() -> void
 RoslynEx.TransformerOrderAttribute
 RoslynEx.TransformerOrderAttribute.TransformerNames.get -> string[]
 RoslynEx.TransformerOrderAttribute.TransformerOrderAttribute(params string[] transformerNames) -> void
-Microsoft.CodeAnalysis.CommandLineArguments.TransformerOrder.get -> System.Collections.Immutable.ImmutableArray<string>
+RoslynEx.Intrinsics
+static RoslynEx.Intrinsics.GetRuntimeFieldHandle(string documentationId) -> System.RuntimeFieldHandle
+static RoslynEx.Intrinsics.GetRuntimeMethodHandle(string documentationId) -> System.RuntimeMethodHandle
+static RoslynEx.Intrinsics.GetRuntimeTypeHandle(string documentationId) -> System.RuntimeTypeHandle

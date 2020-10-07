@@ -1,22 +1,27 @@
 ﻿using System;
 using System.Globalization;
 using Microsoft.CodeAnalysis;
+using static RoslynEx.ErrorCode;
 
 namespace RoslynEx
 {
+    internal enum ErrorCode
+    {
+        ERR_TransformerFailed = 1,
+        ERR_TransformerNotFound = 2,
+        ERR_TransformerCycleFound = 3,
+        ERR_TransformersNotOrdered = 4,
+        WRN_NoTransformedOutputPathWhenDebuggingTransformed = 5,
+        ERR_InvalidIntrinsicUse = 6
+    }
+
     internal sealed class RoslynExMessageProvider : CommonMessageProvider
     {
         public static RoslynExMessageProvider Instance { get; } = new RoslynExMessageProvider();
 
-        public const int ERR_TransformerFailed = 1;
-        public const int ERR_TransformerNotFound = 2;
-        public const int ERR_TransformerCycleFound = 3;
-        public const int ERR_TransformersNotOrdered = 4;
-        public const int WRN_NoTransformedOutputPathWhenDebuggingTransformed = 5;
-
         public override string CodePrefix => "RE";
 
-        public override Type ErrorCodeType => throw new NotImplementedException();
+        public override Type ErrorCodeType => typeof(ErrorCode);
 
         #region Roslyn error codes
 
@@ -160,10 +165,7 @@ namespace RoslynEx
 
         public override string GetCategory(int code) => Diagnostic.CompilerDiagnosticCategory;
 
-        public override LocalizableString GetDescription(int code)
-        {
-            throw new NotImplementedException();
-        }
+        public override LocalizableString GetDescription(int code) => null!;
 
         public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
         {
@@ -181,39 +183,49 @@ namespace RoslynEx
                 severity == DiagnosticSeverity.Error || isWarningAsError ? "error" : "warning",
                 id);
 
-        public override DiagnosticSeverity GetSeverity(int code) => code switch
+        public override DiagnosticSeverity GetSeverity(int code) => (ErrorCode)code switch
         {
             ERR_TransformerFailed or
             ERR_TransformerNotFound or
             ERR_TransformerCycleFound or
-            ERR_TransformersNotOrdered => DiagnosticSeverity.Error,
+            ERR_TransformersNotOrdered or
+            ERR_InvalidIntrinsicUse => DiagnosticSeverity.Error,
             WRN_NoTransformedOutputPathWhenDebuggingTransformed => DiagnosticSeverity.Warning,
             _ => throw new ArgumentOutOfRangeException(nameof(code))
         };
 
-        public override LocalizableString GetTitle(int code)
-        {
-            throw new NotImplementedException();
-        }
+        public override LocalizableString GetTitle(int code) =>
+            (ErrorCode)code switch
+            {
+                ERR_TransformerFailed => "Transformer failed.",
+                ERR_TransformerNotFound => "Transformer was not found when resolving transformer order.",
+                ERR_TransformerCycleFound => "Dependencies between transformers form a cycle.",
+                ERR_TransformersNotOrdered => "Transformers are not strongly ordered. Their order of execution would not be deterministic.",
+                WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled.",
+                ERR_InvalidIntrinsicUse => "Argument is not valid for RoslynEx intrinsic method.",
+                _ => throw new ArgumentOutOfRangeException(nameof(code))
+            };
 
-        public override int GetWarningLevel(int code) => code switch
+        public override int GetWarningLevel(int code) => (ErrorCode)code switch
         {
             ERR_TransformerFailed or
             ERR_TransformerNotFound or
             ERR_TransformerCycleFound or
-            ERR_TransformersNotOrdered => 0,
+            ERR_TransformersNotOrdered or
+            ERR_InvalidIntrinsicUse => 0,
             WRN_NoTransformedOutputPathWhenDebuggingTransformed => 1,
             _ => throw new ArgumentOutOfRangeException(nameof(code))
         };
 
         public override string LoadMessage(int code, CultureInfo? language) =>
-            code switch
+            (ErrorCode)code switch
             {
                 ERR_TransformerFailed => "Transformer '{0}' failed: {1}",
                 ERR_TransformerNotFound => "Transformer '{0}' was not found when resolving transformer order.",
                 ERR_TransformerCycleFound => "Dependencies between transformers form a cycle. Members of this cycle are: {0}",
                 ERR_TransformersNotOrdered => "Transformers '{0}' and '{1}' are not strongly ordered. Their order of execution would not be deterministic.",
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled. This will lead to warnings and errors that point to nonsensical file locations.",
+                ERR_InvalidIntrinsicUse => "Argument '{0}' is not valid for RoslynEx intrinsic method '{1}'.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
