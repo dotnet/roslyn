@@ -118,6 +118,18 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         // cached query strings
 
+        /// <summary>
+        /// Next unique id hand out to give each storage instance its own in-memory cache to read/write from. The
+        /// on-disk data will still be shared across storage instances.
+        /// </summary>
+        private static int s_nextWriteCacheId;
+
+        /// <summary>
+        /// The name of our in-memory write cache DB.  See documentation on <see cref="GetName(Database)"/> for a deeper
+        /// explanation on this.
+        /// </summary>
+        private readonly string WriteCacheName = "writecache" + Interlocked.Increment(ref s_nextWriteCacheId);
+
         private readonly string _select_star_from_string_table;
         private readonly string _insert_into_string_table_values_0;
         private readonly string _select_star_from_string_table_where_0_limit_one;
@@ -168,7 +180,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             // Otherwise create a new connection.
-            return SqlConnection.Create(_faultInjectorOpt, DatabaseFile);
+            return SqlConnection.Create(this, _faultInjectorOpt, DatabaseFile);
         }
 
         private void ReleaseConnection(SqlConnection connection)
@@ -335,9 +347,9 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
 
             return;
 
-            static void EnsureTables(SqlConnection connection, Database database)
+            void EnsureTables(SqlConnection connection, Database database)
             {
-                var dbName = database.GetName();
+                var dbName = this.GetName(database);
                 connection.ExecuteCommand(
 $@"create table if not exists {dbName}.{SolutionDataTableName}(
     ""{DataIdColumnName}"" varchar primary key not null,
@@ -357,5 +369,57 @@ $@"create table if not exists {dbName}.{DocumentDataTableName}(
     ""{DataColumnName}"" blob)");
             }
         }
+
+        /// <summary>
+        /// Name of the different dbs.
+        /// <list type="number">
+        /// <item>
+        /// "main" is the default that sqlite uses.  This just allows us to be explicit that we want this db.
+        /// </item>
+        /// <item>
+        /// "writecache{uniqueId}" is the name for the in-memory write-cache db.  Writes will be staged there and will
+        /// be periodically flushed to the real on-disk db to help with perf.  We use a uniqueId here as we may be
+        /// accessing this DB from many different <see cref="SQLitePersistentStorage"/> instances within the same
+        /// process (for example, multiple workspaces exposing the same solution id).  The in-memory cache must be
+        /// carefully used as there can only be one writer to it *per process*.  By giving each storage instance its own
+        /// in-memory cache, we prevent different storage instances from concurrently colliding with each other.
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <remarks>
+        /// Perf measurements show this as significantly better than all other design options. It's also one of the
+        /// simplest in terms of the design.
+        /// <para/>
+        /// The design options in order of performance (slowest to fastest) are:
+        /// <list type="number">
+        /// <item>
+        /// send writes directly to the main db. this is incredibly slow (since each write incurs the full IO overhead
+        /// of a transaction). It is the absolute simplest in terms of implementation though.
+        /// </item> 
+        /// <item>
+        /// Send writes to a temporary on-disk db (with synchronous=off and journal_mode=memory), then flush those to
+        /// the main db.  This is also quite slow due to their still needing to be disk IO with each write.
+        /// Implementation is fairly simple, with writes just going to the temp db and reads going to both.
+        /// </item>
+        /// <item>
+        /// Buffer writes in (.net) memory and flush them to disk.  This is much faster than '1' or '2' but requires a
+        /// lot of manual book-keeping and extra complexity. For example, any reads go to the db.  So that means that
+        /// reads have to ensure that any writes to the same rows have been persisted so they can observe them.
+        /// </item>
+        /// <item>
+        /// Send writes to an sqlite in-memory cache DB.  This is extremely fast for sqlite as there is no actual IO
+        /// that is performed.  It is also easy in terms of bookkeeping as both DBs have the same schema and are easy to
+        /// move data between. '4' is faster than all of the above. Complexity is minimized as reading can be done just
+        /// by examining both DBs in the same way. It's not as simple as '1' but it's much simpler than '3'.
+        /// </item>
+        /// </list>
+        /// </remarks>
+        public string GetName(Database database)
+            => database switch
+            {
+                Database.Main => "main",
+                Database.WriteCache => WriteCacheName,
+                _ => throw ExceptionUtilities.UnexpectedValue(database)
+            };
     }
 }

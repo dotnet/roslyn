@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
     internal class SqlConnection
     {
         /// <summary>
+        /// The storage instance we belong to.
+        /// </summary>
+        private readonly SQLitePersistentStorage _storage;
+
+        /// <summary>
         /// The raw handle to the underlying DB.
         /// </summary>
         private readonly SafeSqliteHandle _handle;
@@ -52,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         /// </summary>
         public bool IsInTransaction { get; private set; }
 
-        public static SqlConnection Create(IPersistentStorageFaultInjector faultInjector, string databasePath)
+        public static SqlConnection Create(SQLitePersistentStorage storage, IPersistentStorageFaultInjector faultInjector, string databasePath)
         {
             faultInjector?.OnNewConnection();
 
@@ -84,7 +89,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             try
             {
                 NativeMethods.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
-                var connection = new SqlConnection(handle, faultInjector, queryToStatement);
+                var connection = new SqlConnection(storage, handle, faultInjector, queryToStatement);
 
                 // Attach (creating if necessary) a singleton in-memory write cache to this connection.
                 //
@@ -99,7 +104,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 // this, another connection will see that data when reading.  Without this, each
                 // connection would get their own private memory db independent of all other
                 // connections.
-                connection.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {Database.WriteCache.GetName()};");
+                connection.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {storage.GetName(Database.WriteCache)};");
 
                 return connection;
             }
@@ -112,8 +117,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             }
         }
 
-        private SqlConnection(SafeSqliteHandle handle, IPersistentStorageFaultInjector faultInjector, Dictionary<string, SqlStatement> queryToStatement)
+        private SqlConnection(SQLitePersistentStorage storage, SafeSqliteHandle handle, IPersistentStorageFaultInjector faultInjector, Dictionary<string, SqlStatement> queryToStatement)
         {
+            _storage = storage;
             _handle = handle;
             _faultInjector = faultInjector;
             _queryToStatement = queryToStatement;
@@ -257,7 +263,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 
             const int ReadOnlyFlags = 0;
 
-            using var blob = NativeMethods.sqlite3_blob_open(_handle, database.GetName(), tableName, columnName, rowId, ReadOnlyFlags, out var result);
+            using var blob = NativeMethods.sqlite3_blob_open(_handle, _storage.GetName(database), tableName, columnName, rowId, ReadOnlyFlags, out var result);
 
             if (result == Result.ERROR)
             {

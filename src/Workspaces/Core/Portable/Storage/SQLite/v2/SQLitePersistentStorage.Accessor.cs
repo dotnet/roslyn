@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             public Accessor(SQLitePersistentStorage storage)
             {
-                var main = Database.Main.GetName();
-                var writeCache = Database.WriteCache.GetName();
+                var main = storage.GetName(Database.Main);
+                var writeCache = storage.GetName(Database.WriteCache);
 
                 Storage = storage;
                 _select_rowid_from_main_table_where_0 = $@"select rowid from {main}.{DataTableName} where ""{DataIdColumnName}"" = ?";
