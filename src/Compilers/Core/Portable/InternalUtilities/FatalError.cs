@@ -196,47 +196,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return true;
         }
 
-        /// <summary>
-        /// Report a non-fatal error like <see cref="ReportWithoutCrash"/> but propagates the exception.
-        /// </summary>
-        /// <returns>False to propagate the exception.</returns>
-        [DebuggerHidden]
-        public static bool ReportWithoutCrashAndPropagate(Exception exception)
-        {
-            Report(exception, s_nonFatalHandler);
-            return false;
-        }
-
-        /// <summary>
-        /// Report a non-fatal error like <see cref="ReportWithoutCrash"/> but propagates the exception.
-        /// </summary>
-        /// <returns>False to propagate the exception.</returns>
-        [DebuggerHidden]
-        public static bool ReportWithoutCrashUnlessCanceledAndPropagate(Exception exception)
-        {
-            if (!(exception is OperationCanceledException))
-            {
-                Report(exception, s_nonFatalHandler);
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Report a non-fatal error like <see cref="ReportWithoutCrash"/> but propagates the exception, unless the operation has been cancelled.
-        /// </summary>
-        /// <returns>False to propagate the exception.</returns>
-        [DebuggerHidden]
-        public static bool ReportWithoutCrashUnlessCanceledAndPropagate(Exception exception, CancellationToken cancellationToken)
-        {
-            if (!IsCurrentOperationBeingCancelled(exception, cancellationToken))
-            {
-                Report(exception, s_nonFatalHandler);
-            }
-
-            return false;
-        }
-
         private static readonly object s_reportedMarker = new();
 
         private static void Report(Exception exception, Action<Exception>? handler)

@@ -177,7 +177,7 @@ namespace Roslyn.Utilities
                         }
                     }
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashAndPropagate(e))
+                catch (Exception e) when (FatalError.Report(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

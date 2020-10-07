@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService, _shutdownCancellationService);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     ? SpecializedTasks.True
                     : SpecializedTasks.False;
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

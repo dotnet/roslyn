@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // re-run just the body
                         await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, activeMember, reasons, c), cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         return null;
                     }
-                    catch (Exception e) when (FatalError.ReportWithoutCrashAndPropagate(e))
+                    catch (Exception e) when (FatalError.Report(e))
                     {
                         // TODO: manage bad workers like what code actions does now
                         throw ExceptionUtilities.Unreachable;
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return true;
                         }
 
-                        return FatalError.ReportWithoutCrashAndPropagate(flattened);
+                        return FatalError.Report(flattened);
                     }
                 }
 

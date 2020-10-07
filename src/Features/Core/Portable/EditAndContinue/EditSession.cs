@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return false;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     allAddedSymbolResult,
                     activeStatementsInChangedDocuments.ToImmutableAndFree());
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             {
                                 Emit();
                             }
-                            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+                            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                             {
                                 throw ExceptionUtilities.Unreachable;
                             }
@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     emitBaselines.ToImmutable(),
                     diagnostics.ToImmutable());
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
