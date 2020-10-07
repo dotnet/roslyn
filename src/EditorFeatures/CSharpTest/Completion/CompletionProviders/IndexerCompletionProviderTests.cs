@@ -65,6 +65,27 @@ public class Program
 ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task IndexerIsNotSuggestedInNameOfContext()
+        {
+            await VerifyNoItemsExistAsync(@"
+public class C
+{
+    public int this[int i] => i;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        var name = nameof(c.$$
+    }
+}
+");
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerSuggestionCommitsOpenAndClosingBraces()

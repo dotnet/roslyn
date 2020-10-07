@@ -191,6 +191,27 @@ public class Program
 ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionIsNotSuggestedInNameofContext()
+        {
+            await VerifyNoItemsExistAsync(@"
+public class C
+{
+    public static explicit operator float(C c) => 0;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        var name = nameof(c.$$
+    }
+}
+");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("", "Nested1.C", "Nested2.C")]
