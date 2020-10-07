@@ -7,9 +7,9 @@
         <target state="translated">無法將命名空間加入此目的地。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_attributes_expressions_or_statements_can_be_made_explicit">
-        <source>Only attributes, expressions or statements can be made explicit</source>
-        <target state="translated">只有屬性、運算式或陳述式可以設為明確</target>
+      <trans-unit id="Only_attributes_expressions_and_statements_can_be_made_explicit">
+        <source>Only attributes, expressions, and statements can be made explicit</source>
+        <target state="needs-review-translation">只有屬性、運算式或陳述式可以設為明確</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Imports">
@@ -53,34 +53,34 @@
         <note />
       </trans-unit>
       <trans-unit id="Associates_an_event_with_an_event_handler_delegate_or_lambda_expression_at_run_time">
-        <source>Associates an event with an event handler, delegate or lambda expression at run time.</source>
-        <target state="translated">在執行階段將事件與事件處理常式、委派或 Lambda 運算式產生關聯。</target>
+        <source>Associates an event with an event handler, delegate, or lambda expression at run time.</source>
+        <target state="needs-review-translation">在執行階段將事件與事件處理常式、委派或 Lambda 運算式產生關聯。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_event_to_associate_an_event_handler_delegate_or_lambda_expression_with">
-        <source>The event to associate an event handler, delegate or lambda expression with.</source>
-        <target state="translated">與事件處理常式、委派或 Lambda 運算式相關聯的事件。</target>
+        <source>The event to associate an event handler, delegate, or lambda expression with.</source>
+        <target state="needs-review-translation">與事件處理常式、委派或 Lambda 運算式相關聯的事件。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_event_handler_to_associate_with_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate_lambdaExpression">
         <source>The event handler to associate with the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; }.</source>
-        <target state="translated">會與事件產生關聯的事件處理常式。可能採用 { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; } 的格式。</target>
-        <note />
+        <target state="needs-review-translation">會與事件產生關聯的事件處理常式。可能採用 { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; } 的格式。</target>
+        <note>{Locked="AddressOf"}</note>
       </trans-unit>
       <trans-unit id="If_expression_evaluates_to_a_reference_or_Nullable_value_that_is_not_Nothing_the_function_returns_that_value_Otherwise_it_calculates_and_returns_expressionIfNothing">
         <source>If &lt;expression&gt; evaluates to a reference or Nullable value that is not Nothing, the function returns that value. Otherwise, it calculates and returns &lt;expressionIfNothing&gt;.</source>
-        <target state="translated">如果 &lt;expression&gt; 評估為參考或不是 Nothing 的可為 Null 的值，該函式會傳回該值; 否則會計算及傳回 &lt;expressionIfNothing&gt;。</target>
-        <note />
+        <target state="needs-review-translation">如果 &lt;expression&gt; 評估為參考或不是 Nothing 的可為 Null 的值，該函式會傳回該值; 否則會計算及傳回 &lt;expressionIfNothing&gt;。</target>
+        <note>{Locked="Nullable"}{Locked="Nothing"}</note>
       </trans-unit>
       <trans-unit id="Returned_if_it_evaluates_to_a_reference_or_nullable_type_that_is_not_Nothing">
         <source>Returned if it evaluates to a reference or nullable type that is not Nothing.</source>
-        <target state="translated">如果評估為參考或不是 Nothing 的可為 Null 之類型，即會傳回。</target>
-        <note />
+        <target state="needs-review-translation">如果評估為參考或不是 Nothing 的可為 Null 之類型，即會傳回。</target>
+        <note>{Locked="Nothing"}</note>
       </trans-unit>
       <trans-unit id="Evaluated_and_returned_if_expression_evaluates_to_Nothing">
         <source>Evaluated and returned if &lt;expression&gt; evaluates to Nothing.</source>
-        <target state="translated">評估並傳回 &lt;expression&gt; 是否評估為 Nothing。</target>
-        <note />
+        <target state="needs-review-translation">評估並傳回 &lt;expression&gt; 是否評估為 Nothing。</target>
+        <note>{Locked="Nothing"}</note>
       </trans-unit>
       <trans-unit id="expressionIfNothing">
         <source>&lt;expressionIfNothing&gt;</source>
@@ -94,23 +94,23 @@
       </trans-unit>
       <trans-unit id="Introduces_a_type_conversion_operation_similar_to_CType_The_difference_is_that_CType_succeeds_as_long_as_there_is_a_valid_conversion_whereas_DirectCast_requires_that_one_type_inherit_from_or_implement_the_other_type">
         <source>Introduces a type conversion operation similar to CType. The difference is that CType succeeds as long as there is a valid conversion, whereas DirectCast requires that one type inherit from or implement the other type.</source>
-        <target state="translated">採用類似 CType 的類型轉換作業。其差別在於，只要出現有效的轉換，CType 就會成功; 而 DirectCast 則需要一個類型必須繼承自另一個類型或實作該類型。</target>
-        <note />
+        <target state="needs-review-translation">採用類似 CType 的類型轉換作業。其差別在於，只要出現有效的轉換，CType 就會成功; 而 DirectCast 則需要一個類型必須繼承自另一個類型或實作該類型。</target>
+        <note>{Locked="CType"}{Locked="DirectCast"}</note>
       </trans-unit>
       <trans-unit id="The_type_name_to_return_a_System_Type_object_for">
         <source>The type name to return a System.Type object for.</source>
-        <target state="translated">要傳回 System.Type 物件的類型名稱。</target>
-        <note />
+        <target state="needs-review-translation">要傳回 System.Type 物件的類型名稱。</target>
+        <note>{Locked="System.Type"}</note>
       </trans-unit>
       <trans-unit id="Returns_a_System_Type_object_for_the_specified_type_name">
         <source>Returns a System.Type object for the specified type name.</source>
-        <target state="translated">傳回指定類型名稱的 System.Type 物件。</target>
-        <note />
+        <target state="needs-review-translation">傳回指定類型名稱的 System.Type 物件。</target>
+        <note>{Locked="System.Type"}</note>
       </trans-unit>
       <trans-unit id="The_XML_namespace_prefix_to_return_a_System_Xml_Linq_XNamespace_object_for_If_this_is_omitted_the_object_for_the_default_XML_namespace_is_returned">
         <source>The XML namespace prefix to return a System.Xml.Linq.XNamespace object for. If this is omitted, the object for the default XML namespace is returned.</source>
-        <target state="translated">要傳回 System.Xml.Linq.XNamespace 物件的 XML 命名空間前置詞。如果省略，則會傳回預設 XML 命名空間的物件。</target>
-        <note />
+        <target state="needs-review-translation">要傳回 System.Xml.Linq.XNamespace 物件的 XML 命名空間前置詞。如果省略，則會傳回預設 XML 命名空間的物件。</target>
+        <note>{Locked="System.Xml.Linq.XNamespace"}</note>
       </trans-unit>
       <trans-unit id="xmlNamespacePrefix">
         <source>&lt;xmlNamespacePrefix&gt;</source>
@@ -119,13 +119,13 @@
       </trans-unit>
       <trans-unit id="Returns_the_System_Xml_Linq_XNamespace_object_corresponding_to_the_specified_XML_namespace_prefix">
         <source>Returns the System.Xml.Linq.XNamespace object corresponding to the specified XML namespace prefix.</source>
-        <target state="translated">傳回與指定之 XML 命名空間前置詞相對應的 System.Xml.Linq.XNamespace 物件。</target>
-        <note />
+        <target state="needs-review-translation">傳回與指定之 XML 命名空間前置詞相對應的 System.Xml.Linq.XNamespace 物件。</target>
+        <note>{Locked="System.Xml.Linq.XNamespace"}</note>
       </trans-unit>
       <trans-unit id="Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string">
         <source>Replaces a specified number of characters in a String variable with characters from another string.</source>
-        <target state="translated">將字串變數中指定個數的字元，取代為另一個字串中的字元。</target>
-        <note />
+        <target state="needs-review-translation">將字串變數中指定個數的字元，取代為另一個字串中的字元。</target>
+        <note>{Locked="String"}</note>
       </trans-unit>
       <trans-unit id="The_name_of_the_string_variable_to_modify">
         <source>The name of the string variable to modify.</source>
@@ -179,8 +179,8 @@
       </trans-unit>
       <trans-unit id="The_event_handler_to_disassociate_from_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate">
         <source>The event handler to disassociate from the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; }.</source>
-        <target state="translated">要與事件取消關聯的事件處理常式。可能採用 { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; } 的格式。</target>
-        <note />
+        <target state="needs-review-translation">要與事件取消關聯的事件處理常式。可能採用 { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; } 的格式。</target>
+        <note>{Locked="AddressOf"}</note>
       </trans-unit>
       <trans-unit id="If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse">
         <source>If &lt;condition&gt; returns True, the function calculates and returns &lt;expressionIfTrue&gt;. Otherwise, it returns &lt;expressionIfFalse&gt;.</source>
@@ -194,13 +194,13 @@
       </trans-unit>
       <trans-unit id="Evaluated_and_returned_if_condition_evaluates_to_True">
         <source>Evaluated and returned if &lt;condition&gt; evaluates to True.</source>
-        <target state="translated">評估並傳回 &lt;condition&gt; 是否評估為 True。</target>
-        <note />
+        <target state="needs-review-translation">評估並傳回 &lt;condition&gt; 是否評估為 True。</target>
+        <note>{Locked="True"}</note>
       </trans-unit>
       <trans-unit id="Evaluated_and_returned_if_condition_evaluates_to_False">
         <source>Evaluated and returned if &lt;condition&gt; evaluates to False.</source>
-        <target state="translated">評估並傳回 &lt;condition&gt; 是否評估為 False。</target>
-        <note />
+        <target state="needs-review-translation">評估並傳回 &lt;condition&gt; 是否評估為 False。</target>
+        <note>{Locked="False"}</note>
       </trans-unit>
       <trans-unit id="condition">
         <source>&lt;condition&gt;</source>
@@ -219,8 +219,8 @@
       </trans-unit>
       <trans-unit id="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for">
         <source>Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.</source>
-        <target state="translated">採用不會擲出例外狀況的類型轉換作業。如果嘗試的轉換失敗，TryCast 會傳回 Nothing，讓您的程式能夠測試。</target>
-        <note />
+        <target state="needs-review-translation">採用不會擲出例外狀況的類型轉換作業。如果嘗試的轉換失敗，TryCast 會傳回 Nothing，讓您的程式能夠測試。</target>
+        <note>{Locked="TryCast"}{Locked="Nothing"}</note>
       </trans-unit>
       <trans-unit id="Node_does_not_descend_from_root">
         <source>Node does not descend from root.</source>

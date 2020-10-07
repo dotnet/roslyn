@@ -120,8 +120,8 @@
   <data name="Namespace_can_not_be_added_in_this_destination" xml:space="preserve">
     <value>Namespace can not be added in this destination.</value>
   </data>
-  <data name="Only_attributes_expressions_or_statements_can_be_made_explicit" xml:space="preserve">
-    <value>Only attributes, expressions or statements can be made explicit</value>
+  <data name="Only_attributes_expressions_and_statements_can_be_made_explicit" xml:space="preserve">
+    <value>Only attributes, expressions, and statements can be made explicit</value>
   </data>
   <data name="event_" xml:space="preserve">
     <value>&lt;event&gt;</value>
@@ -142,22 +142,26 @@
     <value>&lt;typeName&gt;</value>
   </data>
   <data name="Associates_an_event_with_an_event_handler_delegate_or_lambda_expression_at_run_time" xml:space="preserve">
-    <value>Associates an event with an event handler, delegate or lambda expression at run time.</value>
+    <value>Associates an event with an event handler, delegate, or lambda expression at run time.</value>
   </data>
   <data name="The_event_to_associate_an_event_handler_delegate_or_lambda_expression_with" xml:space="preserve">
-    <value>The event to associate an event handler, delegate or lambda expression with.</value>
+    <value>The event to associate an event handler, delegate, or lambda expression with.</value>
   </data>
   <data name="The_event_handler_to_associate_with_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate_lambdaExpression" xml:space="preserve">
     <value>The event handler to associate with the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; }.</value>
+    <comment>{Locked="AddressOf"}</comment>
   </data>
   <data name="If_expression_evaluates_to_a_reference_or_Nullable_value_that_is_not_Nothing_the_function_returns_that_value_Otherwise_it_calculates_and_returns_expressionIfNothing" xml:space="preserve">
     <value>If &lt;expression&gt; evaluates to a reference or Nullable value that is not Nothing, the function returns that value. Otherwise, it calculates and returns &lt;expressionIfNothing&gt;.</value>
+    <comment>{Locked="Nullable"}{Locked="Nothing"}</comment>
   </data>
   <data name="Returned_if_it_evaluates_to_a_reference_or_nullable_type_that_is_not_Nothing" xml:space="preserve">
     <value>Returned if it evaluates to a reference or nullable type that is not Nothing.</value>
+    <comment>{Locked="Nothing"}</comment>
   </data>
   <data name="Evaluated_and_returned_if_expression_evaluates_to_Nothing" xml:space="preserve">
     <value>Evaluated and returned if &lt;expression&gt; evaluates to Nothing.</value>
+    <comment>{Locked="Nothing"}</comment>
   </data>
   <data name="expressionIfNothing" xml:space="preserve">
     <value>&lt;expressionIfNothing&gt;</value>
@@ -167,24 +171,30 @@
   </data>
   <data name="Introduces_a_type_conversion_operation_similar_to_CType_The_difference_is_that_CType_succeeds_as_long_as_there_is_a_valid_conversion_whereas_DirectCast_requires_that_one_type_inherit_from_or_implement_the_other_type" xml:space="preserve">
     <value>Introduces a type conversion operation similar to CType. The difference is that CType succeeds as long as there is a valid conversion, whereas DirectCast requires that one type inherit from or implement the other type.</value>
+    <comment>{Locked="CType"}{Locked="DirectCast"}</comment>
   </data>
   <data name="The_type_name_to_return_a_System_Type_object_for" xml:space="preserve">
     <value>The type name to return a System.Type object for.</value>
+    <comment>{Locked="System.Type"}</comment>
   </data>
   <data name="Returns_a_System_Type_object_for_the_specified_type_name" xml:space="preserve">
     <value>Returns a System.Type object for the specified type name.</value>
+    <comment>{Locked="System.Type"}</comment>
   </data>
   <data name="The_XML_namespace_prefix_to_return_a_System_Xml_Linq_XNamespace_object_for_If_this_is_omitted_the_object_for_the_default_XML_namespace_is_returned" xml:space="preserve">
     <value>The XML namespace prefix to return a System.Xml.Linq.XNamespace object for. If this is omitted, the object for the default XML namespace is returned.</value>
+    <comment>{Locked="System.Xml.Linq.XNamespace"}</comment>
   </data>
   <data name="xmlNamespacePrefix" xml:space="preserve">
     <value>&lt;xmlNamespacePrefix&gt;</value>
   </data>
   <data name="Returns_the_System_Xml_Linq_XNamespace_object_corresponding_to_the_specified_XML_namespace_prefix" xml:space="preserve">
     <value>Returns the System.Xml.Linq.XNamespace object corresponding to the specified XML namespace prefix.</value>
+    <comment>{Locked="System.Xml.Linq.XNamespace"}</comment>
   </data>
   <data name="Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string" xml:space="preserve">
     <value>Replaces a specified number of characters in a String variable with characters from another string.</value>
+    <comment>{Locked="String"}</comment>
   </data>
   <data name="The_name_of_the_string_variable_to_modify" xml:space="preserve">
     <value>The name of the string variable to modify.</value>
@@ -218,6 +228,7 @@
   </data>
   <data name="The_event_handler_to_disassociate_from_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate" xml:space="preserve">
     <value>The event handler to disassociate from the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; }.</value>
+    <comment>{Locked="AddressOf"}</comment>
   </data>
   <data name="If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse" xml:space="preserve">
     <value>If &lt;condition&gt; returns True, the function calculates and returns &lt;expressionIfTrue&gt;. Otherwise, it returns &lt;expressionIfFalse&gt;.</value>
@@ -227,9 +238,11 @@
   </data>
   <data name="Evaluated_and_returned_if_condition_evaluates_to_True" xml:space="preserve">
     <value>Evaluated and returned if &lt;condition&gt; evaluates to True.</value>
+    <comment>{Locked="True"}</comment>
   </data>
   <data name="Evaluated_and_returned_if_condition_evaluates_to_False" xml:space="preserve">
     <value>Evaluated and returned if &lt;condition&gt; evaluates to False.</value>
+    <comment>{Locked="False"}</comment>
   </data>
   <data name="condition" xml:space="preserve">
     <value>&lt;condition&gt;</value>
@@ -242,6 +255,7 @@
   </data>
   <data name="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for" xml:space="preserve">
     <value>Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.</value>
+    <comment>{Locked="TryCast"}{Locked="Nothing"}</comment>
   </data>
   <data name="Node_does_not_descend_from_root" xml:space="preserve">
     <value>Node does not descend from root.</value>

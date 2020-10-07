@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Return rewriter.Visit(node)
                 Else
                     Throw New ArgumentException(
-                        VBWorkspaceResources.Only_attributes_expressions_or_statements_can_be_made_explicit,
+                        VBWorkspaceResources.Only_attributes_expressions_and_statements_can_be_made_explicit,
                         paramName:=NameOf(node))
                 End If
             End Using
