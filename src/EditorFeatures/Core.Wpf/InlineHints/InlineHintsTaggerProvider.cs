@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(IntraTextAdornmentTag))]
-    [Name(nameof(InlineParameterNameHintsTaggerProvider))]
-    internal class InlineParameterNameHintsTaggerProvider : IViewTaggerProvider
+    [Name(nameof(InlineHintsTaggerProvider))]
+    internal class InlineHintsTaggerProvider : IViewTaggerProvider
     {
         private readonly IViewTagAggregatorFactoryService _viewTagAggregatorFactoryService;
         public readonly IClassificationFormatMapService ClassificationFormatMapService;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParameterNameHintsTaggerProvider(
+        public InlineHintsTaggerProvider(
             IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService,
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 return null;
             }
 
-            var tagAggregator = _viewTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(textView);
-            return new InlineParameterNameHintsTagger(this, (IWpfTextView)textView, buffer, tagAggregator) as ITagger<T>;
+            var tagAggregator = _viewTagAggregatorFactoryService.CreateTagAggregator<InlineHintDataTag>(textView);
+            return new InlineHintsTagger(this, (IWpfTextView)textView, buffer, tagAggregator) as ITagger<T>;
         }
     }
 }

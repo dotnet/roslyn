@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// </summary>
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [TagType(typeof(InlineParameterNameHintDataTag))]
-    [Name(nameof(InlineParameterNameHintsDataTaggerProvider))]
-    internal class InlineParameterNameHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineParameterNameHintDataTag>
+    [TagType(typeof(InlineHintDataTag))]
+    [Name(nameof(InlineHintsDataTaggerProvider))]
+    internal class InlineHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineHintDataTag>
     {
         private readonly IAsynchronousOperationListener _listener;
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         [ImportingConstructor]
-        public InlineParameterNameHintsDataTaggerProvider(
+        public InlineHintsDataTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
             IForegroundNotificationService notificationService)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<InlineParameterNameHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
@@ -91,11 +91,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     Contract.ThrowIfNull(parameterHint.Parameter);
 
                     cancellationToken.ThrowIfCancellationRequested();
-                    context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(
+                    context.AddTag(new TagSpan<InlineHintDataTag>(
                         new SnapshotSpan(snapshotSpan.Snapshot, parameterHint.Position, 0),
-                        new InlineParameterNameHintDataTag(
-                            parameterHint.Parameter.GetSymbolKey(cancellationToken),
-                            parameterHint.Parameter.Name)));
+                        new InlineHintDataTag(
+                            parameterHint.Parameter.Name,
+                            parameterHint.Parameter.GetSymbolKey(cancellationToken))));
                 }
             }
         }

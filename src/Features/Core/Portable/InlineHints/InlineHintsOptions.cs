@@ -56,6 +56,24 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 nameof(SuppressForParametersThatMatchMethodIntent),
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent"));
+
+        public static readonly PerLanguageOption2<bool> EnabledForTypes =
+            new(nameof(InlineHintsOptions),
+                nameof(EnabledForTypes),
+                defaultValue: false,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints"));
+
+        public static readonly PerLanguageOption2<bool> ForImplicitVariableTypes =
+            new(nameof(InlineHintsOptions),
+                nameof(ForImplicitVariableTypes),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitVariableTypes"));
+
+        public static readonly PerLanguageOption2<bool> ForLambdaParameterTypes =
+            new(nameof(InlineHintsOptions),
+                nameof(ForLambdaParameterTypes),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForLambdaParameterTypes"));
     }
 
     [ExportOptionProvider, Shared]

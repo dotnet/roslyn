@@ -29,22 +29,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// This is the tag which implements the IntraTextAdornmentTag and is meant to create the UIElements that get shown
     /// in the editor
     /// </summary>
-    internal class InlineParameterNameHintsTag : IntraTextAdornmentTag
+    internal class InlineHintsTag : IntraTextAdornmentTag
     {
-        public const string TagId = "inline parameter name hints";
+        public const string TagId = "inline hints";
+
         private readonly IToolTipService _toolTipService;
         private readonly ITextView _textView;
         private readonly SnapshotSpan _span;
-        private readonly SymbolKey _key;
+        private readonly SymbolKey? _key;
         private readonly IThreadingContext _threadingContext;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
-        private InlineParameterNameHintsTag(
+        private InlineHintsTag(
             FrameworkElement adornment,
             ITextView textView,
             SnapshotSpan span,
-            SymbolKey key,
-            InlineParameterNameHintsTaggerProvider taggerProvider)
+            SymbolKey? key,
+            InlineHintsTaggerProvider taggerProvider)
             : base(adornment, removalCallback: null, PositionAffinity.Predecessor)
         {
             _textView = textView;
@@ -68,57 +69,64 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// <param name="textView">The view of the editor</param>
         /// <param name="span">The span that has the location of the hint</param>
         /// <param name="key">The symbolkey associated with each parameter</param>
-        public static InlineParameterNameHintsTag Create(string text, TextFormattingRunProperties format,
-                                                         IWpfTextView textView, SnapshotSpan span, SymbolKey key,
-                                                         InlineParameterNameHintsTaggerProvider taggerProvider)
+        public static InlineHintsTag Create(
+            string text,
+            TextFormattingRunProperties format,
+            IWpfTextView textView,
+            SnapshotSpan span,
+            SymbolKey? key,
+            InlineHintsTaggerProvider taggerProvider)
         {
-            return new InlineParameterNameHintsTag(CreateElement(text, textView, format), textView,
-                                                   span, key, taggerProvider);
+            return new InlineHintsTag(CreateElement(text, textView, format), textView, span, key, taggerProvider);
         }
 
         public async Task<IReadOnlyCollection<object>> CreateDescriptionAsync(CancellationToken cancellationToken)
         {
-            var document = _textView.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var textContentBuilder = new List<TaggedText>();
-
-            if (document != null)
+            if (_key != null)
             {
-                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var symbol = _key.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+                var document = _span.Snapshot.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
-                if (symbol != null)
+                if (document != null)
                 {
-                    var workspace = document.Project.Solution.Workspace;
-                    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var symbolDisplayService = document.Project.LanguageServices.GetRequiredService<ISymbolDisplayService>();
-                    var formatter = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
-                    var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, _span.Start, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
-                    textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
-                    if (formatter != null)
-                    {
-                        var documentation = symbol.GetDocumentationParts(semanticModel, _span.Start, formatter, cancellationToken);
+                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var symbol = _key.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
 
-                        if (documentation.Any())
-                        {
-                            textContentBuilder.AddLineBreak();
-                            textContentBuilder.AddRange(documentation);
-                        }
-                    }
-
-                    if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out var parts))
+                    if (symbol != null)
                     {
-                        if (!parts.IsDefaultOrEmpty)
+                        var textContentBuilder = new List<TaggedText>();
+
+                        var workspace = document.Project.Solution.Workspace;
+                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        var symbolDisplayService = document.GetRequiredLanguageService<ISymbolDisplayService>();
+                        var formatter = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
+                        var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, _span.Start, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
+                        textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
+                        if (formatter != null)
                         {
-                            textContentBuilder.AddLineBreak();
-                            textContentBuilder.AddLineBreak();
-                            textContentBuilder.AddRange(parts);
+                            var documentation = symbol.GetDocumentationParts(semanticModel, _span.Start, formatter, cancellationToken);
+
+                            if (documentation.Any())
+                            {
+                                textContentBuilder.AddLineBreak();
+                                textContentBuilder.AddRange(documentation);
+                            }
                         }
+
+                        if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out var parts))
+                        {
+                            if (!parts.IsDefaultOrEmpty)
+                            {
+                                textContentBuilder.AddLineBreak();
+                                textContentBuilder.AddLineBreak();
+                                textContentBuilder.AddRange(parts);
+                            }
+                        }
+
+                        var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(),
+                            document, _threadingContext, _streamingPresenter);
+                        return uiCollection;
                     }
                 }
-
-                var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(),
-                    document, _threadingContext, _streamingPresenter);
-                return uiCollection;
             }
 
             return Array.Empty<object>();
