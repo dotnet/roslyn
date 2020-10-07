@@ -11,6 +11,8 @@ try {
   Push-Location artifacts\bin
   & .\rehydrate.cmd
   Pop-Location
+
+  Ensure-DotNetSdk
 }
 catch {
   Write-Host $_
