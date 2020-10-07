@@ -24,7 +24,7 @@ namespace BuildValidator
         /// Attempts to get an option value. Returns false if the option value does not 
         /// exist OR if it exists more than once
         /// </summary>
-        public bool TryGetUniqueOption(string optionName, [NotNullWhen(returnValue: true)] out string? value)
+        public bool TryGetUniqueOption(string optionName, out string? value)
         {
             value = null;
 

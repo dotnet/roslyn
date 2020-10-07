@@ -11,7 +11,7 @@ namespace BuildValidator
     internal sealed class FileNameEqualityComparer : IEqualityComparer<FileInfo>
     {
         public const StringComparison StringComparison = System.StringComparison.OrdinalIgnoreCase;
-        public static readonly StringComparer StringComparer = StringComparer.FromComparison(StringComparison);
+        public static readonly StringComparer StringComparer = StringComparer.OrdinalIgnoreCase;
         public static readonly FileNameEqualityComparer Instance = new FileNameEqualityComparer();
 
         private FileNameEqualityComparer()

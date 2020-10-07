@@ -47,7 +47,7 @@ namespace BuildValidator
 
             var loggerFactory = new LoggerFactory(Enumerable.Empty<ILoggerProvider>(), new LoggerFilterOptions()
             {
-                MinLevel = options.Verbose ? LogLevel.Trace : LogLevel.Warning
+                MinLevel = options.Verbose ? LogLevel.Trace : LogLevel.Information
             });
 
             if (options.ConsoleOutput)

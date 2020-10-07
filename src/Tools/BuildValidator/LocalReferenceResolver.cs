@@ -8,6 +8,8 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
@@ -74,11 +76,14 @@ namespace BuildValidator
                     continue;
                 }
 
-                referencePath = foundFile.FullName;
-                _cache[mvid] = referencePath;
+                if (mvid == GetMvidForFile(foundFile))
+                {
+                    referencePath = foundFile.FullName;
+                    _cache[mvid] = referencePath;
 
-                _logger.LogTrace($"Caching [{mvid}, {referencePath}]");
-                return referencePath;
+                    _logger.LogTrace($"Caching [{mvid}, {referencePath}]");
+                    return referencePath;
+                }
             }
 
             throw new KeyNotFoundException($"[{mvid}, {name}]");
@@ -99,21 +104,19 @@ namespace BuildValidator
                         continue;
                     }
 
-                    var mvids = GetMvidsForFile(file);
-
-                    foreach (var match in potentialMatches)
+                    var mvid = GetMvidForFile(file);
+                    if (!mvid.HasValue)
                     {
-                        if (_cache.ContainsKey(match.Mvid))
-                        {
-                            continue;
-                        }
-
-                        if (mvids.Contains(match.Mvid))
-                        {
-                            _logger.LogTrace($"Caching [{match.Mvid}, {file.FullName}]");
-                            _cache[match.Mvid] = file.FullName;
-                        }
+                        continue;
                     }
+
+                    if (_cache.ContainsKey(mvid.Value))
+                    {
+                        continue;
+                    }
+
+                    _logger.LogTrace($"Caching [{mvid}, {file.FullName}]");
+                    _cache[mvid.Value] = file.FullName;
                 }
             }
 
@@ -123,11 +126,24 @@ namespace BuildValidator
             {
                 _logger.LogDebug($"Unable to find files for the following metadata references: {uncached}");
             }
+        }
 
-            static ImmutableArray<Guid> GetMvidsForFile(FileInfo fileInfo)
+        private static Guid? GetMvidForFile(FileInfo fileInfo)
+        {
+            using (var stream = fileInfo.OpenRead())
             {
-                var assembly = Assembly.ReflectionOnlyLoadFrom(fileInfo.FullName);
-                return assembly.Modules.Select(m => m.ModuleVersionId).ToImmutableArray();
+                PEReader reader = new PEReader(stream);
+
+                if (reader.HasMetadata)
+                {
+                    var metadataReader = reader.GetMetadataReader();
+                    var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+                    return metadataReader.GetGuid(mvidHandle);
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
