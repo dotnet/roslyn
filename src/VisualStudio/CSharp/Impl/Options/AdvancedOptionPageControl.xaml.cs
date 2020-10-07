@@ -69,8 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowHintsForLiterals, InlineHintsOptions.ForLiteralParameters, LanguageNames.CSharp);
             BindToOption(ShowHintsForNewExpressions, InlineHintsOptions.ForObjectCreationParameters, LanguageNames.CSharp);
             BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.CSharp);
-            BindToOption(HideHintsWhenClearBasedOnMethodAndParameterName, InlineHintsOptions.HideForParametersThatMatchMethodIntent, LanguageNames.CSharp);
-            BindToOption(HideHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.HideForParametersThatDifferOnlyBySuffix, LanguageNames.CSharp);
+            BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.CSharp);
+            BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.CSharp);
 
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptions.ShowRemarksInQuickInfo, LanguageNames.CSharp);
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.CSharp);
@@ -118,8 +118,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             ShowHintsForLiterals.IsEnabled = enabledForParameters;
             ShowHintsForNewExpressions.IsEnabled = enabledForParameters;
             ShowHintsForEverythingElse.IsEnabled = enabledForParameters;
-            HideHintsWhenClearBasedOnMethodAndParameterName.IsEnabled = enabledForParameters;
-            HideHintsWhenParameterNamesDifferOnlyBySuffix.IsEnabled = enabledForParameters;
+            SuppressHintsWhenParameterNameMatchesTheMethodsIntent.IsEnabled = enabledForParameters;
+            SuppressHintsWhenParameterNamesDifferOnlyBySuffix.IsEnabled = enabledForParameters;
         }
 
         private void DisplayInlineParameterNameHints_Checked(object sender, RoutedEventArgs e)

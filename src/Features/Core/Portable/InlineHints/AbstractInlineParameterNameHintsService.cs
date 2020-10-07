@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
             if (!literalParameters && !objectCreationParameters && !otherParameters)
                 return ImmutableArray<InlineParameterHint>.Empty;
 
-            var hideForParametersThatDifferOnlyBySuffix = options.GetOption(InlineHintsOptions.HideForParametersThatDifferOnlyBySuffix);
-            var hideForParametersThatMatchMethodIntent = options.GetOption(InlineHintsOptions.HideForParametersThatMatchMethodIntent);
+            var suppressForParametersThatDifferOnlyBySuffix = options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
+            var suppressForParametersThatMatchMethodIntent = options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
             void AddHintsIfAppropriate()
             {
-                if (hideForParametersThatDifferOnlyBySuffix && ParametersDifferOnlyBySuffix(buffer))
+                if (suppressForParametersThatDifferOnlyBySuffix && ParametersDifferOnlyBySuffix(buffer))
                     return;
 
                 foreach (var hint in buffer)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     if (string.IsNullOrEmpty(hint.Parameter?.Name))
                         continue;
 
-                    if (hideForParametersThatMatchMethodIntent && MatchesMethodIntent(hint))
+                    if (suppressForParametersThatMatchMethodIntent && MatchesMethodIntent(hint))
                         continue;
 
                     if (HintMatches(hint, literalParameters, objectCreationParameters, otherParameters))

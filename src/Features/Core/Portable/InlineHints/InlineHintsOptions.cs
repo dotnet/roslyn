@@ -37,17 +37,17 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForOtherParameters"));
 
-        public static readonly PerLanguageOption2<bool> HideForParametersThatDifferOnlyBySuffix =
+        public static readonly PerLanguageOption2<bool> SuppressForParametersThatDifferOnlyBySuffix =
             new(nameof(InlineHintsOptions),
-                nameof(HideForParametersThatDifferOnlyBySuffix),
+                nameof(SuppressForParametersThatDifferOnlyBySuffix),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.HideForParametersThatDifferOnlyBySuffix"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatDifferOnlyBySuffix"));
 
-        public static readonly PerLanguageOption2<bool> HideForParametersThatMatchMethodIntent =
+        public static readonly PerLanguageOption2<bool> SuppressForParametersThatMatchMethodIntent =
             new(nameof(InlineHintsOptions),
-                nameof(HideForParametersThatMatchMethodIntent),
+                nameof(SuppressForParametersThatMatchMethodIntent),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.HideForParametersThatMatchMethodIntent"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent"));
     }
 
     [ExportOptionProvider, Shared]
