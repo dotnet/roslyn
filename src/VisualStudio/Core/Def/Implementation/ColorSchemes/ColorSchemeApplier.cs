@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
         public void Initialize()
         {
-            if (!_isInitialized)
+            if (_isInitialized)
             {
                 return;
             }
