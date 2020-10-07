@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private static string GetMSBuildFailedMessage(string projectFilePath, string message)
             => string.IsNullOrWhiteSpace(message)
-                ? string.Format(WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0, projectFilePath)
-                : string.Format(WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0_with_message_1, projectFilePath, message);
+                ? string.Format(WorkspaceMSBuildResources.MSBuild_failed_when_processing_the_file_0, projectFilePath)
+                : string.Format(WorkspaceMSBuildResources.MSBuild_failed_when_processing_the_file_0_with_message_1, projectFilePath, message);
     }
 }

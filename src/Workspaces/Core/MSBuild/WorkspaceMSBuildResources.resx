@@ -126,11 +126,13 @@
   <data name="Found_project_with_the_same_file_path_and_output_path_as_another_project_0" xml:space="preserve">
     <value>Found project with the same file path and output path as another project: {0}</value>
   </data>
-  <data name="Msbuild_failed_when_processing_the_file_0" xml:space="preserve">
-    <value>Msbuild failed when processing the file '{0}'</value>
+  <data name="MSBuild_failed_when_processing_the_file_0" xml:space="preserve">
+    <value>MSBuild failed when processing the file '{0}'</value>
+    <comment>{Locked="MSBuild"}</comment>
   </data>
-  <data name="Msbuild_failed_when_processing_the_file_0_with_message_1" xml:space="preserve">
-    <value>Msbuild failed when processing the file '{0}' with message: {1}</value>
+  <data name="MSBuild_failed_when_processing_the_file_0_with_message_1" xml:space="preserve">
+    <value>MSBuild failed when processing the file '{0}' with message: {1}</value>
+    <comment>{Locked="MSBuild"}</comment>
   </data>
   <data name="Project_does_not_contain_0_target" xml:space="preserve">
     <value>Project does not contain '{0}' target.</value>
