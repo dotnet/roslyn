@@ -150,6 +150,26 @@ public class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task OperatorIsNotSuggestedOnStaticAccess()
+        {
+            await VerifyNoItemsExistAsync(@"
+public class C
+{
+    public static C operator +(C a, C b) => default;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        C.$$
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorsAreSortedByImporttanceAndGroupedByTopic()
         {
             var items = await GetCompletionItemsAsync(@"

@@ -45,6 +45,26 @@ public class Program
 ", "this", displayTextSuffix: "[]");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task IndexerIsNotSuggestedOnStaticAccess()
+        {
+            await VerifyNoItemsExistAsync(@"
+public class C
+{
+    public int this[int i] => i;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        C.$$
+    }
+}
+");
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerSuggestionCommitsOpenAndClosingBraces()
