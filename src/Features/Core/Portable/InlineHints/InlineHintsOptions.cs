@@ -15,6 +15,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal static class InlineHintsOptions
     {
+        /// <summary>
+        /// Non-persisted option used to switch to displaying everything while the user is holding ctrl-alt.
+        /// </summary>
+        public static readonly Option2<bool> DisplayAllOverride =
+            new(nameof(DisplayAllOverride),
+                nameof(EnabledForParameters),
+                defaultValue: false);
+
         public static readonly PerLanguageOption2<bool> EnabledForParameters =
             new(nameof(InlineHintsOptions),
                 nameof(EnabledForParameters),

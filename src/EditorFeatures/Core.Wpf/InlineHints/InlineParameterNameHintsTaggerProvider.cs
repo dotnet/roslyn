@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
+
     /// <summary>
     /// The provider that is used as a middleman to create the tagger so that the data tag
     /// can be used to create the UI tag
@@ -37,12 +38,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParameterNameHintsTaggerProvider(IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
-                                                       IClassificationFormatMapService classificationFormatMapService,
-                                                       IClassificationTypeRegistryService classificationTypeRegistryService,
-                                                       IThreadingContext threadingContext,
-                                                       IToolTipService toolTipService,
-                                                       Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter)
+        public InlineParameterNameHintsTaggerProvider(
+            IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
+            IClassificationFormatMapService classificationFormatMapService,
+            IClassificationTypeRegistryService classificationTypeRegistryService,
+            IThreadingContext threadingContext,
+            IToolTipService toolTipService,
+            Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter)
         {
             _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
             this.ClassificationFormatMapService = classificationFormatMapService;

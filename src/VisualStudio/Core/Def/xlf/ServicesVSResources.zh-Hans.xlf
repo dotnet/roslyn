@@ -272,9 +272,9 @@
         <target state="translated">已在存储库中编入索引</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Hints_experimental">
-        <source>Inline Hints (experimental)</source>
-        <target state="new">Inline Hints (experimental)</target>
+      <trans-unit id="Inline_Hints_experimental_Hold_ctrl_alt_to_show_all">
+        <source>Inline Hints (experimental): Hold ctrl-alt to show all</source>
+        <target state="new">Inline Hints (experimental): Hold ctrl-alt to show all</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">

@@ -34,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BasicVSResources.Show_procedure_line_separators
 
         Public ReadOnly Property Option_Inline_Hints_experimental As String =
-            ServicesVSResources.Inline_Hints_experimental
+            ServicesVSResources.Inline_Hints_experimental_Hold_ctrl_alt_to_show_all
 
         Public ReadOnly Property Option_Display_inline_parameter_name_hints As String =
             ServicesVSResources.Display_inline_parameter_name_hints

@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Use_64_bit_process_for_code_analysis_requires_restart;
 
         public static string Option_Inline_Hints_experimental
-            => ServicesVSResources.Inline_Hints_experimental;
+            => ServicesVSResources.Inline_Hints_experimental_Hold_ctrl_alt_to_show_all;
 
         public static string Option_Display_inline_parameter_name_hints
             => ServicesVSResources.Display_inline_parameter_name_hints;
