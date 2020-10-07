@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    using var _ = Storage.GetPooledConnection(out var connection);
+                    using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
                     if (TryGetDatabaseId(connection, key, out var dataId))
                     {
                         try
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    using var _ = Storage.GetPooledConnection(out var connection);
+                    using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
 
                     // Determine the appropriate data-id to store this stream at.
                     if (TryGetDatabaseId(connection, key, out var dataId))
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 byte[] dataBytes, int dataLength)
             {
                 // We're writing.  This better always be under the exclusive scheduler.
-                Contract.ThrowIfFalse(TaskScheduler.Current == Storage._readerWriterLock.ExclusiveScheduler);
+                Contract.ThrowIfFalse(TaskScheduler.Current == Storage._connectionPoolService.Scheduler.ExclusiveScheduler);
 
                 using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_writecache_table_values_0_1_2))
                 {

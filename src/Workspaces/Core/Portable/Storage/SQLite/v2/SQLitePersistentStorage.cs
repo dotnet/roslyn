@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         private readonly CancellationTokenSource _shutdownTokenSource = new();
 
-        private readonly IDisposable _dbOwnershipLock;
-        private readonly IPersistentStorageFaultInjector? _faultInjector;
+        private readonly SQLiteConnectionPoolService _connectionPoolService;
+        private readonly ReferenceCountedDisposable<SQLiteConnectionPool> _connectionPool;
 
         // Accessors that allow us to retrieve/store data into specific DB tables.  The
         // core Accessor type has logic that we to share across all reading/writing, while
@@ -118,35 +118,33 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         // cached query strings
 
-        private readonly string _select_star_from_string_table;
-        private readonly string _insert_into_string_table_values_0;
-        private readonly string _select_star_from_string_table_where_0_limit_one;
+        private readonly string _select_star_from_string_table = $@"select * from {StringInfoTableName}";
+        private readonly string _insert_into_string_table_values_0 = $@"insert into {StringInfoTableName}(""{DataColumnName}"") values (?)";
+        private readonly string _select_star_from_string_table_where_0_limit_one = $@"select * from {StringInfoTableName} where (""{DataColumnName}"" = ?) limit 1";
 
-        // We pool connections to the DB so that we don't have to take the hit of 
-        // reconnecting.  The connections also cache the prepared statements used
-        // to get/set data from the db.  A connection is safe to use by one thread
-        // at a time, but is not safe for simultaneous use by multiple threads.
-        private readonly object _connectionGate = new();
-        private readonly Stack<SqlConnection> _connectionsPool = new();
-
-        public SQLitePersistentStorage(
+        private SQLitePersistentStorage(
+            SQLiteConnectionPoolService connectionPoolService,
+            Solution? bulkLoadSnapshot,
             string workingFolderPath,
             string solutionFilePath,
             string databaseFile,
-            IDisposable dbOwnershipLock,
             IPersistentStorageFaultInjector? faultInjector)
             : base(workingFolderPath, solutionFilePath, databaseFile)
         {
-            _dbOwnershipLock = dbOwnershipLock;
-            _faultInjector = faultInjector;
+            _connectionPoolService = connectionPoolService;
 
             _solutionAccessor = new SolutionAccessor(this);
             _projectAccessor = new ProjectAccessor(this);
             _documentAccessor = new DocumentAccessor(this);
 
-            _select_star_from_string_table = $@"select * from {StringInfoTableName}";
-            _insert_into_string_table_values_0 = $@"insert into {StringInfoTableName}(""{DataColumnName}"") values (?)";
-            _select_star_from_string_table_where_0_limit_one = $@"select * from {StringInfoTableName} where (""{DataColumnName}"" = ?) limit 1";
+            // This assignment violates the declared non-nullability of _connectionPool, but the caller ensures that
+            // the constructed object is only used if the nullability post-conditions are met.
+            _connectionPool = connectionPoolService.TryOpenDatabase(
+                bulkLoadSnapshot,
+                databaseFile,
+                faultInjector,
+                (bulkLoadSnapshot, connection, cancellationToken) => Initialize(bulkLoadSnapshot, connection, cancellationToken),
+                CancellationToken.None)!;
 
             // Create a delay to batch up requests to flush.  We'll won't flush more than every FlushAllDelayMS.
             _flushQueue = new AsyncBatchingDelay(
@@ -156,122 +154,49 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 _shutdownTokenSource.Token);
         }
 
-        private SqlConnection GetConnection()
+        public static SQLitePersistentStorage? TryCreate(
+            SQLiteConnectionPoolService connectionPoolService,
+            Solution? bulkLoadSnapshot,
+            string workingFolderPath,
+            string solutionFilePath,
+            string databaseFile,
+            IPersistentStorageFaultInjector? faultInjector)
         {
-            lock (_connectionGate)
+            var sqlStorage = new SQLitePersistentStorage(connectionPoolService, bulkLoadSnapshot, workingFolderPath, solutionFilePath, databaseFile, faultInjector);
+            if (sqlStorage._connectionPool is null)
             {
-                // If we have an available connection, just return that.
-                if (_connectionsPool.Count > 0)
-                {
-                    return _connectionsPool.Pop();
-                }
+                // The connection pool failed to initialize
+                return null;
             }
 
-            // Otherwise create a new connection.
-            return SqlConnection.Create(_faultInjector, DatabaseFile);
-        }
-
-        private void ReleaseConnection(SqlConnection connection)
-        {
-            lock (_connectionGate)
-            {
-                // If we've been asked to shutdown, then don't actually add the connection back to 
-                // the pool.  Instead, just close it as we no longer need it.
-                if (_shutdownTokenSource.IsCancellationRequested)
-                {
-                    connection.Close_OnlyForUseBySqlPersistentStorage();
-                    return;
-                }
-
-                try
-                {
-                    _connectionsPool.Push(connection);
-                }
-                catch
-                {
-                    // An exception (likely OutOfMemoryException) occurred while returning the connection to the pool.
-                    // The connection will be discarded, so make sure to close it so the finalizer doesn't crash the
-                    // process later.
-                    connection.Close_OnlyForUseBySqlPersistentStorage();
-                    throw;
-                }
-            }
+            return sqlStorage;
         }
 
         public override void Dispose()
         {
-            // Flush all pending writes so that all data our features wanted written
-            // are definitely persisted to the DB.
             try
             {
-                CloseWorker();
+                // Flush all pending writes so that all data our features wanted written are definitely
+                // persisted to the DB.
+                try
+                {
+                    FlushWritesOnClose();
+                }
+                catch (Exception e)
+                {
+                    // Flushing may fail.  We still have to close all our connections.
+                    StorageDatabaseLogger.LogException(e);
+                }
             }
             finally
             {
-                // let the lock go
-                _dbOwnershipLock.Dispose();
+                _connectionPool.Dispose();
             }
         }
 
-        private void CloseWorker()
+        private void Initialize(Solution? bulkLoadSnapshot, SqlConnection connection, CancellationToken cancellationToken)
         {
-            // Flush all pending writes so that all data our features wanted written are definitely
-            // persisted to the DB.
-            try
-            {
-                FlushWritesOnClose();
-            }
-            catch (Exception e)
-            {
-                // Flushing may fail.  We still have to close all our connections.
-                StorageDatabaseLogger.LogException(e);
-            }
-
-            lock (_connectionGate)
-            {
-                // Go through all our pooled connections and close them.
-                while (_connectionsPool.Count > 0)
-                {
-                    var connection = _connectionsPool.Pop();
-                    connection.Close_OnlyForUseBySqlPersistentStorage();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets a <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
-        /// </summary>
-        /// <remarks>
-        /// Database connections have a large amount of overhead, and should be returned to the pool when they are no
-        /// longer in use. In particular, make sure to avoid letting a connection lease cross an <see langword="await"/>
-        /// boundary, as it will prevent code in the asynchronous operation from using the existing connection.
-        /// </remarks>
-        private PooledConnection GetPooledConnection(out SqlConnection connection)
-            => GetPooledConnection(checkScheduler: true, out connection);
-
-        /// <summary>
-        /// <inheritdoc cref="GetPooledConnection(out SqlConnection)"/>
-        /// Only use this overload if it is safe to bypass the normal scheduler check.  Only startup code (which runs
-        /// before any reads/writes/flushes happen) should use this.
-        /// </summary>
-        private PooledConnection GetPooledConnection(bool checkScheduler, out SqlConnection connection)
-        {
-            if (checkScheduler)
-            {
-                var scheduler = TaskScheduler.Current;
-                if (scheduler != _readerWriterLock.ConcurrentScheduler && scheduler != _readerWriterLock.ExclusiveScheduler)
-                    throw new InvalidOperationException("Cannot get a connection to the DB unless running on one of _readerWriterLock's schedulers");
-            }
-
-            var result = new PooledConnection(this, GetConnection());
-            connection = result.Connection;
-            return result;
-
-        }
-
-        public void Initialize(Solution? bulkLoadSnapshot)
-        {
-            if (_shutdownTokenSource.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
             {
                 // Someone tried to get a connection *after* a call to Dispose the storage system
                 // happened.  That should never happen.  We only Dispose when the last ref to the
@@ -281,11 +206,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 throw new InvalidOperationException();
             }
 
-            // This is our startup path.  No other code can be running.  So it's safe for us to access a connection that
-            // can talk to the db without having to be on the reader/writer scheduler queue.
-
-            // Create a connection to the DB and ensure it has tables for the types we care about. 
-            using var _ = GetPooledConnection(checkScheduler: false, out var connection);
+            // Ensure the database has tables for the types we care about. 
 
             // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
             // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
