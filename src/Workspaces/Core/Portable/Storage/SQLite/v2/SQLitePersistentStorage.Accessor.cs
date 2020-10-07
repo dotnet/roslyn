@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public Task<Checksum?> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
-                => Storage.PerformReadAsync(
+                => PerformReadAsync(
                     static t => t.self.ReadChecksum(t.key, t.cancellationToken),
                     (self: this, key, cancellationToken), cancellationToken);
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public Task<Stream?> ReadStreamAsync(TKey key, Checksum? checksum, CancellationToken cancellationToken)
-                => Storage.PerformReadAsync(
+                => PerformReadAsync(
                     static t => t.self.ReadStream(t.key, t.checksum, t.cancellationToken),
                     (self: this, key, checksum, cancellationToken), cancellationToken);
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-                => Storage.PerformWriteAsync(
+                => PerformWriteAsync(
                     static t => t.self.WriteStream(t.key, t.stream, t.checksum, t.cancellationToken),
                     (self: this, key, stream, checksum, cancellationToken), cancellationToken);
 
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 byte[] dataBytes, int dataLength)
             {
                 // We're writing.  This better always be under the exclusive scheduler.
-                Contract.ThrowIfFalse(TaskScheduler.Current == Storage._readerWriterLock.ExclusiveScheduler);
+                Contract.ThrowIfFalse(TaskScheduler.Current == s_readerWriterLock.ExclusiveScheduler);
 
                 using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_writecache_table_values_0_1_2))
                 {
