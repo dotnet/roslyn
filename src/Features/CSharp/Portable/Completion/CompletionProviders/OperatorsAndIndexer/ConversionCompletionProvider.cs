@@ -64,11 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private void AddUserDefinedConversionsOfType(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, ITypeSymbol container, bool containerIsNullable, int position)
         {
             // Base types are valid sources for user-defined conversions
-            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#processing-of-user-defined-explicit-conversions
-            // "Find the set of types, D, from which user-defined conversion operators will be considered. This set consists of S0 (if S0 is a class or struct), 
-            // the base classes of S0 (if S0 is a class), T0 (if T0 is a class or struct), and the base classes of T0 (if T0 is a class)."
             // Note: We only look in the source (aka container), because target could be any type (in scope) of the compilation.
-            // No need to check for accessibility: "An operator declaration must include both a public and a static modifier." https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/classes#operators
+            // No need to check for accessibility as an operators must always be public.
             var allExplicitConversions = from t in container.GetBaseTypesAndThis()
                                          from m in t.GetMembers(WellKnownMemberNames.ExplicitConversionName).OfType<IMethodSymbol>()
                                          where
@@ -186,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ? await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false)
                 : GetBuildInConversionDescription(item);
 
-        private static CompletionDescription GetBuildInConversionDescription(CompletionItem item)
+        private static CompletionDescription GetBuiltInConversionDescription(CompletionItem item)
         {
             Contract.ThrowIfFalse(item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var targetTypeName));
             Contract.ThrowIfFalse(item.Properties.TryGetValue(ContainerTypeNamePropertyName, out var sourceTypeName));
