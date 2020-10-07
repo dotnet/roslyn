@@ -124,7 +124,8 @@
     <value>Symbol "{0}" is not from source.</value>
   </data>
   <data name="Documentation_comment_id_must_start_with_E_F_M_N_P_or_T" xml:space="preserve">
-    <value>Documentation comment id must start with E, F, M, N, P or T</value>
+    <value>Documentation comment id must start with E, F, M, N, P, or T</value>
+    <comment>{Locked="E"}{Locked="F"}{Locked="M"}{Locked="N"}{Locked="P"}{Locked="T"}</comment>
   </data>
   <data name="Cycle_detected_in_extensions" xml:space="preserve">
     <value>Cycle detected in extensions</value>
@@ -136,10 +137,10 @@
     <value>Destination type must be a {0} or a {1}, but given one is {2}.</value>
   </data>
   <data name="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3" xml:space="preserve">
-    <value>Destination type must be a {0}, {1} or {2}, but given one is {3}.</value>
+    <value>Destination type must be a {0}, {1}, or {2}, but given one is {3}.</value>
   </data>
   <data name="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4" xml:space="preserve">
-    <value>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</value>
+    <value>Destination type must be a {0}, {1}, {2}, or {3}, but given one is {4}.</value>
   </data>
   <data name="Could_not_find_location_to_generation_symbol_into" xml:space="preserve">
     <value>Could not find location to generation symbol into.</value>
@@ -295,7 +296,7 @@
     <value>Arrays with more than one dimension cannot be serialized.</value>
   </data>
   <data name="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer" xml:space="preserve">
-    <value>Value too large to be represented as a 30 bit unsigned integer.</value>
+    <value>Value too large to be represented as a 30-bit unsigned integer.</value>
   </data>
   <data name="Specified_path_must_be_absolute" xml:space="preserve">
     <value>Specified path must be absolute.</value>
@@ -347,9 +348,6 @@
   </data>
   <data name="Removed_colon" xml:space="preserve">
     <value>Removed:</value>
-  </data>
-  <data name="Invalid_CodePage_value_colon_0" xml:space="preserve">
-    <value>Invalid CodePage value: {0}</value>
   </data>
   <data name="Adding_additional_documents_is_not_supported" xml:space="preserve">
     <value>Adding additional documents is not supported.</value>
@@ -455,6 +453,7 @@
   </data>
   <data name="_0_returned_an_uninitialized_ImmutableArray" xml:space="preserve">
     <value>'{0}' returned an uninitialized ImmutableArray</value>
+    <comment>{Locked="ImmutableArray"}</comment>
   </data>
   <data name="Failure" xml:space="preserve">
     <value>Failure</value>
@@ -485,7 +484,7 @@
   </data>
   <data name="Async_Method" xml:space="preserve">
     <value>Async Method</value>
-    <comment>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+    <comment>{Locked="Async"}{Locked="Method"} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
   </data>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
@@ -510,9 +509,11 @@
   </data>
   <data name="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories" xml:space="preserve">
     <value>Remove the line below if you want to inherit .editorconfig settings from higher directories</value>
+    <comment>{Locked=".editorconfig"}</comment>
   </data>
   <data name="Core_EditorConfig_Options" xml:space="preserve">
     <value>Core EditorConfig Options</value>
+    <comment>{Locked="EditorConfig"}</comment>
   </data>
   <data name="CSharp_files" xml:space="preserve">
     <value>C# files</value>
@@ -534,6 +535,7 @@
   </data>
   <data name="DateTimeKind_must_be_Utc" xml:space="preserve">
     <value>DateTimeKind must be Utc</value>
+    <comment>{Locked="DateTimeKind"}{Locked="Utc"}</comment>
   </data>
   <data name="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access" xml:space="preserve">
     <value>Adding imports will bring an extension method into scope with the same name as '{0}'</value>

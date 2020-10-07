@@ -34,17 +34,17 @@
       </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
-        <target state="translated">Çekirdek EditorConfig seçenekleri</target>
-        <note />
+        <target state="needs-review-translation">Çekirdek EditorConfig seçenekleri</target>
+        <note>{Locked="EditorConfig"}</note>
       </trans-unit>
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
-        <target state="translated">DateTimeKind Utc olmalıdır</target>
-        <note />
+        <target state="needs-review-translation">DateTimeKind Utc olmalıdır</target>
+        <note>{Locked="DateTimeKind"}{Locked="Utc"}</note>
       </trans-unit>
       <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
-        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
-        <target state="translated">Hedef tür bir {0}, {1}, {2} veya {3} olmalı, ancak {4} belirtildi.</target>
+        <source>Destination type must be a {0}, {1}, {2}, or {3}, but given one is {4}.</source>
+        <target state="needs-review-translation">Hedef tür bir {0}, {1}, {2} veya {3} olmalı, ancak {4} belirtildi.</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
@@ -89,8 +89,8 @@
       </trans-unit>
       <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
         <source>Remove the line below if you want to inherit .editorconfig settings from higher directories</source>
-        <target state="translated">.Editorconfig ayarları daha yüksek dizinlerden devralmak isterseniz aşağıdaki satırı Kaldır</target>
-        <note />
+        <target state="needs-review-translation">.Editorconfig ayarları daha yüksek dizinlerden devralmak isterseniz aşağıdaki satırı Kaldır</target>
+        <note>{Locked=".editorconfig"}</note>
       </trans-unit>
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
@@ -113,9 +113,9 @@
         <note />
       </trans-unit>
       <trans-unit id="Documentation_comment_id_must_start_with_E_F_M_N_P_or_T">
-        <source>Documentation comment id must start with E, F, M, N, P or T</source>
-        <target state="translated">Belge açıklaması kimliği E, F, M, N, P veya T ile başlamalıdır</target>
-        <note />
+        <source>Documentation comment id must start with E, F, M, N, P, or T</source>
+        <target state="needs-review-translation">Belge açıklaması kimliği E, F, M, N, P veya T ile başlamalıdır</target>
+        <note>{Locked="E"}{Locked="F"}{Locked="M"}{Locked="N"}{Locked="P"}{Locked="T"}</note>
       </trans-unit>
       <trans-unit id="Cycle_detected_in_extensions">
         <source>Cycle detected in extensions</source>
@@ -133,8 +133,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3">
-        <source>Destination type must be a {0}, {1} or {2}, but given one is {3}.</source>
-        <target state="translated">Hedef tür bir {0}, {1} veya {2} olmalı, ancak {3} belirtildi.</target>
+        <source>Destination type must be a {0}, {1}, or {2}, but given one is {3}.</source>
+        <target state="needs-review-translation">Hedef tür bir {0}, {1} veya {2} olmalı, ancak {3} belirtildi.</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_location_to_generation_symbol_into">
@@ -413,8 +413,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
-        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">Değer, 30 bit işaretsiz tamsayı olarak temsil edilemeyecek kadar büyük.</target>
+        <source>Value too large to be represented as a 30-bit unsigned integer.</source>
+        <target state="needs-review-translation">Değer, 30 bit işaretsiz tamsayı olarak temsil edilemeyecek kadar büyük.</target>
         <note />
       </trans-unit>
       <trans-unit id="Specified_path_must_be_absolute">
@@ -500,11 +500,6 @@
       <trans-unit id="Removed_colon">
         <source>Removed:</source>
         <target state="translated">Kaldırıldı:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_CodePage_value_colon_0">
-        <source>Invalid CodePage value: {0}</source>
-        <target state="translated">Geçersiz CodePage değeri: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_additional_documents_is_not_supported">
@@ -664,8 +659,8 @@
       </trans-unit>
       <trans-unit id="_0_returned_an_uninitialized_ImmutableArray">
         <source>'{0}' returned an uninitialized ImmutableArray</source>
-        <target state="translated">'{0}' başlatılmamış bir ImmutableArray döndürdü</target>
-        <note />
+        <target state="needs-review-translation">'{0}' başlatılmamış bir ImmutableArray döndürdü</target>
+        <note>{Locked="ImmutableArray"}</note>
       </trans-unit>
       <trans-unit id="Failure">
         <source>Failure</source>
@@ -709,8 +704,8 @@
       </trans-unit>
       <trans-unit id="Async_Method">
         <source>Async Method</source>
-        <target state="translated">Zaman Uyumsuz Metot</target>
-        <note>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+        <target state="needs-review-translation">Zaman Uyumsuz Metot</target>
+        <note>{Locked="Async"}{Locked="Method"} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
