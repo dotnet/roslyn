@@ -39,13 +39,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             bool isAccessedByConditionalAccess,
             CancellationToken cancellationToken)
         {
-            var expressionSymbolContainingType = (semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol ?? semanticModel.GetEnclosingSymbol(position, cancellationToken))?.GetContainingTypeOrThis();
-            var indexers = expressionSymbolContainingType is null
+            // We only want to suggest indexer accessible from the cursor position, so we need the containing type at the cursor position,
+            // because the within parameter of GetAccessibleMembersInThisAndBaseTypes() must be an IAssemblySymbol or an INamedTypeSymbol.
+            var containingTypeAtCursorPosition = semanticModel.GetEnclosingSymbol(position, cancellationToken)?.GetContainingTypeOrThis();
+            // We may not be able to identify a containing type, in which case we are conservative and suggest only public indexers
+            var indexers = containingTypeAtCursorPosition is null
                 ? from t in container.GetBaseTypesAndThis()
                   from i in t.GetIndexers()
                   where i.HasPublicResultantVisibility()
                   select i
-                : from p in container.GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(expressionSymbolContainingType)
+                : from p in container.GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(containingTypeAtCursorPosition)
                   where p.IsIndexer
                   select p;
             var indexerList = indexers.ToImmutableArray();
