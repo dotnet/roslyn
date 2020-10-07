@@ -127,7 +127,7 @@ namespace M
 
             var results = (LSP.VSCompletionList)await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             Assert.True(results.Items.Any());
-            Assert.True(results.SuggesstionMode);
+            Assert.True(results.SuggestionMode);
         }
 
         [Fact]
