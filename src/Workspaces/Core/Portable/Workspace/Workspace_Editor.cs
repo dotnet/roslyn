@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis
                     this.RaiseDocumentClosedEventAsync(newDoc); // don't wait for this
                 }
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                                     .WithSelectedParameter(selection.SelectedParameter);
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                     return (bestProvider, bestItems);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
                 {
                     return (null, null);
                 }

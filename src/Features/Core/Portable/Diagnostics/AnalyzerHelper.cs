@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (ex is not OperationCanceledException && project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
                     {
                         // report telemetry
-                        FatalError.Report(ex);
+                        FatalError.ReportAndPropagate(ex);
 
                         // force fail fast (the host might not crash when reporting telemetry):
                         FailFast.OnFatalException(ex);

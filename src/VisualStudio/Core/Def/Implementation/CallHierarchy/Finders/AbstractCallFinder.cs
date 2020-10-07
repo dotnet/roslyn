@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                 {
                     completionErrorMessage = EditorFeaturesResources.Canceled;
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     completionErrorMessage = e.Message;
                 }

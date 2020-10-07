@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // even if our cancellation token is signaled. Do not report Watson in such cases to reduce noice.
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    FatalError.ReportWithoutCrash(e);
+                    FatalError.ReportAndCatch(e);
                 }
 
                 return true;
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService, _shutdownCancellationService);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) when (FatalError.ReportUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     ? SpecializedTasks.True
                     : SpecializedTasks.False;
             }
-            catch (Exception ex) when (FatalError.ReportUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

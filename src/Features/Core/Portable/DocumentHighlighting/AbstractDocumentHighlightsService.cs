@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     }
                 }
             }
-            catch (NullReferenceException e) when (FatalError.ReportWithoutCrash(e))
+            catch (NullReferenceException e) when (FatalError.ReportAndCatch(e))
             {
                 // We currently are seeing a strange null references crash in this code.  We have
                 // a strong belief that this is recoverable, but we'd like to know why it is 

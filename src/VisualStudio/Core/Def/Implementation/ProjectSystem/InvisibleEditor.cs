@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 GC.SuppressFinalize(this);
             }
-            catch (Exception ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CompileNamespace(symbol);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CompileNamedType(symbol);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
