@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
 
                 if (IsTupleTypeElement(token, semanticModel, cancellationToken, out var result)
+                    || IsPrimaryConstructorParameter(token, semanticModel, cancellationToken, out result)
                     || IsParameterDeclaration(token, semanticModel, cancellationToken, out result)
                     || IsTypeParameterDeclaration(token, out result)
                     || IsLocalFunctionDeclaration(token, semanticModel, cancellationToken, out result)
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     token, semanticModel,
                     e => e.Expression,
                     _ => default,
-                    (_, _) => ImmutableArray.Create(
+                    _ => ImmutableArray.Create(
                         new SymbolKindOrTypeKind(SymbolKind.Local),
                         new SymbolKindOrTypeKind(MethodKind.LocalFunction)),
                     cancellationToken);
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     semanticModel,
                     m => m.Type,
                     m => m.Modifiers,
-                    (_, m) => GetPossibleMemberDeclarations(m),
+                    GetPossibleMemberDeclarations,
                     cancellationToken);
 
                 return result.Type != null;
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     semanticModel,
                     m => m.ReturnType,
                     m => m.Modifiers,
-                    (_, m) => GetPossibleMemberDeclarations(m),
+                    GetPossibleMemberDeclarations,
                     cancellationToken);
 
                 return result.Type != null;
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 SemanticModel semanticModel,
                 Func<TSyntaxNode, SyntaxNode> typeSyntaxGetter,
                 Func<TSyntaxNode, SyntaxTokenList> modifierGetter,
-                Func<TSyntaxNode, DeclarationModifiers, ImmutableArray<SymbolKindOrTypeKind>> possibleDeclarationComputer,
+                Func<DeclarationModifiers, ImmutableArray<SymbolKindOrTypeKind>> possibleDeclarationComputer,
                 CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
             {
                 if (!IsPossibleTypeToken(token))
@@ -273,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var modifiers = modifierGetter(target);
 
                 return new NameDeclarationInfo(
-                    possibleDeclarationComputer(target, GetDeclarationModifiers(modifiers)),
+                    possibleDeclarationComputer(GetDeclarationModifiers(modifiers)),
                     GetAccessibility(modifiers),
                     GetDeclarationModifiers(modifiers),
                     semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type,
@@ -297,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 result = IsLastTokenOfType<IncompleteMemberSyntax>(token, semanticModel,
                     i => i.Type,
                     i => i.Modifiers,
-                    (_, m) => GetPossibleMemberDeclarations(m),
+                    GetPossibleMemberDeclarations,
                     cancellationToken);
                 return result.Type != null;
             }
@@ -308,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 result = IsLastTokenOfType<LocalFunctionStatementSyntax>(token, semanticModel,
                     typeSyntaxGetter: f => f.ReturnType,
                     modifierGetter: f => f.Modifiers,
-                    possibleDeclarationComputer: (_, m) => GetPossibleLocalDeclarations(m),
+                    possibleDeclarationComputer: GetPossibleLocalDeclarations,
                     cancellationToken);
                 return result.Type != null;
             }
@@ -356,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         f is ForEachVariableStatementSyntax forEachVariableStatement ? forEachVariableStatement.Variable :
                         null, // Return null to bail out.
                     modifierGetter: f => default,
-                    possibleDeclarationComputer: (_, d) => ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)),
+                    possibleDeclarationComputer: d => ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)),
                     cancellationToken);
                 return result.Type != null;
             }
@@ -380,6 +381,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
+            private static bool IsPrimaryConstructorParameter(SyntaxToken token, SemanticModel semanticModel,
+                CancellationToken cancellationToken, out NameDeclarationInfo result)
+            {
+                result = IsLastTokenOfType<ParameterSyntax>(
+                    token, semanticModel,
+                    p => p.Type,
+                    _ => default,
+                    _ => s_propertySyntaxKind,
+                    cancellationToken);
+
+                if (!token.GetAncestor<ParameterSyntax>().Parent.IsParentKind(SyntaxKind.RecordDeclaration))
+                {
+                    return false;
+                }
+
+                return result.Type != null;
+            }
+
             private static bool IsParameterDeclaration(SyntaxToken token, SemanticModel semanticModel,
                 CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
@@ -387,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     token, semanticModel,
                     p => p.Type,
                     _ => default,
-                    (parameterSyntax, _) => parameterSyntax.Parent.IsParentKind(SyntaxKind.RecordDeclaration) ? s_propertySyntaxKind : s_parameterSyntaxKind,
+                    _ => s_parameterSyntaxKind,
                     cancellationToken);
                 return result.Type != null;
             }
@@ -402,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         token, semanticModel,
                         b => b.Right,
                         _ => default,
-                        (_, _) => s_parameterSyntaxKind,
+                        _ => s_parameterSyntaxKind,
                         cancellationToken);
                 }
                 else if (token.Parent.IsParentKind(SyntaxKind.CaseSwitchLabel))
@@ -411,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         token, semanticModel,
                         b => b.Value,
                         _ => default,
-                        (_, _) => s_parameterSyntaxKind,
+                        _ => s_parameterSyntaxKind,
                         cancellationToken);
                 }
                 else if (token.Parent.IsParentKind(SyntaxKind.DeclarationPattern))
@@ -420,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         token, semanticModel,
                         b => b.Type,
                         _ => default,
-                        (_, _) => s_parameterSyntaxKind,
+                        _ => s_parameterSyntaxKind,
                         cancellationToken);
                 }
 
