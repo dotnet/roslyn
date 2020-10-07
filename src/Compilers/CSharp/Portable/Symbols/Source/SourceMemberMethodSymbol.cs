@@ -319,7 +319,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             MethodChecks(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
                         }
-
                         finally
                         {
                             state.NotePartComplete(CompletionPart.FinishMethodChecks);
