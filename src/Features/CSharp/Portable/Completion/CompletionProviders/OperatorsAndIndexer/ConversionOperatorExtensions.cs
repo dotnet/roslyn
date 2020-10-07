@@ -4,11 +4,13 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal static class ConversionOperatorExtensions
     {
-        public static SpecialType[]? GetBuiltInNumericConversions(this ITypeSymbol container)
+        public static ImmutableArray<SpecialType>? GetBuiltInNumericConversions(this ITypeSymbol container)
         {
             // Source: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-numeric-conversions
             return container.SpecialType switch
@@ -18,22 +20,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SpecialType.System_UInt16,
                     SpecialType.System_UInt32,
                     SpecialType.System_UInt64,
-                    SpecialType.System_Char},
+                    SpecialType.System_Char}.ToImmutableArray(),
                 SpecialType.System_Byte => new[] {
                     SpecialType.System_SByte,
-                    SpecialType.System_Char},
+                    SpecialType.System_Char}.ToImmutableArray(),
                 SpecialType.System_Int16 => new[] {
                     SpecialType.System_SByte,
                     SpecialType.System_Byte,
                     SpecialType.System_UInt16,
                     SpecialType.System_UInt32,
                     SpecialType.System_UInt64,
-                    SpecialType.System_Char},
+                    SpecialType.System_Char}.ToImmutableArray(),
                 SpecialType.System_UInt16 => new[]{
                     SpecialType.System_SByte,
                     SpecialType.System_Byte,
                     SpecialType.System_Int16,
-                    SpecialType.System_Char},
+                    SpecialType.System_Char}.ToImmutableArray(),
                 SpecialType.System_Int32 => new[]{
                     SpecialType.System_SByte,
                     SpecialType.System_Byte,
@@ -41,14 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SpecialType.System_UInt16,
                     SpecialType.System_UInt32,
                     SpecialType.System_UInt64,
-                    SpecialType.System_Char},
+                    SpecialType.System_Char}.ToImmutableArray(),
                 SpecialType.System_UInt32 => new[]{
                     SpecialType.System_SByte,
                     SpecialType.System_Byte,
                     SpecialType.System_Int16,
                     SpecialType.System_UInt16,
                     SpecialType.System_Int32,
-                    SpecialType.System_Char},
+                    SpecialType.System_Char}.ToImmutableArray(),
                 SpecialType.System_Int64 => new[]{
                     SpecialType.System_SByte,
                     SpecialType.System_Byte,
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SpecialType.System_Int32,
                     SpecialType.System_UInt32,
                     SpecialType.System_UInt64,
-                    SpecialType.System_Char},
+                    SpecialType.System_Char}.ToImmutableArray(),
                 SpecialType.System_UInt64 => new[]{
                     SpecialType.System_SByte,
                     SpecialType.System_Byte,
@@ -66,11 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SpecialType.System_Int32,
                     SpecialType.System_UInt32,
                     SpecialType.System_Int64,
-                    SpecialType.System_Char},
+                    SpecialType.System_Char}.ToImmutableArray(),
                 SpecialType.System_Char => new[]{
                     SpecialType.System_SByte,
                     SpecialType.System_Byte,
-                    SpecialType.System_Int16},
+                    SpecialType.System_Int16}.ToImmutableArray(),
                 SpecialType.System_Single => new[]{
                     SpecialType.System_SByte,
                     SpecialType.System_Byte,
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SpecialType.System_Int64,
                     SpecialType.System_UInt64,
                     SpecialType.System_Char,
-                    SpecialType.System_Decimal},
+                    SpecialType.System_Decimal}.ToImmutableArray(),
                 SpecialType.System_Double => new[]{
                     SpecialType.System_SByte,
                     SpecialType.System_Byte,
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SpecialType.System_UInt64,
                     SpecialType.System_Char,
                     SpecialType.System_Single,
-                    SpecialType.System_Decimal},
+                    SpecialType.System_Decimal}.ToImmutableArray(),
                 SpecialType.System_Decimal => new[]{
                     SpecialType.System_SByte,
                     SpecialType.System_Byte,
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SpecialType.System_UInt64,
                     SpecialType.System_Char,
                     SpecialType.System_Single,
-                    SpecialType.System_Double},
+                    SpecialType.System_Double}.ToImmutableArray(),
                 _ => null,
             };
         }

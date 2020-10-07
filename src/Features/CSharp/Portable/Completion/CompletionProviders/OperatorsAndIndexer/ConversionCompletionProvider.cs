@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private const string MinimalTypeNamePropertyName = "MinimalTypeName";
         private const string ContainerTypeNamePropertyName = "ContainerTypeName";
-        private static readonly SpecialType[] s_BuiltInEnumConversionTargets = new[]
+        private static readonly ImmutableArray<SpecialType> s_builtInEnumConversionTargets = new[]
             {
                 SpecialType.System_SByte,
                 SpecialType.System_Byte,
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 SpecialType.System_Single,
                 SpecialType.System_Double,
                 SpecialType.System_Decimal,
-            };
+            }.ToImmutableArray();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -107,9 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
             var numericConversions = container.GetBuiltInNumericConversions();
-            if (numericConversions is not null)
+            if (numericConversions.HasValue)
             {
-                AddCompletionItemsForSpecialTypes(builder, semanticModel, container, containerIsNullable, position, numericConversions);
+                AddCompletionItemsForSpecialTypes(builder, semanticModel, container, containerIsNullable, position, numericConversions.Value);
             }
         }
 
@@ -133,11 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (suggestBuiltInEnumConversion)
             {
-                AddCompletionItemsForSpecialTypes(builder, semanticModel, container, containerIsNullable, position, s_BuiltInEnumConversionTargets);
+                AddCompletionItemsForSpecialTypes(builder, semanticModel, container, containerIsNullable, position, s_builtInEnumConversionTargets);
             }
         }
 
-        private void AddCompletionItemsForSpecialTypes(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol fromType, bool containerIsNullable, int position, SpecialType[] specialTypes)
+        private void AddCompletionItemsForSpecialTypes(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol fromType, bool containerIsNullable, int position, ImmutableArray<SpecialType> specialTypes)
         {
             var containerTypeName = fromType.ToMinimalDisplayString(semanticModel, position);
             var conversionCompletionItems = from specialType in specialTypes
