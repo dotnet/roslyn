@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Storage
             OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite);
 
         public static readonly Option<bool> SQLiteInMemoryWriteCache = new(
-            OptionName, nameof(SQLiteInMemoryWriteCache), defaultValue: false,
+            OptionName, nameof(SQLiteInMemoryWriteCache), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SQLiteInMemoryWriteCache)));
     }
 
