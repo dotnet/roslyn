@@ -134,8 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return typeParameters.SelectAsArray(_ => s_instance);
         }
 
-        private PlaceholderTypeArgumentSymbol(TupleExtraData? tupleData = null)
-            : base(tupleData)
+        private PlaceholderTypeArgumentSymbol()
         {
         }
 
