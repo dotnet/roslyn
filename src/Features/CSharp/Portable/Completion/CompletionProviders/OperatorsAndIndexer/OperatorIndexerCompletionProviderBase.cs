@@ -101,6 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
+            if (expression.IsInsideNameOfExpression(semanticModel, cancellationToken))
+            {
+                return;
+            }
+
             var completionItems = GetCompletionItemsForTypeSymbol(semanticModel, container, expression, position, isAccessedByConditionalAccess, cancellationToken);
             context.AddItems(completionItems);
         }
