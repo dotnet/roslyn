@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            return new PlaceholderTypeArgumentSymbol(newData);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override string Name
@@ -176,17 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
         {
-            if ((object)t2 == (object)this)
-            {
-                return true;
-            }
-
-            return t2 is PlaceholderTypeArgumentSymbol;
-        }
-
-        public override int GetHashCode()
-        {
-            return 0;
+            return (object)t2 == this;
         }
     }
 }
