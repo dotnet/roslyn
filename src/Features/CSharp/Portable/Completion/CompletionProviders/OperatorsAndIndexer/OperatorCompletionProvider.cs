@@ -35,7 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override int SortingGroupIndex => 3;
 
-        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(SemanticModel semanticModel, ITypeSymbol container, ExpressionSyntax expression, int position, bool isAccessedByConditionalAccess, CancellationToken cancellationToken)
+        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(SemanticModel semanticModel,
+            ITypeSymbol container,
+            ExpressionSyntax expression,
+            int position,
+            bool isAccessedByConditionalAccess,
+            CancellationToken cancellationToken)
         {
             if (IsExcludedSymbol(container))
             {

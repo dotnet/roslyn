@@ -32,7 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override int SortingGroupIndex => 1;
 
-        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(SemanticModel semanticModel, ITypeSymbol container, ExpressionSyntax expression, int position, bool isAccessedByConditionalAccess, CancellationToken cancellationToken)
+        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(SemanticModel semanticModel,
+            ITypeSymbol container,
+            ExpressionSyntax expression,
+            int position,
+            bool isAccessedByConditionalAccess,
+            CancellationToken cancellationToken)
         {
             var expressionSymbolContainingType = (semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol ?? semanticModel.GetEnclosingSymbol(position, cancellationToken))?.GetContainingTypeOrThis();
             var indexers = expressionSymbolContainingType is null
