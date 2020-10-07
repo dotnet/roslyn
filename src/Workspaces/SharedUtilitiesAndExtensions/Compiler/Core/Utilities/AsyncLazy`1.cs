@@ -391,7 +391,7 @@ namespace Roslyn.Utilities
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                    
+
                 var task = computationToStart.AsynchronousComputeFunction(cancellationToken);
 
                 // As an optimization, if the task is already completed, mark the 
@@ -420,7 +420,7 @@ namespace Roslyn.Utilities
                     TaskContinuationOptions.ExecuteSynchronously,
                     TaskScheduler.Default);
             }
-            catch (Exception e) when (ReportAndCatchUnlessCalceledWithDifferentToken(e, cancellationToken))
+            catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
             {
                 // The underlying computation cancelled with the correct token, but we must ourselves ensure that the caller
                 // on our stack gets an OperationCanceledException thrown with the right token
@@ -431,16 +431,10 @@ namespace Roslyn.Utilities
                 // because that token from the requester was cancelled.
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private static bool ReportAndCatchUnlessCalceledWithDifferentToken(Exception exception, CancellationToken cancellationToken)
-        {
-            if (exception is OperationCanceledException oce && oce.CancellationToken == cancellationToken)
+            catch (Exception e) when (FatalError.Report(e))
             {
-                return true;
+                throw ExceptionUtilities.Unreachable;
             }
-
-            return FatalError.Report(exception);
         }
 
         private void CompleteWithTask(Task<T> task, CancellationToken cancellationToken)
