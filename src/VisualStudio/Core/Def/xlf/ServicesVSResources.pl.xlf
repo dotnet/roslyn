@@ -792,6 +792,16 @@
         <target state="translated">Niektóre kolory w schemacie kolorów są przesłaniane przez zmiany wprowadzone na stronie opcji Środowisko &gt; Czcionki i kolory. Wybierz pozycję „Użyj ustawień domyślnych” na stronie Czcionki i kolory, aby wycofać wszystkie dostosowania.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="new">Suppress hints when parameter names differ only by suffix</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Docelowa przestrzeń nazw:</target>

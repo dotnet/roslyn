@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             this.StreamingFindUsagesPresenter = streamingFindUsagesPresenter;
         }
 
-        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+        public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
             // Determining of the textView's buffer does not match the buffer in order to skip showing the hints for
             // the interactive window

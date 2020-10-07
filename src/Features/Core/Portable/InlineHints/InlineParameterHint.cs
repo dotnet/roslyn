@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal readonly struct InlineParameterHint
     {
-        public readonly SymbolKey ParameterSymbolKey;
-        public readonly string Name;
+        public readonly IParameterSymbol? Parameter;
         public readonly int Position;
         public readonly InlineParameterHintKind Kind;
 
-        public InlineParameterHint(SymbolKey parameterSymbolKey, string name, int position, InlineParameterHintKind kind)
+        public InlineParameterHint(
+            IParameterSymbol? parameter,
+            int position,
+            InlineParameterHintKind kind)
         {
-            ParameterSymbolKey = parameterSymbolKey;
-            Name = name;
+            Parameter = parameter;
             Position = position;
             Kind = kind;
         }
