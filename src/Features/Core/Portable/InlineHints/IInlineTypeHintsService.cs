@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InlineHints
 {
-    internal interface IInlineParameterNameHintsService : ILanguageService
+    internal interface IInlineTypeHintsService : ILanguageService
     {
-        Task<ImmutableArray<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+        Task<ImmutableArray<InlineTypeHint>> GetInlineTypeHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
     }
 }

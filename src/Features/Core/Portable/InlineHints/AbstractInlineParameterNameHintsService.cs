@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             using var _1 = ArrayBuilder<InlineParameterHint>.GetInstance(out var result);
             using var _2 = ArrayBuilder<InlineParameterHint>.GetInstance(out var buffer);
 
-            foreach (var node in root.DescendantNodes(textSpan))
+            foreach (var node in root.DescendantNodes(textSpan, n => n.Span.IntersectsWith(textSpan)))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 AddAllParameterNameHintLocations(semanticModel, node, buffer, cancellationToken);
