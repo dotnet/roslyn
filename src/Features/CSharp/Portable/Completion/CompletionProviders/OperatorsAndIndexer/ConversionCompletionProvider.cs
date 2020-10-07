@@ -53,10 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(SemanticModel semanticModel,
             ITypeSymbol container,
-            ExpressionSyntax expression,
             int position,
-            bool isAccessedByConditionalAccess,
-            CancellationToken cancellationToken)
+            bool isAccessedByConditionalAccess)
         {
             // Lifted nullable value types should be suggested if container is nullable or accessed via conditional access.
             // Container is nullable: int? id; id.$$ -> (byte?)

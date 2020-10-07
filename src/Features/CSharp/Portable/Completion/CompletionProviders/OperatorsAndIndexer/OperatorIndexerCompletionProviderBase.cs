@@ -34,10 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected abstract ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(
             SemanticModel semanticModel,
             ITypeSymbol container,
-            ExpressionSyntax expression,
             int position,
-            bool isAccessedByConditionalAccess,
-            CancellationToken cancellationToken);
+            bool isAccessedByConditionalAccess);
 
         internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
@@ -106,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var completionItems = GetCompletionItemsForTypeSymbol(semanticModel, container, expression, position, isAccessedByConditionalAccess, cancellationToken);
+            var completionItems = GetCompletionItemsForTypeSymbol(semanticModel, container, position, isAccessedByConditionalAccess);
             context.AddItems(completionItems);
         }
 
