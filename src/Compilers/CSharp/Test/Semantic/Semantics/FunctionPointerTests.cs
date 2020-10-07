@@ -1614,7 +1614,7 @@ unsafe class D : C<delegate*<void>>
                                       .OfType<InvocationExpressionSyntax>()
                                       .Select(s => model.GetSymbolInfo(s).CandidateSymbols.Single())
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -1676,7 +1676,7 @@ unsafe class C
                                           return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
                                       })
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -1749,7 +1749,7 @@ unsafe class C
                                           return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
                                       })
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
