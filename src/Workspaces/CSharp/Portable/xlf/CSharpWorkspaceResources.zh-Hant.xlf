@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Cannot_retrieve_the_Span_of_a_null_syntax_reference">
         <source>Cannot retrieve the Span of a null syntax reference.</source>
-        <target state="translated">無法擷取 null 語法參考的 Span。</target>
-        <note />
+        <target state="needs-review-translation">無法擷取 null 語法參考的 Span。</target>
+        <note>{Locked="Span"}</note>
       </trans-unit>
-      <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
-        <source>Only attributes, constructor initializers, expressions or statements can be made explicit</source>
-        <target state="translated">只有屬性、建構函式初始設定式、運算式或陳述式才可明確設定。</target>
+      <trans-unit id="Only_attributes_constructor_initializers_expressions_and_statements_can_be_made_explicit">
+        <source>Only attributes, constructor initializers, expressions, and statements can be made explicit</source>
+        <target state="needs-review-translation">只有屬性、建構函式初始設定式、運算式或陳述式才可明確設定。</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_Interface">

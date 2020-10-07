@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
                 else
                 {
-                    throw new ArgumentException(CSharpWorkspaceResources.Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit, nameof(node));
+                    throw new ArgumentException(CSharpWorkspaceResources.Only_attributes_constructor_initializers_expressions_and_statements_can_be_made_explicit, nameof(node));
                 }
             }
         }

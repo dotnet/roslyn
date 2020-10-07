@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Cannot_retrieve_the_Span_of_a_null_syntax_reference">
         <source>Cannot retrieve the Span of a null syntax reference.</source>
-        <target state="translated">No se puede recuperar el intervalo de una referencia de sintaxis nula.</target>
-        <note />
+        <target state="needs-review-translation">No se puede recuperar el intervalo de una referencia de sintaxis nula.</target>
+        <note>{Locked="Span"}</note>
       </trans-unit>
-      <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
-        <source>Only attributes, constructor initializers, expressions or statements can be made explicit</source>
-        <target state="translated">Solo los atributos, los inicializadores de constructor, las expresiones o las declaraciones se pueden hacer explícitos</target>
+      <trans-unit id="Only_attributes_constructor_initializers_expressions_and_statements_can_be_made_explicit">
+        <source>Only attributes, constructor initializers, expressions, and statements can be made explicit</source>
+        <target state="needs-review-translation">Solo los atributos, los inicializadores de constructor, las expresiones o las declaraciones se pueden hacer explícitos</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_Interface">
