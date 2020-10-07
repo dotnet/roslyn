@@ -171,13 +171,19 @@ namespace Roslyn.Test.Utilities
         }
 
         protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string? containerName = null)
-            => new LSP.SymbolInformation()
+        {
+            var info = new LSP.SymbolInformation()
             {
                 Kind = kind,
                 Name = name,
                 Location = location,
-                ContainerName = containerName
             };
+
+            if (containerName != null)
+                info.ContainerName = containerName;
+
+            return info;
+        }
 
         protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
         {
@@ -226,7 +232,8 @@ namespace Roslyn.Test.Utilities
             bool preselect = false,
             ImmutableArray<char>? commitCharacters = null,
             string? sortText = null)
-            => new LSP.VSCompletionItem()
+        {
+            var item = new LSP.VSCompletionItem()
             {
                 FilterText = insertText,
                 InsertText = insertText,
@@ -241,10 +248,17 @@ namespace Roslyn.Test.Utilities
                     Position = requestParameters.Position,
                     CompletionTrigger = new CompletionTrigger(ProtocolConversions.LSPToRoslynCompletionTriggerKind(requestParameters.Context.TriggerKind), char.Parse(requestParameters.Context.TriggerCharacter))
                 },
-                Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null,
                 Preselect = preselect,
-                CommitCharacters = commitCharacters?.Select(c => c.ToString()).ToArray()
             };
+
+            if (tags != null)
+                item.Icon = new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId());
+
+            if (commitCharacters != null)
+                item.CommitCharacters = commitCharacters.Value.Select(c => c.ToString()).ToArray();
+
+            return item;
+        }
 
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
             => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));

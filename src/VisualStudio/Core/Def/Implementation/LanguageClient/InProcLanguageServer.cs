@@ -29,8 +29,8 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     /// <summary>
-    /// Defines the language server to be hooked up to an <see cref="ILanguageClient"/> using StreamJsonRpc.
-    /// This runs in proc as not all features provided by this server are available out of proc (e.g. some diagnostics).
+    /// Defines the language server to be hooked up to an <see cref="ILanguageClient"/> using StreamJsonRpc.  This runs
+    /// in proc as not all features provided by this server are available out of proc (e.g. some diagnostics).
     /// </summary>
     internal class InProcLanguageServer
     {
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
-        private readonly CodeAnalysis.Workspace _workspace;
+        private readonly Workspace _workspace;
         private readonly RequestExecutionQueue _queue;
 
         private VSClientCapabilities _clientCapabilities;
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public InProcLanguageServer(Stream inputStream,
             Stream outputStream,
             AbstractRequestHandlerProvider requestHandlerProvider,
-            CodeAnalysis.Workspace workspace,
+            Workspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider,
@@ -265,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
         {
-            // LSP doesnt support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
+            // LSP doesn't support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
             if (e.DocumentId != null && e.Solution != null)
             {
                 var document = e.Solution.GetDocument(e.DocumentId);
@@ -280,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return;
                 }
 
-                // LSP does not currently support publishing diagnostics incrememntally, so we re-publish all diagnostics.
+                // LSP does not currently support publishing diagnostics incrementally, so we re-publish all diagnostics.
                 var asyncToken = _listener.BeginAsyncOperation(nameof(PublishDiagnosticsAsync));
                 Task.Run(() => PublishDiagnosticsAsync(document))
                     .CompletesAsyncOperation(asyncToken);
@@ -333,12 +333,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             new();
 
         /// <summary>
-        /// Stores the mapping of a document to the uri(s) of diagnostics previously produced for this document.
-        /// When we get empty diagnostics for the document we need to find the uris we previously published for this document.
-        /// Then we can publish the updated diagnostics set for those uris (either empty or the diagnostic contributions from other documents).
-        /// We use a sorted set to ensure consistency in the order in which we report URIs.
-        /// While it's not necessary to publish a document's mapped file diagnostics in a particular order,
-        /// it does make it much easier to write tests and debug issues if we have a consistent ordering.
+        /// Stores the mapping of a document to the uri(s) of diagnostics previously produced for this document.  When
+        /// we get empty diagnostics for the document we need to find the uris we previously published for this
+        /// document. Then we can publish the updated diagnostics set for those uris (either empty or the diagnostic
+        /// contributions from other documents).  We use a sorted set to ensure consistency in the order in which we
+        /// report URIs.  While it's not necessary to publish a document's mapped file diagnostics in a particular
+        /// order, it does make it much easier to write tests and debug issues if we have a consistent ordering.
         /// </summary>
         private readonly Dictionary<DocumentId, ImmutableSortedSet<Uri>> _documentsToPublishedUris = new();
 
@@ -348,7 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private static readonly Comparer<Uri> s_uriComparer = Comparer<Uri>.Create((uri1, uri2)
             => Uri.Compare(uri1, uri2, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase));
 
-        internal async Task PublishDiagnosticsAsync(CodeAnalysis.Document document)
+        internal async Task PublishDiagnosticsAsync(Document document)
         {
             // Retrieve all diagnostics for the current document grouped by their actual file uri.
             var fileUriToDiagnostics = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
@@ -367,7 +367,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             foreach (var fileUri in urisForCurrentDocument)
             {
                 // Get the updated diagnostics for a single uri that were contributed by the current document.
-                var diagnostics = fileUriToDiagnostics.GetValueOrDefault(fileUri, ImmutableArray<LanguageServer.Protocol.Diagnostic>.Empty);
+                var diagnostics = fileUriToDiagnostics.GetValueOrDefault(fileUri, ImmutableArray<LSP.Diagnostic>.Empty);
 
                 if (_publishedFileToDiagnostics.ContainsKey(fileUri))
                 {
@@ -402,7 +402,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     // We do have diagnostics from the current document - update the published diagnostics map
                     // to contain the new diagnostics contributed by this document for this uri.
                     var documentsToPublishedDiagnostics = _publishedFileToDiagnostics.GetOrAdd(fileUri, (_) =>
-                        new Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>());
+                        new Dictionary<DocumentId, ImmutableArray<LSP.Diagnostic>>());
                     documentsToPublishedDiagnostics[document.Id] = fileUriToDiagnostics[fileUri];
                 }
                 else
@@ -415,13 +415,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private async Task SendDiagnosticsNotificationAsync(Uri uri, ImmutableArray<LanguageServer.Protocol.Diagnostic> diagnostics)
+        private async Task SendDiagnosticsNotificationAsync(Uri uri, ImmutableArray<LSP.Diagnostic> diagnostics)
         {
             var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics.ToArray(), Uri = uri };
             await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
         }
 
-        private async Task<Dictionary<Uri, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> GetDiagnosticsAsync(CodeAnalysis.Document document, CancellationToken cancellationToken)
+        private async Task<Dictionary<Uri, ImmutableArray<LSP.Diagnostic>>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
             var diagnostics = _diagnosticService.GetDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken)
                                                 .Where(IncludeDiagnostic);
@@ -448,12 +448,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return ProtocolConversions.GetUriFromFilePath(filePath);
             }
 
-            static LanguageServer.Protocol.Diagnostic ConvertToLspDiagnostic(DiagnosticData diagnosticData, SourceText text)
+            static LSP.Diagnostic ConvertToLspDiagnostic(DiagnosticData diagnosticData, SourceText text)
             {
-                return new LanguageServer.Protocol.Diagnostic
+                Contract.ThrowIfNull(diagnosticData.DataLocation);
+
+                var diagnostic = new LSP.Diagnostic
                 {
                     Code = diagnosticData.Id,
-                    Message = diagnosticData.Message,
                     Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
                     Range = GetDiagnosticRange(diagnosticData.DataLocation, text),
                     // Only the unnecessary diagnostic tag is currently supported via LSP.
@@ -461,6 +462,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         ? new DiagnosticTag[] { DiagnosticTag.Unnecessary }
                         : Array.Empty<DiagnosticTag>()
                 };
+
+                if (diagnosticData.Message != null)
+                    diagnostic.Message = diagnosticData.Message;
+
+                return diagnostic;
             }
         }
 
@@ -475,7 +481,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private bool IncludeDiagnostic(DiagnosticData diagnostic) =>
             diagnostic.Properties.GetOrDefault(nameof(DocumentPropertiesService.DiagnosticsLspClientName)) == _clientName;
 
-        private static LanguageServer.Protocol.Range? GetDiagnosticRange(DiagnosticDataLocation? diagnosticDataLocation, SourceText text)
+        private static LSP.Range GetDiagnosticRange(DiagnosticDataLocation diagnosticDataLocation, SourceText text)
         {
             var linePositionSpan = DiagnosticData.GetLinePositionSpan(diagnosticDataLocation, text, useMapped: true);
             return ProtocolConversions.LinePositionToRange(linePositionSpan);
@@ -501,14 +507,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             internal IImmutableSet<Uri> GetFileUrisForDocument(DocumentId documentId)
                 => _server._documentsToPublishedUris.GetValueOrDefault(documentId, ImmutableSortedSet<Uri>.Empty);
 
-            internal ImmutableArray<LanguageServer.Protocol.Diagnostic> GetDiagnosticsForUriAndDocument(DocumentId documentId, Uri uri)
+            internal ImmutableArray<LSP.Diagnostic> GetDiagnosticsForUriAndDocument(DocumentId documentId, Uri uri)
             {
                 if (_server._publishedFileToDiagnostics.TryGetValue(uri, out var dict) && dict.TryGetValue(documentId, out var diagnostics))
                 {
                     return diagnostics;
                 }
 
-                return ImmutableArray<LanguageServer.Protocol.Diagnostic>.Empty;
+                return ImmutableArray<LSP.Diagnostic>.Empty;
             }
         }
     }
