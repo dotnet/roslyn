@@ -158,10 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Re-fetch tokens to the position in the reset point
                 PeekToken(offset - _tokenOffset);
 
-                // Re- calculate new offset in case tokens got shifted to the left while we were peeking. 
+                // Re-calculate new offset in case tokens got shifted to the left while we were peeking. 
                 offset = point.Position - _firstToken;
             }
-
 
             _mode = point.Mode;
             Debug.Assert(offset >= 0 && offset < _tokenCount);
