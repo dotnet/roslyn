@@ -7,9 +7,9 @@
         <target state="translated">Preferências do bloco de código</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expected_string_or_char_literal">
-        <source>Expected string or char literal</source>
-        <target state="translated">Cadeia de caracteres esperada ou literal char</target>
+      <trans-unit id="Expected_string_or_character_literal">
+        <source>Expected string or character literal</source>
+        <target state="needs-review-translation">Cadeia de caracteres esperada ou literal char</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_bodied_members">
@@ -40,8 +40,8 @@
       </trans-unit>
       <trans-unit id="var_preferences">
         <source>var preferences</source>
-        <target state="translated">preferências de var</target>
-        <note />
+        <target state="needs-review-translation">preferências de var</target>
+        <note>{Locked="var"}</note>
       </trans-unit>
     </body>
   </file>

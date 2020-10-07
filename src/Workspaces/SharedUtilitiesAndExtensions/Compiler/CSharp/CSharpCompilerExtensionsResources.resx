@@ -119,6 +119,7 @@
   </resheader>
   <data name="var_preferences" xml:space="preserve">
     <value>var preferences</value>
+    <comment>{Locked="var"}</comment>
   </data>
   <data name="Expression_bodied_members" xml:space="preserve">
     <value>Expression-bodied members</value>
@@ -136,8 +137,8 @@
     <value>'using' directive preferences</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="Expected_string_or_char_literal" xml:space="preserve">
-    <value>Expected string or char literal</value>
+  <data name="Expected_string_or_character_literal" xml:space="preserve">
+    <value>Expected string or character literal</value>
   </data>
   <data name="_0_1_is_not_supported_in_this_version" xml:space="preserve">
     <value>'{0}.{1}' is not supported in this version</value>

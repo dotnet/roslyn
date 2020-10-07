@@ -7,9 +7,9 @@
         <target state="translated">Предпочтения для блоков кода</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expected_string_or_char_literal">
-        <source>Expected string or char literal</source>
-        <target state="translated">Требуется строка или знаковый литерал</target>
+      <trans-unit id="Expected_string_or_character_literal">
+        <source>Expected string or character literal</source>
+        <target state="needs-review-translation">Требуется строка или знаковый литерал</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_bodied_members">
@@ -40,8 +40,8 @@
       </trans-unit>
       <trans-unit id="var_preferences">
         <source>var preferences</source>
-        <target state="translated">Предпочтения var</target>
-        <note />
+        <target state="needs-review-translation">Предпочтения var</target>
+        <note>{Locked="var"}</note>
       </trans-unit>
     </body>
   </file>

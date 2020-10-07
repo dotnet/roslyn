@@ -7,9 +7,9 @@
         <target state="translated">代码块首选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expected_string_or_char_literal">
-        <source>Expected string or char literal</source>
-        <target state="translated">预期的字符串或字符文本</target>
+      <trans-unit id="Expected_string_or_character_literal">
+        <source>Expected string or character literal</source>
+        <target state="needs-review-translation">预期的字符串或字符文本</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_bodied_members">
@@ -40,8 +40,8 @@
       </trans-unit>
       <trans-unit id="var_preferences">
         <source>var preferences</source>
-        <target state="translated">var 首选项</target>
-        <note />
+        <target state="needs-review-translation">var 首选项</target>
+        <note>{Locked="var"}</note>
       </trans-unit>
     </body>
   </file>

@@ -7,9 +7,9 @@
         <target state="translated">程式碼區塊喜好設定</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expected_string_or_char_literal">
-        <source>Expected string or char literal</source>
-        <target state="translated">必須是字串或字元常值</target>
+      <trans-unit id="Expected_string_or_character_literal">
+        <source>Expected string or character literal</source>
+        <target state="needs-review-translation">必須是字串或字元常值</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_bodied_members">
@@ -40,8 +40,8 @@
       </trans-unit>
       <trans-unit id="var_preferences">
         <source>var preferences</source>
-        <target state="translated">var 喜好設定</target>
-        <note />
+        <target state="needs-review-translation">var 喜好設定</target>
+        <note>{Locked="var"}</note>
       </trans-unit>
     </body>
   </file>
