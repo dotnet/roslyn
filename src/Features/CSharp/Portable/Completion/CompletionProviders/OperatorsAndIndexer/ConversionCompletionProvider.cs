@@ -86,16 +86,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             // Base types are valid sources for user-defined conversions
             // Note: We only look in the source (aka container), because target could be any type (in scope) of the compilation.
-            // No need to check for accessibility as an operators must always be public.
+            // No need to check for accessibility as operators must always be public.
+            // The target type is lifted, if containerIsNullable and the target of the conversion is a struct
             var allExplicitConversions = from t in container.GetBaseTypesAndThis()
                                          from m in t.GetMembers(WellKnownMemberNames.ExplicitConversionName).OfType<IMethodSymbol>()
                                          where
                                              m.IsConversion() && // MethodKind.Conversion
                                              m.Parameters.Length == 1 && // Malformed conversion operator may have more or less than one parameter
                                              t.Equals(m.Parameters[0].Type) // Convert from container type to other type
-                                         let typeName = m.ReturnType.ToMinimalDisplayString(semanticModel, position)
-                                         // Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
-                                         select CreateSymbolCompletionItem(m, typeName, targetTypeIsNullable: containerIsNullable && m.ReturnType.IsStructType(), position);
+                                         select CreateSymbolCompletionItem(
+                                             methodSymbol: m,
+                                             targetTypeName: m.ReturnType.ToMinimalDisplayString(semanticModel, position),
+                                             targetTypeIsNullable: containerIsNullable && m.ReturnType.IsStructType(),
+                                             position);
             builder.AddRange(allExplicitConversions);
 
         }
