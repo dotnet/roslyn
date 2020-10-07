@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private void FlushInMemoryDataToDisk()
         {
             // We're writing.  This better always be under the exclusive scheduler.
-            Debug.Assert(TaskScheduler.Current == _readerWriterLock.ExclusiveScheduler);
+            Contract.ThrowIfFalse(TaskScheduler.Current == _readerWriterLock.ExclusiveScheduler);
 
             // Don't flush from a bg task if we've been asked to shutdown.  The shutdown logic in the storage service
             // will take care of the final writes to the main db.

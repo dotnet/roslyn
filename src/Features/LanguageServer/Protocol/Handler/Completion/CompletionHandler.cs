@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // C# and VB share the same LSP language server, and thus share the same default trigger characters.
             // We need to ensure the trigger character is valid in the document's language. For example, the '{'
             // character, while a trigger character in VB, is not a trigger character in C#.
-            var triggerCharacter = char.Parse(request.Context.TriggerCharacter);
+            char.TryParse(request.Context.TriggerCharacter, out var triggerCharacter);
             if (request.Context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter && !char.IsLetterOrDigit(triggerCharacter) &&
                 !IsValidTriggerCharacterForDocument(document, request.Context.TriggerCharacter))
             {

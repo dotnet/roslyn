@@ -310,33 +310,6 @@ function GetIbcDropName() {
     return $drop.Name
 }
 
-# Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
-function SetVisualStudioBootstrapperBuildArgs() {
-  $fallbackBranch = "master-vs-deps"
-
-  $branchName = if ($officialSourceBranchName) { $officialSourceBranchName } else { $fallbackBranch }
-  $branchData = GetBranchPublishData $branchName
-
-  if ($branchData -eq $null) {
-    Write-LogIssue -Type warning -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. "
-    $branchData = GetBranchPublishData $fallbackBranch
-  }
-
-  # VS branch name is e.g. "lab/d16.0stg", "rel/d15.9", "lab/ml", etc.
-  $vsBranchSimpleName = $branchData.vsBranch.Split('/')[-1]
-  $vsMajorVersion = $branchData.vsMajorVersion
-  $vsChannel = "int.$vsBranchSimpleName"
-
-  Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"
-  Write-Host "##vso[task.setvariable variable=VisualStudio.ChannelName;]$vsChannel"
-
-  $insertionDir = Join-Path $VSSetupDir "Insertion"
-  if (Test-Path $insertionDir) {
-    $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
-    Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
-  }
-}
-
 # Core function for running our unit / integration tests tests
 function TestUsingOptimizedRunner() {
 
@@ -667,10 +640,6 @@ try {
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
     BuildSolution
-  }
-
-  if ($ci -and $build -and $msbuildEngine -eq "vs") {
-    SetVisualStudioBootstrapperBuildArgs
   }
 
   try

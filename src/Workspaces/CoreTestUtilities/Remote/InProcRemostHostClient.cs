@@ -384,16 +384,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                 public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => _stream.CopyToAsync(destination, bufferSize, cancellationToken);
 
-#pragma warning disable CS0672 // Member overrides obsolete member
-                public override object InitializeLifetimeService()
-                    => throw new NotSupportedException();
-#pragma warning restore CS0672 // Member overrides obsolete member
-
-#if !NETCOREAPP
-                public override ObjRef CreateObjRef(Type requestedType)
-                    => throw new NotSupportedException();
-#endif
-
                 public override void Close()
                 {
                     _service.Dispose();

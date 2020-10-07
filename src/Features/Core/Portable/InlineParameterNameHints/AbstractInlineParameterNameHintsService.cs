@@ -5,8 +5,10 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,18 +16,19 @@ namespace Microsoft.CodeAnalysis.InlineParameterNameHints
 {
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
-        public async Task<IEnumerable<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var nodes = root.DescendantNodes(textSpan);
-            var spans = AddAllParameterNameHintLocations(semanticModel, nodes, cancellationToken);
-            return spans;
+
+            using var _ = ArrayBuilder<InlineParameterHint>.GetInstance(out var result);
+            AddAllParameterNameHintLocations(semanticModel, nodes, result, cancellationToken);
+            return result.ToImmutable();
         }
 
-        protected abstract IEnumerable<InlineParameterHint> AddAllParameterNameHintLocations(
-            SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, CancellationToken cancellationToken);
+        protected abstract void AddAllParameterNameHintLocations(
+            SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, ArrayBuilder<InlineParameterHint> result, CancellationToken cancellationToken);
     }
 }
