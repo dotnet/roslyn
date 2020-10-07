@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -66,6 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 }
                 catch (Exception e) when (FatalError.Report(e))
                 {
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 

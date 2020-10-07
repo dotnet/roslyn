@@ -76,6 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                         Return New TempPECompilerFactory(workspace)
                     End Function)
             Catch ex As Exception When FatalError.ReportUnlessCanceled(ex)
+                Throw ExceptionUtilities.Unreachable
             End Try
         End Function
 
