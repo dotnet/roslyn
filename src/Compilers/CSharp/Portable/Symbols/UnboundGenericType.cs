@@ -127,14 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class PlaceholderTypeArgumentSymbol : ErrorTypeSymbol
     {
-        private static readonly PlaceholderTypeArgumentSymbol s_instance = new PlaceholderTypeArgumentSymbol();
+        private static readonly TypeWithAnnotations s_instance = TypeWithAnnotations.Create(new PlaceholderTypeArgumentSymbol());
 
         public static ImmutableArray<TypeWithAnnotations> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters)
         {
             var result = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             foreach (var typeParameter in typeParameters)
             {
-                result.Add(TypeWithAnnotations.Create(s_instance));
+                result.Add(s_instance);
             }
             return result.ToImmutableAndFree();
         }
