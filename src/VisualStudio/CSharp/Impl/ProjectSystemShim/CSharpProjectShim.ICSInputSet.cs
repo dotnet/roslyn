@@ -48,12 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 VisualStudioProject.CompilationOutputAssemblyFilePath = filename;
             }
 
-            if (filename != null)
+            if (!string.IsNullOrEmpty(filename))
             {
                 VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(filename);
-            }
 
-            RefreshBinOutputPath();
+                RefreshBinOutputPath();
+            }
         }
 
         public void SetOutputFileType(OutputFileType fileType)

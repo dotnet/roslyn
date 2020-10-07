@@ -326,9 +326,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                         VisualStudioProject.CompilationOutputAssemblyFilePath = Nothing
                     End If
                 End If
-            End If
 
-            RefreshBinOutputPath()
+                RefreshBinOutputPath()
+            End If
 
             _runtimeLibraries = VisualStudioProjectOptionsProcessor.GetRuntimeLibraries(_compilerHost)
 
