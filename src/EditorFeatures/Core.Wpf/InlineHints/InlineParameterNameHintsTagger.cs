@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
+namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
     /// <summary>
     /// The purpose of this tagger is to convert the <see cref="InlineParameterNameHintDataTag"/> to

@@ -30,17 +30,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_use_64bit_analysis_process As String =
             ServicesVSResources.Use_64_bit_process_for_code_analysis_requires_restart
 
-        Public ReadOnly Property Option_DisplayLineSeparators As String
-            Get
-                Return BasicVSResources.Show_procedure_line_separators
-            End Get
-        End Property
+        Public ReadOnly Property Option_DisplayLineSeparators As String =
+            BasicVSResources.Show_procedure_line_separators
 
-        Public ReadOnly Property Option_Display_inline_parameter_name_hints As String
-            Get
-                Return ServicesVSResources.Display_inline_parameter_name_hints
-            End Get
-        End Property
+        Public ReadOnly Property Option_Inline_Hints_experimental As String =
+            ServicesVSResources.Inline_Hints_experimental
+
+        Public ReadOnly Property Option_Display_inline_parameter_name_hints As String =
+            ServicesVSResources.Display_inline_parameter_name_hints
+
+        Public ReadOnly Property Option_Show_hints_for_literals As String =
+            ServicesVSResources.Show_hints_for_literals
+
+        Public ReadOnly Property Option_Show_hints_for_New_expressions As String =
+            BasicVSResources.Show_hints_for_New_expressions
+
+        Public ReadOnly Property Option_Show_hints_for_everything_else As String =
+            ServicesVSResources.Show_hints_for_everything_else
 
         Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String
             Get

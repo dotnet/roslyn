@@ -100,11 +100,31 @@
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments}" />
                 </StackPanel>
             </GroupBox>
+
+            <GroupBox x:Uid="InlineHintsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints_experimental}">
+                <StackPanel>
+                    <CheckBox x:Name="DisplayInlineParameterNameHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}"
+                              Checked="DisplayInlineParameterNameHints_Checked"
+                              Unchecked="DisplayInlineParameterNameHints_Unchecked"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Uid="ShowHintsForLiterals"
+                                  x:Name="ShowHintsForLiterals"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_literals}" />
+                        <CheckBox x:Uid="ShowHintsForNewExpressions"
+                                  x:Name="ShowHintsForNewExpressions"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_New_expressions}" />
+                        <CheckBox x:Uid="ShowHintsForEverythingElse"
+                                  x:Name="ShowHintsForEverythingElse"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_everything_else}" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+            
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>
-                    <CheckBox x:Name="DisplayInlineParameterNameHints"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}" />
                     <CheckBox x:Name="EnableLineCommit"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableLineCommit}" />
                     <CheckBox x:Name="EnableEndConstruct"
@@ -119,6 +139,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_GoToDefinition}">
                 <StackPanel>

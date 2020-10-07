@@ -1521,7 +1521,7 @@ I agree to all of the foregoing:</value>
     <value>Warning: type does not bind</value>
   </data>
   <data name="Display_inline_parameter_name_hints" xml:space="preserve">
-    <value>Disp_lay inline parameter name hints (experimental)</value>
+    <value>Disp_lay inline parameter name hints</value>
   </data>
   <data name="Current_parameter" xml:space="preserve">
     <value>Current parameter</value>
@@ -1556,5 +1556,14 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Comments" xml:space="preserve">
     <value>Comments</value>
+  </data>
+  <data name="Inline_Hints_experimental" xml:space="preserve">
+    <value>Inline Hints (experimental)</value>
+  </data>
+  <data name="Show_hints_for_everything_else" xml:space="preserve">
+    <value>Show hints for everything else</value>
+  </data>
+  <data name="Show_hints_for_literals" xml:space="preserve">
+    <value>Show hints for literals</value>
   </data>
 </root>

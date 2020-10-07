@@ -31,8 +31,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_use_64bit_analysis_process
             => ServicesVSResources.Use_64_bit_process_for_code_analysis_requires_restart;
 
+        public static string Option_Inline_Hints_experimental
+            => ServicesVSResources.Inline_Hints_experimental;
+
         public static string Option_Display_inline_parameter_name_hints
             => ServicesVSResources.Display_inline_parameter_name_hints;
+
+        public static string Option_Show_hints_for_literals
+            => ServicesVSResources.Show_hints_for_literals;
+
+        public static string Option_Show_hints_for_new_expressions
+            => CSharpVSResources.Show_hints_for_new_expressions;
+
+        public static string Option_Show_hints_for_everything_else
+            => ServicesVSResources.Show_hints_for_everything_else;
 
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
@@ -167,9 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Fade_out_unreachable_code;
 
         public static string Option_Performance
-        {
-            get { return CSharpVSResources.Performance; }
-        }
+            => CSharpVSResources.Performance;
 
         public static string Option_PlaceSystemNamespaceFirst
             => CSharpVSResources.Place_System_directives_first_when_sorting_usings;
