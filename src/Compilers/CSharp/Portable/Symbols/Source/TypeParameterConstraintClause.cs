@@ -61,17 +61,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public readonly ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraints;
         public readonly bool UsedLightweightTypeConstraintBinding;
 
-        private static readonly TypeParameterConstraintClauses EmptyFromLightweightBinding =
+        private static readonly TypeParameterConstraintClauses s_emptyFromLightweightBinding =
             new TypeParameterConstraintClauses(ImmutableArray<TypeParameterConstraintClause>.Empty, usedLightweightTypeConstraintBinding: true);
-        private static readonly TypeParameterConstraintClauses Empty =
+        private static readonly TypeParameterConstraintClauses s_empty =
             new TypeParameterConstraintClauses(ImmutableArray<TypeParameterConstraintClause>.Empty, usedLightweightTypeConstraintBinding: false);
 
         public static TypeParameterConstraintClauses Create(ImmutableArray<TypeParameterConstraintClause> typeParameterConstraints, bool usedLightweightTypeConstraintBinding)
         {
             return (typeParameterConstraints.IsEmpty, usedLightweightTypeConstraintBinding) switch
             {
-                (true, true) => EmptyFromLightweightBinding,
-                (true, false) => Empty,
+                (true, true) => s_emptyFromLightweightBinding,
+                (true, false) => s_empty,
                 _ => new TypeParameterConstraintClauses(typeParameterConstraints, usedLightweightTypeConstraintBinding)
             };
         }

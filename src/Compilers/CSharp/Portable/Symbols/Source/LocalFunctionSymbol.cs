@@ -461,7 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canUseLightweightTypeConstraintBinding)
         {
-            if (!_lazyTypeParameterConstraints.HasValue(canUseLightweightTypeConstraintBinding))
+            // We're not using lightweight type constraint binding for local function because the risk of cycles is minimal (no overrides)
+            if (!_lazyTypeParameterConstraints.HasValue(usedLightweightTypeConstraintBinding: false))
             {
                 var syntax = Syntax;
                 var diagnostics = DiagnosticBag.GetInstance();
@@ -470,17 +471,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
+                    canUseLightweightTypeConstraintBinding: false,
                     diagnostics);
 
                 lock (_declarationDiagnostics)
                 {
-                    if (!_lazyTypeParameterConstraints.HasValue(canUseLightweightTypeConstraintBinding))
+                    if (!_lazyTypeParameterConstraints.HasValue(usedLightweightTypeConstraintBinding: false))
                     {
-                        if (!canUseLightweightTypeConstraintBinding)
-                        {
-                            _declarationDiagnostics.AddRange(diagnostics);
-                        }
-                        _lazyTypeParameterConstraints = TypeParameterConstraintClauses.Create(constraints, canUseLightweightTypeConstraintBinding);
+                        _declarationDiagnostics.AddRange(diagnostics);
+                        _lazyTypeParameterConstraints = TypeParameterConstraintClauses.Create(constraints, usedLightweightTypeConstraintBinding: false);
                     }
                 }
                 diagnostics.Free();
