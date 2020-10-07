@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected abstract int SortingGroupIndex { get; } // Indexer, operators and conversion should be listed grouped together.
 
         protected abstract ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(
-            ITypeSymbol container,
-            bool isAccessedByConditionalAccess,
-            ExpressionSyntax expression,
             SemanticModel semanticModel,
+            ITypeSymbol container,
+            ExpressionSyntax expression,
             int position,
+            bool isAccessedByConditionalAccess,
             CancellationToken cancellationToken);
 
         internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var completionItems = GetCompletionItemsForTypeSymbol(container, isAccessedByConditionalAccess, expression, semanticModel, position, cancellationToken);
+            var completionItems = GetCompletionItemsForTypeSymbol(semanticModel, container, expression, position, isAccessedByConditionalAccess, cancellationToken);
             context.AddItems(completionItems);
         }
 

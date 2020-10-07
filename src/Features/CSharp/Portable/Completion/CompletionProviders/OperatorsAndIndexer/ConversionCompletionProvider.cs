@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override int SortingGroupIndex => 2;
 
-        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, ExpressionSyntax expression, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(SemanticModel semanticModel, ITypeSymbol container, ExpressionSyntax expression, int position, bool isAccessedByConditionalAccess, CancellationToken cancellationToken)
         {
             // Lifted nullable value types should be suggested if container is nullable or accessed via conditional access.
             // Container is nullable: int? id; id.$$ -> (byte?)
