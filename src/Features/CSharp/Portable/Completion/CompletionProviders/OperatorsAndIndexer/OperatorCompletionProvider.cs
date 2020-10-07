@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(SemanticModel semanticModel,
             ITypeSymbol container,
             int position,
-            bool isAccessedByConditionalAccess)
+            bool isAccessedByConditionalAccess,
+            CancellationToken cancellationToken)
         {
             if (IsExcludedSymbol(container))
             {

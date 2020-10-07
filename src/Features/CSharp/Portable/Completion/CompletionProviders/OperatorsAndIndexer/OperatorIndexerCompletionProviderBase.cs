@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SemanticModel semanticModel,
             ITypeSymbol container,
             int position,
-            bool isAccessedByConditionalAccess);
+            bool isAccessedByConditionalAccess,
+            CancellationToken cancellationToken);
 
         internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var completionItems = GetCompletionItemsForTypeSymbol(semanticModel, container, position, isAccessedByConditionalAccess);
+            var completionItems = GetCompletionItemsForTypeSymbol(semanticModel, container, position, isAccessedByConditionalAccess, cancellationToken);
             context.AddItems(completionItems);
         }
 

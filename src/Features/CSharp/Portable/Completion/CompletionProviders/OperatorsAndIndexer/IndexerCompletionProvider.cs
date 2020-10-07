@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(SemanticModel semanticModel,
             ITypeSymbol container,
             int position,
-            bool isAccessedByConditionalAccess)
+            bool isAccessedByConditionalAccess,
+            CancellationToken cancellationToken)
         {
             // We only want to suggest indexer accessible from the cursor position, so we need the containing type at the cursor position,
             // because the within parameter of GetAccessibleMembersInThisAndBaseTypes() must be an IAssemblySymbol or an INamedTypeSymbol.
