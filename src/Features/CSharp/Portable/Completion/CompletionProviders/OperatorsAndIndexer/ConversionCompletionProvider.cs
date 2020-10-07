@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.HasSymbols(item)
                 ? await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false)
-                : GetBuildInConversionDescription(item);
+                : GetBuiltInConversionDescription(item);
 
         private static CompletionDescription GetBuiltInConversionDescription(CompletionItem item)
         {
