@@ -15,9 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -44,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const string WRN_AnalyzerCannotBeCreatedId = "AD1000";
         internal const string WRN_NoAnalyzerInAssemblyId = "AD1001";
         internal const string WRN_UnableToLoadAnalyzerId = "AD1002";
+        internal const string WRN_AnalyzerReferencesNetFrameworkId = "AD1003";
 
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
 
@@ -201,6 +200,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     id = GetLanguageSpecificId(language, WRN_NoAnalyzerInAssemblyId, WRN_NoAnalyzerInAssemblyIdCS, WRN_NoAnalyzerInAssemblyIdVB);
                     messageFormat = FeaturesResources.The_assembly_0_does_not_contain_any_analyzers;
                     message = string.Format(FeaturesResources.The_assembly_0_does_not_contain_any_analyzers, fullPath);
+                    break;
+
+                case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
+                    // TODO: what are the values for C# and VB?
+                    id = GetLanguageSpecificId(language, WRN_AnalyzerReferencesNetFrameworkId, WRN_AnalyzerReferencesNetFrameworkId, WRN_AnalyzerReferencesNetFrameworkId);
+                    messageFormat = FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework;
+                    message = string.Format(FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework, fullPath, e.TypeName);
                     break;
 
                 default:

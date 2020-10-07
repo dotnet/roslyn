@@ -1880,6 +1880,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">대상 유형 일치</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="translated">선언이 없는 로컬 함수 호출이 선택 영역에 있습니다.</target>
