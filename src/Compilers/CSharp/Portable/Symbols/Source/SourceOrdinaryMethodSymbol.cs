@@ -294,15 +294,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     .GetBinderFactory(syntax.SyntaxTree)
                     .GetBinder(syntax.ReturnType, syntax, this);
 
-                var constraints = TypeParameterConstraintClauses.Create(
-                    this.MakeTypeParameterConstraints(
-                        withTypeParametersBinder,
-                        TypeParameters,
-                        syntax.TypeParameterList,
-                        syntax.ConstraintClauses,
-                        canUseLightweightTypeConstraintBinding,
-                        diagnostics),
-                    canUseLightweightTypeConstraintBinding);
+                var constraints = this.MakeTypeParameterConstraints(
+                    withTypeParametersBinder,
+                    TypeParameters,
+                    syntax.TypeParameterList,
+                    syntax.ConstraintClauses,
+                    canUseLightweightTypeConstraintBinding,
+                    diagnostics);
 
                 if (TypeParameterConstraintClausesExtensions.InterlockedUpdate(ref _lazyTypeParameterConstraints, constraints) &&
                     _lazyTypeParameterConstraints.HasValue(usedLightweightTypeConstraintBinding: false))

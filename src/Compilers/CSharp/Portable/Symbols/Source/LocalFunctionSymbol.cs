@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (!_lazyTypeParameterConstraints.HasValue(usedLightweightTypeConstraintBinding: false))
                     {
                         _declarationDiagnostics.AddRange(diagnostics);
-                        _lazyTypeParameterConstraints = TypeParameterConstraintClauses.Create(constraints, usedLightweightTypeConstraintBinding: false);
+                        _lazyTypeParameterConstraints = constraints;
                     }
                 }
                 diagnostics.Free();
