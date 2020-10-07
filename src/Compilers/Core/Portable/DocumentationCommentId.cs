@@ -656,9 +656,6 @@ namespace Microsoft.CodeAnalysis
 
         private static class Parser
         {
-            private static readonly SymbolEqualityComparer s_symbolEqualityComparer =
-                new(TypeCompareKind.CLRSignatureCompareOptions);
-
             public static bool ParseDeclaredSymbolId(string id, Compilation compilation, List<ISymbol> results)
             {
                 if (id == null)
@@ -1222,7 +1219,7 @@ namespace Microsoft.CodeAnalysis
                                     ITypeSymbol? returnType = ParseTypeSymbol(id, ref index, compilation, methodSymbol);
 
                                     // if return type is specified, then it must match
-                                    if (returnType != null && methodSymbol.ReturnType.Equals(returnType, s_symbolEqualityComparer))
+                                    if (returnType != null && methodSymbol.ReturnType.Equals(returnType, SymbolEqualityComparer.CLRSignature))
                                     {
                                         // return type matches
                                         results.Add(methodSymbol);
@@ -1365,7 +1362,7 @@ namespace Microsoft.CodeAnalysis
 
                 var parameterType = parameterInfo.Type;
 
-                return parameterType != null && symbol.Type.Equals(parameterType, s_symbolEqualityComparer);
+                return parameterType != null && symbol.Type.Equals(parameterType, SymbolEqualityComparer.CLRSignature);
             }
 
             private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)

@@ -16,16 +16,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Compares two <see cref="ISymbol"/> instances based on the default comparison rules, equivalent to calling <see cref="IEquatable{ISymbol}.Equals(ISymbol)"/>
         /// </summary>
-        public static readonly SymbolEqualityComparer Default = new SymbolEqualityComparer(TypeCompareKind.AllNullableIgnoreOptions);
+        public static readonly SymbolEqualityComparer Default = new(TypeCompareKind.AllNullableIgnoreOptions);
 
         /// <summary>
         /// Compares  two <see cref="ISymbol"/> instances, considering their nullability
         /// </summary>
-        public static readonly SymbolEqualityComparer IncludeNullability = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything2); //TODO: should this be explicitly *not* compare everything
+        public static readonly SymbolEqualityComparer IncludeNullability = new(TypeCompareKind.ConsiderEverything2); //TODO: should this be explicitly *not* compare everything
 
         // Internal only comparisons:
-        internal static readonly SymbolEqualityComparer ConsiderEverything = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything);
-        internal static readonly SymbolEqualityComparer IgnoreAll = new SymbolEqualityComparer(TypeCompareKind.AllIgnoreOptions);
+        internal static readonly SymbolEqualityComparer ConsiderEverything = new(TypeCompareKind.ConsiderEverything);
+        internal static readonly SymbolEqualityComparer IgnoreAll = new(TypeCompareKind.AllIgnoreOptions);
+        internal static readonly SymbolEqualityComparer CLRSignature = new(TypeCompareKind.CLRSignatureCompareOptions);
 
         internal TypeCompareKind CompareKind { get; }
 

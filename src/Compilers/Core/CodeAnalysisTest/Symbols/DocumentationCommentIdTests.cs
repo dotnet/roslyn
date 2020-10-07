@@ -45,6 +45,31 @@ class C
         }
 
         [Fact]
+        public void TupleParameterMethod()
+        {
+            string code = @"
+class C
+{
+    void DoStuff((int i, int) tuple) {}
+}";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics();
+
+            var symbol = comp.GetSymbolsWithName("DoStuff").Single();
+
+            var actualDocId = DocumentationCommentId.CreateDeclarationId(symbol);
+
+            string expectedDocId = "M:C.DoStuff(System.ValueTuple{System.Int32,System.Int32})";
+
+            Assert.Equal(expectedDocId, actualDocId);
+
+            var foundSymbols = DocumentationCommentId.GetSymbolsForDeclarationId(expectedDocId, comp);
+
+            Assert.Equal(new[] { symbol }, foundSymbols);
+        }
+
+        [Fact]
         public void DynamicParameterMethod()
         {
             string code = @"
