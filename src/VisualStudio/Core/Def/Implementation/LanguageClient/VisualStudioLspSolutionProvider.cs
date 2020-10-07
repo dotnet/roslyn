@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return _visualStudioWorkspace.CurrentSolution;
         }
 
-        public ImmutableArray<Document> GetDocuments(Uri? documentUri)
+        public ImmutableArray<Document> GetDocuments(Uri documentUri)
         {
             // First check the VS workspace for matching documents.
             var documents = _visualStudioWorkspace.CurrentSolution.GetDocuments(documentUri);
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return documents;
         }
 
-        public ImmutableArray<TextDocument> GetTextDocuments(Uri? documentUri)
+        public ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri)
         {
             // First check the VS workspace for matching documents.
             var documents = _visualStudioWorkspace.CurrentSolution.GetTextDocuments(documentUri);

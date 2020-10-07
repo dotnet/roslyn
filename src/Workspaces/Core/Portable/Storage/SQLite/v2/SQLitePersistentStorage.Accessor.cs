@@ -275,6 +275,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 byte[] checksumBytes, int checksumLength,
                 byte[] dataBytes, int dataLength)
             {
+                // We're writing.  This better always be under the exclusive scheduler.
+                Contract.ThrowIfFalse(TaskScheduler.Current == Storage._readerWriterLock.ExclusiveScheduler);
+
                 using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_writecache_table_values_0_1_2))
                 {
                     var statement = resettableStatement.Statement;

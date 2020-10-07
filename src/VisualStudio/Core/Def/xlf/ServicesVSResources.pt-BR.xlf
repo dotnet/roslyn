@@ -152,6 +152,11 @@
         <target state="translated">Colorir expressões regulares</target>
         <note />
       </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="new">Comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Contendo Membro</target>
