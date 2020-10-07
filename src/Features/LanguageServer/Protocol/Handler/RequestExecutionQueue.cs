@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <para>
     /// This class acheives this by distinguishing between mutating and non-mutating requests, and ensuring that
     /// when a mutating request comes in, its processing blocks all subsequent requests. As each request comes in
-    /// it is added to a queue, and a queue item will not be retreived while a mutating request is running. Before
+    /// it is added to a queue, and a queue item will not be retrieved while a mutating request is running. Before
     /// any request is handled the solution state is created by merging workspace solution state, which could have
     /// changes from non-LSP means (eg, adding a project reference), with the current "mutated" state.
     /// When a non-mutating work item is retrieved from the queue, it is given the current solution state, but then
@@ -162,12 +162,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             // Keep track of solution state modifications made by LSP requests
             Solution? lastMutatedSolution = null;
+            QueueItem work = default;
 
             try
             {
                 while (!_cancelSource.IsCancellationRequested)
                 {
-                    var work = await _queue.DequeueAsync().ConfigureAwait(false);
+                    work = await _queue.DequeueAsync().ConfigureAwait(false);
 
                     // Create a linked cancellation token to cancel any requests in progress when this shuts down
                     var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         }
                         else
                         {
-                            OnRequestServerShutdown($"An error occured processing a mutating request and the solution is in an invalid state. Check LSP client logs for any error information.");
+                            OnRequestServerShutdown($"An error occurred processing a mutating request and the solution is in an invalid state. Check LSP client logs for any error information.");
                             break;
                         }
                     }
@@ -226,7 +227,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                OnRequestServerShutdown($"Error occured processing queue: {e.Message}.");
+                OnRequestServerShutdown($"Error occurred processing queue: {e.Message}.");
+                
+                if (work.CallbackAsync != null)
+                {
+                    // We've shut down and cancelled any work that was in the queue, but if this exception
+                    // happened after we took something from the queue, but before calling the callback, then
+                    // it would be an orphaned task
+                    EnsureQueueItemCancelled(work);
+                }
             }
         }
 
@@ -246,15 +255,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Tell the queue not to accept any more items
             _queue.Complete();
 
-            // Spin through the queue and pass in our cancelled token, so that the waiting tasks are cancelled.
-            // NOTE: This only really works because the first thing that CallbackAsync does is check for cancellation
-            // but generics make it annoying to store the TaskCompletionSource<TResult> on the QueueItem so this
-            // is the best we can do for now. Ideally we would manipulate the TaskCompletionSource directly here
-            // and just call SetCanceled
             while (_queue.TryDequeue(out var item))
             {
-                _ = item.CallbackAsync(default, new CancellationToken(true));
+                EnsureQueueItemCancelled(item);
             }
+        }
+
+        /// <summary>
+        /// Executes callbacks passing in a cancelled token, so that the waiting requests are immediately cancelled.
+        /// </summary>
+        /// <remarks>
+        /// This only really works because the first thing that CallbackAsync does is check for cancellation
+        /// but generics make it annoying to store the <see cref="TaskCompletionSource{TResult}" /> on the QueueItem.
+        /// Ideally we would manipulate the TaskCompletionSource directly here and just call SetCanceled.
+        /// </remarks>
+        private static void EnsureQueueItemCancelled(QueueItem item)
+        {
+            _ = item.CallbackAsync(default, new CancellationToken(true));
         }
 
         private static Solution MergeChanges(Solution solution, Solution? mutatedSolution)
