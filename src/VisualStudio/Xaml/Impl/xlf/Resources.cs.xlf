@@ -19,8 +19,8 @@
       </trans-unit>
       <trans-unit id="Xaml_Language_Server_Client">
         <source>XAML Language Server Client</source>
-        <target state="translated">Klient serveru pro jazyk XAML</target>
-        <note />
+        <target state="needs-review-translation">Klient serveru pro jazyk XAML</target>
+        <note>{Locked="XAML"}</note>
       </trans-unit>
     </body>
   </file>

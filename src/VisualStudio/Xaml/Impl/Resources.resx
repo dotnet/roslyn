@@ -128,5 +128,6 @@
   </data>
   <data name="Xaml_Language_Server_Client" xml:space="preserve">
     <value>XAML Language Server Client</value>
+    <comment>{Locked="XAML"}</comment>
   </data>
 </root>
