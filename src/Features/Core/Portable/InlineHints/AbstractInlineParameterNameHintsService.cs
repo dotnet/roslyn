@@ -189,42 +189,42 @@ namespace Microsoft.CodeAnalysis.InlineHints
             var methodName = method.Name;
 
             // Check for something like `EnableLogging(true)`
-            if (TryGetIntent("Enable", methodName, out _) ||
-                TryGetIntent("Disable", methodName, out _))
+            if (TryGetSuffix("Enable", methodName, out _) ||
+                TryGetSuffix("Disable", methodName, out _))
             {
                 return parameter.Type.SpecialType == SpecialType.System_Boolean;
             }
 
             // More names can be added here if we find other patterns like this.
-            if (TryGetIntent("Set", methodName, out var methodIntent) ||
-                TryGetIntent("From", methodName, out methodIntent))
+            if (TryGetSuffix("Set", methodName, out var suffix) ||
+                TryGetSuffix("From", methodName, out suffix))
             {
-                return IntentNameMatchesParameterName(methodIntent, parameter.Name);
+                return SuffixMatchesParameterName(suffix, parameter.Name);
             }
 
             return false;
 
-            static bool TryGetIntent(string prefix, string nameValue, out ReadOnlyMemory<char> result)
+            static bool TryGetSuffix(string prefix, string nameValue, out ReadOnlyMemory<char> suffix)
             {
                 if (nameValue.Length > prefix.Length &&
                     nameValue.StartsWith(prefix) &&
                     char.IsUpper(nameValue[prefix.Length]))
                 {
-                    result = nameValue.AsMemory()[prefix.Length..];
+                    suffix = nameValue.AsMemory()[prefix.Length..];
                     return true;
                 }
 
-                result = default;
+                suffix = default;
                 return false;
             }
 
-            static bool IntentNameMatchesParameterName(ReadOnlyMemory<char> intent, string parameterName)
+            static bool SuffixMatchesParameterName(ReadOnlyMemory<char> suffix, string parameterName)
             {
-                // Method's name will be something like 'FromResult', so 'intent' will be 'Result' and parameterName
+                // Method's name will be something like 'FromResult', so 'suffix' will be 'Result' and parameterName
                 // will be 'result'.  So we check if the first letters differ on case and the rest of the method
                 // matches.
-                return char.ToLower(intent.Span[0]) == parameterName[0] &&
-                       intent.Span.Slice(1).Equals(parameterName.AsSpan().Slice(1), StringComparison.Ordinal);
+                return char.ToLower(suffix.Span[0]) == parameterName[0] &&
+                       suffix.Span[1..].Equals(parameterName.AsSpan()[1..], StringComparison.Ordinal);
             }
         }
     }
