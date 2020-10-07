@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private const string s_titleSuffix = "_Title";
         private const string s_descriptionSuffix = "_Description";
-        private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
         public static readonly ImmutableHashSet<string> NullableWarnings;
 
@@ -25,79 +24,69 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableHashSet<string>.Builder nullableWarnings = ImmutableHashSet.CreateBuilder<string>();
 
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceAssignment));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceReceiver));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceReturn));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceArgument));
-            nullableWarnings.Add(getId(ErrorCode.WRN_UninitializedNonNullableField));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInAssignment));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgument));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullAsNonNullable));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullableValueTypeMayBeNull));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint));
-            nullableWarnings.Add(getId(ErrorCode.WRN_ThrowPossibleNull));
-            nullableWarnings.Add(getId(ErrorCode.WRN_UnboxPossibleNull));
-            nullableWarnings.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
-            nullableWarnings.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullReferenceAssignment));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullReferenceReceiver));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullReferenceReturn));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullReferenceArgument));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_UninitializedNonNullableField));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInAssignment));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInArgument));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullAsNonNullable));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullableValueTypeMayBeNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_ThrowPossibleNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_UnboxPossibleNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen));
 
-            nullableWarnings.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
-            nullableWarnings.Add(getId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
-            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
-            nullableWarnings.Add(getId(ErrorCode.WRN_ShouldNotReturn));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_ConvertingNullableToNonNullable));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_ShouldNotReturn));
 
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase));
-            nullableWarnings.Add(getId(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceInitializer));
-            nullableWarnings.Add(getId(ErrorCode.WRN_ShouldNotReturn));
-            nullableWarnings.Add(getId(ErrorCode.WRN_DoesNotReturnMismatch));
-            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride));
-            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation));
-            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride));
-            nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNull));
-            nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullBadMember));
-            nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullWhen));
-            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterDisallowsNull));
-            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterNotNullIfNotNull));
-            nullableWarnings.Add(getId(ErrorCode.WRN_ReturnNotNullIfNotNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullReferenceInitializer));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_ShouldNotReturn));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_DoesNotReturnMismatch));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_MemberNotNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_MemberNotNullBadMember));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_MemberNotNullWhen));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterDisallowsNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterNotNullIfNotNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_ReturnNotNullIfNotNull));
 
             NullableWarnings = nullableWarnings.ToImmutable();
-
-            static string getId(ErrorCode errorCode)
-            {
-                return MessageProvider.Instance.GetIdForErrorCode((int)errorCode);
-            }
         }
 
-        private static ImmutableDictionary<ErrorCode, string> CreateHelpLinks()
+        private static string GetId(ErrorCode errorCode)
         {
-            var map = new Dictionary<ErrorCode, string>()
-            {
-                // { ERROR_CODE,    HELP_LINK }
-            };
-
-            return map.ToImmutableDictionary();
+            return MessageProvider.Instance.GetIdForErrorCode((int)errorCode);
         }
 
         private static ImmutableDictionary<ErrorCode, string> CreateCategoriesMap()
@@ -171,13 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static string GetHelpLink(ErrorCode code)
         {
-            string helpLink;
-            if (s_helpLinksMap.Value.TryGetValue(code, out helpLink))
-            {
-                return helpLink;
-            }
-
-            return string.Empty;
+            return $"https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k({GetId(code)})";
         }
 
         public static string GetCategory(ErrorCode code)

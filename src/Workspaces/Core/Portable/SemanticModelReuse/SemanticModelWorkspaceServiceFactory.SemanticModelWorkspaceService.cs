@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 };
             }
 
-            public async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+            public async ValueTask<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
             {
                 var reuseService = document.GetRequiredLanguageService<ISemanticModelReuseLanguageService>();
 

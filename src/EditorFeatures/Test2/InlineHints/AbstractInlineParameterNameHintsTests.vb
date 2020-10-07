@@ -3,24 +3,21 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
-Imports Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
-Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.InlineParameterNameHints
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Tagging
+Imports Microsoft.CodeAnalysis.InlineHints
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <[UseExportProvider]>
     Public MustInherit Class AbstractInlineParameterNameHintsTests
 
         Protected Async Function VerifyParamHints(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineParameterNameHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
+
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                    InlineHintsOptions.EnabledForParameters,
+                    workspace.CurrentSolution.Projects().First().Language,
+                    optionIsEnabled)))
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
@@ -35,17 +32,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
 
                 Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
                     Function(name) name.Value,
-                    Function(name, span) _
-                    New With {.Name = name.Key,
-                              .Span = span
-                    })
+                    Function(name, span) New With {.Name = name.Key, span})
 
                 For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
                     expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.Span.Start.ToString())
                 Next
 
                 AssertEx.Equal(expectedTags, producedTags)
-
             End Using
         End Function
     End Class

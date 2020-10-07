@@ -84,12 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
-
             if (conversion.IsMethodGroup)
             {
                 return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
             }
+
+            // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
+            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
 
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
@@ -1113,15 +1114,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe())
+            if ((selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe()) && ReportUnsafeIfNotAllowed(syntax, diagnostics))
             {
-                return ReportUnsafeIfNotAllowed(syntax, diagnostics);
+                return true;
             }
-
             if (!isAddressOf)
             {
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
             }
+            ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
 
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process
