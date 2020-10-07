@@ -159,8 +159,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         CompletionTrigger = completionTrigger,
                     },
                     Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
-                    CommitCharacters = GetCommitCharacters(item, commitCharacterRulesCache)
                 };
+                var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache);
+                if (commitCharacters != null)
+                {
+                    completionItem.CommitCharacters = commitCharacters;
+                }
 
                 return completionItem;
             }

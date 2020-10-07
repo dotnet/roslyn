@@ -449,7 +449,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             ThisCanBeCalledOnAnyThread();
 
-            var serviceContainer = (IBrokeredServiceContainer)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
+            var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
             var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
             if (serviceBroker == null)
                 return;

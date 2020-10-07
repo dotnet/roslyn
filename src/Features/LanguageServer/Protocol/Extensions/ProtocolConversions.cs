@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText text)
         {
+            Contract.ThrowIfNull(textChange.NewText);
             return new LSP.TextEdit
             {
                 NewText = textChange.NewText,
