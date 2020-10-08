@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Adjust upper bound as needed to generate a simpler reproducer for an error scenario
             var originalText = SourceText.From(string.Join("", Enumerable.Range(0, random.Next(10))));
 
-            foreach (var iteration in Enumerable.Range(0, 100000))
+            for (var iteration = 0; iteration < 100000; iteration++)
             {
                 var editedLength = originalText.Length;
                 ArrayBuilder<TextChange> oldChangesBuilder = ArrayBuilder<TextChange>.GetInstance();
@@ -982,11 +982,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 ");
                     throw;
                 }
-
-                // we delay freeing so that if we need to debug the fuzzer
-                // it's easier to see what changes were introduced at each stage.
-                oldChangesBuilder.Free();
-                newChangesBuilder.Free();
+                finally
+                {
+                    // we delay freeing so that if we need to debug the fuzzer
+                    // it's easier to see what changes were introduced at each stage.
+                    oldChangesBuilder.Free();
+                    newChangesBuilder.Free();
+                }
             }
         }
 

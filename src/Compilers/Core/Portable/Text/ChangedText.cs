@@ -246,6 +246,9 @@ namespace Microsoft.CodeAnalysis.Text
         ///
         /// This may require splitting, concatenation, etc. of individual change ranges.
         /// </summary>
+        /// <remarks>
+        /// Both `oldChanges` and `newChanges` must contain non-overlapping spans in ascending order.
+        /// </remarks>
         private static ImmutableArray<TextChangeRange> Merge(ImmutableArray<TextChangeRange> oldChanges, ImmutableArray<TextChangeRange> newChanges)
         {
             if (oldChanges.IsEmpty)
@@ -273,23 +276,27 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (oldChange.Span.Length == 0 && oldChange.NewLength == 0)
                 {
-                    if (tryGetNext(oldChanges, ref oldIndex, out oldChange)) continue; else break;
+                    if (tryGetNext(oldChanges, ref oldIndex, out oldChange)) continue;
+                    else break;
                 }
                 else if (newChange.Span.Length == 0 && newChange.NewLength == 0)
                 {
-                    if (tryGetNext(newChanges, ref newIndex, out newChange)) continue; else break;
+                    if (tryGetNext(newChanges, ref newIndex, out newChange)) continue;
+                    else break;
                 }
                 else if (newChange.Span.End < oldChange.Span.Start + oldDelta)
                 {
                     // new change is entirely before old change
                     addAdjustedNewChange(newChange);
-                    if (tryGetNext(newChanges, ref newIndex, out newChange)) continue; else break;
+                    if (tryGetNext(newChanges, ref newIndex, out newChange)) continue;
+                    else break;
                 }
                 else if (newChange.Span.Start > oldChange.Span.Start + oldDelta + oldChange.NewLength)
                 {
                     // new change is entirely after old change
                     addAndAdjustOldDelta(oldChange);
-                    if (tryGetNext(oldChanges, ref oldIndex, out oldChange)) continue; else break;
+                    if (tryGetNext(oldChanges, ref oldIndex, out oldChange)) continue;
+                    else break;
                 }
                 else if (newChange.Span.Start < oldChange.Span.Start + oldDelta)
                 {
@@ -315,9 +322,10 @@ namespace Microsoft.CodeAnalysis.Text
                     // new change and old change start at same position
                     if (oldChange.NewLength == 0)
                     {
-                        // old change is just a deletion, go ahead and old change now and deal with new change separately
+                        // old change is just a deletion, add old change now and deal with new change separately
                         addAndAdjustOldDelta(oldChange);
-                        if (tryGetNext(oldChanges, ref oldIndex, out oldChange)) continue; else break;
+                        if (tryGetNext(oldChanges, ref oldIndex, out oldChange)) continue;
+                        else break;
                     }
                     else if (newChange.Span.Length <= oldChange.NewLength)
                     {
@@ -329,7 +337,8 @@ namespace Microsoft.CodeAnalysis.Text
                         // when integrating newChange's inserts/deletes into an old change,
                         // we need to "counter-adjust" so that the oldDelta still reflects only inserts/deletes caused by old changes.
                         oldDelta = oldDelta - newChange.NewLength + newChange.Span.Length;
-                        if (tryGetNext(newChanges, ref newIndex, out newChange)) continue; else break;
+                        if (tryGetNext(newChanges, ref newIndex, out newChange)) continue;
+                        else break;
                     }
                     else
                     {
@@ -337,7 +346,8 @@ namespace Microsoft.CodeAnalysis.Text
                         var newChangeTrailingDeletion = oldChange.Span.Length + newChange.Span.Length - oldChange.NewLength;
                         add(new TextChangeRange(new TextSpan(oldChange.Span.Start, newChangeTrailingDeletion), newChange.NewLength));
                         oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength;
-                        if (tryGetNext(oldChanges, ref oldIndex, out oldChange) & tryGetNext(newChanges, ref newIndex, out newChange)) continue; else break;
+                        if (tryGetNext(oldChanges, ref oldIndex, out oldChange) & tryGetNext(newChanges, ref newIndex, out newChange)) continue;
+                        else break;
                     }
                 }
             }
