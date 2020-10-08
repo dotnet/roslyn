@@ -263,6 +263,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             => _requestHandlerProvider.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>(_queue, MSLSPMethods.OnAutoInsertName,
                 autoInsertParams, _clientCapabilities, _clientName, cancellationToken);
 
+        [JsonRpcMethod(Methods.TextDocumentDidChangeName, UseSingleObjectParameterDeserialization = true)]
+        public Task<object> HandleDocumentDidChangeAsync(DidChangeTextDocumentParams didChangeParams, CancellationToken cancellationToken)
+            => _requestHandlerProvider.ExecuteRequestAsync<DidChangeTextDocumentParams, object>(_queue, Methods.TextDocumentDidChangeName,
+                didChangeParams, _clientCapabilities, _clientName, cancellationToken);
+
+        [JsonRpcMethod(Methods.TextDocumentDidOpenName, UseSingleObjectParameterDeserialization = true)]
+        public Task<object> HandleDocumentDidOpenAsync(DidOpenTextDocumentParams didOpenParams, CancellationToken cancellationToken)
+            => _requestHandlerProvider.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(_queue, Methods.TextDocumentDidOpenName,
+                didOpenParams, _clientCapabilities, _clientName, cancellationToken);
+
+        [JsonRpcMethod(Methods.TextDocumentDidCloseName, UseSingleObjectParameterDeserialization = true)]
+        public Task<object> HandleDocumentDidCloseAsync(DidCloseTextDocumentParams didCloseParams, CancellationToken cancellationToken)
+            => _requestHandlerProvider.ExecuteRequestAsync<DidCloseTextDocumentParams, object>(_queue, Methods.TextDocumentDidCloseName,
+                didCloseParams, _clientCapabilities, _clientName, cancellationToken);
+
         private void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
         {
             // LSP doesn't support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
