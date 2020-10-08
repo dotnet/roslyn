@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
             var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
 
-            var forParameters = displayAllOverride || options.GetOption(InlineHintsOptions.EnabledForParameters);
-            if (!forParameters)
+            var enabledForParameters = displayAllOverride || options.GetOption(InlineHintsOptions.EnabledForParameters);
+            if (!enabledForParameters)
                 return ImmutableArray<InlineParameterHint>.Empty;
 
             var literalParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForLiteralParameters);
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
             if (!literalParameters && !objectCreationParameters && !otherParameters)
                 return ImmutableArray<InlineParameterHint>.Empty;
 
-            var suppressForParametersThatDifferOnlyBySuffix = options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
-            var suppressForParametersThatMatchMethodIntent = options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
+            var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
+            var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

@@ -211,6 +211,18 @@
                                   x:Name="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_names_differ_only_by_suffix}" />
                     </StackPanel>
+                    <CheckBox x:Name="DisplayInlineTypeHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_type_hints}"
+                              Checked="DisplayInlineTypeHints_Checked"
+                              Unchecked="DisplayInlineTypeHints_Unchecked"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Uid="ShowHintsForVariablesWithInferredTypes"
+                                  x:Name="ShowHintsForVariablesWithInferredTypes"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_variables_with_inferred_types}" />
+                        <CheckBox x:Uid="ShowHintsForLambdaParameterTypes"
+                                  x:Name="ShowHintsForLambdaParameterTypes"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_lambda_parameter_types}" />
+                    </StackPanel>
                 </StackPanel>
             </GroupBox>
         </StackPanel>
