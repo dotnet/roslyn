@@ -93,8 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 base.KeyUp(args);
 
-                // If we've lifted a key up, then turn off the inline hints.
-                ToggleOff();
+                // If we've lifted a key up from ctrl/alt, then turn off the inline hints.
+                if (IsCtrlOrAlt(args))
+                    ToggleOff();
             }
 
             private void ToggleOn()
