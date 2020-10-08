@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     if (IsValidType(type))
                         return new InlineTypeHint(type, variableDeclaration.Variables[0].Identifier.SpanStart);
                 }
-                else if (node is SingleVariableDesignationSyntax variableDesignation)
+                else if (node is SingleVariableDesignationSyntax { Parent: not DeclarationPatternSyntax } variableDesignation)
                 {
                     var local = semanticModel.GetDeclaredSymbol(variableDesignation, cancellationToken) as ILocalSymbol;
                     var type = local?.Type;
