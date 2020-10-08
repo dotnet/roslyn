@@ -69,20 +69,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 // Disconnect our callbacks.
                 _view.Closed -= OnViewClosed;
                 _view.LostAggregateFocus -= OnLostFocus;
+
+                // Go back to off-mode just so we don't somehow get stuck in on-mode if the option was on when the view closed.
+                ToggleOff();
             }
 
             private void OnLostFocus(object sender, EventArgs e)
             {
                 // if focus is lost (which can happen for shortcuts that include ctrl-alt...) then go back to normal
                 // inline-hint processing.
-                ToggleOff(GetDocument());
+                ToggleOff();
             }
 
             public override void KeyDown(KeyEventArgs args)
             {
                 base.KeyDown(args);
-
-                var document = GetDocument();
 
                 // if this is either the ctrl or alt key, and only ctrl-alt is down, then toggle on. 
                 // otherwise toggle off if anything else is pressed down.
@@ -90,12 +91,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 {
                     if (args.KeyboardDevice.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
                     {
-                        ToggleOn(document);
+                        ToggleOn();
                         return;
                     }
                 }
 
-                ToggleOff(document);
+                ToggleOff();
             }
 
             public override void KeyUp(KeyEventArgs args)
@@ -103,17 +104,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 base.KeyUp(args);
 
                 // If we've lifted a key up, then turn off the inline hints.
-                ToggleOff(GetDocument());
+                ToggleOff();
             }
 
-            private static void ToggleOn(Document? document)
-                => Toggle(document, on: true);
+            private void ToggleOn()
+                => Toggle(on: true);
 
-            private static void ToggleOff(Document? document)
-                => Toggle(document, on: false);
+            private void ToggleOff()
+                => Toggle(on: false);
 
-            private static void Toggle(Document? document, bool on)
+            private void Toggle(bool on)
             {
+                // Only relevant if this is a roslyn document.
+                var document = GetDocument();
                 if (document == null)
                     return;
 
