@@ -4,7 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     Public Class CSharpInlineParameterNameHintsTests
-        Inherits AbstractInlineParameterNameHintsTests
+        Inherits AbstractInlineHintsTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
         Public Async Function TestNoParameterSimpleCase() As Task

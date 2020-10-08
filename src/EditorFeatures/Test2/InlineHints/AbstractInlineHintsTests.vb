@@ -8,11 +8,10 @@ Imports Microsoft.CodeAnalysis.InlineHints
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <[UseExportProvider]>
-    Public MustInherit Class AbstractInlineParameterNameHintsTests
-
+    Public MustInherit Class AbstractInlineHintsTests
         Protected Async Function VerifyParamHints(test As XElement, Optional optionIsEnabled As Boolean = True) As Task
             Using workspace = TestWorkspace.Create(test)
-                WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineParameterNameHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
+                WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                     InlineHintsOptions.EnabledForParameters,
@@ -34,8 +33,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                     Function(name) name.Value,
                     Function(name, span) New With {.Name = name.Key, span})
 
-                For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
-                    expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.Span.Start.ToString())
+                For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.span.Start)
+                    expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.span.Start.ToString())
                 Next
 
                 AssertEx.Equal(expectedTags, producedTags)
