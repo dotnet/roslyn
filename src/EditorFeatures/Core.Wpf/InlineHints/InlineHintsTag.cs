@@ -136,6 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
             // page. Calculates a font size 1/4 smaller than the font size of the rest of the editor
+            var right = text.EndsWith(":") ? 0 : 1;
             var block = new TextBlock
             {
                 FontFamily = format.Typeface.FontFamily,
@@ -145,8 +146,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 // Adds a little bit of padding to the left of the text relative to the border
                 // to make the text seem more balanced in the border
-                Padding = new Thickness(left: 1, top: 0, right: 0, bottom: 0),
-                Text = text + ":",
+                Padding = new Thickness(left: 1, top: 0, right: right, bottom: 0),
+                Text = text,
                 VerticalAlignment = VerticalAlignment.Center,
             };
 

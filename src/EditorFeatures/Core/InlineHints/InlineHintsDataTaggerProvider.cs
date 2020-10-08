@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     [Name(nameof(InlineHintsDataTaggerProvider))]
     internal class InlineHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineHintDataTag>
     {
-        private static SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
@@ -95,18 +96,59 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             if (service == null)
                 return;
 
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var anonymousTypeService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+            var position = snapshotSpan.Span.Start;
             var hints = await service.GetInlineTypeHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             foreach (var hint in hints)
             {
                 Contract.ThrowIfNull(hint.Type);
 
+                var sb = PooledStringBuilder.GetInstance();
+                var parts = hint.Type.ToDisplayParts(s_minimalTypeStyle);
+
+                AddParts(anonymousTypeService, sb, parts, semanticModel, position);
+
                 cancellationToken.ThrowIfCancellationRequested();
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     new SnapshotSpan(snapshotSpan.Snapshot, hint.Position, 0),
                     new InlineHintDataTag(
-                        hint.Type.ToDisplayString(s_minimalTypeStyle),
+                        sb.ToStringAndFree(),
                         hint.Type.GetSymbolKey(cancellationToken))));
+            }
+        }
+
+        private void AddParts(
+            IAnonymousTypeDisplayService anonymousTypeService,
+            PooledStringBuilder sb,
+            System.Collections.Immutable.ImmutableArray<SymbolDisplayPart> parts,
+            SemanticModel semanticModel,
+            int position,
+            HashSet<INamedTypeSymbol>? seenSymbols = null)
+        {
+            seenSymbols ??= new();
+
+            foreach (var part in parts)
+            {
+                if (part.Symbol is INamedTypeSymbol { IsAnonymousType: true } anonymousType)
+                {
+                    if (seenSymbols.Add(anonymousType))
+                    {
+                        var anonymousParts = anonymousTypeService.GetAnonymousTypeParts(anonymousType, semanticModel, position);
+                        AddParts(anonymousTypeService, sb, anonymousParts, semanticModel, position, seenSymbols);
+                        seenSymbols.Remove(anonymousType);
+                    }
+                    else
+                    {
+                        sb.Builder.Append("...");
+                    }
+                }
+                else
+                {
+                    sb.Builder.Append(part.ToString());
+                }
             }
         }
 
@@ -127,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     new SnapshotSpan(snapshotSpan.Snapshot, hint.Position, 0),
                     new InlineHintDataTag(
-                        hint.Parameter.Name,
+                        hint.Parameter.Name + ":",
                         hint.Parameter.GetSymbolKey(cancellationToken))));
             }
         }
