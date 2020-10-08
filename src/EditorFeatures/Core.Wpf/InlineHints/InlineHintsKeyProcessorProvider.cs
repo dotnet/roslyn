@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     [Name(nameof(InlineHintsKeyProcessorProvider))]
     internal class InlineHintsKeyProcessorProvider : IKeyProcessorProvider
     {
-        private static readonly ConditionalWeakTable<IWpfTextView, InlineHintsKeyProcessor> s_viewToProcessor = new();
-
         private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
@@ -38,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         }
 
         public KeyProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
-        {
-            return s_viewToProcessor.GetValue(wpfTextView, v => new InlineHintsKeyProcessor(_globalOptionService, v));
-        }
+            => new InlineHintsKeyProcessor(_globalOptionService, wpfTextView);
 
         private class InlineHintsKeyProcessor : KeyProcessor
         {
