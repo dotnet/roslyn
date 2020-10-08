@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -42,9 +45,13 @@ namespace Microsoft.CodeAnalysis.Packaging
         event EventHandler PackageSourcesChanged;
     }
 
-    internal struct PackageSource : IEquatable<PackageSource>
+    [DataContract]
+    internal readonly struct PackageSource : IEquatable<PackageSource>
     {
+        [DataMember(Order = 0)]
         public readonly string Name;
+
+        [DataMember(Order = 1)]
         public readonly string Source;
 
         public PackageSource(string name, string source)
@@ -54,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Packaging
         }
 
         public override bool Equals(object obj)
-            => Equals((PackageSource)obj);
+            => obj is PackageSource source && Equals(source);
 
         public bool Equals(PackageSource other)
             => Name == other.Name && Source == other.Source;

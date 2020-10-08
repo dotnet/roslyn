@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => Part(kind, null, text);
 
         private static SymbolDisplayPart Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
-            => new SymbolDisplayPart(kind, symbol, text);
+            => new(kind, symbol, text);
 
         protected static IEnumerable<SymbolDisplayPart> Space(int count = 1)
         {

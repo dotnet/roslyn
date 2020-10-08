@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
@@ -11,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal class DocumentPropertiesService : IDocumentService
     {
-        public static readonly DocumentPropertiesService Default = new DocumentPropertiesService();
+        public static readonly DocumentPropertiesService Default = new();
 
         /// <summary>
         /// The LSP client name that should get the diagnostics produced by this document; any other source

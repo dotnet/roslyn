@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Gate that is used to guard modifications to <see cref="_taskQueue"/>.
         /// </summary>
-        private readonly object _taskQueueGate = new object();
+        private readonly object _taskQueueGate = new();
 
         /// <summary>
         /// We create a queue of tasks against the IVsFileChangeEx service for two reasons. First, we are obtaining the service asynchronously, and don't want to
@@ -160,9 +158,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// Gate to guard mutable fields in this class and any mutation of any <see cref="FileWatchingToken"/>s.
             /// </summary>
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private bool _disposed = false;
-            private readonly HashSet<FileWatchingToken> _activeFileWatchingTokens = new HashSet<FileWatchingToken>();
+            private readonly HashSet<FileWatchingToken> _activeFileWatchingTokens = new();
 
             /// <summary>
             /// The list of cookies we used to make watchers for <see cref="_watchedDirectories"/>.
@@ -171,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// This does not need to be used under <see cref="_gate"/>, as it's only used inside the actual queue of file watcher
             /// actions.
             /// </remarks>
-            private readonly List<uint> _directoryWatchCookies = new List<uint>();
+            private readonly List<uint> _directoryWatchCookies = new();
 
             public Context(FileChangeWatcher fileChangeWatcher, ImmutableArray<WatchedDirectory> watchedDirectories)
             {
@@ -189,14 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                             if (watchedDirectory.ExtensionFilter != null)
                             {
-                                // TODO: switch to proper reference assemblies
-                                var filterDirectoryChangesAsyncMethod = service.GetType().GetMethod("FilterDirectoryChangesAsync");
-
-                                if (filterDirectoryChangesAsyncMethod != null)
-                                {
-                                    var arguments = new object[] { cookie, new string[] { watchedDirectory.ExtensionFilter }, CancellationToken.None };
-                                    await ((Task)filterDirectoryChangesAsyncMethod.Invoke(service, arguments)).ConfigureAwait(false);
-                                }
+                                await service.FilterDirectoryChangesAsync(cookie, new string[] { watchedDirectory.ExtensionFilter }, CancellationToken.None).ConfigureAwait(false);
                             }
                         });
                 }

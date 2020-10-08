@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -135,7 +137,10 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
 
                 // Keep track that this dll is referenced by this project.
-                metadataInfo.ReferencingProjects.Add(project.Id);
+                lock (metadataInfo.ReferencingProjects)
+                {
+                    metadataInfo.ReferencingProjects.Add(project.Id);
+                }
             }
 
             public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
@@ -150,11 +155,14 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             {
                 foreach (var (id, info) in _metadataIdToInfo.ToArray())
                 {
-                    info.ReferencingProjects.Remove(projectId);
+                    lock (info.ReferencingProjects)
+                    {
+                        info.ReferencingProjects.Remove(projectId);
 
-                    // If this metadata dll isn't referenced by any project.  We can just dump it.
-                    if (info.ReferencingProjects.Count == 0)
-                        _metadataIdToInfo.TryRemove(id, out _);
+                        // If this metadata dll isn't referenced by any project.  We can just dump it.
+                        if (info.ReferencingProjects.Count == 0)
+                            _metadataIdToInfo.TryRemove(id, out _);
+                    }
                 }
             }
         }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,8 +11,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// Interface to allow host (VS) to inform the OOP service to start incrementally analyzing and
     /// reporting results back to the host.
     /// </summary>
-    internal interface IRemoteTodoCommentsService
+    internal interface IRemoteTodoCommentsDiscoveryService
     {
-        Task ComputeTodoCommentsAsync(CancellationToken cancellation);
+        ValueTask ComputeTodoCommentsAsync(CancellationToken cancellation);
     }
 }

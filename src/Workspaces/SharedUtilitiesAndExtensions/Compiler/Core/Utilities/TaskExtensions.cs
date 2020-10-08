@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -22,7 +24,7 @@ namespace Roslyn.Utilities
     internal static partial class TaskExtensions
     {
 #if DEBUG
-        private static readonly Lazy<Func<Thread, bool>> s_isThreadPoolThread = new Lazy<Func<Thread, bool>>(
+        private static readonly Lazy<Func<Thread, bool>> s_isThreadPoolThread = new(
             () =>
             {
                 var property = typeof(Thread).GetTypeInfo().GetDeclaredProperty("IsThreadPoolThread");

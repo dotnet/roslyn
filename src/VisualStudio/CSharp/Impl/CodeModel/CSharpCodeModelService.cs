@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -48,24 +50,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         private static readonly SymbolDisplayFormat s_codeTypeRefAsFullNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.ExpandNullable);
 
         private static readonly SymbolDisplayFormat s_codeTypeRefAsStringFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         private static readonly SymbolDisplayFormat s_externalNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeName);
 
         private static readonly SymbolDisplayFormat s_externalFullNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -73,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 parameterOptions: SymbolDisplayParameterOptions.IncludeName);
 
         private static readonly SymbolDisplayFormat s_setTypeFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,

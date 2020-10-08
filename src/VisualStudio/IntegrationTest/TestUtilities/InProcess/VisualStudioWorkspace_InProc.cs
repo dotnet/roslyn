@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel;
 using System.Linq;
@@ -131,7 +133,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 WaitForProjectSystem(timeout);
             }
 
-            GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);
+            GetWaitingService().WaitForAllAsyncOperations(_visualStudioWorkspace, timeout, featureNames);
         }
 
         public void WaitForAllAsyncOperationsOrFail(TimeSpan timeout, params string[] featureNames)

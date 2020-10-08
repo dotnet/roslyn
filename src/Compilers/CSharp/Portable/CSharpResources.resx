@@ -6563,4 +6563,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
+  <data name="ERR_FunctionPointersCannotBeCalledWithNamedArguments" xml:space="preserve">
+    <value>A function pointer cannot be called with named arguments.</value>
+  </data>
 </root>

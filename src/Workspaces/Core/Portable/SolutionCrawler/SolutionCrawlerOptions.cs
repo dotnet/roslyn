@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Microsoft.CodeAnalysis.Options;
 
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Option to turn configure background analysis scope.
         /// </summary>
-        public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new PerLanguageOption2<BackgroundAnalysisScope>(
+        public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
             nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.Default,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
 
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// This option is used by TypeScript and F#.
         /// </summary>
         [Obsolete("Currently used by F# - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
-        internal static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new PerLanguageOption<bool?>(
+        internal static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new(
             "ServiceFeaturesOnOff", "Closed File Diagnostic", defaultValue: null,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Closed File Diagnostic"));
 

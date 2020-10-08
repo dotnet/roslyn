@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         IChainedCommandHandler<TypeCharCommandArgs>,
         IChainedCommandHandler<InvokeSignatureHelpCommandArgs>
     {
-        private static readonly object s_controllerPropertyKey = new object();
+        private static readonly object s_controllerPropertyKey = new();
         private readonly IAsyncCompletionBroker _completionBroker;
 
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
