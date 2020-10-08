@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return connection;
         }
 
+        [Obsolete]
         public override ServiceRpcDescriptor WithMultiplexingStream(MultiplexingStream? multiplexingStream)
         {
             var baseResult = base.WithMultiplexingStream(multiplexingStream);

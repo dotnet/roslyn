@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name);
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IFieldSymbol symbol,
             Document document,
             SemanticModel semanticModel,

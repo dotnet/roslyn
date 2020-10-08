@@ -10,15 +10,14 @@ using Microsoft.CodeAnalysis.DesignerAttribute;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteDesignerAttributeIncrementalAnalyzer : AbstractDesignerAttributeIncrementalAnalyzer
+    internal sealed partial class RemoteDesignerAttributeIncrementalAnalyzer : AbstractDesignerAttributeIncrementalAnalyzer
     {
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
         private readonly RemoteCallback<IDesignerAttributeListener> _callback;
 
-        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteCallback<IDesignerAttributeListener> callback)
-            : base(workspace)
+        public RemoteDesignerAttributeIncrementalAnalyzer(RemoteCallback<IDesignerAttributeListener> callback)
         {
             _callback = callback;
         }
@@ -30,10 +29,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
         }
 
-        protected override async ValueTask ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
+        protected override async ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
             await _callback.InvokeAsync(
-               (callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(data.ToImmutableArray(), cancellationToken),
+               (callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(data, cancellationToken),
                cancellationToken).ConfigureAwait(false);
         }
     }

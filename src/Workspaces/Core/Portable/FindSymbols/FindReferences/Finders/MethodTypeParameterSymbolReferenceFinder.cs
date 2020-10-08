@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : fullName;
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
             Document document,
             SemanticModel semanticModel,

@@ -38,9 +38,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            if (!(completionItem.Data is CompletionResolveData data))
+            CompletionResolveData data;
+            if (completionItem.Data is JToken token)
             {
-                data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
+                data = token.ToObject<CompletionResolveData>();
+            }
+            else
+            {
+                return completionItem;
             }
 
             var documentId = DocumentId.CreateFromSerialized(ProjectId.CreateFromSerialized(data.ProjectGuid), data.DocumentGuid);
