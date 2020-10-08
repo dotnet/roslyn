@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -241,13 +242,13 @@ namespace Roslyn.Test.Utilities
                 SortText = sortText ?? insertText,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
-                Data = new CompletionResolveData()
+                Data = JObject.FromObject(new CompletionResolveData()
                 {
                     DisplayText = insertText,
                     TextDocument = requestParameters.TextDocument,
                     Position = requestParameters.Position,
-                    CompletionTrigger = new CompletionTrigger(ProtocolConversions.LSPToRoslynCompletionTriggerKind(requestParameters.Context.TriggerKind), char.Parse(requestParameters.Context.TriggerCharacter))
-                },
+                    CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context)
+                }),
                 Preselect = preselect,
             };
 

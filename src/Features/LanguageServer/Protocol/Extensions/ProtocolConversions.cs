@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -70,18 +69,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
-        public static Completion.CompletionTriggerKind LSPToRoslynCompletionTriggerKind(LSP.CompletionTriggerKind triggerKind)
+        public static Completion.CompletionTrigger LSPToRoslynCompletionTrigger(LSP.CompletionContext? context)
         {
-            switch (triggerKind)
+            if (context == null)
             {
-                case LSP.CompletionTriggerKind.Invoked:
-                    return Completion.CompletionTriggerKind.Invoke;
-                case LSP.CompletionTriggerKind.TriggerCharacter:
-                    return Completion.CompletionTriggerKind.Insertion;
-                default:
-                    // LSP added a TriggerKind that we need to support.
-                    Logger.Log(FunctionId.LSPCompletion_MissingLSPCompletionTriggerKind);
-                    return Completion.CompletionTriggerKind.Invoke;
+                // Some LSP clients don't support sending extra context, so all we can do is invoke
+                return Completion.CompletionTrigger.Invoke;
+            }
+            else if (context.TriggerKind == LSP.CompletionTriggerKind.Invoked)
+            {
+                return Completion.CompletionTrigger.Invoke;
+            }
+            else if (context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter)
+            {
+                Contract.ThrowIfNull(context.TriggerCharacter);
+                return Completion.CompletionTrigger.CreateInsertionTrigger(char.Parse(context.TriggerCharacter));
+            }
+            else
+            {
+                // LSP added a TriggerKind that we need to support.
+                Logger.Log(FunctionId.LSPCompletion_MissingLSPCompletionTriggerKind);
+                return Completion.CompletionTrigger.Invoke;
             }
         }
 
