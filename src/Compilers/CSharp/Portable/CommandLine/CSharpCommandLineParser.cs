@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? outputRefFilePath = null;
             bool refOnly = false;
             string? generatedFilesOutputDirectory = null;
-            string? transformedFilesOutputDirectory = null;
             string? documentationPath = null;
             ErrorLogOptions? errorLogOptions = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
@@ -103,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
             List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
             var analyzerConfigPaths = ArrayBuilder<string>.GetInstance();
-            var transformerOrder = ArrayBuilder<string>.GetInstance();
             List<CommandLineSourceFile> embeddedFiles = new List<CommandLineSourceFile>();
             bool sourceFilesSpecified = false;
             bool embedAllSourceFiles = false;
@@ -626,17 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 generatedFilesOutputDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory);
-                            }
-                            continue;
-
-                        case "transformedfilesout":
-                            if (string.IsNullOrWhiteSpace(value))
-                            {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
-                            }
-                            else
-                            {
-                                transformedFilesOutputDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory);
                             }
                             continue;
 
@@ -1304,17 +1291,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             analyzerConfigPaths.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
                             continue;
 
-                        case "transformerorder":
-                            unquoted = RemoveQuotesAndSlashes(value);
-                            if (RoslynString.IsNullOrEmpty(unquoted))
-                            {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
-                                continue;
-                            }
-
-                            transformerOrder.AddRange(ParseSeparatedStrings(unquoted, new[] { ';' }));
-                            continue;
-
                         case "embed":
                             if (RoslynString.IsNullOrEmpty(value))
                             {
@@ -1526,7 +1502,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OutputDirectory = outputDirectory!, // error produced when null
                 DocumentationPath = documentationPath,
                 GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
-                TransformedFilesOutputDirectory = transformedFilesOutputDirectory,
                 ErrorLogOptions = errorLogOptions,
                 AppConfigPath = appConfigPath,
                 SourceFiles = sourceFiles.AsImmutable(),
@@ -1535,7 +1510,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MetadataReferences = metadataReferences.AsImmutable(),
                 AnalyzerReferences = analyzers.AsImmutable(),
                 AnalyzerConfigPaths = analyzerConfigPaths.ToImmutableAndFree(),
-                TransformerOrder = transformerOrder.ToImmutableAndFree(),
                 AdditionalFiles = additionalFiles.AsImmutable(),
                 ReferencePaths = referencePaths,
                 SourcePaths = sourcePaths.AsImmutable(),

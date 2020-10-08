@@ -342,11 +342,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
+            ImmutableArray<string> transformerOrder,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
             out ImmutableArray<ISourceTransformer> transformers)
         {
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, out analyzers, out generators, out transformers);
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers);
         }
 
         protected override void ResolveEmbeddedFilesFromExternalSourceDirectives(

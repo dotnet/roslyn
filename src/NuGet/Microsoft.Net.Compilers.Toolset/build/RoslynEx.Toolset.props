@@ -17,5 +17,7 @@
 
   <ItemGroup>
     <CompilerVisibleProperty Include="RoslynExDebugTransformedCode" />
+    <CompilerVisibleProperty Include="RoslynExTransformerOrder" />
+    <CompilerVisibleProperty Include="CompilerTransformedFilesOutputPath" />
   </ItemGroup>
 </Project>

@@ -46,11 +46,12 @@ Friend Class MockVisualBasicCompiler
         diagnostics As List(Of DiagnosticInfo),
         messageProvider As CommonMessageProvider,
         skipAnalyzers As Boolean,
+        transformerOrder As ImmutableArray(Of String),
         ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
         ByRef generators As ImmutableArray(Of ISourceGenerator),
         ByRef transformers As ImmutableArray(Of ISourceTransformer))
 
-        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, analyzers, generators, transformers)
+        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, transformerOrder, analyzers, generators, transformers)
         If Not _analyzers.IsDefaultOrEmpty Then
             analyzers = analyzers.InsertRange(0, _analyzers)
         End If

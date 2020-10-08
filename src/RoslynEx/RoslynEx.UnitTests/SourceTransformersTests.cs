@@ -135,8 +135,11 @@ error RE0001: Transformer 'TransformerOrderTransformer1' failed: System.Exceptio
             var src1 = dir.CreateFile("C.cs").WriteAllText("class C { }");
             var src2 = dir.CreateDirectory("dir").CreateFile("D.cs").WriteAllText("class D { }");
             var transformedDir = dir.CreateDirectory("transformed");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+is_global = true
+build_property.CompilerTransformedFilesOutputPath = {transformedDir.Path}");
 
-            var args = new[] { "/t:library", $"/transformedfilesout:{transformedDir.Path}", src1.Path, src2.Path, "/out:lib.dll" };
+            var args = new[] { "/t:library", $"/analyzerconfig:{analyzerConfig.Path}", src1.Path, src2.Path, "/out:lib.dll" };
 
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new DoSomethingTransformer() }).ToImmutableArray());
 

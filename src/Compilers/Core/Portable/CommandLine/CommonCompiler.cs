@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
+            ImmutableArray<string> transformerOrder,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
             out ImmutableArray<ISourceTransformer> transformers);
@@ -777,6 +778,7 @@ namespace Microsoft.CodeAnalysis
             AnalyzerConfigSet analyzerConfigSet = null;
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
             AnalyzerConfigOptionsResult globalConfigOptions = default;
+            ImmutableArray<string> transformerOrder = default;
 
             if (Arguments.AnalyzerConfigPaths.Length > 0)
             {
@@ -794,6 +796,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     diagnostics.AddRange(sourceFileAnalyzerConfigOption.Diagnostics);
                 }
+
+                globalConfigOptions.AnalyzerOptions.TryGetValue("build_property.RoslynExTransformerOrder", out var transformerOrderString);
+
+                if (!string.IsNullOrWhiteSpace(transformerOrderString))
+                    transformerOrder = transformerOrderString.Split(';').ToImmutableArray();
             }
 
             Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions);
@@ -803,7 +810,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnosticInfos = new List<DiagnosticInfo>();
-            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, Arguments.SkipAnalyzers, out var analyzers, out var generators, out var transformers);
+            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, Arguments.SkipAnalyzers, transformerOrder, out var analyzers, out var generators, out var transformers);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
             if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger))
             {
@@ -912,6 +919,12 @@ namespace Microsoft.CodeAnalysis
             options.GlobalOptions.TryGetValue("build_property.RoslynExDebugTransformedCode", out var shouldDebugTransformedCodeString);
             bool.TryParse(shouldDebugTransformedCodeString, out var shouldDebugTransformedCode);
             return shouldDebugTransformedCode;
+        }
+
+        protected static string GetTransformedFilesOutputDirectory(AnalyzerConfigOptionsProvider options)
+        {
+            options.GlobalOptions.TryGetValue("build_property.CompilerTransformedFilesOutputPath", out var transformedFilesOutputDirectory);
+            return transformedFilesOutputDirectory;
         }
 
         /// <summary>
@@ -1044,7 +1057,8 @@ namespace Microsoft.CodeAnalysis
                     compilation = RunTransformers(ref compilationBefore, transfomers, analyzerConfigProvider, diagnostics);
 
                     bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
-                    bool hasTransformedOutputPath = !string.IsNullOrWhiteSpace(Arguments.TransformedFilesOutputDirectory);
+                    var transformedOutputPath = GetTransformedFilesOutputDirectory(analyzerConfigProvider);
+                    bool hasTransformedOutputPath = !string.IsNullOrWhiteSpace(transformedOutputPath);
 
                     // fix whitespace and embed transformed code into PDB or write it to disk
                     if (compilation != compilationBefore && (shouldDebugTransformedCode || hasTransformedOutputPath))
@@ -1080,8 +1094,8 @@ namespace Microsoft.CodeAnalysis
 
                             if (hasTransformedOutputPath)
                             {
-                                var fullPath = Path.Combine(Arguments.TransformedFilesOutputDirectory, path);
-                                if (Directory.Exists(Arguments.TransformedFilesOutputDirectory))
+                                var fullPath = Path.Combine(transformedOutputPath, path);
+                                if (Directory.Exists(transformedOutputPath))
                                 {
                                     Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
                                 }

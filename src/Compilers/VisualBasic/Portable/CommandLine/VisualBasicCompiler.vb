@@ -252,11 +252,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As List(Of DiagnosticInfo),
             messageProvider As CommonMessageProvider,
             skipAnalyzers As Boolean,
+            transformerOrder As ImmutableArray(Of String),
             ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
             ByRef generators As ImmutableArray(Of ISourceGenerator),
             ByRef transformers As ImmutableArray(Of ISourceTransformer))
 
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, analyzers, generators, transformers)
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, transformerOrder, analyzers, generators, transformers)
         End Sub
 
         Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(

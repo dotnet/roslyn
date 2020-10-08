@@ -132,11 +132,6 @@ namespace Microsoft.CodeAnalysis
         public string? GeneratedFilesOutputDirectory { get; internal set; }
 
         /// <summary>
-        /// Absolute path of the directory to place RoslynEx transformed files in, or <c>null</c> to not emit any transformed files.
-        /// </summary>
-        public string? TransformedFilesOutputDirectory { get; internal set; }
-
-        /// <summary>
         /// Options controlling the generation of a SARIF log file containing compilation or
         /// analysis diagnostics, or null if no log file is desired.
         /// </summary>
@@ -173,11 +168,6 @@ namespace Microsoft.CodeAnalysis
         /// A set of paths to EditorConfig-compatible analyzer config files.
         /// </summary>
         public ImmutableArray<string> AnalyzerConfigPaths { get; internal set; }
-
-        /// <summary>
-        /// Namespace-qualified names of transformer types. Their order specifies the execution order of the corresponding transformations.
-        /// </summary>
-        public ImmutableArray<string> TransformerOrder { get; internal set; }
 
         /// <summary>
         /// A set of additional non-code text files that can be used by analyzers.
@@ -481,6 +471,7 @@ namespace Microsoft.CodeAnalysis
             CommonMessageProvider messageProvider,
             IAnalyzerAssemblyLoader analyzerLoader,
             bool skipAnalyzers,
+            ImmutableArray<string> transformerOrder,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
             out ImmutableArray<ISourceTransformer> transfomers)
@@ -551,8 +542,8 @@ namespace Microsoft.CodeAnalysis
 
             resolvedReferences.Free();
 
-            if (TransformerOrder != null)
-                transformerOrders.Add(TransformerOrder);
+            if (!transformerOrder.IsDefaultOrEmpty)
+                transformerOrders.Add(transformerOrder);
 
             TransformerDependencyResolver.Sort(ref transformerBuilder, transformerOrders, diagnostics);
 

@@ -40,11 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
+            ImmutableArray<string> transformerOrder,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
             out ImmutableArray<ISourceTransformer> transformers)
         {
-            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, out analyzers, out generators, out transformers);
+            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers);
             if (!_analyzers.IsDefaultOrEmpty)
             {
                 analyzers = analyzers.InsertRange(0, _analyzers);
