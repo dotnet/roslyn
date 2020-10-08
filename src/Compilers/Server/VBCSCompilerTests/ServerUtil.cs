@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     internal static class ProtocolUtil
     {
+        internal const string DefaultWorkingDirectory = @"c:\code";
+
         internal static readonly BuildRequest EmptyCSharpBuildRequest = new BuildRequest(
             BuildProtocolConstants.ProtocolVersion,
             RequestLanguage.CSharpCompile,
@@ -40,9 +42,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             utf8output: false,
             output: string.Empty);
 
-        internal static BuildRequest CreateEmptyCSharpWithKeepAlive(TimeSpan keepAlive) => BuildRequest.Create(
+        internal static BuildRequest CreateEmptyCSharpWithKeepAlive(TimeSpan keepAlive, string workingDirectory = null, string tempDirectory = null) => BuildRequest.Create(
             RequestLanguage.CSharpCompile,
             Array.Empty<string>(),
+            workingDirectory ?? DefaultWorkingDirectory,
+            tempDirectory ?? Path.GetTempPath(),
             compilerHash: BuildProtocolConstants.GetCommitHash(),
             keepAlive: keepAlive.TotalSeconds.ToString());
 
