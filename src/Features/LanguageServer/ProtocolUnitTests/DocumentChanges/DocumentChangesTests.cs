@@ -21,6 +21,51 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     public class DocumentChangesTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
+        public async Task DocumentChanges_EndToEnd()
+        {
+            var source =
+@"class A
+{
+    void M()
+    {
+        {|type:|}
+    }
+}";
+            var expected =
+@"class A
+{
+    void M()
+    {
+        // hi there
+    }
+}";
+            var (workspace, locationTyped, documentText) = await GetWorkspaceAndLocationAsync(source);
+
+            using (workspace)
+            {
+                var queue = CreateRequestQueue(workspace.CurrentSolution);
+
+                Assert.Empty(queue.GetTestAccessor().GetTrackedDocuments());
+
+                await DidOpen(queue, workspace.CurrentSolution, CreateDidOpenTextDocumentParams(locationTyped, documentText));
+
+                Assert.Single(queue.GetTestAccessor().GetTrackedDocuments());
+
+                var document = queue.GetTestAccessor().GetTrackedDocuments().Single();
+                Assert.Equal(documentText, document.GetTextSynchronously(default).ToString());
+
+                await DidChange(queue, workspace.CurrentSolution, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there")));
+
+                document = queue.GetTestAccessor().GetTrackedDocuments().Single();
+                Assert.Equal(expected, document.GetTextSynchronously(default).ToString());
+
+                await DidClose(queue, workspace.CurrentSolution, CreateDidCloseTextDocumentParams(locationTyped));
+
+                Assert.Empty(queue.GetTestAccessor().GetTrackedDocuments());
+            }
+        }
+
+        [Fact]
         public async Task DidOpen_DocumentIsTracked()
         {
             var source =
