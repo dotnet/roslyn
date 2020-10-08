@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 {
@@ -21,9 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         {
         }
 
-        protected override (ITypeSymbol type, int position)? TryGetTypeHint(
+        protected override (ITypeSymbol type, TextSpan span)? TryGetTypeHint(
             SemanticModel semanticModel,
             SyntaxNode node,
+            bool displayAllOverride,
             bool forImplicitVariableTypes,
             bool forLambdaParameterTypes,
             CancellationToken cancellationToken)
@@ -37,14 +39,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                 {
                     var type = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
                     if (IsValidType(type))
-                        return (type, variableDeclaration.Variables[0].Identifier.SpanStart);
+                        return (type, displayAllOverride ? variableDeclaration.Type.Span : new TextSpan(variableDeclaration.Variables[0].Identifier.SpanStart, 0));
                 }
                 else if (node is SingleVariableDesignationSyntax { Parent: not DeclarationPatternSyntax } variableDesignation)
                 {
                     var local = semanticModel.GetDeclaredSymbol(variableDesignation, cancellationToken) as ILocalSymbol;
                     var type = local?.Type;
                     if (IsValidType(type))
-                        return (type, variableDesignation.Identifier.SpanStart);
+                    {
+                        return node.Parent is VarPatternSyntax varPattern && displayAllOverride
+                            ? (type, varPattern.VarKeyword.Span)
+                            : (type, new TextSpan(variableDesignation.Identifier.SpanStart, 0));
+                    }
                 }
                 else if (node is ForEachStatementSyntax forEachStatement &&
                          forEachStatement.Type.IsVar)
@@ -52,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     var info = semanticModel.GetForEachStatementInfo(forEachStatement);
                     var type = info.ElementType;
                     if (IsValidType(type))
-                        return (type, forEachStatement.Identifier.SpanStart);
+                        return (type, displayAllOverride ? forEachStatement.Type.Span : new TextSpan(forEachStatement.Identifier.SpanStart, 0));
                 }
             }
 
@@ -64,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     if (parameter?.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } &&
                         IsValidType(parameter?.Type))
                     {
-                        return (parameter.Type, parameterNode.Identifier.SpanStart);
+                        return (parameter.Type, new TextSpan(parameterNode.Identifier.SpanStart, 0));
                     }
                 }
             }

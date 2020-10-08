@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                     {
                         result.Add(new InlineHint(
-                            position,
+                            new TextSpan(position, 0),
                             ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, parameter, parameter.Name + ":")),
                             parameter.GetSymbolKey(cancellationToken)));
                     }

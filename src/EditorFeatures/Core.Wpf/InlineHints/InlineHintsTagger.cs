@@ -133,11 +133,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];
-                        var parameterHintSnapshotSpan = new SnapshotSpan(dataTagSpan.Start, 0);
                         var parameterHintUITag = InlineHintsTag.Create(
                             textTag.Parts, Format, _textView, dataTagSpan, textTag.SymbolKey, _taggerProvider, _formatMap, classify);
 
-                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(parameterHintSnapshotSpan, parameterHintUITag));
+                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(dataTagSpan, parameterHintUITag));
                     }
                 }
             }

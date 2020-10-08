@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             foreach (var hint in hints)
             {
                 context.AddTag(new TagSpan<InlineHintDataTag>(
-                    new SnapshotSpan(snapshotSpan.Snapshot, hint.Position, 0),
+                    new SnapshotSpan(snapshotSpan.Snapshot, hint.Span.ToSpan()),
                     new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
             }
         }
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 context.AddTag(new TagSpan<InlineHintDataTag>(
-                    new SnapshotSpan(snapshotSpan.Snapshot, hint.Position, 0),
+                    new SnapshotSpan(snapshotSpan.Snapshot, hint.Span.ToSpan()),
                     new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
             }
         }

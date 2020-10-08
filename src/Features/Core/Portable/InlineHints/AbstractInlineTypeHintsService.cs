@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        protected abstract (ITypeSymbol type, int position)? TryGetTypeHint(
+        protected abstract (ITypeSymbol type, TextSpan span)? TryGetTypeHint(
             SemanticModel semanticModel, SyntaxNode node,
+            bool displayAllOverride,
             bool forImplicitVariableTypes,
             bool forLambdaParameterTypes,
             CancellationToken cancellationToken);
@@ -51,18 +52,20 @@ namespace Microsoft.CodeAnalysis.InlineHints
             {
                 var hintOpt = TryGetTypeHint(
                     semanticModel, node,
+                    displayAllOverride,
                     forImplicitVariableTypes,
-                    forLambdaParameterTypes, cancellationToken);
+                    forLambdaParameterTypes,
+                    cancellationToken);
                 if (hintOpt == null)
                     continue;
 
-                var (type, position) = hintOpt.Value;
+                var (type, span) = hintOpt.Value;
 
                 using var _2 = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
                 var parts = type.ToDisplayParts(s_minimalTypeStyle);
 
-                AddParts(anonymousTypeService, finalParts, parts, semanticModel, position);
-                result.Add(new InlineHint(position, finalParts.ToImmutable(), type.GetSymbolKey(cancellationToken)));
+                AddParts(anonymousTypeService, finalParts, parts, semanticModel, span.Start);
+                result.Add(new InlineHint(span, finalParts.ToImmutable(), type.GetSymbolKey(cancellationToken)));
             }
 
             return result.ToImmutable();

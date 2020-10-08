@@ -3,18 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal readonly struct InlineHint
     {
-        public readonly int Position;
+        public readonly TextSpan Span;
         public readonly ImmutableArray<SymbolDisplayPart> Parts;
         public readonly SymbolKey? SymbolKey;
 
-        public InlineHint(int position, ImmutableArray<SymbolDisplayPart> parts, SymbolKey? symbolKey)
+        public InlineHint(TextSpan span, ImmutableArray<SymbolDisplayPart> parts, SymbolKey? symbolKey)
         {
-            Position = position;
+            Span = span;
             Parts = parts;
             SymbolKey = symbolKey;
         }
