@@ -32,6 +32,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return expression;
             }
 
+            // Throw expressions are not permitted to be parenthesized:
+            //
+            //     "a" ?? throw new ArgumentNullException()
+            //
+            // is legal whereas
+            //
+            //     "a" ?? (throw new ArgumentNullException())
+            //
+            // is not.
+            if (expression.IsKind(SyntaxKind.ThrowExpression))
+            {
+                return expression;
+            }
+
             var result = ParenthesizeWorker(expression, includeElasticTrivia);
             return addSimplifierAnnotation
                 ? result.WithAdditionalAnnotations(Simplifier.Annotation)

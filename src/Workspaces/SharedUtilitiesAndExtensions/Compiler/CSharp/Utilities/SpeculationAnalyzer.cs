@@ -365,6 +365,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     var originalExpressionType = originalExpressionTypeInfo.Type;
                     var newExpressionType = newExpressionTypeInfo.Type;
 
+                    // A conditional expression may have no type of it's own, but can be converted to a type if there's target-typed
+                    // conditional expressions in play. For example:
+                    //
+                    //     int? x = conditional ? (int?)trueValue : null;
+                    //
+                    // Once you remove the cast, the conditional has no type itself, but is being converted to int? by a conditional
+                    // expression conversion.
+                    if (newExpressionType == null &&
+                        this.SpeculativeSemanticModel.GetConversion(newExpression, this.CancellationToken).IsConditionalExpression)
+                    {
+                        newExpressionType = newExpressionTypeInfo.ConvertedType;
+                    }
+
                     if (originalExpressionType == null || newExpressionType == null)
                     {
                         // With the current implementation of the C# binder, this is impossible, but it's probably not wise to
@@ -703,8 +716,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);
         }
 
+        private static bool IsPotentiallyTargetTypedConditionalExpression(ExpressionSyntax expressionSyntax)
+        {
+            return expressionSyntax is ConditionalExpressionSyntax &&
+                   ((CSharpParseOptions)expressionSyntax.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp9;
+        }
+
+        protected override bool ReplacementIntroducesErrorType(ExpressionSyntax originalExpression, ExpressionSyntax newExpression)
+        {
+            // The base implementation will see that the type of the new expression may potentially change to null,
+            // because the expression has no type but can be converted to a conditional expression type. In that case,
+            // we don't want to consider the null type to be an error type.
+            if (IsPotentiallyTargetTypedConditionalExpression(newExpression) &&
+                this.SpeculativeSemanticModel.GetConversion(newExpression).IsConditionalExpression)
+            {
+                return false;
+            }
+
+            return base.ReplacementIntroducesErrorType(originalExpression, newExpression);
+        }
+
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
-            => ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
+        {
+            var originalConversion = originalModel.GetConversion(originalExpression);
+            var newConversion = newModel.GetConversion(newExpression);
+
+            if (IsPotentiallyTargetTypedConditionalExpression(originalExpression) &&
+                IsPotentiallyTargetTypedConditionalExpression(newExpression))
+            {
+                // If the only change to the conversion here is the introduction of a conditional expression conversion,
+                // that means types didn't really change in a meaningful way.
+                if (originalConversion.IsIdentity && newConversion.IsConditionalExpression)
+                {
+                    return true;
+                }
+            }
+
+            return ConversionsAreCompatible(originalConversion, newConversion);
+        }
 
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
