@@ -1557,13 +1557,16 @@ I agree to all of the foregoing:</value>
   <data name="Comments" xml:space="preserve">
     <value>Comments</value>
   </data>
-  <data name="Inline_Hints_experimental_Hold_ctrl_alt_to_show_all" xml:space="preserve">
-    <value>Inline Hints (experimental): Hold ctrl-alt to show all</value>
+  <data name="Inline_Hints_experimental" xml:space="preserve">
+    <value>Inline Hints (experimental)</value>
   </data>
   <data name="Show_hints_for_everything_else" xml:space="preserve">
     <value>Show hints for everything else</value>
   </data>
   <data name="Show_hints_for_literals" xml:space="preserve">
     <value>Show hints for literals</value>
+  </data>
+  <data name="Display_all_hints_while_pressing_ctrl_alt" xml:space="preserve">
+    <value>Display all hints while pressing 'ctrl-alt'</value>
   </data>
 </root>

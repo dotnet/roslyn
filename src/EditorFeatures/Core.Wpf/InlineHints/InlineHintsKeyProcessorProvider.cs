@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             private static bool IsCtrlOrAlt(KeyEventArgs args)
                 => args.Key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt;
 
-            private Workspace GetWorkspace()
+            private Document? GetDocument()
             {
                 var document =
                     _view.BufferGraph.GetTextBuffers(b => true)
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                                      .WhereNotNull()
                                      .FirstOrDefault();
 
-                return document?.Project.Solution.Workspace;
+                return document;
             }
 
             private void OnViewClosed(object sender, EventArgs e)
@@ -77,20 +75,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 // if focus is lost (which can happen for shortcuts that include ctrl-alt...) then go back to normal
                 // inline-hint processing.
-                var workspace = GetWorkspace();
-                if (workspace == null)
-                    return;
-
-                ToggleOff(workspace);
+                ToggleOff(GetDocument());
             }
 
             public override void KeyDown(KeyEventArgs args)
             {
                 base.KeyDown(args);
 
-                var workspace = GetWorkspace();
-                if (workspace == null)
-                    return;
+                var document = GetDocument();
 
                 // if this is either the ctrl or alt key, and only ctrl-alt is down, then toggle on. 
                 // otherwise toggle off if anything else is pressed down.
@@ -98,38 +90,43 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 {
                     if (args.KeyboardDevice.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
                     {
-                        ToggleOn(workspace);
+                        ToggleOn(document);
                         return;
                     }
                 }
 
-                ToggleOff(workspace);
+                ToggleOff(document);
             }
 
             public override void KeyUp(KeyEventArgs args)
             {
                 base.KeyUp(args);
 
-                var workspace = GetWorkspace();
-                if (workspace == null)
-                    return;
-
-                // If we've lifted a key up turn of the inline hints.
-                ToggleOff(workspace);
+                // If we've lifted a key up, then turn off the inline hints.
+                ToggleOff(GetDocument());
             }
 
-            private static void ToggleOn(Workspace workspace)
-                => Toggle(workspace, on: true);
+            private static void ToggleOn(Document? document)
+                => Toggle(document, on: true);
 
-            private static void ToggleOff(Workspace workspace)
-                => Toggle(workspace, on: false);
+            private static void ToggleOff(Document? document)
+                => Toggle(document, on: false);
 
-            private static void Toggle(Workspace workspace, bool on)
+            private static void Toggle(Document? document, bool on)
             {
+                if (document == null)
+                    return;
+
+                var workspace = document.Project.Solution.Workspace;
+
                 // No need to do anything if we're already in the requested state
                 var state = workspace.Options.GetOption(InlineHintsOptions.DisplayAllOverride);
                 if (state == on)
                     return;
+
+                // We can only enter the on-state if the user has the ctrl-alt feature enabled.  We can always enter the
+                // off state though.
+                on = on && workspace.Options.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt, document.Project.Language);
 
                 workspace.TryApplyChanges(
                     workspace.CurrentSolution.WithOptions(
