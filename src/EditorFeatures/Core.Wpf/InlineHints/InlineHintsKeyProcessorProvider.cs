@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -11,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -30,23 +29,28 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     {
         private static readonly ConditionalWeakTable<IWpfTextView, InlineHintsKeyProcessor> s_viewToProcessor = new();
 
+        private readonly IGlobalOptionService _globalOptionService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineHintsKeyProcessorProvider()
+        public InlineHintsKeyProcessorProvider(IGlobalOptionService globalOptionService)
         {
+            _globalOptionService = globalOptionService;
         }
 
         public KeyProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
         {
-            return s_viewToProcessor.GetValue(wpfTextView, v => new InlineHintsKeyProcessor(v));
+            return s_viewToProcessor.GetValue(wpfTextView, v => new InlineHintsKeyProcessor(_globalOptionService, v));
         }
 
         private class InlineHintsKeyProcessor : KeyProcessor
         {
+            private readonly IGlobalOptionService _globalOptionService;
             private readonly IWpfTextView _view;
 
-            public InlineHintsKeyProcessor(IWpfTextView view)
+            public InlineHintsKeyProcessor(IGlobalOptionService globalOptionService, IWpfTextView view)
             {
+                _globalOptionService = globalOptionService;
                 _view = view;
                 _view.Closed += OnViewClosed;
                 _view.LostAggregateFocus += OnLostFocus;
@@ -55,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             private static bool IsCtrlOrAlt(KeyEventArgs args)
                 => args.Key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt;
 
-            private Workspace GetWorkspace()
+            private Document? GetDocument()
             {
                 var document =
                     _view.BufferGraph.GetTextBuffers(b => true)
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                                      .WhereNotNull()
                                      .FirstOrDefault();
 
-                return document?.Project.Solution.Workspace;
+                return document;
             }
 
             private void OnViewClosed(object sender, EventArgs e)
@@ -71,26 +75,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 // Disconnect our callbacks.
                 _view.Closed -= OnViewClosed;
                 _view.LostAggregateFocus -= OnLostFocus;
+
+                // Go back to off-mode just so we don't somehow get stuck in on-mode if the option was on when the view closed.
+                ToggleOff();
             }
 
             private void OnLostFocus(object sender, EventArgs e)
             {
                 // if focus is lost (which can happen for shortcuts that include ctrl-alt...) then go back to normal
                 // inline-hint processing.
-                var workspace = GetWorkspace();
-                if (workspace == null)
-                    return;
-
-                ToggleOff(workspace);
+                ToggleOff();
             }
 
             public override void KeyDown(KeyEventArgs args)
             {
                 base.KeyDown(args);
-
-                var workspace = GetWorkspace();
-                if (workspace == null)
-                    return;
 
                 // if this is either the ctrl or alt key, and only ctrl-alt is down, then toggle on. 
                 // otherwise toggle off if anything else is pressed down.
@@ -98,42 +97,44 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 {
                     if (args.KeyboardDevice.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
                     {
-                        ToggleOn(workspace);
+                        ToggleOn();
                         return;
                     }
                 }
 
-                ToggleOff(workspace);
+                ToggleOff();
             }
 
             public override void KeyUp(KeyEventArgs args)
             {
                 base.KeyUp(args);
 
-                var workspace = GetWorkspace();
-                if (workspace == null)
-                    return;
-
-                // If we've lifted a key up turn of the inline hints.
-                ToggleOff(workspace);
+                // If we've lifted a key up, then turn off the inline hints.
+                ToggleOff();
             }
 
-            private static void ToggleOn(Workspace workspace)
-                => Toggle(workspace, on: true);
+            private void ToggleOn()
+                => Toggle(on: true);
 
-            private static void ToggleOff(Workspace workspace)
-                => Toggle(workspace, on: false);
+            private void ToggleOff()
+                => Toggle(on: false);
 
-            private static void Toggle(Workspace workspace, bool on)
+            private void Toggle(bool on)
             {
+                // Only relevant if this is a roslyn document.
+                var document = GetDocument();
+                if (document == null)
+                    return;
+
                 // No need to do anything if we're already in the requested state
-                var state = workspace.Options.GetOption(InlineHintsOptions.DisplayAllOverride);
+                var state = _globalOptionService.GetOption(InlineHintsOptions.DisplayAllOverride);
                 if (state == on)
                     return;
 
-                workspace.TryApplyChanges(
-                    workspace.CurrentSolution.WithOptions(
-                        workspace.CurrentSolution.Options.WithChangedOption(InlineHintsOptions.DisplayAllOverride, on)));
+                // We can only enter the on-state if the user has the ctrl-alt feature enabled.  We can always enter the
+                // off state though.
+                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt, document.Project.Language);
+                _globalOptionService.RefreshOption(new OptionKey(InlineHintsOptions.DisplayAllOverride), on);
             }
         }
     }

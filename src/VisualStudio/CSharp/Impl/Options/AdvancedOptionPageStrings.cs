@@ -32,7 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Use_64_bit_process_for_code_analysis_requires_restart;
 
         public static string Option_Inline_Hints_experimental
-            => ServicesVSResources.Inline_Hints_experimental_Hold_ctrl_alt_to_show_all;
+            => ServicesVSResources.Inline_Hints_experimental;
+
+        public static string Option_Display_all_hints_while_pressing_Ctrl_Alt
+            => ServicesVSResources.Display_all_hints_while_pressing_Ctrl_Alt;
 
         public static string Option_Display_inline_parameter_name_hints
             => ServicesVSResources.Display_inline_parameter_name_hints;
@@ -88,9 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         public static string Option_EnterOutliningMode
-        {
-            get { return CSharpVSResources.Enter_outlining_mode_when_files_open; }
-        }
+            => CSharpVSResources.Enter_outlining_mode_when_files_open;
 
         public static string Option_ExtractMethod
             => CSharpVSResources.Extract_Method;
