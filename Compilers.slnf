@@ -57,7 +57,6 @@
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpErrorFactsGenerator\\CSharpErrorFactsGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpSyntaxGenerator\\CSharpSyntaxGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\IOperationGenerator\\CompilersIOperationGenerator.csproj",
-      "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\IOperationGeneratorNew\\CompilersIOperationGeneratorNew.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\VisualBasicErrorFactsGenerator\\VisualBasicErrorFactsGenerator.vbproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\VisualBasicSyntaxGenerator\\VisualBasicSyntaxGenerator.vbproj",
       "src\\Workspaces\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj",

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable annotations
 
 using System;
 using System.Collections.Generic;
@@ -131,10 +130,6 @@ namespace IOperationGenerator
                     WriteLine("#region Interfaces");
                     foreach (var node in grouping)
                     {
-                        if (PortedTypes.Contains(node.Name))
-                        {
-                            continue;
-                        }
                         WriteInterface(node);
                     }
 
@@ -144,7 +139,7 @@ namespace IOperationGenerator
                     {
                         Blank();
                         WriteClasses();
-                        // WriteVisitors();
+                        WriteVisitors();
                     }
 
                     WriteEndNamespace();
@@ -179,6 +174,11 @@ namespace IOperationGenerator
 
         private void WriteInterface(AbstractNode node)
         {
+            if (PortedTypes.Contains(node.Name))
+            {
+                WriteLine("#nullable enable");
+            }
+
             WriteComments(node.Comments, getNodeKinds(node), writeReservedRemark: true);
 
             WriteObsoleteIfNecessary(node.Obsolete);
@@ -191,6 +191,11 @@ namespace IOperationGenerator
             }
 
             Unbrace();
+
+            if (PortedTypes.Contains(node.Name))
+            {
+                WriteLine("#nullable disable");
+            }
 
             IEnumerable<string> getNodeKinds(AbstractNode node)
             {
@@ -368,223 +373,240 @@ namespace IOperationGenerator
             WriteLine("#region Implementations");
             foreach (var type in _tree.Types.OfType<AbstractNode>())
             {
-                if (type.SkipClassGeneration || PortedTypes.Contains(type.Name))
+                if (type.SkipClassGeneration)
                     continue;
 
-                var allProps = GetAllProperties(type);
-                bool hasSkippedProperties = !GetAllProperties(type, includeSkipGenerationProperties: true).SequenceEqual(allProps);
-                var ioperationProperties = allProps.Where(p => IsIOperationType(p.Type)).ToList();
-                var publicIOperationProps = ioperationProperties.Where(p => !p.IsInternal).ToList();
-                var hasIOpChildren = ioperationProperties.Count != 0;
-                var constructorAccessibility = type.IsAbstract ? "protected" : "internal";
-                string typeName = type.Name[1..];
-
-                IEnumerable<Property>? baseProperties = null;
-                if (_typeMap[type.Base] is { } baseNode)
+                if (PortedTypes.Contains(type.Name))
                 {
-                    baseProperties = GetAllProperties(baseNode);
+                    WriteClassNew(type);
                 }
-
-                // Start by generating any necessary base classes
-                if (hasIOpChildren || type.IsAbstract)
+                else
                 {
-                    var @class = $"Base{typeName}";
-                    var baseType = type.Base[1..];
-                    if (baseType != "Operation")
-                    {
-                        baseType = $"Base{baseType}";
-                    }
-                    else
-                    {
-                        baseType = "OperationOld";
-                    }
-
-                    writeClassHeader("abstract", @class, baseType, type.Name);
-
-                    writeConstructor(constructorAccessibility, @class, allProps, baseProperties, type, ClassType.Abstract);
-
-                    foreach (var prop in type.Properties)
-                    {
-                        if (prop.SkipGeneration)
-                            continue;
-                        writeProperty(prop, propExtensibility: IsIOperationType(prop.Type) ? "abstract " : string.Empty);
-                    }
-
-                    if (type is Node node)
-                    {
-                        if (!node.SkipChildrenGeneration)
-                        {
-                            if (publicIOperationProps.Count > 0)
-                            {
-                                var orderedProperties = new List<Property>();
-
-                                if (publicIOperationProps.Count == 1)
-                                {
-                                    orderedProperties.Add(publicIOperationProps.Single());
-                                }
-                                else
-                                {
-                                    Debug.Assert(node.ChildrenOrder != null, $"Encountered null children order for {type.Name}, should have been caught in verifier!");
-                                    var childrenOrdered = GetPropertyOrder(node);
-
-                                    foreach (var childName in childrenOrdered)
-                                    {
-                                        orderedProperties.Add(publicIOperationProps.Find(p => p.Name == childName) ??
-                                            throw new InvalidOperationException($"Cannot find property for {childName}"));
-                                    }
-                                }
-
-                                WriteLine("public override IEnumerable<IOperation> Children");
-                                Brace();
-                                WriteLine("get");
-                                Brace();
-
-                                foreach (var property in orderedProperties)
-                                {
-                                    if (IsImmutableArray(property.Type, out _))
-                                    {
-                                        WriteLine($"foreach (var child in {property.Name})");
-                                        Brace();
-                                        writeIfCheck("child");
-                                        Unbrace();
-                                    }
-                                    else
-                                    {
-                                        writeIfCheck(property.Name);
-                                    }
-
-                                    void writeIfCheck(string memberName)
-                                    {
-                                        WriteLine($"if ({memberName} is object) yield return {memberName};");
-                                    }
-                                }
-                                Unbrace();
-                                Unbrace();
-                            }
-                            else
-                            {
-                                WriteLine("public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();");
-                            }
-                        }
-
-                        var visitorName = GetVisitorName(node);
-                        writeAcceptMethods(visitorName);
-                    }
-
-                    Unbrace();
-                }
-
-                if (type.IsAbstract)
-                    continue;
-
-                // Generate the non-lazy class. Nested block to allow for duplicate variable names
-                {
-                    var @class = typeName;
-                    var @base = hasIOpChildren ? @class : type.Base[1..];
-                    if (@base != "Operation")
-                    {
-                        @base = $"Base{@base}";
-                    }
-                    else
-                    {
-                        @base = "OperationOld";
-                    }
-
-                    writeClassHeader("sealed", @class, @base, type.Name);
-                    writeConstructor(
-                        constructorAccessibility,
-                        @class,
-                        allProps,
-                        hasIOpChildren ? allProps : baseProperties,
-                        type,
-                        ClassType.NonLazy,
-                        includeKind: !hasIOpChildren);
-
-                    if (hasIOpChildren)
-                    {
-                        foreach (var property in ioperationProperties)
-                        {
-                            writeProperty(property, propExtensibility: "override ");
-                        }
-                    }
-                    else
-                    {
-                        foreach (var property in type.Properties)
-                        {
-                            if (property.SkipGeneration)
-                                continue;
-                            writeProperty(property, propExtensibility: string.Empty);
-                        }
-
-                        var node = (Node)type;
-                        WriteLine("public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();");
-                        writeAcceptMethods(GetVisitorName(node));
-                    }
-                    Unbrace();
-                }
-
-                // Generate the lazy classes if necessary
-                if (hasIOpChildren)
-                {
-                    var @class = $"Lazy{typeName}";
-                    var @base = $"Base{typeName}";
-
-                    writeClassHeader("abstract", @class, @base, type.Name);
-
-                    var propertiesAndFieldNames = ioperationProperties.Select(i => (i, $"_lazy{i.Name}", $"s_unset{GetSubName(i.Type)}")).ToList();
-
-                    foreach (var (prop, name, unset) in propertiesAndFieldNames)
-                    {
-                        var assignment = string.Empty;
-                        if (!IsImmutableArray(prop.Type, out _))
-                        {
-                            assignment = $" = {unset}";
-                        }
-
-                        WriteLine($"private {prop.Type} {name}{assignment};");
-                    }
-
-                    writeConstructor(constructorAccessibility, @class, allProps, allProps, type, ClassType.Lazy, includeKind: false);
-
-                    foreach (var (prop, fieldName, unset) in propertiesAndFieldNames)
-                    {
-                        WriteLine($"protected abstract {prop.Type} Create{prop.Name}();");
-                        WriteLine($"public override {prop.Type} {prop.Name}");
-                        Brace();
-                        WriteLine("get");
-                        Brace();
-                        if (IsImmutableArray(prop.Type, out _))
-                        {
-                            WriteLine($"if ({fieldName}.IsDefault)");
-                            Brace();
-                            var localName = prop.Name.ToCamelCase();
-                            WriteLine($"{prop.Type} {localName} = Create{prop.Name}();");
-                            WriteLine($"SetParentOperation({localName}, this);");
-                            WriteLine($"ImmutableInterlocked.InterlockedInitialize(ref {fieldName}, {localName});");
-                            Unbrace();
-
-                        }
-                        else
-                        {
-                            WriteLine($"if ({fieldName} == {unset})");
-                            Brace();
-                            var localName = prop.Name.ToCamelCase();
-                            WriteLine($"{prop.Type} {localName} = Create{prop.Name}();");
-                            WriteLine($"SetParentOperation({localName}, this);");
-                            WriteLine($"Interlocked.CompareExchange(ref {fieldName}, {localName}, {unset});");
-                            Unbrace();
-                        }
-
-                        WriteLine($"return {fieldName};");
-                        Unbrace();
-                        Unbrace();
-                    }
-
-                    Unbrace();
+                    WriteClassOld(type);
                 }
             }
 
             WriteLine("#endregion");
+        }
+
+        private void WriteClassNew(AbstractNode type)
+        {
+            // PROTOTYPE(iop): implement
+        }
+
+        private void WriteClassOld(AbstractNode type)
+        {
+            var allProps = GetAllProperties(type);
+            bool hasSkippedProperties = !GetAllProperties(type, includeSkipGenerationProperties: true).SequenceEqual(allProps);
+            var ioperationProperties = allProps.Where(p => IsIOperationType(p.Type)).ToList();
+            var publicIOperationProps = ioperationProperties.Where(p => !p.IsInternal).ToList();
+            var hasIOpChildren = ioperationProperties.Count != 0;
+            var constructorAccessibility = type.IsAbstract ? "protected" : "internal";
+            string typeName = type.Name[1..];
+
+            IEnumerable<Property>? baseProperties = null;
+            if (_typeMap[type.Base] is { } baseNode)
+            {
+                baseProperties = GetAllProperties(baseNode);
+            }
+
+            // Start by generating any necessary base classes
+            if (hasIOpChildren || type.IsAbstract)
+            {
+                var @class = $"Base{typeName}";
+                var baseType = type.Base[1..];
+                if (baseType != "Operation")
+                {
+                    baseType = $"Base{baseType}";
+                }
+                else
+                {
+                    baseType = "OperationOld";
+                }
+
+                writeClassHeader("abstract", @class, baseType, type.Name);
+
+                writeConstructor(constructorAccessibility, @class, allProps, baseProperties, type, ClassType.Abstract);
+
+                foreach (var prop in type.Properties)
+                {
+                    if (prop.SkipGeneration)
+                        continue;
+                    writeProperty(prop, propExtensibility: IsIOperationType(prop.Type) ? "abstract " : string.Empty);
+                }
+
+                if (type is Node node)
+                {
+                    if (!node.SkipChildrenGeneration)
+                    {
+                        if (publicIOperationProps.Count > 0)
+                        {
+                            var orderedProperties = new List<Property>();
+
+                            if (publicIOperationProps.Count == 1)
+                            {
+                                orderedProperties.Add(publicIOperationProps.Single());
+                            }
+                            else
+                            {
+                                Debug.Assert(node.ChildrenOrder != null, $"Encountered null children order for {type.Name}, should have been caught in verifier!");
+                                var childrenOrdered = GetPropertyOrder(node);
+
+                                foreach (var childName in childrenOrdered)
+                                {
+                                    orderedProperties.Add(publicIOperationProps.Find(p => p.Name == childName) ??
+                                        throw new InvalidOperationException($"Cannot find property for {childName}"));
+                                }
+                            }
+
+                            WriteLine("public override IEnumerable<IOperation> Children");
+                            Brace();
+                            WriteLine("get");
+                            Brace();
+
+                            foreach (var property in orderedProperties)
+                            {
+                                if (IsImmutableArray(property.Type, out _))
+                                {
+                                    WriteLine($"foreach (var child in {property.Name})");
+                                    Brace();
+                                    writeIfCheck("child");
+                                    Unbrace();
+                                }
+                                else
+                                {
+                                    writeIfCheck(property.Name);
+                                }
+
+                                void writeIfCheck(string memberName)
+                                {
+                                    WriteLine($"if ({memberName} is object) yield return {memberName};");
+                                }
+                            }
+                            Unbrace();
+                            Unbrace();
+                        }
+                        else
+                        {
+                            WriteLine("public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();");
+                        }
+                    }
+
+                    var visitorName = GetVisitorName(node);
+                    writeAcceptMethods(visitorName);
+                }
+
+                Unbrace();
+            }
+
+            if (type.IsAbstract)
+                return;
+
+            // Generate the non-lazy class. Nested block to allow for duplicate variable names
+            {
+                var @class = typeName;
+                var @base = hasIOpChildren ? @class : type.Base[1..];
+                if (@base != "Operation")
+                {
+                    @base = $"Base{@base}";
+                }
+                else
+                {
+                    @base = "OperationOld";
+                }
+
+                writeClassHeader("sealed", @class, @base, type.Name);
+                writeConstructor(
+                    constructorAccessibility,
+                    @class,
+                    allProps,
+                    hasIOpChildren ? allProps : baseProperties,
+                    type,
+                    ClassType.NonLazy,
+                    includeKind: !hasIOpChildren);
+
+                if (hasIOpChildren)
+                {
+                    foreach (var property in ioperationProperties)
+                    {
+                        writeProperty(property, propExtensibility: "override ");
+                    }
+                }
+                else
+                {
+                    foreach (var property in type.Properties)
+                    {
+                        if (property.SkipGeneration)
+                            continue;
+                        writeProperty(property, propExtensibility: string.Empty);
+                    }
+
+                    var node = (Node)type;
+                    WriteLine("public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();");
+                    writeAcceptMethods(GetVisitorName(node));
+                }
+                Unbrace();
+            }
+
+            // Generate the lazy classes if necessary
+            if (hasIOpChildren)
+            {
+                var @class = $"Lazy{typeName}";
+                var @base = $"Base{typeName}";
+
+                writeClassHeader("abstract", @class, @base, type.Name);
+
+                var propertiesAndFieldNames = ioperationProperties.Select(i => (i, $"_lazy{i.Name}", $"s_unset{GetSubName(i.Type)}")).ToList();
+
+                foreach (var (prop, name, unset) in propertiesAndFieldNames)
+                {
+                    var assignment = string.Empty;
+                    if (!IsImmutableArray(prop.Type, out _))
+                    {
+                        assignment = $" = {unset}";
+                    }
+
+                    WriteLine($"private {prop.Type} {name}{assignment};");
+                }
+
+                writeConstructor(constructorAccessibility, @class, allProps, allProps, type, ClassType.Lazy, includeKind: false);
+
+                foreach (var (prop, fieldName, unset) in propertiesAndFieldNames)
+                {
+                    WriteLine($"protected abstract {prop.Type} Create{prop.Name}();");
+                    WriteLine($"public override {prop.Type} {prop.Name}");
+                    Brace();
+                    WriteLine("get");
+                    Brace();
+                    if (IsImmutableArray(prop.Type, out _))
+                    {
+                        WriteLine($"if ({fieldName}.IsDefault)");
+                        Brace();
+                        var localName = prop.Name.ToCamelCase();
+                        WriteLine($"{prop.Type} {localName} = Create{prop.Name}();");
+                        WriteLine($"SetParentOperation({localName}, this);");
+                        WriteLine($"ImmutableInterlocked.InterlockedInitialize(ref {fieldName}, {localName});");
+                        Unbrace();
+
+                    }
+                    else
+                    {
+                        WriteLine($"if ({fieldName} == {unset})");
+                        Brace();
+                        var localName = prop.Name.ToCamelCase();
+                        WriteLine($"{prop.Type} {localName} = Create{prop.Name}();");
+                        WriteLine($"SetParentOperation({localName}, this);");
+                        WriteLine($"Interlocked.CompareExchange(ref {fieldName}, {localName}, {unset});");
+                        Unbrace();
+                    }
+
+                    WriteLine($"return {fieldName};");
+                    Unbrace();
+                    Unbrace();
+                }
+
+                Unbrace();
+            }
 
             void writeClassHeader(string extensibility, string @class, string baseType, string @interface)
             {
