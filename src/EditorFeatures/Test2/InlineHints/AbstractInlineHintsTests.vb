@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim typeHints = Await tagService.GetInlineTypeHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
 
                 Dim producedTags = From hint In typeHints
-                                   Select hint.Type
+                                   Select hint.Parts.GetFullText() + ":" + hint.Position.ToString()
 
                 Dim expectedTags As New List(Of String)
 
