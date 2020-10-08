@@ -18,7 +18,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
-
     /// <summary>
     /// The provider that is used as a middleman to create the tagger so that the data tag
     /// can be used to create the UI tag
