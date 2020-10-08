@@ -176,25 +176,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (work.MutatesSolutionState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        var ranToCompletion = false;
-                        try
-                        {
-                            ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            // Since the cancellationToken passed to the callback is a linked source it could be cancelled
-                            // without the queue token being cancelled, but ranToCompletion will be false so no need to
-                            // do anything special here.
-                            RoslynDebug.Assert(ranToCompletion == false);
-                        }
+                        var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
-                        // If the handling of the request failed, the exception will bubble back up to the caller, but we
-                        // still need to react to it here by throwing away solution updates
-                        if (ranToCompletion)
-                        {
-                        }
-                        else
+                        // If the handling of the request failed, the exception will bubble back up to the caller, and we
+                        // request shutdown because we're in an invalid state
+                        if (!ranToCompletion)
                         {
                             OnRequestServerShutdown($"An error occured processing a mutating request and the solution is in an invalid state. Check LSP client logs for any error information.");
                             break;
