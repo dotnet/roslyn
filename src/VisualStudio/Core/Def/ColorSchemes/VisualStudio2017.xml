@@ -529,7 +529,7 @@
             <Color Name="label name">
             </Color>
             <Color Name="inline hints">
-                <Background Type="CT_RAW" Source="FF2D2C2C" />
+                <Background Type="CT_RAW" Source="FF464646" />
                 <Foreground Type="CT_RAW" Source="FF959493" />
             </Color>
             <Color Name="xml doc comment - attribute name">
