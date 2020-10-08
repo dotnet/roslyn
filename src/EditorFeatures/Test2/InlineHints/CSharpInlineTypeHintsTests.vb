@@ -56,7 +56,7 @@ class A
 {
     void Main() 
     {
-        var ({|int:|}i, {|string:|}j = (0, "");
+        var ({|int:|}i, {|string:|}j) = (0, "");
     }
 }
                     </Document>
