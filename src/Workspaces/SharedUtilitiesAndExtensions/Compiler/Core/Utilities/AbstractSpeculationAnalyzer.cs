@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         #region Semantic comparison helpers
 
-        private bool ReplacementIntroducesErrorType(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
+        protected virtual bool ReplacementIntroducesErrorType(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
         {
             Debug.Assert(originalExpression != null);
             Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
