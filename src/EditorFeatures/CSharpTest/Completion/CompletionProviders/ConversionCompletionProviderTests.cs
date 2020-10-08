@@ -1253,8 +1253,8 @@ public class Program
         e.$$
     }
 }
-", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"E.explicit operator int?(E value)
-Defines an explicit conversion of a E to a int?.");
+", "int", displayTextSuffix: "?)", glyph: (int)Glyph.EnumPublic, expectedDescriptionOrNull: @"int E.operator @explicit(E value)
+Defines an explicit conversion of global::E to a int.");
         }
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]

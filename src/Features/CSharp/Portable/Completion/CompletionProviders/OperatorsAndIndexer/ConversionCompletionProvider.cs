@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var conversionCompletionItems = from specialType in specialTypes
                                             let targetTypeSymbol = semanticModel.Compilation.GetSpecialType(specialType)
                                             let targetTypeName = targetTypeSymbol.ToMinimalDisplayString(semanticModel, position)
-                                            select CreateCommonCompletionItem(containerTypeName, targetTypeName, targetTypeIsNullable: containerIsNullable, position);
+                                            select CreateCommonCompletionItem(containerTypeName, targetTypeName, targetTypeIsNullable: containerIsNullable, position, fromType, targetTypeSymbol);
             builder.AddRange(conversionCompletionItems);
         }
 
@@ -158,61 +158,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                            properties: CreatePropertiesBag((MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}")));
         }
 
-        private CompletionItem CreateCommonCompletionItem(string containerTypeName, string targetTypeName, bool targetTypeIsNullable, int position)
+        private CompletionItem CreateCommonCompletionItem(string containerTypeName, string targetTypeName, bool targetTypeIsNullable, int position, INamedTypeSymbol fromType, ITypeSymbol toType)
         {
             var optionalNullableQuestionmark = GetOptionalNullableQuestionMark(targetTypeIsNullable);
-            return CommonCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                            displayTextPrefix: "(",
                            displayText: targetTypeName,
                            displayTextSuffix: $"{optionalNullableQuestionmark})",
                            filterText: targetTypeName,
                            sortText: SortText(targetTypeName),
-                           glyph: Glyph.Operator,
+                           symbols: new[] { fromType, toType }.ToImmutableArray(),
                            rules: CompletionItemRules.Default,
+                           contextPosition: position,
                            properties: CreatePropertiesBag(
                                (MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}"),
-                               (ContainerTypeNamePropertyName, containerTypeName),
-                               ("ContextPosition", position.ToString())));
+                               (ContainerTypeNamePropertyName, containerTypeName)));
         }
 
         private static string GetOptionalNullableQuestionMark(bool isNullable)
             => isNullable ? "?" : "";
 
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.HasSymbols(item)
-                ? await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false)
-                : GetBuiltInConversionDescription(item);
-
-        private static CompletionDescription GetBuiltInConversionDescription(CompletionItem item)
         {
-            Contract.ThrowIfFalse(item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var targetTypeName));
-            Contract.ThrowIfFalse(item.Properties.TryGetValue(ContainerTypeNamePropertyName, out var sourceTypeName));
-            var taggedText = new[]
+            var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+            if (symbols.Length == 2 && symbols[0] is INamedTypeSymbol from && symbols[1] is ITypeSymbol to)
             {
-                new TaggedText(TextTags.Keyword, sourceTypeName),
-                new TaggedText(TextTags.Punctuation, "."),
-                new TaggedText(TextTags.Keyword, "explicit"),
-                new TaggedText(TextTags.Space, " "),
-                new TaggedText(TextTags.Keyword, "operator"),
-                new TaggedText(TextTags.Space, " "),
-                new TaggedText(TextTags.Keyword, targetTypeName),
-                new TaggedText(TextTags.Punctuation, "("),
-                new TaggedText(TextTags.Keyword, sourceTypeName),
-                new TaggedText(TextTags.Space, " "),
-                new TaggedText(TextTags.Parameter, "value"),
-                new TaggedText(TextTags.Punctuation, ")"),
-                new TaggedText(TextTags.LineBreak, Environment.NewLine),
-                new TaggedText(TextTags.Text, "Defines an explicit conversion of a"),
-                new TaggedText(TextTags.Space, " "),
-                new TaggedText(TextTags.Keyword, sourceTypeName),
-                new TaggedText(TextTags.Space, " "),
-                new TaggedText(TextTags.Text, "to a"),
-                new TaggedText(TextTags.Space, " "),
-                new TaggedText(TextTags.Keyword, targetTypeName),
-                new TaggedText(TextTags.Punctuation, "."),
-            };
+                return await GetBuiltInConversionDescriptionAsync(document, item, from, to, cancellationToken).ConfigureAwait(false);
+            }
 
-            return CompletionDescription.Create(taggedText.ToImmutableArray());
+            return await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<CompletionDescription> GetBuiltInConversionDescriptionAsync(Document document, CompletionItem item, INamedTypeSymbol fromType, ITypeSymbol toType, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var position = SymbolCompletionItem.GetContextPosition(item);
+            var symbol = new BuiltinOperatorMethodSymbol(toType, fromType);
+            return await CommonCompletionUtilities.CreateDescriptionAsync(
+                document.Project.Solution.Workspace,
+                semanticModel,
+                position,
+                new[] { symbol },
+                supportedPlatforms: null,
+                cancellationToken).ConfigureAwait(false);
         }
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
