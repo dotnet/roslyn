@@ -46,6 +46,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     if (IsValidType(type))
                         return new InlineTypeHint(type, variableDesignation.Identifier.SpanStart);
                 }
+                else if (node is ForEachStatementSyntax forEachStatement &&
+                         forEachStatement.Type.IsVar)
+                {
+                    var info = semanticModel.GetForEachStatementInfo(forEachStatement);
+                    var type = info.ElementType;
+                    if (IsValidType(type))
+                        return new InlineTypeHint(type, forEachStatement.Identifier.SpanStart);
+                }
             }
 
             if (forLambdaParameterTypes)
