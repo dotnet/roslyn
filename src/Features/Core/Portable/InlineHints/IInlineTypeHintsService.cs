@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal interface IInlineTypeHintsService : ILanguageService
     {
-        Task<ImmutableArray<InlineTypeHint>> GetInlineTypeHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+        Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
     }
 }

@@ -6,13 +6,13 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.InlineHints
 {
-    internal readonly struct InlineTypeHint
+    internal readonly struct InlineHint
     {
         public readonly int Position;
         public readonly ImmutableArray<SymbolDisplayPart> Parts;
-        public readonly SymbolKey SymbolKey;
+        public readonly SymbolKey? SymbolKey;
 
-        public InlineTypeHint(int position, ImmutableArray<SymbolDisplayPart> parts, SymbolKey symbolKey)
+        public InlineHint(int position, ImmutableArray<SymbolDisplayPart> parts, SymbolKey? symbolKey)
         {
             Position = position;
             Parts = parts;

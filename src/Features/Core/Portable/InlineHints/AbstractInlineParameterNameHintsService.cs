@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             ArrayBuilder<InlineParameterHint> buffer,
             CancellationToken cancellationToken);
 
-        public async Task<ImmutableArray<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
             var enabledForParameters = displayAllOverride || options.GetOption(InlineHintsOptions.EnabledForParameters);
             if (!enabledForParameters)
-                return ImmutableArray<InlineParameterHint>.Empty;
+                return ImmutableArray<InlineHint>.Empty;
 
             var literalParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForLiteralParameters);
             var objectCreationParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForObjectCreationParameters);
             var otherParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForOtherParameters);
             if (!literalParameters && !objectCreationParameters && !otherParameters)
-                return ImmutableArray<InlineParameterHint>.Empty;
+                return ImmutableArray<InlineHint>.Empty;
 
             var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
             var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            using var _1 = ArrayBuilder<InlineParameterHint>.GetInstance(out var result);
+            using var _1 = ArrayBuilder<InlineHint>.GetInstance(out var result);
             using var _2 = ArrayBuilder<InlineParameterHint>.GetInstance(out var buffer);
 
             foreach (var node in root.DescendantNodes(textSpan, n => n.Span.IntersectsWith(textSpan)))
@@ -74,7 +74,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
                         continue;
 
                     if (HintMatches(hint, literalParameters, objectCreationParameters, otherParameters))
-                        result.Add(hint);
+                    {
+                        result.Add(new InlineHint(
+                            hint.Position,
+                            ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, hint.Parameter, hint.Parameter.Name + ":")),
+                            hint.Parameter.GetSymbolKey(cancellationToken)));
+                    }
                 }
             }
         }

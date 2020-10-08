@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 return;
 
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var hints = await service.GetInlineTypeHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+            var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             foreach (var hint in hints)
             {
                 context.AddTag(new TagSpan<InlineHintDataTag>(
@@ -113,17 +113,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 return;
 
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var hints = await service.GetInlineParameterNameHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+            var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             foreach (var hint in hints)
             {
-                Contract.ThrowIfNull(hint.Parameter);
-
                 cancellationToken.ThrowIfCancellationRequested();
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     new SnapshotSpan(snapshotSpan.Snapshot, hint.Position, 0),
-                    new InlineHintDataTag(
-                        ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, hint.Parameter, hint.Parameter.Name + ":")),
-                        hint.Parameter.GetSymbolKey(cancellationToken))));
+                    new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
             }
         }
     }

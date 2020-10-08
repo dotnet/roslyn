@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             bool forLambdaParameterTypes,
             CancellationToken cancellationToken);
 
-        public async Task<ImmutableArray<InlineTypeHint>> GetInlineTypeHintsAsync(
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -34,18 +34,18 @@ namespace Microsoft.CodeAnalysis.InlineHints
             var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
             var enabledForTypes = displayAllOverride || options.GetOption(InlineHintsOptions.EnabledForTypes);
             if (!enabledForTypes)
-                return ImmutableArray<InlineTypeHint>.Empty;
+                return ImmutableArray<InlineHint>.Empty;
 
             var forImplicitVariableTypes = displayAllOverride || options.GetOption(InlineHintsOptions.ForImplicitVariableTypes);
             var forLambdaParameterTypes = displayAllOverride || options.GetOption(InlineHintsOptions.ForLambdaParameterTypes);
             if (!forImplicitVariableTypes && !forLambdaParameterTypes)
-                return ImmutableArray<InlineTypeHint>.Empty;
+                return ImmutableArray<InlineHint>.Empty;
 
             var anonymousTypeService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            using var _1 = ArrayBuilder<InlineTypeHint>.GetInstance(out var result);
+            using var _1 = ArrayBuilder<InlineHint>.GetInstance(out var result);
 
             foreach (var node in root.DescendantNodes(n => n.Span.IntersectsWith(textSpan)))
             {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 var parts = type.ToDisplayParts(s_minimalTypeStyle);
 
                 AddParts(anonymousTypeService, finalParts, parts, semanticModel, position);
-                result.Add(new InlineTypeHint(position, finalParts.ToImmutable(), type.GetSymbolKey(cancellationToken)));
+                result.Add(new InlineHint(position, finalParts.ToImmutable(), type.GetSymbolKey(cancellationToken)));
             }
 
             return result.ToImmutable();

@@ -22,24 +22,28 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineParameterNameHintsService)
-                Dim paramNameHintSpans = Await tagService.GetInlineParameterNameHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
+                Dim inlineHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
 
-                Dim producedTags = From tag In paramNameHintSpans
-                                   Select tag.Parameter.Name + ":" + tag.Position.ToString
+                Dim producedTags = From hint In inlineHints
+                                   Select hint.Parts.GetFullText() + hint.Position.ToString
 
-                Dim expectedTags As New List(Of String)
-
-                Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
-                    Function(name) name.Value,
-                    Function(name, span) New With {.Name = name.Key, span})
-
-                For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.span.Start)
-                    expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.span.Start.ToString())
-                Next
-
-                AssertEx.Equal(expectedTags, producedTags)
+                ValidateSpans(hostDocument, producedTags)
             End Using
         End Function
+
+        Private Shared Sub ValidateSpans(hostDocument As TestHostDocument, producedTags As IEnumerable(Of String))
+            Dim expectedTags As New List(Of String)
+
+            Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
+                Function(name) name.Value,
+                Function(name, span) New With {.Name = name.Key, span})
+
+            For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.span.Start)
+                expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.span.Start.ToString())
+            Next
+
+            AssertEx.Equal(expectedTags, producedTags)
+        End Sub
 
         Protected Async Function VerifyTypeHints(test As XElement, Optional optionIsEnabled As Boolean = True) As Task
             Using workspace = TestWorkspace.Create(test)
@@ -54,24 +58,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineTypeHintsService)
-                Dim typeHints = Await tagService.GetInlineTypeHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
+                Dim typeHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
 
                 Dim producedTags = From hint In typeHints
                                    Select hint.Parts.GetFullText() + ":" + hint.Position.ToString()
 
-                Dim expectedTags As New List(Of String)
-
-                Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
-                    Function(name) name.Value,
-                    Function(name, span) New With {.Name = name.Key, span})
-
-                For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.span.Start)
-                    expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.span.Start.ToString())
-                Next
-
-                AssertEx.Equal(expectedTags, producedTags)
+                ValidateSpans(hostDocument, producedTags)
             End Using
         End Function
-
     End Class
 End Namespace
