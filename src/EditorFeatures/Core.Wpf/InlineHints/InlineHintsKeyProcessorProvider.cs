@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 var document =
                     _view.BufferGraph.GetTextBuffers(b => true)
-                                     .SelectMany(b => b.AsTextContainer().GetRelatedDocuments())
+                                     .Select(b => b.AsTextContainer().GetOpenDocumentInCurrentContext())
+                                     .WhereNotNull()
                                      .FirstOrDefault();
 
                 // Only relevant if this is a roslyn document.
