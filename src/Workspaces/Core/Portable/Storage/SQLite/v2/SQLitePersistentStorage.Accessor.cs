@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Threading;
@@ -65,12 +63,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            public Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
+            public Task<Checksum?> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(
                     static t => t.self.ReadChecksum(t.key, t.cancellationToken),
                     (self: this, key, cancellationToken), cancellationToken);
 
-            private Checksum ReadChecksum(TKey key, CancellationToken cancellationToken)
+            private Checksum? ReadChecksum(TKey key, CancellationToken cancellationToken)
             {
                 using (var stream = ReadBlobColumn(key, ChecksumColumnName, checksumOpt: null, cancellationToken))
                 using (var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken))
@@ -85,17 +83,17 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            public Task<Stream> ReadStreamAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(TKey key, Checksum? checksum, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(
                     static t => t.self.ReadStream(t.key, t.checksum, t.cancellationToken),
                     (self: this, key, checksum, cancellationToken), cancellationToken);
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            private Stream ReadStream(TKey key, Checksum checksum, CancellationToken cancellationToken)
+            private Stream? ReadStream(TKey key, Checksum? checksum, CancellationToken cancellationToken)
                 => ReadBlobColumn(key, DataColumnName, checksum, cancellationToken);
 
-            private Stream ReadBlobColumn(
-                TKey key, string columnName, Checksum checksumOpt, CancellationToken cancellationToken)
+            private Stream? ReadBlobColumn(
+                TKey key, string columnName, Checksum? checksumOpt, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -121,12 +119,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return null;
             }
 
-            public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum? checksumOpt, CancellationToken cancellationToken)
                 => Storage.PerformWriteAsync(
                     static t => t.self.WriteStream(t.key, t.stream, t.checksumOpt, t.cancellationToken),
                     (self: this, key, stream, checksumOpt, cancellationToken), cancellationToken);
 
-            private bool WriteStream(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
+            private bool WriteStream(TKey key, Stream stream, Checksum? checksumOpt, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -162,10 +160,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return false;
             }
 
-            private Stream ReadBlob(
+            private Stream? ReadBlob(
                 SqlConnection connection, Database database,
                 TDatabaseId dataId, string columnName,
-                Checksum checksumOpt, CancellationToken cancellationToken)
+                Checksum? checksumOpt, CancellationToken cancellationToken)
             {
                 // Note: it's possible that someone may write to this row between when we
                 // get the row ID above and now.  That's fine.  We'll just read the new
