@@ -24,35 +24,44 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         protected override InlineTypeHint? TryGetTypeHint(
             SemanticModel semanticModel,
             SyntaxNode node,
+            bool forImplicitVariableTypes,
+            bool forLambdaParameterTypes,
             CancellationToken cancellationToken)
         {
-            if (node is VariableDeclarationSyntax variableDeclaration &&
-                variableDeclaration.Type.IsVar &&
-                variableDeclaration.Variables.Count == 1 &&
-                !variableDeclaration.Variables[0].Identifier.IsMissing)
+            if (forImplicitVariableTypes)
             {
-                var type = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
-                if (IsValidType(type))
-                    return new InlineTypeHint(type, variableDeclaration.Variables[0].Identifier.SpanStart);
+                if (node is VariableDeclarationSyntax variableDeclaration &&
+                    variableDeclaration.Type.IsVar &&
+                    variableDeclaration.Variables.Count == 1 &&
+                    !variableDeclaration.Variables[0].Identifier.IsMissing)
+                {
+                    var type = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
+                    if (IsValidType(type))
+                        return new InlineTypeHint(type, variableDeclaration.Variables[0].Identifier.SpanStart);
+                }
+                else if (node is SingleVariableDesignationSyntax variableDesignation)
+                {
+                    var local = semanticModel.GetDeclaredSymbol(variableDesignation, cancellationToken) as ILocalSymbol;
+                    var type = local?.Type;
+                    if (IsValidType(type))
+                        return new InlineTypeHint(type, variableDesignation.Identifier.SpanStart);
+                }
             }
-            else if (node is SingleVariableDesignationSyntax variableDesignation)
+
+            if (forLambdaParameterTypes)
             {
-                var local = semanticModel.GetDeclaredSymbol(variableDesignation, cancellationToken) as ILocalSymbol;
-                var type = local?.Type;
-                if (IsValidType(type))
-                    return new InlineTypeHint(type, variableDesignation.Identifier.SpanStart);
-            }
-            else if (node is SimpleLambdaExpressionSyntax simpleLambda)
-            {
-                var parameter = semanticModel.GetDeclaredSymbol(simpleLambda.Parameter, cancellationToken);
-                if (IsValidType(parameter?.Type))
-                    return new InlineTypeHint(parameter.Type, simpleLambda.Parameter.Identifier.SpanStart);
-            }
-            else if (node is ParameterSyntax { Type: null } parameterNode)
-            {
-                var parameter = semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
-                if (IsValidType(parameter?.Type))
-                    return new InlineTypeHint(parameter.Type, parameterNode.Identifier.SpanStart);
+                if (node is SimpleLambdaExpressionSyntax simpleLambda)
+                {
+                    var parameter = semanticModel.GetDeclaredSymbol(simpleLambda.Parameter, cancellationToken);
+                    if (IsValidType(parameter?.Type))
+                        return new InlineTypeHint(parameter.Type, simpleLambda.Parameter.Identifier.SpanStart);
+                }
+                else if (node is ParameterSyntax { Type: null } parameterNode)
+                {
+                    var parameter = semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+                    if (IsValidType(parameter?.Type))
+                        return new InlineTypeHint(parameter.Type, parameterNode.Identifier.SpanStart);
+                }
             }
 
             return null;
