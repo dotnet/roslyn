@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Allows a mutating request to open a document and start it being tracked.
         /// </summary>
-        public void OpenDocument(Document document)
+        public void StartTracking(Document document)
         {
             Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Allows a mutating request to update the contents of a tracked document.
         /// </summary>
-        public void UpdateDocument(Document document)
+        public void UpdateTrackedDocument(Document document)
         {
             Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Allows a mutating request to close a document and stop it being tracked.
         /// </summary>
-        public void CloseDocument(Document document)
+        public void StopTracking(Document document)
         {
             Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
 

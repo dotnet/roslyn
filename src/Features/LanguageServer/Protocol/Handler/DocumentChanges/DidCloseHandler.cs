@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
-            context.CloseDocument(document);
+            context.StopTracking(document);
 
             return Task.FromResult<object>(true);
         }

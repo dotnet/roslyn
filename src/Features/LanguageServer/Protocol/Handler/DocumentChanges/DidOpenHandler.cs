@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
             var sourceText = SourceText.From(request.TextDocument.Text, text.Encoding, text.ChecksumAlgorithm);
             var newDocument = document.WithText(sourceText);
 
-            context.OpenDocument(newDocument);
+            context.StartTracking(newDocument);
 
             return true;
         }

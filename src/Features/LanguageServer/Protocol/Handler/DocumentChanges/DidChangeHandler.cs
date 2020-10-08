@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 
             document = document.WithText(text);
 
-            context.UpdateDocument(document);
+            context.UpdateTrackedDocument(document);
 
             return true;
         }
