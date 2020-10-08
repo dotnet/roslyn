@@ -609,10 +609,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void enforceMemberNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
             {
-                if (pendingReturn.IsConditionalState)
+                if (returnStatement.ExpressionOpt is BoundExpression { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
                 {
-                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue);
-                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse);
+                    if (pendingReturn.IsConditionalState)
+                    {
+                        enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue);
+                        enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse);
+                    }
+                    else
+                    {
+                        enforceMemberNotNullWhen(returnStatement.Syntax, sense: value, pendingReturn.State);
+                    }
                 }
             }
 
@@ -763,12 +770,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parameters = this.MethodParameters;
 
-                if (!parameters.IsEmpty)
+                if (!parameters.IsEmpty && returnStatement.ExpressionOpt is BoundExpression { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
                 {
                     if (pendingReturn.IsConditionalState)
                     {
                         enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.StateWhenTrue);
                         enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.StateWhenFalse);
+                    }
+                    else
+                    {
+                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
                     }
                 }
             }
