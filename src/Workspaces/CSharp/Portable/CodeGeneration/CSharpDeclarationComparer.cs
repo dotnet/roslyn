@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             { SyntaxKind.InterfaceDeclaration, 11 },
             { SyntaxKind.StructDeclaration, 12 },
             { SyntaxKind.ClassDeclaration, 13 },
-            { SyntaxKind.ClassDeclaration, 14 },
+            { SyntaxKind.RecordDeclaration, 14 },
             { SyntaxKind.DelegateDeclaration, 15 }
         };
 
