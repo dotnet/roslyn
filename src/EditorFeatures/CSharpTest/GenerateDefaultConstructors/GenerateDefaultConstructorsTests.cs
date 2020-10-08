@@ -940,6 +940,76 @@ abstract class B
 }");
         }
 
+        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedConstructorCursorAtTypeOpening()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : B
+{
+
+[||]
+
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedConstructorCursorBetweenTypeMembers()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : B
+{
+    int X;
+[||]
+    int Y;
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    int X;
+
+    int Y;
+
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}");
+        }
+
         [WorkItem(35208, "https://github.com/dotnet/roslyn/issues/35208")]
         [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
