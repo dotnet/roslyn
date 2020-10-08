@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     ExecuteCommandProvider = new LSP.ExecuteCommandOptions(),
                     TextDocumentSync = new LSP.TextDocumentSyncOptions
                     {
-                        Change = LSP.TextDocumentSyncKind.None
+                        Change = LSP.TextDocumentSyncKind.Incremental,
+                        OpenClose = true
                     }
                 }
             });
