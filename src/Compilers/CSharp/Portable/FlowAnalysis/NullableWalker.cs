@@ -8617,8 +8617,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.OperatorKind)
             {
                 case UnaryOperatorKind.BoolLogicalNegation:
-                    VisitCondition(node.Operand);
-                    SetConditionalState(StateWhenFalse, StateWhenTrue);
+                    Visit(node.Operand);
+                    if (IsConditionalState)
+                        SetConditionalState(StateWhenFalse, StateWhenTrue);
                     resultType = adjustForLifting(ResultType);
                     break;
                 case UnaryOperatorKind.DynamicTrue:
