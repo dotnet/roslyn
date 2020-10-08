@@ -354,7 +354,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             IntegrationHelper.KillProcess("VsJITDebugger");
             IntegrationHelper.KillProcess("dexplore");
 
-            var process = Process.Start(vsExeFile, VsLaunchArgs);
+            var processStartInfo = new ProcessStartInfo(vsExeFile, VsLaunchArgs) { UseShellExecute = false };
+
+            // Clear variables set by CI builds which are known to affect IDE behavior. Integration tests should show
+            // correct behavior for default IDE installations, without Roslyn-, Arcade-, or Azure Pipelines-specific
+            // influences.
+            processStartInfo.Environment.Remove("DOTNET_MULTILEVEL_LOOKUP");
+            processStartInfo.Environment.Remove("DOTNET_INSTALL_DIR");
+
+            var process = Process.Start(processStartInfo);
             Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {process.Id})");
 
             return process;
