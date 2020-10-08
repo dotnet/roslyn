@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
+namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
     /// <summary>
     /// This is the tag which implements the IntraTextAdornmentTag and is meant to create the UIElements that get shown
@@ -39,8 +39,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly IThreadingContext _threadingContext;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
-        private InlineParameterNameHintsTag(FrameworkElement adornment, ITextView textView, SnapshotSpan span,
-                                            SymbolKey key, InlineParameterNameHintsTaggerProvider taggerProvider)
+        private InlineParameterNameHintsTag(
+            FrameworkElement adornment,
+            ITextView textView,
+            SnapshotSpan span,
+            SymbolKey key,
+            InlineParameterNameHintsTaggerProvider taggerProvider)
             : base(adornment, removalCallback: null, PositionAffinity.Predecessor)
         {
             _textView = textView;

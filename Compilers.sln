@@ -158,6 +158,8 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "vbi", "src\Interactive\vbi\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildValidator", "src\Tools\BuildValidator\BuildValidator.csproj", "{E9211052-7700-4A2F-B1AE-34FD5CCAB8AF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrepareTests", "src\Tools\PrepareTests\PrepareTests.csproj", "{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -445,6 +447,10 @@ Global
 		{E9211052-7700-4A2F-B1AE-34FD5CCAB8AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E9211052-7700-4A2F-B1AE-34FD5CCAB8AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E9211052-7700-4A2F-B1AE-34FD5CCAB8AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -517,6 +523,7 @@ Global
 		{6D407402-CC4A-4125-9B00-C70562A636A5} = {274B96B7-F815-47E3-9CA4-4024A57A478F}
 		{706CFC25-B6E0-4DAA-BCC4-F6FAAFEEDF87} = {3FF38FD4-DF16-44B0-924F-0D5AE155495B}
 		{E9211052-7700-4A2F-B1AE-34FD5CCAB8AF} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}

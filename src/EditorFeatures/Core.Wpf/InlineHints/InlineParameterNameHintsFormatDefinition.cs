@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
+namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
     internal sealed class ClassificationTypeDefinitions
     {

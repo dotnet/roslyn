@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public AddParameterDialogViewModel(Document document, int positionForTypeBinding)
         {
             _notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-            _semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+            _semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
             TypeIsEmptyImage = Visibility.Visible;
             TypeBindsImage = Visibility.Collapsed;

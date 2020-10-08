@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -52,6 +50,12 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
             var rightOperand = operation.RightOperand;
             var leftOperand = operation.LeftOperand;
+
+            if (rightOperand.Type is null || leftOperand.Type is null)
+            {
+                return;
+            }
+
             if (rightOperand.Type.SpecialType != SpecialType.System_Boolean ||
                 leftOperand.Type.SpecialType != SpecialType.System_Boolean)
             {
@@ -60,7 +64,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
             var isOperatorEquals = operation.OperatorKind == BinaryOperatorKind.Equals;
             _syntaxFacts.GetPartsOfBinaryExpression(operation.Syntax, out _, out var operatorToken, out _);
-            var properties = ImmutableDictionary.CreateBuilder<string, string>();
+            var properties = ImmutableDictionary.CreateBuilder<string, string?>();
             if (TryGetLiteralValue(rightOperand) == isOperatorEquals)
             {
                 properties.Add(RedundantEqualityConstants.RedundantSide, RedundantEqualityConstants.Right);

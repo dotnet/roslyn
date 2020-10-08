@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     Public Class VisualBasicInlineParameterNameHintsTests
         Inherits AbstractInlineParameterNameHintsTests
 
