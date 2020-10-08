@@ -57,11 +57,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         protected sealed override ITypeSymbol GetSwitchType(ISwitchOperation switchOperation)
-        {
-            var type = switchOperation.Value.Type;
-            RoslynDebug.AssertNotNull(type);
-            return type;
-        }
+            => switchOperation.Value.Type ?? throw ExceptionUtilities.Unreachable;
 
         protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation switchOperation)
             => PopulateSwitchStatementHelpers.GetMissingEnumMembers(switchOperation);

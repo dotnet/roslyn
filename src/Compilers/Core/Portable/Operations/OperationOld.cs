@@ -7,6 +7,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
+    // PROTOTYPE(iop): Delete this after migration
     internal abstract class OperationOld : Operation
     {
         protected OperationOld(OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)

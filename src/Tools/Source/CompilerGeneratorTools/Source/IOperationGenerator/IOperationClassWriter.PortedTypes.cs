@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 namespace IOperationGenerator
 {
+    // PROTOTYPE(iop): Delete this after migration
     internal sealed partial class IOperationClassWriter
     {
         private static readonly HashSet<string> PortedTypes = new HashSet<string>()
