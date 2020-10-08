@@ -38,13 +38,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            if (!(completionItem.Data is CompletionResolveData data))
+            if (completionItem.Data is not CompletionResolveData data)
             {
                 data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
             }
 
             var documentId = DocumentId.CreateFromSerialized(ProjectId.CreateFromSerialized(data.ProjectGuid), data.DocumentGuid);
-            var document = context.Solution.GetAdditionalDocument(documentId);
+            var document = context.Solution.GetDocument(documentId) ?? context.Solution.GetAdditionalDocument(documentId);
             if (document == null)
             {
                 return completionItem;
