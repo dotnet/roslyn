@@ -21,7 +21,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/48435"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
         public void GenerateLocal()
         {
             SetUpEditor(

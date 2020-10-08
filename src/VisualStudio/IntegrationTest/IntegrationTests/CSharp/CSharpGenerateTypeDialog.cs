@@ -25,7 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/48435"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void OpenAndCloseDialog()
         {
             SetUpEditor(@"class C
@@ -46,7 +46,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             GenerateTypeDialog.VerifyClosed();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/48435"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void CSharpToBasic()
         {
             var vbProj = new ProjectUtils.Project("VBProj");
