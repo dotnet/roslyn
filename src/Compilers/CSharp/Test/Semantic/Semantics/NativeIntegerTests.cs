@@ -3851,6 +3851,97 @@ unsafe class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(nuint)").WithArguments("Program.D").WithLocation(6, 19));
         }
 
+        [Fact]
+        public void TypeOf()
+        {
+            var source =
+@"using static System.Console;
+class Program
+{
+    static void Main()
+    {
+        var t1 = typeof(nint);
+        var t2 = typeof(nuint);
+        var t3 = typeof(System.IntPtr);
+        var t4 = typeof(System.UIntPtr);
+        WriteLine(t1.FullName);
+        WriteLine(t2.FullName);
+        WriteLine((object)t1 == t2);
+        WriteLine((object)t1 == t3);
+        WriteLine((object)t2 == t4);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(comp, expectedOutput:
+@"System.IntPtr
+System.UIntPtr
+False
+True
+True");
+        }
+
+        /// <summary>
+        /// Dynamic binding uses underlying type.
+        /// </summary>
+        [Fact]
+        public void Dynamic()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        nint x = 2;
+        x = x + x;
+        dynamic d = x;
+        _ = d.ToInt32(); // available on System.IntPtr, not nint
+        try
+        {
+            d = d + x; // available on nint, not System.IntPtr
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.GetType().FullName);
+        }
+        Console.WriteLine(d);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp, expectedOutput:
+@"Microsoft.CSharp.RuntimeBinder.RuntimeBinderException
+4");
+        }
+
+        [Fact]
+        public void Volatile()
+        {
+            var source =
+@"class Program
+{
+    static volatile nint F1 = -1;
+    static volatile nuint F2 = 2;
+    static nint F() => F1 + (nint)F2;
+    static void Main()
+    {
+        System.Console.WriteLine(F());
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1");
+            verifier.VerifyIL("Program.F",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  volatile.
+  IL_0002:  ldsfld     ""nint Program.F1""
+  IL_0007:  volatile.
+  IL_0009:  ldsfld     ""nuint Program.F2""
+  IL_000e:  conv.i
+  IL_000f:  add
+  IL_0010:  ret
+}");
+        }
+
         // PEVerify should succeed. Previously, PEVerify reported duplicate
         // TypeRefs for System.IntPtr in i.ToString() and (object)i.
         [Fact]
@@ -5336,6 +5427,99 @@ $@"class B : A
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SemanticModel_UnaryOperators(bool lifted)
+        {
+            string typeQualifier = lifted ? "?" : "";
+            var source =
+$@"class Program
+{{
+    static void F(nint{typeQualifier} x, nuint{typeQualifier} y)
+    {{
+        _ = +x;
+        _ = -x;
+        _ = ~x;
+        _ = +y;
+        _ = ~y;
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>();
+            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToTestDisplayString()).ToArray();
+            var expectedOperators = new[]
+            {
+                "nint nint.op_UnaryPlus(nint value)",
+                "nint nint.op_UnaryNegation(nint value)",
+                "nint nint.op_OnesComplement(nint value)",
+                "nuint nuint.op_UnaryPlus(nuint value)",
+                "nuint nuint.op_OnesComplement(nuint value)",
+            };
+            AssertEx.Equal(expectedOperators, actualOperators);
+        }
+
+        [Theory]
+        [InlineData("nint", false)]
+        [InlineData("nuint", false)]
+        [InlineData("nint", true)]
+        [InlineData("nuint", true)]
+        public void SemanticModel_BinaryOperators(string type, bool lifted)
+        {
+            string typeQualifier = lifted ? "?" : "";
+            var source =
+$@"class Program
+{{
+    static void F({type}{typeQualifier} x, {type}{typeQualifier} y)
+    {{
+        _ = x + y;
+        _ = x - y;
+        _ = x * y;
+        _ = x / y;
+        _ = x % y;
+        _ = x < y;
+        _ = x <= y;
+        _ = x > y;
+        _ = x >= y;
+        _ = x == y;
+        _ = x != y;
+        _ = x & y;
+        _ = x | y;
+        _ = x ^ y;
+        _ = x << 1;
+        _ = x >> 1;
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>();
+            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToTestDisplayString()).ToArray();
+            var expectedOperators = new[]
+            {
+                $"{type} {type}.op_Addition({type} left, {type} right)",
+                $"{type} {type}.op_Subtraction({type} left, {type} right)",
+                $"{type} {type}.op_Multiply({type} left, {type} right)",
+                $"{type} {type}.op_Division({type} left, {type} right)",
+                $"{type} {type}.op_Modulus({type} left, {type} right)",
+                $"System.Boolean {type}.op_LessThan({type} left, {type} right)",
+                $"System.Boolean {type}.op_LessThanOrEqual({type} left, {type} right)",
+                $"System.Boolean {type}.op_GreaterThan({type} left, {type} right)",
+                $"System.Boolean {type}.op_GreaterThanOrEqual({type} left, {type} right)",
+                $"System.Boolean {type}.op_Equality({type} left, {type} right)",
+                $"System.Boolean {type}.op_Inequality({type} left, {type} right)",
+                $"{type} {type}.op_BitwiseAnd({type} left, {type} right)",
+                $"{type} {type}.op_BitwiseOr({type} left, {type} right)",
+                $"{type} {type}.op_ExclusiveOr({type} left, {type} right)",
+                $"{type} {type}.op_LeftShift({type} left, System.Int32 right)",
+                $"{type} {type}.op_RightShift({type} left, System.Int32 right)",
+            };
+            AssertEx.Equal(expectedOperators, actualOperators);
         }
 
         [Theory]
@@ -12967,6 +13151,225 @@ $@"{toValueUnchecked}
   IL_0002:  ret
 }}");
             }
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void IdentityConversions(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"#pragma warning disable 219
+class A<T> {{ }}
+class Program
+{{
+    static void F1({nativeIntegerType} x1, {nativeIntegerType}? x2, {nativeIntegerType}[] x3, A<{nativeIntegerType}> x4)
+    {{
+        {underlyingType} y1 = x1;
+        {underlyingType}? y2 = x2;
+        {underlyingType}[] y3 = x3;
+        A<{underlyingType}> y4 = x4;
+        ({underlyingType}, {underlyingType}[]) y = (x1, x3);
+    }}
+    static void F2({underlyingType} y1, {underlyingType}? y2, {underlyingType}[] y3, A<{underlyingType}> y4)
+    {{
+        {nativeIntegerType} x1 = y1;
+        {nativeIntegerType}? x2 = y2;
+        {nativeIntegerType}[] x3 = y3;
+        A<{nativeIntegerType}> x4 = y4;
+        ({nativeIntegerType}, {nativeIntegerType}[]) x = (y1, y3);
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void BestType_01(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"using System;
+class Program
+{{
+    static T F0<T>(Func<T> f) => f();
+    static void F1(bool b, {nativeIntegerType} x, {underlyingType} y)
+    {{
+        {nativeIntegerType} z = y;
+        (new[] {{ x, z }})[0].ToPointer();
+        (new[] {{ x, y }})[0].ToPointer();
+        (new[] {{ y, x }})[0].ToPointer();
+        (b ? x : z).ToPointer();
+        (b ? x : y).ToPointer();
+        (b ? y : x).ToPointer();
+        F0(() => {{ if (b) return x; return z; }}).ToPointer();
+        F0(() => {{ if (b) return x; return y; }}).ToPointer();
+        F0(() => {{ if (b) return y; return x; }}).ToPointer();
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,29): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         (new[] { x, z })[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(8, 29),
+                // (9,10): error CS0826: No best type found for implicitly-typed array
+                //         (new[] { x, y })[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x, y }").WithLocation(9, 10),
+                // (10,10): error CS0826: No best type found for implicitly-typed array
+                //         (new[] { y, x })[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { y, x }").WithLocation(10, 10),
+                // (11,21): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         (b ? x : z).ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(11, 21),
+                // (12,10): error CS0172: Type of conditional expression cannot be determined because 'nint' and 'IntPtr' implicitly convert to one another
+                //         (b ? x : y).ToPointer();
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? x : y").WithArguments($"{nativeIntegerType}", $"{underlyingType}").WithLocation(12, 10),
+                // (13,10): error CS0172: Type of conditional expression cannot be determined because 'IntPtr' and 'nint' implicitly convert to one another
+                //         (b ? y : x).ToPointer();
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? y : x").WithArguments($"{underlyingType}", $"{nativeIntegerType}").WithLocation(13, 10),
+                // (14,50): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(() => { if (b) return x; return z; }).ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(14, 50),
+                // (15,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return x; return y; }).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(15, 9),
+                // (16,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return y; return x; }).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(16, 9));
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void BestType_02(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"using System;
+interface I<T> {{ }}
+class Program
+{{
+    static void F0<T>(Func<T> f) => f();
+    static void F1(bool b, {nativeIntegerType}[] x, {underlyingType}[] y)
+    {{
+        _ = new[] {{ x, y }};
+        _ = b ? x : y;
+        F0(() => {{ if (b) return x; return y; }});
+    }}
+    static void F2(bool b, I<{nativeIntegerType}> x, I<{underlyingType}> y)
+    {{
+        _ = new[] {{ x, y }};
+        _ = b ? x : y;
+        F0(() => {{ if (b) return x; return y; }});
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0826: No best type found for implicitly-typed array
+                //         _ = new[] { x, y };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x, y }").WithLocation(8, 13),
+                // (9,13): error CS0172: Type of conditional expression cannot be determined because 'nint[]' and 'IntPtr[]' implicitly convert to one another
+                //         _ = b ? x : y;
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? x : y").WithArguments($"{nativeIntegerType}[]", $"{underlyingType}[]").WithLocation(9, 13),
+                // (10,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return x; return y; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(10, 9),
+                // (14,13): error CS0826: No best type found for implicitly-typed array
+                //         _ = new[] { x, y };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x, y }").WithLocation(14, 13),
+                // (15,13): error CS0172: Type of conditional expression cannot be determined because 'I<nint>' and 'I<IntPtr>' implicitly convert to one another
+                //         _ = b ? x : y;
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? x : y").WithArguments($"I<{nativeIntegerType}>", $"I<{underlyingType}>").WithLocation(15, 13),
+                // (16,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return x; return y; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(16, 9));
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void MethodTypeInference(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"interface I<T>
+{{
+    T P {{ get; }}
+}}
+unsafe class Program
+{{
+    static T F0<T>(T x, T y) => x;
+    static void F1({nativeIntegerType} x, {underlyingType} y)
+    {{
+        var z = ({nativeIntegerType})y;
+        F0(x, z).ToPointer();
+        F0(x, y).ToPointer();
+        F0(y, x).ToPointer();
+        F0<{nativeIntegerType}>(x, y).
+            ToPointer();
+        F0<{underlyingType}>(x, y).
+            ToPointer();
+    }}
+    static void F2({nativeIntegerType}[] x, {underlyingType}[] y)
+    {{
+        var z = ({nativeIntegerType}[])y;
+        F0(x, z)[0].ToPointer();
+        F0(x, y)[0].ToPointer();
+        F0(y, x)[0].ToPointer();
+        F0<{nativeIntegerType}[]>(x, y)[0].
+            ToPointer();
+        F0<{underlyingType}[]>(x, y)[0].
+            ToPointer();
+    }}
+    static void F3(I<{nativeIntegerType}> x, I<{underlyingType}> y)
+    {{
+        var z = (I<{nativeIntegerType}>)y;
+        F0(x, z).P.ToPointer();
+        F0(x, y).P.ToPointer();
+        F0(y, x).P.ToPointer();
+        F0<I<{nativeIntegerType}>>(x, y).P.
+            ToPointer();
+        F0<I<{underlyingType}>>(x, y).P.
+            ToPointer();
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (11,18): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(x, z).ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(11, 18),
+                // (12,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(x, y).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(12, 9),
+                // (13,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(y, x).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(13, 9),
+                // (15,13): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //             ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(15, 13),
+                // (22,21): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(x, z)[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(22, 21),
+                // (23,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(x, y)[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(23, 9),
+                // (24,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(y, x)[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(24, 9),
+                // (26,13): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //             ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(26, 13),
+                // (33,20): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(x, z).P.ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(33, 20),
+                // (34,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(x, y).P.ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(34, 9),
+                // (35,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(y, x).P.ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(35, 9),
+                // (37,13): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //             ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(37, 13));
         }
     }
 }

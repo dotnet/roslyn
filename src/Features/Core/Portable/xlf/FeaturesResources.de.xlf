@@ -2081,13 +2081,13 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
-        <source>'{0}' cannot be null or empty</source>
-        <target state="translated">"{0}" darf nicht NULL oder leer sein.</target>
+        <source>'{0}' cannot be null or empty.</source>
+        <target state="needs-review-translation">"{0}" darf nicht NULL oder leer sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_whitespace">
-        <source>'{0}' cannot be null or whitespace</source>
-        <target state="translated">"{0}" darf nicht NULL oder ein Leerraumzeichen sein.</target>
+        <source>'{0}' cannot be null or whitespace.</source>
+        <target state="needs-review-translation">"{0}" darf nicht NULL oder ein Leerraumzeichen sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">

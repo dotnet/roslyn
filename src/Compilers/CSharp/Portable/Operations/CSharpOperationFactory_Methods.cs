@@ -210,6 +210,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+#nullable enable
         internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression, bool isObjectOrCollectionInitializer)
         {
             switch (containingExpression.Kind)
@@ -217,11 +218,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.ObjectInitializerMember:
                     {
                         var boundObjectInitializerMember = (BoundObjectInitializerMember)containingExpression;
-                        var property = (PropertySymbol)boundObjectInitializerMember.MemberSymbol;
-                        MethodSymbol accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
+                        var property = (PropertySymbol?)boundObjectInitializerMember.MemberSymbol;
+                        Debug.Assert(property is not null);
+                        MethodSymbol? accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
                         return DeriveArguments(
                                     boundObjectInitializerMember,
-                                    boundObjectInitializerMember.BinderOpt,
+                                    boundObjectInitializerMember.Binder,
                                     property,
                                     accessor,
                                     boundObjectInitializerMember.Arguments,
@@ -237,6 +239,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     return DeriveArguments(containingExpression);
             }
         }
+#nullable disable
 
         internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression)
         {
@@ -311,11 +314,12 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+#nullable enable
         private ImmutableArray<IArgumentOperation> DeriveArguments(
             BoundNode boundNode,
             Binder binder,
             Symbol methodOrIndexer,
-            MethodSymbol optionalParametersMethod,
+            MethodSymbol? optionalParametersMethod,
             ImmutableArray<BoundExpression> boundArguments,
             ImmutableArray<string> argumentNamesOpt,
             ImmutableArray<int> argumentsToParametersOpt,
@@ -333,6 +337,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
 
+            Debug.Assert(optionalParametersMethod is not null);
+
             return LocalRewriter.MakeArgumentsInEvaluationOrder(
                  operationFactory: this,
                  binder: binder,
@@ -344,6 +350,7 @@ namespace Microsoft.CodeAnalysis.Operations
                  argsToParamsOpt: argumentsToParametersOpt,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
+#nullable disable
 
         internal static ImmutableArray<BoundNode> CreateInvalidChildrenFromArgumentsExpression(BoundNode receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression additionalNodeOpt = null)
         {

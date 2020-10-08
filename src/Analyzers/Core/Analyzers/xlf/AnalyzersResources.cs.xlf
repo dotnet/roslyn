@@ -332,9 +332,19 @@
         <target state="translated">Použít složené přiřazení</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_decrement_operator">
+        <source>Use '--' operator</source>
+        <target state="new">Use '--' operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_explicitly_provided_tuple_name">
         <source>Use explicitly provided tuple name</source>
         <target state="translated">Použít výslovně zadaný název řazené kolekce členů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_increment_operator">
+        <source>Use '++' operator</source>
+        <target state="new">Use '++' operator</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">
