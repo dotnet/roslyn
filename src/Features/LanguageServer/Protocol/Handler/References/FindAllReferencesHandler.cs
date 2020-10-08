@@ -41,6 +41,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<LSP.VSReferenceItem>();
             }
 
+            // We only support streaming results back, so no point doing any work if the client doesn't
+            if (referenceParams.PartialResultToken == null)
+            {
+                return Array.Empty<LSP.VSReferenceItem>();
+            }
+
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(referenceParams.Position), cancellationToken).ConfigureAwait(false);
