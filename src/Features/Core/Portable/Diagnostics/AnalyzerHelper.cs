@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const string WRN_NoAnalyzerInAssemblyIdVB = "BC42377";
         internal const string WRN_UnableToLoadAnalyzerIdCS = "CS8034";
         internal const string WRN_UnableToLoadAnalyzerIdVB = "BC42378";
+        internal const string WRN_AnalyzerReferencesNetFrameworkIdCS = "CS8850";
 
         // Shared with Compiler
         internal const string AnalyzerExceptionDiagnosticId = "AD0001";
@@ -203,8 +204,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     break;
 
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
-                    // TODO: what are the values for C# and VB?
-                    id = GetLanguageSpecificId(language, WRN_AnalyzerReferencesNetFrameworkId, WRN_AnalyzerReferencesNetFrameworkId, WRN_AnalyzerReferencesNetFrameworkId);
+                    id = GetLanguageSpecificId(language, WRN_AnalyzerReferencesNetFrameworkId, WRN_AnalyzerReferencesNetFrameworkIdCS, WRN_AnalyzerReferencesNetFrameworkId /*Not supported by VB*/);
                     messageFormat = FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework;
                     message = string.Format(FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework, fullPath, e.TypeName);
                     break;
