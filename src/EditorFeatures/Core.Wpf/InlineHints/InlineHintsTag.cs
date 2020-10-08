@@ -10,16 +10,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
@@ -70,14 +73,18 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// <param name="span">The span that has the location of the hint</param>
         /// <param name="key">The symbolkey associated with each parameter</param>
         public static InlineHintsTag Create(
-            string text,
+            ImmutableArray<SymbolDisplayPart> parts,
             TextFormattingRunProperties format,
             IWpfTextView textView,
             SnapshotSpan span,
             SymbolKey? key,
-            InlineHintsTaggerProvider taggerProvider)
+            InlineHintsTaggerProvider taggerProvider,
+            IClassificationFormatMap formatMap,
+            bool classify)
         {
-            return new InlineHintsTag(CreateElement(text, textView, format), textView, span, key, taggerProvider);
+            return new InlineHintsTag(
+                CreateElement(parts, textView, format, formatMap, taggerProvider.TypeMap, classify),
+                textView, span, key, taggerProvider);
         }
 
         public async Task<IReadOnlyCollection<object>> CreateDescriptionAsync(CancellationToken cancellationToken)
@@ -132,11 +139,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             return Array.Empty<object>();
         }
 
-        private static FrameworkElement CreateElement(string text, IWpfTextView textView, TextFormattingRunProperties format)
+        private static FrameworkElement CreateElement(
+            ImmutableArray<SymbolDisplayPart> parts,
+            IWpfTextView textView,
+            TextFormattingRunProperties format,
+            IClassificationFormatMap formatMap,
+            ClassificationTypeMap typeMap,
+            bool classify)
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
             // page. Calculates a font size 1/4 smaller than the font size of the rest of the editor
-            var right = text.EndsWith(":") ? 0 : 1;
+            var right = parts.Last().ToString().EndsWith(":") ? 0 : 1;
             var block = new TextBlock
             {
                 FontFamily = format.Typeface.FontFamily,
@@ -147,9 +160,22 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 // Adds a little bit of padding to the left of the text relative to the border
                 // to make the text seem more balanced in the border
                 Padding = new Thickness(left: 1, top: 0, right: right, bottom: 0),
-                Text = text,
                 VerticalAlignment = VerticalAlignment.Center,
             };
+
+            var taggedTexts = parts.ToTaggedText();
+            foreach (var taggedText in taggedTexts)
+            {
+                var run = new Run(taggedText.ToVisibleDisplayString(includeLeftToRightMarker: true));
+
+                if (classify)
+                {
+                    var properties = formatMap.GetTextProperties(typeMap.GetClassificationType(taggedText.Tag.ToClassificationTypeName()));
+                    run.Foreground = properties.ForegroundBrush;
+                }
+
+                block.Inlines.Add(run);
+            }
 
             // Encapsulates the textblock within a border. Sets the height of the border to be 3/4 of the original 
             // height. Gets foreground/background colors from the options menu. The margin is the distance from the 

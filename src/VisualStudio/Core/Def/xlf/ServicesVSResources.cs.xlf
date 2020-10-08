@@ -147,6 +147,11 @@
         <target state="translated">Analýza kódu pro řešení se ukončila dříve, než se dokončila.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Color_hints">
+        <source>Color hints</source>
+        <target state="new">Color hints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Obarvit regulární výrazy</target>

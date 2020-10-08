@@ -37,6 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Display_all_hints_while_pressing_Ctrl_Alt
             => ServicesVSResources.Display_all_hints_while_pressing_Ctrl_Alt;
 
+        public static string Option_Color_hints
+            => ServicesVSResources.Color_hints;
+
         public static string Option_Display_inline_parameter_name_hints
             => ServicesVSResources.Display_inline_parameter_name_hints;
 

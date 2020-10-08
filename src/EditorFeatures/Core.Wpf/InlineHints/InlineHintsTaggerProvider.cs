@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public readonly IClassificationTypeRegistryService ClassificationTypeRegistryService;
         public readonly IThreadingContext ThreadingContext;
         public readonly IToolTipService ToolTipService;
+        public readonly ClassificationTypeMap TypeMap;
         public readonly Lazy<IStreamingFindUsagesPresenter> StreamingFindUsagesPresenter;
 
         [ImportingConstructor]
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             IClassificationTypeRegistryService classificationTypeRegistryService,
             IThreadingContext threadingContext,
             IToolTipService toolTipService,
+            ClassificationTypeMap typeMap,
             Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter)
         {
             _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
@@ -50,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             this.ThreadingContext = threadingContext;
             this.ToolTipService = toolTipService;
             this.StreamingFindUsagesPresenter = streamingFindUsagesPresenter;
+            this.TypeMap = typeMap;
         }
 
         public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag

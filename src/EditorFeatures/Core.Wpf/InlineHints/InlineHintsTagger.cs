@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -114,6 +116,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 _cache.Clear();
                 _cacheSnapshot = snapshot;
 
+                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var classify = document?.Project.Solution.Workspace.Options.GetOption(InlineHintsOptions.ColorHints, document?.Project.Language) ?? false;
+
                 // Calling into the InlineParameterNameHintsDataTaggerProvider which only responds with the current
                 // active view and disregards and requests for tags not in that view
                 var fullSpan = new SnapshotSpan(snapshot, 0, snapshot.Length);
@@ -130,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                         var dataTagSpan = dataTagSpans[0];
                         var parameterHintSnapshotSpan = new SnapshotSpan(dataTagSpan.Start, 0);
                         var parameterHintUITag = InlineHintsTag.Create(
-                            textTag.Text, Format, _textView, dataTagSpan, textTag.SymbolKey, _taggerProvider);
+                            textTag.Parts, Format, _textView, dataTagSpan, textTag.SymbolKey, _taggerProvider, _formatMap, classify);
 
                         _cache.Add(new TagSpan<IntraTextAdornmentTag>(parameterHintSnapshotSpan, parameterHintUITag));
                     }

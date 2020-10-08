@@ -36,6 +36,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Display_all_hints_while_pressing_Ctrl_Alt As String =
             ServicesVSResources.Display_all_hints_while_pressing_Ctrl_Alt
 
+        Public ReadOnly Property Option_Color_hints As String =
+            ServicesVSResources.Color_hints
+
         Public ReadOnly Property Option_Inline_Hints_experimental As String =
             ServicesVSResources.Inline_Hints_experimental
 

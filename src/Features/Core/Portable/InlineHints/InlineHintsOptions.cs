@@ -19,6 +19,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.DisplayAllHintsWhilePressingCtrlAlt"));
 
+        public static readonly PerLanguageOption2<bool> ColorHints =
+            new(nameof(InlineHintsOptions),
+                nameof(ColorHints),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorHints"));
+
         /// <summary>
         /// Non-persisted option used to switch to displaying everything while the user is holding ctrl-alt.
         /// </summary>
@@ -92,9 +98,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt,
+            InlineHintsOptions.ColorHints,
             InlineHintsOptions.EnabledForParameters,
             InlineHintsOptions.ForLiteralParameters,
             InlineHintsOptions.ForObjectCreationParameters,
-            InlineHintsOptions.ForOtherParameters);
+            InlineHintsOptions.ForOtherParameters,
+            InlineHintsOptions.EnabledForTypes,
+            InlineHintsOptions.ForImplicitVariableTypes,
+            InlineHintsOptions.ForLambdaParameterTypes);
     }
 }

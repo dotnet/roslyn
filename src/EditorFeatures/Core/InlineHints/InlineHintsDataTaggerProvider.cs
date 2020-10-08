@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,13 +15,14 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
@@ -28,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// The TaggerProvider that calls upon the service in order to locate the spans and names
     /// </summary>
     [Export(typeof(IViewTaggerProvider))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
+    [VSUtilities.ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(InlineHintDataTag))]
-    [Name(nameof(InlineHintsDataTaggerProvider))]
+    [VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
     internal class InlineHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineHintDataTag>
     {
         private static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
@@ -106,24 +108,24 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 Contract.ThrowIfNull(hint.Type);
 
-                var sb = PooledStringBuilder.GetInstance();
+                using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
                 var parts = hint.Type.ToDisplayParts(s_minimalTypeStyle);
 
-                AddParts(anonymousTypeService, sb, parts, semanticModel, position);
+                AddParts(anonymousTypeService, finalParts, parts, semanticModel, position);
 
                 cancellationToken.ThrowIfCancellationRequested();
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     new SnapshotSpan(snapshotSpan.Snapshot, hint.Position, 0),
                     new InlineHintDataTag(
-                        sb.ToStringAndFree(),
+                        finalParts.ToImmutable(),
                         hint.Type.GetSymbolKey(cancellationToken))));
             }
         }
 
         private void AddParts(
             IAnonymousTypeDisplayService anonymousTypeService,
-            PooledStringBuilder sb,
-            System.Collections.Immutable.ImmutableArray<SymbolDisplayPart> parts,
+            ArrayBuilder<SymbolDisplayPart> finalParts,
+            ImmutableArray<SymbolDisplayPart> parts,
             SemanticModel semanticModel,
             int position,
             HashSet<INamedTypeSymbol>? seenSymbols = null)
@@ -137,17 +139,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     if (seenSymbols.Add(anonymousType))
                     {
                         var anonymousParts = anonymousTypeService.GetAnonymousTypeParts(anonymousType, semanticModel, position);
-                        AddParts(anonymousTypeService, sb, anonymousParts, semanticModel, position, seenSymbols);
+                        AddParts(anonymousTypeService, finalParts, anonymousParts, semanticModel, position, seenSymbols);
                         seenSymbols.Remove(anonymousType);
                     }
                     else
                     {
-                        sb.Builder.Append("...");
+                        finalParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, symbol: null, "..."));
                     }
                 }
                 else
                 {
-                    sb.Builder.Append(part.ToString());
+                    finalParts.Add(part);
                 }
             }
         }
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     new SnapshotSpan(snapshotSpan.Snapshot, hint.Position, 0),
                     new InlineHintDataTag(
-                        hint.Parameter.Name + ":",
+                        ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, hint.Parameter, hint.Parameter.Name + ":")),
                         hint.Parameter.GetSymbolKey(cancellationToken))));
             }
         }

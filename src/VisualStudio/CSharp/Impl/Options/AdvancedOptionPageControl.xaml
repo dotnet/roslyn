@@ -193,6 +193,9 @@
                     <CheckBox x:Name="DisplayAllHintsWhilePressingCtrlAlt"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_all_hints_while_pressing_Ctrl_Alt}" />
 
+                    <CheckBox x:Name="ColorHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_hints}" />
+
                     <CheckBox x:Name="DisplayInlineParameterNameHints"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}"
                               Checked="DisplayInlineParameterNameHints_Checked"
