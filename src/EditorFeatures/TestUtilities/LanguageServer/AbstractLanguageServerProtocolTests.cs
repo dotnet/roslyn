@@ -69,12 +69,6 @@ namespace Roslyn.Test.Utilities
                 Contract.ThrowIfNull(_currentSolution);
                 return _currentSolution.GetDocuments(documentUri);
             }
-
-            public ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri)
-            {
-                Contract.ThrowIfNull(_currentSolution);
-                return _currentSolution.GetTextDocuments(documentUri);
-            }
         }
 
         private class TestSpanMapperProvider : IDocumentServiceProvider
