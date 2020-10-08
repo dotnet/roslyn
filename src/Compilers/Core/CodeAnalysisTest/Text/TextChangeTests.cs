@@ -925,10 +925,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var editedLength = originalText.Length;
                 ArrayBuilder<TextChange> oldChangesBuilder = ArrayBuilder<TextChange>.GetInstance();
 
-                const int maxEditLength = 3;
+                const int maxEditLength = 5;
                 const int maxSkipLength = 2;
                 // generate sequence of "old edits" which meet invariants
-                for (int i = 0; i < originalText.Length; i += 1 + random.Next(maxSkipLength))
+                for (int i = 0; i < originalText.Length; i += random.Next(maxSkipLength))
                 {
                     var newText = string.Join("", Enumerable.Repeat('a', random.Next(maxEditLength)));
                     var newChange = new TextChange(new TextSpan(i, length: random.Next(Math.Min(originalText.Length - i, maxEditLength))), newText);
@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ArrayBuilder<TextChange> newChangesBuilder = ArrayBuilder<TextChange>.GetInstance();
 
                 // generate sequence of "new edits" which meet invariants
-                for (int i = 0; i < editedLength; i += 1 + random.Next(maxSkipLength))
+                for (int i = 0; i < editedLength; i += random.Next(maxSkipLength))
                 {
                     var newText = string.Join("", Enumerable.Repeat('b', random.Next(maxEditLength)));
                     var newChange = new TextChange(new TextSpan(i, length: random.Next(Math.Min(editedLength - i, maxEditLength))), newText);
@@ -1035,6 +1035,45 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void Fuzz_3()
+        {
+            var originalText = SourceText.From("01234");
+            var change1 = originalText.WithChanges(new TextChange(new TextSpan(0, 1), "aa"), new TextChange(new TextSpan(3, 1), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 0), "bbb"));
+            Assert.Equal("aa12aa4", change1.ToString());
+            Assert.Equal("bbbaa12aa4", change2.ToString());
+            var changes = change2.GetTextChanges(originalText);
+            Assert.Equal("bbbaa12aa4", originalText.WithChanges(changes).ToString());
+        }
+
+        [Fact]
+        public void Fuzz_4()
+        {
+            var originalText = SourceText.From("012345");
+            var change1 = originalText.WithChanges(new TextChange(new TextSpan(0, 3), "a"), new TextChange(new TextSpan(5, 0), "aaa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 2), ""), new TextChange(new TextSpan(3, 1), "bb"));
+            Assert.Equal("a34aaa5", change1.ToString());
+            Assert.Equal("4bbaa5", change2.ToString());
+
+            var changes = change2.GetTextChanges(originalText);
+            Assert.Equal("4bbaa5", originalText.WithChanges(changes).ToString());
+        }
+
+        [Fact]
+        public void Fuzz_7()
+        {
+            var originalText = SourceText.From("01234567");
+            var change1 = originalText.WithChanges(new TextChange(new TextSpan(0, 1), "aaaaa"), new TextChange(new TextSpan(3, 1), "aaaa"), new TextChange(new TextSpan(6, 1), "aaaaa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 0), "b"), new TextChange(new TextSpan(2, 0), "b"), new TextChange(new TextSpan(3, 4), "bbbbb"), new TextChange(new TextSpan(9, 5), "bbbbb"), new TextChange(new TextSpan(15, 3), ""));
+            Assert.Equal("aaaaa12aaaa45aaaaa7", change1.ToString());
+            Assert.Equal("baababbbbbaabbbbba7", change2.ToString());
+
+
+            var changes = change2.GetTextChanges(originalText);
+            Assert.Equal("baababbbbbaabbbbba7", originalText.WithChanges(changes).ToString());
+        }
+
+        [Fact]
         [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_10()
         {
@@ -1060,6 +1099,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var changes = change2.GetTextChanges(originalText);
             Assert.Equal("bab234", originalText.WithChanges(changes).ToString());
+        }
+
+        [Fact]
+        public void Fuzz_32()
+        {
+            var originalText = SourceText.From("012345");
+            var change1 = originalText.WithChanges(new TextChange(new TextSpan(0, 2), "a"), new TextChange(new TextSpan(3, 2), "a"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 3), "bbb"));
+            Assert.Equal("a2a5", change1.ToString());
+            Assert.Equal("bbb5", change2.ToString());
+
+            var changes = change2.GetTextChanges(originalText);
+            Assert.Equal("bbb5", originalText.WithChanges(changes).ToString());
         }
 
         private SourceText GetChangesWithoutMiddle(

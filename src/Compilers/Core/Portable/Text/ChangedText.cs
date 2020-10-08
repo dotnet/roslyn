@@ -272,6 +272,12 @@ namespace Microsoft.CodeAnalysis.Text
             // This value must be adjusted whenever characters from an old change are added to `builder`.
             var oldDelta = 0;
 
+            // In this loop we "zip" together potentially overlapping old and new changes.
+            // It's important that when overlapping changes are found, we don't consume past the end of the overlapping section until the next iteration.
+            // so that we don't miss scenarios where the section after the overlap we found itself overlaps with another change
+            // e.g.:
+            // [ ------- oldChange1 ------ ]
+            // [ -- newChange1 -- ]   [ -- newChange2 --]
             while (true)
             {
                 if (oldChange.Span.Length == 0 && oldChange.NewLength == 0)
@@ -319,34 +325,34 @@ namespace Microsoft.CodeAnalysis.Text
                 }
                 else
                 {
-                    // new change and old change start at same position
-                    if (oldChange.NewLength == 0)
-                    {
-                        // old change is just a deletion, add old change now and deal with new change separately
-                        addAndAdjustOldDelta(oldChange);
-                        if (tryGetNext(oldChanges, ref oldIndex, out oldChange)) continue;
-                        else break;
-                    }
-                    else if (newChange.Span.Length <= oldChange.NewLength)
+                    if (newChange.Span.Length <= oldChange.NewLength)
                     {
                         // new change deletes fewer characters than old change inserted
-                        // merge new change into old change and try again with next new change
-                        var newLength = oldChange.NewLength + newChange.NewLength - newChange.Span.Length;
-                        oldChange = new TextChangeRange(oldChange.Span, newLength);
-
-                        // when integrating newChange's inserts/deletes into an old change,
-                        // we need to "counter-adjust" so that the oldDelta still reflects only inserts/deletes caused by old changes.
-                        oldDelta = oldDelta - newChange.NewLength + newChange.Span.Length;
+                        // thus its adjusted end position is smaller (any old characters it didn't delete are "pushed" to the right of the new insertion's end)
+                        // consume the new change insertion, and fold the new change deletion into the old change's insertion
+                        oldChange = new TextChangeRange(oldChange.Span, oldChange.NewLength - newChange.Span.Length);
+                        oldDelta = oldDelta + newChange.Span.Length;
+                        newChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + oldDelta, length: 0), newChange.NewLength);
+                        addAdjustedNewChange(newChange);
                         if (tryGetNext(newChanges, ref newIndex, out newChange)) continue;
                         else break;
                     }
                     else
                     {
                         // new change deletes more characters than old change inserted
-                        var newChangeTrailingDeletion = oldChange.Span.Length + newChange.Span.Length - oldChange.NewLength;
-                        add(new TextChangeRange(new TextSpan(oldChange.Span.Start, newChangeTrailingDeletion), newChange.NewLength));
+                        // thus its adjusted end position is larger
+
+                        // drop the old change, adjusting the oldDelta to compensate
                         oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength;
-                        if (tryGetNext(oldChanges, ref oldIndex, out oldChange) & tryGetNext(newChanges, ref newIndex, out newChange)) continue;
+
+                        // adjust the new change as follows:
+                        // 1. add the old change's deletion to its deletion
+                        // 2. subtract the old change's insertion from its deletion
+                        // 3. add oldDelta to its start position so that its adjusted start position is the same as the oldChange that we removed
+                        //    - note that this can result in the newChange having a negative Start, but this gets adjusted back into a non-negative Start in the next iteration.
+                        var newDeletion = newChange.Span.Length + oldChange.Span.Length - oldChange.NewLength;
+                        newChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + oldDelta, newDeletion, validateStart: false), newChange.NewLength);
+                        if (tryGetNext(oldChanges, ref oldIndex, out oldChange)) continue;
                         else break;
                     }
                 }
