@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             private Checksum? ReadChecksum(TKey key, CancellationToken cancellationToken)
             {
-                using (var stream = ReadBlobColumn(key, ChecksumColumnName, checksumOpt: null, cancellationToken))
+                using (var stream = ReadBlobColumn(key, ChecksumColumnName, checksum: null, cancellationToken))
                 using (var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken))
                 {
                     if (reader != null)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 => ReadBlobColumn(key, DataColumnName, checksum, cancellationToken);
 
             private Stream? ReadBlobColumn(
-                TKey key, string columnName, Checksum? checksumOpt, CancellationToken cancellationToken)
+                TKey key, string columnName, Checksum? checksum, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -106,8 +106,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         {
                             // First, try to see if there was a write to this key in our in-memory db.
                             // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
-                            return ReadBlob(connection, Database.WriteCache, dataId, columnName, checksumOpt, cancellationToken) ??
-                                   ReadBlob(connection, Database.Main, dataId, columnName, checksumOpt, cancellationToken);
+                            return ReadBlob(connection, Database.WriteCache, dataId, columnName, checksum, cancellationToken) ??
+                                   ReadBlob(connection, Database.Main, dataId, columnName, checksum, cancellationToken);
                         }
                         catch (Exception ex)
                         {
@@ -119,12 +119,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return null;
             }
 
-            public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum? checksumOpt, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => Storage.PerformWriteAsync(
-                    static t => t.self.WriteStream(t.key, t.stream, t.checksumOpt, t.cancellationToken),
-                    (self: this, key, stream, checksumOpt, cancellationToken), cancellationToken);
+                    static t => t.self.WriteStream(t.key, t.stream, t.checksum, t.cancellationToken),
+                    (self: this, key, stream, checksum, cancellationToken), cancellationToken);
 
-            private bool WriteStream(TKey key, Stream stream, Checksum? checksumOpt, CancellationToken cancellationToken)
+            private bool WriteStream(TKey key, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // Determine the appropriate data-id to store this stream at.
                     if (TryGetDatabaseId(connection, key, out var dataId))
                     {
-                        var (checksumBytes, checksumLength, checksumPooled) = GetBytes(checksumOpt, cancellationToken);
+                        var (checksumBytes, checksumLength, checksumPooled) = GetBytes(checksum, cancellationToken);
                         var (dataBytes, dataLength, dataPooled) = GetBytes(stream);
 
                         // Write the information into the in-memory write-cache.  Later on a background task
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             private Stream? ReadBlob(
                 SqlConnection connection, Database database,
                 TDatabaseId dataId, string columnName,
-                Checksum? checksumOpt, CancellationToken cancellationToken)
+                Checksum? checksum, CancellationToken cancellationToken)
             {
                 // Note: it's possible that someone may write to this row between when we
                 // get the row ID above and now.  That's fine.  We'll just read the new
@@ -189,15 +189,15 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         // If we were passed a checksum, make sure it matches what we have
                         // stored in the table already.  If they don't match, don't read
                         // out the data value at all.
-                        if (t.checksumOpt != null &&
-                            !t.self.ChecksumsMatch_MustRunInTransaction(t.connection, t.database, t.rowId, t.checksumOpt, t.cancellationToken))
+                        if (t.checksum != null &&
+                            !t.self.ChecksumsMatch_MustRunInTransaction(t.connection, t.database, t.rowId, t.checksum, t.cancellationToken))
                         {
                             return null;
                         }
 
                         return t.connection.ReadBlob_MustRunInTransaction(t.database, t.self.DataTableName, t.columnName, t.rowId);
                     },
-                    (self: this, connection, database, columnName, checksumOpt, rowId, cancellationToken));
+                    (self: this, connection, database, columnName, checksum, rowId, cancellationToken));
             }
 
             private bool ChecksumsMatch_MustRunInTransaction(

@@ -871,17 +871,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         internal IChecksummedPersistentStorage GetStorage(
-            Solution solution, IPersistentStorageFaultInjector? faultInjectorOpt = null)
+            Solution solution, IPersistentStorageFaultInjector? faultInjector = null)
         {
             // If we handed out one for a previous test, we need to shut that down first
             _storageService?.GetTestAccessor().Shutdown();
             var locationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder.Path);
 
-            _storageService = GetStorageService(locationService, faultInjectorOpt);
+            _storageService = GetStorageService(locationService, faultInjector);
             var storage = _storageService.GetStorage(solution, checkBranchId: true);
 
             // If we're injecting faults, we expect things to be strange
-            if (faultInjectorOpt == null)
+            if (faultInjector == null)
             {
                 Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
             }
@@ -890,17 +890,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         internal IChecksummedPersistentStorage GetStorageFromKey(
-            Workspace workspace, SolutionKey solutionKey, IPersistentStorageFaultInjector? faultInjectorOpt = null)
+            Workspace workspace, SolutionKey solutionKey, IPersistentStorageFaultInjector? faultInjector = null)
         {
             // If we handed out one for a previous test, we need to shut that down first
             _storageService?.GetTestAccessor().Shutdown();
             var locationService = new MockPersistentStorageLocationService(solutionKey.Id, _persistentFolder.Path);
 
-            _storageService = GetStorageService(locationService, faultInjectorOpt);
+            _storageService = GetStorageService(locationService, faultInjector);
             var storage = _storageService.GetStorage(workspace, solutionKey, checkBranchId: true);
 
             // If we're injecting faults, we expect things to be strange
-            if (faultInjectorOpt == null)
+            if (faultInjector == null)
             {
                 Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
             }
