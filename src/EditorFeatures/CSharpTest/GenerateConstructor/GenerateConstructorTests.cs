@@ -4386,5 +4386,27 @@ namespace N {
     }
 }");
         }
+
+        [WorkItem(47928, "https://github.com/dotnet/roslyn/issues/47928")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateConstructorFromTargetTypedNew()
+        {
+            await TestInRegularAndScriptAsync(@"
+C c = new(0);
+
+public class C
+{
+}
+", @"
+C c = new(0);
+
+public class C
+{
+    public C(int v)
+    {
+    }
+}
+");
+        }
     }
 }
