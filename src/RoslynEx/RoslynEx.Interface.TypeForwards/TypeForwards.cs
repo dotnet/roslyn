@@ -5,3 +5,4 @@ using RoslynEx;
 [assembly: TypeForwardedTo(typeof(TransformerContext))]
 [assembly: TypeForwardedTo(typeof(TransformerAttribute))]
 [assembly: TypeForwardedTo(typeof(TransformerOrderAttribute))]
+[assembly: TypeForwardedTo(typeof(RoslynExInfo))]

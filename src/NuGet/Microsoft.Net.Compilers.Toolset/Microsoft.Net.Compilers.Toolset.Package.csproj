@@ -41,6 +41,8 @@
                       SkipGetTargetFrameworkProperties="true"
                       Condition="'$(TargetFramework)' == 'netcoreapp3.1'"
                       SetTargetFramework="TargetFramework=netcoreapp3.1" />
+  
+    <None Include="$(ArtifactsBinDir)RoslynEx.Sdk\$(Configuration)\netstandard2.0\RoslynEx.Interface.dll" Visible="false" Pack="true" PackagePath="analyzers/dotnet/cs" />
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">

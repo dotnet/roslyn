@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <MSBuildWarningsAsMessages>MSB4181</MSBuildWarningsAsMessages>
-    <RoslynExToolsetVersion>0.1.26-dev</RoslynExToolsetVersion>
+    <RoslynExToolsetVersion>0.1.30-dev</RoslynExToolsetVersion>
   </PropertyGroup>
 
   <Target Name="RoslynExSetAnalyzerAssembliesInPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
