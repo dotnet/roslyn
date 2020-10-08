@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     oldChangesBuilder.Add(newChange);
 
                     // Adjust as needed to generate a simpler reproducer for an error scenario
-                     if (oldChangesBuilder.Count == 5) break;
+                    if (oldChangesBuilder.Count == 5) break;
                 }
 
                 var change1 = originalText.WithChanges(oldChangesBuilder);
