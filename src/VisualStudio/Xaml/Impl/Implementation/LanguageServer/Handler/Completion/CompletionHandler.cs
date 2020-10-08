@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             return new VSCompletionList
             {
                 Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position)).ToArray(),
-                SuggesstionMode = false,
+                SuggestionMode = false,
             };
         }
 
