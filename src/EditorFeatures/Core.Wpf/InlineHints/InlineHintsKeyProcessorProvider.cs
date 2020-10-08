@@ -105,17 +105,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
             private void Toggle(bool on)
             {
-                var document =
-                    _view.BufferGraph.GetTextBuffers(b => true)
-                                     .Select(b => b.AsTextContainer().GetOpenDocumentInCurrentContext())
-                                     .WhereNotNull()
-                                     .FirstOrDefault();
-
-                // Only relevant if this is a roslyn document.
-                var project = document?.Project;
-                if (project == null)
-                    return;
-
                 // No need to do anything if we're already in the requested state
                 var state = _globalOptionService.GetOption(InlineHintsOptions.DisplayAllOverride);
                 if (state == on)
@@ -123,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 // We can only enter the on-state if the user has the ctrl-alt feature enabled.  We can always enter the
                 // off state though.
-                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt, project.Language);
+                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt);
                 _globalOptionService.RefreshOption(new OptionKey(InlineHintsOptions.DisplayAllOverride), on);
             }
         }

@@ -86,7 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme)
 
-            BindToOption(DisplayAllHintsWhilePressingCtrlAlt, InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt, LanguageNames.VisualBasic)
+            BindToOption(DisplayAllHintsWhilePressingCtrlAlt, InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt)
             BindToOption(ColorHints, InlineHintsOptions.ColorHints, LanguageNames.VisualBasic)
 
             BindToOption(DisplayInlineParameterNameHints, InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic)
