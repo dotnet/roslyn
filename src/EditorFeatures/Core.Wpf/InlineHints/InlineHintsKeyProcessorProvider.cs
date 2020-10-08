@@ -21,10 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// Key processor that allows us to toggle inline hints when a user hits ctrl-alt.
     /// </summary>
     [Export(typeof(IKeyProcessorProvider))]
-    [TextViewRole(PredefinedTextViewRoles.Document)]
+    [TextViewRole(PredefinedTextViewRoles.Interactive)]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(InlineHintsKeyProcessorProvider))]
-    [Order(Before = "default")]
     internal class InlineHintsKeyProcessorProvider : IKeyProcessorProvider
     {
         private static readonly ConditionalWeakTable<IWpfTextView, InlineHintsKeyProcessor> s_viewToProcessor = new();
