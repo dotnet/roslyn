@@ -2439,6 +2439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SetResult(node, GetAdjustedResult(type.ToTypeWithState(), slot), type);
+            SplitIfBooleanConstant(node);
             return null;
         }
 
@@ -8155,9 +8156,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        private void SplitIfBooleanConstant(BoundExpression node)
+        {
+            if (node.ConstantValue is { IsBoolean: true })
+            {
+                Split();
+                if (node.ConstantValue.BooleanValue)
+                {
+                    StateWhenFalse = UnreachableState();
+                }
+                else
+                {
+                    StateWhenTrue = UnreachableState();
+                }
+            }
+        }
+
         public override BoundNode? VisitFieldAccess(BoundFieldAccess node)
         {
             var updatedSymbol = VisitMemberAccess(node, node.ReceiverOpt, node.FieldSymbol);
+
+            SplitIfBooleanConstant(node);
             SetUpdatedSymbol(node, node.FieldSymbol, updatedSymbol);
             return null;
         }
@@ -8972,19 +8991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             SetResultType(node, TypeWithState.Create(node.Type, node.Type?.CanContainNull() != false && node.ConstantValue?.IsNull == true ? NullableFlowState.MaybeDefault : NullableFlowState.NotNull));
 
-            if (node.ConstantValue?.IsBoolean == true)
-            {
-                Split();
-                if (node.ConstantValue.BooleanValue)
-                {
-                    StateWhenFalse = UnreachableState();
-                }
-                else
-                {
-                    StateWhenTrue = UnreachableState();
-                }
-            }
-
+            SplitIfBooleanConstant(node);
             return result;
         }
 
