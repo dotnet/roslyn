@@ -107,6 +107,7 @@
                 </StackPanel>
             </GroupBox>
 
+
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>

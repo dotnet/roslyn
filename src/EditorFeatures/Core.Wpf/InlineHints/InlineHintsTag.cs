@@ -161,6 +161,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 // to make the text seem more balanced in the border
                 Padding = new Thickness(left: 1, top: 0, right: right, bottom: 0),
                 VerticalAlignment = VerticalAlignment.Center,
+
+                // Text = parts.ToTaggedText().ToVisibleDisplayString(includeLeftToRightMarker: true),
             };
 
             var taggedTexts = parts.ToTaggedText();
@@ -168,10 +170,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 var run = new Run(taggedText.ToVisibleDisplayString(includeLeftToRightMarker: true));
 
-                if (classify)
+                if (classify && taggedText.Tag != TextTags.Text)
                 {
                     var properties = formatMap.GetTextProperties(typeMap.GetClassificationType(taggedText.Tag.ToClassificationTypeName()));
                     run.Foreground = properties.ForegroundBrush;
+                }
+                else
+                {
+                    run.Foreground = format.ForegroundBrush;
                 }
 
                 block.Inlines.Add(run);

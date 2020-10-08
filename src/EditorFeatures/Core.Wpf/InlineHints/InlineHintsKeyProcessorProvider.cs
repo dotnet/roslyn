@@ -5,7 +5,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
@@ -21,14 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// Key processor that allows us to toggle inline hints when a user hits ctrl-alt.
     /// </summary>
     [Export(typeof(IKeyProcessorProvider))]
-    [TextViewRole(PredefinedTextViewRoles.Document)]
+    [TextViewRole(PredefinedTextViewRoles.Interactive)]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(InlineHintsKeyProcessorProvider))]
-    [Order(Before = "default")]
     internal class InlineHintsKeyProcessorProvider : IKeyProcessorProvider
     {
-        private static readonly ConditionalWeakTable<IWpfTextView, InlineHintsKeyProcessor> s_viewToProcessor = new();
-
         private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
@@ -39,9 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         }
 
         public KeyProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
-        {
-            return s_viewToProcessor.GetValue(wpfTextView, v => new InlineHintsKeyProcessor(_globalOptionService, v));
-        }
+            => new InlineHintsKeyProcessor(_globalOptionService, wpfTextView);
 
         private class InlineHintsKeyProcessor : KeyProcessor
         {
@@ -58,17 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
             private static bool IsCtrlOrAlt(KeyEventArgs args)
                 => args.Key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt;
-
-            private Document? GetDocument()
-            {
-                var document =
-                    _view.BufferGraph.GetTextBuffers(b => true)
-                                     .Select(b => b.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges())
-                                     .WhereNotNull()
-                                     .FirstOrDefault();
-
-                return document;
-            }
 
             private void OnViewClosed(object sender, EventArgs e)
             {
@@ -109,8 +92,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 base.KeyUp(args);
 
-                // If we've lifted a key up, then turn off the inline hints.
-                ToggleOff();
+                // If we've lifted a key up from ctrl/alt, then turn off the inline hints.
+                if (IsCtrlOrAlt(args))
+                    ToggleOff();
             }
 
             private void ToggleOn()
@@ -121,9 +105,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
             private void Toggle(bool on)
             {
+                var document =
+                    _view.BufferGraph.GetTextBuffers(b => true)
+                                     .Select(b => b.AsTextContainer().GetOpenDocumentInCurrentContext())
+                                     .WhereNotNull()
+                                     .FirstOrDefault();
+
                 // Only relevant if this is a roslyn document.
-                var document = GetDocument();
-                if (document == null)
+                var project = document?.Project;
+                if (project == null)
                     return;
 
                 // No need to do anything if we're already in the requested state
@@ -133,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 // We can only enter the on-state if the user has the ctrl-alt feature enabled.  We can always enter the
                 // off state though.
-                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt, document.Project.Language);
+                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt, project.Language);
                 _globalOptionService.RefreshOption(new OptionKey(InlineHintsOptions.DisplayAllOverride), on);
             }
         }
