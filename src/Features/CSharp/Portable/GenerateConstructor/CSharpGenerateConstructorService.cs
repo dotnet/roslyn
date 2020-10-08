@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         protected override bool IsConstructorInitializerGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             => node is ConstructorInitializerSyntax;
 
+        protected override bool IsTargetTypedNewGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
+            => node is ImplicitObjectCreationExpressionSyntax;
+
         protected override bool TryInitializeConstructorInitializerGeneration(
             SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,
             out SyntaxToken token, out ImmutableArray<ArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn)
@@ -90,6 +93,35 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                     arguments = objectCreationExpression.ArgumentList.Arguments.ToImmutableArray();
                     typeToGenerateIn = symbolInfo.GetAnySymbol() as INamedTypeSymbol;
                     return typeToGenerateIn != null;
+                }
+            }
+
+            token = default;
+            arguments = default;
+            typeToGenerateIn = null;
+            return false;
+        }
+
+        protected override bool TryInitializeTargetTypedNewGenerationState(
+            SemanticDocument document,
+            SyntaxNode node,
+            CancellationToken cancellationToken,
+            out SyntaxToken token,
+            out ImmutableArray<ArgumentSyntax> arguments,
+            out INamedTypeSymbol typeToGenerateIn)
+        {
+            var implicitCreation = (ImplicitObjectCreationExpressionSyntax)node;
+
+            if (implicitCreation.ArgumentList != null &&
+                !implicitCreation.ArgumentList.CloseParenToken.IsMissing)
+            {
+                var typeInfo = document.SemanticModel.GetTypeInfo(implicitCreation, cancellationToken);
+                if (typeInfo.Type is INamedTypeSymbol typeSymbol)
+                {
+                    token = implicitCreation.NewKeyword;
+                    arguments = implicitCreation.ArgumentList.Arguments.ToImmutableArray();
+                    typeToGenerateIn = typeSymbol;
+                    return true;
                 }
             }
 

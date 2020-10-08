@@ -26,9 +26,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
     {
         protected abstract bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType);
         protected abstract bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract bool IsTargetTypedNewGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool IsConstructorInitializerGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
 
         protected abstract bool TryInitializeSimpleNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
+        protected abstract bool TryInitializeTargetTypedNewGenerationState(SemanticDocument document, SyntaxNode implicitObjectCreation, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<TArgumentSyntax> arguments, out ImmutableArray<TAttributeArgumentSyntax> attributeArguments, out INamedTypeSymbol typeToGenerateIn);
         protected abstract ImmutableArray<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken);

@@ -4392,7 +4392,7 @@ namespace N {
         public async Task TestGenerateConstructorFromTargetTypedNew()
         {
             await TestInRegularAndScriptAsync(@"
-C c = new(0);
+C c = [||]new(0);
 
 public class C
 {

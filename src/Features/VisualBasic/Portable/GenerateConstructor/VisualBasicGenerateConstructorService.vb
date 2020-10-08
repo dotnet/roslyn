@@ -92,6 +92,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
             Return TypeOf node Is SimpleNameSyntax
         End Function
 
+        Protected Overrides Function IsTargetTypedNewGeneration(document As SemanticDocument, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
+            ' Target-typed new is C#-only concept.
+            Return False
+        End Function
+
         Protected Overrides Function TryInitializeSimpleNameGenerationState(
                 document As SemanticDocument,
                 node As SyntaxNode,
@@ -125,6 +130,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
             arguments = Nothing
             typeToGenerateIn = Nothing
             Return False
+        End Function
+
+        Protected Overrides Function TryInitializeTargetTypedNewGenerationState(document As SemanticDocument, simpleName As SyntaxNode, cancellationToken As CancellationToken, ByRef token As SyntaxToken, ByRef arguments As ImmutableArray(Of ArgumentSyntax), ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
+            ' This shouldn't be reachable because IsTargetTypedNewGeneration always returns False for VB.
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Protected Overrides Function TryInitializeSimpleAttributeNameGenerationState(
