@@ -391,8 +391,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     _ => s_propertySyntaxKind,
                     cancellationToken);
 
-                return result.Type != null &&
-                    token.GetAncestor<ParameterSyntax>().Parent.IsParentKind(SyntaxKind.RecordDeclaration);
+                if (result.Type != null &&
+                    token.GetAncestor<ParameterSyntax>().Parent.IsParentKind(SyntaxKind.RecordDeclaration))
+                {
+                    return true;
+                }
+
+                result = default;
+                return false;
             }
 
             private static bool IsParameterDeclaration(SyntaxToken token, SemanticModel semanticModel,
