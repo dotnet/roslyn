@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Roslyn.Test.Utilities;
@@ -21,12 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
     [UseExportProvider]
     public class F1HelpTests
     {
-        private static readonly ComposableCatalog s_catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpHelpContextService));
-        private static readonly IExportProviderFactory s_exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(s_catalog);
-
-        private async Task TestAsync(string markup, string expectedText)
+        private static async Task TestAsync(string markup, string expectedText)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProviderFactory.CreateExportProvider());
+            // TODO: Using VisualStudioTestComposition.LanguageServices fails with "Failed to clean up listeners in a timely manner. WorkspaceChanged TaskQueue.cs 38"
+            // https://github.com/dotnet/roslyn/issues/46250
+            using var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(CSharpHelpContextService)));
             var caret = workspace.Documents.First().CursorPosition;
 
             var service = Assert.IsType<CSharpHelpContextService>(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<IHelpContextService>());
@@ -34,9 +34,110 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
             Assert.Equal(expectedText, actualText);
         }
 
-        private async Task Test_KeywordAsync(string markup, string expectedText)
+        private static async Task Test_KeywordAsync(string markup, string expectedText)
         {
             await TestAsync(markup, expectedText + "_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestInternal()
+        {
+            await Test_KeywordAsync(
+@"intern[||]al class C
+{
+}", "internal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtected()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protec[||]ted void goo();
+}", "protected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtectedInternal1()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    internal protec[||]ted void goo();
+}", "protectedinternal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtectedInternal2()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protec[||]ted internal void goo();
+}", "protectedinternal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected1()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    private protec[||]ted void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected2()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    priv[||]ate protected void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected3()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protected priv[||]ate void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected4()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    prot[||]ected private void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestModifierSoup()
+        {
+            await Test_KeywordAsync(
+    @"public class C
+{
+    private new prot[||]ected static unsafe void foo()
+    {
+    }
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestModifierSoupField()
+        {
+            await Test_KeywordAsync(
+    @"public class C
+{
+    new prot[||]ected static unsafe private goo;
+}", "privateprotected");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -65,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestPartialType()
+        public async Task TestClassPartialType()
         {
             await Test_KeywordAsync(
 @"part[||]ial class C
@@ -75,12 +176,52 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestPartialMethod()
+        public async Task TestRecordPartialType()
+        {
+            await Test_KeywordAsync(
+@"part[||]ial record C
+{
+    partial void goo();
+}", "partialtype");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestRecordWithPrimaryConstructorPartialType()
+        {
+            await Test_KeywordAsync(
+@"part[||]ial record C(string S)
+{
+    partial void goo();
+}", "partialtype");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPartialMethodInClass()
         {
             await Test_KeywordAsync(
 @"partial class C
 {
     par[||]tial void goo();
+}", "partialmethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPartialMethodInRecord()
+        {
+            await Test_KeywordAsync(
+@"partial record C
+{
+    par[||]tial void goo();
+}", "partialmethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestExtendedPartialMethod()
+        {
+            await Test_KeywordAsync(
+@"partial class C
+{
+    public par[||]tial void goo();
 }", "partialmethod");
         }
 
@@ -430,6 +571,70 @@ class Program
 }", "::_CSharpKeyword");
         }
 
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStringInterpolation()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($[||]""Hello, {args[0]}"");
+    }
+}", "$_CSharpKeyword");
+        }
+
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestVerbatimString()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(@[||]""Hello\"");
+    }
+}", "@_CSharpKeyword");
+        }
+
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestVerbatimInterpolatedString1()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(@[||]$""Hello\ {args[0]}"");
+    }
+}", "@$_CSharpKeyword");
+        }
+
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestVerbatimInterpolatedString2()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($[||]@""Hello\ {args[0]}"");
+    }
+}", "@$_CSharpKeyword");
+        }
+
         [WorkItem(864658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864658")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestNullable()
@@ -527,7 +732,7 @@ class Program
         e +[||]= () => {
         };
     }
-}", "CCC.e.add");
+}", "+=_CSharpKeyword");
         }
 
         [WorkItem(867554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867554")]
@@ -582,6 +787,35 @@ class Program
         var v = [||]nameof(goo);
     }
 }", "nameof");
+        }
+
+        [WorkItem(46988, "https://github.com/dotnet/roslyn/issues/46988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNullForgiving()
+        {
+            await Test_KeywordAsync(
+@"#nullable enable
+class C
+{
+    int goo(string? x)
+    {
+        return x[||]!.GetHashCode();
+    }
+}", "nullForgiving");
+        }
+
+        [WorkItem(46988, "https://github.com/dotnet/roslyn/issues/46988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestLogicalNot()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    bool goo(bool x)
+    {
+        return [||]!x;
+    }
+}", "!");
         }
     }
 }

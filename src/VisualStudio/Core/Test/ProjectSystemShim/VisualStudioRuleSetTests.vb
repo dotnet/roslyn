@@ -89,7 +89,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Dim includePath As String = Path.Combine(_tempPath, "file1.ruleset")
             File.WriteAllText(includePath, includeSource)
 
-
             Using workspace = New TestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
                 Dim fileChangeWatcher = New FileChangeWatcher(Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))

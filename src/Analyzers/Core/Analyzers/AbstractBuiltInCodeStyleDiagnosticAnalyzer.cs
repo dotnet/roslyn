@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -33,14 +31,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Message for the diagnostic descriptor.
         /// <see langword="null"/> if the message is identical to the title.
         /// </param>
+        /// <param name="isUnnecessary"><see langword="true"/> if the diagnostic is reported on unnecessary code; otherwise, <see langword="false"/>.</param>
         /// <param name="configurable">Flag indicating if the reported diagnostics are configurable by the end users</param>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
             IPerLanguageOption? option,
             LocalizableString title,
             LocalizableString? messageFormat = null,
+            bool isUnnecessary = false,
             bool configurable = true)
-            : base(diagnosticId, title, messageFormat, configurable)
+            : base(diagnosticId, title, messageFormat, isUnnecessary, configurable)
         {
             AddDiagnosticIdToOptionMapping(diagnosticId, option);
         }
@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Message for the diagnostic descriptor.
         /// <see langword="null"/> if the message is identical to the title.
         /// </param>
+        /// <param name="isUnnecessary"><see langword="true"/> if the diagnostic is reported on unnecessary code; otherwise, <see langword="false"/>.</param>
         /// <param name="configurable">Flag indicating if the reported diagnostics are configurable by the end users</param>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
@@ -67,8 +68,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string language,
             LocalizableString title,
             LocalizableString? messageFormat = null,
+            bool isUnnecessary = false,
             bool configurable = true)
-            : base(diagnosticId, title, messageFormat, configurable)
+            : base(diagnosticId, title, messageFormat, isUnnecessary, configurable)
         {
             AddDiagnosticIdToOptionMapping(diagnosticId, option, language);
         }
@@ -86,14 +88,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Message for the diagnostic descriptor.
         /// Null if the message is identical to the title.
         /// </param>
+        /// <param name="isUnnecessary"><see langword="true"/> if the diagnostic is reported on unnecessary code; otherwise, <see langword="false"/>.</param>
         /// <param name="configurable">Flag indicating if the reported diagnostics are configurable by the end users</param>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
             ImmutableHashSet<IPerLanguageOption> options,
             LocalizableString title,
             LocalizableString? messageFormat = null,
+            bool isUnnecessary = false,
             bool configurable = true)
-            : base(diagnosticId, title, messageFormat, configurable)
+            : base(diagnosticId, title, messageFormat, isUnnecessary, configurable)
         {
             RoslynDebug.Assert(options != null);
             Debug.Assert(options.Count > 1);
@@ -114,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Message for the diagnostic descriptor.
         /// Null if the message is identical to the title.
         /// </param>
+        /// <param name="isUnnecessary"><see langword="true"/> if the diagnostic is reported on unnecessary code; otherwise, <see langword="false"/>.</param>
         /// <param name="configurable">Flag indicating if the reported diagnostics are configurable by the end users</param>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
@@ -121,8 +126,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string language,
             LocalizableString title,
             LocalizableString? messageFormat = null,
+            bool isUnnecessary = false,
             bool configurable = true)
-            : base(diagnosticId, title, messageFormat, configurable)
+            : base(diagnosticId, title, messageFormat, isUnnecessary, configurable)
         {
             RoslynDebug.Assert(options != null);
             Debug.Assert(options.Count > 1);

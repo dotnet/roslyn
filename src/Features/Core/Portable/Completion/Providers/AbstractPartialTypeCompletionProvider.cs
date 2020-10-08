@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (node != null)
                 {
-                    var semanticModel = await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(false);
+                    var semanticModel = await document.ReuseExistingSpeculativeModelAsync(node, cancellationToken).ConfigureAwait(false);
                     var syntaxContext = await CreateSyntaxContextAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
                     if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is INamedTypeSymbol declaredSymbol)
@@ -92,7 +94,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var semanticModel = context.SemanticModel;
-
 
             if (!(declaredSymbol.ContainingSymbol is INamespaceOrTypeSymbol containingSymbol))
             {

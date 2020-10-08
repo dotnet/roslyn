@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -30,13 +32,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsGlobalStatementContext ||
-                (context.IsNonAttributeExpressionContext && !context.IsConstantExpressionContext) ||
+                ValidTypeContext(context) ||
                 IsAfterAsyncKeywordInExpressionContext(context, cancellationToken) ||
                 context.IsTypeDeclarationContext(
                     validModifiers: s_validModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
+
+            static bool ValidTypeContext(CSharpSyntaxContext context)
+                => (context.IsNonAttributeExpressionContext || context.IsTypeContext)
+                   && !context.IsConstantExpressionContext
+                   && !context.LeftToken.IsTopLevelOfUsingAliasDirective();
         }
 
         private static bool IsAfterAsyncKeywordInExpressionContext(CSharpSyntaxContext context, CancellationToken cancellationToken)

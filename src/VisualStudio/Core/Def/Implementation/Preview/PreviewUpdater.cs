@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -25,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             : base(threadingContext)
         {
             PreviewUpdater.TextView = textView;
-            Tagger = new PreviewTagger(textView, textView.TextBuffer);
+            Tagger = new PreviewTagger(textView.TextBuffer);
         }
 
         public void CloseWorkspace()
@@ -41,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var documentText = document.GetTextAsync().Result.ToString();
             if (TextView.TextBuffer.CurrentSnapshot.GetText() != documentText)
             {
-                UpdateBuffer(document, spanSource, out var container, out var documentBackedByTextBuffer);
+                UpdateBuffer(document, spanSource, out _, out _);
             }
 
             // Picking a different span: no text change; update span anyway.

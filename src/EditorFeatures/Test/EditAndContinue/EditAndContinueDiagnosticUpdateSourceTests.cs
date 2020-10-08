@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             };
 
             updates.Clear();
-            source.ReportDiagnostics(workspace.CurrentSolution, projC.Id, diagnostics);
+            source.ReportDiagnostics(workspace, workspace.CurrentSolution, projC.Id, diagnostics);
             AssertEx.Equal(new[]
             {
                 $"DiagnosticsCreated p={projC.Id} d={docC1.Id}: TST0001,TST0002",
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, updates);
 
             updates.Clear();
-            source.ReportDiagnostics(workspace.CurrentSolution, projD.Id, diagnostics);
+            source.ReportDiagnostics(workspace, workspace.CurrentSolution, projD.Id, diagnostics);
             AssertEx.Equal(new[]
             {
                 $"DiagnosticsCreated p={projD.Id} d={docC1.Id}: TST0001,TST0002",
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, updates);
 
             updates.Clear();
-            source.ReportDiagnostics(workspace.CurrentSolution, null, diagnostics);
+            source.ReportDiagnostics(workspace, workspace.CurrentSolution, null, diagnostics);
             AssertEx.Equal(new[]
             {
                 $"DiagnosticsCreated p= d={docC1.Id}: TST0001,TST0002",

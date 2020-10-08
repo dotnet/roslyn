@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -256,8 +254,13 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeFeature = 44,
 
         /// <summary>
+        /// An attribute that is placed on each method with a 'methodimpl" aka ".override" in metadata.
+        /// </summary>
+        System_Runtime_CompilerServices_PreserveBaseOverridesAttribute = 45,
+
+        /// <summary>
         /// Count of special types. This is not a count of enum members.
         /// </summary>
-        Count = System_Runtime_CompilerServices_RuntimeFeature
+        Count = System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
     }
 }

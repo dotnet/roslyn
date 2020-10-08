@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generate implementation-specific state machine initialization for the kickoff method body.
         /// </summary>
-        protected abstract BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType);
+        protected abstract BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies);
 
         /// <summary>
         /// Generate implementation-specific state machine member method implementations.
@@ -283,6 +285,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // plus code to initialize all of the parameter proxies result.proxy
             var proxies = PreserveInitialParameterValuesAndThreadId ? initialParameters : nonReusableLocalProxies;
 
+            bodyBuilder.Add(GenerateStateMachineCreation(stateMachineVariable, frameType, proxies));
+
+            return F.Block(
+                ImmutableArray.Create(stateMachineVariable),
+                bodyBuilder.ToImmutableAndFree());
+        }
+
+        protected BoundStatement GenerateParameterStorage(LocalSymbol stateMachineVariable, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies)
+        {
+            var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
             // starting with the "this" proxy
             if (!method.IsStatic)
             {
@@ -305,10 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bodyBuilder.Add(GenerateStateMachineCreation(stateMachineVariable, frameType));
-            return F.Block(
-                ImmutableArray.Create(stateMachineVariable),
-                bodyBuilder.ToImmutableAndFree());
+            return F.Block(bodyBuilder.ToImmutableAndFree());
         }
 
         protected SynthesizedImplementationMethod OpenMethodImplementation(

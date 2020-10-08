@@ -20,10 +20,10 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GenerateType
     <[UseExportProvider]>
     Public Class GenerateTypeViewModelTests
-        Private Shared s_assembly1_Name As String = "Assembly1"
-        Private Shared s_test1_Name As String = "Test1"
-        Private Shared s_submit_failed_unexpectedly As String = "Submit failed unexpectedly."
-        Private Shared s_submit_passed_unexpectedly As String = "Submit passed unexpectedly. Submit should fail here"
+        Private Shared ReadOnly s_assembly1_Name As String = "Assembly1"
+        Private Shared ReadOnly s_test1_Name As String = "Test1"
+        Private Shared ReadOnly s_submit_failed_unexpectedly As String = "Submit failed unexpectedly."
+        Private Shared ReadOnly s_submit_passed_unexpectedly As String = "Submit passed unexpectedly. Submit should fail here"
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeExistingFileCSharp() As Task
@@ -247,7 +247,6 @@ namespace A
             Dim projectToSelect = viewModel.ProjectList.Where(Function(p) p.Name = "CS2").Single().Project
             viewModel.SelectedProject = projectToSelect
 
-
             ' Check if the option for Existing File is disabled
             Assert.Equal(0, viewModel.DocumentList.Count())
             Assert.Equal(False, viewModel.IsExistingFileEnabled)
@@ -396,7 +395,6 @@ public class CCC
 
             Assert.Equal("GooattributeAttribute", viewModel.TypeName)
         End Function
-
 
         <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -887,7 +885,7 @@ namespace A
     Friend Class TestProjectManagementService
         Implements IProjectManagementService
 
-        Private _projectFolders As List(Of String)
+        Private ReadOnly _projectFolders As List(Of String)
 
         Public Sub New(projectFolders As List(Of String))
             Me._projectFolders = projectFolders

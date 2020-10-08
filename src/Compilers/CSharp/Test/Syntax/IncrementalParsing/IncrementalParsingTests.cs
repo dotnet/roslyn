@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -1183,6 +1185,24 @@ string s = @
 
             // This function will update the first closing brace in property declaration Property_MyStructArr "}" to "/*}*/" in oldText
             CommentOutText(oldText, locationOfChange, widthOfChange, out incrementalTree, out parsedTree);
+
+            // Verify that the errors from the fully parsed tree with the change and the incrementally parsed tree are the same
+            CompareIncToFullParseErrors(incrementalTree, parsedTree);
+        }
+
+        [Fact]
+        public void CommentCloseBraceInInitOnlyPropertyDecl()
+        {
+            SourceText oldText = SourceText.From(@"public class MemberClass
+{
+    public MyStruct[] Property_MyStructArr { get; init; }
+    public MyEnum[] Property_MyEnumArr { init; private get; }
+}
+");
+            int locationOfChange = oldText.ToString().IndexOf('}'), widthOfChange = 5;
+
+            // This function will update the first closing brace in property declaration Property_MyStructArr "}" to "/*}*/" in oldText
+            CommentOutText(oldText, locationOfChange, widthOfChange, out SyntaxTree incrementalTree, out SyntaxTree parsedTree);
 
             // Verify that the errors from the fully parsed tree with the change and the incrementally parsed tree are the same
             CompareIncToFullParseErrors(incrementalTree, parsedTree);

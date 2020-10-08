@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             AddIndentBlockOperations(Of TypeParameterListSyntax)(list, node, Function(n) Not n.OpenParenToken.IsMissing AndAlso n.Parameters.Count > 0, indentationDelta:=1)
         End Sub
 
-        Private Overloads Sub AddIndentBlockOperations(Of T As SyntaxNode)(list As List(Of IndentBlockOperation), node As SyntaxNode, predicate As Func(Of T, Boolean), Optional indentationDelta As Integer = 0)
+        Private Overloads Shared Sub AddIndentBlockOperations(Of T As SyntaxNode)(list As List(Of IndentBlockOperation), node As SyntaxNode, predicate As Func(Of T, Boolean), Optional indentationDelta As Integer = 0)
             Dim parameterOrArgumentList = TryCast(node, T)
             If parameterOrArgumentList Is Nothing Then
                 Return
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             AddIndentBlockOperations(list, parameterOrArgumentList, indentationDelta)
         End Sub
 
-        Private Overloads Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), parameterOrArgumentList As SyntaxNode, indentationDelta As Integer)
+        Private Overloads Shared Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), parameterOrArgumentList As SyntaxNode, indentationDelta As Integer)
             Dim openBrace = parameterOrArgumentList.GetFirstToken(includeZeroWidth:=True)
             Dim closeBrace = parameterOrArgumentList.GetLastToken(includeZeroWidth:=True)
 
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                     baseToken, startToken, endToken, TextSpan.FromBounds(baseToken.Span.End, closeBrace.Span.End), indentationDelta, IndentBlockOption.RelativePosition))
         End Sub
 
-        Private Sub AddArgumentListIndentBlockOperations(operations As List(Of IndentBlockOperation), node As SyntaxNode)
+        Private Shared Sub AddArgumentListIndentBlockOperations(operations As List(Of IndentBlockOperation), node As SyntaxNode)
             Dim argumentList = TryCast(node, ArgumentListSyntax)
             If argumentList Is Nothing OrElse
                argumentList.OpenParenToken.IsMissing OrElse
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             AddCaseClauseAlignTokensOperations(operations, node)
         End Sub
 
-        Private Sub AddCaseClauseAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode)
+        Private Shared Sub AddCaseClauseAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode)
             Dim caseStatement = TryCast(node, CaseStatementSyntax)
             If caseStatement Is Nothing OrElse caseStatement.Cases.Count = 0 Then
                 Return
@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                            AlignTokensOption.AlignIndentationOfTokensToBaseToken))
         End Sub
 
-        Private Overloads Sub AddAlignTokensOperations(Of T As SyntaxNode)(operations As List(Of AlignTokensOperation), node As SyntaxNode, baseTokenGetter As Func(Of T, SyntaxToken))
+        Private Overloads Shared Sub AddAlignTokensOperations(Of T As SyntaxNode)(operations As List(Of AlignTokensOperation), node As SyntaxNode, baseTokenGetter As Func(Of T, SyntaxToken))
             Dim parameterList = TryCast(node, T)
             If parameterList Is Nothing Then
                 Return
@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             AddAlignTokensOperations(operations, baseToken)
         End Sub
 
-        Private Overloads Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), baseToken As SyntaxToken)
+        Private Overloads Shared Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), baseToken As SyntaxToken)
             operations.Add(FormattingOperations.CreateAlignTokensOperation(
                            baseToken,
                            SpecializedCollections.SingletonEnumerable(baseToken.GetNextToken(includeZeroWidth:=True)),

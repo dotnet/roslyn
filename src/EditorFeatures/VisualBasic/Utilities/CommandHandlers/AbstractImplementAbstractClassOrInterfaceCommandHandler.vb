@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             Return True
         End Function
 
-        Private Function TryGenerateEndConstruct(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function TryGenerateEndConstruct(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
             Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
 
             Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
@@ -96,7 +96,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
             Dim endConstructGenerationService = document.GetLanguageService(Of IEndConstructGenerationService)()
 
-            Dim applicable As Boolean = False
             Return endConstructGenerationService.TryDo(args.TextView, args.SubjectBuffer, vbLf(0), cancellationToken)
         End Function
 

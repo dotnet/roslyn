@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
 
-        Private Function HasUnmatchedRegionDirective(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function HasUnmatchedRegionDirective(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
             Dim directives = context.SyntaxTree.GetStartDirectives(cancellationToken)
 
             For Each directive In directives

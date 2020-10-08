@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// </summary>
         public const string EnqueueItem = nameof(EnqueueItem);
 
-        private sealed partial class WorkCoordinator
+        internal sealed partial class WorkCoordinator
         {
             private sealed class SemanticChangeProcessor : IdleProcessor
             {
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private Data Dequeue()
                     => DequeueWorker(_workGate, _pendingWork, CancellationToken);
 
-                private async Task<bool> TryEnqueueFromHintAsync(Document document, SyntaxPath changedMember)
+                private async Task<bool> TryEnqueueFromHintAsync(Document document, SyntaxPath? changedMember)
                 {
                     if (changedMember == null)
                     {
@@ -193,17 +193,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private bool IsInternal(ISymbol symbol)
+                private static bool IsInternal(ISymbol symbol)
                 {
                     return symbol.DeclaredAccessibility == Accessibility.Internal ||
                            symbol.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
                            symbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
                 }
 
-                private bool IsType(ISymbol symbol)
+                private static bool IsType(ISymbol symbol)
                     => symbol.Kind == SymbolKind.NamedType;
 
-                private bool IsMember(ISymbol symbol)
+                private static bool IsMember(ISymbol symbol)
                 {
                     return symbol.Kind == SymbolKind.Event ||
                            symbol.Kind == SymbolKind.Field ||
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                            symbol.Kind == SymbolKind.Property;
                 }
 
-                private void EnqueueFullProjectDependency(Document document, IAssemblySymbol internalVisibleToAssembly = null)
+                private void EnqueueFullProjectDependency(Document document, IAssemblySymbol? internalVisibleToAssembly = null)
                 {
                     var self = document.Project.Id;
 
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     Logger.Log(FunctionId.WorkCoordinator_SemanticChange_FullProjects, internalVisibleToAssembly == null ? "full" : "internals");
                 }
 
-                public void Enqueue(Document document, SyntaxPath changedMember)
+                public void Enqueue(Document document, SyntaxPath? changedMember)
                 {
                     UpdateLastAccessTime();
 
@@ -273,6 +273,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private static TValue DequeueWorker<TKey, TValue>(NonReentrantLock gate, Dictionary<TKey, TValue> map, CancellationToken cancellationToken)
+                    where TKey : notnull
                 {
                     using (gate.DisposableWait(cancellationToken))
                     {
@@ -292,6 +293,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private static void ClearQueueWorker<TKey, TValue>(NonReentrantLock gate, Dictionary<TKey, TValue> map, Func<TValue, IDisposable> disposerSelector)
+                    where TKey : notnull
                 {
                     using (gate.DisposableWait(CancellationToken.None))
                     {
@@ -321,10 +323,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly struct Data
                 {
                     public readonly Document Document;
-                    public readonly SyntaxPath ChangedMember;
+                    public readonly SyntaxPath? ChangedMember;
                     public readonly IAsyncToken AsyncToken;
 
-                    public Data(Document document, SyntaxPath changedMember, IAsyncToken asyncToken)
+                    public Data(Document document, SyntaxPath? changedMember, IAsyncToken asyncToken)
                     {
                         AsyncToken = asyncToken;
                         Document = document;
@@ -440,7 +442,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private Data Dequeue()
                         => DequeueWorker(_workGate, _pendingWork, CancellationToken);
 
-                    private async Task EnqueueWorkItemAsync(Project project)
+                    private async Task EnqueueWorkItemAsync(Project? project)
                     {
                         if (project == null)
                         {

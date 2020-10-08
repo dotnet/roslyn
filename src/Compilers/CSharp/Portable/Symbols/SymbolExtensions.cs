@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -250,6 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                 case SymbolKind.PointerType:
+                case SymbolKind.FunctionPointerType:
                 case SymbolKind.TypeParameter:
                     return true;
                 case SymbolKind.Alias:
@@ -417,6 +416,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations returnType;
             GetTypeOrReturnType(symbol, refKind: out _, out returnType, refCustomModifiers: out _);
             return returnType;
+        }
+
+        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this PropertySymbol property)
+        {
+            var annotations = property.GetOwnOrInheritedGetMethod()?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
+            if (property.GetOwnOrInheritedSetMethod()?.Parameters.Last().FlowAnalysisAnnotations is { } setterAnnotations)
+            {
+                annotations |= setterAnnotations;
+            }
+            else if (property is SourcePropertySymbolBase sourceProperty)
+            {
+                // When an auto-property without a setter has an AllowNull annotation,
+                // we need to search for its flow analysis annotations in a more roundabout way
+                // in order to properly handle assignment to the property (e.g. in a constructor).
+                if (sourceProperty.HasAllowNull)
+                {
+                    annotations |= FlowAnalysisAnnotations.AllowNull;
+                }
+                if (sourceProperty.HasDisallowNull)
+                {
+                    annotations |= FlowAnalysisAnnotations.DisallowNull;
+                }
+            }
+
+            return annotations;
+        }
+
+        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this Symbol? symbol)
+        {
+            return symbol switch
+            {
+                MethodSymbol method => method.ReturnTypeFlowAnalysisAnnotations,
+                PropertySymbol property => property.GetFlowAnalysisAnnotations(),
+                ParameterSymbol parameter => parameter.FlowAnalysisAnnotations,
+                FieldSymbol field => field.FlowAnalysisAnnotations,
+                _ => FlowAnalysisAnnotations.None
+            };
         }
 
         internal static void GetTypeOrReturnType(this Symbol symbol, out RefKind refKind, out TypeWithAnnotations returnType,
@@ -609,6 +645,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         [return: NotNullIfNotNull("symbol")]
+        internal static IFunctionPointerTypeSymbol? GetPublicSymbol(this FunctionPointerTypeSymbol? symbol)
+        {
+            return symbol.GetPublicSymbol<IFunctionPointerTypeSymbol>();
+        }
+
+        [return: NotNullIfNotNull("symbol")]
         internal static IEventSymbol? GetPublicSymbol(this EventSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IEventSymbol>();
@@ -743,6 +785,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static PropertySymbol? GetSymbol(this IPropertySymbol? symbol)
         {
             return symbol.GetSymbol<PropertySymbol>();
+        }
+
+        [return: NotNullIfNotNull("symbol")]
+        internal static FunctionPointerTypeSymbol? GetSymbol(this IFunctionPointerTypeSymbol? symbol)
+        {
+            return symbol.GetSymbol<FunctionPointerTypeSymbol>();
         }
     }
 }

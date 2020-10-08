@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             End If
         End Function
 
-        Private Function GetContainerToGenerateInfo(
+        Private Shared Function GetContainerToGenerateInfo(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
                 cancellationToken As CancellationToken) As SyntaxNode
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return document.Document.WithSyntaxRoot(newRoot)
         End Function
 
-        Private Function GetParentLambda(expression As ExpressionSyntax,
+        Private Shared Function GetParentLambda(expression As ExpressionSyntax,
                                          lambdas As ISet(Of SingleLineLambdaExpressionSyntax)) As SingleLineLambdaExpressionSyntax
             Dim current = expression
             While current IsNot Nothing

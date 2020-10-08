@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -66,6 +68,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             // Even though the analyzer registers a symbol action, it should never be invoked because all of its rules are disabled.
             var analyzerTelemetry = compWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, CancellationToken.None).Result;
             Assert.Equal(0, analyzerTelemetry.SymbolActionsCount);
+        }
+
+        [Fact]
+        public void TestIsDiagnosticAnalyzerSuppressedWithExceptionInSupportedDiagnostics()
+        {
+            // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.
+            var analyzer = new AnalyzerThatThrowsInSupportedDiagnostics();
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            _ = CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException: null);
         }
     }
 }

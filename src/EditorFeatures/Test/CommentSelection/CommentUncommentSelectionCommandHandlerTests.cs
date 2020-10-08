@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
@@ -160,7 +163,8 @@ class Goo
     void M() { }
 }|end|
 ";
-            using var disposableView = EditorFactory.CreateView(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code);
+            var exportProvider = CreateExportProvider();
+            using var disposableView = EditorFactory.CreateView(exportProvider, code);
             var selectedSpans = SetupSelection(disposableView.TextView);
 
             var expectedChanges = new[]
@@ -171,6 +175,7 @@ class Goo
                 new TextChange(new TextSpan(30, 0), "//"),
             };
             CommentSelection(
+                exportProvider,
                 disposableView.TextView,
                 expectedChanges,
                 supportBlockComments: false,
@@ -184,6 +189,7 @@ class Goo
                 new TextChange(new TextSpan(36, 0), "//"),
             };
             CommentSelection(
+                exportProvider,
                 disposableView.TextView,
                 expectedChanges,
                 supportBlockComments: false,
@@ -588,7 +594,6 @@ class A
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
         [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
         public void Uncomment_BlockWithSingleInsideAndBlockSelected()
@@ -724,8 +729,11 @@ class A
         private static void CommentSelection(string code, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
             => CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Comment);
 
-        private static void CommentSelection(ITextView textView, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
-            => CommentOrUncommentSelection(textView, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Comment);
+        private static void CommentSelection(ExportProvider exportProvider, ITextView textView, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
+            => CommentOrUncommentSelection(exportProvider, textView, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Comment);
+
+        private static ExportProvider CreateExportProvider()
+            => EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
 
         private static void CommentOrUncommentSelection(
             string code,
@@ -734,28 +742,31 @@ class A
             bool supportBlockComments,
             Operation operation)
         {
-            using var disposableView = EditorFactory.CreateView(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code);
+            var exportProvider = CreateExportProvider();
+
+            using var disposableView = EditorFactory.CreateView(exportProvider, code);
             var selectedSpans = SetupSelection(disposableView.TextView);
 
-            CommentOrUncommentSelection(disposableView.TextView, expectedChanges, expectedSelectedSpans, supportBlockComments, operation);
+            CommentOrUncommentSelection(exportProvider, disposableView.TextView, expectedChanges, expectedSelectedSpans, supportBlockComments, operation);
         }
 
         private static void CommentOrUncommentSelection(
+            ExportProvider exportProvider,
             ITextView textView,
             IEnumerable<TextChange> expectedChanges,
             IEnumerable<Span> expectedSelectedSpans,
             bool supportBlockComments,
             Operation operation)
         {
-            var textUndoHistoryRegistry = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<ITextUndoHistoryRegistry>();
-            var editorOperationsFactory = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IEditorOperationsFactoryService>();
+            var textUndoHistoryRegistry = exportProvider.GetExportedValue<ITextUndoHistoryRegistry>();
+            var editorOperationsFactory = exportProvider.GetExportedValue<IEditorOperationsFactoryService>();
             var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory);
             var service = new MockCommentSelectionService(supportBlockComments);
 
             var edits = commandHandler.CollectEditsAsync(
                 null, service, textView.TextBuffer, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), operation, CancellationToken.None).GetAwaiter().GetResult();
 
-            Roslyn.Test.Utilities.AssertEx.SetEqual(expectedChanges, edits.TextChanges);
+            AssertEx.SetEqual(expectedChanges, edits.TextChanges);
 
             var trackingSpans = edits.TrackingSpans
                 .Select(textSpan => AbstractCommentSelectionBase<Operation>.CreateTrackingSpan(
@@ -777,7 +788,7 @@ class A
 
             if (expectedSelectedSpans != null)
             {
-                Roslyn.Test.Utilities.AssertEx.Equal(expectedSelectedSpans, textView.Selection.SelectedSpans.Select(snapshotSpan => snapshotSpan.Span));
+                AssertEx.Equal(expectedSelectedSpans, textView.Selection.SelectedSpans.Select(snapshotSpan => snapshotSpan.Span));
             }
         }
 

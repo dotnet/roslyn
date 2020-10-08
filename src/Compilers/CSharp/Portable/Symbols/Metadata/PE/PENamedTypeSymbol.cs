@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1115,11 +1117,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         if ((fieldFlags & FieldAttributes.Static) == 0)
                         {
                             // Instance field used to determine underlying type.
-                            bool isVolatile;
                             ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
-                            TypeSymbol type = decoder.DecodeFieldSignature(fieldDef, out isVolatile, out customModifiers);
+                            TypeSymbol type = decoder.DecodeFieldSignature(fieldDef, out customModifiers);
 
-                            if (type.SpecialType.IsValidEnumUnderlyingType())
+                            if (type.SpecialType.IsValidEnumUnderlyingType() && !customModifiers.AnyRequired())
                             {
                                 if ((object)underlyingType == null)
                                 {
@@ -2397,7 +2398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            override internal int MetadataArity
+            internal override int MetadataArity
             {
                 get
                 {

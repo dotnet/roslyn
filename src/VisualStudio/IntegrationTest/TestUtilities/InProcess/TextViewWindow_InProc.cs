@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -267,7 +269,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void VerifyTags(string tagTypeName, int expectedCount)
             => ExecuteOnActiveView(view =>
         {
-            Type type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
+            var type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
             bool filterTag(IMappingTagSpan<ITag> tag)
             {
                 return tag.Tag.GetType().Equals(type);

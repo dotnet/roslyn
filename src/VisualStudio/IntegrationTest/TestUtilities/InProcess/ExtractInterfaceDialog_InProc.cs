@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -105,7 +107,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
 
-                    return dialog.fileNameTextBox.Text;
+                    return dialog.DestinationControl.fileNameTextBox.Text;
                 });
             }
         }

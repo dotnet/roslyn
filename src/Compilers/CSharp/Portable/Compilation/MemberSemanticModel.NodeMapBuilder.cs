@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Collections;
@@ -18,13 +20,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected sealed class NodeMapBuilder : BoundTreeWalkerWithStackGuard
         {
-            private NodeMapBuilder(OrderPreservingMultiDictionary<SyntaxNode, BoundNode> map, SyntaxNode thisSyntaxNodeOnly)
+            private NodeMapBuilder(OrderPreservingMultiDictionary<SyntaxNode, BoundNode> map, SyntaxTree tree, SyntaxNode thisSyntaxNodeOnly)
             {
                 _map = map;
+                _tree = tree;
                 _thisSyntaxNodeOnly = thisSyntaxNodeOnly;
             }
 
             private readonly OrderPreservingMultiDictionary<SyntaxNode, BoundNode> _map;
+            private readonly SyntaxTree _tree;
             private readonly SyntaxNode _thisSyntaxNodeOnly;
 
             /// <summary>
@@ -34,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <param name="root">The root of the bound tree.</param>
             /// <param name="map">The cache.</param>
             /// <param name="node">The syntax node where to add bound nodes for.</param>
-            public static void AddToMap(BoundNode root, Dictionary<SyntaxNode, ImmutableArray<BoundNode>> map, SyntaxNode node = null)
+            public static void AddToMap(BoundNode root, Dictionary<SyntaxNode, ImmutableArray<BoundNode>> map, SyntaxTree tree, SyntaxNode node = null)
             {
                 Debug.Assert(node == null || root == null || !(root.Syntax is StatementSyntax), "individually added nodes are not supposed to be statements.");
 
@@ -45,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var additionMap = OrderPreservingMultiDictionary<SyntaxNode, BoundNode>.GetInstance();
-                var builder = new NodeMapBuilder(additionMap, node);
+                var builder = new NodeMapBuilder(additionMap, tree, node);
                 builder.Visit(root);
 
                 foreach (CSharpSyntaxNode key in additionMap.Keys)
@@ -126,7 +130,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode Visit(BoundNode node)
             {
-                if (node == null)
+                // Do not cache bound nodes associated with a different syntax tree. We can get nodes like that 
+                // when semantic model binds complete simple program body. Semantic model is never asked about
+                // information for nodes associated with a different syntax tree, therefore, there is no advantage
+                // in putting the bound nodes in the map. SimpleProgramBodySemanticModelMergedBoundNodeCache facilitates
+                // reuse of bound nodes from other trees. 
+                if (node == null || node.SyntaxTree != _tree)
                 {
                     return null;
                 }

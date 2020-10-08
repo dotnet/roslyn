@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal virtual bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
             => false;
 
-        public sealed override async Task<CompletionDescription> GetDescriptionAsync(
+        public override async Task<CompletionDescription?> GetDescriptionAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             // Get the actual description provided by whatever subclass we are.
@@ -81,7 +80,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 : Task.FromResult(CompletionDescription.Empty);
         }
 
-
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var change = (await GetTextChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false))
@@ -93,11 +91,11 @@ namespace Microsoft.CodeAnalysis.Completion
             => GetTextChangeAsync(selectedItem, ch, cancellationToken);
 
         protected virtual Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-            => Task.FromResult<TextChange?>(null);
+            => SpecializedTasks.Default<TextChange?>();
 
         private static readonly CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
-        protected CompletionItem CreateSuggestionModeItem(string displayText, string description)
+        protected static CompletionItem CreateSuggestionModeItem(string displayText, string description)
         {
             return CommonCompletionItem.Create(
                 displayText: displayText ?? string.Empty,

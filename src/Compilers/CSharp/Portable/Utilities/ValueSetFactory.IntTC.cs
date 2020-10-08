@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 
@@ -18,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int INumericTC<int>.MinValue => int.MinValue;
 
             int INumericTC<int>.MaxValue => int.MaxValue;
+
+            int INumericTC<int>.Zero => 0;
 
             public bool Related(BinaryOperatorKind relation, int left, int right)
             {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value - 1;
             }
 
-            public int FromConstantValue(ConstantValue constantValue) => constantValue.Int32Value;
+            public int FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0 : constantValue.Int32Value;
 
             public ConstantValue ToConstantValue(int value) => ConstantValue.Create(value);
 

@@ -357,7 +357,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 literal, typeSuffix, value))
         End Function
 
-
         Private Function GenerateCharLiteralExpression(c As Char) As ExpressionSyntax
             Dim pieces = StringPiece.Split(c.ToString())
             Dim piece = pieces(0)

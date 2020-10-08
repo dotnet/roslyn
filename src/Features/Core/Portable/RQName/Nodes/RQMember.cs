@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal abstract class RQMember : RQNode<IFieldSymbol>
+    internal abstract class RQMember : RQNode
     {
         public readonly RQUnconstructedType ContainingType;
 

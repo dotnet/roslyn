@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
@@ -34,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             bool ISupportsNavigation.TryNavigateTo(bool isPreview)
                 => DefinitionBucket.DefinitionItem.TryNavigateTo(
-                    Presenter._workspace,
-                    isPreview ? NavigationBehavior.PreviewWithoutFocus : NavigationBehavior.Normal);
+                    Presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview); // Only activate the tab if not opening in preview
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts

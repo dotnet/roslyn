@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -28,18 +30,8 @@ namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
 
         private static bool IsGeneratedCode(SyntaxTree syntaxTree, Document document, CancellationToken cancellationToken)
         {
-            // First check if user has configured "generated_code = true | false" in .editorconfig
-            var analyzerOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            var isUserConfiguredGeneratedCode = GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(analyzerOptions);
-            if (isUserConfiguredGeneratedCode.HasValue)
-            {
-                return isUserConfiguredGeneratedCode.Value;
-            }
-
-            // Otherwise, fallback to generated code heuristic.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            return GeneratedCodeUtilities.IsGeneratedCode(
-                syntaxTree, t => syntaxFacts.IsRegularComment(t) || syntaxFacts.IsDocumentationComment(t), cancellationToken);
+            return syntaxTree.IsGeneratedCode(document.Project.AnalyzerOptions, syntaxFacts, cancellationToken);
         }
     }
 }

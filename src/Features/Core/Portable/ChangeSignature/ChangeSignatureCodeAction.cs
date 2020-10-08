@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,9 +23,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public override string Title => FeaturesResources.Change_signature;
 
-        public override object GetOptions(CancellationToken cancellationToken)
-            => _changeSignatureService.GetChangeSignatureOptions(_context)
-                ?? new ChangeSignatureOptionsResult(null!, false);
+        public override object? GetOptions(CancellationToken cancellationToken)
+            => AbstractChangeSignatureService.GetChangeSignatureOptions(_context);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {

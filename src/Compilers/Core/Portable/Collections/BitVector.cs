@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         // and might become not null/empty, unless we restrict access to it.
         private static Word[] s_emptyArray => Array.Empty<Word>();
         private static readonly BitVector s_nullValue = default;
-        private static readonly BitVector s_emptyValue = new BitVector(0, s_emptyArray, 0);
+        private static readonly BitVector s_emptyValue = new(0, s_emptyArray, 0);
 
         private Word _bits0;
         private Word[] _bits;
@@ -340,6 +338,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
+                if (index < 0)
+                    throw new IndexOutOfRangeException();
                 if (index >= _capacity)
                     return false;
                 int i = (index >> Log2BitsPerWord) - 1;
@@ -350,6 +350,8 @@ namespace Microsoft.CodeAnalysis
 
             set
             {
+                if (index < 0)
+                    throw new IndexOutOfRangeException();
                 if (index >= _capacity)
                     EnsureCapacity(index + 1);
                 int i = (index >> Log2BitsPerWord) - 1;

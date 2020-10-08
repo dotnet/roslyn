@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -110,20 +112,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 var processedProjects = new HashSet<Project>();
 
-                var activeDocOpt = docTrackingService.GetActiveDocument(_solution);
+                var activeDocument = docTrackingService.GetActiveDocument(_solution);
                 var visibleDocs = docTrackingService.GetVisibleDocuments(_solution)
-                                                    .Where(d => d != activeDocOpt)
+                                                    .Where(d => d != activeDocument)
                                                     .ToImmutableArray();
 
                 // First, if there's an active document, search that project first, prioritizing
                 // that active document and all visible documents from it.
-                if (activeDocOpt != null)
+                if (activeDocument != null)
                 {
-                    var activeProject = activeDocOpt.Project;
+                    var activeProject = activeDocument.Project;
                     processedProjects.Add(activeProject);
 
                     var visibleDocsFromProject = visibleDocs.Where(d => d.Project == activeProject);
-                    var priorityDocs = ImmutableArray.Create(activeDocOpt).AddRange(visibleDocsFromProject);
+                    var priorityDocs = ImmutableArray.Create(activeDocument).AddRange(visibleDocsFromProject);
 
                     // Search the active project first.  That way we can deliver results that are
                     // closer in scope to the user quicker without forcing them to do something like
@@ -220,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
                 var navigateToItem = new NavigateToItem(
                     result.Name,
-                    result.Kind,
+                    GetKind(result.Kind),
                     GetNavigateToLanguage(project.Language),
                     result.SecondarySort,
                     result,
@@ -229,7 +231,47 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _callback.AddItem(navigateToItem);
             }
 
-            private PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
+            private static string GetKind(string kind)
+                => kind switch
+                {
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Class
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Class,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Constant
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Constant,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Delegate
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Delegate,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Enum
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Enum,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.EnumItem
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.EnumItem,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Event
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Event,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Field
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Field,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.File
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.File,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Interface
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Interface,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Line
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Line,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Method
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Method,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Module
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Module,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.OtherSymbol
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.OtherSymbol,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Property
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Property,
+                    // VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind doesn't have a record, fall back to class.
+                    // This should be updated whenever NavigateToItemKind has a record.
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Record
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Class,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Structure
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Structure,
+                    _ => throw ExceptionUtilities.UnexpectedValue(kind)
+                };
+
+            private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
                 => matchKind switch
                 {
                     NavigateToMatchKind.Exact => PatternMatchKind.Exact,

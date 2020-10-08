@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -17,8 +16,8 @@ namespace Microsoft.CodeAnalysis
     /// <see cref="OnVisitSyntaxNode(SyntaxNode)"/> called for every syntax node in the compilation.
     /// 
     /// The <see cref="ISyntaxReceiver"/> can record any information about the nodes visited. During
-    /// <see cref="ISourceGenerator.Execute(SourceGeneratorContext)"/> the generator can obtain the 
-    /// created instance via the <see cref="SourceGeneratorContext.SyntaxReceiver"/> property. The
+    /// <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/> the generator can obtain the 
+    /// created instance via the <see cref="GeneratorExecutionContext.SyntaxReceiver"/> property. The
     /// information contained can be used to perform final generation.
     /// 
     /// A new instance of <see cref="ISyntaxReceiver"/> is created per-generation, meaning the instance

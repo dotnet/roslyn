@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -75,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return CompileAndGetModelAndStatements(program, (model, stmt1, stmt2) => model.AnalyzeControlFlow(stmt1, stmt2));
         }
 
-        protected DataFlowAnalysis CompileAndAnalyzeDataFlowExpression(string program)
+        protected DataFlowAnalysis CompileAndAnalyzeDataFlowExpression(string program, params MetadataReference[] references)
         {
-            return CompileAndGetModelAndExpression(program, (model, expression) => model.AnalyzeDataFlow(expression));
+            return CompileAndGetModelAndExpression(program, (model, expression) => model.AnalyzeDataFlow(expression), references);
         }
 
         protected DataFlowAnalysis CompileAndAnalyzeDataFlowStatements(string program)
@@ -90,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return CompileAndGetModelAndStatements(program, (model, stmt1, stmt2) => (model.AnalyzeControlFlow(stmt1, stmt2), model.AnalyzeDataFlow(stmt1, stmt2)));
         }
 
-        protected T CompileAndGetModelAndExpression<T>(string program, Func<SemanticModel, ExpressionSyntax, T> analysisDelegate)
+        protected T CompileAndGetModelAndExpression<T>(string program, Func<SemanticModel, ExpressionSyntax, T> analysisDelegate, params MetadataReference[] references)
         {
-            var comp = CreateCompilation(program);
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularPreview, references: references);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             int start = program.IndexOf(StartString, StringComparison.Ordinal) + StartString.Length;

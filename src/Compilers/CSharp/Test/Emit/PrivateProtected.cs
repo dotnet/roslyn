@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -315,7 +317,7 @@ sealed class D
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
-                // (7,34): warning CS0628: 'D.Field2': new protected member declared in sealed class
+                // (7,34): warning CS0628: 'D.Field2': new protected member declared in sealed type
                 //     static private protected int Field2 = 2;
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "Field2").WithArguments("D.Field2").WithLocation(7, 34),
                 // (3,34): error CS1057: 'C.Field1': static classes cannot contain protected members

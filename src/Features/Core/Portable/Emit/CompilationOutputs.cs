@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -115,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
-        private Stream ValidateStream(Stream stream, string methodName)
+        private static Stream ValidateStream(Stream stream, string methodName)
         {
             if (stream != null && (!stream.CanRead || !stream.CanSeek))
             {

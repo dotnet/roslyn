@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -31,7 +33,7 @@ namespace Roslyn.Test.Utilities
 
         protected override DocumentationProvider CreateDocumentationProvider()
         {
-            throw new NotImplementedException();
+            return DocumentationProvider.Default;
         }
 
         protected override Metadata GetMetadataImpl()
@@ -77,7 +79,7 @@ namespace Roslyn.Test.Utilities
 
         protected override DocumentationProvider CreateDocumentationProvider()
         {
-            throw new NotImplementedException();
+            return DocumentationProvider.Default;
         }
 
         protected override Metadata GetMetadataImpl()

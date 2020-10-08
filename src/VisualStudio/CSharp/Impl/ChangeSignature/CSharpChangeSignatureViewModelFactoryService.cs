@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -16,6 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
     [ExportLanguageService(typeof(IChangeSignatureViewModelFactoryService), LanguageNames.CSharp), Shared]
     internal class CSharpChangeSignatureViewModelFactoryService : ChangeSignatureViewModelFactoryService
     {
+        private static readonly CSharpParseOptions s_langVersionLatestParseOptions = new(LanguageVersion.Preview);
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpChangeSignatureViewModelFactoryService()
@@ -44,7 +48,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
             return parts.ToArray();
         }
 
-        public override bool IsTypeNameValid(string typeName) => !SyntaxFactory.ParseTypeName(typeName).ContainsDiagnostics;
+        // Use LangVersion Preview to ensure that all types parse correctly. If the user types in a type only available
+        // in a preview version, they'll get a diagnostic after everything is generated
+        public override bool IsTypeNameValid(string typeName) => !SyntaxFactory.ParseTypeName(typeName, options: s_langVersionLatestParseOptions).ContainsDiagnostics;
 
         public override SyntaxNode GetTypeNode(string typeName) => SyntaxFactory.ParseTypeName(typeName);
     }

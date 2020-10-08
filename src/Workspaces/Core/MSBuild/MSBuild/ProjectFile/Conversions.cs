@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -15,7 +17,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             => value != null
             && (string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals("On", value, StringComparison.OrdinalIgnoreCase));
-
 
         public static int ToInt(string value)
         {

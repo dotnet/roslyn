@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         private class ExpressionSyntaxGeneratorVisitor : SymbolVisitor<ExpressionSyntax>
         {
-            public static readonly ExpressionSyntaxGeneratorVisitor Instance = new ExpressionSyntaxGeneratorVisitor();
+            public static readonly ExpressionSyntaxGeneratorVisitor Instance = new();
 
             private ExpressionSyntaxGeneratorVisitor()
             {
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             public override ExpressionSyntax DefaultVisit(ISymbol symbol)
                 => symbol.Accept(TypeSyntaxGeneratorVisitor.Create());
 
-            private TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
+            private static TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
                 where TExpressionSyntax : ExpressionSyntax
             {
                 syntax = syntax.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker);
@@ -32,11 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override ExpressionSyntax VisitNamedType(INamedTypeSymbol symbol)
             {
-                var typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);
-                if (!(typeSyntax is SimpleNameSyntax))
-                {
+                if (!TypeSyntaxGeneratorVisitor.TryCreateNativeIntegerType(symbol, out var typeSyntax))
                     return typeSyntax;
-                }
+
+                typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);
+                if (!(typeSyntax is SimpleNameSyntax))
+                    return typeSyntax;
 
                 var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;
                 if (symbol.ContainingType != null)
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            private ExpressionSyntax CreateMemberAccessExpression(
+            private static ExpressionSyntax CreateMemberAccessExpression(
                 ISymbol symbol, ExpressionSyntax container, SimpleNameSyntax syntax)
             {
                 return AddInformationTo(SyntaxFactory.MemberAccessExpression(

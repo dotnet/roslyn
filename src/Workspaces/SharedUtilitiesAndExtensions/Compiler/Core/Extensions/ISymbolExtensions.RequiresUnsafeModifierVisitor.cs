@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         private class RequiresUnsafeModifierVisitor : SymbolVisitor<bool>
         {
-            private readonly HashSet<ISymbol> _visited = new HashSet<ISymbol>();
+            private readonly HashSet<ISymbol> _visited = new();
 
             public override bool DefaultVisit(ISymbol node)
             {
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitDynamicType(IDynamicTypeSymbol symbol)
             {
-                // The dynamic type is never unsafe (well....you know what I mean
+                // The dynamic type is never unsafe (well....you know what I mean)
                 return false;
             }
 
@@ -62,6 +64,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override bool VisitPointerType(IPointerTypeSymbol symbol)
+            {
+                if (!_visited.Add(symbol))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            public override bool VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
             {
                 if (!_visited.Add(symbol))
                 {

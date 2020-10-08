@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return Tuple.Create(oldRoot.SyntaxTree, newRoot);
         }
 
-        private async Task<MethodDeclarationSyntax?> GetMethodDeclarationAsync(
+        private static async Task<MethodDeclarationSyntax?> GetMethodDeclarationAsync(
             SyntaxNode node,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return methodDeclaration;
         }
 
-        private MethodDeclarationSyntax ConvertToAsyncFunction(MethodDeclarationSyntax methodDeclaration)
+        private static MethodDeclarationSyntax ConvertToAsyncFunction(MethodDeclarationSyntax methodDeclaration)
         {
             return methodDeclaration.WithReturnType(
                 SyntaxFactory.ParseTypeName("Task")

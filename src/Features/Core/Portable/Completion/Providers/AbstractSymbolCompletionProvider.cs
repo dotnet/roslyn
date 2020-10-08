@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
         // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
-        private static readonly ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>> s_cachedDocuments = new ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>>();
+        private static readonly ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>> s_cachedDocuments = new();
         private static int s_cachedPosition;
-        private static readonly object s_cacheGate = new object();
+        private static readonly object s_cacheGate = new();
 
         private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
 
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         /// <param name="typeConvertibilityCache">A cache to use for repeated lookups. This should be created with <see cref="SymbolEqualityComparer.Default"/>
         /// because we ignore nullability.</param>
-        private bool ShouldIncludeInTargetTypedCompletionList(
+        private static bool ShouldIncludeInTargetTypedCompletionList(
             ISymbol symbol,
             ImmutableArray<ITypeSymbol> inferredTypes,
             SemanticModel semanticModel,
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return typeConvertibilityCache[type];
         }
 
-        private bool IsTypeImplicitlyConvertible(Compilation compilation, ITypeSymbol sourceType, ImmutableArray<ITypeSymbol> targetTypes)
+        private static bool IsTypeImplicitlyConvertible(Compilation compilation, ITypeSymbol sourceType, ImmutableArray<ITypeSymbol> targetTypes)
         {
             foreach (var targetType in targetTypes)
             {
@@ -132,8 +134,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Lazy<ImmutableArray<ITypeSymbol>> inferredTypes,
             TelemetryCounter telemetryCounter)
         {
+            // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
+            // need to filter them out.
+            // https://github.com/dotnet/roslyn/issues/47690
             var symbolGroups = from symbol in symbols
                                let texts = GetDisplayAndSuffixAndInsertionText(symbol, contextLookup(symbol))
+                               where !string.IsNullOrWhiteSpace(texts.displayText)
                                group symbol by texts into g
                                select g;
 
@@ -365,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private Dictionary<ISymbol, SyntaxContext> UnionSymbols(
+        private static Dictionary<ISymbol, SyntaxContext> UnionSymbols(
             ImmutableArray<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)> linkedContextSymbolLists)
         {
             // To correctly map symbols back to their SyntaxContext, we do care about assembly identity.
@@ -407,13 +413,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return perContextSymbols.ToImmutableAndFree();
         }
 
-        private bool IsCandidateProject(SyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsCandidateProject(SyntaxContext context, CancellationToken cancellationToken)
         {
             var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
             return !syntaxFacts.IsInInactiveRegion(context.SyntaxTree, context.Position, cancellationToken);
         }
 
-        protected OptionSet GetUpdatedRecommendationOptions(OptionSet options, string language)
+        protected static OptionSet GetUpdatedRecommendationOptions(OptionSet options, string language)
         {
             var filterOutOfScopeLocals = options.GetOption(CompletionControllerOptions.FilterOutOfScopeLocals);
             var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, language);
@@ -440,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <param name="symbolToContext">The symbols recommended in the active context.</param>
         /// <param name="linkedContextSymbolLists">The symbols recommended in linked documents</param>
         /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
-        protected Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
+        protected static Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
             Dictionary<ISymbol, SyntaxContext> symbolToContext,
             ImmutableArray<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)> linkedContextSymbolLists)
         {

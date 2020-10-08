@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -129,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     newLocals,
                     (BoundExpression)this.Visit(node.ExceptionSourceOpt),
                     this.VisitType(node.ExceptionTypeOpt),
+                    (BoundBlock)this.Visit(node.ExceptionFilterPrologueOpt),
                     (BoundExpression)this.Visit(node.ExceptionFilterOpt),
                     (BoundBlock)this.Visit(node.Body),
                     node.IsSynthesizedAsyncCatchAll);
@@ -145,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(newLocals, newLocalFunctions, newStatements);
         }
 
-        public override abstract BoundNode VisitScope(BoundScope node);
+        public abstract override BoundNode VisitScope(BoundScope node);
 
         public override BoundNode VisitSequence(BoundSequence node)
         {
@@ -506,6 +509,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(rewrittenArgument, method, node.IsExtensionMethod, type);
         }
 
+        public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            return node.Update(VisitMethodSymbol(node.TargetMethod), VisitType(node.Type));
+        }
+
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
             BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
@@ -611,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, receiverType, node.BinderOpt, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, receiverType, node.Binder, type);
         }
 
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
@@ -674,6 +682,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return default;
                 }
             }
+
+            internal override bool IsIterator => false;
         }
     }
 }

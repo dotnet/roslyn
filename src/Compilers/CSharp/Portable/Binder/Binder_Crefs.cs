@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -524,6 +523,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ContainsNestedTypeOfUnconstructedGenericType(((ArrayTypeSymbol)type).ElementType);
                 case TypeKind.Pointer:
                     return ContainsNestedTypeOfUnconstructedGenericType(((PointerTypeSymbol)type).PointedAtType);
+                case TypeKind.FunctionPointer:
+                    MethodSymbol signature = ((FunctionPointerTypeSymbol)type).Signature;
+                    if (ContainsNestedTypeOfUnconstructedGenericType(signature.ReturnType))
+                    {
+                        return true;
+                    }
+
+                    foreach (var param in signature.Parameters)
+                    {
+                        if (ContainsNestedTypeOfUnconstructedGenericType(param.Type))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
                 case TypeKind.Delegate:
                 case TypeKind.Class:
                 case TypeKind.Interface:
@@ -743,6 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 containingType: null,
                                 name: null,
                                 refKind: RefKind.None,
+                                isInitOnly: false,
                                 returnType: default,
                                 refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                                 explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);

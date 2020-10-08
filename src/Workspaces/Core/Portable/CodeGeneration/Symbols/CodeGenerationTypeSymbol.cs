@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -12,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public SpecialType SpecialType { get; protected set; }
 
         protected CodeGenerationTypeSymbol(
+            IAssemblySymbol containingAssembly,
             INamedTypeSymbol containingType,
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
@@ -19,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             SpecialType specialType,
             NullableAnnotation nullableAnnotation)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.SpecialType = specialType;
             this.NullableAnnotation = nullableAnnotation;
@@ -45,11 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsNativeIntegerType => false;
 
-        public ImmutableArray<ITypeSymbol> TupleElementTypes => default;
+        public static ImmutableArray<ITypeSymbol> TupleElementTypes => default;
 
-        public ImmutableArray<string> TupleElementNames => default;
-
-        public INamedTypeSymbol TupleUnderlyingType => null;
+        public static ImmutableArray<string> TupleElementNames => default;
 
         public new ITypeSymbol OriginalDefinition => this;
 
@@ -70,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override bool IsNamespace => false;
 
         public override bool IsType => true;
-
-        public bool IsSerializable => false;
 
         bool ITypeSymbol.IsRefLikeType => throw new System.NotImplementedException();
 

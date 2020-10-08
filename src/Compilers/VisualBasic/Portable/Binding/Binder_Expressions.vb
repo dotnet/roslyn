@@ -8,9 +8,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -3227,7 +3225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.Local
                     Dim localSymbol = DirectCast(lookupResult.SingleSymbol, LocalSymbol)
 
-                    If localSymbol.IsFunctionValue Then
+                    If localSymbol.IsFunctionValue AndAlso Not IsNameOfArgument(node) Then
                         Dim method = DirectCast(localSymbol.ContainingSymbol, MethodSymbol)
 
                         If method.IsAsync OrElse method.IsIterator Then

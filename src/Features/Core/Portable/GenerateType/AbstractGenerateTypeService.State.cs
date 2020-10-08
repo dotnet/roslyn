@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -300,7 +302,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         // If we are generating in a website project, we also want to type to be public so the 
                         // designer files can access the type.
                         if (documentToBeGeneratedIn.Project != document.Project ||
-                            service.GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
+                            GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
                         {
                             IsPublicAccessibilityForTypeGeneration = true;
                         }

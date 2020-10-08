@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -215,7 +217,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return true;
         }
 
-        private bool IsOnSingleLine(string value)
+        private static bool IsOnSingleLine(string value)
             => value.GetNumberOfLineBreaks() == 0;
 
         public ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node)

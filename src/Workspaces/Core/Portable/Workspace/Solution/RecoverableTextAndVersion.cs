@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,6 +64,10 @@ namespace Microsoft.CodeAnalysis
                 if (TryGetValue(out var textAndVersion))
                 {
                     version = textAndVersion.Version;
+                }
+                else if (_initialSource is ITextVersionable textVersionable)
+                {
+                    return textVersionable.TryGetTextVersion(out version);
                 }
             }
 
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis
                 Contract.ThrowIfFalse(_storage == null); // Cannot save more than once
 
                 var storage = _parent._storageService.CreateTemporaryTextStorage(cancellationToken);
-                await storage.WriteTextAsync(text).ConfigureAwait(false);
+                await storage.WriteTextAsync(text, cancellationToken).ConfigureAwait(false);
 
                 // make sure write is done before setting _storage field
                 Interlocked.CompareExchange(ref _storage, storage, null);

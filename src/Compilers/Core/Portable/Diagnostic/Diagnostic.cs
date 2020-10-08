@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,9 +22,9 @@ namespace Microsoft.CodeAnalysis
         internal const string CompilerDiagnosticCategory = "Compiler";
 
         /// <summary>
-        /// Highest valid warning level for non-error diagnostics.
+        /// The default warning level, which is also used for non-error diagnostics.
         /// </summary>
-        internal const int HighestValidWarningLevel = 4;
+        internal const int DefaultWarningLevel = 4;
 
         /// <summary>
         /// Creates a <see cref="Diagnostic"/> instance.
@@ -323,7 +321,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets the warning level. This is 0 for diagnostics with severity <see cref="DiagnosticSeverity.Error"/>,
-        /// otherwise an integer between 1 and 4.
+        /// otherwise an integer greater than zero.
         /// </summary>
         public abstract int WarningLevel { get; }
 
@@ -347,7 +345,6 @@ namespace Microsoft.CodeAnalysis
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
             if (!suppressMessageState.IsDiagnosticSuppressed(
                     this,
-                    getSemanticModel: (compilation, tree) => compilation.GetSemanticModel(tree),
                     out attribute))
             {
                 attribute = null;

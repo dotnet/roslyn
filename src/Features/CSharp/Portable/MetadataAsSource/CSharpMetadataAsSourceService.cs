@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -118,13 +120,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private (bool oblivious, bool annotatedOrNotAnnotated) GetNullableAnnotations(SyntaxNode node)
+        private static (bool oblivious, bool annotatedOrNotAnnotated) GetNullableAnnotations(SyntaxNode node)
         {
             return (HasAnnotation(node, NullableSyntaxAnnotation.Oblivious),
                     HasAnnotation(node, NullableSyntaxAnnotation.AnnotatedOrNotAnnotated));
         }
 
-        private bool HasAnnotation(SyntaxNode node, SyntaxAnnotation annotation)
+        private static bool HasAnnotation(SyntaxNode node, SyntaxAnnotation annotation)
         {
             // see if any child nodes have this annotation.  Ignore anything in attributes (like `[Obsolete]void Goo()`
             // as these are not impacted by `#nullable` regions.  Instead, we only care about signature types.
@@ -218,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             return result;
         }
 
-        private MemberDeclarationSyntax TransitionTo(MemberDeclarationSyntax member, bool enabled, ref bool currentlyEnabled)
+        private static MemberDeclarationSyntax TransitionTo(MemberDeclarationSyntax member, bool enabled, ref bool currentlyEnabled)
         {
             if (enabled == currentlyEnabled)
             {

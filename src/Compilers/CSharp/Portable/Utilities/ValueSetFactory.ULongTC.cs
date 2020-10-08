@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 
@@ -18,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ulong INumericTC<ulong>.MinValue => ulong.MinValue;
 
             ulong INumericTC<ulong>.MaxValue => ulong.MaxValue;
+
+            ulong INumericTC<ulong>.Zero => 0;
 
             bool INumericTC<ulong>.Related(BinaryOperatorKind relation, ulong left, ulong right)
             {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value - 1;
             }
 
-            ulong INumericTC<ulong>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt64Value;
+            ulong INumericTC<ulong>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0UL : constantValue.UInt64Value;
 
             ConstantValue INumericTC<ulong>.ToConstantValue(ulong value) => ConstantValue.Create(value);
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -27,7 +29,7 @@ namespace Roslyn.Collections.Immutable
     [SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
     internal sealed class ImmutableHashMap<TKey, TValue> : IImmutableDictionary<TKey, TValue>
     {
-        private static readonly ImmutableHashMap<TKey, TValue> s_emptySingleton = new ImmutableHashMap<TKey, TValue>();
+        private static readonly ImmutableHashMap<TKey, TValue> s_emptySingleton = new();
 
         /// <summary>
         /// The root node of the tree that stores this map.

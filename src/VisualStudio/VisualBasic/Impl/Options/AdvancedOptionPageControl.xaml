@@ -28,8 +28,8 @@
                                               x:Name="Background_analysis_scope_full_solution"
                                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
                     </StackPanel>
-                    <CheckBox x:Name="Use_editorconfig_compatibility_mode"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_editorconfig_compatibility_mode}" />
+                    <CheckBox x:Name="Use_64bit_analysis_process"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_64bit_analysis_process}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ImportDirectivesGroupBox"
@@ -91,6 +91,37 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="CommentsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
+                <StackPanel>
+                    <CheckBox x:Name="GenerateXmlDocCommentsForTripleApostrophes"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
+                    <CheckBox x:Name="InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments}" />
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox x:Uid="InlineHintsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints_experimental}">
+                <StackPanel>
+                    <CheckBox x:Name="DisplayInlineParameterNameHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}"
+                              Checked="DisplayInlineParameterNameHints_Checked"
+                              Unchecked="DisplayInlineParameterNameHints_Unchecked"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Uid="ShowHintsForLiterals"
+                                  x:Name="ShowHintsForLiterals"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_literals}" />
+                        <CheckBox x:Uid="ShowHintsForNewExpressions"
+                                  x:Name="ShowHintsForNewExpressions"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_New_expressions}" />
+                        <CheckBox x:Uid="ShowHintsForEverythingElse"
+                                  x:Name="ShowHintsForEverythingElse"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_everything_else}" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+            
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>
@@ -100,8 +131,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableEndConstruct}" />
                     <CheckBox x:Name="AutomaticInsertionOfInterfaceAndMustOverrideMembers"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers}" />
-                    <CheckBox x:Name="GenerateXmlDocCommentsForTripleApostrophes"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
                     <CheckBox x:Name="ShowRemarksInQuickInfo"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
                     <CheckBox x:Name="RenameTrackingPreview"
@@ -110,6 +139,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_GoToDefinition}">
                 <StackPanel>

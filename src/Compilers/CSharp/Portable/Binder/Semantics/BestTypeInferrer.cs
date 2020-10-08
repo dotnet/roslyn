@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -14,11 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithAnnotations> types)
         {
+#if DEBUG
+            var example = types.FirstOrDefault(t => t.HasType);
+#endif
+
             var result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {
-                Debug.Assert(type.HasType);
-                Debug.Assert(type.Equals(types[0], TypeCompareKind.AllIgnoreOptions));
+#if DEBUG
+                Debug.Assert(!type.HasType || type.Equals(example, TypeCompareKind.AllIgnoreOptions));
+#endif
+
                 // This uses the covariant merging rules.
                 result = result.Join(type.NullableAnnotation);
             }

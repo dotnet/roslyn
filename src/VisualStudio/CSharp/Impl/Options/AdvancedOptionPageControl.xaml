@@ -3,7 +3,7 @@
     x:ClassModifier="internal"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options;assembly=Microsoft.VisualStudio.LanguageServices.Implementation"
     xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.CSharp.Options"
@@ -29,8 +29,8 @@
                     </StackPanel>
                     <CheckBox x:Name="Enable_navigation_to_decompiled_sources"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
-                    <CheckBox x:Name="Use_editorconfig_compatibility_mode"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_editorconfig_compatibility_mode}" />
+                    <CheckBox x:Name="Use_64bit_analysis_process"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_64bit_analysis_process}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"
@@ -94,15 +94,45 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
-            <GroupBox x:Uid="EditorHelpGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
+            
+            <GroupBox x:Uid="CommentsGuidesGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
                 <StackPanel>
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleSlash"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleSlash}" />
-                    <CheckBox x:Name="ShowRemarksInQuickInfo"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
+                    <CheckBox x:Name="InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments}"/>
                     <CheckBox x:Name="InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox x:Uid="InlineHintsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints_experimental}">
+                <StackPanel>
+                    <CheckBox x:Name="DisplayInlineParameterNameHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}"
+                              Checked="DisplayInlineParameterNameHints_Checked"
+                              Unchecked="DisplayInlineParameterNameHints_Unchecked"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Uid="ShowHintsForLiterals"
+                                  x:Name="ShowHintsForLiterals"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_literals}" />
+                        <CheckBox x:Uid="ShowHintsForNewExpressions"
+                                  x:Name="ShowHintsForNewExpressions"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_new_expressions}" />
+                        <CheckBox x:Uid="ShowHintsForEverythingElse"
+                                  x:Name="ShowHintsForEverythingElse"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_everything_else}" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox x:Uid="EditorHelpGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
+                <StackPanel>
+                    <CheckBox x:Name="ShowRemarksInQuickInfo"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
                     <CheckBox x:Name="Split_string_literals_on_enter"
@@ -112,24 +142,24 @@
                 </StackPanel>
             </GroupBox>
 
-          <GroupBox x:Uid="RegularExpressionsGroupBox"
-                    Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
-            <StackPanel>
-              <CheckBox x:Name="Colorize_regular_expressions"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
-              <CheckBox x:Name="Report_invalid_regular_expressions"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
-              <CheckBox x:Name="Highlight_related_components_under_cursor"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
-              <CheckBox x:Name="Show_completion_list"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
-            </StackPanel>
-          </GroupBox>
+            <GroupBox x:Uid="RegularExpressionsGroupBox"
+                        Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
+                <StackPanel>
+                    <CheckBox x:Name="Colorize_regular_expressions"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
+                    <CheckBox x:Name="Report_invalid_regular_expressions"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
+                    <CheckBox x:Name="Highlight_related_components_under_cursor"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
+                    <CheckBox x:Name="Show_completion_list"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
+                </StackPanel>
+            </GroupBox>
 
             <GroupBox x:Uid="ClassificationsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">
                 <StackPanel>
-                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false">
+                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false" AutomationProperties.Name="{x:Static local:AdvancedOptionPageStrings.Edit_color_scheme}">
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2019}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2019_Tag}" />
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2017}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2017_Tag}" />
                     </ComboBox>

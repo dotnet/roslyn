@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -369,6 +367,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked: @checked,
                         explicitCastInCode: explicitCastInCode,
                         rewrittenType: (NamedTypeSymbol)rewrittenType);
+
+                case ConversionKind.MethodGroup when oldNodeOpt is { Type: { TypeKind: TypeKind.FunctionPointer } funcPtrType }:
+                    {
+                        var mg = (BoundMethodGroup)rewrittenOperand;
+                        Debug.Assert(oldNodeOpt.SymbolOpt is { });
+                        return new BoundFunctionPointerLoad(oldNodeOpt.Syntax, oldNodeOpt.SymbolOpt, type: funcPtrType, hasErrors: false);
+                    }
 
                 case ConversionKind.MethodGroup:
                     {
@@ -1230,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (t0Type == SpecialType.System_IntPtr)
             {
-                if (source.TypeKind == TypeKind.Pointer)
+                if (source.IsPointerOrFunctionPointer())
                 {
                     return SpecialMember.System_IntPtr__op_Explicit_FromPointer;
                 }
@@ -1255,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (t0Type == SpecialType.System_UIntPtr)
             {
-                if (source.TypeKind == TypeKind.Pointer)
+                if (source.IsPointerOrFunctionPointer())
                 {
                     return SpecialMember.System_UIntPtr__op_Explicit_FromPointer;
                 }
@@ -1280,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (s0Type == SpecialType.System_IntPtr)
             {
-                if (target.TypeKind == TypeKind.Pointer)
+                if (target.IsPointerOrFunctionPointer())
                 {
                     return SpecialMember.System_IntPtr__op_Explicit_ToPointer;
                 }
@@ -1305,7 +1310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (s0Type == SpecialType.System_UIntPtr)
             {
-                if (target.TypeKind == TypeKind.Pointer)
+                if (target.IsPointerOrFunctionPointer())
                 {
                     return SpecialMember.System_UIntPtr__op_Explicit_ToPointer;
                 }

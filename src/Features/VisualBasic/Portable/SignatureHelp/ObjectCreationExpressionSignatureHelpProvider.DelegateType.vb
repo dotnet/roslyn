@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class ObjectCreationExpressionSignatureHelpProvider
 
-        Private Function GetDelegateTypeConstructors(objectCreationExpression As ObjectCreationExpressionSyntax,
+        Private Shared Function GetDelegateTypeConstructors(objectCreationExpression As ObjectCreationExpressionSyntax,
                                                      semanticModel As SemanticModel,
                                                      anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                      documentationCommentFormattingService As IDocumentationCommentFormattingService,
@@ -35,14 +35,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return (SpecializedCollections.SingletonList(item), 0)
         End Function
 
-        Private Function GetDelegateTypePreambleParts(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+        Private Shared Function GetDelegateTypePreambleParts(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             result.AddRange(invokeMethod.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
             Return result
         End Function
 
-        Private Function GetDelegateTypeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SignatureHelpSymbolParameter)
+        Private Shared Function GetDelegateTypeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SignatureHelpSymbolParameter)
             Const TargetName As String = "target"
 
             Dim parts = New List(Of SymbolDisplayPart)()
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 displayParts:=parts)}
         End Function
 
-        Private Function GetDelegateTypePostambleParts() As IList(Of SymbolDisplayPart)
+        Private Shared Function GetDelegateTypePostambleParts() As IList(Of SymbolDisplayPart)
             Return {Punctuation(SyntaxKind.CloseParenToken)}
         End Function
     End Class

@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             //
             // Also, we only look for files that have the name of the owning type.  This helps filter
             // down the set considerably.
-            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name,
+            Contract.ThrowIfNull(symbol.DeclaringMethod);
+            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, symbol.Name,
                 GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name),
                 symbol.DeclaringMethod.ContainingType.Name);
         }
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : fullName;
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
             Document document,
             SemanticModel semanticModel,

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host.Mef
@@ -12,12 +13,28 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// </summary>
     internal class WorkspaceKindMetadata
     {
-        public IReadOnlyCollection<string> WorkspaceKinds { get; }
+        public IReadOnlyCollection<string>? WorkspaceKinds { get; }
 
         public WorkspaceKindMetadata(IDictionary<string, object> data)
-            => this.WorkspaceKinds = (string[])data.GetValueOrDefault(nameof(WorkspaceKinds));
+            => this.WorkspaceKinds = (string[]?)data.GetValueOrDefault(nameof(WorkspaceKinds));
 
         public WorkspaceKindMetadata(params string[] workspaceKinds)
             => this.WorkspaceKinds = workspaceKinds;
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is not WorkspaceKindMetadata metadata)
+                return false;
+
+            if (WorkspaceKinds is null || metadata.WorkspaceKinds is null)
+                return WorkspaceKinds == metadata.WorkspaceKinds;
+
+            return WorkspaceKinds.SequenceEqual(metadata.WorkspaceKinds);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.CombineValues(WorkspaceKinds);
+        }
     }
 }

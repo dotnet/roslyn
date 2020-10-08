@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 
@@ -31,6 +33,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+            }
+
+            public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/43890): function pointers could theoretically
+                // have a parameter of an anonymous type if you have a generic function that returns function
+                // pointers, and that was called with an anonymous type.
+                return symbol;
             }
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)

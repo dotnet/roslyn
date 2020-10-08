@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
                 return default;
             }
 
-            return await client.TryRunRemoteAsync<T>(WellKnownServiceHubService.IntelliCode, targetName, solution, arguments, callbackTarget: null, cancellationToken).ConfigureAwait(false);
+            return await client.RunRemoteAsync<T>(WellKnownServiceHubService.IntelliCode, targetName, solution, arguments, callbackTarget: null, cancellationToken).ConfigureAwait(false);
         }
     }
 }

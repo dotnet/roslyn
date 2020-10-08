@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -169,12 +167,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal protected sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
+        protected internal sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
         {
             get { return _constructorArguments; }
         }
 
-        internal protected sealed override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
+        protected internal sealed override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
         {
             get { return _namedArguments; }
         }

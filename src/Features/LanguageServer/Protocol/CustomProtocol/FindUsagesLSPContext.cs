@@ -2,22 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
@@ -27,6 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
     internal class FindUsagesLSPContext : FindUsagesContext
     {
+        private readonly IProgress<object[]> _progress;
         private readonly Document _document;
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -34,15 +32,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// <summary>
         /// Methods in FindUsagesLSPContext can be called by multiple threads concurrently.
         /// We need this sempahore to ensure that we aren't making concurrent
-        /// modifications to data such as _id, _definitionToId, and _resultsChunk.
+        /// modifications to data such as _id and _definitionToId.
         /// </summary>
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
         private readonly Dictionary<DefinitionItem, int> _definitionToId =
             new Dictionary<DefinitionItem, int>();
 
-        private readonly List<VSReferenceItem> _resultsChunk =
-            new List<VSReferenceItem>();
+        /// <summary>
+        /// Keeps track of definitions that cannot be reported without references and which we have
+        /// not yet found a reference for.
+        /// </summary>
+        private readonly Dictionary<int, VSReferenceItem> _definitionsWithoutReference =
+            new Dictionary<int, VSReferenceItem>();
+
+        /// <summary>
+        /// We report the results in chunks. A batch, if it contains results, is reported every 0.5s.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue<VSReferenceItem> _workQueue;
 
         // Unique identifier given to each definition and reference.
         private int _id = 0;
@@ -50,21 +57,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         public override CancellationToken CancellationToken { get; }
 
         public FindUsagesLSPContext(
+            IProgress<object[]> progress,
             Document document,
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             CancellationToken cancellationToken)
         {
+            _progress = progress;
             _document = document;
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
+            _workQueue = new AsyncBatchingWorkQueue<VSReferenceItem>(
+                TimeSpan.FromMilliseconds(500), ReportReferencesAsync, cancellationToken);
 
             CancellationToken = cancellationToken;
         }
 
-        public List<VSReferenceItem> GetReferences() => _resultsChunk;
+        // After all definitions/references have been found, wait here until all results have been reported.
+        public override async ValueTask OnCompletedAsync()
+            => await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
 
-        public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
+        public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
         {
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
@@ -77,33 +90,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 _id++;
                 _definitionToId.Add(definition, _id);
 
-                // VSReferenceItem currently doesn't support the ClassifiedTextElement type for DefinitionText,
-                // so for now we just pass in a string.
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138
-                var classifiedText = definition.GetClassifiedText();
-
-                using var pd = PooledStringBuilder.GetInstance(out var pooledBuilder);
-                foreach (var text in classifiedText.Runs)
-                {
-                    pooledBuilder.Append(text.Text);
-                }
-
-                var definitionText = pooledBuilder.ToString();
-
                 // Creating a new VSReferenceItem for the definition
                 var definitionItem = await GenerateVSReferenceItemAsync(
                     _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
-                    definition.DisplayableProperties, _metadataAsSourceFileService, definitionText,
-                    symbolUsageInfo: null, CancellationToken).ConfigureAwait(false);
+                    definition.DisplayableProperties, _metadataAsSourceFileService, definition.GetClassifiedText(),
+                    definition.Tags.GetFirstGlyph(), symbolUsageInfo: null, CancellationToken).ConfigureAwait(false);
 
                 if (definitionItem != null)
                 {
-                    AddToReferencesToReport_MustBeCalledUnderLock(definitionItem);
+                    // If a definition shouldn't be included in the results list if it doesn't have references, we
+                    // have to hold off on reporting it until later when we do find a reference.
+                    if (definition.DisplayIfNoReferences)
+                    {
+                        _workQueue.AddWork(definitionItem);
+                    }
+                    else
+                    {
+                        _definitionsWithoutReference.Add(definitionItem.Id, definitionItem);
+                    }
                 }
             }
         }
 
-        public override async Task OnReferenceFoundAsync(SourceReferenceItem reference)
+        public override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
         {
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
@@ -114,25 +123,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     return;
                 }
 
+                // If the definition hasn't been reported yet, add it to our list of references to report.
+                if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
+                {
+                    _workQueue.AddWork(definition);
+                    _definitionsWithoutReference.Remove(definitionId);
+                }
+
                 _id++;
 
                 // Creating a new VSReferenceItem for the reference
                 var referenceItem = await GenerateVSReferenceItemAsync(
                     _id, definitionId, _document, _position, reference.SourceSpan,
                     reference.AdditionalProperties, _metadataAsSourceFileService, definitionText: null,
-                    reference.SymbolUsageInfo, CancellationToken).ConfigureAwait(false);
+                    definitionGlyph: Glyph.None, reference.SymbolUsageInfo, CancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
                 {
-                    AddToReferencesToReport_MustBeCalledUnderLock(referenceItem);
+                    _workQueue.AddWork(referenceItem);
                 }
             }
-        }
-
-        private void AddToReferencesToReport_MustBeCalledUnderLock(VSReferenceItem item)
-        {
-            Debug.Assert(_semaphore.CurrentCount == 0);
-            _resultsChunk.Add(item);
         }
 
         private static async Task<LSP.VSReferenceItem?> GenerateVSReferenceItemAsync(
@@ -143,7 +153,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             DocumentSpan documentSpan,
             ImmutableDictionary<string, string> properties,
             IMetadataAsSourceFileService metadataAsSourceFileService,
-            string? definitionText,
+            ClassifiedTextElement? definitionText,
+            Glyph definitionGlyph,
             SymbolUsageInfo? symbolUsageInfo,
             CancellationToken cancellationToken)
         {
@@ -165,21 +176,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             // https://github.com/dotnet/roslyn/issues/42847
             var result = new LSP.VSReferenceItem
             {
-                ContainingMember = properties.TryGetValue(
-                    AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember) ? referenceContainingMember : null,
-                ContainingType = properties.TryGetValue(
-                    AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType) ? referenceContainingType : null,
                 DefinitionId = definitionId,
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
+                DefinitionIcon = definitionGlyph.GetImageElement(),
                 DisplayPath = location.Uri.LocalPath,
-                DocumentName = documentSpan == default ? null : documentSpan.Document.Name,
                 Id = id,
-                Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : new ReferenceKind[] { },
+                Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<ReferenceKind>(),
                 Location = location,
-                ProjectName = documentSpan == default ? null : documentSpan.Document.Project.Name,
                 ResolutionStatus = ResolutionStatusKind.ConfirmedAsReference,
                 Text = text,
             };
+
+            if (documentSpan.Document != null)
+            {
+                result.DocumentName = documentSpan.Document.Name;
+                result.ProjectName = documentSpan.Document.Project.Name;
+            }
+
+            if (properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember))
+                result.ContainingMember = referenceContainingMember;
+
+            if (properties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType))
+                result.ContainingType = referenceContainingType;
 
             return result;
 
@@ -232,7 +250,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             static async Task<object?> ComputeTextAsync(
                 int id, int? definitionId,
                 DocumentSpan documentSpan,
-                string? definitionText,
+                ClassifiedTextElement? definitionText,
                 CancellationToken cancellationToken)
             {
                 if (id == definitionId)
@@ -252,6 +270,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 return null;
             }
+        }
+
+        private Task ReportReferencesAsync(ImmutableArray<VSReferenceItem> referencesToReport, CancellationToken cancellationToken)
+        {
+            // We can report outside of the lock here since _progress is thread-safe.
+            _progress.Report(referencesToReport.ToArray());
+            return Task.CompletedTask;
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting;
@@ -17,58 +19,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         protected override TestWorkspace CreateWorkspace(string markup, ParseOptions options)
             => TestWorkspace.CreateCSharp(markup, parseOptions: options);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public async Task TestCurlies()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [InlineData("public class C$$ {\r\n} ")]
+        [InlineData("public class C $$[|{|]\r\n[|}|] ")]
+        [InlineData("public class C {$$\r\n} ")]
+        [InlineData("public class C {\r\n$$} ")]
+        [InlineData("public class C [|{|]\r\n[|}|]$$ ")]
+        public async Task TestCurlies(string testCase)
         {
-            await TestBraceHighlightingAsync("public class C$$ {\r\n} ");
-            await TestBraceHighlightingAsync("public class C $$[|{|]\r\n[|}|] ");
-            await TestBraceHighlightingAsync("public class C {$$\r\n} ");
-            await TestBraceHighlightingAsync("public class C {\r\n$$} ");
-            await TestBraceHighlightingAsync("public class C [|{|]\r\n[|}|]$$ ");
+            await TestBraceHighlightingAsync(testCase);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [InlineData("public class C $$[|{|]\r\n  public void Goo(){}\r\n[|}|] ")]
+        [InlineData("public class C {$$\r\n  public void Goo(){}\r\n} ")]
+        [InlineData("public class C {\r\n  public void Goo$$[|(|][|)|]{}\r\n} ")]
+        [InlineData("public class C {\r\n  public void Goo($$){}\r\n} ")]
+        [InlineData("public class C {\r\n  public void Goo[|(|][|)|]$$[|{|][|}|]\r\n} ")]
+        [InlineData("public class C {\r\n  public void Goo(){$$}\r\n} ")]
+        [InlineData("public class C {\r\n  public void Goo()[|{|][|}|]$$\r\n} ")]
+        public async Task TestTouchingItems(string testCase)
+        {
+            await TestBraceHighlightingAsync(testCase);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [InlineData("/// $$<summary>Goo</summary>")]
+        [InlineData("/// <$$summary>Goo</summary>")]
+        [InlineData("/// <summary$$>Goo</summary>")]
+        [InlineData("/// <summary>$$Goo</summary>")]
+        [InlineData("/// <summary>Goo$$</summary>")]
+        [InlineData("/// <summary>Goo<$$/summary>")]
+        [InlineData("/// <summary>Goo</$$summary>")]
+        [InlineData("/// <summary>Goo</summary$$>")]
+        [InlineData("/// <summary>Goo</summary>$$")]
+
+        [InlineData("public class C$$[|<|]T[|>|] { }")]
+        [InlineData("public class C<$$T> { }")]
+        [InlineData("public class C<T$$> { }")]
+        [InlineData("public class C[|<|]T[|>$$|] { }")]
+
+        [InlineData("unsafe class C { delegate*$$[|<|] int, int[|>|] functionPointer; }")]
+        [InlineData("unsafe class C { delegate*[|<|]int, int[|>$$|] functionPointer; }")]
+        [InlineData("unsafe class C { delegate*<int, delegate*[|<|]int, int[|>|]$$> functionPointer; }")]
+        public async Task TestAngles(string testCase)
+        {
+            await TestBraceHighlightingAsync(testCase);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public async Task TestTouchingItems()
+        public async Task TestNoHighlightingOnOperators()
         {
-            await TestBraceHighlightingAsync("public class C $$[|{|]\r\n  public void Goo(){}\r\n[|}|] ");
-            await TestBraceHighlightingAsync("public class C {$$\r\n  public void Goo(){}\r\n} ");
-            await TestBraceHighlightingAsync("public class C {\r\n  public void Goo$$[|(|][|)|]{}\r\n} ");
-            await TestBraceHighlightingAsync("public class C {\r\n  public void Goo($$){}\r\n} ");
-            await TestBraceHighlightingAsync("public class C {\r\n  public void Goo[|(|][|)|]$$[|{|][|}|]\r\n} ");
-            await TestBraceHighlightingAsync("public class C {\r\n  public void Goo(){$$}\r\n} ");
-            await TestBraceHighlightingAsync("public class C {\r\n  public void Goo()[|{|][|}|]$$\r\n} ");
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public async Task TestAngles()
-        {
-            await TestBraceHighlightingAsync("/// $$<summary>Goo</summary>");
-            await TestBraceHighlightingAsync("/// <$$summary>Goo</summary>");
-            await TestBraceHighlightingAsync("/// <summary$$>Goo</summary>");
-            await TestBraceHighlightingAsync("/// <summary>$$Goo</summary>");
-            await TestBraceHighlightingAsync("/// <summary>Goo$$</summary>");
-            await TestBraceHighlightingAsync("/// <summary>Goo<$$/summary>");
-            await TestBraceHighlightingAsync("/// <summary>Goo</$$summary>");
-            await TestBraceHighlightingAsync("/// <summary>Goo</summary$$>");
-            await TestBraceHighlightingAsync("/// <summary>Goo</summary>$$");
-
-            await TestBraceHighlightingAsync(
-@"public class C$$[|<|]T[|>|]
-{
-}");
-            await TestBraceHighlightingAsync(
-@"public class C<$$T>
-{
-}");
-            await TestBraceHighlightingAsync(
-@"public class C<T$$>
-{
-}");
-            await TestBraceHighlightingAsync(
-@"public class C[|<|]T[|>$$|]
-{
-}");
-
             await TestBraceHighlightingAsync(
 @"class C
 {

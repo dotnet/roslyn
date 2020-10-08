@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1109,7 +1111,7 @@ class Program
                 //         return ((S?)null) < new S?(N4());
                 Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < new S?(N4())").WithArguments("S?").WithLocation(41, 16)
                 );
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature());
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe.WithWarningLevel(5));
             comp.VerifyDiagnostics(
                 // (21,16): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
                 //         return new int?(N1()) == new short?();

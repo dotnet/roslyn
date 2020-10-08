@@ -48,7 +48,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Log\LogAggregator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\AbstractLogAggregator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SemanticsFactsService\AbstractSemanticFactsService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SemanticsFactsService\ForEachSymbols.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SemanticsFactsService\ISemanticFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SymbolDeclarationService\ISymbolDeclarationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameActionAnnotation.cs" />
@@ -64,8 +63,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemanticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntacticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TextReaderWithLength.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelWorkspaceService\ISemanticModelService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelWorkspaceService\SemanticModelWorkspaceServiceFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelReuse\ISemanticModelReuseWorkspaceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelReuse\SemanticModelReuseWorkspaceServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\SyntaxEditorBasedCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\SyntaxEditorBasedCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ISyntaxFactsService.cs" />

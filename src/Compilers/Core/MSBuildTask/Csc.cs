@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -84,6 +82,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(ErrorReport)] = value; }
             get { return (string?)_store[nameof(ErrorReport)]; }
+        }
+
+        public string? GeneratedFilesOutputPath
+        {
+            set { _store[nameof(GeneratedFilesOutputPath)] = value; }
+            get { return (string?)_store[nameof(GeneratedFilesOutputPath)]; }
         }
 
         public bool GenerateFullPaths
@@ -169,7 +173,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        private static readonly string[] s_separators = { Environment.NewLine };
+        // Same separators as those used by Process.OutputDataReceived to maintain consistency between csc and VBCSCompiler
+        private static readonly string[] s_separators = { "\r\n", "\r", "\n" };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
@@ -187,7 +192,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Return the name of the tool to execute.
         /// </summary>
-        override protected string ToolNameWithoutExtension
+        protected override string ToolNameWithoutExtension
         {
             get
             {
@@ -204,6 +209,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/unsafe", _store, nameof(AllowUnsafeBlocks));
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
             commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
+            commandLine.AppendSwitchIfNotNull("/generatedfilesout:", GeneratedFilesOutputPath);
             commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
             commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);

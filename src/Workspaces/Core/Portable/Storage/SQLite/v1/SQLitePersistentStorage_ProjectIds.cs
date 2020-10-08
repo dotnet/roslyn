@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.SQLite.v1.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v1
@@ -14,13 +15,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         /// Kept locally so we don't have to hit the DB for the common case of trying to determine the 
         /// DB id for a project.
         /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, int> _projectIdToIdMap = new ConcurrentDictionary<ProjectId, int>();
+        private readonly ConcurrentDictionary<ProjectId, int> _projectIdToIdMap = new();
 
         /// <summary>
         /// Given a project, and the name of a stream to read/write, gets the integral DB ID to 
         /// use to find the data inside the ProjectData table.
         /// </summary>
-        private bool TryGetProjectDataId(SqlConnection connection, Project project, string name, out long dataId)
+        private bool TryGetProjectDataId(SqlConnection connection, ProjectKey projectKey, Project? bulkLoadSnapshot, string name, out long dataId)
         {
             dataId = 0;
 
@@ -28,9 +29,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
             // This will only be expensive the first time we do this.  But will save
             // us from tons of back-and-forth as any BG analyzer processes all the
             // documents in a solution.
-            BulkPopulateProjectIds(connection, project, fetchStringTable: true);
+            BulkPopulateProjectIds(connection, bulkLoadSnapshot, fetchStringTable: true);
 
-            var projectId = TryGetProjectId(connection, project);
+            var projectId = TryGetProjectId(connection, projectKey);
             var nameId = TryGetStringId(connection, name);
             if (projectId == null || nameId == null)
             {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
             return true;
         }
 
-        private int? TryGetProjectId(SqlConnection connection, Project project)
+        private int? TryGetProjectId(SqlConnection connection, ProjectKey project)
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
             return id;
         }
 
-        private int? TryGetProjectIdFromDatabase(SqlConnection connection, Project project)
+        private int? TryGetProjectIdFromDatabase(SqlConnection connection, ProjectKey project)
         {
             // Key the project off both its path and name.  That way we work properly
             // in host and test scenarios.

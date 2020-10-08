@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,10 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ObjectCreationCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public ObjectCreationCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(ObjectCreationCompletionProvider);
 
@@ -210,7 +207,7 @@ class Program
         D d=  new D(
     }
 }";
-            await VerifyProviderCommitAsync(markup, "D", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "D", expected, '(');
         }
 
         [WorkItem(1090377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
@@ -328,7 +325,7 @@ class C
     }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '(');
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
@@ -357,7 +354,7 @@ class C
     void M2(object o) { }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '(');
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
@@ -382,7 +379,7 @@ class C
     }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '{', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '{');
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
@@ -411,7 +408,7 @@ class C
     void M2(object o) { }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '{', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '{');
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]

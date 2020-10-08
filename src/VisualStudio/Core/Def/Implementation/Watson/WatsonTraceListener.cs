@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 
@@ -11,13 +13,17 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     {
         public override void Fail(string message, string detailMessage)
         {
-            if (!string.IsNullOrEmpty(detailMessage))
+            if (string.IsNullOrEmpty(message))
             {
-                Exit(message + " " + detailMessage);
+                Exit("Assertion failed");
+            }
+            else if (string.IsNullOrEmpty(detailMessage))
+            {
+                Exit(message);
             }
             else
             {
-                Exit(message);
+                Exit(message + " " + detailMessage);
             }
         }
 

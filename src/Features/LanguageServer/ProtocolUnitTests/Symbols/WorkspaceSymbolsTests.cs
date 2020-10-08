@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -156,8 +158,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 Query = query
             };
 
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName,
-                solution, request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(queue, LSP.Methods.WorkspaceSymbolName,
+                request, new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
     }
 }

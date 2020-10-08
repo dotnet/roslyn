@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+#nullable enable annotations
 
 using System;
 using Microsoft.CodeAnalysis.Host;
@@ -38,7 +39,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                         if (_spanMappingService == null)
                         {
                             var razorMappingService = _innerDocumentServiceProvider.GetService<IRazorSpanMappingService>();
-                            _spanMappingService = new RazorSpanMappingServiceWrapper(razorMappingService);
+                            if (razorMappingService != null)
+                            {
+                                _spanMappingService = new RazorSpanMappingServiceWrapper(razorMappingService);
+                            }
+                            else
+                            {
+                                return this as TService;
+                            }
                         }
                     }
                 }
@@ -55,7 +63,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                         if (_excerptService == null)
                         {
                             var excerptService = _innerDocumentServiceProvider.GetService<IRazorDocumentExcerptService>();
-                            _excerptService = new RazorDocumentExcerptServiceWrapper(excerptService);
+                            if (excerptService != null)
+                            {
+                                _excerptService = new RazorDocumentExcerptServiceWrapper(excerptService);
+                            }
+                            else
+                            {
+                                return this as TService;
+                            }
                         }
                     }
                 }

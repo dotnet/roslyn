@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             this.TemporaryFilePath = Path.Combine(rootPath, directoryName, topLevelNamedType.Name + extension);
         }
 
-        public Encoding Encoding => Encoding.UTF8;
+        public static Encoding Encoding => Encoding.UTF8;
 
         /// <summary>
         /// Creates a ProjectInfo to represent the fake project created for metadata as source documents.

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -161,6 +163,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Discard:
                     return IsSymbolAccessibleCore(((DiscardSymbol)symbol).TypeWithAnnotations.Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
+                case SymbolKind.FunctionPointerType:
+                    var funcPtr = (FunctionPointerTypeSymbol)symbol;
+                    if (!IsSymbolAccessibleCore(funcPtr.Signature.ReturnType, within, throughTypeOpt: null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    {
+                        return false;
+                    }
+
+                    foreach (var param in funcPtr.Signature.Parameters)
+                    {
+                        if (!IsSymbolAccessibleCore(param.Type, within, throughTypeOpt: null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+
                 case SymbolKind.ErrorType:
                     // Always assume that error types are accessible.
                     return true;
@@ -174,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Assembly:
                 case SymbolKind.NetModule:
                 case SymbolKind.RangeVariable:
+                case SymbolKind.Method when ((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction:
                     // These types of symbols are always accessible (if visible).
                     return true;
 
@@ -216,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // type parameters are always accessible, so don't check those (so common it's
                     // worth optimizing this).
-                    if (typeArg.Type.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.Type, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (typeArg.DefaultType.TypeKind != TypeKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.Type, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
                         return false;
                     }

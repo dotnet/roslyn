@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -96,7 +94,6 @@ namespace Microsoft.CodeAnalysis
             // but fires up e.g.: `1 + [|2 + 3|]`.
             return beginningNode.Span.End <= selection.Start || endNode.Span.Start >= selection.End;
         }
-
 
         /// <summary>
         /// Trims leading and trailing whitespace from <paramref name="span"/>.

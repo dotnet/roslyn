@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
+
+#if !NETCOREAPP
+using System;
 using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
@@ -26,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public string DefaultExtension => _languageName == LanguageNames.CSharp ? "cs" : "vb";
 
         public int Count => _options.Count;
+
+        public void Set<T>(Option2<T> option, T value)
+            => _options[new OptionKey2(option)] = value;
 
         public void Add<T>(Option2<T> option, T value)
             => _options.Add(new OptionKey2(option), value);

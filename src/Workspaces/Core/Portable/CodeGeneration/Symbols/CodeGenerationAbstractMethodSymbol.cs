@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers modifiers,
             string name,
             ImmutableArray<AttributeData> returnTypeAttributes)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
         }
@@ -39,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IParameterSymbol> Parameters { get; }
         public abstract IMethodSymbol ConstructedFrom { get; }
         public abstract bool IsReadOnly { get; }
+        public abstract bool IsInitOnly { get; }
         public abstract IMethodSymbol OverriddenMethod { get; }
         public abstract IMethodSymbol ReducedFrom { get; }
         public abstract ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter);
@@ -88,6 +92,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public INamedTypeSymbol AssociatedAnonymousDelegate => null;
 
         public bool IsConditional => false;
+
+        public SignatureCallingConvention CallingConvention => SignatureCallingConvention.Default;
+
+        public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => ImmutableArray<INamedTypeSymbol>.Empty;
 
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
             => new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());

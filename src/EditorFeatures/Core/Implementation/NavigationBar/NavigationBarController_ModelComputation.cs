@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// </summary>
         private Task<NavigationBarModel> _modelTask;
         private NavigationBarModel _lastCompletedModel;
-        private CancellationTokenSource _modelTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _modelTaskCancellationSource = new();
 
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         }
 
         private Task<NavigationBarSelectedTypeAndMember> _selectedItemInfoTask;
-        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new();
 
         /// <summary>
         /// Starts a new task to compute what item should be selected.

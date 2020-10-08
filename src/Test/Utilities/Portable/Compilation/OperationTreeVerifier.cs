@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -78,6 +80,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonProperties(operation);
             LogString(" (");
             LogType(operation.InputType, $"{nameof(operation.InputType)}");
+            LogString(", ");
+            LogType(operation.NarrowedType, $"{nameof(operation.NarrowedType)}");
         }
 
         private void LogCommonPropertiesAndNewLine(IOperation operation)
@@ -115,7 +119,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 LogString(", IsImplicit");
             }
-
 
             LogString(")");
 
@@ -766,9 +769,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Operation, "Expression");
         }
 
-        internal override void VisitWith(IWithOperation operation)
+        internal override void VisitWithStatement(IWithStatementOperation operation)
         {
-            LogString(nameof(IWithOperation));
+            LogString(nameof(IWithStatementOperation));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value, "Value");
@@ -965,7 +968,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 if (operation.Parent is IMemberReferenceOperation memberReference && memberReference.Instance == operation)
                 {
-                    Assert.False(memberReference.Member.IsStatic);
+                    Assert.False(memberReference.Member.IsStatic && !operation.HasErrors(this._compilation));
                 }
                 else if (operation.Parent is IInvocationOperation invocation && invocation.Instance == operation)
                 {
@@ -1786,8 +1789,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitNegatedPattern(INegatedPatternOperation operation)
         {
             LogString(nameof(INegatedPatternOperation));
-            Visit(operation.NegatedPattern, "NegatedPattern");
             LogPatternPropertiesAndNewLine(operation);
+            Visit(operation.Pattern, "Pattern");
         }
 
         public override void VisitBinaryPattern(IBinaryPatternOperation operation)
@@ -1972,6 +1975,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
             Visit(operation.Operand, "Operand");
             VisitArray(operation.DimensionSizes, "DimensionSizes", logElementCount: true);
+        }
+
+        public override void VisitWith(IWithOperation operation)
+        {
+            LogString(nameof(IWithOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.Operand, "Operand");
+            Indent();
+            LogSymbol(operation.CloneMethod, nameof(operation.CloneMethod));
+            LogNewLine();
+            Unindent();
+            Visit(operation.Initializer, "Initializer");
         }
 
         #endregion

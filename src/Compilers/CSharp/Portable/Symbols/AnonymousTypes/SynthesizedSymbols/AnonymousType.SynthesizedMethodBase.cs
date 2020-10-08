@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -125,6 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // methods on classes are never 'readonly'
             internal sealed override bool IsDeclaredReadOnly => false;
+
+            internal sealed override bool IsInitOnly => false;
 
             public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
             {

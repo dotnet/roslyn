@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <summary>Diagnostic category "Performance".</summary>
         private const string PerformanceCategory = "Performance";
 
-        private readonly static LocalizableString s_localizableTitle = "Boxing";
-        private readonly static LocalizableString s_localizableMessage = "Boxing is expensive";
+        private static readonly LocalizableString s_localizableTitle = "Boxing";
+        private static readonly LocalizableString s_localizableMessage = "Boxing is expensive";
 
         /// <summary>The diagnostic descriptor used when boxing is detected.</summary>
         public static readonly DiagnosticDescriptor BoxingDescriptor = new DiagnosticDescriptor(

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         protected readonly int BackOffTimeSpanInMS;
 
         // points to processor task
-        private Task _processorTask;
+        private Task? _processorTask;
 
         // there is one thread that writes to it and one thread reads from it
         private int _lastAccessTimeInMS;
@@ -41,10 +41,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         protected void Start()
         {
-            if (_processorTask == null)
-            {
-                _processorTask = Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken, TaskScheduler.Default);
-            }
+            Contract.ThrowIfFalse(_processorTask == null);
+            _processorTask = Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken, TaskScheduler.Default);
         }
 
         protected void UpdateLastAccessTime()
@@ -82,24 +80,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         private async Task ProcessAsync()
         {
-            while (true)
+            while (!CancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    if (CancellationToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
-
                     // wait for next item available
-                    await WaitAsync(CancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                    await WaitAsync(CancellationToken).ConfigureAwait(false);
 
                     using (Listener.BeginAsyncOperation("ProcessAsync"))
                     {
                         // we have items but workspace is busy. wait for idle.
-                        await WaitForIdleAsync(Listener).ConfigureAwait(continueOnCapturedContext: false);
+                        await WaitForIdleAsync(Listener).ConfigureAwait(false);
 
-                        await ExecuteAsync().ConfigureAwait(continueOnCapturedContext: false);
+                        await ExecuteAsync().ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException)
@@ -110,16 +103,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public virtual Task AsyncProcessorTask
-        {
-            get
-            {
-                if (_processorTask == null)
-                {
-                    return Task.CompletedTask;
-                }
-
-                return _processorTask;
-            }
-        }
+            => _processorTask ?? Task.CompletedTask;
     }
 }

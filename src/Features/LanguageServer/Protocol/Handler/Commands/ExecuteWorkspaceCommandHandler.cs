@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,12 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(LSP.Methods.WorkspaceExecuteCommandName)]
+    [ExportLspMethod(LSP.Methods.WorkspaceExecuteCommandName, mutatesSolutionState: false)]
     internal class ExecuteWorkspaceCommandHandler : IRequestHandler<LSP.ExecuteCommandParams, object>
     {
         private readonly ImmutableDictionary<string, Lazy<IExecuteWorkspaceCommandHandler, IExecuteWorkspaceCommandHandlerMetadata>> _executeCommandHandlers;
@@ -39,12 +38,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return requestHandlerDictionary.ToImmutable();
         }
 
+        public virtual TextDocumentIdentifier? GetTextDocumentIdentifier(ExecuteCommandParams request) => null;
+
         /// <summary>
         /// Handles an <see cref="LSP.Methods.WorkspaceExecuteCommand"/>
         /// by delegating to a handler for the specific command requested.
         /// </summary>
-        public Task<object> HandleRequestAsync(Solution solution, LSP.ExecuteCommandParams request, LSP.ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var commandName = request.Command;
             if (string.IsNullOrEmpty(commandName) || !_executeCommandHandlers.TryGetValue(commandName, out var executeCommandHandler))
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 throw new ArgumentException(string.Format("Command name ({0}) is invalid", commandName));
             }
 
-            return executeCommandHandler.Value.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken);
+            return executeCommandHandler.Value.HandleRequestAsync(request, context, cancellationToken);
         }
     }
 }

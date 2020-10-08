@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -514,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             return seenTopLevelForwardedTypes;
         }
-#nullable restore
+#nullable disable
 
         private void ReportExportedTypeNameCollisions(ImmutableArray<Cci.ExportedType> exportedTypes, DiagnosticBag diagnostics)
         {
@@ -647,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 stack.Free();
             }
         }
-#nullable restore
+#nullable disable
 
         internal IEnumerable<AssemblySymbol> GetReferencedAssembliesUsedSoFar()
         {
@@ -1020,6 +1022,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 case SymbolKind.TypeParameter:
                     return Translate((TypeParameterSymbol)typeSymbol);
+
+                case SymbolKind.FunctionPointerType:
+                    return Translate((FunctionPointerTypeSymbol)typeSymbol);
             }
 
             throw ExceptionUtilities.UnexpectedValue(typeSymbol.Kind);
@@ -1387,6 +1392,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return symbol;
         }
 
+        internal static Cci.IFunctionPointerTypeReference Translate(FunctionPointerTypeSymbol symbol)
+        {
+            return symbol;
+        }
+
         /// <summary>
         /// Set the underlying implementation type for a given fixed-size buffer field.
         /// </summary>
@@ -1548,6 +1558,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor, arguments, isOptionalUse: true);
         }
 
+        internal SynthesizedAttributeData SynthesizePreserveBaseOverridesAttribute()
+        {
+            return Compilation.TrySynthesizeAttribute(SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor, isOptionalUse: true);
+        }
+
         internal SynthesizedAttributeData SynthesizeNativeIntegerAttribute(Symbol symbol, TypeSymbol type)
         {
             Debug.Assert((object)type != null);
@@ -1559,19 +1574,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            if (type.IsNativeIntegerType)
+            var builder = ArrayBuilder<bool>.GetInstance();
+            CSharpCompilation.NativeIntegerTransformsEncoder.Encode(builder, type);
+
+            Debug.Assert(builder.Any());
+            Debug.Assert(builder.Contains(true));
+
+            SynthesizedAttributeData attribute;
+            if (builder.Count == 1 && builder[0])
             {
-                return SynthesizeNativeIntegerAttribute(WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor, ImmutableArray<TypedConstant>.Empty);
+                attribute = SynthesizeNativeIntegerAttribute(WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor, ImmutableArray<TypedConstant>.Empty);
             }
             else
             {
                 NamedTypeSymbol booleanType = Compilation.GetSpecialType(SpecialType.System_Boolean);
                 Debug.Assert((object)booleanType != null);
-                var transformFlags = CSharpCompilation.NativeIntegerTransformsEncoder.Encode(type, booleanType);
+                var transformFlags = builder.SelectAsArray((flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), booleanType);
                 var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeWithAnnotations.Create(booleanType));
                 var arguments = ImmutableArray.Create(new TypedConstant(boolArray, transformFlags));
-                return SynthesizeNativeIntegerAttribute(WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags, arguments);
+                attribute = SynthesizeNativeIntegerAttribute(WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags, arguments);
             }
+
+            builder.Free();
+            return attribute;
         }
 
         internal virtual SynthesizedAttributeData SynthesizeNativeIntegerAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)

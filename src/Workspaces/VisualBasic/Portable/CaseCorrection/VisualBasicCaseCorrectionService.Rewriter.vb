@@ -124,6 +124,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                                     Return CaseCorrectIdentifierIfNamesDiffer(token, newToken, otherPartParam, namesMustBeEqualIgnoringCase:=True)
                                 End If
                             End If
+                        Else
+                            ' Named tuple expression
+                            Dim nameColonEquals = TryCast(token.Parent?.Parent, NameColonEqualsSyntax)
+                            If nameColonEquals IsNot Nothing AndAlso TypeOf nameColonEquals.Parent?.Parent Is TupleExpressionSyntax Then
+                                Return newToken
+                            End If
                         End If
                     End If
                 End If
@@ -255,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                 Return token
             End Function
 
-            Private Function VisitNumericLiteral(token As SyntaxToken) As SyntaxToken
+            Private Shared Function VisitNumericLiteral(token As SyntaxToken) As SyntaxToken
                 If Not token.IsMissing Then
 
                     ' For any numeric literal, we simply case correct any letters to uppercase.
@@ -276,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                 Return token
             End Function
 
-            Private Function VisitCharacterLiteral(token As SyntaxToken) As SyntaxToken
+            Private Shared Function VisitCharacterLiteral(token As SyntaxToken) As SyntaxToken
                 If Not token.IsMissing Then
 
                     ' For character literals, we case correct the type character to "c".

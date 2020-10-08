@@ -454,7 +454,8 @@ End Namespace
                 Dim symbol = comp.GetSpecialType(special)
                 Assert.NotNull(symbol)
 
-                If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature Then
+                If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
+                   special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
                 Else
                     Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
@@ -482,7 +483,10 @@ End Namespace
 
                 Dim symbol = comp.GetSpecialTypeMember(special)
 
-                If special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces Then
+                If special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
@@ -538,6 +542,8 @@ End Namespace
                          WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
+                        WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_MemoryExtensions
                         ' Not available on all platforms.
                         Continue For
@@ -603,6 +609,8 @@ End Namespace
                          WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
+                        WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_MemoryExtensions
                         ' Not available on all platforms.
                         Continue For

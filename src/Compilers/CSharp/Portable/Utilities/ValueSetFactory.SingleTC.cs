@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 
@@ -20,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             float INumericTC<float>.MaxValue => float.PositiveInfinity;
 
             float FloatingTC<float>.NaN => float.NaN;
+
+            float INumericTC<float>.Zero => 0;
 
             /// <summary>
             /// The implementation of Next depends critically on the internal representation of an IEEE floating-point
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UintAsFloat(FloatAsUint(value) + 1);
             }
 
-            private unsafe static uint FloatAsUint(float d)
+            private static unsafe uint FloatAsUint(float d)
             {
                 if (d == 0)
                     return 0;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return *lp;
             }
 
-            private unsafe static float UintAsFloat(uint l)
+            private static unsafe float UintAsFloat(uint l)
             {
                 uint* lp = &l;
                 float* dp = (float*)lp;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            float INumericTC<float>.FromConstantValue(ConstantValue constantValue) => constantValue.SingleValue;
+            float INumericTC<float>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0.0F : constantValue.SingleValue;
 
             ConstantValue INumericTC<float>.ToConstantValue(float value) => ConstantValue.Create(value);
 

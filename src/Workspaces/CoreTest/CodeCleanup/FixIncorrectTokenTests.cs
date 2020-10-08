@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
@@ -797,7 +799,7 @@ End Module
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+            return project.AddMetadataReference(TestMetadata.Net451.mscorlib)
                           .AddDocument("Document", SourceText.From(code));
         }
     }

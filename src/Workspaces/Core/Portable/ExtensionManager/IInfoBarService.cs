@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Extensions
 
     internal struct InfoBarUI
     {
-        public readonly string Title;
+        public readonly string? Title;
         public readonly UIKind Kind;
         public readonly Action Action;
         public readonly bool CloseAfterAction;
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Extensions
             CloseAfterAction = closeAfterAction;
         }
 
+        [MemberNotNullWhen(false, nameof(Title))]
         public bool IsDefault => Title == null;
 
         internal enum UIKind

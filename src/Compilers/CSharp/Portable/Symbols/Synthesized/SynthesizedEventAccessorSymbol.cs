@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly object _methodChecksLockObject = new object();
 
         internal SynthesizedEventAccessorSymbol(SourceEventSymbol @event, bool isAdder, EventSymbol explicitlyImplementedEventOpt = null, string aliasQualifierOpt = null)
-            : base(@event, null, @event.Locations, explicitlyImplementedEventOpt, aliasQualifierOpt, isAdder)
+            : base(@event, null, @event.Locations, explicitlyImplementedEventOpt, aliasQualifierOpt, isAdder, isIterator: false)
         {
         }
 

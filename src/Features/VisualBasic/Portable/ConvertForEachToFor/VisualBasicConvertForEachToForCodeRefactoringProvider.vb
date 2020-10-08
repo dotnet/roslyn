@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
             Return forEachBlock.Statements.Insert(0, DirectCast(variableStatement, StatementSyntax))
         End Function
 
-        Private Sub GetVariableNameAndType(
+        Private Shared Sub GetVariableNameAndType(
             forEachStatement As ForEachStatementSyntax, ByRef foreachVariable As SyntaxNode, ByRef type As SyntaxNode)
 
             Dim controlVariable = forEachStatement.ControlVariable

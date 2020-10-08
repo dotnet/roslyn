@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -28,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         protected override bool CanParseSubmission(string code)
         {
             ParseOptions options = CSharpParseOptions.Default.WithKind(SourceCodeKind.Script);
-            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(code, options);
+            var tree = SyntaxFactory.ParseSyntaxTree(code, options);
             return tree.HasCompilationUnitRoot &&
                 !tree.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         }
 
         protected override IEnumerable<TextSpan> GetExecutableSyntaxTreeNodeSelection(TextSpan selectionSpan, SyntaxNode root)
         {
-            SyntaxNode expandedNode = GetSyntaxNodeForSubmission(selectionSpan, root);
+            var expandedNode = GetSyntaxNodeForSubmission(selectionSpan, root);
             return expandedNode != null
                 ? new TextSpan[] { expandedNode.Span }
                 : Array.Empty<TextSpan>();
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         /// </summary>
         /// <param name="selectionSpan">Selection that user has originally made.</param>
         /// <param name="root">Root of the syntax tree.</param>
-        private SyntaxNode GetSyntaxNodeForSubmission(TextSpan selectionSpan, SyntaxNode root)
+        private static SyntaxNode GetSyntaxNodeForSubmission(TextSpan selectionSpan, SyntaxNode root)
         {
             GetSelectedTokens(selectionSpan, root, out var startToken, out var endToken);
 
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                 || node.IsKind(SyntaxKind.UsingDirective);
         }
 
-        private void GetSelectedTokens(
+        private static void GetSelectedTokens(
             TextSpan selectionSpan,
             SyntaxNode root,
             out SyntaxToken startToken,

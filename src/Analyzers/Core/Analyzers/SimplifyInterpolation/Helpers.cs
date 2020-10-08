@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -90,7 +88,14 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     return;
                 }
 
-                if (invocation.Arguments.Length == 0)
+                var method = invocation.TargetMethod;
+                while (method.OverriddenMethod != null)
+                {
+                    method = method.OverriddenMethod;
+                }
+
+                if (method.ContainingType.SpecialType == SpecialType.System_Object &&
+                    method.Name == nameof(ToString))
                 {
                     // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
                     // Just remove entirely.

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -2174,7 +2175,6 @@ public class D { }
         }]]>
         </Document>
     </Project>
-
     <Project Language="C#" AssemblyName="ClassLibrary2" CommonReferences="true">
         <ProjectReference>ClassLibrary1</ProjectReference>
         <Document><![CDATA[
@@ -2309,6 +2309,174 @@ public class D { }
                 public static {|AdditionalProperty.ContainingMemberInfo.M2:[|Class1|]|} M2() => new {|AdditionalProperty.ContainingMemberInfo.M2:[|Class1|]|}();
             }
         }]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~T:N.[|C|]")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:N.[|C|].M")]
+
+namespace N
+{
+    class {|Definition:$$C|}
+    {
+        void M()
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeReferenceInGlobalSuppression_NestedType(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~T:N.C1.[|C2|]")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:N.C1.[|C2|].M")]
+
+namespace N
+{
+    class C1
+    {
+        private class {|Definition:$$C2|}
+        {
+            void M()
+            {
+            }
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeReferenceInGlobalSuppression_GenericType(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~T:N.[|C|]`1")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:N.[|C|]`1.M")]
+
+namespace N
+{
+    class {|Definition:$$C|}<T>
+    {
+        void M()
+        {
+        }
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem(44401, "https://github.com/dotnet/roslyn/issues/44401")>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44401")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeReferenceInGlobalSuppressionParameter(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:N.D.M(N.[|C|])")]
+
+namespace N
+{
+    class D
+    {
+        void M([|C|] c)
+        {
+        }
+    }
+
+    class {|Definition:$$C|}
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem(44401, "https://github.com/dotnet/roslyn/issues/44401")>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44401")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeReferenceInGlobalSuppressionParameter_GenericType(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:N.D.M(N.[|C|]{System.Int32})")]
+
+namespace N
+{
+    class D
+    {
+        void M([|C|]<int> c)
+        {
+        }
+    }
+
+    class {|Definition:$$C|}<T>
+    {
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem(44401, "https://github.com/dotnet/roslyn/issues/44401")>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44401")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeReferenceInGlobalSuppressionTypeParameter_GenericType(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:N.[|D|].M(N.C{N.[|D|]})")]
+
+namespace N
+{
+    class {|Definition:$$D|}
+    {
+        void M(C<[|D|]> c)
+        {
+        }
+    }
+
+    class C<T>
+    {
+    }
+}]]>
         </Document>
     </Project>
 </Workspace>

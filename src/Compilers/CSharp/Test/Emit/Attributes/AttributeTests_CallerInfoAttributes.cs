@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -389,7 +391,7 @@ message: something happened
 line: 13
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1133,7 +1135,7 @@ name: LocalFunctionCaller
             var compilation = CreateCompilation(
                 source,
                 options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1179,7 +1181,7 @@ name: LocalFunctionCaller
             var compilation = CreateCompilation(
                 source,
                 options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1228,7 +1230,7 @@ name: LocalFunctionCaller
             var compilation = CreateCompilation(
                 source,
                 options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1696,7 +1698,7 @@ partial class A
             var compilation = CreateCompilation(
                 new[]
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview, path: @"C:\filename", encoding: Encoding.UTF8)
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Regular9, path: @"C:\filename", encoding: Encoding.UTF8)
                 },
                 options: TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default));
 

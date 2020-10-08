@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -35,8 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
     internal partial class CSharpCodeCleanUpFixer : CodeCleanUpFixer
     {
-        private const string RemoveUnusedImportsFixId = "RemoveUnusedImportsFixId";
-        private const string SortImportsFixId = "SortImportsFixId";
+        private const string FormatDocumentFixId = nameof(FormatDocumentFixId);
+        private const string RemoveUnusedImportsFixId = nameof(RemoveUnusedImportsFixId);
+        private const string SortImportsFixId = nameof(SortImportsFixId);
 
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
@@ -139,8 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private Task<bool> FixSolutionAsync(Solution solution, ICodeCleanUpExecutionContext context)
         {
-            var solutionName = Path.GetFileName(solution.FilePath);
-            return FixAsync(solution.Workspace, ApplyFixAsync, context, solutionName);
+            return FixAsync(solution.Workspace, ApplyFixAsync, context);
 
             // Local function
             Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -151,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private Task<bool> FixProjectAsync(Project project, ICodeCleanUpExecutionContext context)
         {
-            return FixAsync(project.Solution.Workspace, ApplyFixAsync, context, project.Name);
+            return FixAsync(project.Solution.Workspace, ApplyFixAsync, context);
 
             // Local function
             async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -163,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private Task<bool> FixDocumentAsync(Document document, ICodeCleanUpExecutionContext context)
         {
-            return FixAsync(document.Project.Solution.Workspace, ApplyFixAsync, context, document.Name);
+            return FixAsync(document.Project.Solution.Workspace, ApplyFixAsync, context);
 
             // Local function
             async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -182,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return SpecializedTasks.False;
             }
 
-            return FixAsync(buffer.GetWorkspace(), ApplyFixAsync, context, document.Name);
+            return FixAsync(buffer.GetWorkspace(), ApplyFixAsync, context);
 
             // Local function
             async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -196,8 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private async Task<bool> FixAsync(
             Workspace workspace,
             Func<ProgressTracker, CancellationToken, Task<Solution>> applyFixAsync,
-            ICodeCleanUpExecutionContext context,
-            string contextName)
+            ICodeCleanUpExecutionContext context)
         {
             using (var scope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
             {
@@ -326,9 +327,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 }
             }
 
+            var isFormatDocumentEnabled = enabledFixIds.IsFixIdEnabled(FormatDocumentFixId);
             var isRemoveUnusedUsingsEnabled = enabledFixIds.IsFixIdEnabled(RemoveUnusedImportsFixId);
             var isSortUsingsEnabled = enabledFixIds.IsFixIdEnabled(SortImportsFixId);
-            var enabledDiagnostics = new EnabledDiagnosticOptions(enabedDiagnosticSets.ToImmutableArray(),
+            var enabledDiagnostics = new EnabledDiagnosticOptions(
+                isFormatDocumentEnabled,
+                enabedDiagnosticSets.ToImmutableArray(),
                 new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
 
             return await codeCleanupService.CleanupAsync(

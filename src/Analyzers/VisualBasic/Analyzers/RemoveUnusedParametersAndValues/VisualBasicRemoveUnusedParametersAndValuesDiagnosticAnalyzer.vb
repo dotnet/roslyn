@@ -20,6 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
                        LanguageNames.VisualBasic)
         End Sub
 
+        Protected Overrides Function IsRecordDeclaration(node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function SupportsDiscard(tree As SyntaxTree) As Boolean
             Return False
         End Function

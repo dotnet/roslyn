@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -50,7 +52,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         InlineData("testfield", false, WorkspaceKind.SingleClassWithSingleField, new string[0]),
         InlineData("TestField", true, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
         InlineData("TestField", false, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
-
 
         InlineData("testcase", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases.TestCase" }),
         InlineData("testcase", false, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new string[0]),
@@ -118,10 +119,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
-                cts.Cancel();
                 var project = GetProject(WorkspaceKind.SingleClass);
-                var declarations = await SymbolFinder.FindDeclarationsAsync(project, "Test", true, SymbolFilter.All, cts.Token);
+                var declarations = await SymbolFinder.FindDeclarationsAsync(project, "Test", true, SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -216,7 +215,6 @@ Inner i;
          InlineData("TestField", true, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
          InlineData("TestField", false, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
 
-
          InlineData("testcase", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases.TestCase" }),
          InlineData("testcase", false, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new string[0]),
          InlineData("testcases", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases" }),
@@ -283,10 +281,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var project = GetProject(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, "Test", true, SymbolFilter.All, cts.Token);
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, "Test", true, SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -323,7 +319,6 @@ Inner i;
          InlineData("testfield", false, WorkspaceKind.SingleClassWithSingleField, new string[0]),
          InlineData("TestField", true, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
          InlineData("TestField", false, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
-
 
          InlineData("testcase", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases.TestCase", "TestCases.TestCase" }),
          InlineData("testcase", false, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new string[0]),
@@ -391,10 +386,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var solution = GetSolution(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, "Test", true, SymbolFilter.All, cts.Token);
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, "Test", true, SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -460,10 +453,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var project = GetProject(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test"), SymbolFilter.All, cts.Token);
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test"), SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -529,10 +520,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var solution = GetSolution(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                await SymbolFinder.FindSourceDeclarationsAsync(solution, str => str.Contains("Test"), SymbolFilter.All, cts.Token);
+                await SymbolFinder.FindSourceDeclarationsAsync(solution, str => str.Contains("Test"), SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -595,10 +584,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var project = GetProject(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project, "test", SymbolFilter.All, cts.Token);
+                var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project, "test", SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -661,10 +648,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var solution = GetSolution(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                await SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, "test", SymbolFilter.All, cts.Token);
+                await SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, "test", SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -688,8 +673,7 @@ Inner i;
 
             using var readerStream = new MemoryStream(writerStream.ToArray());
             using var reader = ObjectReader.TryGetReader(readerStream);
-            var readInfo = SymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(
-reader, Checksum.Null);
+            var readInfo = SymbolTreeInfo.TestAccessor.ReadSymbolTreeInfo(reader, Checksum.Null);
 
             info.AssertEquivalentTo(readInfo);
         }

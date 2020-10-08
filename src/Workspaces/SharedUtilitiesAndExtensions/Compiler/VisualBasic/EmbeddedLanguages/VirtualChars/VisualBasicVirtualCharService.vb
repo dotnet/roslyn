@@ -32,8 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
                 Return TryConvertSimpleDoubleQuoteString(token, """", """", escapeBraces:=False)
             End If
 
-            If token.Kind() = SyntaxKind.InterpolatedStringTextToken AndAlso
-               TypeOf token.Parent.Parent Is InterpolatedStringExpressionSyntax Then
+            If token.Kind() = SyntaxKind.InterpolatedStringTextToken Then
                 Return TryConvertSimpleDoubleQuoteString(token, "", "", escapeBraces:=True)
             End If
 

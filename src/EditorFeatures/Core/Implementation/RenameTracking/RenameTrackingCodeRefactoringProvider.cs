@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -34,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         {
             var (document, span, cancellationToken) = context;
 
-            var action = RenameTrackingTaggerProvider.TryGetCodeAction(
+            var (action, renameSpan) = RenameTrackingTaggerProvider.TryGetCodeAction(
                 document, span, _refactorNotifyServices, _undoHistoryRegistry, cancellationToken);
 
             if (action != null)
-                context.RegisterRefactoring(action);
+                context.RegisterRefactoring(action, renameSpan);
 
             return Task.CompletedTask;
         }

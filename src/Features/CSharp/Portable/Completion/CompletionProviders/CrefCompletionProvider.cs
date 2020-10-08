@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(
                 parentNode, cancellationToken).ConfigureAwait(false);
 
             var symbols = GetSymbols(token, semanticModel, cancellationToken)
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ch => CompletionUtilities.IsWordCharacter(ch) || ch == '{' || ch == '}');
         }
 
-        private IEnumerable<CompletionItem> CreateCompletionItems(
+        private static IEnumerable<CompletionItem> CreateCompletionItems(
             SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position, ImmutableDictionary<string, string> options)
         {
             var builder = SharedPools.Default<StringBuilder>().Allocate();
@@ -289,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private bool TryCreateSpecialTypeItem(
+        private static bool TryCreateSpecialTypeItem(
             SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder,
             ImmutableDictionary<string, string> options, out CompletionItem item)
         {
@@ -306,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private CompletionItem CreateItem(
+        private static CompletionItem CreateItem(
             SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
         {
             // For every symbol, we create an item that uses the regular CrefFormat,
@@ -314,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CreateItem(semanticModel, symbol, token, position, builder, options, CrefFormat);
         }
 
-        private CompletionItem CreateItem(
+        private static CompletionItem CreateItem(
             SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options,
             SymbolDisplayFormat unqualifiedCrefFormat)
         {
@@ -369,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CreateItemFromBuilder(symbol, position, builder, options);
         }
 
-        private CompletionItem CreateItemFromBuilder(ISymbol symbol, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
+        private static CompletionItem CreateItemFromBuilder(ISymbol symbol, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
         {
             var symbolText = builder.ToString();
 
@@ -385,6 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: position,
                 sortText: symbolText,
+                filterText: insertionText,
                 properties: options,
                 rules: GetRules(insertionText));
         }
@@ -392,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CharacterSetModificationRule s_WithoutOpenBrace = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '{');
         private static readonly CharacterSetModificationRule s_WithoutOpenParen = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '(');
 
-        private CompletionItemRules GetRules(string displayText)
+        private static CompletionItemRules GetRules(string displayText)
         {
             var commitRules = ImmutableArray<CharacterSetModificationRule>.Empty;
 

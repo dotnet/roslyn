@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,10 +12,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -24,46 +24,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
     [UseExportProvider]
     public partial class SymbolCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public SymbolCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(SymbolCompletionProvider);
 
-        protected override ComposableCatalog GetExportCatalog()
-            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task EmptyFile()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        public async Task EmptyFile(SourceCodeKind sourceCodeKind)
         {
-            await VerifyItemIsAbsentAsync(@"$$", @"String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular);
-            await VerifyItemIsAbsentAsync(@"$$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(@"$$", @"String", expectedDescriptionOrNull: null, sourceCodeKind: sourceCodeKind);
+            await VerifyItemExistsAsync(@"$$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: sourceCodeKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task EmptyFile_Interactive()
-        {
-            await VerifyItemIsAbsentAsync(@"$$", @"String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-            await VerifyItemExistsAsync(@"$$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task EmptyFileWithUsing()
-        {
-            await VerifyItemIsAbsentAsync(@"using System;
-$$", @"String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular);
-            await VerifyItemIsAbsentAsync(@"using System;
-$$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task EmptyFileWithUsing_Interactive()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        public async Task EmptyFileWithUsing(SourceCodeKind sourceCodeKind)
         {
             await VerifyItemExistsAsync(@"using System;
-$$", @"String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+$$", @"String", expectedDescriptionOrNull: null, sourceCodeKind: sourceCodeKind);
             await VerifyItemExistsAsync(@"using System;
-$$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+$$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: sourceCodeKind);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -526,7 +510,6 @@ namespace A
 
 namespace A.B.C3 { }";
 
-
             // Ideally, all the C* namespaces would be recommended but, because of how the parser
             // recovers from the missing braces, they end up with the following qualified names...
             //
@@ -632,7 +615,7 @@ namespace A.$$
         {
             var source = @"name$$space System { }";
 
-            await VerifyItemIsAbsentAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -1310,7 +1293,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
         public async Task PositionalPatternSecondPosition()
         {
@@ -2281,7 +2264,14 @@ class Q
     }
 }
 $$"; // At EOF
-            await VerifyItemIsAbsentAsync(markup, "Q", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular);
+
+            // Top-level statements are not allowed to follow classes, but we still offer it in completion for a few
+            // reasons:
+            //
+            // 1. The code is simpler
+            // 2. It's a relatively rare coding practice to define types outside of namespaces
+            // 3. It allows the compiler to produce a better error message when users type things in the wrong order
+            await VerifyItemExistsAsync(markup, "Q", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular);
             await VerifyItemIsAbsentAsync(markup, "R", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular);
         }
 
@@ -7468,6 +7458,7 @@ class C
 
         [WorkItem(635957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TildeOutsideClass()
         {
             var markup = @"
@@ -7478,7 +7469,8 @@ class C
     }
 }
 ~$$";
-            await VerifyNoItemsExistAsync(markup, SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(markup, "C");
+            await VerifyItemIsAbsentAsync(markup, "N");
         }
 
         [WorkItem(635957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
@@ -8078,7 +8070,7 @@ class A
 
         [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task WithinChainOfConditionalAccesses()
+        public async Task WithinChainOfConditionalAccesses1()
         {
             var markup = @"
 class Program
@@ -8095,6 +8087,48 @@ class B { public C c; }
 class C { public D d; }
 class D { public int e; }";
             await VerifyItemExistsAsync(markup, "b");
+        }
+
+        [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithinChainOfConditionalAccesses2()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a;
+        var x = a?.b?.$$c?.d.e;
+    }
+}
+
+class A { public B b; }
+class B { public C c; }
+class C { public D d; }
+class D { public int e; }";
+            await VerifyItemExistsAsync(markup, "c");
+        }
+
+        [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithinChainOfConditionalAccesses3()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a;
+        var x = a?.b?.c?.$$d.e;
+    }
+}
+
+class A { public B b; }
+class B { public C c; }
+class C { public D d; }
+class D { public int e; }";
+            await VerifyItemExistsAsync(markup, "d");
         }
 
         [WorkItem(843466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843466")]
@@ -9296,7 +9330,6 @@ class A {
             await VerifyItemExistsAsync(markup, "s_abc");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersInFieldLikeEventInitializer()
         {
@@ -9546,7 +9579,7 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task NoCompletionInLocalFuncGenericParamList()
         {
@@ -9562,7 +9595,7 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task CompletionForAwaitWithoutAsync()
         {
@@ -9620,7 +9653,6 @@ class C
 }", "C");
         }
 
-
         [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TupleTypeInForeach()
@@ -9634,7 +9666,6 @@ class C
     }
 }", "C");
         }
-
 
         [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -9666,7 +9697,7 @@ class C
         [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription()
         {
             await VerifyItemExistsAsync(@"
@@ -9684,7 +9715,7 @@ class C
         [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription2()
         {
             await VerifyItemExistsAsync(@"
@@ -10684,7 +10715,7 @@ public class C
         [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionInStaticMethod()
         {
             await VerifyItemExistsAsync(@"
@@ -10697,6 +10728,24 @@ class C
         $$
     }
 }", "Local");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1152109, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1152109")]
+        public async Task NoItemWithEmptyDisplayName()
+        {
+            var markup = @"
+class C
+{
+    static void M()
+    {
+        int$$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(
+                markup, "",
+                matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class CompletionHelper
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
-             new Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher>();
+             new();
 
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
         private readonly bool _isCaseSensitive;
 
         public CompletionHelper(bool isCaseSensitive)
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return GetMatchWorker(completionItemText, pattern, culture, includeMatchSpans);
         }
 
-        private PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
+        private static PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
             => value.MatchedSpans.IsDefaultOrEmpty
                 ? value
                 : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
@@ -282,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         // If they both seemed just as good, but they differ on preselection, then
         // item1 is better if it is preselected, otherwise it is worse.
-        private int ComparePreselection(CompletionItem item1, CompletionItem item2)
+        private static int ComparePreselection(CompletionItem item1, CompletionItem item2)
             => (item1.Rules.MatchPriority != MatchPriority.Preselect).CompareTo(item2.Rules.MatchPriority != MatchPriority.Preselect);
 
         private static int CompareExpandedItem(CompletionItem item1, PatternMatch match1, CompletionItem item2, PatternMatch match2)

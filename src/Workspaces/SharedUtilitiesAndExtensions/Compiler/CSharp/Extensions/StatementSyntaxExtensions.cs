@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,10 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (statement != null)
             {
                 var nextToken = statement.GetLastToken().GetNextToken();
-                return nextToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => s.Parent == statement.Parent);
+                return nextToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => s.Parent == statement.Parent || AreInSiblingTopLevelStatements(s, statement));
             }
 
             return null;
+
+            static bool AreInSiblingTopLevelStatements(StatementSyntax one, StatementSyntax other)
+            {
+                return one.IsParentKind(SyntaxKind.GlobalStatement) &&
+                    other.IsParentKind(SyntaxKind.GlobalStatement);
+            }
         }
     }
 }

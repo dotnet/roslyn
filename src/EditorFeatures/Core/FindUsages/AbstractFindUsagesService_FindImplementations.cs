@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -51,25 +49,20 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // results as it finds them.  When we hear about results we'll forward them to
                 // the 'progress' parameter which will then update the UI.
                 var serverCallback = new FindUsagesServerCallback(solution, context);
+                var symbolAndProjectId = SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken);
 
-                var success = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubService.CodeAnalysis,
-                    nameof(IRemoteFindUsagesService.FindImplementationsAsync),
+                await client.TryInvokeAsync<IRemoteFindUsagesService>(
                     solution,
-                    new object[]
-                    {
-                        SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
-                    },
+                    (service, solutionInfo, cancellationToken) => service.FindImplementationsAsync(solutionInfo, symbolAndProjectId, cancellationToken),
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
-
-                if (success)
-                    return;
             }
-
-            // Couldn't effectively search in OOP. Perform the search in-process.
-            await FindImplementationsInCurrentProcessAsync(
-                symbol, project, context).ConfigureAwait(false);
+            else
+            {
+                // Couldn't effectively search in OOP. Perform the search in-process.
+                await FindImplementationsInCurrentProcessAsync(
+                    symbol, project, context).ConfigureAwait(false);
+            }
         }
 
         private static async Task FindImplementationsInCurrentProcessAsync(

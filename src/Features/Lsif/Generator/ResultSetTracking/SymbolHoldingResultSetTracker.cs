@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable annotations
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                         return new Id<T>(existingId.Value.NumericId);
                     }
 
-                    T vertex = vertexCreator();
+                    var vertex = vertexCreator();
                     _edgeKindToVertexId.Add(edgeKind, vertex.GetId().As<T, Vertex>());
 
                     lsifJsonWriter.Write(vertex);

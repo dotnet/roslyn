@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
         <[UseExportProvider]>
@@ -998,7 +997,6 @@ Class SomeOtherClass
     End Sub
 End Class</text>
 
-
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
@@ -1354,7 +1352,6 @@ Namespace N
 End Namespace</text>
                 Await TestSelectionAsync(code)
             End Function
-
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestQualifiedNameInsideArrayCreationExpression() As Task

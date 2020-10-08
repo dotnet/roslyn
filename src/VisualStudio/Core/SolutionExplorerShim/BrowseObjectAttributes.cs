@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.LanguageServices.SolutionExplorer;
 using System;
 using System.ComponentModel;
@@ -36,6 +38,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return base.DisplayName;
             }
         }
-
     }
 }

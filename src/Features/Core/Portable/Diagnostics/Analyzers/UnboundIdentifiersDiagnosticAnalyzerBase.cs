@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest.ToArray());
         }
 
-        protected DiagnosticDescriptor GetDiagnosticDescriptor(string id, LocalizableString messageFormat)
+        protected static DiagnosticDescriptor GetDiagnosticDescriptor(string id, LocalizableString messageFormat)
         {
             // it is not configurable diagnostic, title doesn't matter
             return new DiagnosticDescriptor(

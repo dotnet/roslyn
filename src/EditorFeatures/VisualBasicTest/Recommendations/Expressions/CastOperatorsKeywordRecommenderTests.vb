@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expres
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class CastOperatorsKeywordRecommenderTests
-        Private ReadOnly Property AllTypeConversionOperatorKeywords As String()
+        Private Shared ReadOnly Property AllTypeConversionOperatorKeywords As String()
             Get
                 Dim keywords As New List(Of String) From {"CType", "DirectCast", "TryCast"}
 
@@ -171,7 +171,6 @@ Module Program
     End Function
 End Module
 </File>
-
 
             Await VerifyRecommendationsMissingAsync(code, AllTypeConversionOperatorKeywords)
         End Function

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,10 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public XmlDocumentationCommentCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(XmlDocCommentCompletionProvider);
 
@@ -459,8 +457,25 @@ public class goo
         }
 
         [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ParamRefNames()
+        {
+            // Local functions do not support documentation comments
+            await VerifyItemIsAbsentAsync(@"
+/// <summary>
+/// <paramref name=""$$""/>
+/// </summary>
+static void Main(string[] args)
+{
+}
+", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ParamRefNames_Interactive()
         {
             await VerifyItemExistsAsync(@"
 /// <summary>
@@ -469,18 +484,32 @@ public class goo
 static void Main(string[] args)
 {
 }
-", "args");
+", "args", sourceCodeKind: SourceCodeKind.Script);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task ParamNamesInEmptyAttribute()
+        {
+            // Local functions do not support documentation comments
+            await VerifyItemIsAbsentAsync(@"
+/// <param name=""$$""/>
+static void Goo(string str)
+{
+}
+", "str", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        public async Task ParamNamesInEmptyAttribute_Interactive()
         {
             await VerifyItemExistsAsync(@"
 /// <param name=""$$""/>
 static void Goo(string str)
 {
 }
-", "str");
+", "str", sourceCodeKind: SourceCodeKind.Script);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

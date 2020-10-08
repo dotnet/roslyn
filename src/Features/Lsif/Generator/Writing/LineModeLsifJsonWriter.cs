@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 
         public void Write(Element element)
         {
-            string line = JsonConvert.SerializeObject(element, _settings);
+            var line = JsonConvert.SerializeObject(element, _settings);
 
             lock (_writeGate)
             {

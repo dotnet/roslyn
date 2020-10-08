@@ -5,17 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
-
-#nullable enable
+using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis
 {
     internal readonly struct GeneratorDriverState
     {
         internal GeneratorDriverState(ParseOptions parseOptions,
+                                      AnalyzerConfigOptionsProvider optionsProvider,
                                       ImmutableArray<ISourceGenerator> generators,
                                       ImmutableArray<AdditionalText> additionalTexts,
-                                      ImmutableDictionary<ISourceGenerator, GeneratorState> generatorStates,
+                                      ImmutableArray<GeneratorState> generatorStates,
                                       ImmutableArray<PendingEdit> edits,
                                       bool editsFailed)
         {
@@ -24,7 +25,10 @@ namespace Microsoft.CodeAnalysis
             AdditionalTexts = additionalTexts;
             Edits = edits;
             ParseOptions = parseOptions;
+            OptionsProvider = optionsProvider;
             EditsFailed = editsFailed;
+
+            Debug.Assert(Generators.Length == GeneratorStates.Length);
         }
 
         /// <summary>
@@ -40,15 +44,20 @@ namespace Microsoft.CodeAnalysis
         /// The last run state of each generator, by the generator that created it
         /// </summary>
         /// <remarks>
-        /// If the driver this state belongs to has yet to perform generation, this will be empty.
-        /// After generation there *should* be a 1-to-1 mapping for each generator, unless that generator failed to initialize.
+        /// There will be a 1-to-1 mapping for each generator. If a generator has yet to
+        /// be initialized or failed during initialization it's state will be <c>default(GeneratorState)</c>
         /// </remarks>
-        internal readonly ImmutableDictionary<ISourceGenerator, GeneratorState> GeneratorStates;
+        internal readonly ImmutableArray<GeneratorState> GeneratorStates;
 
         /// <summary>
         /// The set of <see cref="AdditionalText"/>s available to source generators during a run
         /// </summary>
         internal readonly ImmutableArray<AdditionalText> AdditionalTexts;
+
+        /// <summary>
+        /// Gets a provider for analyzer options
+        /// </summary>
+        internal readonly AnalyzerConfigOptionsProvider OptionsProvider;
 
         /// <summary>
         /// An ordered list of <see cref="PendingEdit"/>s that are waiting to be applied to the compilation.
@@ -66,15 +75,15 @@ namespace Microsoft.CodeAnalysis
         internal readonly ParseOptions ParseOptions;
 
         internal GeneratorDriverState With(
-            ParseOptions? parseOptions = null,
             ImmutableArray<ISourceGenerator>? generators = null,
-            ImmutableDictionary<ISourceGenerator, GeneratorState>? generatorStates = null,
+            ImmutableArray<GeneratorState>? generatorStates = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
             ImmutableArray<PendingEdit>? edits = null,
             bool? editsFailed = null)
         {
             return new GeneratorDriverState(
-                parseOptions ?? this.ParseOptions,
+                this.ParseOptions,
+                this.OptionsProvider,
                 generators ?? this.Generators,
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,

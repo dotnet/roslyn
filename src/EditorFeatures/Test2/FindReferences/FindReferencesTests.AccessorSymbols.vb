@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -307,7 +308,44 @@ class Usages
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_FromProp_Feature1(host As TestHost) As Task
+        Public Async Function TestCSharpAccessor_Init_Feature1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IC
+{
+    int Prop { get; {|Definition:$$init|}; }
+}
+
+class C : IC
+{
+    public virtual int Prop { get; {|Definition:init|}; }
+}
+
+class D : C
+{
+    public override int Prop { get => base.Prop; {|Definition:init|} => base.[|Prop|] = value; }
+
+    D()
+    {
+        this.[|Prop|] = 1;
+        this.[|Prop|]++;
+    }
+
+    void M()
+    {
+        _ = new D() { [|Prop|] = 1 };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_Init_FromProp_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

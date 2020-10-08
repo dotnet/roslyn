@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -102,8 +104,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 }
             };
 
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentSymbolParams, object[]>(LSP.Methods.TextDocumentDocumentSymbolName,
-                solution, request, clientCapabilities, null, CancellationToken.None);
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentSymbolParams, object[]>(queue, LSP.Methods.TextDocumentDocumentSymbolName,
+                request, clientCapabilities, null, CancellationToken.None);
         }
 
         private static void AssertDocumentSymbolEquals(LSP.DocumentSymbol expected, LSP.DocumentSymbol actual)

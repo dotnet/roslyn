@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -41,7 +39,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             return new EditAndContinueWorkspaceService(
                 workspaceServices.Workspace,
-                workspaceServices.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>(),
                 _diagnosticService,
                 _diagnosticUpdateSource,
                 _debugeeModuleMetadataProvider);

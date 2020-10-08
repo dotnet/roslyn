@@ -44,5 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableArray(Of String)
             Return ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel)
         End Function
+
+        Protected Overrides Function IsFinalSemicolonOfUsingOrExtern(directive As SyntaxNode, token As SyntaxToken) As Boolean
+            Return False
+        End Function
     End Class
 End Namespace

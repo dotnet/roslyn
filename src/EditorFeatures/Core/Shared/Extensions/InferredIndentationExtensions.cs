@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             if (snapshot != null)
             {
-                indentationManagerService.GetIndentation(snapshot.TextBuffer, explicitFormat, out bool convertTabsToSpaces, out int tabSize, out int indentSize);
+                indentationManagerService.GetIndentation(snapshot.TextBuffer, explicitFormat, out var convertTabsToSpaces, out var tabSize, out var indentSize);
 
                 options = options.WithChangedOption(FormattingOptions.UseTabs, !convertTabsToSpaces)
                                  .WithChangedOption(FormattingOptions.IndentationSize, indentSize)

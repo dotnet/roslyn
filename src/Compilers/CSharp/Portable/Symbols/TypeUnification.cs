@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.TypeParameter:
                     {
                         // These substitutions are not allowed in C#
-                        if (t2.TypeKind == TypeKind.Pointer || t2.IsVoidType())
+                        if (t2.Type.IsPointerOrFunctionPointer() || t2.IsVoidType())
                         {
                             return false;
                         }

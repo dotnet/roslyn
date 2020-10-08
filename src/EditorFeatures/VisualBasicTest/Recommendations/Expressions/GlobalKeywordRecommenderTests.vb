@@ -138,7 +138,6 @@ Module Program
 End Module
 </File>
 
-
             Await VerifyRecommendationsMissingAsync(code, "Global")
         End Function
 

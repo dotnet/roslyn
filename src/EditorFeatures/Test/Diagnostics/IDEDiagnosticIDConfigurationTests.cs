@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
             expectedLines = expected.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             Assert.True(expectedLines.Length % 2 == 0);
             var expectedMap = new Dictionary<string, string>();
-            for (int i = 0; i < expectedLines.Length; i += 2)
+            for (var i = 0; i < expectedLines.Length; i += 2)
             {
                 expectedMap.Add(expectedLines[i].Trim(), expectedLines[i + 1].Trim());
             }
@@ -263,7 +265,7 @@ dotnet_diagnostic.IDE0036.severity = %value%
 dotnet_diagnostic.IDE0037.severity = %value%
 
 # IDE0038
-dotnet_diagnostic.IDE0038.severity = %value%
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 
 # IDE0039
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
@@ -378,6 +380,30 @@ dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
 # IDE0076
 dotnet_diagnostic.IDE0076.severity = %value%
+
+# IDE0077
+dotnet_diagnostic.IDE0077.severity = %value%
+
+# IDE0078
+csharp_style_prefer_pattern_matching = true:silent
+
+# IDE0079
+dotnet_diagnostic.IDE0079.severity = %value%
+
+# IDE0080
+dotnet_diagnostic.IDE0080.severity = %value%
+
+# IDE0082
+dotnet_diagnostic.IDE0082.severity = %value%
+
+# IDE0083
+csharp_style_prefer_not_pattern = true:suggestion
+
+# IDE0090
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+
+# IDE0100
+dotnet_diagnostic.IDE0100.severity = %value%
 
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
@@ -521,6 +547,24 @@ dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
 # IDE0076
 dotnet_diagnostic.IDE0076.severity = %value%
+
+# IDE0077
+dotnet_diagnostic.IDE0077.severity = %value%
+
+# IDE0079
+dotnet_diagnostic.IDE0079.severity = %value%
+
+# IDE0081
+dotnet_diagnostic.IDE0081.severity = %value%
+
+# IDE0082
+dotnet_diagnostic.IDE0082.severity = %value%
+
+# IDE0084
+visual_basic_style_prefer_isnot_expression = true:suggestion
+
+# IDE0100
+dotnet_diagnostic.IDE0100.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -762,8 +806,8 @@ dotnet_style_prefer_inferred_tuple_names = true:suggestion
 # IDE0037, PreferInferredAnonymousTypeMemberNames
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 
-# IDE0038
-No editorconfig based code style option
+# IDE0038, PreferPatternMatchingOverIsWithCastCheck
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 
 # IDE0039, PreferLocalOverAnonymousFunction
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
@@ -889,6 +933,30 @@ dotnet_style_prefer_compound_assignment = true:suggestion
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
 # IDE0076
+No editorconfig based code style option
+
+# IDE0077
+No editorconfig based code style option
+
+# IDE0078, PreferPatternMatching
+csharp_style_prefer_pattern_matching = true:silent
+
+# IDE0079
+No editorconfig based code style option
+
+# IDE0080
+No editorconfig based code style option
+
+# IDE0082
+No editorconfig based code style option
+
+# IDE0083, PreferNotPattern
+csharp_style_prefer_not_pattern = true:suggestion
+
+# IDE0090, ImplicitObjectCreationWhenTypeIsApparent
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+
+# IDE0100
 No editorconfig based code style option
 
 # IDE1005, PreferConditionalDelegateCall
@@ -1065,6 +1133,24 @@ file_header_template = unset
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
 # IDE0076
+No editorconfig based code style option
+
+# IDE0077
+No editorconfig based code style option
+
+# IDE0079
+No editorconfig based code style option
+
+# IDE0081
+No editorconfig based code style option
+
+# IDE0082
+No editorconfig based code style option
+
+# IDE0084, PreferIsNotExpression
+visual_basic_style_prefer_isnot_expression = true:suggestion
+
+# IDE0100
 No editorconfig based code style option
 
 # IDE1006

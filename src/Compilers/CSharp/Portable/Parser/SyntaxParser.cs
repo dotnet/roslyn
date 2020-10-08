@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1099,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             return node;
         }
-#nullable restore
+#nullable disable
 
         protected bool IsFeatureEnabled(MessageID feature)
         {
@@ -1114,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         ///     while (IsMakingProgress(ref tokenProgress))
         /// It should be used as a guardrail, not as a crutch, so it asserts if no progress was made.
         /// </summary>
-        protected bool IsMakingProgress(ref int lastTokenPosition)
+        protected bool IsMakingProgress(ref int lastTokenPosition, bool assertIfFalse = true)
         {
             var pos = CurrentTokenPosition;
             if (pos > lastTokenPosition)
@@ -1123,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
-            Debug.Assert(false);
+            Debug.Assert(!assertIfFalse);
             return false;
         }
 

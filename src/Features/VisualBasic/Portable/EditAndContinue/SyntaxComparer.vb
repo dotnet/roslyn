@@ -207,7 +207,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return LcsTokens.Instance.GetEdits(oldTokens.NullToEmpty(), newTokens.NullToEmpty())
         End Function
 
-
         Private NotInheritable Class LcsTokens
             Inherits LongestCommonImmutableArraySubsequence(Of SyntaxToken)
 

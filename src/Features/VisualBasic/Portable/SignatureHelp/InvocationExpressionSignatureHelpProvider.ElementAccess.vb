@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class InvocationExpressionSignatureHelpProvider
 
-        Private Function GetElementAccessItems(leftExpression As ExpressionSyntax,
+        Private Shared Function GetElementAccessItems(leftExpression As ExpressionSyntax,
                                                semanticModel As SemanticModel,
                                                anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                documentationCommentFormattingService As IDocumentationCommentFormattingService,
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Function(s) ConvertIndexer(s, leftExpression.SpanStart, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService))
         End Function
 
-        Private Function ConvertIndexer(indexer As IPropertySymbol,
+        Private Shared Function ConvertIndexer(indexer As IPropertySymbol,
                                         position As Integer,
                                         semanticModel As SemanticModel,
                                         anonymousTypeDisplayService As IAnonymousTypeDisplayService,
@@ -50,14 +50,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return item
         End Function
 
-        Private Function GetIndexerPreambleParts(symbol As IPropertySymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+        Private Shared Function GetIndexerPreambleParts(symbol As IPropertySymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             result.AddRange(symbol.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
             Return result
         End Function
 
-        Private Function GetIndexerPostambleParts(symbol As IPropertySymbol,
+        Private Shared Function GetIndexerPostambleParts(symbol As IPropertySymbol,
                                                   semanticModel As SemanticModel,
                                                   position As Integer) As IList(Of SymbolDisplayPart)
             Dim parts = New List(Of SymbolDisplayPart)

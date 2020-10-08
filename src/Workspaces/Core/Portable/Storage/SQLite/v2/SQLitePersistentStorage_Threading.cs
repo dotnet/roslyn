@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,9 +35,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// 
         /// All code that reads or writes from the db should go through this.
         /// </summary>
-        private readonly ConcurrentExclusiveSchedulerPair _readerWriterLock = new ConcurrentExclusiveSchedulerPair();
+        private readonly ConcurrentExclusiveSchedulerPair _readerWriterLock = new();
 
-        private async Task<TResult> PerformTaskAsync<TArg, TResult>(
+        private static async Task<TResult> PerformTaskAsync<TArg, TResult>(
             Func<TArg, TResult> func, TArg arg,
             TaskScheduler scheduler, CancellationToken cancellationToken) where TArg : struct
         {
