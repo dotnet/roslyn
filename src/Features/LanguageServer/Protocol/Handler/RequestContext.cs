@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal readonly struct RequestContext
     {
-        private readonly Action<Solution>? _solutionUpdater;
+        private readonly DocumentChangeTracker? _documentChangeTracker;
 
         /// <summary>
         /// The solution state that the request should operate on.
@@ -36,22 +37,43 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public readonly Document? Document;
 
-        public RequestContext(Solution solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, Action<Solution>? solutionUpdater)
+        public RequestContext(Solution solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, DocumentChangeTracker? documentChangeTracker)
         {
             Document = document;
             Solution = solution;
-            _solutionUpdater = solutionUpdater;
             ClientCapabilities = clientCapabilities;
             ClientName = clientName;
+            _documentChangeTracker = documentChangeTracker;
         }
 
         /// <summary>
-        /// Allows a mutating request to provide a new solution snapshot that all subsequent requests should use.
+        /// Allows a mutating request to open a document and start it being tracked.
         /// </summary>
-        public void UpdateSolution(Solution solution)
+        public Task OpenDocumentAsync(Document document, string contents, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_solutionUpdater, "Mutating solution not allowed in a non-mutating request handler");
-            _solutionUpdater.Invoke(solution);
+            Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
+
+            return _documentChangeTracker.StartTrackingAsync(document, contents, cancellationToken);
+        }
+
+        /// <summary>
+        /// Allows a mutating request to update the contents of a tracked document.
+        /// </summary>
+        public void UpdateDocument(Document document)
+        {
+            Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
+
+            _documentChangeTracker.UpdateTrackedDocument(document);
+        }
+
+        /// <summary>
+        /// Allows a mutating request to close a document and stop it being tracked.
+        /// </summary>
+        public void CloseDocument(Document document)
+        {
+            Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
+
+            _documentChangeTracker.StopTracking(document);
         }
     }
 }
