@@ -105,5 +105,108 @@ class A
 
             Await VerifyTypeHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestWithPatternVar() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        if (args is { Length: var {|int:|}goo }) { }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestNotWithPatternType() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        if (args is { Length: int goo }) { }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestWithSimpleLambda() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System.Linq;
+class A
+{
+    void Main(string[] args) 
+    {
+        args.Where({|string:|}a => a.Length > 0);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestWithParenthesizedLambda() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System.Linq;
+class A
+{
+    void Main(string[] args) 
+    {
+        args.Where(({|string:|}a) => a.Length > 0);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestNotWithParenthesizedLambdaWithType() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System.Linq;
+class A
+{
+    void Main(string[] args) 
+    {
+        args.Where((string a) => a.Length > 0);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
     End Class
 End Namespace

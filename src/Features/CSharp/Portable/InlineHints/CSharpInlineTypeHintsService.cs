@@ -58,17 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 
             if (forLambdaParameterTypes)
             {
-                if (node is SimpleLambdaExpressionSyntax simpleLambda)
-                {
-                    var parameter = semanticModel.GetDeclaredSymbol(simpleLambda.Parameter, cancellationToken);
-                    if (IsValidType(parameter?.Type))
-                        return (parameter.Type, simpleLambda.Parameter.Identifier.SpanStart);
-                }
-                else if (node is ParameterSyntax { Type: null } parameterNode)
+                if (node is ParameterSyntax { Type: null } parameterNode)
                 {
                     var parameter = semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
-                    if (IsValidType(parameter?.Type))
+                    if (parameter?.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } &&
+                        IsValidType(parameter?.Type))
+                    {
                         return (parameter.Type, parameterNode.Identifier.SpanStart);
+                    }
                 }
             }
 
