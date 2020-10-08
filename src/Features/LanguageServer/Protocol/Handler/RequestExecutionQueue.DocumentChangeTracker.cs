@@ -2,15 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -25,19 +19,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             private readonly Dictionary<(Workspace, DocumentId), Document> _trackedDocuments = new();
 
-            internal async Task StartTrackingAsync(Document document, string contents, CancellationToken cancellationToken)
+            internal void StartTracking(Document document)
             {
-                // Add the document and ensure the text we have matches whats on the client
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                var sourceText = SourceText.From(contents, text.Encoding, text.ChecksumAlgorithm);
-                var newDocument = document.WithText(sourceText);
-
                 var key = (document.Project.Solution.Workspace, document.Id);
 
                 Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(key), "didOpen received for an already open document.");
 
-                _trackedDocuments.Add(key, newDocument);
+                _trackedDocuments.Add(key, document);
             }
 
             internal void UpdateTrackedDocument(Document document)
@@ -55,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(key), "didClose received for a document that isn't open.");
 
-                _trackedDocuments.Remove((document.Project.Solution.Workspace, document.Id));
+                _trackedDocuments.Remove(key);
             }
 
             internal IEnumerable<Document> GetTrackedDocuments()

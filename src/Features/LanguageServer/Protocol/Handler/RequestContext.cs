@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
@@ -52,11 +50,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Allows a mutating request to open a document and start it being tracked.
         /// </summary>
-        public Task OpenDocumentAsync(Document document, string contents, CancellationToken cancellationToken)
+        public void OpenDocument(Document document)
         {
             Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
 
-            return _documentChangeTracker.StartTrackingAsync(document, contents, cancellationToken);
+            _documentChangeTracker.StartTracking(document);
         }
 
         /// <summary>

@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -30,7 +31,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
-            await context.OpenDocumentAsync(document, request.TextDocument.Text, cancellationToken).ConfigureAwait(false);
+            // Add the document and ensure the text we have matches whats on the client
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var sourceText = SourceText.From(request.TextDocument.Text, text.Encoding, text.ChecksumAlgorithm);
+            var newDocument = document.WithText(sourceText);
+
+            context.OpenDocument(newDocument);
 
             return true;
         }
