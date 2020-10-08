@@ -54,17 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             private static bool IsCtrlOrAlt(KeyEventArgs args)
                 => args.Key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt;
 
-            private Document? GetDocument()
-            {
-                var document =
-                    _view.BufferGraph.GetTextBuffers(b => true)
-                                     .Select(b => b.AsTextContainer().GetOpenDocumentInCurrentContext())
-                                     .WhereNotNull()
-                                     .FirstOrDefault();
-
-                return document;
-            }
-
             private void OnViewClosed(object sender, EventArgs e)
             {
                 // Disconnect our callbacks.
@@ -116,9 +105,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
             private void Toggle(bool on)
             {
+                var document =
+                    _view.BufferGraph.GetTextBuffers(b => true)
+                                     .Select(b => b.AsTextContainer().GetOpenDocumentInCurrentContext())
+                                     .WhereNotNull()
+                                     .FirstOrDefault();
+
                 // Only relevant if this is a roslyn document.
-                var document = GetDocument();
-                if (document == null)
+                var project = document?.Project;
+                if (project == null)
                     return;
 
                 // No need to do anything if we're already in the requested state
@@ -128,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 // We can only enter the on-state if the user has the ctrl-alt feature enabled.  We can always enter the
                 // off state though.
-                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt, document.Project.Language);
+                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt, project.Language);
                 _globalOptionService.RefreshOption(new OptionKey(InlineHintsOptions.DisplayAllOverride), on);
             }
         }
