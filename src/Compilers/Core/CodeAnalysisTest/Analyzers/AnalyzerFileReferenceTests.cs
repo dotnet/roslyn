@@ -250,7 +250,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, errors.First().ErrorCode);
         }
 
-        [Fact]
+        // can't load a framework targeting generator, which these are in desktop
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestLoadGenerators()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
