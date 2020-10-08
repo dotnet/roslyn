@@ -172,7 +172,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 {
                     var properties = formatMap.GetTextProperties(typeMap.GetClassificationType(taggedText.Tag.ToClassificationTypeName()));
                     var brush = properties.ForegroundBrush.Clone();
-                    brush.Opacity = 0.8;
                     run.Foreground = brush;
                 }
 
