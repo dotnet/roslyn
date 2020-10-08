@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -28,23 +29,28 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     {
         private static readonly ConditionalWeakTable<IWpfTextView, InlineHintsKeyProcessor> s_viewToProcessor = new();
 
+        private readonly IGlobalOptionService _globalOptionService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineHintsKeyProcessorProvider()
+        public InlineHintsKeyProcessorProvider(IGlobalOptionService globalOptionService)
         {
+            _globalOptionService = globalOptionService;
         }
 
         public KeyProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
         {
-            return s_viewToProcessor.GetValue(wpfTextView, v => new InlineHintsKeyProcessor(v));
+            return s_viewToProcessor.GetValue(wpfTextView, v => new InlineHintsKeyProcessor(_globalOptionService, v));
         }
 
         private class InlineHintsKeyProcessor : KeyProcessor
         {
+            private readonly IGlobalOptionService _globalOptionService;
             private readonly IWpfTextView _view;
 
-            public InlineHintsKeyProcessor(IWpfTextView view)
+            public InlineHintsKeyProcessor(IGlobalOptionService globalOptionService, IWpfTextView view)
             {
+                _globalOptionService = globalOptionService;
                 _view = view;
                 _view.Closed += OnViewClosed;
                 _view.LostAggregateFocus += OnLostFocus;
@@ -120,20 +126,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 if (document == null)
                     return;
 
-                var workspace = document.Project.Solution.Workspace;
-
                 // No need to do anything if we're already in the requested state
-                var state = workspace.Options.GetOption(InlineHintsOptions.DisplayAllOverride);
+                var state = _globalOptionService.GetOption(InlineHintsOptions.DisplayAllOverride);
                 if (state == on)
                     return;
 
                 // We can only enter the on-state if the user has the ctrl-alt feature enabled.  We can always enter the
                 // off state though.
-                on = on && workspace.Options.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt, document.Project.Language);
-
-                workspace.TryApplyChanges(
-                    workspace.CurrentSolution.WithOptions(
-                        workspace.CurrentSolution.Options.WithChangedOption(InlineHintsOptions.DisplayAllOverride, on)));
+                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt, document.Project.Language);
+                _globalOptionService.RefreshOption(new OptionKey(InlineHintsOptions.DisplayAllOverride), on);
             }
         }
     }
