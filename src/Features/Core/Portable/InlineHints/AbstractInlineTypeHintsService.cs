@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.InlineHints
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
-            var enabledForTypes = displayAllOverride || options.GetOption(InlineHintsOptions.EnabledForTypes);
-            if (!enabledForTypes)
+            var enabledForTypes = options.GetOption(InlineHintsOptions.EnabledForTypes);
+            if (!enabledForTypes && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
 
-            var forImplicitVariableTypes = displayAllOverride || options.GetOption(InlineHintsOptions.ForImplicitVariableTypes);
-            var forLambdaParameterTypes = displayAllOverride || options.GetOption(InlineHintsOptions.ForLambdaParameterTypes);
-            if (!forImplicitVariableTypes && !forLambdaParameterTypes)
+            var forImplicitVariableTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForImplicitVariableTypes);
+            var forLambdaParameterTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForLambdaParameterTypes);
+            if (!forImplicitVariableTypes && !forLambdaParameterTypes && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
 
             var anonymousTypeService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();

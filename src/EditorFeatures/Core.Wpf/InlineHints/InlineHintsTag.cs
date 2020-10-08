@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             bool classify)
         {
             return new InlineHintsTag(
-                CreateElement(parts, textView, format, formatMap, taggerProvider.TypeMap, classify),
+                CreateElement(parts, textView, span, format, formatMap, taggerProvider.TypeMap, classify),
                 textView, span, key, taggerProvider);
         }
 
@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private static FrameworkElement CreateElement(
             ImmutableArray<SymbolDisplayPart> parts,
             IWpfTextView textView,
+            SnapshotSpan span,
             TextFormattingRunProperties format,
             IClassificationFormatMap formatMap,
             ClassificationTypeMap typeMap,
@@ -149,7 +150,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
             // page. Calculates a font size 1/4 smaller than the font size of the rest of the editor
-            var right = parts.Last().ToString().EndsWith(":") ? 0 : 1;
             var block = new TextBlock
             {
                 FontFamily = format.Typeface.FontFamily,
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 // Adds a little bit of padding to the left of the text relative to the border
                 // to make the text seem more balanced in the border
-                Padding = new Thickness(left: 1, top: 0, right: right, bottom: 0),
+                Padding = new Thickness(left: 1, top: 0, right: 1, bottom: 0),
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
@@ -182,6 +182,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             // Encapsulates the textblock within a border. Sets the height of the border to be 3/4 of the original 
             // height. Gets foreground/background colors from the options menu. The margin is the distance from the 
             // adornment to the text and pushing the adornment upwards to create a separation when on a specific line
+            var right = span.End < span.Snapshot.Length && char.IsWhiteSpace(span.End.GetChar()) ? 0 : 5;
+
             var border = new Border
             {
                 Background = format.BackgroundBrush,
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 CornerRadius = new CornerRadius(2),
                 Height = textView.LineHeight - (0.25 * textView.LineHeight),
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(left: 0, top: -0.20 * textView.LineHeight, right: 5, bottom: 0),
+                Margin = new Thickness(left: 0, top: -0.20 * textView.LineHeight, right, bottom: 0),
                 Padding = new Thickness(1),
 
                 // Need to set SnapsToDevicePixels and UseLayoutRounding to avoid unnecessary reformatting
