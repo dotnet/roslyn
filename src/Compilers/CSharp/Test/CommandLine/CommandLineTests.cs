@@ -13166,8 +13166,15 @@ class C
 
             // framework
             var frameworkGenerator = emitGenerator(".NETFramework,Version=v4.7.2");
-            var output = VerifyOutput(directory, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + frameworkGenerator });
-            Assert.Contains("CS8850", output);
+            var output = VerifyOutput(directory, src, expectedWarningCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + frameworkGenerator });
+            Assert.Contains("CS8850", output); // ref's net fx
+            Assert.Contains("CS8033", output); // no analyzers in assembly
+
+            // framework, suppressed
+            output = VerifyOutput(directory, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850", "/analyzer:" + frameworkGenerator });
+            Assert.Contains("CS8033", output);
+
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850,CS8033", "/analyzer:" + frameworkGenerator });
 
             string emitGenerator(string targetFramework)
             {
