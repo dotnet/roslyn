@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
         }
 
         [Fact]
-        public async Task DidClose_DocumentNotTracked()
+        public async Task DidClose_StopsTrackingDocument()
         {
             var source =
 @"class A
