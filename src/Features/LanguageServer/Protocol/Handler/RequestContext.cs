@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal readonly struct RequestContext
     {
+        /// <summary>
+        /// This will be null for non-mutating requests because they're not allowed to change documents
+        /// </summary>
         private readonly DocumentChangeTracker? _documentChangeTracker;
 
         /// <summary>
