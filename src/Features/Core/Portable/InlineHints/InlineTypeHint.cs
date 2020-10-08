@@ -2,19 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal readonly struct InlineTypeHint
     {
-        public readonly ITypeSymbol Type;
         public readonly int Position;
+        public readonly ImmutableArray<SymbolDisplayPart> Parts;
+        public readonly SymbolKey SymbolKey;
 
-        public InlineTypeHint(
-            ITypeSymbol type,
-            int position)
+        public InlineTypeHint(int position, ImmutableArray<SymbolDisplayPart> parts, SymbolKey symbolKey)
         {
-            Type = type;
             Position = position;
+            Parts = parts;
+            SymbolKey = symbolKey;
         }
     }
 }

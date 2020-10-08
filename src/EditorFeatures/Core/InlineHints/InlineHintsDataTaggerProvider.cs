@@ -14,8 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -35,10 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     [VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
     internal class InlineHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineHintDataTag>
     {
-        private static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
         private readonly IAsynchronousOperationListener _listener;
 
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
@@ -94,66 +88,20 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             await AddParameterNameHintsAsync(context, documentSnapshotSpan, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task AddTypeHintsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, CancellationToken cancellationToken)
+        private static async Task AddTypeHintsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, CancellationToken cancellationToken)
         {
             var document = documentSnapshotSpan.Document;
             var service = document.GetLanguageService<IInlineTypeHintsService>();
             if (service == null)
                 return;
 
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var anonymousTypeService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
-
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var position = snapshotSpan.Span.Start;
             var hints = await service.GetInlineTypeHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             foreach (var hint in hints)
             {
-                Contract.ThrowIfNull(hint.Type);
-
-                using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
-                var parts = hint.Type.ToDisplayParts(s_minimalTypeStyle);
-
-                AddParts(anonymousTypeService, finalParts, parts, semanticModel, position);
-
-                cancellationToken.ThrowIfCancellationRequested();
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     new SnapshotSpan(snapshotSpan.Snapshot, hint.Position, 0),
-                    new InlineHintDataTag(
-                        finalParts.ToImmutable(),
-                        hint.Type.GetSymbolKey(cancellationToken))));
-            }
-        }
-
-        private void AddParts(
-            IAnonymousTypeDisplayService anonymousTypeService,
-            ArrayBuilder<SymbolDisplayPart> finalParts,
-            ImmutableArray<SymbolDisplayPart> parts,
-            SemanticModel semanticModel,
-            int position,
-            HashSet<INamedTypeSymbol>? seenSymbols = null)
-        {
-            seenSymbols ??= new();
-
-            foreach (var part in parts)
-            {
-                if (part.Symbol is INamedTypeSymbol { IsAnonymousType: true } anonymousType)
-                {
-                    if (seenSymbols.Add(anonymousType))
-                    {
-                        var anonymousParts = anonymousTypeService.GetAnonymousTypeParts(anonymousType, semanticModel, position);
-                        AddParts(anonymousTypeService, finalParts, anonymousParts, semanticModel, position, seenSymbols);
-                        seenSymbols.Remove(anonymousType);
-                    }
-                    else
-                    {
-                        finalParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, symbol: null, "..."));
-                    }
-                }
-                else
-                {
-                    finalParts.Add(part);
-                }
+                    new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
             }
         }
 

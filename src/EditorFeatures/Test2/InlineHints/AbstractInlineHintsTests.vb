@@ -40,5 +40,38 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 AssertEx.Equal(expectedTags, producedTags)
             End Using
         End Function
+
+        Protected Async Function VerifyTypeHints(test As XElement, Optional optionIsEnabled As Boolean = True) As Task
+            Using workspace = TestWorkspace.Create(test)
+                WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
+
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                    InlineHintsOptions.EnabledForTypes,
+                    workspace.CurrentSolution.Projects().First().Language,
+                    optionIsEnabled)))
+
+                Dim hostDocument = workspace.Documents.Single()
+                Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
+                Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
+                Dim tagService = document.GetRequiredLanguageService(Of IInlineTypeHintsService)
+                Dim typeHints = Await tagService.GetInlineTypeHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
+
+                Dim producedTags = From hint In typeHints
+                                   Select hint.Type
+
+                Dim expectedTags As New List(Of String)
+
+                Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
+                    Function(name) name.Value,
+                    Function(name, span) New With {.Name = name.Key, span})
+
+                For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.span.Start)
+                    expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.span.Start.ToString())
+                Next
+
+                AssertEx.Equal(expectedTags, producedTags)
+            End Using
+        End Function
+
     End Class
 End Namespace
