@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 var document =
                     _view.BufferGraph.GetTextBuffers(b => true)
-                                     .Select(b => b.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges())
+                                     .Select(b => b.AsTextContainer().GetOpenDocumentInCurrentContext())
                                      .WhereNotNull()
                                      .FirstOrDefault();
 
