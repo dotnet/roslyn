@@ -182,13 +182,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 if (symbol.Kind == SymbolKind.NamedType)
                 {
                     var namedType = (INamedTypeSymbol)symbol;
-                    if (namedType.InstanceConstructors.Length == 1 &&
-                        (namedType.TypeKind == TypeKind.Class || namedType.TypeKind == TypeKind.Struct))
+                    if ((namedType.TypeKind == TypeKind.Class && namedType.InstanceConstructors.Length == 1)
+                        || namedType.TypeKind == TypeKind.Struct)
                     {
-                        var instanceConstructor = namedType.InstanceConstructors[0];
-                        if (instanceConstructor.IsImplicitlyDeclared)
+                        var implicitConstructor = namedType.InstanceConstructors.FirstOrDefault(x => x.IsImplicitlyDeclared);
+                        if (implicitConstructor != null)
                         {
-                            OnSymbolActionCore(instanceConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, explicitLocation: explicitLocation);
+                            OnSymbolActionCore(implicitConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, explicitLocation: explicitLocation);
                         }
                     }
                 }
