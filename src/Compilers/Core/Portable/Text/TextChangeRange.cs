@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int NewLength { get; }
 
+        internal int NewEnd => Span.Start + NewLength;
+
         /// <summary>
         /// Initializes a new instance of <see cref="TextChangeRange"/>.
         /// </summary>
