@@ -47,12 +47,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Each suggested action set should have a unique set number, which is used for grouping code actions together.
-            var highestSetNumber = 0;
+            var currentHighestSetNumber = 0;
 
             using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var codeActions);
             foreach (var set in actionSets)
             {
-                var currentSetNumber = ++highestSetNumber;
+                var currentSetNumber = ++currentHighestSetNumber;
                 foreach (var suggestedAction in set.Actions)
                 {
                     // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         codeActionKind: GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!),
                         applicableRange: set.ApplicableToSpan.HasValue ? ProtocolConversions.TextSpanToRange(set.ApplicableToSpan.Value, documentText) : null,
                         currentSetNumber: currentSetNumber,
-                        highestSetNumber: ref highestSetNumber));
+                        currentHighestSetNumber: ref currentHighestSetNumber));
                 }
             }
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             LSP.CodeActionKind codeActionKind,
             LSP.Range? applicableRange,
             int currentSetNumber,
-            ref int highestSetNumber,
+            ref int currentHighestSetNumber,
             string currentTitle = "")
         {
             if (!string.IsNullOrEmpty(currentTitle))
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             currentTitle += codeAction.Title;
 
             // Nested code actions' unique identifiers consist of: parent code action unique identifier + '|' + title of code action
-            var nestedActions = GenerateNestedVSCodeActions(request, documentText, suggestedAction, codeActionKind, ref highestSetNumber, currentTitle);
+            var nestedActions = GenerateNestedVSCodeActions(request, documentText, suggestedAction, codeActionKind, ref currentHighestSetNumber, currentTitle);
 
             return new VSCodeAction
             {
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 Diagnostics = request.Context.Diagnostics,
                 Children = nestedActions,
                 Priority = CodeActionPriorityToPriorityLevel(codeAction.Priority),
-                Group = "Roslyn" + currentSetNumber.ToString(),
+                Group = $"Roslyn{currentSetNumber}",
                 ApplicableRange = applicableRange,
                 Data = new CodeActionResolveData(currentTitle, request.Range, request.TextDocument)
             };
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 SourceText documentText,
                 IUnifiedSuggestedAction suggestedAction,
                 CodeActionKind codeActionKind,
-                ref int highestSetNumber,
+                ref int currentHighestSetNumber,
                 string currentTitle)
             {
                 if (suggestedAction is not UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions)
@@ -125,14 +125,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 foreach (var nestedActionSet in suggestedActionWithNestedActions.NestedActionSets)
                 {
                     // Nested code action sets should each have a unique set number that is not yet assigned to any set.
-                    var nestedSetNumber = ++highestSetNumber;
+                    var nestedSetNumber = ++currentHighestSetNumber;
                     foreach (var nestedSuggestedAction in nestedActionSet.Actions)
                     {
                         nestedActions.Add(GenerateVSCodeAction(
                             request, documentText, nestedSuggestedAction, codeActionKind,
                             applicableRange: nestedActionSet.ApplicableToSpan.HasValue
                                 ? ProtocolConversions.TextSpanToRange(nestedActionSet.ApplicableToSpan.Value, documentText) : null,
-                            nestedSetNumber, ref highestSetNumber, currentTitle));
+                            nestedSetNumber, ref currentHighestSetNumber, currentTitle));
                     }
                 }
 
