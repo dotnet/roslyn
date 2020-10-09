@@ -113,18 +113,6 @@ class C
             List<string> expectedWrites,
             string touchedFilesBase)
         {
-            Console.WriteLine("Reads");
-            foreach (var s in expectedReads)
-            {
-                Console.WriteLine(s);
-            }
-
-            Console.WriteLine("Writes");
-            foreach (var s in expectedWrites)
-            {
-                Console.WriteLine(s);
-            }
-
             var touchedReadPath = touchedFilesBase + ".read";
             var touchedWritesPath = touchedFilesBase + ".write";
 
