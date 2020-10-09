@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 Kind = codeActionKind,
                 Diagnostics = request.Context.Diagnostics,
                 Children = nestedActions.ToArray(),
-                Data = new CodeActionResolveData(currentTitle, request.Range, request.TextDocument)
+                Data = new CodeActionResolveData(currentTitle, codeAction.ProviderName, request.Range, request.TextDocument)
             };
         }
 

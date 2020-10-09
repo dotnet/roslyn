@@ -25,13 +25,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// </remarks>
         public string UniqueIdentifier { get; }
 
+        /// <summary>
+        /// Identifies the Code Action Provider which produced this Code Action.
+        /// </summary>
+        /// <remarks>
+        /// e.g. 'Add Await Code Action Provider'
+        /// </remarks>
+        public string ProviderName { get; }
+
         public LSP.Range Range { get; }
 
         public LSP.TextDocumentIdentifier TextDocument { get; }
 
-        public CodeActionResolveData(string uniqueIdentifier, LSP.Range range, LSP.TextDocumentIdentifier textDocument)
+        public CodeActionResolveData(string uniqueIdentifier, string providerName, LSP.Range range, LSP.TextDocumentIdentifier textDocument)
         {
             UniqueIdentifier = uniqueIdentifier;
+            ProviderName = providerName;
             Range = range;
             TextDocument = textDocument;
         }

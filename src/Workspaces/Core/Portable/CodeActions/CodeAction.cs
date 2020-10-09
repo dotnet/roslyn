@@ -52,6 +52,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </remarks>
         public virtual string? EquivalenceKey => null;
 
+        /// <summary>
+        /// Identifies the Code Action Provider which produced this Code Action.
+        /// </summary>
+        /// <remarks>
+        /// e.g. 'Add Await Code Action Provider'
+        /// </remarks>
+        public virtual string? ProviderName => null;
+
         internal virtual bool IsInlinable => false;
 
         internal virtual CodeActionPriority Priority => CodeActionPriority.Medium;
@@ -358,14 +366,16 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal abstract class SimpleCodeAction : CodeAction
         {
-            public SimpleCodeAction(string title, string? equivalenceKey)
+            public SimpleCodeAction(string title, string? equivalenceKey, string? providerName = null)
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
+                ProviderName = providerName;
             }
 
             public sealed override string Title { get; }
             public sealed override string? EquivalenceKey { get; }
+            public sealed override string? ProviderName { get; }
         }
 
         internal class CodeActionWithNestedActions : SimpleCodeAction
@@ -410,8 +420,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
-            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
-                : base(title, equivalenceKey)
+            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null, string? providerName = null)
+                : base(title, equivalenceKey, providerName)
             {
                 _createChangedDocument = createChangedDocument;
             }
