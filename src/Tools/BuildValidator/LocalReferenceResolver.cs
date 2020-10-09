@@ -110,6 +110,12 @@ namespace BuildValidator
                         continue;
                     }
 
+                    var matchedReference = potentialMatches.SingleOrDefault(m => m.Mvid == mvid);
+                    if (matchedReference.FileInfo is null)
+                    {
+                        continue;
+                    }
+
                     if (_cache.ContainsKey(mvid.Value))
                     {
                         continue;
