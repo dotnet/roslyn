@@ -152,6 +152,11 @@
         <target state="translated">为正规表达式着色</target>
         <note />
       </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="new">Comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">包含成员</target>
@@ -173,8 +178,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
-        <source>Disp_lay inline parameter name hints (experimental)</source>
-        <target state="translated">显示内联参数名称提示(实验)(_L)</target>
+        <source>Disp_lay inline parameter name hints</source>
+        <target state="needs-review-translation">显示内联参数名称提示(实验)(_L)</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -265,6 +270,11 @@
       <trans-unit id="Indexed_in_repo">
         <source>Indexed in repo</source>
         <target state="translated">已在存储库中编入索引</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints_experimental">
+        <source>Inline Hints (experimental)</source>
+        <target state="new">Inline Hints (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -765,6 +775,16 @@
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">显示完成列表</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_everything_else">
+        <source>Show hints for everything else</source>
+        <target state="new">Show hints for everything else</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_literals">
+        <source>Show hints for literals</source>
+        <target state="new">Show hints for literals</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">

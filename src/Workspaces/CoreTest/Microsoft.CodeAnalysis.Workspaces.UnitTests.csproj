@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
     <UseWpf>true</UseWpf>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
   </PropertyGroup>
@@ -30,7 +30,6 @@
     <PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
-    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

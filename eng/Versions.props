@@ -6,9 +6,9 @@
   -->
   <PropertyGroup>
     <MajorVersion>3</MajorVersion>
-    <MinorVersion>8</MinorVersion>
+    <MinorVersion>9</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>4</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
@@ -23,7 +23,7 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.8.0-2.20414.4</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.9.0-1.20504.1</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
@@ -34,7 +34,7 @@
     <CodeStyleAnalyzerVersion>3.8.0-2.20414.4</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.8.39</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
-    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.8.52</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.8.120</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>16.8.30406.65-pre</MicrosoftVisualStudioShellPackagesVersion>
   </PropertyGroup>
   <!--
@@ -54,11 +54,10 @@
     <MicrosoftBuildLocatorVersion>1.2.6</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>15.3.409</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.3.409</MicrosoftBuildTasksCoreVersion>
-    
     <NuGetVisualStudioContractsVersion>5.7.0</NuGetVisualStudioContractsVersion>
     <!-- This is working around Microsoft.VisualStudio.Shell.15.0 having an unstated conflicting reference on this with NuGet.VisualStudio.Contracts -->
     <MicrosoftVisualStudioRpcContractsVersion>16.7.50</MicrosoftVisualStudioRpcContractsVersion>
-    
+
     <!--
       Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
       packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
@@ -186,6 +185,7 @@
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>4.4.0</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
+    <NerdbankStreamsVersion>2.6.81</NerdbankStreamsVersion>
     <NuGetPackagingVersion>4.9.2</NuGetPackagingVersion>
     <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
@@ -196,8 +196,6 @@
     <RoslynDependenciesOptimizationDataVersion>3.0.0-beta2-19053-01</RoslynDependenciesOptimizationDataVersion>
     <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.1.0-beta3.20374.2</RoslynToolsVSIXExpInstallerVersion>
-    <RoslynToolsOptProfVersion>1.0.0-beta3.19057.1</RoslynToolsOptProfVersion>
-    <RoslynOptProfRunSettingsGeneratorVersion>1.0.0-beta3.19057.1</RoslynOptProfRunSettingsGeneratorVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
     <SystemBuffersVersion>4.5.1</SystemBuffersVersion>

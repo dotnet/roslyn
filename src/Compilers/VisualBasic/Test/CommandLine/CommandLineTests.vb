@@ -10088,7 +10088,7 @@ dotnet_diagnostic.BC42024.severity = warning;
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:42024", globalOption})
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=1, additionalFlags:={globalOption, specificOption})
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=1, additionalFlags:={"/nowarn:BC42024", globalOption, specificOption})
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=0, additionalFlags:={"/nowarn:BC42024", globalOption, specificOption})
         End Sub
 
         <Theory, CombinatorialData>
@@ -10166,6 +10166,96 @@ End Class"
                                       analyzers:=ImmutableArray.Create(analyzer))
             Assert.Contains("b.txt(1) : warning ID0001", output, StringComparison.Ordinal)
             CleanupAllGeneratedFiles(srcDirectory.Path)
+        End Sub
+
+        <Theory>
+        <InlineData("warning", "/warnaserror", True, False)>
+        <InlineData("error", "/warnaserror", True, False)>
+        <InlineData(Nothing, "/warnaserror", True, False)>
+        <InlineData("warning", "/warnaserror:BC40008", True, False)>
+        <InlineData("error", "/warnaserror:BC40008", True, False)>
+        <InlineData(Nothing, "/warnaserror:BC40008", True, False)>
+        <InlineData("warning", "/nowarn:BC40008", False, False)>
+        <InlineData("error", "/nowarn:BC40008", False, False)>
+        <InlineData(Nothing, "/nowarn:BC40008", False, False)>
+        <InlineData("warning", Nothing, False, True)>
+        <InlineData("error", Nothing, True, False)>
+        <InlineData(Nothing, Nothing, False, True)>
+        <WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")>
+        Public Sub TestCompilationOptionsOverrideAnalyzerConfig_CompilerWarning(analyzerConfigSeverity As String, additionalArg As String, expectError As Boolean, expectWarning As Boolean)
+            ' warning BC40008 : 'C' is obsolete
+            Dim src = "
+Imports System
+
+<Obsolete>
+Class C
+End Class
+
+Class D
+    Inherits C
+End Class"
+            TestCompilationOptionsOverrideAnalyzerConfigCore(src, diagnosticId:="BC40008", analyzerConfigSeverity, additionalArg, expectError, expectWarning)
+        End Sub
+
+        <Theory>
+        <InlineData("warning", "/warnaserror", True, False)>
+        <InlineData("error", "/warnaserror", True, False)>
+        <InlineData(Nothing, "/warnaserror", True, False)>
+        <InlineData("warning", "/warnaserror:" & CompilationAnalyzerWithSeverity.DiagnosticId, True, False)>
+        <InlineData("error", "/warnaserror:" & CompilationAnalyzerWithSeverity.DiagnosticId, True, False)>
+        <InlineData(Nothing, "/warnaserror:" & CompilationAnalyzerWithSeverity.DiagnosticId, True, False)>
+        <InlineData("warning", "/nowarn:" & CompilationAnalyzerWithSeverity.DiagnosticId, False, False)>
+        <InlineData("error", "/nowarn:" & CompilationAnalyzerWithSeverity.DiagnosticId, False, False)>
+        <InlineData(Nothing, "/nowarn:" & CompilationAnalyzerWithSeverity.DiagnosticId, False, False)>
+        <InlineData("warning", Nothing, False, True)>
+        <InlineData("error", Nothing, True, False)>
+        <InlineData(Nothing, Nothing, False, True)>
+        <WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")>
+        Public Sub TestCompilationOptionsOverrideAnalyzerConfig_AnalyzerWarning(analyzerConfigSeverity As String, additionalArg As String, expectError As Boolean, expectWarning As Boolean)
+            Dim analyzer = New CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable:=True)
+            Dim src = "
+Class C
+End Class"
+            TestCompilationOptionsOverrideAnalyzerConfigCore(src, CompilationAnalyzerWithSeverity.DiagnosticId, analyzerConfigSeverity, additionalArg, expectError, expectWarning, analyzer)
+        End Sub
+
+        Private Sub TestCompilationOptionsOverrideAnalyzerConfigCore(
+            source As String,
+            diagnosticId As String,
+            analyzerConfigSeverity As String,
+            additionalArg As String,
+            expectError As Boolean,
+            expectWarning As Boolean,
+            ParamArray analyzers As DiagnosticAnalyzer())
+
+            Assert.True(Not expectError OrElse Not expectWarning)
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText(source)
+
+            Dim additionalArgs = Array.Empty(Of String)()
+            If analyzerConfigSeverity IsNot Nothing Then
+                Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($"
+[*.vb]
+dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}")
+                additionalArgs = additionalArgs.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray()
+            End If
+
+            If Not String.IsNullOrEmpty(additionalArg) Then
+                additionalArgs = additionalArgs.Append(additionalArg)
+            End If
+
+            Dim output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalArgs,
+                                      expectedErrorCount:=If(expectError, 1, 0),
+                                      expectedWarningCount:=If(expectWarning, 1, 0),
+                                      analyzers:=analyzers.ToImmutableArrayOrEmpty())
+
+            If expectError Then
+                Assert.Contains($"error {diagnosticId}", output)
+            ElseIf expectWarning Then
+                Assert.Contains($"warning {diagnosticId}", output)
+            Else
+                Assert.DoesNotContain(diagnosticId, output)
+            End If
         End Sub
     End Class
 

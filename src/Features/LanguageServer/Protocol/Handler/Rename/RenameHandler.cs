@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Linq;
@@ -19,19 +17,21 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspMethod(LSP.Methods.TextDocumentRenameName), Shared]
-    internal class RenameHandler : AbstractRequestHandler<LSP.RenameParams, WorkspaceEdit?>
+    [ExportLspMethod(LSP.Methods.TextDocumentRenameName, mutatesSolutionState: false), Shared]
+    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public RenameHandler()
         {
         }
 
-        public override async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
+
+        public async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
         {
             WorkspaceEdit? workspaceEdit = null;
-            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document != null)
             {
                 var oldSolution = document.Project.Solution;

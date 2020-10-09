@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         private sealed class BasicBlockAnalysisData : IDisposable
         {
             private static readonly ObjectPool<BasicBlockAnalysisData> s_pool =
-                new ObjectPool<BasicBlockAnalysisData>(() => new BasicBlockAnalysisData());
+                new(() => new BasicBlockAnalysisData());
 
             /// <summary>
             /// Map from each symbol to possible set of reachable write operations that are live at current program point.

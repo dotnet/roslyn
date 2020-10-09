@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
     {
-        public static readonly ConstructorSymbolReferenceFinder Instance = new ConstructorSymbolReferenceFinder();
+        public static readonly ConstructorSymbolReferenceFinder Instance = new();
 
         private ConstructorSymbolReferenceFinder()
         {
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 predefinedType == actualType;
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindAllReferencesInDocumentAsync(methodSymbol, document, semanticModel, cancellationToken);
         }
 
-        internal async Task<ImmutableArray<FinderLocation>> FindAllReferencesInDocumentAsync(
+        internal async ValueTask<ImmutableArray<FinderLocation>> FindAllReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,
@@ -106,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return ordinaryRefs.Concat(attributeRefs, predefinedTypeRefs, implicitObjectCreationMatches);
         }
 
-        private static Task<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
+        private static ValueTask<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -118,7 +116,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol, name, document, semanticModel, findParentNode, cancellationToken);
         }
 
-        private static Task<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
+        private static ValueTask<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -127,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var predefinedType = symbol.ContainingType.SpecialType.ToPredefinedType();
             if (predefinedType == PredefinedType.None)
             {
-                return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
+                return new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
             }
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        private static Task<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
+        private static ValueTask<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -146,7 +144,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             return TryGetNameWithoutAttributeSuffix(symbol.ContainingType.Name, syntaxFacts, out var simpleName)
                 ? FindReferencesInDocumentUsingIdentifierAsync(symbol, simpleName, document, semanticModel, cancellationToken)
-                : SpecializedTasks.EmptyImmutableArray<FinderLocation>();
+                : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
     }
 }

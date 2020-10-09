@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// fail.
         /// </summary>
         public static VirtualChar Create(Rune rune, TextSpan span)
-            => new VirtualChar(rune, surrogateChar: default, span);
+            => new(rune, surrogateChar: default, span);
 
         /// <summary>
         /// Creates a new <see cref="VirtualChar"/> from an unpaired high or low surrogate character.  This will throw

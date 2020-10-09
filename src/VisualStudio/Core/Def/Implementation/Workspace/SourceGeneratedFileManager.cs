@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -54,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <summary>
         /// Map of currently open generated files; the key is the generated full file path.
         /// </summary>
-        private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = new Dictionary<string, OpenSourceGeneratedFile>();
+        private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = new();
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
 
         [ImportingConstructor]
@@ -222,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             /// A cancellation token used for any background updating of this file; this is cancelled on the UI thread
             /// when the file is closed.
             /// </summary>
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
 
             /// <summary>
             /// A queue used to batch updates to the file.

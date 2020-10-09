@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ErrorCode
@@ -1915,6 +1917,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate = 8902,
 
         ERR_InitCannotBeReadonly = 8903,
+
+        ERR_FunctionPointersCannotBeCalledWithNamedArguments = 8904,
 
         #endregion diagnostics introduced for C# 9.0
 

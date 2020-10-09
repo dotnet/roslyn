@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -342,9 +340,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // cancel their request, we don't want ot keep the AsyncLazy around.  It may capture a lot
         // of immutable state (like a Solution) that we don't want kept around indefinitely.  So we
         // only cache results (the symbol tree infos) if they successfully compute to completion.
-        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim> s_metadataIdToGate = new ConditionalWeakTable<MetadataId, SemaphoreSlim>();
+        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim> s_metadataIdToGate = new();
         private static readonly ConditionalWeakTable<MetadataId, Task<SymbolTreeInfo>> s_metadataIdToInfo =
-            new ConditionalWeakTable<MetadataId, Task<SymbolTreeInfo>>();
+            new();
 
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
             _ => new SemaphoreSlim(1);

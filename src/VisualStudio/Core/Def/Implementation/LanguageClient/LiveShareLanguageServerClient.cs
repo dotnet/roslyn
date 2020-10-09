@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -29,8 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public LiveShareLanguageServerClient(LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, diagnosticsClientName: null)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            ILspSolutionProvider solutionProvider)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
         }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -138,15 +140,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            using var connection = await client.CreateConnectionAsync(
-                WellKnownServiceHubService.RemoteTodoCommentsService,
-                callback,
-                cancellationTokenSource.Token);
+            using var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsDiscoveryService>(callback, cancellationTokenSource.Token);
 
-            var invokeTask = connection.RunRemoteAsync(
-                nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
-                solution: null,
-                arguments: Array.Empty<object>(),
+            var invokeTask = connection.TryInvokeAsync(
+                (service, cancellationToken) => service.ComputeTodoCommentsAsync(cancellationToken),
                 cancellationTokenSource.Token);
 
             var data = await callback.Data;
@@ -154,22 +151,20 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(1, data.Item2.Length);
 
             var commentInfo = data.Item2[0];
-            Assert.Equal(new TodoCommentData
-            {
-                DocumentId = solution.Projects.Single().Documents.Single().Id,
-                Priority = 1,
-                Message = "TODO: Test",
-                MappedFilePath = null,
-                OriginalFilePath = "test1.cs",
-                OriginalLine = 2,
-                MappedLine = 2,
-                OriginalColumn = 3,
-                MappedColumn = 3,
-            }, commentInfo);
+            Assert.Equal(new TodoCommentData(
+                documentId: solution.Projects.Single().Documents.Single().Id,
+                priority: 1,
+                message: "TODO: Test",
+                mappedFilePath: null,
+                originalFilePath: "test1.cs",
+                originalLine: 2,
+                mappedLine: 2,
+                originalColumn: 3,
+                mappedColumn: 3), commentInfo);
 
             cancellationTokenSource.Cancel();
 
-            await invokeTask;
+            Assert.True(await invokeTask);
         }
 
         private class TodoCommentsListener : ITodoCommentsListener
@@ -178,10 +173,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
             public Task<(DocumentId, ImmutableArray<TodoCommentData>)> Data => _dataSource.Task;
 
-            public Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+            public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
             {
                 _dataSource.SetResult((documentId, data));
-                return Task.CompletedTask;
+                return new ValueTask();
             }
         }
 
@@ -221,15 +216,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var callback = new DesignerAttributeListener();
 
-            using var connection = await client.CreateConnectionAsync(
-                WellKnownServiceHubService.RemoteDesignerAttributeService,
-                callback,
-                cancellationTokenSource.Token);
+            using var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeDiscoveryService>(callback, cancellationTokenSource.Token);
 
-            var invokeTask = connection.RunRemoteAsync(
-                nameof(IRemoteDesignerAttributeService.StartScanningForDesignerAttributesAsync),
-                solution: null,
-                arguments: Array.Empty<object>(),
+            var invokeTask = connection.TryInvokeAsync(
+                (service, cancellationToken) => service.StartScanningForDesignerAttributesAsync(cancellationToken),
                 cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
@@ -241,7 +231,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             cancellationTokenSource.Cancel();
 
-            await invokeTask;
+            Assert.True(await invokeTask);
         }
 
         private class DesignerAttributeListener : IDesignerAttributeListener
@@ -250,13 +240,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 = new TaskCompletionSource<ImmutableArray<DesignerAttributeData>>();
             public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
-            public Task OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-                => Task.CompletedTask;
+            public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+                => new ValueTask();
 
-            public Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
+            public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
                 _infosSource.SetResult(infos);
-                return Task.CompletedTask;
+                return new ValueTask();
             }
         }
 

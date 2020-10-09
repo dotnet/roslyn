@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Renamer
@@ -366,5 +369,17 @@ newDocumentPath: @"Test\Path\After\Test\Document.cs");
         documentName: @"C.cs",
         newDocumentName: @"C2",
         newDocumentPath: @"Test\C2.cs");
+
+        [Fact]
+        [WorkItem(46580, "https://github.com/dotnet/roslyn/issues/46580")]
+        public Task CSharp_RenameDocument_MappedDocumentHasNoResults()
+        {
+            var documentName = "Component1.razor";
+            var documentText =
+@"<h3>Component1</h3>
+@code {}";
+
+            return TestRenameMappedFile(documentText, documentName, newDocumentName: "MyComponent.razor");
+        }
     }
 }

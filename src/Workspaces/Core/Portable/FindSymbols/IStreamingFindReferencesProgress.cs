@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -16,20 +18,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         IStreamingProgressTracker ProgressTracker { get; }
 
-        Task OnStartedAsync();
-        Task OnCompletedAsync();
+        ValueTask OnStartedAsync();
+        ValueTask OnCompletedAsync();
 
-        Task OnFindInDocumentStartedAsync(Document document);
-        Task OnFindInDocumentCompletedAsync(Document document);
+        ValueTask OnFindInDocumentStartedAsync(Document document);
+        ValueTask OnFindInDocumentCompletedAsync(Document document);
 
-        Task OnDefinitionFoundAsync(ISymbol symbol);
-        Task OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location);
+        ValueTask OnDefinitionFoundAsync(ISymbol symbol);
+        ValueTask OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location);
     }
 
     internal interface IStreamingFindLiteralReferencesProgress
     {
         IStreamingProgressTracker ProgressTracker { get; }
 
-        Task OnReferenceFoundAsync(Document document, TextSpan span);
+        ValueTask OnReferenceFoundAsync(Document document, TextSpan span);
     }
 }
