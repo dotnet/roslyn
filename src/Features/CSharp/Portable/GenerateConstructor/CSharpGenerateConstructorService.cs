@@ -230,25 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                     .LastOrDefault();
 
                 var typeNameToReplace = (TypeSyntax)oldToken.Parent;
-                TypeSyntax newTypeName;
-                if (!Equals(namedType, state.TypeToGenerateIn))
-                {
-                    while (true)
-                    {
-                        if (!(typeNameToReplace.Parent is TypeSyntax parentType))
-                        {
-                            break;
-                        }
-
-                        typeNameToReplace = parentType;
-                    }
-
-                    newTypeName = namedType.GenerateTypeSyntax().WithAdditionalAnnotations(s_annotation);
-                }
-                else
-                {
-                    newTypeName = typeNameToReplace.WithAdditionalAnnotations(s_annotation);
-                }
+                TypeSyntax newTypeName = typeNameToReplace.WithAdditionalAnnotations(s_annotation);
 
                 var newNode = oldNode.ReplaceNode(typeNameToReplace, newTypeName);
                 newTypeName = (TypeSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
