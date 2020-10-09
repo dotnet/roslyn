@@ -724,5 +724,24 @@ public class Program
     }
 }", "+");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task OperatorForRecordsAreSuggested()
+        {
+
+            await VerifyItemExistsAsync(@"
+public record R {
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var r = new R();
+        r.$$
+    }
+}", "==");
+        }
     }
 }
