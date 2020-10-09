@@ -274,13 +274,15 @@ namespace Microsoft.CodeAnalysis.Text
         /// </remarks>
         private static ImmutableArray<TextChangeRange> Merge(ImmutableArray<TextChangeRange> oldChanges, ImmutableArray<TextChangeRange> newChanges)
         {
+            // Earlier steps are expected to prevent us from ever reaching this point with empty change sets.
             if (oldChanges.IsEmpty)
             {
-                return newChanges;
+                throw new ArgumentException(nameof(oldChanges));
             }
-            else if (newChanges.IsEmpty)
+
+            if (newChanges.IsEmpty)
             {
-                return oldChanges;
+                throw new ArgumentException(nameof(newChanges));
             }
 
             var builder = ArrayBuilder<TextChangeRange>.GetInstance();
