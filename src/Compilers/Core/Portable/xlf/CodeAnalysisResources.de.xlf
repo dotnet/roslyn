@@ -576,7 +576,7 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName_Title">
         <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
-        <target state="translated">Der Name des Konfigurationsabschnitts "{0}" des globalen Analysemoduls ist ungültig, weil es sich nicht um einen absoluten Pfad handelt. Der Abschnitt wird ignoriert.</target>
+        <target state="new">Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
