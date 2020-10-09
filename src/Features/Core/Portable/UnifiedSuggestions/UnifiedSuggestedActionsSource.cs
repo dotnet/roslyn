@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     }
                 }
 
-                var combinedSpan = minStart >= 0 ? new TextSpan(minStart, maxEnd) : (TextSpan?)null;
+                var combinedSpan = minStart >= 0 ? new TextSpan(minStart, maxEnd - minStart) : (TextSpan?)null;
                 return (combinedSpan, category);
             }
         }
