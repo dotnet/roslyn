@@ -116,21 +116,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 ref int highestSetNumber,
                 string currentTitle)
             {
-                using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var nestedActions);
-                if (suggestedAction is UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions)
+                if (suggestedAction is not UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions)
                 {
-                    foreach (var nestedActionSet in suggestedActionWithNestedActions.NestedActionSets)
+                    return Array.Empty<VSCodeAction>();
+                }
+
+                using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var nestedActions);
+                foreach (var nestedActionSet in suggestedActionWithNestedActions.NestedActionSets)
+                {
+                    // Nested code action sets should each have a unique set number that is not yet assigned to any set.
+                    var nestedSetNumber = ++highestSetNumber;
+                    foreach (var nestedSuggestedAction in nestedActionSet.Actions)
                     {
-                        // Nested code action sets should each have a unique set number that is not yet assigned to any set.
-                        var nestedSetNumber = ++highestSetNumber;
-                        foreach (var nestedSuggestedAction in nestedActionSet.Actions)
-                        {
-                            nestedActions.Add(GenerateVSCodeAction(
-                                request, documentText, nestedSuggestedAction, codeActionKind,
-                                applicableRange: nestedActionSet.ApplicableToSpan.HasValue
-                                    ? ProtocolConversions.TextSpanToRange(nestedActionSet.ApplicableToSpan.Value, documentText) : null,
-                                nestedSetNumber, ref highestSetNumber, currentTitle));
-                        }
+                        nestedActions.Add(GenerateVSCodeAction(
+                            request, documentText, nestedSuggestedAction, codeActionKind,
+                            applicableRange: nestedActionSet.ApplicableToSpan.HasValue
+                                ? ProtocolConversions.TextSpanToRange(nestedActionSet.ApplicableToSpan.Value, documentText) : null,
+                            nestedSetNumber, ref highestSetNumber, currentTitle));
                     }
                 }
 
@@ -247,7 +249,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 CodeActionPriority.Low => LSP.PriorityLevel.Low,
                 CodeActionPriority.Medium => LSP.PriorityLevel.Normal,
                 CodeActionPriority.High => LSP.PriorityLevel.High,
-                _ => null
+                _ => null // If Roslyn doesn't assign a priority, let LSP decide the priority
             };
 
         public static CodeAction? GetCodeActionToResolve(string distinctTitle, ImmutableArray<CodeAction> codeActions)
