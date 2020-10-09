@@ -249,11 +249,7 @@ namespace Roslyn.Test.Utilities
                     Position = requestParameters.Position,
                     CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context)
                 }),
-<<<<<<< HEAD
-                Preselect = preselect,
-=======
                 Preselect = preselect
->>>>>>> b63bda90e030af60b98a16da429d3fe048be3083
             };
 
             if (tags != null)

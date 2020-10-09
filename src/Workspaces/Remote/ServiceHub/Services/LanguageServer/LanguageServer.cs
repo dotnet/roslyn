@@ -127,10 +127,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private static async Task SearchDocumentAndReportSymbolsAsync(Document document, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(args.PartialResultToken);
-<<<<<<< HEAD
-=======
 
->>>>>>> b63bda90e030af60b98a16da429d3fe048be3083
             var convertedResults = await SearchDocumentAsync(document, args.Query, cancellationToken).ConfigureAwait(false);
             args.PartialResultToken.Report(convertedResults.ToArray());
         }
