@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
@@ -205,6 +206,24 @@ class C : IGoo
 
     private void Goo1() { }
 }", index: SingleMember);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(48027, "https://github.com/dotnet/roslyn/issues/48027")]
+        public async Task TestSingleMemberAndContainingTypeHasNoInterface()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Collections;
+
+class C
+{
+    IEnumerator IEnumerable.[||]GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
     }
 }

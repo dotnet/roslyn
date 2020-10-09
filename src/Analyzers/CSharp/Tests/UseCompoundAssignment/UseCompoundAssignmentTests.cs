@@ -810,5 +810,252 @@ struct InsertionPoint
     }
 }");
         }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrement()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a + 1;
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestDecrement()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a - 1;
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a--;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestMinusIncrement()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a + (-1);
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a--;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementDouble()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(double a)
+    {
+        a [||]= a + 1.0;
+    }
+}",
+@"public class C
+{
+    void M(double a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementNotOnString()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(string a)
+    {
+        a [||]= a + ""1"";
+    }
+}",
+@"public class C
+{
+    void M(string a)
+    {
+        a += ""1"";
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementChar()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(char a)
+    {
+        a [||]= a + 1;
+    }
+}",
+@"public class C
+{
+    void M(char a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementEnum()
+        {
+            await TestInRegularAndScript1Async(
+@"public enum E {}
+public class C
+{
+    void M(E a)
+    {
+        a [||]= a + 1;
+    }
+}",
+@"public enum E {}
+public class C
+{
+    void M(E a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementDecimal()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(decimal a)
+    {
+        a [||]= a + 1.0m;
+    }
+}",
+@"public class C
+{
+    void M(decimal a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("long")]
+        [InlineData("float")]
+        [InlineData("decimal")]
+        public async Task TestIncrementLiteralConversion(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a [||]= a + ({typeName})1;
+    }}
+}}",
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a++;
+    }}
+}}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("long")]
+        [InlineData("float")]
+        [InlineData("decimal")]
+        public async Task TestIncrementImplicitLiteralConversion(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a [||]= a + 1;
+    }}
+}}",
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a++;
+    }}
+}}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementLoopVariable()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M()
+    {
+        for (int i = 0; i < 10; i [||]= i + 1)
+        {
+        }
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        for (int i = 0; i < 10; i++)
+        {
+        }
+    }
+}");
+        }
     }
 }
