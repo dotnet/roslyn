@@ -947,7 +947,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ArrayBuilder<TextChange> newChangesBuilder = ArrayBuilder<TextChange>.GetInstance();
 
                 // Adjust as needed to get a simpler error reproducer.
-                var newMaxInsertLength = editedLength  * 2;
+                var newMaxInsertLength = editedLength * 2;
                 // generate sequence of "new edits" which meet invariants
                 for (int i = 0; i < editedLength; i += random.Next(maxSkipLength))
                 {
