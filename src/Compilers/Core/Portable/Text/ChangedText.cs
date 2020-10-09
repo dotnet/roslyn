@@ -241,6 +241,29 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
+        /// Represents a newChange being processed by <see cref="Merge(ImmutableArray&lt;TextChangeRange&gt;, ImmutableArray&lt;TextChangeRange&gt;)"/>.
+        /// Such a newChange must be adjusted before being added to the result list.
+        /// </summary>
+        private readonly struct UnadjustedNewChange
+        {
+            public readonly int SpanStart { get; }
+            public readonly int SpanLength { get; }
+            public readonly int NewLength { get; }
+
+            public UnadjustedNewChange(int spanStart, int spanLength, int newLength)
+            {
+                SpanStart = spanStart;
+                SpanLength = spanLength;
+                NewLength = newLength;
+            }
+
+            public UnadjustedNewChange(TextChangeRange range)
+                : this(range.Span.Start, range.Span.Length, range.NewLength)
+            {
+            }
+        }
+
+        /// <summary>
         /// Merges the new change ranges into the old change ranges, adjusting the new ranges to be with respect to the original text
         /// (with neither old or new changes applied) instead of with respect to the original text after "old changes" are applied.
         ///
@@ -263,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Text
             var builder = ArrayBuilder<TextChangeRange>.GetInstance();
 
             var oldChange = oldChanges[0];
-            var newChange = newChanges[0];
+            var newChange = new UnadjustedNewChange(newChanges[0]);
 
             var oldIndex = 0;
             var newIndex = 0;
@@ -282,59 +305,59 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (oldChange.Span.Length == 0 && oldChange.NewLength == 0)
                 {
-                    if (tryGetNext(oldChanges, ref oldIndex, out oldChange)) continue;
+                    if (tryGetNextOldChange(oldChanges, ref oldIndex, out oldChange)) continue;
                     else break;
                 }
-                else if (newChange.Span.Length == 0 && newChange.NewLength == 0)
+                else if (newChange.SpanLength == 0 && newChange.NewLength == 0)
                 {
-                    if (tryGetNext(newChanges, ref newIndex, out newChange)) continue;
+                    if (tryGetNextNewChange(newChanges, ref newIndex, out newChange)) continue;
                     else break;
                 }
-                else if (newChange.Span.End < oldChange.Span.Start + oldDelta)
+                else if (newChange.SpanStart + newChange.SpanLength < oldChange.Span.Start + oldDelta)
                 {
                     // new change is entirely before old change
                     addAdjustedNewChange(newChange);
-                    if (tryGetNext(newChanges, ref newIndex, out newChange)) continue;
+                    if (tryGetNextNewChange(newChanges, ref newIndex, out newChange)) continue;
                     else break;
                 }
-                else if (newChange.Span.Start > oldChange.Span.Start + oldDelta + oldChange.NewLength)
+                else if (newChange.SpanStart > oldChange.Span.Start + oldDelta + oldChange.NewLength)
                 {
                     // new change is entirely after old change
                     addAndAdjustOldDelta(oldChange);
-                    if (tryGetNext(oldChanges, ref oldIndex, out oldChange)) continue;
+                    if (tryGetNextOldChange(oldChanges, ref oldIndex, out oldChange)) continue;
                     else break;
                 }
-                else if (newChange.Span.Start < oldChange.Span.Start + oldDelta)
+                else if (newChange.SpanStart < oldChange.Span.Start + oldDelta)
                 {
                     // new change starts before old change, but overlaps
                     // add as much of new change deletion as possible and try again
-                    var newChangeLeadingDeletion = oldChange.Span.Start + oldDelta - newChange.Span.Start;
-                    add(new TextChangeRange(new TextSpan(newChange.Span.Start - oldDelta, newChangeLeadingDeletion), 0));
-                    newChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + oldDelta, newChange.Span.Length - newChangeLeadingDeletion), newChange.NewLength);
+                    var newChangeLeadingDeletion = oldChange.Span.Start + oldDelta - newChange.SpanStart;
+                    add(new TextChangeRange(new TextSpan(newChange.SpanStart - oldDelta, newChangeLeadingDeletion), 0));
+                    newChange = new UnadjustedNewChange(oldChange.Span.Start + oldDelta, newChange.SpanLength - newChangeLeadingDeletion, newChange.NewLength);
                     continue;
                 }
-                else if (newChange.Span.Start > oldChange.Span.Start + oldDelta)
+                else if (newChange.SpanStart > oldChange.Span.Start + oldDelta)
                 {
                     // new change starts after old change, but overlaps
                     // add as much of the old change as possible and try again
-                    var oldChangeLeadingInsertion = newChange.Span.Start - (oldChange.Span.Start + oldDelta);
+                    var oldChangeLeadingInsertion = newChange.SpanStart - (oldChange.Span.Start + oldDelta);
                     var oldChangeLeadingDeletion = Math.Min(oldChange.Span.Length, oldChangeLeadingInsertion);
                     addAndAdjustOldDelta(new TextChangeRange(new TextSpan(oldChange.Span.Start, oldChangeLeadingDeletion), oldChangeLeadingInsertion));
-                    oldChange = new TextChangeRange(new TextSpan(newChange.Span.Start - oldDelta, oldChange.Span.Length - oldChangeLeadingDeletion), oldChange.NewLength - oldChangeLeadingInsertion);
+                    oldChange = new TextChangeRange(new TextSpan(newChange.SpanStart - oldDelta, oldChange.Span.Length - oldChangeLeadingDeletion), oldChange.NewLength - oldChangeLeadingInsertion);
                     continue;
                 }
                 else
                 {
-                    if (newChange.Span.Length <= oldChange.NewLength)
+                    if (newChange.SpanLength <= oldChange.NewLength)
                     {
                         // new change deletes fewer characters than old change inserted
                         // thus its adjusted end position is smaller (any old characters it didn't delete are "pushed" to the right of the new insertion's end)
                         // consume the new change insertion, and fold the new change deletion into the old change's insertion
-                        oldChange = new TextChangeRange(oldChange.Span, oldChange.NewLength - newChange.Span.Length);
-                        oldDelta = oldDelta + newChange.Span.Length;
-                        newChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + oldDelta, length: 0), newChange.NewLength);
+                        oldChange = new TextChangeRange(oldChange.Span, oldChange.NewLength - newChange.SpanLength);
+                        oldDelta = oldDelta + newChange.SpanLength;
+                        newChange = new UnadjustedNewChange(oldChange.Span.Start + oldDelta, spanLength: 0, newChange.NewLength);
                         addAdjustedNewChange(newChange);
-                        if (tryGetNext(newChanges, ref newIndex, out newChange)) continue;
+                        if (tryGetNextNewChange(newChanges, ref newIndex, out newChange)) continue;
                         else break;
                     }
                     else
@@ -342,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Text
                         // new change deletes more characters than old change inserted
                         // thus its adjusted end position is larger
 
-                        // drop the old change, adjusting the oldDelta to compensate
+                        // drop the old change insertion, adjusting the oldDelta to compensate
                         oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength;
 
                         // adjust the new change as follows:
@@ -350,34 +373,42 @@ namespace Microsoft.CodeAnalysis.Text
                         // 2. subtract the old change's insertion from its deletion
                         // 3. add oldDelta to its start position so that its adjusted start position is the same as the oldChange that we removed
                         //    - note that this can result in the newChange having a negative Start, but this gets adjusted back into a non-negative Start in the next iteration.
-                        var newDeletion = newChange.Span.Length + oldChange.Span.Length - oldChange.NewLength;
-                        newChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + oldDelta, newDeletion, validateStart: false), newChange.NewLength);
-                        if (tryGetNext(oldChanges, ref oldIndex, out oldChange)) continue;
+                        var newDeletion = newChange.SpanLength + oldChange.Span.Length - oldChange.NewLength;
+                        newChange = new UnadjustedNewChange(oldChange.Span.Start + oldDelta, newDeletion, newChange.NewLength);
+                        if (tryGetNextOldChange(oldChanges, ref oldIndex, out oldChange)) continue;
                         else break;
                     }
                 }
             }
 
-            // there may be remaining old changes or remaining new changes (not both)
-            Debug.Assert(oldIndex == oldChanges.Length || newIndex == newChanges.Length);
+            // there may be remaining old changes or remaining new changes (not both, and not neither)
+            var (hasRemainingOldChanges, hasRemainingNewChanges) = (oldIndex == oldChanges.Length, newIndex == newChanges.Length);
+            if (hasRemainingOldChanges == hasRemainingNewChanges)
+            {
+                var both = hasRemainingOldChanges && hasRemainingNewChanges;
+                throw new InvalidOperationException(
+                    $"Expected exactly one of oldChanges or newChanges to have additional changes after merge loop, but {(both ? "both" : "neither")} have new changes.");
+            }
 
             while (oldIndex < oldChanges.Length)
             {
-                add(oldChange); // no need to adjust oldDelta at this point
-                tryGetNext(oldChanges, ref oldIndex, out oldChange);
+                // we no longer need to adjust oldDelta because there are no new changes left that need to reference it
+                add(oldChange);
+                tryGetNextOldChange(oldChanges, ref oldIndex, out oldChange);
             }
 
             while (newIndex < newChanges.Length)
             {
                 addAdjustedNewChange(newChange);
-                tryGetNext(newChanges, ref newIndex, out newChange);
+                tryGetNextNewChange(newChanges, ref newIndex, out newChange);
             }
 
             return builder.ToImmutableAndFree();
 
-            static bool tryGetNext(ImmutableArray<TextChangeRange> changes, ref int index, out TextChangeRange next)
+            static bool tryGetNextOldChange(ImmutableArray<TextChangeRange> changes, ref int index, out TextChangeRange next)
             {
-                if (++index < changes.Length)
+                index++;
+                if (index < changes.Length)
                 {
                     next = changes[index];
                     return true;
@@ -389,15 +420,32 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            void addAndAdjustOldDelta(TextChangeRange change)
+            static bool tryGetNextNewChange(ImmutableArray<TextChangeRange> changes, ref int index, out UnadjustedNewChange next)
             {
-                oldDelta = oldDelta - change.Span.Length + change.NewLength;
-                add(change);
+                index++;
+                if (index < changes.Length)
+                {
+                    next = new UnadjustedNewChange(changes[index]);
+                    return true;
+                }
+                else
+                {
+                    next = default;
+                    return false;
+                }
             }
 
-            void addAdjustedNewChange(TextChangeRange change)
+            void addAndAdjustOldDelta(TextChangeRange oldChange)
             {
-                add(new TextChangeRange(new TextSpan(change.Span.Start - oldDelta, change.Span.Length), change.NewLength));
+                // modify oldDelta to reflect characters deleted and inserted by an old change
+                oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength;
+                add(oldChange);
+            }
+
+            void addAdjustedNewChange(UnadjustedNewChange change)
+            {
+                // new change is relative to the original text with old changes applied. Subtract oldDelta to make it relative to the original text.
+                add(new TextChangeRange(new TextSpan(change.SpanStart - oldDelta, change.SpanLength), change.NewLength));
             }
 
             void add(TextChangeRange range)
@@ -411,10 +459,9 @@ namespace Microsoft.CodeAnalysis.Text
                         builder[^1] = new TextChangeRange(new TextSpan(last.Span.Start, last.Span.Length + range.Span.Length), last.NewLength + range.NewLength);
                         return;
                     }
-                    else
+                    else if (range.Span.Start <= last.Span.End)
                     {
-                        // changes must not overlap
-                        Debug.Assert(range.Span.Start > last.Span.End);
+                        throw new InvalidOperationException("Changes must not overlap.");
                     }
 
                 }

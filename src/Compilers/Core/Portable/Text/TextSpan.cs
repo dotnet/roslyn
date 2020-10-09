@@ -36,26 +36,6 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Internally, the TextChangeRange merging algorithm must occasionally create TextSpans which are relative to
-        /// some delta such that their own start position is negative, but their final adjusted start position is non-negative.
-        /// </summary>
-        internal TextSpan(int start, int length, bool validateStart)
-        {
-            if (validateStart && start < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(start));
-            }
-
-            if (start + length < start)
-            {
-                throw new ArgumentOutOfRangeException(nameof(length));
-            }
-
-            Start = start;
-            Length = length;
-        }
-
-        /// <summary>
         /// Start point of the span.
         /// </summary>
         public int Start { get; }
