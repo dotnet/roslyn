@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -13,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -176,8 +174,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // Use a monotonically increasing integer to keep track the original alphabetical order of each item.
             var currentIndex = 0;
-            var builder = ArrayBuilder<MatchResult>.GetInstance();
 
+            var builder = ArrayBuilder<MatchResult>.GetInstance();
+            if (KeepAllItemsInTheList(initialRoslynTriggerKind, filterText) && !needToFilterExpanded && !needToFilter)
+            {
+                // PERF: Conditionally set the capacity of the ArrayBuilder, i.e. if we think it's likely that the filtering result
+                // would be similar in size to the initial list, in which case, setting the capacity would avoid calls to Resize later.
+                // Otherwise, don't set capacity as an attempt to avoid allocating large array which might unnecessarily end up in LOH.
+                // The trade-off of not setting capacity is when we are wrong (large amount of items post-filtering), more allocation
+                // would occur because of Resize, but in reality we believe such cost is much lower than the benefit of not allocating
+                // large array upfront everytime we refresh completion list.
+                // We say it's likely that we end up with a list of similar size after filtering if:
+                // 1. We need to show items even if they don't match filter text
+                // 2. No filter is selected
+                builder.EnsureCapacity(data.InitialSortedList.Length);
+            }
+
+            // Filter items based on the selected filters and matching.
             foreach (var item in data.InitialSortedList)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -570,6 +583,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return roslynItem;
         }
 
+        // If the item didn't match the filter text, we still keep it in the list
+        // if one of two things is true:
+        //  1. The user has typed nothing or only typed a single character.  In this case they might
+        //     have just typed the character to get completion.  Filtering out items
+        //     here is not desirable.
+        //
+        //  2. They brought up completion with ctrl-j or through deletion.  In these
+        //     cases we just always keep all the items in the list.
+        private static bool KeepAllItemsInTheList(CompletionTriggerKind initialTriggerKind, string filterText)
+        {
+            return filterText.Length <= 1 ||
+                initialTriggerKind == CompletionTriggerKind.Invoke ||
+                initialTriggerKind == CompletionTriggerKind.Deletion;
+        }
+
         private static bool TryCreateMatchResult(
             CompletionHelper completionHelper,
             VSCompletionItem item,
@@ -601,23 +629,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 recentItems,
                 patternMatch);
 
-            // If the item didn't match the filter text, we still keep it in the list
-            // if one of two things is true:
-            //
-            //  1. The user has typed nothing or only typed a single character.  In this case they might
-            //     have just typed the character to get completion.  Filtering out items
-            //     here is not desirable.
-            //
-            //  2. They brought up completion with ctrl-j or through deletion.  In these
-            //     cases we just always keep all the items in the list.
-            if (matchedFilterText ||
-                initialTriggerKind == CompletionTriggerKind.Deletion ||
-                initialTriggerKind == CompletionTriggerKind.Invoke ||
-                filterText.Length <= 1)
+            if (matchedFilterText || KeepAllItemsInTheList(initialTriggerKind, filterText))
             {
                 matchResult = new MatchResult(
                     roslynItem, item, matchedFilterText: matchedFilterText,
-                    patternMatch: patternMatch, index: currentIndex++, GetHighlightedSpans());
+                    patternMatch: patternMatch, index: currentIndex++, GetHighlightedSpans(completionHelper, item, filterText, highlightMatchingPortions, roslynItem, patternMatch));
 
                 return true;
             }
@@ -625,7 +641,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             matchResult = default;
             return false;
 
-            ImmutableArray<Span> GetHighlightedSpans()
+            static ImmutableArray<Span> GetHighlightedSpans(
+                CompletionHelper completionHelper,
+                VSCompletionItem item,
+                string filterText,
+                bool highlightMatchingPortions,
+                RoslynCompletionItem roslynItem,
+                PatternMatch? patternMatch)
             {
                 if (!highlightMatchingPortions)
                 {
@@ -647,7 +669,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // Since VS item's display text is created as Prefix + DisplayText + Suffix, 
                     // we can calculate the highlighted span by adding an offset that is the length of the Prefix.
                     return patternMatch.Value.MatchedSpans
-                        .SelectAsArray(s => s.MoveTo(roslynItem.DisplayTextPrefix?.Length ?? 0).ToSpan());
+                        .SelectAsArray(s_highlightSpanGetter, roslynItem);
                 }
 
                 // If there's no match for Roslyn item's filter text which is identical to its display text,
@@ -655,6 +677,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return ImmutableArray<Span>.Empty;
             }
         }
+
+        // PERF: Create a singleton to avoid lambda allocation on hot path
+        private static readonly Func<TextSpan, RoslynCompletionItem, Span> s_highlightSpanGetter
+            = (span, item) => span.MoveTo(item.DisplayTextPrefix?.Length ?? 0).ToSpan();
 
         private static bool MatchesFilterText(
             RoslynCompletionItem item,
