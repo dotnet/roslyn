@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis
         internal const int Succeeded = 0;
 
         private readonly string _clientDirectory;
+        private readonly string _workingDirectory;
 
         /// <summary>
         /// Fallback encoding that is lazily retrieved if needed. If <see cref="EncodedStringText.CreateFallbackEncoding"/> is
@@ -119,6 +120,7 @@ namespace Microsoft.CodeAnalysis
         {
             IEnumerable<string> allArgs = args;
             _clientDirectory = buildPaths.ClientDirectory;
+            _workingDirectory = buildPaths.WorkingDirectory;
 
             Debug.Assert(null == responseFile || PathUtilities.IsAbsolute(responseFile));
             if (!SuppressDefaultResponseFile(args) && File.Exists(responseFile))
@@ -921,10 +923,10 @@ namespace Microsoft.CodeAnalysis
             return shouldDebugTransformedCode;
         }
 
-        protected static string GetTransformedFilesOutputDirectory(AnalyzerConfigOptionsProvider options)
+        protected string GetTransformedFilesOutputDirectory(AnalyzerConfigOptionsProvider options)
         {
             options.GlobalOptions.TryGetValue("build_property.CompilerTransformedFilesOutputPath", out var transformedFilesOutputDirectory);
-            return transformedFilesOutputDirectory;
+            return FileUtilities.ResolveRelativePath(transformedFilesOutputDirectory, _workingDirectory);
         }
 
         /// <summary>
