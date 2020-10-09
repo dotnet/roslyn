@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                     <Document>
                         Class Foo
                             Sub Main(args As String())
-                                TestMethod({|x:5|})
+                                TestMethod({|x:|}5)
                             End Sub
 
                             Sub TestMethod(x As Integer)
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                     <Document>
                         Class Foo
                             Sub Main(args As String())
-                                TestMethod({|x:5|}, {|y:2.2|})
+                                TestMethod({|x:|}5, {|y:|}2.2)
                             End Sub
 
                             Sub TestMethod(x As Integer, y As Double)
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                     <Document>
                         Class Foo
                             Sub Main(args As String())
-                                TestMethod({|x:-5|}, {|y:2.2|})
+                                TestMethod({|x:|}-5, {|y:|}2.2)
                             End Sub
 
                             Sub TestMethod(x As Integer, y As Double)
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                     <Document>
                         Class Foo
                             Sub Main(args As String())
-                                TestMethod({|x:CInt(5.5)|}, {|y:2.2|})
+                                TestMethod({|x:|}CInt(5.5), {|y:|}2.2)
                             End Sub
 
                             Sub TestMethod(x As Integer, y As Double)
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                     <Document>
                         Class Foo
                             Sub Main(args As String())
-                                TestMethod({|x:CType(5.5, Integer)|}, {|y:2.2|})
+                                TestMethod({|x:|}CType(5.5, Integer), {|y:|}2.2)
                             End Sub
 
                             Sub TestMethod(x As Integer, y As Double)
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
 		                    End Sub
 
 		                    Public Sub Main()
-			                    test({|x:TryCast(New Object(), String)|})
+			                    test({|x:|}TryCast(New Object(), String))
 		                    End Sub
 	                    End Class
                     </Document>
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
 		                    End Sub
 
 		                    Public Sub Main()
-			                    test({|x:DirectCast(New Object(), String)|})
+			                    test({|x:|}DirectCast(New Object(), String))
 		                    End Sub
 	                    End Class
                     </Document>
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                     <Document>
                         Class Foo
                             Sub Main(args As String())
-                                TestMethod({|x:CInt(-5.5)|}, {|y:2.2|})
+                                TestMethod({|x:|}CInt(-5.5), {|y:|}2.2)
                             End Sub
 
                             Sub TestMethod(x As Integer, y As Double)
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                     <Document>
                         Class Foo
                             Sub Main(args As String())
-                                TestMethod({|x:CInt(-5.5)|}, {|y:2.2|}, {|obj:New Object()|})
+                                TestMethod({|x:|}CInt(-5.5), {|y:|}2.2, {|obj:|}New Object())
                             End Sub
 
                             Sub TestMethod(x As Integer, y As Double, obj As Object)
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
 		                    Public Delegate Sub TestDelegate(ByVal str As String)
 
 		                    Public Sub TestTheDelegate(ByVal test As TestDelegate)
-			                    test({|str:"Test"|})
+			                    test({|str:|}"Test")
 		                    End Sub
 	                    End Class
                     </Document>
@@ -280,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
 		                    End Sub
 
 		                    Public Sub Main()
-			                    UseParams({|args:1|}, 2, 3, 4, 5)
+			                    UseParams({|args:|}1, 2, 3, 4, 5)
 		                    End Sub
 	                    End Class
                     </Document>
@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        &lt;Obsolete({|message:"test"|})&gt;
+                        &lt;Obsolete({|message:|}"test")&gt;
                         Public Class Foo
                             Sub TestMethod()
 
@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                     <Document>
                         Class Foo
                             Sub Main(args As String())
-                                TestMethod({|x:5|},)
+                                TestMethod({|x:|}5,)
                             End Sub
 
                             Sub TestMethod(x As Integer, y As Double)
@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                     <Document>
                         Class Foo
                             Sub Main(args As String())
-                                TestMethod({|x:$""|})
+                                TestMethod({|x:|}$"")
                             End Sub
 
                             Sub TestMethod(x As String)
@@ -409,7 +409,7 @@ class A
     end sub
 
     sub Main() 
-        EnableLogging({|value:"IO"|})
+        EnableLogging({|value:|}"IO")
     end sub
 end class
                     </Document>
@@ -431,7 +431,7 @@ class A
     end sub
 
     sub Main() 
-        DisableLogging({|value:"IO"|})
+        DisableLogging({|value:|}"IO")
     end sub
 end class
                     </Document>
@@ -475,7 +475,7 @@ class A
     end sub
 
     sub Main() 
-        SetClassification({|values:"IO"|})
+        SetClassification({|values:|}"IO")
     end sub
 end class
                     </Document>
@@ -519,7 +519,7 @@ class A
     end sub
 
     sub Main() 
-        Goo({|objA:1|}, {|objB:2|}, {|nonobjC:3|})
+        Goo({|objA:|}1, {|objB:|}2, {|nonobjC:|}3)
     end sub
 end class
                     </Document>
@@ -563,7 +563,7 @@ class A
     end sub
 
     sub Main() 
-        Goo({|obj1:1|}, {|obj2:2|}, {|nonobj3:3|})
+        Goo({|obj1:|}1, {|obj2:|}2, {|nonobj3:|}3)
     end sub
 end class
                     </Document>
