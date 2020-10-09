@@ -115,7 +115,6 @@ try {
 
   $coreDir = Join-Path $RepoRoot "src\Compilers\Core\Portable"
   $operationsProject = Get-ToolPath "IOperationGenerator\CompilersIOperationGenerator.csproj"
-  $newOperationsProject = Get-ToolPath "IOperationGeneratorNew\CompilersIOperationGeneratorNew.csproj"
   $csharpDir = Join-Path $RepoRoot "src\Compilers\CSharp\Portable"
   $csharpTestDir = Join-Path $RepoRoot "src\Compilers\CSharp\Test\Syntax"
   $csharpSyntaxProject = Get-ToolPath 'CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj'
@@ -129,7 +128,6 @@ try {
   Run-Language "CSharp" "cs" $csharpDir $csharpTestDir $csharpSyntaxProject $csharpErrorFactsProject
   Run-Language "VB" "vb" $basicDir $basicTestDir $basicSyntaxProject $basicErrorFactsProject 
   Run-IOperation $coreDir $operationsProject
-  Run-IOperation $coreDir $newOperationsProject
   Run-GetText
 
   exit 0
