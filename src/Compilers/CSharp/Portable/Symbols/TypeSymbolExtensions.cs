@@ -1111,12 +1111,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static bool IsSpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "Span`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
         internal static bool IsReadOnlySpanChar(this TypeSymbol type)
         {
             return type is NamedTypeSymbol
             {
                 ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
                 MetadataName: "ReadOnlySpan`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
+        internal static bool IsSpanOrReadOnlySpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "ReadOnlySpan`1" or "Span`1",
                 TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
             }
             && arguments[0].SpecialType == SpecialType.System_Char;

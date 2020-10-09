@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // value, and data field offsets are unique within the method, not across all methods.
         internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
         internal const string SynthesizedReadOnlySpanHashFunctionName = "ComputeReadOnlySpanHash";
+        internal const string SynthesizedSpanHashFunctionName = "ComputeSpanHash";
 
         private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
         private readonly Cci.ITypeReference _systemObject;           //base type

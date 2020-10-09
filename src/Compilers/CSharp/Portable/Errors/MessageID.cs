@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Parameter = MessageBase + 12789,
         IDS_Return = MessageBase + 12790,
         IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
-        IDS_FeatureReadOnlySpanCharConstantPattern = MessageBase + 12792,
+        IDS_FeatureSpanCharConstantPattern = MessageBase + 12792,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return LanguageVersion.CSharp9;
 
                 case MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers: //semantic check
-                case MessageID.IDS_FeatureReadOnlySpanCharConstantPattern:
+                case MessageID.IDS_FeatureSpanCharConstantPattern:
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

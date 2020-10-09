@@ -3505,7 +3505,22 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
-                // System_MemoryExtensions__SequenceEqual_T
+                // System_MemoryExtensions__SequenceEqual_Span_T
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                               // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_MemoryExtensions - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                1,                                                                                                             // Arity
+                    2,                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
+                    (byte)WellKnownType.ExtSentinel, (WellKnownType.System_Span_T - WellKnownType.ExtSentinel),
+                    1,
+                    (byte)SignatureTypeCode.GenericMethodParameter, (byte)0,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
+                    (byte)WellKnownType.ExtSentinel, (WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),
+                    1,
+                    (byte)SignatureTypeCode.GenericMethodParameter, (byte)0,
+
+                // System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                               // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_MemoryExtensions - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 1,                                                                                                             // Arity
@@ -3970,7 +3985,8 @@ namespace Microsoft.CodeAnalysis
                 "Append",                                   // System_Text_StringBuilder__AppendString
                 "Append",                                   // System_Text_StringBuilder__AppendObject
                 ".ctor",                                    // System_Text_StringBuilder__ctor
-                "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_T
+                "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_Span_T
+                "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
                 "AsSpan",                                   // System_MemoryExtensions__AsSpanString
             };
 

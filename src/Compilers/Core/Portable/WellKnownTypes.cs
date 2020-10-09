@@ -307,12 +307,13 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_SwitchExpressionException,
         System_Collections_Generic_IEqualityComparer_T,
         System_Runtime_CompilerServices_NativeIntegerAttribute,
-        System_MemoryExtensions,
 
         System_Runtime_CompilerServices_IsExternalInit,
         System_Runtime_InteropServices_OutAttribute,
 
         System_Text_StringBuilder,
+
+        System_MemoryExtensions,
 
         NextAvailable,
 

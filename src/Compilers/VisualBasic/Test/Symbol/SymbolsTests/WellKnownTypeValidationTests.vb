@@ -543,7 +543,6 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
-                        WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_MemoryExtensions
                         ' Not available on all platforms.
                         Continue For
@@ -610,7 +609,6 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
-                        WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_MemoryExtensions
                         ' Not available on all platforms.
                         Continue For
@@ -697,7 +695,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
-                         WellKnownMember.System_MemoryExtensions__SequenceEqual_T,
+                         WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
+                         WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
                          WellKnownMember.System_MemoryExtensions__AsSpanString
                         ' Not available yet, but will be in upcoming release.
                         Continue For
@@ -840,7 +839,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
-                         WellKnownMember.System_MemoryExtensions__SequenceEqual_T,
+                         WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
+                         WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
                          WellKnownMember.System_MemoryExtensions__AsSpanString
                         ' Not available yet, but will be in upcoming release.
                         Continue For

@@ -511,7 +511,8 @@ namespace Microsoft.CodeAnalysis
         System_Text_StringBuilder__AppendObject,
         System_Text_StringBuilder__ctor,
 
-        System_MemoryExtensions__SequenceEqual_T,
+        System_MemoryExtensions__SequenceEqual_Span_T,
+        System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
         System_MemoryExtensions__AsSpanString,
 
         Count

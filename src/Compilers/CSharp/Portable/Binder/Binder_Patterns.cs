@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (wasExpression)
             {
                 var convertedType = convertedExpression.Type ?? inputType;
-                if (convertedType.SpecialType == SpecialType.System_String && inputType.IsReadOnlySpanChar())
+                if (convertedType.SpecialType == SpecialType.System_String && inputType.IsSpanOrReadOnlySpanChar())
                 {
                     convertedType = inputType;
                 }
@@ -364,6 +364,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                if (expression.Type?.SpecialType == SpecialType.System_String && inputType.IsSpanOrReadOnlySpanChar())
+                {
+                    if (MessageID.IDS_FeatureSpanCharConstantPattern.CheckFeatureAvailability(diagnostics, Compilation, node.Location))
+                    {
+                        // report missing member and use site diagnostics
+                        if (inputType.IsReadOnlySpanChar())
+                        {
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T, diagnostics, node);
+                        }
+                        else
+                        {
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T, diagnostics, node);
+                        }
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpanString, diagnostics, node);
+                    }
+
+                    constantValue = expression.ConstantValue;
+                    return expression;
+                }
+
                 // This will allow user-defined conversions, even though they're not permitted here.  This is acceptable
                 // because the result of a user-defined conversion does not have a ConstantValue. A constant pattern
                 // requires a constant value so we'll report a diagnostic to that effect later.
@@ -379,19 +399,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not interested in the diagnostic that get created here
                         convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), discardedDiagnostics);
                         discardedDiagnostics.Free();
-                    }
-                    else if (expression.Type?.SpecialType == SpecialType.System_String
-                        && inputType.IsReadOnlySpanChar())
-                    {
-                        if (MessageID.IDS_FeatureReadOnlySpanCharConstantPattern.CheckFeatureAvailability(diagnostics, Compilation, node.Location))
-                        {
-                            // report missing member and use site diagnostics
-                            _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__SequenceEqual_T, diagnostics, node);
-                            _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpanString, diagnostics, node);
-                        }
-
-                        constantValue = expression.ConstantValue;
-                        return expression;
                     }
                     else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
                         && operand.ConstantValue != null && convertedExpression.ConstantValue == null)

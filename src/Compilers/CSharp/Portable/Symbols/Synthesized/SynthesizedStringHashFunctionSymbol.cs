@@ -22,12 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed partial class SynthesizedReadOnlySpanSwitchHashMethod : SynthesizedGlobalMethodSymbol
+    internal sealed partial class SynthesizedSpanSwitchHashMethod : SynthesizedGlobalMethodSymbol
     {
-        internal SynthesizedReadOnlySpanSwitchHashMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, TypeSymbol paramType)
-            : base(containingModule, privateImplType, returnType, PrivateImplementationDetails.SynthesizedReadOnlySpanHashFunctionName)
+        internal SynthesizedSpanSwitchHashMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, TypeSymbol paramType, bool isReadOnlySpan)
+            : base(containingModule, privateImplType, returnType, isReadOnlySpan ? PrivateImplementationDetails.SynthesizedReadOnlySpanHashFunctionName : PrivateImplementationDetails.SynthesizedSpanHashFunctionName)
         {
+            _isReadOnlySpan = isReadOnlySpan;
             this.SetParameters(ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(paramType), 0, RefKind.None, "s")));
         }
+
+        private readonly bool _isReadOnlySpan;
     }
 }

@@ -126,35 +126,8 @@ start:
         }
     }
 
-    internal sealed partial class SynthesizedReadOnlySpanSwitchHashMethod : SynthesizedGlobalMethodSymbol
+    internal sealed partial class SynthesizedSpanSwitchHashMethod : SynthesizedGlobalMethodSymbol
     {
-        /// <summary>
-        /// Compute the hashcode of a sub string using FNV-1a
-        /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-        /// </summary>
-        /// <remarks>
-        /// This method should be kept consistent with MethodBodySynthesizer.ConstructReadOnlySpanSwitchHashFunctionBody
-        /// The control flow in this method mimics lowered "for" loop. It is exactly what we want to emit
-        /// to ensure that JIT can do range check hoisting.
-        /// </remarks>
-        internal static uint ComputeReadOnlySpanHash(ReadOnlySpan<char> text)
-        {
-            uint hashCode = unchecked((uint)2166136261);
-
-            int i = 0;
-            goto start;
-
-again:
-            hashCode = unchecked((text[i] ^ hashCode) * 16777619);
-            i = i + 1;
-
-start:
-            if (i < text.Length)
-                goto again;
-
-            return hashCode;
-        }
-
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
@@ -162,7 +135,11 @@ start:
 
             try
             {
-                NamedTypeSymbol readOnlySpanChar = F.WellKnownType(WellKnownType.System_ReadOnlySpan_T)
+                ParameterSymbol text = this.Parameters[0];
+
+                NamedTypeSymbol spanChar = F.WellKnownType(_isReadOnlySpan
+                    ? WellKnownType.System_ReadOnlySpan_T
+                    : WellKnownType.System_Span_T)
                     .Construct(F.SpecialType(SpecialType.System_Char));
 
                 LocalSymbol i = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32));
@@ -171,9 +148,8 @@ start:
                 LabelSymbol again = F.GenerateLabel("again");
                 LabelSymbol start = F.GenerateLabel("start");
 
-                ParameterSymbol text = this.Parameters[0];
 
-                //  This method should be kept consistent with ComputeReadOnlySpanHash
+                //  This method should be kept consistent with SynthesizedStringSwitchHashMethod.ConstructStringHash
 
                 //  uint hashCode = unchecked((uint)2166136261);
 
@@ -203,7 +179,9 @@ start:
                                     F.Convert(hashCode.Type,
                                         F.Call(
                                             F.Parameter(text),
-                                            F.WellKnownMethod(WellKnownMember.System_ReadOnlySpan_T__get_Item).AsMember(readOnlySpanChar),
+                                            F.WellKnownMethod(_isReadOnlySpan
+                                                ? WellKnownMember.System_ReadOnlySpan_T__get_Item
+                                                : WellKnownMember.System_Span_T__get_Item).AsMember(spanChar),
                                             F.Local(i)),
                                         Conversion.ImplicitNumeric),
                                     F.Local(hashCode)),
@@ -219,7 +197,9 @@ start:
                                 F.Local(i),
                                 F.Call(
                                     F.Parameter(text),
-                                    F.WellKnownMethod(WellKnownMember.System_ReadOnlySpan_T__get_Length).AsMember(readOnlySpanChar))),
+                                    F.WellKnownMethod(_isReadOnlySpan
+                                        ? WellKnownMember.System_ReadOnlySpan_T__get_Length
+                                        : WellKnownMember.System_Span_T__get_Length).AsMember(spanChar))),
                             F.Goto(again)),
                         F.Return(F.Local(hashCode))
                     );

@@ -1104,7 +1104,7 @@ oneMoreTime:
         {
             // Switch expression must have a valid switch governing type
             Debug.Assert((object)dispatch.Expression.Type != null);
-            Debug.Assert(dispatch.Expression.Type.IsValidV6SwitchGoverningType() || dispatch.Expression.Type.IsReadOnlySpanChar());
+            Debug.Assert(dispatch.Expression.Type.IsValidV6SwitchGoverningType() || dispatch.Expression.Type.IsSpanOrReadOnlySpanChar());
 
             // We must have rewritten nullable switch expression into non-nullable constructs.
             Debug.Assert(!dispatch.Expression.Type.IsNullableType());
@@ -1125,7 +1125,7 @@ oneMoreTime:
         {
             Debug.Assert(expression.ConstantValue == null);
             Debug.Assert((object)expression.Type != null &&
-                (expression.Type.IsValidV6SwitchGoverningType() || expression.Type.IsReadOnlySpanChar()));
+                (expression.Type.IsValidV6SwitchGoverningType() || expression.Type.IsSpanOrReadOnlySpanChar()));
             Debug.Assert(switchCaseLabels.Length > 0);
 
             Debug.Assert(switchCaseLabels != null);
@@ -1178,7 +1178,7 @@ oneMoreTime:
             }
 
             // Emit switch jump table
-            if (expression.Type.SpecialType == SpecialType.System_String || expression.Type.IsReadOnlySpanChar())
+            if (expression.Type.SpecialType == SpecialType.System_String || expression.Type.IsSpanOrReadOnlySpanChar())
             {
                 this.EmitStringSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Syntax, expression.Type);
             }
@@ -1206,7 +1206,9 @@ oneMoreTime:
             SyntaxNode syntaxNode,
             TypeSymbol keyType)
         {
+            var isSpan = keyType.IsSpanChar();
             var isReadOnlySpan = keyType.IsReadOnlySpanChar();
+            var isSpanOrReadOnlySpan = isSpan || isReadOnlySpan;
 
             LocalDefinition keyHash = null;
 
@@ -1217,8 +1219,10 @@ oneMoreTime:
 
                 var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics);
                 Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(
-                    isReadOnlySpan
-                        ? PrivateImplementationDetails.SynthesizedReadOnlySpanHashFunctionName
+                    isSpanOrReadOnlySpan
+                        ? isReadOnlySpan
+                            ? PrivateImplementationDetails.SynthesizedReadOnlySpanHashFunctionName
+                            : PrivateImplementationDetails.SynthesizedSpanHashFunctionName
                         : PrivateImplementationDetails.SynthesizedStringHashFunctionName);
 
                 // Heuristics and well-known member availability determine the existence
@@ -1249,9 +1253,11 @@ oneMoreTime:
             Cci.IMethodReference sequenceEqualsRef = null;
             Cci.IMethodReference asSpanRef = null;
 
-            if (isReadOnlySpan)
+            if (isSpanOrReadOnlySpan)
             {
-                var sequenceEqualsTMethod = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__SequenceEqual_T) as MethodSymbol;
+                var sequenceEqualsTMethod = _module.Compilation.GetWellKnownTypeMember(isReadOnlySpan
+                    ? WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
+                    : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T) as MethodSymbol;
                 var sequenceEqualsCharMethod = sequenceEqualsTMethod?.Construct(_module.Compilation.GetSpecialType(SpecialType.System_Char));
                 Debug.Assert(sequenceEqualsCharMethod != null && !sequenceEqualsCharMethod.HasUseSiteError);
                 sequenceEqualsRef = _module.Translate(sequenceEqualsCharMethod, null, _diagnostics);
@@ -1260,11 +1266,13 @@ oneMoreTime:
                 Debug.Assert(asSpanMethod != null && !asSpanMethod.HasUseSiteError);
                 asSpanRef = _module.Translate(asSpanMethod, null, _diagnostics);
 
-                var readOnlySpanTLengthMethod = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Length) as MethodSymbol;
-                var readOnlySpanCharLengthMethod = readOnlySpanTLengthMethod?.AsMember((NamedTypeSymbol)keyType);
-                if (readOnlySpanCharLengthMethod != null && !readOnlySpanCharLengthMethod.HasUseSiteError)
+                var spanTLengthMethod = _module.Compilation.GetWellKnownTypeMember(isReadOnlySpan
+                    ? WellKnownMember.System_ReadOnlySpan_T__get_Length
+                    : WellKnownMember.System_Span_T__get_Length) as MethodSymbol;
+                var spanCharLengthMethod = spanTLengthMethod?.AsMember((NamedTypeSymbol)keyType);
+                if (spanCharLengthMethod != null && !spanCharLengthMethod.HasUseSiteError)
                 {
-                    lengthRef = _module.Translate(readOnlySpanCharLengthMethod, null, _diagnostics);
+                    lengthRef = _module.Translate(spanCharLengthMethod, null, _diagnostics);
                 }
             }
             else
@@ -1285,7 +1293,7 @@ oneMoreTime:
                 {
                     if (stringConstant == ConstantValue.Null)
                     {
-                        Debug.Assert(!isReadOnlySpan);
+                        Debug.Assert(!isSpanOrReadOnlySpan);
 
                         // if (key == null)
                         //      goto targetLabel
@@ -1298,7 +1306,7 @@ oneMoreTime:
                         //      goto targetLabel
 
                         object skipToNext = new object();
-                        if (isReadOnlySpan)
+                        if (isSpanOrReadOnlySpan)
                         {
                             // The caller ensures that the key is not byref, and is not a stack local
                             if (keyArg.Local is { } local)
@@ -1330,9 +1338,9 @@ oneMoreTime:
                     }
                     else
                     {
-                        if (isReadOnlySpan)
+                        if (isSpanOrReadOnlySpan)
                         {
-                            this.EmitReadOnlySpanCharCompareAndBranch(key, syntaxNode, stringConstant, targetLabel, sequenceEqualsRef, asSpanRef);
+                            this.EmitCharCompareAndBranch(key, syntaxNode, stringConstant, targetLabel, sequenceEqualsRef, asSpanRef);
                         }
                         else
                         {
@@ -1347,9 +1355,7 @@ oneMoreTime:
                 key: key,
                 keyHash: keyHash,
                 emitStringCondBranchDelegate: emitStringCondBranchDelegate,
-                computeStringHashcodeDelegate: isReadOnlySpan
-                    ? (SwitchStringJumpTableEmitter.GetStringHashCode)SynthesizedStringSwitchHashMethod.ComputeStringHash
-                    : x => SynthesizedReadOnlySpanSwitchHashMethod.ComputeReadOnlySpanHash(x.AsSpan()));
+                computeStringHashcodeDelegate: SynthesizedStringSwitchHashMethod.ComputeStringHash);
 
             if (keyHash != null)
             {
@@ -1403,7 +1409,7 @@ oneMoreTime:
         /// <param name="stringConstant">Case constant to compare the key against</param>
         /// <param name="targetLabel">Target label to branch to if key = stringConstant</param>
         /// <param name="sequenceEqualsRef">String equality method</param>
-        private void EmitReadOnlySpanCharCompareAndBranch(LocalOrParameter key, SyntaxNode syntaxNode, ConstantValue stringConstant, object targetLabel, Cci.IReference sequenceEqualsRef, Cci.IReference asSpanRef)
+        private void EmitCharCompareAndBranch(LocalOrParameter key, SyntaxNode syntaxNode, ConstantValue stringConstant, object targetLabel, Cci.IReference sequenceEqualsRef, Cci.IReference asSpanRef)
         {
             // Emit compare and branch:
 
