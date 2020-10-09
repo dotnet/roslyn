@@ -92,12 +92,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                             ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitLock(ILockOperation operation, object argument)
-        {
-            var baseLockStatement = (BaseLockOperation)operation;
-            return new LockOperation(Visit(operation.LockedValue), Visit(operation.Body), baseLockStatement.LockTakenSymbol, baseLockStatement.OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitTry(ITryOperation operation, object argument)
         {
             return new TryOperation(Visit(operation.Body), VisitArray(operation.Catches), Visit(operation.Finally), operation.ExitLabel, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

@@ -29,7 +29,8 @@ namespace IOperationGenerator
             "IBlockOperation",
             "ISwitchOperation",
             "ILabeledOperation",
-            "IReturnOperation"
+            "IReturnOperation",
+            "ILockOperation"
         };
     }
 }

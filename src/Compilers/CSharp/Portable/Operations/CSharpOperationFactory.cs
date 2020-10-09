@@ -1742,24 +1742,24 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundYieldReturnStatement.WasCompilerGenerated;
             return new ReturnOperation(returnedValue, OperationKind.YieldReturn, _semanticModel, syntax, isImplicit);
         }
-#nullable disable
 
         private ILockOperation CreateBoundLockStatementOperation(BoundLockStatement boundLockStatement)
         {
             // If there is no Enter2 method, then there will be no lock taken reference
             bool legacyMode = _semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2) == null;
-            ILocalSymbol lockTakenSymbol =
+            ILocalSymbol? lockTakenSymbol =
                 legacyMode ? null : new SynthesizedLocal((_semanticModel.GetEnclosingSymbol(boundLockStatement.Syntax.SpanStart) as IMethodSymbol).GetSymbol(),
                                                          TypeWithAnnotations.Create(((CSharpCompilation)_semanticModel.Compilation).GetSpecialType(SpecialType.System_Boolean)),
                                                          SynthesizedLocalKind.LockTaken,
                                                          syntaxOpt: boundLockStatement.Argument.Syntax).GetPublicSymbol();
+            IOperation lockedValue = Create(boundLockStatement.Argument);
+            IOperation body = Create(boundLockStatement.Body);
             SyntaxNode syntax = boundLockStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundLockStatement.WasCompilerGenerated;
 
-            return new CSharpLazyLockOperation(this, boundLockStatement, lockTakenSymbol, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LockOperation(lockedValue, body, lockTakenSymbol, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private IInvalidOperation CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)
         {

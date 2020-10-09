@@ -3953,11 +3953,11 @@ oneMoreTime:
             // Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.CheckForSyncLockOnValueType to ensure no value type is
             // used.
             // For simplicity, we will not synthesize this call because its presence is unlikely to affect graph analysis.
-            var baseLockStatement = (BaseLockOperation)operation;
+            var lockStatement = (LockOperation)operation;
 
             var lockRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime,
-                                               locals: baseLockStatement.LockTakenSymbol != null ?
-                                                   ImmutableArray.Create(baseLockStatement.LockTakenSymbol) :
+                                               locals: lockStatement.LockTakenSymbol != null ?
+                                                   ImmutableArray.Create(lockStatement.LockTakenSymbol) :
                                                    ImmutableArray<ILocalSymbol>.Empty);
             EnterRegion(lockRegion);
 
@@ -3979,7 +3979,7 @@ oneMoreTime:
 
             if (legacyMode)
             {
-                Debug.Assert(baseLockStatement.LockTakenSymbol == null);
+                Debug.Assert(lockStatement.LockTakenSymbol == null);
                 enterMethod = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter)?.GetISymbol();
 
                 // Monitor.Enter($lock);
@@ -4013,10 +4013,10 @@ oneMoreTime:
             if (!legacyMode)
             {
                 // Monitor.Enter($lock, ref $lockTaken);
-                Debug.Assert(baseLockStatement.LockTakenSymbol is not null);
+                Debug.Assert(lockStatement.LockTakenSymbol is not null);
                 Debug.Assert(enterMethod is not null);
-                lockTaken = new LocalReferenceOperation(baseLockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
-                                                         baseLockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
+                lockTaken = new LocalReferenceOperation(lockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
+                                                         lockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
                 AddStatement(new InvocationOperation(enterMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
                                                                 new ArgumentOperation(lockedValue,
@@ -4055,9 +4055,9 @@ oneMoreTime:
             if (!legacyMode)
             {
                 // if ($lockTaken)
-                Debug.Assert(baseLockStatement.LockTakenSymbol is not null);
-                IOperation condition = new LocalReferenceOperation(baseLockStatement.LockTakenSymbol, isDeclaration: false, semanticModel: null, lockedValue.Syntax,
-                                                                    baseLockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
+                Debug.Assert(lockStatement.LockTakenSymbol is not null);
+                IOperation condition = new LocalReferenceOperation(lockStatement.LockTakenSymbol, isDeclaration: false, semanticModel: null, lockedValue.Syntax,
+                                                                    lockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
                 ConditionalBranch(condition, jumpIfTrue: false, endOfFinally);
                 _currentBasicBlock = null;
             }

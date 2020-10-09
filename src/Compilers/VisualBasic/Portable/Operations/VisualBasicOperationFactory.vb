@@ -1361,11 +1361,11 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                     DirectCast(_semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean), TypeSymbol),
                                                     SynthesizedLocalKind.LockTaken,
                                                     syntaxOpt:=boundSyncLockStatement.LockExpression.Syntax))
+            Dim lockedValue as IOperation = Create(boundSyncLockStatement.LockExpression)
+            Dim body as IOperation = Create(boundSyncLockStatement.Body)
             Dim syntax As SyntaxNode = boundSyncLockStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundSyncLockStatement.WasCompilerGenerated
-            Return New VisualBasicLazyLockOperation(Me, boundSyncLockStatement, lockTakenSymbol, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LockOperation(lockedValue, body, lockTakenSymbol, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundNoOpStatementOperation(boundNoOpStatement As BoundNoOpStatement) As IEmptyOperation

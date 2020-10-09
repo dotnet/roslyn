@@ -670,27 +670,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyLockOperation
-        Inherits LazyLockOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _lockStatement As BoundSyncLockStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, lockStatement As BoundSyncLockStatement, lockTakenSymbol As ILocalSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _lockStatement = lockStatement
-        End Sub
-
-        Protected Overrides Function CreateLockedValue() As IOperation
-            Return _operationFactory.Create(_lockStatement.LockExpression)
-        End Function
-
-        Protected Overrides Function CreateBody() As IOperation
-            Return _operationFactory.Create(_lockStatement.Body)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyMethodReferenceOperation
         Inherits LazyMethodReferenceOperation
 

@@ -415,7 +415,7 @@
         <summary>Body of the lock, to be executed while holding the lock.</summary>
       </Comments>
     </Property>
-    <Property Name="LockTakenSymbol" Type="ILocalSymbol" Internal="true"/>
+    <Property Name="LockTakenSymbol" Type="ILocalSymbol?" Internal="true"/>
   </Node>
   <Node Name="ITryOperation" Base="IOperation" ChildrenOrder="Body,Catches,Finally">
     <Comments>

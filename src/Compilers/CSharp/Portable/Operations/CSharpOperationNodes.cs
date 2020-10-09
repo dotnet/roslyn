@@ -897,29 +897,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyLockOperation : LazyLockOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundLockStatement _lockStatement;
-
-        internal CSharpLazyLockOperation(CSharpOperationFactory operationFactory, BoundLockStatement lockStatement, ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _lockStatement = lockStatement;
-        }
-
-        protected override IOperation CreateLockedValue()
-        {
-            return _operationFactory.Create(_lockStatement.Argument);
-        }
-
-        protected override IOperation CreateBody()
-        {
-            return _operationFactory.Create(_lockStatement.Body);
-        }
-    }
-
     internal sealed class CSharpLazyMethodReferenceOperation : LazyMethodReferenceOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
