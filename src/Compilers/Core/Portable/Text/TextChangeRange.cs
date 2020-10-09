@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public override bool Equals(object? obj)
         {
-            return obj is TextChangeRange && Equals((TextChangeRange)obj);
+            return obj is TextChangeRange range && Equals(range);
         }
 
         /// <summary>
