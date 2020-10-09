@@ -44,7 +44,7 @@ class A
     }
     void Main() 
     {
-        testMethod({|x:5|});
+        testMethod({|x:|}5);
     }
 }
                     </Document>
@@ -68,7 +68,7 @@ class A
     }
     void Main() 
     {
-        testMethod({|x:5|}, {|y:2|});
+        testMethod({|x:|}5, {|y:|}2);
     }
 }
                     </Document>
@@ -92,7 +92,7 @@ class A
     }
     void Main() 
     {
-        testMethod({|x:-5|}, {|y:2|});
+        testMethod({|x:|}-5, {|y:|}2);
     }
 }
                     </Document>
@@ -116,7 +116,7 @@ class A
     }
     void Main() 
     {
-        testMethod({|x:(int)(double)(int)5.5|}, {|y:2|});
+        testMethod({|x:|}(int)(double)(int)5.5, {|y:|}2);
     }
 }
                     </Document>
@@ -140,7 +140,7 @@ class A
     }
     void Main() 
     {
-        testMethod({|x:(int)5.5|}, {|y:new object()|});
+        testMethod({|x:|}(int)5.5, {|y:|}new object());
     }
 }
                     </Document>
@@ -164,7 +164,7 @@ class A
     }
     void Main() 
     {
-        testMethod({|x:(int)-5.5|}, {|y:new object()|});
+        testMethod({|x:|}(int)-5.5, {|y:|}new object());
     }
 }
                     </Document>
@@ -188,7 +188,7 @@ class A
     }
     void Main() 
     {
-        testMethod({|x:-(int)5.5|}, {|y:new object()|});
+        testMethod({|x:|}-(int)5.5, {|y:|}new object());
     }
 }
                     </Document>
@@ -240,7 +240,7 @@ class Test
     static void Main()
     {
         D cd1 = new D(C.M1);
-        cd1({|x:-1|});
+        cd1({|x:|}-1);
     }
 }
                     </Document>
@@ -282,7 +282,7 @@ class A
 
     public void Main(string[] args)
     {
-        UseParams({|list:1|}, 2, 3, 4, 5, 6); 
+        UseParams({|list:|}1, 2, 3, 4, 5, 6); 
     } 
 }
                     </Document>
@@ -300,7 +300,7 @@ class A
                     <Document>
 using System;
 
-[Obsolete({|message:"test"|})]
+[Obsolete({|message:|}"test")]
 class Foo
 {
         
@@ -327,7 +327,7 @@ class A
     }
     void Main() 
     {
-        testMethod({|x:-(int)5.5|},);
+        testMethod({|x:|}-(int)5.5,);
     }
 }
                     </Document>
@@ -351,7 +351,7 @@ class A
     }
     void Main() 
     {
-        testMethod({|x:$""|});
+        testMethod({|x:|}$"");
     }
 }
                     </Document>
@@ -369,7 +369,7 @@ class A
                 <Project Language="C#" CommonReferences="true">
                     <Document>
 record Base(int Alice, int Bob);
-record Derived(int Other) : Base({|Alice:2|}, {|Bob:2|});
+record Derived(int Other) : Base({|Alice:|}2, {|Bob:|}2);
                     </Document>
                 </Project>
             </Workspace>
@@ -390,7 +390,7 @@ class Base
 }
 class Derived : Base
 {
-    public Derived() : base({|paramName:20|}) {}
+    public Derived() : base({|paramName:|}20) {}
 }
                     </Document>
                 </Project>
@@ -464,7 +464,7 @@ class A
 
     void Main() 
     {
-        EnableLogging({|value:"IO"|});
+        EnableLogging({|value:|}"IO");
     }
 }
                     </Document>
@@ -489,7 +489,7 @@ class A
 
     void Main() 
     {
-        DisableLogging({|value:"IO"|});
+        DisableLogging({|value:|}"IO");
     }
 }
                     </Document>
@@ -539,7 +539,7 @@ class A
 
     void Main() 
     {
-        SetClassification({|values:"IO"|});
+        SetClassification({|values:|}"IO");
     }
 }
                     </Document>
@@ -589,7 +589,7 @@ class A
 
     void Main() 
     {
-        Goo({|objA:1|}, {|objB:2|}, {|nonobjC:3|});
+        Goo({|objA:|}1, {|objB:|}2, {|nonobjC:|}3);
     }
 }
                     </Document>
@@ -639,7 +639,7 @@ class A
 
     void Main() 
     {
-        Goo({|obj1:1|}, {|obj2:2|}, {|nonobj3:3|});
+        Goo({|obj1:|}1, {|obj2:|}2, {|nonobj3:|}3);
     }
 }
                     </Document>
