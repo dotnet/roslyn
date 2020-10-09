@@ -48,13 +48,15 @@ class C
                 var source1 = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
                 var touchedDir = Temp.CreateDirectory();
                 var touchedBase = Path.Combine(touchedDir.Path, "touched");
+                var clientDirectory = AppContext.BaseDirectory;
 
                 filelist.Add(source1);
                 var outWriter = new StringWriter();
                 var cmd = new CSharpCompilerServer(
                     CompilerServerHost.SharedAssemblyReferenceProvider,
+                    responseFile: null,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
-                    new BuildPaths(null, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
+                    new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
                     s_libDirectory,
                     new TestAnalyzerAssemblyLoader());
 
@@ -92,8 +94,8 @@ class C
                                               out List<string> expectedReads,
                                               out List<string> expectedWrites)
         {
-            expectedReads = cmd.Arguments.MetadataReferences
-                .Select(r => r.Reference).ToList();
+            expectedReads = new List<string>();
+            expectedReads.AddRange(cmd.Arguments.MetadataReferences.Select(r => r.Reference));
 
             foreach (var file in cmd.Arguments.SourceFiles)
             {
@@ -111,6 +113,18 @@ class C
             List<string> expectedWrites,
             string touchedFilesBase)
         {
+            Console.WriteLine("Reads");
+            foreach (var s in expectedReads)
+            {
+                Console.WriteLine(s);
+            }
+
+            Console.WriteLine("Writes");
+            foreach (var s in expectedWrites)
+            {
+                Console.WriteLine(s);
+            }
+
             var touchedReadPath = touchedFilesBase + ".read";
             var touchedWritesPath = touchedFilesBase + ".write";
 
