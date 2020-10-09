@@ -65,7 +65,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 var parts = type.ToDisplayParts(s_minimalTypeStyle);
 
                 AddParts(anonymousTypeService, finalParts, parts, semanticModel, span.Start);
-                result.Add(new InlineHint(span, finalParts.ToImmutable(), type.GetSymbolKey(cancellationToken)));
+                result.Add(new InlineHint(
+                    span, finalParts.ToTaggedText(),
+                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey())));
             }
 
             return result.ToImmutable();

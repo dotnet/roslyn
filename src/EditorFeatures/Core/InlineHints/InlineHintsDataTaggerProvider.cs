@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     new SnapshotSpan(snapshotSpan.Snapshot, hint.Span.ToSpan()),
-                    new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
+                    new InlineHintDataTag(hint)));
             }
         }
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 cancellationToken.ThrowIfCancellationRequested();
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     new SnapshotSpan(snapshotSpan.Snapshot, hint.Span.ToSpan()),
-                    new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
+                    new InlineHintDataTag(hint)));
             }
         }
     }
