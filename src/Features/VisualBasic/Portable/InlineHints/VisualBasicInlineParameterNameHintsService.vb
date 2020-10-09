@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.InlineHints
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
+Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
     <ExportLanguageService(GetType(IInlineParameterNameHintsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicInlineParameterNameHintsService
         Inherits AbstractInlineParameterNameHintsService
