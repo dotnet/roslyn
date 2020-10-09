@@ -248,27 +248,42 @@ namespace Microsoft.CodeAnalysis.Text
             int newIndex = 0;
             int oldDelta = 0;
 
+            var needNextNewChange = true;
+            var needNextOldChange = true;
+            TextChangeRange newChange = default;
+            TextChangeRange oldChange = default;
+
 nextNewChange:
             if (newIndex < newChanges.Length)
             {
-                var newChange = newChanges[newIndex];
+                if (needNextNewChange)
+                {
+                    newChange = newChanges[newIndex];
+                    needNextNewChange = false;
+                }
 
 nextOldChange:
                 if (oldIndex < oldChanges.Length)
                 {
-                    var oldChange = oldChanges[oldIndex];
+                    if (needNextOldChange)
+                    {
+                        oldChange = oldChanges[oldIndex];
+                        needNextOldChange = false;
+                    }
 
 tryAgain:
                     if (oldChange.Span.Length == 0 && oldChange.NewLength == 0)
                     {
                         // old change is a non-change, just ignore it and move on
                         oldIndex++;
+                        needNextOldChange = true;
                         goto nextOldChange;
                     }
                     else if (newChange.Span.Length == 0 && newChange.NewLength == 0)
                     {
                         // new change is a non-change, just ignore it and move on
                         newIndex++;
+                        needNextNewChange = true;
                         goto nextNewChange;
                     }
                     else if (newChange.Span.End < (oldChange.Span.Start + oldDelta))
@@ -277,6 +292,7 @@ tryAgain:
                         var adjustedNewChange = new TextChangeRange(new TextSpan(newChange.Span.Start - oldDelta, newChange.Span.Length), newChange.NewLength);
                         AddRange(list, adjustedNewChange);
                         newIndex++;
+                        needNextNewChange = true;
                         goto nextNewChange;
                     }
                     else if (newChange.Span.Start > oldChange.Span.Start + oldDelta + oldChange.NewLength)
@@ -285,6 +301,7 @@ tryAgain:
                         AddRange(list, oldChange);
                         oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength;
                         oldIndex++;
+                        needNextOldChange = true;
                         goto nextOldChange;
                     }
                     else if (newChange.Span.Start < oldChange.Span.Start + oldDelta)
@@ -316,29 +333,32 @@ tryAgain:
                             AddRange(list, oldChange);
                             oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength;
                             oldIndex++;
+                            needNextOldChange = true;
                             goto nextOldChange;
                         }
-                        else if (newChange.Span.Length <= oldChange.NewLength)
+                        else if (newChange.Span.Length < oldChange.NewLength)
                         {
                             // new change deletes fewer characters than old change inserted
-                            // add new change insertion, then the remaining trailing characters of the old change insertion
-                            AddRange(list, new TextChangeRange(oldChange.Span, oldChange.NewLength + newChange.NewLength - newChange.Span.Length));
-                            oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength - newChange.Span.Length;
-                            oldIndex++;
+                            // apply the new change, and adjust the old change
+                            var adjustedNewChange = new TextChangeRange(oldChange.Span, newChange.NewLength);
+                            AddRange(list, adjustedNewChange);
+                            oldChange = new TextChangeRange(new TextSpan(oldChange.Span.End, 0), oldChange.NewLength - newChange.Span.Length);
                             newIndex++;
+                            needNextNewChange = true;
                             goto nextNewChange;
                         }
                         else
                         {
-                            // delete as much from old change as new change can
-                            // a new change deletion is a reduction in the old change insertion
-                            var oldChangeReduction = Math.Min(oldChange.NewLength, newChange.Span.Length);
-                            AddRange(list, new TextChangeRange(oldChange.Span, oldChange.NewLength - oldChangeReduction));
-                            oldDelta = oldDelta - oldChange.Span.Length + (oldChange.NewLength - oldChangeReduction);
-                            oldIndex++;
+                            // new change deletes the entire old change. apply as much of the new change as possible and
+                            // adjust the remaining.
+                            var appliedDeletion = oldChange.NewLength;
+                            var adjustedNewChange = new TextChangeRange(oldChange.Span, 0);
+                            AddRange(list, adjustedNewChange);
+                            newChange = new TextChangeRange(new TextSpan(newChange.Span.Start + appliedDeletion, newChange.Span.Length - appliedDeletion), newChange.NewLength);
 
-                            // deduct the amount removed from oldChange from newChange's deletion span (since its already been applied)
-                            newChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + oldDelta, newChange.Span.Length - oldChangeReduction), newChange.NewLength);
+                            oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength;
+                            oldIndex++;
+                            needNextOldChange = true;
                             goto nextOldChange;
                         }
                     }
@@ -349,6 +369,7 @@ tryAgain:
                     var adjustedNewChange = new TextChangeRange(new TextSpan(newChange.Span.Start - oldDelta, newChange.Span.Length), newChange.NewLength);
                     AddRange(list, adjustedNewChange);
                     newIndex++;
+                    needNextNewChange = true;
                     goto nextNewChange;
                 }
             }
@@ -357,8 +378,14 @@ tryAgain:
                 // no more new changes, just add remaining old changes
                 while (oldIndex < oldChanges.Length)
                 {
-                    AddRange(list, oldChanges[oldIndex]);
+                    if (needNextOldChange)
+                    {
+                        oldChange = oldChanges[oldIndex];
+                    }
+
+                    AddRange(list, oldChange);
                     oldIndex++;
+                    needNextOldChange = true;
                 }
             }
 
