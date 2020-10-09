@@ -1136,24 +1136,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyReturnOperation : LazyReturnOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _returnedValue;
-
-        internal CSharpLazyReturnOperation(CSharpOperationFactory operationFactory, BoundNode returnedValue, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(kind, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _returnedValue = returnedValue;
-        }
-
-        protected override IOperation CreateReturnedValue()
-        {
-            return _operationFactory.Create(_returnedValue);
-        }
-    }
-
     internal sealed class CSharpLazySingleValueCaseClauseOperation : LazySingleValueCaseClauseOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

@@ -388,7 +388,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="ReturnedValue" Type="IOperation">
+    <Property Name="ReturnedValue" Type="IOperation?">
       <Comments>
         <summary>Value to be returned.</summary>
       </Comments>

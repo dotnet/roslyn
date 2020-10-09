@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -33,7 +34,9 @@ namespace Microsoft.CodeAnalysis.Operations
             _cachedCreateInternal = CreateInternal;
         }
 
-        public IOperation Create(BoundNode boundNode)
+#nullable enable
+        [return: NotNullIfNotNull("boundNode")]
+        public IOperation? Create(BoundNode? boundNode)
         {
             if (boundNode == null)
             {
@@ -64,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             return builder.ToImmutableAndFree();
         }
+#nullable disable
 
         internal IOperation CreateInternal(BoundNode boundNode)
         {
@@ -1512,19 +1516,15 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundBreakStatement.WasCompilerGenerated;
             return new BranchOperation(target, branchKind, _semanticModel, syntax, isImplicit);
         }
-#nullable disable
 
         private IReturnOperation CreateBoundYieldBreakStatementOperation(BoundYieldBreakStatement boundYieldBreakStatement)
         {
-            BoundNode returnedValue = null;
+            IOperation? returnedValue = null;
             SyntaxNode syntax = boundYieldBreakStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundYieldBreakStatement.WasCompilerGenerated;
-            return new CSharpLazyReturnOperation(this, returnedValue, OperationKind.YieldBreak, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ReturnOperation(returnedValue, OperationKind.YieldBreak, _semanticModel, syntax, isImplicit);
         }
 
-#nullable enable
         private IBranchOperation CreateBoundGotoStatementOperation(BoundGotoStatement boundGotoStatement)
         {
             ILabelSymbol target = boundGotoStatement.Label.GetPublicSymbol();
@@ -1726,25 +1726,23 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyThrowOperation(this, thrownObject, _semanticModel, syntax, statementType, constantValue, isImplicit);
         }
 
+#nullable enable
         private IReturnOperation CreateBoundReturnStatementOperation(BoundReturnStatement boundReturnStatement)
         {
-            BoundNode returnedValue = boundReturnStatement.ExpressionOpt;
+            IOperation? returnedValue = Create(boundReturnStatement.ExpressionOpt);
             SyntaxNode syntax = boundReturnStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundReturnStatement.WasCompilerGenerated;
-            return new CSharpLazyReturnOperation(this, returnedValue, OperationKind.Return, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ReturnOperation(returnedValue, OperationKind.Return, _semanticModel, syntax, isImplicit);
         }
 
         private IReturnOperation CreateBoundYieldReturnStatementOperation(BoundYieldReturnStatement boundYieldReturnStatement)
         {
-            BoundNode returnedValue = boundYieldReturnStatement.Expression;
+            IOperation returnedValue = Create(boundYieldReturnStatement.Expression);
             SyntaxNode syntax = boundYieldReturnStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundYieldReturnStatement.WasCompilerGenerated;
-            return new CSharpLazyReturnOperation(this, returnedValue, OperationKind.YieldReturn, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ReturnOperation(returnedValue, OperationKind.YieldReturn, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private ILockOperation CreateBoundLockStatementOperation(BoundLockStatement boundLockStatement)
         {

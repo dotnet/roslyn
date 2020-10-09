@@ -408,7 +408,7 @@ namespace IOperationGenerator
             var lazyChildren = @"_lazyChildren";
             var hasType = false;
             var hasConstantValue = false;
-            var multipleValidKinds = (type.OperationKind?.Entries?.Where(e => e.EditorBrowsable != false).Count() ?? 0) > 1;
+            var multipleValidKinds = HasMultipleValidKinds(type);
 
             IEnumerable<Property>? baseProperties = null;
             if (_typeMap[type.Base] is { } baseNode)
@@ -629,6 +629,11 @@ namespace IOperationGenerator
 
                 return GetSubName(node.Name);
             }
+        }
+
+        private static bool HasMultipleValidKinds(AbstractNode type)
+        {
+            return (type.OperationKind?.Entries?.Where(e => e.EditorBrowsable != false).Count() ?? 0) > 1;
         }
 
         private void WriteClassOld(AbstractNode type)
@@ -1036,6 +1041,11 @@ namespace IOperationGenerator
                     {
                         Write($"{internalName}.{prop.Name}, ");
                     }
+                }
+
+                if (HasMultipleValidKinds(node))
+                {
+                    Write($"{internalName}.Kind, ");
                 }
 
                 Write($"{internalName}.OwningSemanticModel, {internalName}.Syntax, ");

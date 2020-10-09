@@ -3561,7 +3561,6 @@ oneMoreTime:
                         isImplicit: true));
                 }
             }
-#nullable disable
         }
 
         public override IOperation VisitCatchClause(ICatchClauseOperation operation, int? captureIdForResult)
@@ -3577,7 +3576,7 @@ oneMoreTime:
             switch (operation.Kind)
             {
                 case OperationKind.YieldReturn:
-                    AddStatement(new ReturnOperation(returnedValue, OperationKind.YieldReturn, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
+                    AddStatement(new ReturnOperation(returnedValue, OperationKind.YieldReturn, semanticModel: null, operation.Syntax, IsImplicit(operation)));
                     break;
 
                 case OperationKind.YieldBreak:
@@ -3597,7 +3596,6 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-#nullable enable
         public override IOperation VisitLabeled(ILabeledOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);

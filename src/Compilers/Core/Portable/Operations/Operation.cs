@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [return: NotNullIfNotNull("operation")]
-        public static T? SetParentOperation<T>(T? operation, IOperation parent) where T : IOperation
+        public static T? SetParentOperation<T>(T? operation, IOperation? parent) where T : IOperation
         {
             // explicit cast is not allowed, so using "as" instead
             (operation as Operation)?.SetParentOperation(parent);

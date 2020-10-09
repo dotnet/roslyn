@@ -879,23 +879,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyReturnOperation
-        Inherits LazyReturnOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _returnedValue As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, returnedValue As BoundNode, kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(kind, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _returnedValue = returnedValue
-        End Sub
-
-        Protected Overrides Function CreateReturnedValue() As IOperation
-            Return _operationFactory.Create(_returnedValue)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazySingleValueCaseClauseOperation
         Inherits LazySingleValueCaseClauseOperation
 

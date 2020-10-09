@@ -1264,12 +1264,10 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundReturnStatementOperation(boundReturnStatement As BoundReturnStatement) As IReturnOperation
-            Dim returnedValue As BoundNode = boundReturnStatement.ExpressionOpt
+            Dim returnedValue As IOperation = Create(boundReturnStatement.ExpressionOpt)
             Dim syntax As SyntaxNode = boundReturnStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundReturnStatement.WasCompilerGenerated OrElse IsEndSubOrFunctionStatement(syntax)
-            Return New VisualBasicLazyReturnOperation(Me, returnedValue, OperationKind.Return, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ReturnOperation(returnedValue, OperationKind.Return, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Shared Function IsEndSubOrFunctionStatement(syntax As SyntaxNode) As Boolean
@@ -1317,12 +1315,10 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundYieldStatementOperation(boundYieldStatement As BoundYieldStatement) As IReturnOperation
-            Dim returnedValue As BoundNode = boundYieldStatement.Expression
+            Dim returnedValue As IOperation = Create(boundYieldStatement.Expression)
             Dim syntax As SyntaxNode = boundYieldStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundYieldStatement.WasCompilerGenerated
-            Return New VisualBasicLazyReturnOperation(Me, returnedValue, OperationKind.YieldReturn, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ReturnOperation(returnedValue, OperationKind.YieldReturn, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundLabelStatementOperation(boundLabelStatement As BoundLabelStatement) As ILabeledOperation

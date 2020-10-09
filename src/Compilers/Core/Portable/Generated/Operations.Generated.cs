@@ -380,6 +380,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a return from the method with an optional return value.
     /// <para>
@@ -403,8 +404,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Value to be returned.
         /// </summary>
-        IOperation ReturnedValue { get; }
+        IOperation? ReturnedValue { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a <see cref="Body" /> of operations that are executed while holding a lock onto the <see cref="LockedValue" />.
     /// <para>
@@ -3989,50 +3991,37 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitEmpty(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseReturnOperation : OperationOld, IReturnOperation
+    #nullable enable
+    internal sealed partial class ReturnOperation : Operation, IReturnOperation
     {
-        internal BaseReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation ReturnedValue { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ReturnOperation(IOperation? returnedValue, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            ReturnedValue = SetParentOperation(returnedValue, this);
+            Kind = kind;
+        }
+        public IOperation? ReturnedValue { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (ReturnedValue is object) yield return ReturnedValue;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (ReturnedValue is not null) builder.Add(ReturnedValue);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind { get; }
         public override void Accept(OperationVisitor visitor) => visitor.VisitReturn(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitReturn(this, argument);
     }
-    internal sealed partial class ReturnOperation : BaseReturnOperation, IReturnOperation
-    {
-        internal ReturnOperation(IOperation returnedValue, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ReturnedValue = SetParentOperation(returnedValue, this);
-        }
-        public override IOperation ReturnedValue { get; }
-    }
-    internal abstract partial class LazyReturnOperation : BaseReturnOperation, IReturnOperation
-    {
-        private IOperation _lazyReturnedValue = s_unset;
-        internal LazyReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateReturnedValue();
-        public override IOperation ReturnedValue
-        {
-            get
-            {
-                if (_lazyReturnedValue == s_unset)
-                {
-                    IOperation returnedValue = CreateReturnedValue();
-                    SetParentOperation(returnedValue, this);
-                    Interlocked.CompareExchange(ref _lazyReturnedValue, returnedValue, s_unset);
-                }
-                return _lazyReturnedValue;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseLockOperation : OperationOld, ILockOperation
     {
         internal BaseLockOperation(ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9135,6 +9124,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (EmptyOperation)operation;
             return new EmptyOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitReturn(IReturnOperation operation, object? argument)
+        {
+            var internalOperation = (ReturnOperation)operation;
+            return new ReturnOperation(Visit(internalOperation.ReturnedValue), internalOperation.Kind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitStop(IStopOperation operation, object? argument)
         {
