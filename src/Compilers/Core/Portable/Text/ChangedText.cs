@@ -339,10 +339,11 @@ tryAgain:
                         else if (newChange.Span.Length < oldChange.NewLength)
                         {
                             // new change deletes fewer characters than old change inserted
-                            // apply the new change, and adjust the old change
-                            var adjustedNewChange = new TextChangeRange(oldChange.Span, newChange.NewLength);
+                            // apply as much of the new change as possible, and adjust the old change
+                            var appliedDeletion = Math.Min(oldChange.Span.Length, newChange.Span.Length);
+                            var adjustedNewChange = new TextChangeRange(new TextSpan(oldChange.Span.Start, appliedDeletion), newChange.NewLength);
                             AddRange(list, adjustedNewChange);
-                            oldChange = new TextChangeRange(new TextSpan(oldChange.Span.End, 0), oldChange.NewLength - newChange.Span.Length);
+                            oldChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + appliedDeletion, oldChange.Span.Length - appliedDeletion), oldChange.NewLength - newChange.Span.Length);
                             newIndex++;
                             needNextNewChange = true;
                             goto nextNewChange;
@@ -511,6 +512,12 @@ tryAgain:
             }
 
             return new LineInfo(this, lineStarts.ToArrayAndFree());
+        }
+
+        internal static class TestAccessor
+        {
+            public static ImmutableArray<TextChangeRange> Merge(ImmutableArray<TextChangeRange> oldChanges, ImmutableArray<TextChangeRange> newChanges)
+                => ChangedText.Merge(oldChanges, newChanges);
         }
     }
 }
