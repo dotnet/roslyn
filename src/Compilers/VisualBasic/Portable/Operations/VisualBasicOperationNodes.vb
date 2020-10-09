@@ -900,31 +900,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyTryOperation
-        Inherits LazyTryOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _tryStatement As BoundTryStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, tryStatement As BoundTryStatement, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _tryStatement = tryStatement
-        End Sub
-
-        Protected Overrides Function CreateBody() As IBlockOperation
-            Return DirectCast(_operationFactory.Create(_tryStatement.TryBlock), IBlockOperation)
-        End Function
-
-        Protected Overrides Function CreateCatches() As ImmutableArray(Of ICatchClauseOperation)
-            Return _operationFactory.CreateFromArray(Of BoundCatchBlock, ICatchClauseOperation)(_tryStatement.CatchBlocks)
-        End Function
-
-        Protected Overrides Function CreateFinally() As IBlockOperation
-            Return DirectCast(_operationFactory.Create(_tryStatement.FinallyBlockOpt), IBlockOperation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyTupleOperation
         Inherits LazyTupleOperation
 

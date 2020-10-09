@@ -438,12 +438,12 @@
         <summary>Catch clauses of the try.</summary>
       </Comments>
     </Property>
-    <Property Name="Finally" Type="IBlockOperation">
+    <Property Name="Finally" Type="IBlockOperation?">
       <Comments>
         <summary>Finally handler of the try.</summary>
       </Comments>
     </Property>
-    <Property Name="ExitLabel" Type="ILabelSymbol">
+    <Property Name="ExitLabel" Type="ILabelSymbol?">
       <Comments>
         <summary>Exit label for the try. This will always be null for C#.</summary>
       </Comments>

@@ -1207,12 +1207,13 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundTryStatementOperation(boundTryStatement As BoundTryStatement) As ITryOperation
+            Dim body As IBlockOperation = DirectCast(Create(boundTryStatement.TryBlock), IBlockOperation)
+            Dim catches As ImmutableArray(Of ICatchClauseOperation) = CreateFromArray(Of BoundCatchBlock, ICatchClauseOperation)(boundTryStatement.CatchBlocks)
+            Dim [finally] As IBlockOperation = DirectCast(Create(boundTryStatement.FinallyBlockOpt), IBlockOperation)
             Dim exitLabel As ILabelSymbol = boundTryStatement.ExitLabelOpt
             Dim syntax As SyntaxNode = boundTryStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundTryStatement.WasCompilerGenerated
-            Return New VisualBasicLazyTryOperation(Me, boundTryStatement, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New TryOperation(body, catches, [finally], exitLabel, _semanticModel, syntax, isImplicit)
         End Function
 
         Friend Function CreateBoundCatchBlockExceptionDeclarationOrExpression(boundCatchBlock As BoundCatchBlock) As IOperation

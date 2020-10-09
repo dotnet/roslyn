@@ -1159,34 +1159,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyTryOperation : LazyTryOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundTryStatement _tryStatement;
-
-        internal CSharpLazyTryOperation(CSharpOperationFactory operationFactory, BoundTryStatement tryStatement, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _tryStatement = tryStatement;
-        }
-
-        protected override IBlockOperation CreateBody()
-        {
-            return (IBlockOperation)_operationFactory.Create(_tryStatement.TryBlock);
-        }
-
-        protected override ImmutableArray<ICatchClauseOperation> CreateCatches()
-        {
-            return _operationFactory.CreateFromArray<BoundCatchBlock, ICatchClauseOperation>(_tryStatement.CatchBlocks);
-        }
-
-        protected override IBlockOperation CreateFinally()
-        {
-            return (IBlockOperation)_operationFactory.Create(_tryStatement.FinallyBlockOpt);
-        }
-    }
-
     internal sealed class CSharpLazyTupleOperation : LazyTupleOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

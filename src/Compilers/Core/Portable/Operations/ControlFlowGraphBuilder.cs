@@ -3389,6 +3389,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
+#nullable enable
         public override IOperation VisitTry(ITryOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
@@ -3405,7 +3406,7 @@ oneMoreTime:
                 return FinishVisitingStatement(operation);
             }
 
-            RegionBuilder tryAndFinallyRegion = null;
+            RegionBuilder? tryAndFinallyRegion = null;
             bool haveFinally = operation.Finally != null;
             if (haveFinally)
             {
@@ -3431,7 +3432,7 @@ oneMoreTime:
 
                 foreach (ICatchClauseOperation catchClause in operation.Catches)
                 {
-                    RegionBuilder filterAndHandlerRegion = null;
+                    RegionBuilder? filterAndHandlerRegion = null;
 
                     IOperation exceptionDeclarationOrExpression = catchClause.ExceptionDeclarationOrExpression;
                     IOperation filter = catchClause.Filter;
@@ -3525,7 +3526,6 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-#nullable enable
         private void AddExceptionStore(ITypeSymbol exceptionType, IOperation exceptionDeclarationOrExpression)
         {
             if (exceptionDeclarationOrExpression != null)
@@ -3617,7 +3617,7 @@ oneMoreTime:
             AppendNewBlock(labeled);
         }
 
-        private BasicBlockBuilder GetLabeledOrNewBlock(ILabelSymbol labelOpt)
+        private BasicBlockBuilder GetLabeledOrNewBlock(ILabelSymbol? labelOpt)
         {
             if (labelOpt == null)
             {

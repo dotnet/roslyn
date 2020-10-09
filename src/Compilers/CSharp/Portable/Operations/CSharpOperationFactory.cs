@@ -1676,14 +1676,17 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyForEachLoopOperation(this, boundForEachStatement, locals, continueLabel, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private ITryOperation CreateBoundTryStatementOperation(BoundTryStatement boundTryStatement)
         {
+            var body = (IBlockOperation)Create(boundTryStatement.TryBlock);
+            ImmutableArray<ICatchClauseOperation> catches = CreateFromArray<BoundCatchBlock, ICatchClauseOperation>(boundTryStatement.CatchBlocks);
+            var @finally = (IBlockOperation?)Create(boundTryStatement.FinallyBlockOpt);
             SyntaxNode syntax = boundTryStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundTryStatement.WasCompilerGenerated;
-            return new CSharpLazyTryOperation(this, boundTryStatement, exitLabel: null, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new TryOperation(body, catches, @finally, exitLabel: null, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private ICatchClauseOperation CreateBoundCatchBlockOperation(BoundCatchBlock boundCatchBlock)
         {
