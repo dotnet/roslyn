@@ -850,6 +850,13 @@ End Class"
                     AddInsideMethod("Dim banana As Integer = 4" + vbCrLf + "$$")), "banana")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLocalVarInMethodAfterIfParenthesis() As Task
+            Await VerifyItemExistsAsync(
+                AddImportsStatement("Imports System",
+                    AddInsideMethod("Dim banana As Integer = 4" + vbCrLf + "If($$")), "banana")
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommandCompletionsInScript() As Task
             Await VerifyItemExistsAsync(<text>#$$</text>.Value, "#R", sourceCodeKind:=SourceCodeKind.Script)
