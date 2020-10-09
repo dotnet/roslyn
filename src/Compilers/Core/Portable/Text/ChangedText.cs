@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.Text
             RoslynDebug.Assert(oldText != null);
             Debug.Assert(oldText != newText);
             Debug.Assert(!changeRanges.IsDefault);
-            AssertChangeRangesAreValid(oldText, newText, changeRanges);
+            RequiresChangeRangesAreValid(oldText, newText, changeRanges);
 
             _newText = newText;
             _info = new ChangeInfo(changeRanges, new WeakReference<SourceText>(oldText), (oldText as ChangedText)?._info);
         }
 
-        private static void AssertChangeRangesAreValid(
+        private static void RequiresChangeRangesAreValid(
             SourceText oldText, SourceText newText, ImmutableArray<TextChangeRange> changeRanges)
         {
             var deltaLength = 0;
