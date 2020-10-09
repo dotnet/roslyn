@@ -50,7 +50,10 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new InvalidOperationException("Change preceded current position in oldText");
 
                 if (change.Span.Start > oldText.Length)
-                    throw new InvalidOperationException("Change was after the end of oldText");
+                    throw new InvalidOperationException("Change start was after the end of oldText");
+
+                if (change.Span.End > oldText.Length)
+                    throw new InvalidOperationException("Change end was after the end of oldText");
 
                 position = change.Span.End;
             }
