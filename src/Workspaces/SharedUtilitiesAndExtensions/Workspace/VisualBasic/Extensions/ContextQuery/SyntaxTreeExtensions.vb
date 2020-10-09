@@ -347,9 +347,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Debug.Assert(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
 
-            ' Tuple elements are in expression context if the tuple is in expression context
-            PositionOutsideTupleIfApplicable(syntaxTree, position, targetToken, cancellationToken)
-
             If targetToken.FollowsEndOfStatement(position) OrElse targetToken.Kind = SyntaxKind.None Then
                 Return False
             End If
