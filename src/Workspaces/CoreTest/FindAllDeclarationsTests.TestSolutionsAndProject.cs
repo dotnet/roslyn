@@ -7,13 +7,32 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class FindAllDeclarationsTests
     {
+        private readonly ITestOutputHelper _logger;
+        private AdhocWorkspace _lazyWorkspace;
+
+        public FindAllDeclarationsTests(ITestOutputHelper logger)
+        {
+            _logger = logger;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _lazyWorkspace?.Dispose();
+        }
+
         private static void Verify(string searchTerm, bool respectCase, WorkspaceKind workspaceKind, IEnumerable<ISymbol> declarations, params string[] expectedResults)
         {
             var actualResultCount = declarations.Count();
@@ -61,13 +80,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static Solution CreateSolution()
-            => new AdhocWorkspace().CurrentSolution;
+        private Solution CreateSolution(TestHost testHost = TestHost.InProcess)
+        {
+            Assert.True(_lazyWorkspace == null, "Only one workspace can be created by a single test");
 
-        private static Solution GetSingleProjectSolution(params string[] sourceTexts)
+            var composition = FeaturesTestCompositions.Features.WithTestHostParts(testHost);
+            _lazyWorkspace = new AdhocWorkspace(composition.GetHostServices());
+
+            if (testHost == TestHost.OutOfProcess)
+            {
+                var remoteHostProvider = (InProcRemoteHostClientProvider)_lazyWorkspace.Services.GetRequiredService<IRemoteHostClientProvider>();
+                remoteHostProvider.TraceListener = new XunitTraceListener(_logger);
+            }
+
+            return _lazyWorkspace.CurrentSolution;
+        }
+
+        private Solution GetSingleProjectSolution(TestHost testHost, string[] sourceTexts)
         {
             var pid = ProjectId.CreateNewId();
-            var solution = CreateSolution()
+            var solution = CreateSolution(testHost)
                     .AddProject(pid, "TestCases", "TestCases", LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef);
             for (var i = 0; i < sourceTexts.Length; i++)
@@ -79,9 +111,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return solution;
         }
 
-        private static Solution GetMultipleProjectSolution(params string[] sourceTexts)
+        private Solution GetMultipleProjectSolution(TestHost testHost, string[] sourceTexts)
         {
-            var solution = CreateSolution();
+            var solution = CreateSolution(testHost);
             for (var i = 0; i < sourceTexts.Length; i++)
             {
                 var pid = ProjectId.CreateNewId();
@@ -95,23 +127,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return solution;
         }
 
-        private static Solution GetSolution(WorkspaceKind workspaceKind)
+        private Solution GetSolution(WorkspaceKind workspaceKind, TestHost testHost = TestHost.InProcess)
             => workspaceKind switch
             {
-                WorkspaceKind.SingleClass => GetSingleProjectSolution(SingleClass),
-                WorkspaceKind.SingleClassWithSingleMethod => GetSingleProjectSolution(SingleClassWithSingleMethod),
-                WorkspaceKind.SingleClassWithSingleProperty => GetSingleProjectSolution(SingleClassWithSingleProperty),
-                WorkspaceKind.SingleClassWithSingleField => GetSingleProjectSolution(SingleClassWithSingleField),
-                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod => GetMultipleProjectSolution(SingleClassWithSingleMethod, SingleClassWithSingleMethod),
-                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty => GetMultipleProjectSolution(SingleClassWithSingleProperty, SingleClassWithSingleProperty),
-                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField => GetMultipleProjectSolution(SingleClassWithSingleField, SingleClassWithSingleField),
-                WorkspaceKind.NestedClass => GetSingleProjectSolution(NestedClass),
-                WorkspaceKind.TwoNamespacesWithIdenticalClasses => GetSingleProjectSolution(Namespace1, Namespace2),
+                WorkspaceKind.SingleClass => GetSingleProjectSolution(testHost, new[] { SingleClass }),
+                WorkspaceKind.SingleClassWithSingleMethod => GetSingleProjectSolution(testHost, new[] { SingleClassWithSingleMethod }),
+                WorkspaceKind.SingleClassWithSingleProperty => GetSingleProjectSolution(testHost, new[] { SingleClassWithSingleProperty }),
+                WorkspaceKind.SingleClassWithSingleField => GetSingleProjectSolution(testHost, new[] { SingleClassWithSingleField }),
+                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod => GetMultipleProjectSolution(testHost, new[] { SingleClassWithSingleMethod, SingleClassWithSingleMethod }),
+                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty => GetMultipleProjectSolution(testHost, new[] { SingleClassWithSingleProperty, SingleClassWithSingleProperty }),
+                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField => GetMultipleProjectSolution(testHost, new[] { SingleClassWithSingleField, SingleClassWithSingleField }),
+                WorkspaceKind.NestedClass => GetSingleProjectSolution(testHost, new[] { NestedClass }),
+                WorkspaceKind.TwoNamespacesWithIdenticalClasses => GetSingleProjectSolution(testHost, new[] { Namespace1, Namespace2 }),
                 _ => null,
             };
 
-        private static Project GetProject(WorkspaceKind workspaceKind)
-            => GetSolution(workspaceKind).Projects.First();
+        private Project GetProject(WorkspaceKind workspaceKind, TestHost testHost = TestHost.InProcess)
+            => GetSolution(workspaceKind, testHost).Projects.First();
 
         public enum WorkspaceKind
         {

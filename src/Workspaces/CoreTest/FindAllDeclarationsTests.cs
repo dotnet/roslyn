@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -114,20 +115,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
-        [Fact]
-        public async Task FindDeclarationsAsync_Test_Cancellation()
+        [Theory, CombinatorialData]
+        public async Task FindDeclarationsAsync_Test_Cancellation(TestHost testHost)
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var project = GetProject(WorkspaceKind.SingleClass);
+                var project = GetProject(WorkspaceKind.SingleClass, testHost);
                 var declarations = await SymbolFinder.FindDeclarationsAsync(project, "Test", true, SymbolFilter.All, new CancellationToken(true));
             });
         }
 
-        [Fact, WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")]
-        public async Task FindDeclarationsAsync_Metadata()
+        [Theory, CombinatorialData]
+        [WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")]
+        public async Task FindDeclarationsAsync_Metadata(TestHost testHost)
         {
-            var solution = CreateSolution();
+            var solution = CreateSolution(testHost);
             var csharpId = ProjectId.CreateNewId();
             solution = solution
                 .AddProject(csharpId, "CSharp", "CSharp", LanguageNames.CSharp)
@@ -145,10 +147,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(vbResult.Count() > 0);
         }
 
-        [Fact, WorkItem(6616, "https://github.com/dotnet/roslyn/issues/6616")]
-        public async Task FindDeclarationsAsync_PreviousSubmission()
+        [Theory, CombinatorialData]
+        [WorkItem(6616, "https://github.com/dotnet/roslyn/issues/6616")]
+        public async Task FindDeclarationsAsync_PreviousSubmission(TestHost testHost)
         {
-            var solution = CreateSolution();
+            var solution = CreateSolution(testHost);
 
             var submission0Id = ProjectId.CreateNewId();
             var submission0DocId = DocumentId.CreateNewId(submission0Id);
