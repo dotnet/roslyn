@@ -38,9 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
         }
 
-        protected override TestComposition GetComposition()
-            => base.GetComposition().AddParts(typeof(TestExperimentationService));
-
         internal override Type GetCompletionProviderType()
             => typeof(ExtensionMethodImportCompletionProvider);
 

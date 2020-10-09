@@ -7024,7 +7024,6 @@ namespace NS
 
     class ATaAaSaKa { }
 } </Document>,
-                              extraExportedTypes:={GetType(TestExperimentationService)}.ToList(),
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim workspace = state.Workspace
@@ -7079,7 +7078,6 @@ namespace NS2
     class MyTask3 { }
 }
 </Document>,
-                              extraExportedTypes:={GetType(TestExperimentationService)}.ToList(),
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim workspace = state.Workspace

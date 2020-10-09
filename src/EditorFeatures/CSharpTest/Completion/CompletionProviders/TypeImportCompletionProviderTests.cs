@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -42,48 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
         }
 
-        protected override TestComposition GetComposition()
-            => base.GetComposition().AddParts(typeof(TestExperimentationService));
-
         #region "Option tests"
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToNull_ExpEnabled()
+        public async Task OptionSetToFalse()
         {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, true);
-
-            ShowImportCompletionItemsOptionValue = null;
-
-            var markup = @"
-class Bar
-{
-     $$
-}";
-
-            await VerifyAnyItemExistsAsync(markup);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToNull_ExpDisabled()
-        {
-            ShowImportCompletionItemsOptionValue = null;
-            IsExpandedCompletion = false;
-            var markup = @"
-class Bar
-{
-     $$
-}";
-
-            await VerifyNoItemsExistAsync(markup);
-        }
-
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToFalse(bool isExperimentEnabled)
-        {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
-
             ShowImportCompletionItemsOptionValue = false;
             IsExpandedCompletion = false;
 
@@ -96,13 +59,9 @@ class Bar
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToTrue(bool isExperimentEnabled)
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task OptionSetToTrue()
         {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
-
             ShowImportCompletionItemsOptionValue = true;
 
             var markup = @"

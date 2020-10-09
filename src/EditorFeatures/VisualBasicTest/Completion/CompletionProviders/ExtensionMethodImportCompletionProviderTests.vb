@@ -16,16 +16,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
 
-        ' -1 would disable timebox, whereas 0 means always timeout.
-        Private Property TimeoutInMilliseconds As Integer = -1
-
         Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
             Return options _
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue).WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-        End Function
-
-        Protected Overrides Function GetComposition() As TestComposition
-            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
         Friend Overrides Function GetCompletionProviderType() As Type

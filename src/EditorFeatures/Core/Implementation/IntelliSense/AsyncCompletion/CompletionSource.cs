@@ -139,9 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var experimentationService = workspace.Services.GetService<IExperimentationService>();
                 textView.Properties[TargetTypeFilterExperimentEnabled] = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
 
-                var importCompletionOptionValue = workspace.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-                var importCompletionExperimentValue = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
-                var isTypeImportEnababled = importCompletionOptionValue == true || (importCompletionOptionValue == null && importCompletionExperimentValue);
+                var isTypeImportEnababled = workspace.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language) != false;
                 textView.Properties[TypeImportCompletionEnabled] = isTypeImportEnababled;
             }
         }
