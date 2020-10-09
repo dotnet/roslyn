@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, caretLocation),
-                priority: LSP.PriorityLevel.Normal,
+                priority: PriorityLevel.Normal,
                 groupName: "Roslyn1",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);

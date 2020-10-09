@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             await codeActionsCache.UpdateActionSetsAsync(document, request.Range, actionSets.Value, cancellationToken).ConfigureAwait(false);
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            // Each suggested action set should have a unique set number. This number is used for grouping code actions together.
+            // Each suggested action set should have a unique set number, which is used for grouping code actions together.
             var highestSetNumber = 0;
 
             using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var codeActions);
@@ -90,18 +90,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 currentTitle += '|';
             }
 
-            currentTitle += suggestedAction.OriginalCodeAction.Title;
+            var codeAction = suggestedAction.OriginalCodeAction;
+            currentTitle += codeAction.Title;
 
             // Nested code actions' unique identifiers consist of: parent code action unique identifier + '|' + title of code action
             var nestedActions = GenerateNestedVSCodeActions(request, documentText, suggestedAction, codeActionKind, ref highestSetNumber, currentTitle);
 
             return new VSCodeAction
             {
-                Title = suggestedAction.OriginalCodeAction.Title,
+                Title = codeAction.Title,
                 Kind = codeActionKind,
                 Diagnostics = request.Context.Diagnostics,
                 Children = nestedActions,
-                Priority = CodeActionPriorityToPriorityLevel(suggestedAction.OriginalCodeAction.Priority),
+                Priority = CodeActionPriorityToPriorityLevel(codeAction.Priority),
                 Group = "Roslyn" + currentSetNumber.ToString(),
                 ApplicableRange = applicableRange,
                 Data = new CodeActionResolveData(currentTitle, request.Range, request.TextDocument)
@@ -120,6 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     foreach (var nestedActionSet in suggestedActionWithNestedActions.NestedActionSets)
                     {
+                        // Nested code action sets should each have a unique set number that is not yet assigned to any set.
                         var nestedSetNumber = ++highestSetNumber;
                         foreach (var nestedSuggestedAction in nestedActionSet.Actions)
                         {
