@@ -472,12 +472,11 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             // there may be remaining old changes or remaining new changes (not both, and not neither)
-            var (hasRemainingOldChanges, hasRemainingNewChanges) = (oldIndex == oldChanges.Length, newIndex == newChanges.Length);
-            if (hasRemainingOldChanges == hasRemainingNewChanges)
+            switch (oldIndex == oldChanges.Length, newIndex == newChanges.Length)
             {
-                var both = hasRemainingOldChanges && hasRemainingNewChanges;
-                throw new InvalidOperationException(
-                    $"Expected exactly one of oldChanges or newChanges to have additional changes after merge loop, but {(both ? "both" : "neither")} have new changes.");
+                case (true, true):
+                case (false, false):
+                    throw new InvalidOperationException();
             }
 
             while (oldIndex < oldChanges.Length)
@@ -550,7 +549,7 @@ namespace Microsoft.CodeAnalysis.Text
                     }
                     else if (last.Span.End > change.Span.Start)
                     {
-                        throw new InvalidOperationException("Changes must not overlap.");
+                        throw new ArgumentOutOfRangeException(nameof(change));
                     }
 
                 }
