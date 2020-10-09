@@ -389,10 +389,10 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            void addAndAdjustOldDelta(TextChangeRange oldRange)
+            void addAndAdjustOldDelta(TextChangeRange change)
             {
-                oldDelta = oldDelta - oldRange.Span.Length + oldRange.NewLength;
-                add(oldRange);
+                oldDelta = oldDelta - change.Span.Length + change.NewLength;
+                add(change);
             }
 
             void addAdjustedNewChange(TextChangeRange change)

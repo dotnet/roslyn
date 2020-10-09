@@ -925,13 +925,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var editedLength = originalText.Length;
                 ArrayBuilder<TextChange> oldChangesBuilder = ArrayBuilder<TextChange>.GetInstance();
 
-                const int maxEditLength = 5;
+                // Adjust as needed to get a simpler error reproducer.
+                var oldMaxInsertLength = originalText.Length * 2;
                 const int maxSkipLength = 2;
                 // generate sequence of "old edits" which meet invariants
                 for (int i = 0; i < originalText.Length; i += random.Next(maxSkipLength))
                 {
-                    var newText = string.Join("", Enumerable.Repeat('a', random.Next(maxEditLength)));
-                    var newChange = new TextChange(new TextSpan(i, length: random.Next(Math.Min(originalText.Length - i, maxEditLength))), newText);
+                    var newText = string.Join("", Enumerable.Repeat('a', random.Next(oldMaxInsertLength)));
+                    var newChange = new TextChange(new TextSpan(i, length: random.Next(originalText.Length - i)), newText);
                     i = newChange.Span.End;
 
                     editedLength = editedLength - newChange.Span.Length + newChange.NewText.Length;
@@ -945,11 +946,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 ArrayBuilder<TextChange> newChangesBuilder = ArrayBuilder<TextChange>.GetInstance();
 
+                // Adjust as needed to get a simpler error reproducer.
+                var newMaxInsertLength = editedLength  * 2;
                 // generate sequence of "new edits" which meet invariants
                 for (int i = 0; i < editedLength; i += random.Next(maxSkipLength))
                 {
-                    var newText = string.Join("", Enumerable.Repeat('b', random.Next(maxEditLength)));
-                    var newChange = new TextChange(new TextSpan(i, length: random.Next(Math.Min(editedLength - i, maxEditLength))), newText);
+                    var newText = string.Join("", Enumerable.Repeat('b', random.Next(newMaxInsertLength)));
+                    var newChange = new TextChange(new TextSpan(i, length: random.Next(editedLength - i)), newText);
                     i = newChange.Span.End;
 
                     newChangesBuilder.Add(newChange);
