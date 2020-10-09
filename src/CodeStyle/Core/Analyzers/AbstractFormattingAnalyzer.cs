@@ -22,12 +22,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(Descriptor);
+
+        public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected abstract ISyntaxFormattingService SyntaxFormattingService { get; }
 
-        protected override void InitializeWorker(AnalysisContext context)
+        protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
