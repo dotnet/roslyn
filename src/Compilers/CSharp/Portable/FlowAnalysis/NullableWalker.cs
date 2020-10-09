@@ -609,27 +609,52 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void enforceMemberNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
             {
-                if (returnStatement.ExpressionOpt is BoundExpression { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                if (pendingReturn.IsConditionalState)
                 {
-                    if (pendingReturn.IsConditionalState)
-                    {
-                        enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue);
-                        enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse);
-                    }
-                    else
+                    if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
                     {
                         enforceMemberNotNullWhen(returnStatement.Syntax, sense: value, pendingReturn.State);
+                        return;
+                    }
+
+                    if (!pendingReturn.StateWhenTrue.Reachable || !pendingReturn.StateWhenFalse.Reachable)
+                    {
+                        return;
+                    }
+
+                    if (_symbol is MethodSymbol method)
+                    {
+                        foreach (var memberName in method.NotNullWhenTrueMembers)
+                        {
+                            enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: true, method.ContainingType.GetMembers(memberName), pendingReturn.StateWhenTrue, pendingReturn.StateWhenFalse);
+                        }
+
+                        foreach (var memberName in method.NotNullWhenFalseMembers)
+                        {
+                            enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: true, method.ContainingType.GetMembers(memberName), pendingReturn.StateWhenFalse, pendingReturn.StateWhenTrue);
+                        }
+                    }
+                }
+                else if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                {
+                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: value, pendingReturn.State);
+                }
+            }
+
+            void enforceMemberNotNullWhenIfAffected(SyntaxNode? syntaxOpt, bool sense, ImmutableArray<Symbol> members, LocalState state, LocalState otherState)
+            {
+                foreach (var member in members)
+                {
+                    // For non-constant values, only complain if we were able to analyze a difference for this member between two branches
+                    if (memberHasBadState(member, state) != memberHasBadState(member, otherState))
+                    {
+                        reportMemberIfBadConditionalState(syntaxOpt, sense, member, state);
                     }
                 }
             }
 
             void enforceMemberNotNullWhen(SyntaxNode? syntaxOpt, bool sense, LocalState state)
             {
-                if (!state.Reachable)
-                {
-                    return;
-                }
-
                 if (_symbol is MethodSymbol method)
                 {
                     var notNullMembers = sense ? method.NotNullWhenTrueMembers : method.NotNullWhenFalseMembers;
@@ -637,13 +662,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var member in method.ContainingType.GetMembers(memberName))
                         {
-                            if (memberHasBadState(member, state))
-                            {
-                                // Member '{name}' must have a non-null value when exiting with '{sense}'.
-                                Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense ? "true" : "false");
-                            }
+                            reportMemberIfBadConditionalState(syntaxOpt, sense, member, state);
                         }
                     }
+                }
+            }
+
+            void reportMemberIfBadConditionalState(SyntaxNode? syntaxOpt, bool sense, Symbol member, LocalState state)
+            {
+                if (memberHasBadState(member, state))
+                {
+                    // Member '{name}' must have a non-null value when exiting with '{sense}'.
+                    Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense ? "true" : "false");
                 }
             }
 
@@ -770,17 +800,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parameters = this.MethodParameters;
 
-                if (!parameters.IsEmpty && returnStatement.ExpressionOpt is BoundExpression { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                if (!parameters.IsEmpty)
                 {
                     if (pendingReturn.IsConditionalState)
                     {
-                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.StateWhenTrue);
-                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.StateWhenFalse);
+                        if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                        {
+                            enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
+                            return;
+                        }
+
+                        if (!pendingReturn.StateWhenTrue.Reachable || !pendingReturn.StateWhenFalse.Reachable)
+                        {
+                            return;
+                        }
+
+                        foreach (var parameter in parameters)
+                        {
+                            // For non-constant values, only complain if we were able to analyze a difference for this parameter between two branches
+                            if (GetOrCreateSlot(parameter) is > 0 and var slot && pendingReturn.StateWhenTrue[slot] != pendingReturn.StateWhenFalse[slot])
+                            {
+                                reportParameterIfBadConditionalState(returnStatement.Syntax, parameter, sense: true, stateWhen: pendingReturn.StateWhenTrue);
+                                reportParameterIfBadConditionalState(returnStatement.Syntax, parameter, sense: false, stateWhen: pendingReturn.StateWhenFalse);
+                            }
+                        }
                     }
-                    else
+                    else if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
                     {
+                        // example: return (bool)true;
                         enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
+                        return;
                     }
+                }
+            }
+
+            void reportParameterIfBadConditionalState(SyntaxNode syntax, ParameterSymbol parameter, bool sense, LocalState stateWhen)
+            {
+                if (parameterHasBadConditionalState(parameter, sense, stateWhen))
+                {
+                    // Parameter '{name}' must have a non-null value when exiting with '{sense}'.
+                    Diagnostics.Add(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
                 }
             }
 
@@ -823,11 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var parameter in parameters)
                 {
-                    if (parameterHasBadConditionalState(parameter, sense, stateWhen))
-                    {
-                        // Parameter '{name}' must have a non-null value when exiting with '{sense}'.
-                        Diagnostics.Add(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
-                    }
+                    reportParameterIfBadConditionalState(syntax, parameter, sense, stateWhen);
                 }
             }
 
