@@ -37,5 +37,3 @@ Internally, this is implemented in the `Microsoft.CodeAnalysis.PerformanceSensit
 
 </Project>
 ```
-
-
