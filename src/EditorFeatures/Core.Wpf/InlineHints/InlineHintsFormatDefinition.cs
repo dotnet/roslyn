@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             public InlineHintsFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Inline_Hints;
-                this.ForegroundBrush = Brushes.Black;
-                this.BackgroundBrush = Brushes.LightGray;
+                this.ForegroundBrush = new SolidColorBrush(Color.FromRgb(104, 104, 104));
+                this.BackgroundBrush = new SolidColorBrush(Color.FromRgb(230, 230, 230));
             }
         }
     }

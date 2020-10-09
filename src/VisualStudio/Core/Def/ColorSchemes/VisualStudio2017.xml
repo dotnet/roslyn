@@ -529,8 +529,8 @@
             <Color Name="label name">
             </Color>
             <Color Name="inline hints">
-                <Background Type="CT_RAW" Source="FF464646" />
-                <Foreground Type="CT_RAW" Source="FF959493" />
+                <Background Type="CT_RAW" Source="FF3E3E3E" />
+                <Foreground Type="CT_RAW" Source="FFA9A8A7" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FFC8C8C8" />
