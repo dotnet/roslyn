@@ -103,6 +103,8 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsConcurrentConcurrentDictionary2 = "System.Collections.Concurrent.ConcurrentDictionary`2";
         public const string SystemCollectionsConcurrentConcurrentQueue1 = "System.Collections.Concurrent.ConcurrentQueue`1";
         public const string SystemCollectionsConcurrentConcurrentStack1 = "System.Collections.Concurrent.ConcurrentStack`1";
+        public const string SystemCollectionsGenericDictionary2 = "System.Collections.Generic.Dictionary`2";
+        public const string SystemCollectionsGenericHashSet1 = "System.Collections.Generic.HashSet`1";
         public const string SystemCollectionsGenericICollection1 = "System.Collections.Generic.ICollection`1";
         public const string SystemCollectionsGenericIEnumerable1 = "System.Collections.Generic.IEnumerable`1";
         public const string SystemCollectionsGenericIEnumerator1 = "System.Collections.Generic.IEnumerator`1";
@@ -123,7 +125,9 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsImmutableIImmutableSet1 = "System.Collections.Immutable.IImmutableSet`1";
         public const string SystemCollectionsImmutableIImmutableStack1 = "System.Collections.Immutable.IImmutableStack`1";
         public const string SystemCollectionsImmutableImmutableArray1 = "System.Collections.Immutable.ImmutableArray`1";
+        public const string SystemCollectionsImmutableImmutableDictionary = "System.Collections.Immutable.ImmutableDictionary";
         public const string SystemCollectionsImmutableImmutableDictionary2 = "System.Collections.Immutable.ImmutableDictionary`2";
+        public const string SystemCollectionsImmutableImmutableHashSet = "System.Collections.Immutable.ImmutableHashSet";
         public const string SystemCollectionsImmutableImmutableHashSet1 = "System.Collections.Immutable.ImmutableHashSet`1";
         public const string SystemCollectionsImmutableImmutableList1 = "System.Collections.Immutable.ImmutableList`1";
         public const string SystemCollectionsImmutableImmutableSortedDictionary2 = "System.Collections.Immutable.ImmutableSortedDictionary`2";
