@@ -70,13 +70,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             //  1. Key is a valid basic block ordinal.
             //  2. Value tuple indicates the following:
             //      a. Non-null tuple value: Indicates a unique branch entering the block, with following tuple values:
-            //         i. Ordinal of the single unique block from which analysis data has been transferred into the Key, 
+            //         i. Ordinal of the single unique block from which analysis data has been transferred into the Key,
             //            which is normally a predecessor but can be a non-predecessor block for finally/catch.
             //         ii. ControlFlowConditionKind indicating the nature of branch, i.e. conditional or fall through.
             //             This is required as CFG can have both conditional and fall through branches
             //             with the same source and destination blocks.
             //      b. Null tuple value: Block had analysis data flowing into it from multiple different branches.
-            //     
+            //
             //  This map allows us to optimize the number of merge operations. We can avoid merge and directly
             //  overwrite analysis data into a successor if successor block has no entry or entry with non-null tuple value
             //  with the matching input branch.
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     uniqueSuccessors.Clear();
 
                     // Get the successors with corresponding flow branches.
-                    // CONSIDER: Currently we need to do a bunch of branch adjusments for branches to/from finally, catch and filter regions.
+                    // CONSIDER: Currently we need to do a bunch of branch adjustments for branches to/from finally, catch and filter regions.
                     //           We should revisit the overall CFG API and the walker to avoid such adjustments.
                     var successorsWithAdjustedBranches = GetSuccessorsWithAdjustedBranches(block).ToArray();
                     foreach ((BranchWithInfo successorWithBranch, BranchWithInfo preadjustSuccessorWithBranch) in successorsWithAdjustedBranches)
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 // Get the catch region to merge input data.
                 // Ensure that the source block is not itself within the catch region,
-                // in which case a throw cannot enter the catch region. 
+                // in which case a throw cannot enter the catch region.
                 var catchRegion = tryAndCatchRegion.NestedRegions.FirstOrDefault(region => region.Kind is ControlFlowRegionKind.Catch or ControlFlowRegionKind.FilterAndHandler);
                 if (catchRegion == null || sourceBlock.Ordinal >= catchRegion.FirstBlockOrdinal)
                 {

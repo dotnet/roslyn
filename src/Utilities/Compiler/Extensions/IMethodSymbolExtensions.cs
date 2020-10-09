@@ -565,7 +565,7 @@ namespace Analyzer.Utilities.Extensions
                 }
             }
 
-            throw new ArgumentException("Invalid paramater", nameof(parameterSymbol));
+            throw new ArgumentException("Invalid parameter", nameof(parameterSymbol));
         }
 
         /// <summary>
@@ -690,7 +690,7 @@ namespace Analyzer.Utilities.Extensions
                methodSymbol.Name switch
                {
                    "$Main" => true,
-                   "<$Main>$" => true,
+                   "<Main>$" => true,
                    _ => false
                };
     }

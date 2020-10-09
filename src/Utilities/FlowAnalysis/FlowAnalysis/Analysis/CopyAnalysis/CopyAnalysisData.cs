@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         }
 
         /// <summary>
-        /// Updates the the copy values for all entities that are part of the given <paramref name="copyValue"/> set,
+        /// Updates the copy values for all entities that are part of the given <paramref name="copyValue"/> set,
         /// i.e. <see cref="CopyAbstractValue.AnalysisEntities"/>.
         /// We do not support the <see cref="SetAbstractValue(AnalysisEntity, CopyAbstractValue)"/> overload
         /// that updates copy value for each individual entity.
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             foreach (var entity in copyValue.AnalysisEntities)
             {
                 // If we have any predicate data based on the previous value of this entity,
-                // and we are changing the copy value for an assigment (i.e. entity == entityBeingAssigned),
+                // and we are changing the copy value for an assignment (i.e. entity == entityBeingAssigned),
                 // we need to drop all the predicate data based on this entity.
                 if (entity == entityBeingAssigned && HasPredicatedDataForEntity(entity))
                 {
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             {
                 var predicatedValue = kvp.Value;
 
-                // Check if the entity has a copy value in both the predicated and current copy anaylysis data.
+                // Check if the entity has a copy value in both the predicated and current copy analysis data.
                 if (coreAnalysisData.TryGetValue(kvp.Key, out var currentValue))
                 {
                     var newCopyEntities = currentValue.AnalysisEntities;
