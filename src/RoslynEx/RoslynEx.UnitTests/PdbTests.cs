@@ -62,23 +62,23 @@ class Library
 
             comp.VerifyPdb($@"
 <symbols>
-    <files>
+  <files>
     <file id=""1"" name=""Library.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""{BitConverter.ToString(libraryHash)}"" />
     <file id=""2"" name=""Program.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""{BitConverter.ToString(programHash)}"" />
-    </files>
-    <methods>
+  </files>
+  <methods>
     <method containingType=""Program"" name=""Main"">
-        <customDebugInfo>
+      <customDebugInfo>
         <using>
-            <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
         </using>
         <encLocalSlotMap>
-            <slot kind=""0"" offset=""85"" />
-            <slot kind=""0"" offset=""160"" />
-            <slot kind=""0"" offset=""235"" />
+          <slot kind=""0"" offset=""85"" />
+          <slot kind=""0"" offset=""160"" />
+          <slot kind=""0"" offset=""235"" />
         </encLocalSlotMap>
-        </customDebugInfo>
-        <sequencePoints>
+      </customDebugInfo>
+      <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x1"" hidden=""true"" document=""1"" />
         <entry offset=""0xc"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
@@ -90,25 +90,25 @@ class Library
         <entry offset=""0x5d"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
         <entry offset=""0x6e"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""39"" document=""2"" />
         <entry offset=""0x75"" hidden=""true"" document=""2"" />
-        </sequencePoints>
-        <scope startOffset=""0x0"" endOffset=""0x76"">
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x76"">
         <namespace name=""System"" />
         <local name=""hello"" il_index=""0"" il_start=""0x0"" il_end=""0x76"" attributes=""0"" />
         <local name=""world"" il_index=""1"" il_start=""0x0"" il_end=""0x76"" attributes=""0"" />
         <local name=""helloWorld"" il_index=""2"" il_start=""0x0"" il_end=""0x76"" attributes=""0"" />
-        </scope>
+      </scope>
     </method>
     <method containingType=""Library"" name=""M"">
-        <customDebugInfo>
+      <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" />
-        </customDebugInfo>
-        <sequencePoints>
+      </customDebugInfo>
+      <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
         <entry offset=""0xc"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-        </sequencePoints>
+      </sequencePoints>
     </method>
-    </methods>
+  </methods>
 </symbols>");
         }
 
@@ -150,6 +150,78 @@ class Library
                     }
 
                     return node.WithBody(Block(statements));
+                }
+            }
+        }
+
+        [Fact]
+        public void ExpressionBodiedPropertyToStatementBodied()
+        {
+            string code = @"
+class C
+{
+    string p;
+    string P => ""foo"";
+}
+".NormalizeLineEndings();
+
+            var tree = ParseSyntaxTree(code, path: "C.cs", encoding: Encoding.UTF8);
+
+            Compilation comp = CSharpCompilation.Create("Compilation", new[] { tree }, new[] { MscorlibRef }, options: TestOptions.DebugDll);
+
+            comp = RoslynExTest.ExecuteTransformer(comp, new LazyPropertyTransformer());
+
+            var result = comp.Emit(Stream.Null, pdbStream: Stream.Null);
+            result.Diagnostics.Verify();
+            Assert.True(result.Success);
+
+            var codeHash = CryptographicHashProvider.ComputeSha1(Encoding.UTF8.GetBytesWithPreamble(tree.ToString())).ToArray();
+
+            // none of the statements in the generated code can be mapped to original source, so there are no sequence points
+            comp.VerifyPdb($@"
+<symbols>
+  <files>
+    <file id=""1"" name=""C.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""{BitConverter.ToString(codeHash)}"" />
+  </files>
+  <methods />
+</symbols>");
+        }
+
+        class LazyPropertyTransformer : ISourceTransformer
+        {
+            public Compilation Execute(TransformerContext context)
+            {
+                var rewriter = new Rewriter();
+                var compilation = context.Compilation;
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(rewriter.Visit(tree.GetRoot()), tree.Options));
+                }
+                return compilation;
+            }
+
+            class Rewriter : CSharpSyntaxRewriter
+            {
+                public override SyntaxNode VisitPropertyDeclaration(PropertyDeclarationSyntax node)
+                {
+                    string fieldName = char.ToLowerInvariant(node.Identifier.ValueText[0]) + node.Identifier.ValueText[1..];
+
+                    var expression = node.ExpressionBody!.Expression;
+
+                    // if (field == null)
+                    //     field = expression;
+                    // return field;
+
+                    var block = Block(
+                        IfStatement(
+                            BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(fieldName), LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                            ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName(fieldName), expression))),
+                        ReturnStatement(IdentifierName(fieldName)));
+
+                    var newNode = node.WithExpressionBody(null).WithSemicolonToken(default)
+                        .AddAccessorListAccessors(AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, block));
+
+                    return newNode;
                 }
             }
         }
