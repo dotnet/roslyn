@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default,
-            string displayTextPrefix = null)
+            string displayTextPrefix = null,
+            Glyph? glyph = null)
         {
             var props = properties ?? ImmutableDictionary<string, string>.Empty;
 
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules: rules,
                 filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : firstSymbol.Name),
                 sortText: sortText ?? firstSymbol.Name,
-                glyph: firstSymbol.GetGlyph(),
+                glyph: glyph ?? firstSymbol.GetGlyph(),
                 showsWarningIcon: supportedPlatforms != null,
                 properties: props,
                 tags: tags);
@@ -323,6 +324,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string sortText = null,
             string insertionText = null,
             string filterText = null,
+            Glyph? glyph = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default)
@@ -330,7 +332,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
                 s_addSymbolEncoding, sortText, insertionText,
-                filterText, supportedPlatforms, properties, tags, displayTextPrefix);
+                filterText, supportedPlatforms, properties, tags, displayTextPrefix,
+                glyph);
         }
 
         public static CompletionItem CreateWithNameAndKind(

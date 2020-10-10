@@ -1253,7 +1253,7 @@ public class Program
         e.$$
     }
 }
-", "int", displayTextSuffix: "?)", glyph: (int)Glyph.EnumPublic, expectedDescriptionOrNull: @"E.explicit operator int(E value)
+", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"E.explicit operator int(E value)
 Explicit conversion of E to int.");
         }
 

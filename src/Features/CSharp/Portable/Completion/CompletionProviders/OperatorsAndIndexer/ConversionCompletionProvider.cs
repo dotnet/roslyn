@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                            displayText: targetTypeName,
                            displayTextSuffix: $"{optionalNullableQuestionmark})",
                            filterText: targetTypeName,
+                           glyph: Glyph.Operator,
                            sortText: SortText(targetTypeName),
                            symbols: new[] { fromType, toType }.ToImmutableArray(),
                            rules: CompletionItemRules.Default,
