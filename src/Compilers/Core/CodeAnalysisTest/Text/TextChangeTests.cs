@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
+        [WorkItem(39405, "https://github.com/dotnet/roslyn/issues/39405")]
         public void TestMergeChanges_NewDeletionLargerThanOld()
         {
             var original = SourceText.From("01234");
@@ -1038,6 +1038,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_3()
         {
             var originalText = SourceText.From("01234");
@@ -1050,6 +1051,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_4()
         {
             var originalText = SourceText.From("012345");
@@ -1063,6 +1065,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_7()
         {
             var originalText = SourceText.From("01234567");
@@ -1105,6 +1108,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_32()
         {
             var originalText = SourceText.From("012345");
@@ -1118,6 +1122,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_39()
         {
             var originalText = SourceText.From("0123456");
@@ -1131,6 +1136,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_55()
         {
             var originalText = SourceText.From("012345");
@@ -1144,6 +1150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
         public void Fuzz_110()
         {
             var originalText = SourceText.From("01234");
@@ -1156,6 +1163,52 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("14", originalText.WithChanges(changes).ToString());
         }
 
+        [Fact]
+        [WorkItem(41413, "https://github.com/dotnet/roslyn/issues/41413")]
+        public void GetTextChanges_NonOverlappingSpans()
+        {
+            var content = @"@functions{
+    public class Foo
+    {
+void Method()
+{
+    
+}
+    }
+}";
+
+            var text = SourceText.From(content);
+            var edits1 = new TextChange[]
+            {
+                new TextChange(new TextSpan(39, 0), "    "),
+                new TextChange(new TextSpan(42, 0), "            "),
+                new TextChange(new TextSpan(57, 0), "            "),
+                new TextChange(new TextSpan(58, 0), "\r\n"),
+                new TextChange(new TextSpan(64, 2), "        "),
+                new TextChange(new TextSpan(69, 0), "    "),
+            };
+            var changedText = text.WithChanges(edits1);
+
+            var edits2 = new TextChange[]
+            {
+                new TextChange(new TextSpan(35, 4), string.Empty),
+                new TextChange(new TextSpan(46, 4), string.Empty),
+                new TextChange(new TextSpan(73, 4), string.Empty),
+                new TextChange(new TextSpan(88, 0), "    "),
+                new TextChange(new TextSpan(90, 4), string.Empty),
+                new TextChange(new TextSpan(105, 4), string.Empty),
+            };
+            var changedText2 = changedText.WithChanges(edits2);
+
+            var changes = changedText2.GetTextChanges(text);
+
+            var position = 0;
+            foreach (var change in changes)
+            {
+                Assert.True(position <= change.Span.Start);
+                position = change.Span.End;
+            }
+        }
         private SourceText GetChangesWithoutMiddle(
             SourceText original,
             Func<SourceText, SourceText> fnChange1,
