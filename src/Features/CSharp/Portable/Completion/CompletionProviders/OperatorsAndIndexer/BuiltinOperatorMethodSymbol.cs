@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             ReturnType = returnType;
             Parameters = new IParameterSymbol[]
             {
-                new BuiltinOperatorParameterSymbol(containingType, containingType),
+                new BuiltinOperatorParameterSymbol(containingType),
             }.ToImmutableArray();
             ContainingType = containingType;
         }
@@ -69,7 +69,7 @@ Defines an explicit conversion of <see cref=""{0}"" /> to a <see cref=""{1}"" />
 
 
         #region IMethodSymbol implementation returning constants
-        public MethodKind MethodKind => MethodKind.BuiltinOperator;
+        public MethodKind MethodKind => MethodKind.Conversion;
 
         public int Arity => 0;
 

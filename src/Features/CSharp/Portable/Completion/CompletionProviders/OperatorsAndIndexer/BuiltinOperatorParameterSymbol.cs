@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal class BuiltinOperatorParameterSymbol : IParameterSymbol
     {
-        public BuiltinOperatorParameterSymbol(ITypeSymbol type, ISymbol containingSymbol)
+        public BuiltinOperatorParameterSymbol(ITypeSymbol type)
         {
             Type = type;
-            ContainingSymbol = containingSymbol;
+            ContainingSymbol = type;
         }
 
         public ITypeSymbol Type { get; }
