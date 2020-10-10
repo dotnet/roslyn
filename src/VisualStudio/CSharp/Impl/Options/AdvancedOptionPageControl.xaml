@@ -107,7 +107,6 @@
                 </StackPanel>
             </GroupBox>
 
-
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>
@@ -206,15 +205,19 @@
                         <CheckBox x:Uid="ShowHintsForLiterals"
                                   x:Name="ShowHintsForLiterals"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_literals}" />
+
                         <CheckBox x:Uid="ShowHintsForNewExpressions"
                                   x:Name="ShowHintsForNewExpressions"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_new_expressions}" />
+
                         <CheckBox x:Uid="ShowHintsForEverythingElse"
                                   x:Name="ShowHintsForEverythingElse"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_everything_else}" />
+
                         <CheckBox x:Uid="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
                                   x:Name="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent}" />
+
                         <CheckBox x:Uid="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   x:Name="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_names_differ_only_by_suffix}" />
