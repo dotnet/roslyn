@@ -135,7 +135,7 @@
         "RS1016": {
           "id": "RS1016",
           "shortDescription": "Code fix providers should provide FixAll support",
-          "fullDescription": "A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.",
+          "fullDescription": "A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.",
           "defaultLevel": "warning",
           "properties": {
             "category": "Correctness",

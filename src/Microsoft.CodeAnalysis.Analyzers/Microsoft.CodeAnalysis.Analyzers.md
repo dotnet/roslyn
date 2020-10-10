@@ -198,7 +198,7 @@ The 'helpLinkUri' value is used to show information when this diagnostic in the 
 
 ## RS1016: Code fix providers should provide FixAll support
 
-A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.
+A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.
 
 |Item|Value|
 |-|-|
