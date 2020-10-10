@@ -672,7 +672,6 @@ public class Program
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorLiftingIsApplied()
         {
-
             await VerifyCustomCommitProviderAsync(@"
 public struct S
 {
@@ -706,7 +705,6 @@ public class Program
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorOfBaseTypeIsSuggested()
         {
-
             await VerifyItemExistsAsync(@"
 public class Base {
     public static int operator +(Base b, int a)=>0;
@@ -729,7 +727,6 @@ public class Program
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorForRecordsAreSuggested()
         {
-
             await VerifyItemExistsAsync(@"
 public record R {
 }
