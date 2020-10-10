@@ -201,6 +201,7 @@ Explicit conversion of <see cref=""T:{{0}}""/> to <see cref=""T:{{1}}""/>.
         public void Accept(SymbolVisitor visitor)
             => visitor.VisitMethod(this);
 
+        [return: MaybeNull]
         public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitMethod(this);
 

@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public void Accept(SymbolVisitor visitor)
             => visitor.VisitParameter(this);
 
+        [return: MaybeNull]
         public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitParameter(this);
 
