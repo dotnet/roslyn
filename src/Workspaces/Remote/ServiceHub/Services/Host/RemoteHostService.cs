@@ -52,6 +52,12 @@ namespace Microsoft.CodeAnalysis.Remote
             // we set up logger here
             RoslynLogger.SetLogger(new EtwLogger(s_logChecker));
 
+#if DEBUG
+            // Make sure debug assertions in ServiceHub result in exceptions instead of the assertion UI
+            Trace.Listeners.Clear();
+            Trace.Listeners.Add(new ThrowingTraceListener());
+#endif
+
             SetNativeDllSearchDirectories();
         }
 
