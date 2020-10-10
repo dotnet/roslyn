@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         Dim value As Double = 0
                         Dim valueText As String = GetFloatLiteralValueString(literal, value) + GetTypeCharString(literal.GetTypeCharacter())
 
-                        If value = 0 OrElse valueText.Contains(digitSeparator) Then
+                        If value = 0 OrElse idText.Contains(digitSeparator) Then
                             ' Overflow/underflow case or zero literal, skip pretty listing.
                             Return newNode
                         End If
