@@ -3434,9 +3434,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (methodOpt?.ParameterCount == 2)
                 {
-                    return operatorKind.IsLifted() && !operatorKind.IsComparison()
-                        ? GetLiftedReturnType(methodOpt.ReturnTypeWithAnnotations, leftType.State.Join(rightType.State))
-                        : GetReturnTypeWithState(methodOpt);
+                    if (operatorKind.IsLifted() && !operatorKind.IsComparison())
+                    {
+                        return GetLiftedReturnType(methodOpt.ReturnTypeWithAnnotations, leftType.State.Join(rightType.State));
+                    }
+
+                    var resultTypeWithState = GetReturnTypeWithState(methodOpt);
+                    if ((leftType.IsNotNull && methodOpt.ReturnNotNullIfParameterNotNull.Contains(methodOpt.Parameters[0].Name)) ||
+                        (rightType.IsNotNull && methodOpt.ReturnNotNullIfParameterNotNull.Contains(methodOpt.Parameters[1].Name)))
+                    {
+                        resultTypeWithState = resultTypeWithState.WithNotNullState();
+                    }
+
+                    return resultTypeWithState;
                 }
             }
             else if (!operatorKind.IsDynamic() && !resultType.IsValueType)
