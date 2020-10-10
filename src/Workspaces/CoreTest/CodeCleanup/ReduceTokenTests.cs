@@ -2042,6 +2042,7 @@ Module Module1
     Sub Main()
         Dim x = 100_000
         Dim y = 100_000.0F
+        Dim z = 100_000.0D
     End Sub
 End Module
 ";
