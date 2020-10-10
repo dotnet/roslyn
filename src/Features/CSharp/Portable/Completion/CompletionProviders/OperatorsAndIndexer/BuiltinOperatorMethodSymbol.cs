@@ -15,6 +15,11 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    // Describes a conversion operator method from containingType to returnType as if it were defined like so:
+    // public class/struct ContainingType
+    // {
+    //     public static explicit operator ReturnType(ContainingType value) => ..;
+    // }
     internal class BuiltinOperatorMethodSymbol : IMethodSymbol
     {
         public BuiltinOperatorMethodSymbol(ITypeSymbol returnType, INamedTypeSymbol containingType)
