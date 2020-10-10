@@ -1123,8 +1123,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var originalText = SourceText.From("0123456");
             var change1 = originalText.WithChanges(new TextChange(new TextSpan(0, 4), ""), new TextChange(new TextSpan(5, 1), ""));
             var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 1), ""), new TextChange(new TextSpan(1, 0), ""));
-            Assert.Equal("46", change1.ToString()); // double-check for correctness
-            Assert.Equal("6", change2.ToString()); // double-check for correctness
+            Assert.Equal("46", change1.ToString());
+            Assert.Equal("6", change2.ToString());
 
             var changes = change2.GetTextChanges(originalText);
             Assert.Equal("6", originalText.WithChanges(changes).ToString());
@@ -1136,8 +1136,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var originalText = SourceText.From("012345");
             var change1 = originalText.WithChanges(new TextChange(new TextSpan(0, 2), ""), new TextChange(new TextSpan(3, 1), ""), new TextChange(new TextSpan(4, 0), ""), new TextChange(new TextSpan(4, 0), ""), new TextChange(new TextSpan(4, 0), ""));
             var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 1), ""), new TextChange(new TextSpan(1, 1), ""), new TextChange(new TextSpan(2, 0), ""));
-            Assert.Equal("245", change1.ToString()); // double-check for correctness
-            Assert.Equal("5", change2.ToString()); // double-check for correctness
+            Assert.Equal("245", change1.ToString());
+            Assert.Equal("5", change2.ToString());
 
             var changes = change2.GetTextChanges(originalText);
             Assert.Equal("5", originalText.WithChanges(changes).ToString());
@@ -1149,8 +1149,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var originalText = SourceText.From("01234");
             var change1 = originalText.WithChanges(new TextChange(new TextSpan(0, 1), ""), new TextChange(new TextSpan(2, 1), ""));
             var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 0), ""), new TextChange(new TextSpan(1, 1), ""));
-            Assert.Equal("134", change1.ToString()); // double-check for correctness
-            Assert.Equal("14", change2.ToString()); // double-check for correctness
+            Assert.Equal("134", change1.ToString());
+            Assert.Equal("14", change2.ToString());
 
             var changes = change2.GetTextChanges(originalText);
             Assert.Equal("14", originalText.WithChanges(changes).ToString());
