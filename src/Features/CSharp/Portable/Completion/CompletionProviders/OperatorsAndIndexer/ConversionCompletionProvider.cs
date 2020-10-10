@@ -91,12 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                              m.Parameters.Length == 1 && // Malformed conversion operator may have more or less than one parameter
                                              t.Equals(m.Parameters[0].Type) // Convert from container type to other type
                                          select CreateSymbolCompletionItem(
-                                             methodSymbol: m,
                                              targetTypeName: m.ReturnType.ToMinimalDisplayString(semanticModel, position),
                                              targetTypeIsNullable: containerIsNullable && m.ReturnType.IsStructType(),
-                                             position);
+                                             position,
+                                             m);
             builder.AddRange(allExplicitConversions);
-
         }
 
         private void AddBuiltInNumericConversions(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol container, bool containerIsNullable, int position)
@@ -135,15 +134,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private void AddCompletionItemsForSpecialTypes(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol fromType, bool containerIsNullable, int position, ImmutableArray<SpecialType> specialTypes)
         {
-            var containerTypeName = fromType.ToMinimalDisplayString(semanticModel, position);
             var conversionCompletionItems = from specialType in specialTypes
                                             let targetTypeSymbol = semanticModel.Compilation.GetSpecialType(specialType)
                                             let targetTypeName = targetTypeSymbol.ToMinimalDisplayString(semanticModel, position)
-                                            select CreateCommonCompletionItem(containerTypeName, targetTypeName, targetTypeIsNullable: containerIsNullable, position, fromType, targetTypeSymbol);
+                                            select CreateSymbolCompletionItem(targetTypeName, targetTypeIsNullable: containerIsNullable, position, fromType, targetTypeSymbol);
             builder.AddRange(conversionCompletionItems);
         }
 
-        private CompletionItem CreateSymbolCompletionItem(IMethodSymbol methodSymbol, string targetTypeName, bool targetTypeIsNullable, int position)
+        private CompletionItem CreateSymbolCompletionItem(string targetTypeName, bool targetTypeIsNullable, int position, params ISymbol[] symbols)
         {
             var optionalNullableQuestionmark = GetOptionalNullableQuestionMark(targetTypeIsNullable);
             return SymbolCompletionItem.CreateWithSymbolId(
@@ -152,27 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                            displayTextSuffix: $"{optionalNullableQuestionmark})",
                            filterText: targetTypeName,
                            sortText: SortText(targetTypeName),
-                           symbols: ImmutableList.Create(methodSymbol),
+                           glyph: Glyph.Operator,
+                           symbols: ImmutableList.Create(symbols),
                            rules: CompletionItemRules.Default,
                            contextPosition: position,
                            properties: CreatePropertiesBag((MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}")));
-        }
-
-        private CompletionItem CreateCommonCompletionItem(string containerTypeName, string targetTypeName, bool targetTypeIsNullable, int position, INamedTypeSymbol fromType, ITypeSymbol toType)
-        {
-            var optionalNullableQuestionmark = GetOptionalNullableQuestionMark(targetTypeIsNullable);
-            return SymbolCompletionItem.CreateWithSymbolId(
-                           displayTextPrefix: "(",
-                           displayText: targetTypeName,
-                           displayTextSuffix: $"{optionalNullableQuestionmark})",
-                           filterText: targetTypeName,
-                           glyph: Glyph.Operator,
-                           sortText: SortText(targetTypeName),
-                           symbols: new[] { fromType, toType }.ToImmutableArray(),
-                           rules: CompletionItemRules.Default,
-                           contextPosition: position,
-                           properties: CreatePropertiesBag(
-                               (MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}")));
         }
 
         private static string GetOptionalNullableQuestionMark(bool isNullable)
