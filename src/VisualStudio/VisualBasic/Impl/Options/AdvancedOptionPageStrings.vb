@@ -33,6 +33,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             BasicVSResources.Show_procedure_line_separators
 
+        Public ReadOnly Property Option_Display_all_hints_while_pressing_ctrl_alt As String =
+            ServicesVSResources.Display_all_hints_while_pressing_ctrl_alt
+
         Public ReadOnly Property Option_Inline_Hints_experimental As String =
             ServicesVSResources.Inline_Hints_experimental
 
@@ -48,11 +51,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_hints_for_everything_else As String =
             ServicesVSResources.Show_hints_for_everything_else
 
-        Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String
-            Get
-                Return BasicVSResources.Don_t_put_ByRef_on_custom_structure
-            End Get
-        End Property
+        Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
+            BasicVSResources.Don_t_put_ByRef_on_custom_structure
 
         Public ReadOnly Property Option_EditorHelp As String
             Get
