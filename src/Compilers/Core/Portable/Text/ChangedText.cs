@@ -313,13 +313,13 @@ namespace Microsoft.CodeAnalysis.Text
                 if (oldChange.Span.Length == 0 && oldChange.NewLength == 0)
                 {
                     // old change does not insert or delete any characters, so it can be dropped to no effect.
-                    if (tryGetNextOldChange(oldChanges, ref oldIndex, out oldChange)) continue;
+                    if (tryGetNextOldChange()) continue;
                     else break;
                 }
                 else if (newChange.SpanLength == 0 && newChange.NewLength == 0)
                 {
                     // new change does not insert or delete any characters, so it can be dropped to no effect.
-                    if (tryGetNextNewChange(newChanges, ref newIndex, out newChange)) continue;
+                    if (tryGetNextNewChange()) continue;
                     else break;
                 }
                 else if (newChange.SpanEnd < oldChange.Span.Start + oldDelta)
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Text
                     //                old[--------]
                     // new[--------]
                     addAdjustedNewChange(builder, oldDelta, newChange);
-                    if (tryGetNextNewChange(newChanges, ref newIndex, out newChange)) continue;
+                    if (tryGetNextNewChange()) continue;
                     else break;
                 }
                 else if (newChange.SpanStart > oldChange.NewEnd + oldDelta)
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Text
                     // old[--------]
                     //                new[--------]
                     addAndAdjustOldDelta(builder, ref oldDelta, oldChange);
-                    if (tryGetNextOldChange(oldChanges, ref oldIndex, out oldChange)) continue;
+                    if (tryGetNextOldChange()) continue;
                     else break;
                 }
                 else if (newChange.SpanStart < oldChange.Span.Start + oldDelta)
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Text
                         // since the new change insertion occurs before the old change, consume it now
                         newChange = new UnadjustedNewChange(newChange.SpanEnd, spanLength: 0, newChange.NewLength);
                         addAdjustedNewChange(builder, oldDelta, newChange);
-                        if (tryGetNextNewChange(newChanges, ref newIndex, out newChange)) continue;
+                        if (tryGetNextNewChange()) continue;
                         else break;
                     }
                     else
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                         var newDeletion = newChange.SpanLength + oldChange.Span.Length - oldChange.NewLength;
                         newChange = new UnadjustedNewChange(oldChange.Span.Start + oldDelta, newDeletion, newChange.NewLength);
-                        if (tryGetNextOldChange(oldChanges, ref oldIndex, out oldChange)) continue;
+                        if (tryGetNextOldChange()) continue;
                         else break;
                     }
                 }
@@ -489,43 +489,43 @@ namespace Microsoft.CodeAnalysis.Text
             while (oldIndex < oldChanges.Length)
             {
                 addAndAdjustOldDelta(builder, ref oldDelta, oldChange);
-                tryGetNextOldChange(oldChanges, ref oldIndex, out oldChange);
+                tryGetNextOldChange();
             }
 
             while (newIndex < newChanges.Length)
             {
                 addAdjustedNewChange(builder, oldDelta, newChange);
-                tryGetNextNewChange(newChanges, ref newIndex, out newChange);
+                tryGetNextNewChange();
             }
 
             return builder.ToImmutableAndFree();
 
-            static bool tryGetNextOldChange(ImmutableArray<TextChangeRange> changes, ref int index, out TextChangeRange next)
+            bool tryGetNextOldChange()
             {
-                index++;
-                if (index < changes.Length)
+                oldIndex++;
+                if (oldIndex < oldChanges.Length)
                 {
-                    next = changes[index];
+                    oldChange = oldChanges[oldIndex];
                     return true;
                 }
                 else
                 {
-                    next = default;
+                    oldChange = default;
                     return false;
                 }
             }
 
-            static bool tryGetNextNewChange(ImmutableArray<TextChangeRange> changes, ref int index, out UnadjustedNewChange next)
+            bool tryGetNextNewChange()
             {
-                index++;
-                if (index < changes.Length)
+                newIndex++;
+                if (newIndex < newChanges.Length)
                 {
-                    next = new UnadjustedNewChange(changes[index]);
+                    newChange = new UnadjustedNewChange(newChanges[newIndex]);
                     return true;
                 }
                 else
                 {
-                    next = default;
+                    newChange = default;
                     return false;
                 }
             }
