@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -145,6 +146,56 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return TryGetNameWithoutAttributeSuffix(symbol.ContainingType.Name, syntaxFacts, out var simpleName)
                 ? FindReferencesInDocumentUsingIdentifierAsync(symbol, simpleName, document, semanticModel, cancellationToken)
                 : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
+        }
+
+        private Task<ImmutableArray<FinderLocation>> FindReferencesInImplicitObjectCreationExpressionAsync(
+            IMethodSymbol symbol,
+            Document document,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // Only check `new (...)` calls that supply enough arguments to match all the required parameters for the constructor.
+            var minimumArgumentCount = symbol.Parameters.Count(p => !p.IsOptional && !p.IsParams);
+            var maximumArgumentCount = symbol.Parameters.Length > 0 && symbol.Parameters.Last().IsParams
+                ? int.MaxValue
+                : symbol.Parameters.Length;
+
+            var exactArgumentCount = symbol.Parameters.Any(p => p.IsOptional || p.IsParams)
+                ? -1
+                : symbol.Parameters.Length;
+
+            return FindReferencesInDocumentAsync(symbol, document, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
+
+            static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
+                => syntaxTreeInfo.ContainsImplicitObjectCreation;
+
+            void CollectMatchingReferences(
+                ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
+                ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
+                ArrayBuilder<FinderLocation> locations)
+            {
+                if (!syntaxFacts.IsImplicitObjectCreationExpression(node))
+                    return;
+
+                // if there are too few or too many arguments, then don't bother checking.
+                var actualArgumentCount = syntaxFacts.GetArgumentsOfObjectCreationExpression(node).Count;
+                if (actualArgumentCount < minimumArgumentCount || actualArgumentCount > maximumArgumentCount)
+                    return;
+
+                // if we need an exact count then make sure that the count we have fits the count we need.
+                if (exactArgumentCount != -1 && exactArgumentCount != actualArgumentCount)
+                    return;
+
+                var constructor = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
+                if (Matches(constructor, originalUnreducedSymbolDefinition))
+                {
+                    var location = node.GetFirstToken().GetLocation();
+                    var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
+
+                    locations.Add(new FinderLocation(node, new ReferenceLocation(
+                        document, alias: null, location, isImplicit: true, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), CandidateReason.None)));
+                }
+            }
         }
     }
 }
