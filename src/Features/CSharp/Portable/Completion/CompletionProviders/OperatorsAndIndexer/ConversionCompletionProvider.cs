@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private CompletionItem CreateSymbolCompletionItem(string targetTypeName, bool targetTypeIsNullable, int position, params ISymbol[] symbols)
         {
-            var optionalNullableQuestionmark = GetOptionalNullableQuestionMark(targetTypeIsNullable);
+            var optionalNullableQuestionmark = targetTypeIsNullable ? "?" : "";
             return SymbolCompletionItem.CreateWithSymbolId(
                            displayTextPrefix: "(",
                            displayText: targetTypeName,
@@ -156,9 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                            contextPosition: position,
                            properties: CreatePropertiesBag((MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}")));
         }
-
-        private static string GetOptionalNullableQuestionMark(bool isNullable)
-            => isNullable ? "?" : "";
 
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
