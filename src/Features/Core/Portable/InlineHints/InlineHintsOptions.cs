@@ -13,6 +13,20 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal static class InlineHintsOptions
     {
+        public static readonly Option2<bool> DisplayAllHintsWhilePressingCtrlAlt =
+            new(nameof(InlineHintsOptions),
+                nameof(DisplayAllHintsWhilePressingCtrlAlt),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.Specific.DisplayAllHintsWhilePressingCtrlAlt"));
+
+        /// <summary>
+        /// Non-persisted option used to switch to displaying everything while the user is holding ctrl-alt.
+        /// </summary>
+        public static readonly Option2<bool> DisplayAllOverride =
+            new(nameof(DisplayAllOverride),
+                nameof(EnabledForParameters),
+                defaultValue: false);
+
         public static readonly PerLanguageOption2<bool> EnabledForParameters =
             new(nameof(InlineHintsOptions),
                 nameof(EnabledForParameters),
@@ -60,6 +74,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt,
             InlineHintsOptions.EnabledForParameters,
             InlineHintsOptions.ForLiteralParameters,
             InlineHintsOptions.ForObjectCreationParameters,

@@ -25,13 +25,15 @@ namespace Microsoft.CodeAnalysis.InlineHints
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var forParameters = options.GetOption(InlineHintsOptions.EnabledForParameters);
+            var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
+
+            var forParameters = displayAllOverride || options.GetOption(InlineHintsOptions.EnabledForParameters);
             if (!forParameters)
                 return ImmutableArray<InlineParameterHint>.Empty;
 
-            var literalParameters = options.GetOption(InlineHintsOptions.ForLiteralParameters);
-            var objectCreationParameters = options.GetOption(InlineHintsOptions.ForObjectCreationParameters);
-            var otherParameters = options.GetOption(InlineHintsOptions.ForOtherParameters);
+            var literalParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForLiteralParameters);
+            var objectCreationParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForObjectCreationParameters);
+            var otherParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForOtherParameters);
             if (!literalParameters && !objectCreationParameters && !otherParameters)
                 return ImmutableArray<InlineParameterHint>.Empty;
 

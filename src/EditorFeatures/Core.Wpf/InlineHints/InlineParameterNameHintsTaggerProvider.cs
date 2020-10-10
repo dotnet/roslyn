@@ -35,12 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParameterNameHintsTaggerProvider(IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
-                                                       IClassificationFormatMapService classificationFormatMapService,
-                                                       IClassificationTypeRegistryService classificationTypeRegistryService,
-                                                       IThreadingContext threadingContext,
-                                                       IToolTipService toolTipService,
-                                                       Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter)
+        public InlineParameterNameHintsTaggerProvider(
+            IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
+            IClassificationFormatMapService classificationFormatMapService,
+            IClassificationTypeRegistryService classificationTypeRegistryService,
+            IThreadingContext threadingContext,
+            IToolTipService toolTipService,
+            Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter)
         {
             _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
             this.ClassificationFormatMapService = classificationFormatMapService;

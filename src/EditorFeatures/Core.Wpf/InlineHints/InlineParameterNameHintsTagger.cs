@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;

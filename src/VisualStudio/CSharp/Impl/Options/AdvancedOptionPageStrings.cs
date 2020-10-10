@@ -34,6 +34,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Inline_Hints_experimental
             => ServicesVSResources.Inline_Hints_experimental;
 
+        public static string Option_Display_all_hints_while_pressing_Ctrl_Alt
+            => ServicesVSResources.Display_all_hints_while_pressing_Ctrl_Alt;
+
         public static string Option_Display_inline_parameter_name_hints
             => ServicesVSResources.Display_inline_parameter_name_hints;
 
@@ -81,9 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         public static string Option_EnterOutliningMode
-        {
-            get { return CSharpVSResources.Enter_outlining_mode_when_files_open; }
-        }
+            => CSharpVSResources.Enter_outlining_mode_when_files_open;
 
         public static string Option_ExtractMethod
             => CSharpVSResources.Extract_Method;
