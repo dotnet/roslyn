@@ -177,6 +177,11 @@
         <target state="translated">Parâmetro atual</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_all_hints_while_pressing_Ctrl_Alt">
+        <source>Display all hints while pressing Ctrl+Alt</source>
+        <target state="new">Display all hints while pressing Ctrl+Alt</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
         <target state="new">Disp_lay inline parameter name hints</target>
