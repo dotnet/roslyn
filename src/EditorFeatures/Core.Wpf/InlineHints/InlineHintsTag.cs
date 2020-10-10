@@ -181,6 +181,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             // Encapsulates the textblock within a border. Sets the height of the border to be 3/4 of the original 
             // height. Gets foreground/background colors from the options menu. The margin is the distance from the 
             // adornment to the text and pushing the adornment upwards to create a separation when on a specific line
+
+            // If the tag is followed by a space, just create a normal border (as there will already be a buffer to the right).
+            // If not, then pad the right a little so the tag doesn't feel too cramped with the following text.
             var right = span.End < span.Snapshot.Length && char.IsWhiteSpace(span.End.GetChar()) ? 0 : 5;
 
             var border = new Border
