@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal class ConversionCompletionProvider : OperatorIndexerCompletionProviderBase
     {
         private const string MinimalTypeNamePropertyName = "MinimalTypeName";
-        private const string ContainerTypeNamePropertyName = "ContainerTypeName";
+
         private static readonly ImmutableArray<SpecialType> s_builtInEnumConversionTargets = new[]
             {
                 SpecialType.System_SByte,
@@ -172,8 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                            rules: CompletionItemRules.Default,
                            contextPosition: position,
                            properties: CreatePropertiesBag(
-                               (MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}"),
-                               (ContainerTypeNamePropertyName, containerTypeName)));
+                               (MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}")));
         }
 
         private static string GetOptionalNullableQuestionMark(bool isNullable)
