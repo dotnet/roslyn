@@ -34,11 +34,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public ImmutableArray<IParameterSymbol> Parameters { get; }
 
         public string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
-            => string.Format(@"
-<summary>
-Defines an explicit conversion of <see cref=""{0}"" /> to a <see cref=""{1}"" />.
-</summary>
-", ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+        {
+            var template = @$"
+<member name=""M:{{0}}.op_Explicit({{0}})~{{1}}"">
+    <summary>
+    Explicit conversion of <see cref=""T:{{0}}""/> to <see cref=""T:{{1}}""/>.
+    </summary>
+</member>
+";
+            // Use MinimallyQualifiedFormat (with SymbolDisplayGlobalNamespaceStyle.Omitted) because "global::" is not supported by the cref formatter.
+            return string.Format(template,
+                ContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                ReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        }
+
+        public string? GetDocumentationCommentId() => null;
 
         public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat? format = null)
             => SymbolDisplay.ToDisplayParts(this, format);
@@ -196,8 +206,6 @@ Defines an explicit conversion of <see cref=""{0}"" /> to a <see cref=""{1}"" />
         public ImmutableArray<AttributeData> GetAttributes() => ImmutableArray<AttributeData>.Empty;
 
         public DllImportData? GetDllImportData() => null;
-
-        public string? GetDocumentationCommentId() => null;
 
         public ImmutableArray<AttributeData> GetReturnTypeAttributes() => ImmutableArray<AttributeData>.Empty;
 
