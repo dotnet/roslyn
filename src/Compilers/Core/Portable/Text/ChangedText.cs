@@ -242,6 +242,11 @@ namespace Microsoft.CodeAnalysis.Text
         /// Represents a newChange being processed by <see cref="Merge(ImmutableArray&lt;TextChangeRange&gt;, ImmutableArray&lt;TextChangeRange&gt;)"/>.
         /// Such a newChange must be adjusted before being added to the result list.
         /// </summary>
+        /// <remarks>
+        /// A value of this type may represent the intermediate state of merging of an old change into an unadjusted new change,
+        /// resulting in a temporary unadjusted new change whose SpanStart is negative (not valid) until it is adjusted.
+        /// This tends to happen when we need to merge an old change deletion into a new change near the beginning of the text. (see TextChangeTests.Fuzz_4)
+        /// </remarks>
         private readonly struct UnadjustedNewChange
         {
             public readonly int SpanStart { get; }
