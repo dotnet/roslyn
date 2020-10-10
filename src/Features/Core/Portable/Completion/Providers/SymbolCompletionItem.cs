@@ -151,7 +151,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static ISymbol DecodeSymbol(string id, Compilation compilation)
             => SymbolKey.ResolveString(id, compilation).GetAnySymbol();
 
+        public static async Task<CompletionDescription> GetDescriptionForSymbolsAsync(
+            CompletionItem item, Document document, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
+        {
+            var (workspace, supportedPlatforms, semanticModel, position) = await GetDescriptionContextAsync(item, document, cancellationToken).ConfigureAwait(false);
+
+            return await GetDescriptionForSymbolsAsync(workspace, supportedPlatforms, semanticModel, symbols, position, cancellationToken).ConfigureAwait(false);
+        }
+
+
         public static async Task<CompletionDescription> GetDescriptionAsync(
+            CompletionItem item, Document document, CancellationToken cancellationToken)
+        {
+            var (workspace, supportedPlatforms, semanticModel, position) = await GetDescriptionContextAsync(item, document, cancellationToken).ConfigureAwait(false);
+            var symbols = await GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+
+            return await GetDescriptionForSymbolsAsync(workspace, supportedPlatforms, semanticModel, symbols, position, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async Task<(Workspace, SupportedPlatformData, SemanticModel, int position)> GetDescriptionContextAsync(
             CompletionItem item, Document document, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
@@ -167,7 +185,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
 
             var semanticModel = await contextDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbols = await GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+
+            return (workspace, supportedPlatforms, semanticModel, position);
+        }
+
+        private static async Task<CompletionDescription> GetDescriptionForSymbolsAsync(Workspace workspace, SupportedPlatformData supportedPlatforms, SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, int position, CancellationToken cancellationToken)
+        {
             if (symbols.Length > 0)
             {
                 return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);

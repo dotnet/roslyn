@@ -191,16 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static async Task<CompletionDescription> GetBuiltInConversionDescriptionAsync(Document document, CompletionItem item, INamedTypeSymbol fromType, ITypeSymbol toType, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var position = SymbolCompletionItem.GetContextPosition(item);
             var symbol = new BuiltinOperatorMethodSymbol(toType, fromType);
-            return await CommonCompletionUtilities.CreateDescriptionAsync(
-                document.Project.Solution.Workspace,
-                semanticModel,
-                position,
-                new[] { symbol },
-                supportedPlatforms: null,
-                cancellationToken).ConfigureAwait(false);
+            return await SymbolCompletionItem.GetDescriptionForSymbolsAsync(item, document, new ISymbol[] { symbol }.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
         }
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
