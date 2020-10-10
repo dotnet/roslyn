@@ -797,6 +797,16 @@
         <target state="translated">在“环境”&gt;“字体和颜色”选项页中所做的更改将替代某些配色方案颜色。在“字体和颜色”页中选择“使用默认值”，还原所有自定义项。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="new">Suppress hints when parameter names differ only by suffix</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">目标命名空间:</target>

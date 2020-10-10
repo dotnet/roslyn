@@ -398,5 +398,255 @@ class Derived : Base
 
             Await VerifyParamHints(input)
         End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestNotOnEnableDisableBoolean1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void EnableLogging(bool value)
+    {
+    }
+
+    void Main() 
+    {
+        EnableLogging(true);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestNotOnEnableDisableBoolean2() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void DisableLogging(bool value)
+    {
+    }
+
+    void Main() 
+    {
+        DisableLogging(true);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestOnEnableDisableNonBoolean1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void EnableLogging(string value)
+    {
+    }
+
+    void Main() 
+    {
+        EnableLogging({|value:"IO"|});
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestOnEnableDisableNonBoolean2() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void DisableLogging(string value)
+    {
+    }
+
+    void Main() 
+    {
+        DisableLogging({|value:"IO"|});
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestOnSetMethodWithClearContext() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void SetClassification(string classification)
+    {
+    }
+
+    void Main() 
+    {
+        SetClassification("IO");
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestOnSetMethodWithUnclearContext() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void SetClassification(string values)
+    {
+    }
+
+    void Main() 
+    {
+        SetClassification({|values:"IO"|});
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestMethodWithAlphaSuffix1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Goo(int objA, int objB, int objC)
+    {
+    }
+
+    void Main() 
+    {
+        Goo(1, 2, 3);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestMethodWithNonAlphaSuffix1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Goo(int objA, int objB, int nonobjC)
+    {
+    }
+
+    void Main() 
+    {
+        Goo({|objA:1|}, {|objB:2|}, {|nonobjC:3|});
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestMethodWithNumericSuffix1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Goo(int obj1, int obj2, int obj3)
+    {
+    }
+
+    void Main() 
+    {
+        Goo(1, 2, 3);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestMethodWithNonNumericSuffix1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Goo(int obj1, int obj2, int nonobj3)
+    {
+    }
+
+    void Main() 
+    {
+        Goo({|obj1:1|}, {|obj2:2|}, {|nonobj3:3|});
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
     End Class
 End Namespace

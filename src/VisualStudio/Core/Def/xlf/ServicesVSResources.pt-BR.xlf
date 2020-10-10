@@ -797,6 +797,16 @@
         <target state="translated">Algumas cores do esquema de cores estão sendo substituídas pelas alterações feitas na página de Ambiente &gt; Opções de Fontes e Cores. Escolha 'Usar Padrões' na página Fontes e Cores para reverter todas as personalizações.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="new">Suppress hints when parameter names differ only by suffix</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Namespace de Destino:</target>

@@ -49,6 +49,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_hints_for_everything_else
             => ServicesVSResources.Show_hints_for_everything_else;
 
+        public static string Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent
+            => ServicesVSResources.Suppress_hints_when_parameter_name_matches_the_method_s_intent;
+
+        public static string Option_Suppress_hints_when_parameter_names_differ_only_by_suffix
+            => ServicesVSResources.Suppress_hints_when_parameter_names_differ_only_by_suffix;
+
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
 

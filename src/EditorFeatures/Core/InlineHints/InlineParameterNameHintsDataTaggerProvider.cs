@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForParameters, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLiteralParameters, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForObjectCreationParameters, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForOtherParameters, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForOtherParameters, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, TaggerDelay.NearImmediate));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
@@ -86,8 +88,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var parameterHints = await paramNameHintsService.GetInlineParameterNameHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
                 foreach (var parameterHint in parameterHints)
                 {
+                    Contract.ThrowIfNull(parameterHint.Parameter);
+
                     cancellationToken.ThrowIfCancellationRequested();
-                    context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(new SnapshotSpan(snapshotSpan.Snapshot, parameterHint.Position, 0), new InlineParameterNameHintDataTag(parameterHint.ParameterSymbolKey, parameterHint.Name)));
+                    context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(
+                        new SnapshotSpan(snapshotSpan.Snapshot, parameterHint.Position, 0),
+                        new InlineParameterNameHintDataTag(
+                            parameterHint.Parameter.GetSymbolKey(cancellationToken),
+                            parameterHint.Parameter.Name)));
                 }
             }
         }
