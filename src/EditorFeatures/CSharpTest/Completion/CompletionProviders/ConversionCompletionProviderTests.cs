@@ -1095,7 +1095,7 @@ public class Program
     }
 }
 ", "byte", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"int.explicit operator byte(int value)
-Defines an explicit conversion of a int to a byte.");
+Explicit conversion of int to byte.");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1111,8 +1111,8 @@ public class Program
         i.$$
     }
 }
-", "byte", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"int.explicit operator byte?(int value)
-Defines an explicit conversion of a int to a byte?.");
+", "byte", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"int.explicit operator byte(int value)
+Explicit conversion of int to byte.");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1236,7 +1236,7 @@ public class Program
     }
 }
 ", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"E.explicit operator int(E value)
-Defines an explicit conversion of a E to a int.");
+Explicit conversion of E to int.");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

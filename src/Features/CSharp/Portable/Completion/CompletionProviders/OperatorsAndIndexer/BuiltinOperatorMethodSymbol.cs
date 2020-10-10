@@ -36,11 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
             var template = @$"
-<member name=""M:{{0}}.op_Explicit({{0}})~{{1}}"">
-    <summary>
-    Explicit conversion of <see cref=""T:{{0}}""/> to <see cref=""T:{{1}}""/>.
-    </summary>
-</member>
+<summary>
+Explicit conversion of <see cref=""T:{{0}}""/> to <see cref=""T:{{1}}""/>.
+</summary>
 ";
             // Use MinimallyQualifiedFormat (with SymbolDisplayGlobalNamespaceStyle.Omitted) because "global::" is not supported by the cref formatter.
             return string.Format(template,
