@@ -85,7 +85,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         1.$$
     }
@@ -105,7 +105,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$;
@@ -139,7 +139,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         {expression}
@@ -160,7 +160,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         C.$$
     }
@@ -180,7 +180,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         var name = nameof(c.$$
@@ -224,7 +224,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$;
@@ -301,7 +301,7 @@ public class Program
             var completionItems = await GetCompletionItemsAsync(@$"
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         {specialType} i = default({specialType});
         i.$$
@@ -324,7 +324,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$
@@ -346,7 +346,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         c.$$
@@ -360,7 +360,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         c {binaryOperator} $$
@@ -382,7 +382,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         c.$$
@@ -396,7 +396,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         c{postfixOperator} $$
@@ -418,7 +418,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         c.$$
@@ -432,7 +432,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         {prefixOperator}c.$$
@@ -454,7 +454,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         c.$$
@@ -487,7 +487,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         c.$$
@@ -502,7 +502,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         c + $$
@@ -567,7 +567,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         {expression}
@@ -583,7 +583,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         {completion}
@@ -605,7 +605,7 @@ public struct S
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         S? s = null;
         s.$$
@@ -630,7 +630,7 @@ public struct S
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         S? s = null;
         s.$$
@@ -656,7 +656,7 @@ public struct S
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         S? s = null;
         s.$$
@@ -680,7 +680,7 @@ public struct S
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         S? s = null;
         s.$$
@@ -693,7 +693,7 @@ public struct S
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         S? s = null;
         s == $$
@@ -715,7 +715,7 @@ public class Derived: Base
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var d = new Derived();
         d.$$
@@ -733,7 +733,7 @@ public record R {
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var r = new R();
         r.$$

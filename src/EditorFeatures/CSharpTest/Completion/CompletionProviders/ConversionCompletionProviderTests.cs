@@ -37,7 +37,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$
@@ -84,7 +84,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         1.$$
     }
@@ -104,7 +104,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$
@@ -126,7 +126,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.fl$$
@@ -162,7 +162,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         {expression}
@@ -183,7 +183,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         C.$$
     }
@@ -203,7 +203,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         var name = nameof(c.$$
@@ -277,7 +277,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$
@@ -301,7 +301,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$
@@ -322,7 +322,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$
@@ -346,7 +346,7 @@ public class D
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var d = new D();
         d.$$
@@ -367,7 +367,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$
@@ -381,7 +381,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         ((float)c).$$
@@ -448,7 +448,7 @@ namespace N
     
     public class Program
     {{
-        public void Main()
+        public static void Main()
         {{
             var white = new White();
             {expression}
@@ -471,7 +471,7 @@ namespace N
     
     public class Program
     {{
-        public void Main()
+        public static void Main()
         {{
             var white = new White();
             {fixedCode}
@@ -512,7 +512,7 @@ namespace N
     
     public class Program
     {{
-        public void Main()
+        public static void Main()
         {{
             var c = new C();
             c.{builtinType}$$
@@ -529,7 +529,7 @@ namespace N
     
     public class Program
     {{
-        public void Main()
+        public static void Main()
         {{
             var c = new C();
             (({builtinType})c).$$
@@ -665,7 +665,7 @@ namespace N
     
     public class Program
     {{
-        public void Main()
+        public static void Main()
         {{
             var c = new C();
             c.{keyword}$$
@@ -685,7 +685,7 @@ namespace N
     
     public class Program
     {{
-        public void Main()
+        public static void Main()
         {{
             var c = new C();
             (({keyword}Class)c).$$
@@ -710,7 +710,7 @@ public class D<T>
 }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         {
             var c = new C<int>();
@@ -729,7 +729,7 @@ public class D<T>
 }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         {
             var c = new C<int>();
@@ -753,7 +753,7 @@ public class C
 }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         {
             var c = new C();
@@ -769,7 +769,7 @@ public class C
 }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         {
             var c = new C();
@@ -798,7 +798,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         {expression}
@@ -812,7 +812,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         {fixedCode}
@@ -832,7 +832,7 @@ public struct S {
 }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         S? s = null;
         s.$$
@@ -852,7 +852,7 @@ public struct S {
 }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         S? s = null;
         s.$$
@@ -864,7 +864,7 @@ public struct S {
 }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         S? s = null;
         ((int?)s).$$
@@ -889,7 +889,7 @@ public class C {
 }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         C c = null;
         c?.S.$$
@@ -904,7 +904,7 @@ public class C {
 }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         C c = null;
         ((int?)c?.S).$$
@@ -947,7 +947,7 @@ public class C {{
 }}
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         C c = null;
         c{conditionalAccessQuestionmark}.From.$$
@@ -964,7 +964,7 @@ public class C {{
 }}
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         C c = null;
         ((To{shouldBeNullableQuestionMark})c{conditionalAccessQuestionmark}.From).$$
@@ -988,7 +988,7 @@ public struct S {
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var s = new S();
         s.$$
@@ -1013,7 +1013,7 @@ public struct S {
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         S? s = new S();
         s.$$
@@ -1032,7 +1032,7 @@ Explicit conversion of S to int.");
             await VerifyCustomCommitProviderAsync(@"
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         long l = 0;
         l.$$
@@ -1041,7 +1041,7 @@ public class Program
 ", "int", @"
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         long l = 0;
         ((int)l).$$
@@ -1071,7 +1071,7 @@ public class Program
             var items = await GetCompletionItemsAsync(@$"
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         {fromType} i = default({fromType});
         i.$$
@@ -1088,7 +1088,7 @@ public class Program
             await VerifyItemExistsAsync(@"
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         int i = 0;
         i.$$
@@ -1105,7 +1105,7 @@ Explicit conversion of int to byte.");
             await VerifyItemExistsAsync(@"
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         int? i = 0;
         i.$$
@@ -1124,7 +1124,7 @@ Explicit conversion of int to byte.");
             await VerifyCustomCommitProviderAsync(@"
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         long? l = 0;
         l.$$
@@ -1133,7 +1133,7 @@ public class Program
 ", "int", @"
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         long? l = 0;
         ((int?)l).$$
@@ -1152,7 +1152,7 @@ public class Program
 public enum E { One }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var e = E.One;
         e.$$
@@ -1162,7 +1162,7 @@ public class Program
 public enum E { One }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var e = E.One;
         ((int)e).$$
@@ -1181,7 +1181,7 @@ public class Program
 public enum E { One }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         E? e = null;
         e.$$
@@ -1191,7 +1191,7 @@ public class Program
 public enum E { One }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         E? e = null;
         ((int?)e).$$
@@ -1210,7 +1210,7 @@ public class Program
 public enum E { One }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var e = E.One;
         e.$$
@@ -1229,7 +1229,7 @@ public class Program
 public enum E { One }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var e = E.One;
         e.$$
@@ -1247,7 +1247,7 @@ Explicit conversion of E to int.");
 public enum E { One }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         E? e = E.One;
         e.$$
@@ -1270,7 +1270,7 @@ namespace A.C
 {
     public class Program
     {
-        public void Main()
+        public static void Main()
         {
             var e = B.E.One;
             e.$$
@@ -1297,7 +1297,7 @@ Explicit conversion of B.E to int.");
 public enum E {{ One }}
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var e = E.One;
         {expression}
@@ -1320,7 +1320,7 @@ public class Derived: Base
 }
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var d = new Derived();
         var i = d.$$

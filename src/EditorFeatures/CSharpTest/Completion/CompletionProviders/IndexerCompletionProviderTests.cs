@@ -36,7 +36,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$
@@ -57,7 +57,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         C.$$
     }
@@ -77,7 +77,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         var name = nameof(c.$$
@@ -98,7 +98,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$
@@ -112,7 +112,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c[$$]
@@ -133,7 +133,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$
@@ -147,7 +147,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c[$$]
@@ -192,7 +192,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         {expression}
@@ -206,7 +206,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         {fixedCode}
@@ -233,7 +233,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         {expression}
@@ -247,7 +247,7 @@ public class C
 
 public class Program
 {{
-    public void Main()
+    public static void Main()
     {{
         var c = new C();
         {fixedCode}
@@ -280,7 +280,7 @@ public class C
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var c = new C();
         c.$$
@@ -305,7 +305,7 @@ public class Derived : Base
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var d = new Derived();
         d.$$
@@ -329,7 +329,7 @@ public class Derived : Base
 
 public class Program
 {
-    public void Main()
+    public static void Main()
     {
         var d = new Derived();
         d.$$
