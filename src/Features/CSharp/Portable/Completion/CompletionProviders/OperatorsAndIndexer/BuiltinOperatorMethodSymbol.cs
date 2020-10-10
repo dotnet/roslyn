@@ -45,10 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 Explicit conversion of <see cref=""T:{{0}}""/> to <see cref=""T:{{1}}""/>.
 </summary>
 ";
-            // Use MinimallyQualifiedFormat (with SymbolDisplayGlobalNamespaceStyle.Omitted) because "global::" is not supported by the cref formatter.
+            // "global::" is added by the cref formatter.
+            var displayFormat = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+
             return string.Format(template,
-                ContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                ReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                ContainingType.ToDisplayString(displayFormat),
+                ReturnType.ToDisplayString(displayFormat));
         }
 
         public string? GetDocumentationCommentId() => null;

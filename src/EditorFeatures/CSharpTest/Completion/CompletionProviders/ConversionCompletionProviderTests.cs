@@ -1257,6 +1257,30 @@ public class Program
 Explicit conversion of E to int.");
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitBuiltInEnumConversionDescriptionIsLikeAConversionOperatorDescriptionUnimportedNamespaceMinimalName()
+        {
+            await VerifyItemExistsAsync(@"
+namespace A.B
+{
+    public enum E { One }
+}
+namespace A.C
+{
+    public class Program
+    {
+        public void Main()
+        {
+            var e = B.E.One;
+            e.$$
+        }
+    }
+}
+", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"B.E.explicit operator int(B.E value)
+Explicit conversion of B.E to int.");
+        }
+
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("e.$$", true)]
