@@ -16,7 +16,9 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
+using Roslyn.Utilities;
 using RunTests;
+using Xunit;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -82,6 +84,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 File.WriteAllText(Path.Combine(logDir, $"{baseFileName}.log"), eventArgs.Exception.ToString());
 
+                ActivityLogCollector.TryWriteActivityLogToFile(Path.Combine(logDir, $"{baseFileName}.Actvty.log"));
                 EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
                 EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
 
@@ -356,7 +359,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             IntegrationHelper.KillProcess("VsJITDebugger");
             IntegrationHelper.KillProcess("dexplore");
 
-            var process = Process.Start(vsExeFile, VsLaunchArgs);
+            var processStartInfo = new ProcessStartInfo(vsExeFile, VsLaunchArgs) { UseShellExecute = false };
+
+            // Clear variables set by CI builds which are known to affect IDE behavior. Integration tests should show
+            // correct behavior for default IDE installations, without Roslyn-, Arcade-, or Azure Pipelines-specific
+            // influences.
+            processStartInfo.Environment.Remove("DOTNET_MULTILEVEL_LOOKUP");
+            processStartInfo.Environment.Remove("DOTNET_INSTALL_DIR");
+
+            // The first element of the path in CI is a .dotnet used for the Roslyn build. Make sure to remove that.
+            if (processStartInfo.Environment.TryGetValue("BUILD_SOURCESDIRECTORY", out var sourcesDirectory))
+            {
+                var environmentPath = processStartInfo.Environment["PATH"];
+
+                // Assert that the PATH still has the form we are expecting since we're about to modify it
+                var firstPath = environmentPath.Substring(0, environmentPath.IndexOf(';'));
+                Assert.Equal(Path.Combine(sourcesDirectory, ".dotnet") + '\\', firstPath);
+
+                // Drop the first path element
+                processStartInfo.Environment["PATH"] = environmentPath.Substring(environmentPath.IndexOf(';') + 1);
+            }
+
+            var process = Process.Start(processStartInfo);
             Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {process.Id})");
 
             return process;

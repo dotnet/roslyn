@@ -23,7 +23,9 @@ namespace RunTests
             StringComparer.OrdinalIgnoreCase,
             "devenv",
             "xunit.console",
-            "xunit.console.x86");
+            "xunit.console.x86",
+            "ServiceHub.RoslynCodeAnalysisService",
+            "ServiceHub.RoslynCodeAnalysisService32");
 
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
