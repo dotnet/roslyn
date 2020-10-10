@@ -98,10 +98,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     new object?[] { uiCultureLCID, cultureLCID },
                     cancellationToken).ConfigureAwait(false);
 
-                await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
-                    (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
-                    callbackTarget: null,
-                    cancellationToken).ConfigureAwait(false);
+                if (AsynchronousOperationListenerProvider.IsEnabled)
+                    await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
+                        (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
 
                 client.Started();
                 return client;
