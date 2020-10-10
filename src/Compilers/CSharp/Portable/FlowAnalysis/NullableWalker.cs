@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         foreach (var memberName in method.NotNullWhenFalseMembers)
                         {
-                            enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: true, method.ContainingType.GetMembers(memberName), pendingReturn.StateWhenFalse, pendingReturn.StateWhenTrue);
+                            enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: false, method.ContainingType.GetMembers(memberName), pendingReturn.StateWhenFalse, pendingReturn.StateWhenTrue);
                         }
                     }
                 }
