@@ -116,6 +116,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
+            if (NamingStyleRules.IsSymbolWithSpecialDiscardName(symbol))
+            {
+                return null;
+            }
+
             var namingPreferences = GetNamingStylePreferences(compilation, symbol, options, cancellationToken);
             if (namingPreferences == null)
             {
