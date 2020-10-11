@@ -1106,7 +1106,7 @@ public class Program
         i.$$
     }
 }
-", "byte", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: 
+", "byte", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
 $@"int.explicit operator byte(int value)
 {FormatExplicitConversionDescription(fromType: "int", toType: "byte")}");
         }

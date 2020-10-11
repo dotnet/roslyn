@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public bool Equals([AllowNull] ISymbol? other)
             => Equals(other, SymbolEqualityComparer.Default);
 
-
         #region IMethodSymbol implementation returning constants
         public MethodKind MethodKind => MethodKind.Conversion;
 

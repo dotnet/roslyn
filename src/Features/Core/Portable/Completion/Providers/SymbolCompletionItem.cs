@@ -160,7 +160,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return await GetDescriptionForSymbolsAsync(workspace, supportedPlatforms, semanticModel, symbols, position, cancellationToken).ConfigureAwait(false);
         }
 
-
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, Document document, CancellationToken cancellationToken)
         {
