@@ -817,5 +817,113 @@ class C
     }
 }", "!");
         }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultSwitchCase()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1(int parameter)
+    {
+        switch(parameter) {
+            defa[||]ult:
+                parameter = default;
+                break;
+        }
+    }
+}", "defaultcase");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultValueInsideSwitch()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1(int parameter)
+    {
+        switch(parameter) {
+            default:
+                parameter = defa[||]ult;
+                break;
+        }
+    }
+}", "defaultvalue");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultLiteralExpression()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    int field = defa[||]ult;
+}", "defaultvalue");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultExpression()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    int field = defa[||]ult(int);
+}", "defaultvalue");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultLiteralExpressionInOptionalParameter()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1(int parameter = defa[||]ult) {
+    }
+}", "defaultvalue");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultExpressionInOptionalParameter()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1(int parameter = defa[||]ult(int)) {
+    }
+}", "defaultvalue");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultLiteralExpressionInMethodCall()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1() {
+        M2(defa[||]ult);
+    }
+}", "defaultvalue");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultExpressionInMethodCall()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1() {
+        M2(defa[||]ult(int));
+    }
+}", "defaultvalue");
+        }
     }
 }
