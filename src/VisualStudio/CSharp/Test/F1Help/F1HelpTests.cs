@@ -838,7 +838,7 @@ class C
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestDefaultValueInsideSwitch()
+        public async Task TestDefaultLiteralExpressionInsideSwitch()
         {
             await Test_KeywordAsync(
 @"class C
@@ -848,6 +848,24 @@ class C
         switch(parameter) {
             default:
                 parameter = defa[||]ult;
+                break;
+        }
+    }
+}", "defaultvalue");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultExpressionInsideSwitch()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1(int parameter)
+    {
+        switch(parameter) {
+            default:
+                parameter = defa[||]ult(int);
                 break;
         }
     }
