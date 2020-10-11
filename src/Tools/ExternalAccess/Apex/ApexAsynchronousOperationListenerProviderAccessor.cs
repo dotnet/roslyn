@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Apex
             _workspace = workspace;
         }
 
-        public Task WaitAllAsync(string[]? featureNames = null, Action? eventProcessingAction = null)
-            => _implementation.WaitAllAsync(_workspace, featureNames, eventProcessingAction);
+        public Task WaitAllAsync(string[]? featureNames = null, Action? eventProcessingAction = null, TimeSpan? timeout = null)
+            => _implementation.WaitAllAsync(_workspace, featureNames, eventProcessingAction, timeout);
     }
 }
