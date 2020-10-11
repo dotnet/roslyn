@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -24,6 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         internal override Type GetCompletionProviderType()
             => typeof(ConversionCompletionProvider);
+
+        private static string FormatExplicitConversionDescription(string fromType, string toType)
+        {
+            var template = CSharpFeaturesResources.Explicit_conversion_of_see_cref_T_0_to_see_cref_T_1;
+            template = template
+                .Replace(@"<see cref=""T:{0}""/>", fromType)
+                .Replace(@"<see cref=""T:{1}""/>", toType);
+            return template;
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
@@ -994,7 +1004,8 @@ public class Program
         s.$$
     }
 }
-", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"S.explicit operator int(S value)
+", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+$@"S.explicit operator int(S value)
 Explicit conversion of S to int.");
         }
 
@@ -1019,7 +1030,8 @@ public class Program
         s.$$
     }
 }
-", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"S.explicit operator int(S value)
+", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+@"S.explicit operator int(S value)
 Explicit conversion of S to int.");
         }
 
@@ -1094,8 +1106,9 @@ public class Program
         i.$$
     }
 }
-", "byte", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"int.explicit operator byte(int value)
-Explicit conversion of int to byte.");
+", "byte", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: 
+$@"int.explicit operator byte(int value)
+{FormatExplicitConversionDescription(fromType: "int", toType: "byte")}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1111,8 +1124,9 @@ public class Program
         i.$$
     }
 }
-", "byte", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"int.explicit operator byte(int value)
-Explicit conversion of int to byte.");
+", "byte", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+$@"int.explicit operator byte(int value)
+{FormatExplicitConversionDescription(fromType: "int", toType: "byte")}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1235,8 +1249,9 @@ public class Program
         e.$$
     }
 }
-", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"E.explicit operator int(E value)
-Explicit conversion of E to int.");
+", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+$@"E.explicit operator int(E value)
+{FormatExplicitConversionDescription("E", "int")}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1253,8 +1268,9 @@ public class Program
         e.$$
     }
 }
-", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"E.explicit operator int(E value)
-Explicit conversion of E to int.");
+", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+$@"E.explicit operator int(E value)
+{FormatExplicitConversionDescription(fromType: "E", toType: "int")}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1277,8 +1293,9 @@ namespace A.C
         }
     }
 }
-", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull: @"B.E.explicit operator int(B.E value)
-Explicit conversion of B.E to int.");
+", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+@$"B.E.explicit operator int(B.E value)
+{FormatExplicitConversionDescription("B.E", "int")}");
         }
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
