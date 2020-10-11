@@ -797,6 +797,16 @@
         <target state="translated">一部の配色パターンの色は、[環境] &gt; [フォントおよび色] オプション ページで行われた変更によって上書きされます。[フォントおよび色] オプション ページで [既定値を使用] を選択すると、すべてのカスタマイズが元に戻ります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="new">Suppress hints when parameter names differ only by suffix</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">ターゲット名前空間:</target>

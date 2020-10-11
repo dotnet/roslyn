@@ -21,21 +21,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
 
         Protected Overrides Sub AddAllParameterNameHintLocations(
                 semanticModel As SemanticModel,
-                nodes As IEnumerable(Of SyntaxNode),
-                addHint As Action(Of InlineParameterHint),
+                node As SyntaxNode,
+                buffer As ArrayBuilder(Of InlineParameterHint),
                 cancellationToken As CancellationToken)
 
-            For Each node In nodes
-                cancellationToken.ThrowIfCancellationRequested()
-                Dim simpleArgument = TryCast(node, SimpleArgumentSyntax)
-                If simpleArgument?.Expression IsNot Nothing Then
-                    If Not simpleArgument.IsNamed AndAlso simpleArgument.NameColonEquals Is Nothing Then
-                        Dim param = simpleArgument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
-                        If Not String.IsNullOrEmpty(param?.Name) Then
-                            addHint(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start, GetKind(simpleArgument.Expression)))
-                        End If
-                    End If
+            Dim argumentList = TryCast(node, ArgumentListSyntax)
+            If argumentList Is Nothing Then
+                Return
+            End If
+
+            For Each arg In argumentList.Arguments
+                Dim argument = TryCast(arg, SimpleArgumentSyntax)
+                If argument Is Nothing Then
+                    Continue For
                 End If
+
+                If argument?.Expression Is Nothing Then
+                    Continue For
+                End If
+
+                If argument.IsNamed OrElse argument.NameColonEquals IsNot Nothing Then
+                    Continue For
+                End If
+
+                Dim parameter = argument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+                If String.IsNullOrEmpty(parameter?.Name) Then
+                    Continue For
+                End If
+
+                buffer.Add(New InlineParameterHint(
+                    parameter,
+                    argument.Span.Start,
+                    GetKind(argument.Expression)))
             Next
         End Sub
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -52,6 +50,18 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 nameof(ForOtherParameters),
                 defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForOtherParameters"));
+
+        public static readonly PerLanguageOption2<bool> SuppressForParametersThatDifferOnlyBySuffix =
+            new(nameof(InlineHintsOptions),
+                nameof(SuppressForParametersThatDifferOnlyBySuffix),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatDifferOnlyBySuffix"));
+
+        public static readonly PerLanguageOption2<bool> SuppressForParametersThatMatchMethodIntent =
+            new(nameof(InlineHintsOptions),
+                nameof(SuppressForParametersThatMatchMethodIntent),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent"));
     }
 
     [ExportOptionProvider, Shared]

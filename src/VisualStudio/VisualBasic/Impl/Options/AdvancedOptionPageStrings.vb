@@ -51,6 +51,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_hints_for_everything_else As String =
             ServicesVSResources.Show_hints_for_everything_else
 
+        Public ReadOnly Property Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent As String =
+            ServicesVSResources.Suppress_hints_when_parameter_name_matches_the_method_s_intent
+
+        Public ReadOnly Property Option_Suppress_hints_when_parameter_names_differ_only_by_suffix As String =
+            ServicesVSResources.Suppress_hints_when_parameter_names_differ_only_by_suffix
+
         Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
             BasicVSResources.Don_t_put_ByRef_on_custom_structure
 

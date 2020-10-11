@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <[UseExportProvider]>
     Public MustInherit Class AbstractInlineParameterNameHintsTests
 
-        Protected Async Function VerifyParamHints(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
+        Protected Async Function VerifyParamHints(test As XElement, Optional optionIsEnabled As Boolean = True) As Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineParameterNameHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim paramNameHintSpans = Await tagService.GetInlineParameterNameHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
 
                 Dim producedTags = From tag In paramNameHintSpans
-                                   Select tag.Name + ":" + tag.Position.ToString
+                                   Select tag.Parameter.Name + ":" + tag.Position.ToString
 
                 Dim expectedTags As New List(Of String)
 

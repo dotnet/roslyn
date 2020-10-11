@@ -797,6 +797,16 @@
         <target state="translated">Alcuni colori della combinazione colori sono sostituiti dalle modifiche apportate nella pagina di opzioni Ambiente &gt; Tipi di carattere e colori. Scegliere `Usa impostazioni predefinite` nella pagina Tipi di carattere e colori per ripristinare tutte le personalizzazioni.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="new">Suppress hints when parameter names differ only by suffix</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Spazio dei nomi di destinazione:</target>
