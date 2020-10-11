@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             ISymbol symbol, Project project, IImmutableSet<Document> documents, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        public abstract Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        public abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol, Document document, SemanticModel semanticModel, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         protected static bool TryGetNameWithoutAttributeSuffix(
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
             => syntaxFacts.IsIdentifier(token) && syntaxFacts.TextMatch(token.ValueText, name);
 
-        protected static Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
             ISymbol symbol,
             string identifier,
             Document document,
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken: cancellationToken);
         }
 
-        protected static Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
             ISymbol symbol,
             string identifier,
             Document document,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol, identifier, document, semanticModel, symbolsMatch, cancellationToken);
         }
 
-        protected static Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
             ISymbol symbol,
             string identifier,
             Document document,
@@ -188,7 +188,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 docCommentId, findInGlobalSuppressions, cancellationToken);
         }
 
-        protected static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
             string identifier,
             Document document,
             SemanticModel semanticModel,
@@ -494,10 +495,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// <summary>
         /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.
         /// </summary>
-        private delegate void CollectMatchingReferences(ISymbol symbol, SyntaxNode node,
+        protected delegate void CollectMatchingReferences(ISymbol symbol, SyntaxNode node,
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations);
 
-        private static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol,
             Document document,
             Func<SyntaxTreeIndex, bool> isRelevantDocument,
@@ -511,7 +512,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var locations = ArrayBuilder<FinderLocation>.GetInstance();
+                using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
 
                 var originalUnreducedSymbolDefinition = symbol.GetOriginalUnreducedDefinition();
 
@@ -521,7 +522,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     collectMatchingReferences(originalUnreducedSymbolDefinition, node, syntaxFacts, semanticFacts, locations);
                 }
 
-                return locations.ToImmutableAndFree();
+                return locations.ToImmutable();
             }
 
             return ImmutableArray<FinderLocation>.Empty;
@@ -622,34 +623,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        protected Task<ImmutableArray<FinderLocation>> FindReferencesInImplicitObjectCreationExpressionAsync(
-            ISymbol symbol,
-            Document document,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            return FindReferencesInDocumentAsync(symbol, document, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
-
-            static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
-                => syntaxTreeInfo.ContainsImplicitObjectCreation;
-
-            void CollectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
-                ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations)
-            {
-                var constructor = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
-
-                if (Matches(constructor, originalUnreducedSymbolDefinition))
-                {
-                    var location = node.GetFirstToken().GetLocation();
-                    var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
-
-                    locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location, isImplicit: true, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), CandidateReason.None)));
-                }
-            }
-        }
-
-        private static bool Matches(ISymbol? symbol1, ISymbol notNulloriginalUnreducedSymbol2)
+        protected static bool Matches(ISymbol? symbol1, ISymbol notNulloriginalUnreducedSymbol2)
         {
             return symbol1 != null && SymbolEquivalenceComparer.Instance.Equals(
                 symbol1.GetOriginalUnreducedDefinition(),
@@ -900,7 +874,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol, Project project, IImmutableSet<Document> documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        protected abstract Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
@@ -920,13 +894,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        public override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        public override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
                 ? FindReferencesInDocumentAsync(typedSymbol, document, semanticModel, options, cancellationToken)
-                : SpecializedTasks.EmptyImmutableArray<FinderLocation>();
+                : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
 
         public override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
@@ -959,7 +933,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
-        protected static Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingSymbolNameAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingSymbolNameAsync(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -1002,7 +976,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        protected static Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -1014,7 +988,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 findParentNode: null, cancellationToken: cancellationToken);
         }
 
-        protected static Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -1028,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbolsMatchAsync, docCommentId, findInGlobalSuppressions, cancellationToken);
         }
 
-        protected static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             Document document,
             SemanticModel semanticModel,
             Func<SyntaxToken, bool> tokensMatch,

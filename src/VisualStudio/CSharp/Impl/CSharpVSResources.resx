@@ -623,4 +623,10 @@
   <data name="Prefer_implicit_object_creation_when_type_is_apparent" xml:space="preserve">
     <value>Prefer implicit object creation when type is apparent</value>
   </data>
+  <data name="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments" xml:space="preserve">
+    <value>Insert // at the start of new lines when writing // comments</value>
+  </data>
+  <data name="Show_hints_for_new_expressions" xml:space="preserve">
+    <value>Show hints for 'new' expressions</value>
+  </data>
 </root>

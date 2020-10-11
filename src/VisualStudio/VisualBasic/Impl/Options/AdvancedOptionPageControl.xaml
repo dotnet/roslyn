@@ -91,19 +91,25 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="CommentsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
+                <StackPanel>
+                    <CheckBox x:Name="GenerateXmlDocCommentsForTripleApostrophes"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
+                    <CheckBox x:Name="InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments}" />
+                </StackPanel>
+            </GroupBox>
+
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>
-                    <CheckBox x:Name="DisplayInlineParameterNameHints"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}" />
                     <CheckBox x:Name="EnableLineCommit"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableLineCommit}" />
                     <CheckBox x:Name="EnableEndConstruct"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableEndConstruct}" />
                     <CheckBox x:Name="AutomaticInsertionOfInterfaceAndMustOverrideMembers"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers}" />
-                    <CheckBox x:Name="GenerateXmlDocCommentsForTripleApostrophes"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
                     <CheckBox x:Name="ShowRemarksInQuickInfo"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
                     <CheckBox x:Name="RenameTrackingPreview"
@@ -112,6 +118,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_GoToDefinition}">
                 <StackPanel>
@@ -186,6 +193,40 @@
                 </StackPanel>
             </GroupBox>
 
+            <GroupBox x:Uid="InlineHintsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints_experimental}">
+                <StackPanel>
+                    <CheckBox x:Name="DisplayAllHintsWhilePressingCtrlAlt"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_all_hints_while_pressing_ctrl_alt}" />
+
+                    <CheckBox x:Name="DisplayInlineParameterNameHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}"
+                              Checked="DisplayInlineParameterNameHints_Checked"
+                              Unchecked="DisplayInlineParameterNameHints_Unchecked"/>
+
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Uid="ShowHintsForLiterals"
+                                  x:Name="ShowHintsForLiterals"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_literals}" />
+
+                        <CheckBox x:Uid="ShowHintsForNewExpressions"
+                                  x:Name="ShowHintsForNewExpressions"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_New_expressions}" />
+
+                        <CheckBox x:Uid="ShowHintsForEverythingElse"
+                                  x:Name="ShowHintsForEverythingElse"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_everything_else}" />
+
+                        <CheckBox x:Uid="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
+                                  x:Name="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent}" />
+
+                        <CheckBox x:Uid="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
+                                  x:Name="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_names_differ_only_by_suffix}" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
         </StackPanel>
     </ScrollViewer>
 </options:AbstractOptionPageControl>

@@ -1918,6 +1918,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InitCannotBeReadonly = 8903,
 
+        ERR_FunctionPointersCannotBeCalledWithNamedArguments = 8904,
+
         #endregion diagnostics introduced for C# 9.0
 
         ERR_UnexpectedVarianceStaticMember = 9100,

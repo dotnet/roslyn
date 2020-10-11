@@ -248,6 +248,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
+                RegisterRemoteBrokeredService(new RemoteAsynchronousOperationListenerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDesignerAttributeDiscoveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteProjectTelemetryService.Factory());
@@ -383,14 +384,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 public override void EndWrite(IAsyncResult asyncResult) => _stream.EndWrite(asyncResult);
 
                 public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => _stream.CopyToAsync(destination, bufferSize, cancellationToken);
-
-                public override object InitializeLifetimeService()
-                    => throw new NotSupportedException();
-
-#if !NETCOREAPP
-                public override ObjRef CreateObjRef(Type requestedType)
-                    => throw new NotSupportedException();
-#endif
 
                 public override void Close()
                 {

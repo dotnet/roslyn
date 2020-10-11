@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public TextDocumentIdentifier? GetTextDocumentIdentifier(VSCodeAction request)
-            => ((JToken)request.Data).ToObject<CodeActionResolveData>().TextDocument;
+            => ((JToken)request.Data!).ToObject<CodeActionResolveData>().TextDocument;
 
         public async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
-            var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
+            var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 _codeActionsCache,
                 document,

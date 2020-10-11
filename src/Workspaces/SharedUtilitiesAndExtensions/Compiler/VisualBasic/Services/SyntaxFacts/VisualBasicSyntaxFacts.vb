@@ -1988,7 +1988,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Case SyntaxKind.ConstructorBlock,
                      SyntaxKind.SubNewStatement
                     ' Shared constructor cannot have modifiers in VB.
-                    Return Not declaration.GetModifiers().Any(SyntaxKind.SharedKeyword)
+                    ' Module constructors are implicitly Shared and can't have accessibility modifier.
+                    Return Not declaration.GetModifiers().Any(SyntaxKind.SharedKeyword) AndAlso
+                        Not declaration.Parent.IsKind(SyntaxKind.ModuleBlock)
 
                 Case SyntaxKind.ModifiedIdentifier
                     Return If(IsChildOf(declaration, SyntaxKind.VariableDeclarator),
