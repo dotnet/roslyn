@@ -358,6 +358,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     text = Keyword("defaultcase");
                     return true;
                 }
+
+                if (token.Parent is DefaultExpressionSyntax)
+                {
+                    text = Keyword("defaultvalue");
+                    return true;
+                }
             }
 
             if (token.IsKeyword())
