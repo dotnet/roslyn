@@ -360,7 +360,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     return true;
                 }
 
-                if (token.Parent is DefaultExpressionSyntax || token.Parent is LiteralExpressionSyntax)
+                if (token.Parent is DefaultExpressionSyntax or LiteralExpressionSyntax)
                 {
                     text = Keyword("defaultvalue");
                     return true;
