@@ -133,5 +133,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         // Interactive guids
         public const string InteractiveCommandSetIdString = "00B8868B-F9F5-4970-A048-410B05508506";
         public static readonly Guid InteractiveCommandSetId = new(InteractiveCommandSetIdString);
+
+        /// <summary>
+        /// The package GUID for GlobalHubClientPackage, which proffers ServiceHub brokered services in Visual Studio.
+        /// </summary>
+        public static readonly Guid GlobalHubClientPackageGuid = new("11AD60FC-6D87-4674-8F88-9ABE79176CBE");
     }
 }

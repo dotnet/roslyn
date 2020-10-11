@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 var definitionItem = await GenerateVSReferenceItemAsync(
                     _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
                     definition.DisplayableProperties, _metadataAsSourceFileService, definition.GetClassifiedText(),
-                    symbolUsageInfo: null, CancellationToken).ConfigureAwait(false);
+                    definition.Tags.GetFirstGlyph(), symbolUsageInfo: null, CancellationToken).ConfigureAwait(false);
 
                 if (definitionItem != null)
                 {
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 var referenceItem = await GenerateVSReferenceItemAsync(
                     _id, definitionId, _document, _position, reference.SourceSpan,
                     reference.AdditionalProperties, _metadataAsSourceFileService, definitionText: null,
-                    reference.SymbolUsageInfo, CancellationToken).ConfigureAwait(false);
+                    definitionGlyph: Glyph.None, reference.SymbolUsageInfo, CancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
                 {
@@ -153,6 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             ImmutableDictionary<string, string> properties,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             ClassifiedTextElement? definitionText,
+            Glyph definitionGlyph,
             SymbolUsageInfo? symbolUsageInfo,
             CancellationToken cancellationToken)
         {
@@ -174,21 +176,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             // https://github.com/dotnet/roslyn/issues/42847
             var result = new LSP.VSReferenceItem
             {
-                ContainingMember = properties.TryGetValue(
-                    AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember) ? referenceContainingMember : null,
-                ContainingType = properties.TryGetValue(
-                    AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType) ? referenceContainingType : null,
                 DefinitionId = definitionId,
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
+                DefinitionIcon = definitionGlyph.GetImageElement(),
                 DisplayPath = location.Uri.LocalPath,
-                DocumentName = documentSpan == default ? null : documentSpan.Document.Name,
                 Id = id,
                 Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<ReferenceKind>(),
                 Location = location,
-                ProjectName = documentSpan == default ? null : documentSpan.Document.Project.Name,
                 ResolutionStatus = ResolutionStatusKind.ConfirmedAsReference,
                 Text = text,
             };
+
+            if (documentSpan.Document != null)
+            {
+                result.DocumentName = documentSpan.Document.Name;
+                result.ProjectName = documentSpan.Document.Project.Name;
+            }
+
+            if (properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember))
+                result.ContainingMember = referenceContainingMember;
+
+            if (properties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType))
+                result.ContainingType = referenceContainingType;
 
             return result;
 

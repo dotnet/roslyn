@@ -1521,7 +1521,7 @@ I agree to all of the foregoing:</value>
     <value>Warning: type does not bind</value>
   </data>
   <data name="Display_inline_parameter_name_hints" xml:space="preserve">
-    <value>Disp_lay inline parameter name hints (experimental)</value>
+    <value>Disp_lay inline parameter name hints</value>
   </data>
   <data name="Current_parameter" xml:space="preserve">
     <value>Current parameter</value>
@@ -1553,5 +1553,26 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="The_generator_0_that_generated_this_file_has_stopped_generating_this_file" xml:space="preserve">
     <value>The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</value>
+  </data>
+  <data name="Comments" xml:space="preserve">
+    <value>Comments</value>
+  </data>
+  <data name="Inline_Hints_experimental" xml:space="preserve">
+    <value>Inline Hints (experimental)</value>
+  </data>
+  <data name="Show_hints_for_everything_else" xml:space="preserve">
+    <value>Show hints for everything else</value>
+  </data>
+  <data name="Show_hints_for_literals" xml:space="preserve">
+    <value>Show hints for literals</value>
+  </data>
+  <data name="Suppress_hints_when_parameter_name_matches_the_method_s_intent" xml:space="preserve">
+    <value>Suppress hints when parameter name matches the method's intent</value>
+  </data>
+  <data name="Suppress_hints_when_parameter_names_differ_only_by_suffix" xml:space="preserve">
+    <value>Suppress hints when parameter names differ only by suffix</value>
+  </data>
+  <data name="Display_all_hints_while_pressing_Ctrl_Alt" xml:space="preserve">
+    <value>Display all hints while pressing Ctrl+Alt</value>
   </data>
 </root>
