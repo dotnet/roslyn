@@ -40,9 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
+            // Explicit conversion of <see cref="T:{0}"/> to <see cref="T:{1}"/>.
             var template = @$"
 <summary>
-Explicit conversion of <see cref=""T:{{0}}""/> to <see cref=""T:{{1}}""/>.
+    {CSharpFeaturesResources.Explicit_conversion_of_see_cref_T_0_to_see_cref_T_1}
 </summary>
 ";
             // "global::" is added by the cref formatter.

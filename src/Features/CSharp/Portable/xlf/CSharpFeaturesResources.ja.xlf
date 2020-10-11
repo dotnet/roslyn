@@ -122,7 +122,7 @@
         <target state="translated">Null 許容型として宣言する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Explicit_conversion_of_see_cref_T{0}_to_see_cref_T{1}">
+      <trans-unit id="Explicit_conversion_of_see_cref_T_0_to_see_cref_T_1">
         <source>Explicit conversion of &lt;see cref="T:{0}"/&gt; to &lt;see cref="T:{1}"/&gt;.</source>
         <target state="new">Explicit conversion of &lt;see cref="T:{0}"/&gt; to &lt;see cref="T:{1}"/&gt;.</target>
         <note />
