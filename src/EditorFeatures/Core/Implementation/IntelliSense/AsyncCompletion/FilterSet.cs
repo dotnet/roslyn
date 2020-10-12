@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public static readonly CompletionFilter PropertyFilter;
         public static readonly CompletionFilter MethodFilter;
         public static readonly CompletionFilter ExtensionMethodFilter;
+        public static readonly CompletionFilter OperatorFilter;
         public static readonly CompletionFilter LocalAndParameterFilter;
         public static readonly CompletionFilter KeywordFilter;
         public static readonly CompletionFilter SnippetFilter;
@@ -80,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             PropertyFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Properties, 'p', WellKnownTags.Property);
             MethodFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Methods, 'm', WellKnownTags.Method);
             ExtensionMethodFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Extension_methods, 'x', WellKnownTags.ExtensionMethod);
+            OperatorFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.operator_, 'r', WellKnownTags.Operator);
             LocalAndParameterFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Locals_and_parameters, 'l', WellKnownTags.Local, WellKnownTags.Parameter);
             KeywordFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Keywords, 'k', WellKnownTags.Keyword);
             SnippetFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Snippets, 't', WellKnownTags.Snippet);
