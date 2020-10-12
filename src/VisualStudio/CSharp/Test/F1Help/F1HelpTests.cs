@@ -943,5 +943,72 @@ class C
     }
 }", "default");
         }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestOuterClassDeclaration()
+        {
+            await Test_KeywordAsync(
+@"cla[||]ss OuterClass<T> where T : class
+{ 
+    class InnerClass<T> where T : class { }
+}", "class");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestInnerClassDeclaration()
+        {
+            await Test_KeywordAsync(
+@"class OuterClass<T> where T : class
+{ 
+    cla[||]ss InnerClass<T> where T : class { }
+}", "class");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestClassConstraintInOuterClass()
+        {
+            await Test_KeywordAsync(
+@"class OuterClass<T> where T : cla[||]ss
+{ 
+    class InnerClass<T> where T : class { }
+}", "classconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestClassConstraintInInnerClass()
+        {
+            await Test_KeywordAsync(
+@"class OuterClass<T> where T : class
+{ 
+    class InnerClass<T> where T : cla[||]ss { }
+}", "classconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestClassConstraintInGenericMethod()
+        {
+            await Test_KeywordAsync(
+@"class C
+{ 
+    void M1<T>() where T : cla[||]ss { }
+}", "classconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestClassConstraintInGenericDelegate()
+        {
+            await Test_KeywordAsync(
+@"class C
+{ 
+    delegate T MyDelegate<T>() where T : cla[||]ss;
+}", "classconstraint");
+        }
     }
 }
+
