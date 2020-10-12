@@ -252,6 +252,7 @@ next:;
             return parameters.AsImmutable();
         }
 
+#nullable enable
         /// <summary>
         /// Returns the constraint clause for the given type parameter.
         /// </summary>
@@ -272,8 +273,10 @@ next:;
                 clauses = _lazyTypeParameterConstraints;
             }
 
+            Debug.Assert(clauses is not null);
             return (clauses.TypeParameterConstraints.Length > 0) ? clauses.TypeParameterConstraints[ordinal] : TypeParameterConstraintClause.Empty;
         }
+#nullable restore
 
         private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(bool canUseLightweightTypeConstraintBinding, DiagnosticBag diagnostics)
         {
@@ -325,7 +328,7 @@ next:;
                         // to avoid checking constraints when binding type names.
                         Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
                         binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(
-                            BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (canUseLightweightTypeConstraintBinding ? BinderFlags.LightweightTypeConstraintBinding : 0));
+                            BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (canUseLightweightTypeConstraintBinding ? BinderFlags.SuppressTypeArgumentBinding : 0));
 
                         constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, ref isValueTypeOverride, diagnostics);
                     }

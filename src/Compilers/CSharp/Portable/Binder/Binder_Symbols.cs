@@ -1149,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = unconstructedType.AsUnboundGenericType();
                 }
             }
-            else if ((Flags & BinderFlags.LightweightTypeConstraintBinding) != 0)
+            else if ((Flags & BinderFlags.SuppressTypeArgumentBinding) != 0)
             {
                 resultType = unconstructedType.Construct(PlaceholderTypeArgumentSymbol.CreateTypeArguments(unconstructedType.TypeParameters), unbound: false);
             }

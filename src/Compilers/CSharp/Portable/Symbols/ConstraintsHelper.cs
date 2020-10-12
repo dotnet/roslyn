@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, canUseLightweightTypeConstraintBinding: canUseLightweightTypeConstraintBinding, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, canUseLightweightTypeConstraintBinding, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Wrap binder from factory in a generic constraints specific binder
             // to avoid checking constraints when binding type names.
             Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-            binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (canUseLightweightTypeConstraintBinding ? BinderFlags.LightweightTypeConstraintBinding : 0));
+            binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (canUseLightweightTypeConstraintBinding ? BinderFlags.SuppressTypeArgumentBinding : 0));
 
             IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
             return TypeParameterConstraintClauses.Create(

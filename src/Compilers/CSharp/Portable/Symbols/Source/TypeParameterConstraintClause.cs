@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AllNonNullableKinds = ReferenceType | ValueType | Constructor | Unmanaged,
     }
 
+#nullable enable
     internal sealed class TypeParameterConstraintClauses
     {
         public readonly ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraints;
@@ -82,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             UsedLightweightTypeConstraintBinding = usedLightweightTypeConstraintBinding;
         }
     }
+#nullable restore
 
     /// <summary>
     /// A simple representation of a type parameter constraint clause
@@ -251,7 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return usedLightweightTypeConstraintBinding || !constraintClauses.UsedLightweightTypeConstraintBinding;
         }
-#nullable restore
 
         internal static bool ContainsOnlyEmptyConstraintClauses(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Returns true if constraintClauses was updated with value.
         // Returns false if constraintClauses already had a value with sufficient 'canUseLightweightTypeConstraintBinding'
         // or was updated to a value with sufficient 'canUseLightweightTypeConstraintBinding' on another thread.
-        internal static bool InterlockedUpdate(ref TypeParameterConstraintClauses constraintClauses, TypeParameterConstraintClauses value)
+        internal static bool InterlockedUpdate(ref TypeParameterConstraintClauses? constraintClauses, TypeParameterConstraintClauses value)
         {
             bool canUseLightweightTypeConstraintBinding = value.UsedLightweightTypeConstraintBinding;
             while (true)
@@ -277,5 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+#nullable restore
     }
 }

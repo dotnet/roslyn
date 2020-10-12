@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -113,9 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         InEEMethodBinder = 1 << 30,
 
         /// <summary>
-        /// Skip binding type arguments in type constraints
+        /// Skip binding type arguments (we use <see cref="PlaceholderTypeArgumentSymbol"/> instead).
+        /// For example, currently used when type constraints are bound in some scenarios.
         /// </summary>
-        LightweightTypeConstraintBinding = 1u << 31,
+        SuppressTypeArgumentBinding = 1u << 31,
 
         // Groups
 
