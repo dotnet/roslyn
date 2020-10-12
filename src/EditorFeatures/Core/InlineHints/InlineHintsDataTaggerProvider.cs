@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -85,14 +83,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         protected override async Task ProduceTagsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var cancellationToken = context.CancellationToken;
-            await AddTypeHintsAsync(context, documentSnapshotSpan, cancellationToken).ConfigureAwait(false);
-            await AddParameterNameHintsAsync(context, documentSnapshotSpan, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task AddTypeHintsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, CancellationToken cancellationToken)
-        {
             var document = documentSnapshotSpan.Document;
-            var service = document.GetLanguageService<IInlineTypeHintsService>();
+            var service = document.GetLanguageService<IInlineHintsService>();
             if (service == null)
                 return;
 
@@ -101,26 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             foreach (var hint in hints)
             {
                 context.AddTag(new TagSpan<InlineHintDataTag>(
-                    new SnapshotSpan(snapshotSpan.Snapshot, hint.Span.ToSpan()),
-                    new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
-            }
-        }
-
-        private static async Task AddParameterNameHintsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, CancellationToken cancellationToken)
-        {
-            var document = documentSnapshotSpan.Document;
-            var service = document.GetLanguageService<IInlineParameterNameHintsService>();
-            if (service == null)
-                return;
-
-            var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-            foreach (var hint in hints)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                context.AddTag(new TagSpan<InlineHintDataTag>(
-                    new SnapshotSpan(snapshotSpan.Snapshot, hint.Span.ToSpan()),
-                    new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
+                    hint.Span.ToSnapshotSpan(snapshotSpan.Snapshot),
+                    new InlineHintDataTag(hint)));
             }
         }
     }

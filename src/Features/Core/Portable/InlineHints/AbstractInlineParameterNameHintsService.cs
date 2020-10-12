@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     {
                         result.Add(new InlineHint(
                             new TextSpan(position, 0),
-                            ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, parameter, parameter.Name + ":")),
-                            parameter.GetSymbolKey(cancellationToken)));
+                            ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ":")),
+                            InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey())));
                     }
                 }
             }
