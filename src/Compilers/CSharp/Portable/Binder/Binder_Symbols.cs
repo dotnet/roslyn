@@ -880,11 +880,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.Identifier.ValueText == "dynamic")
                 {
-
                     if ((node.Parent == null ||
                           node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as attribute type
                           SyntaxFacts.IsInTypeOnlyContext(node)) &&
-                         Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                        Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
                     {
                         bindingResult = Compilation.DynamicType;
                         ReportUseSiteDiagnosticForDynamic(diagnostics, node);
@@ -934,12 +933,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            if (IsInsideNameof && node.Parent is ArgumentSyntax &&
-                node.Parent?.Parent?.Parent is InvocationExpressionSyntax invocation &&
-                (invocation.Expression as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.NameOfKeyword)
+            if (node.Parent is { } parent)
             {
-                // Don't bind nameof(nint) or nameof(nuint) so that ERR_NameNotInContext is reported.
-                return null;
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.Attribute:
+                    case SyntaxKind.UsingDirective:
+                        return null;
+                    case SyntaxKind.Argument:
+                        if (IsInsideNameof &&
+                            parent.Parent?.Parent is InvocationExpressionSyntax invocation &&
+                            (invocation.Expression as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.NameOfKeyword)
+                        {
+                            // Don't bind nameof(nint) or nameof(nuint) so that ERR_NameNotInContext is reported.
+                            return null;
+                        }
+                        break;
+                }
             }
 
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);

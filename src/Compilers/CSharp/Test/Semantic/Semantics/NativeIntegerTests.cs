@@ -3507,20 +3507,117 @@ interface I
         public void AliasName_02()
         {
             var source =
-@"using N = nint;
+@"using A1 = nint;
+using A2 = nuint;
 class Program
 {
-    N F() => default;
+    A1 F1() => default;
+    A2 F2() => default;
 }";
+            var expectedDiagnostics = new[]
+            {
+                // (1,12): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // using A1 = nint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 12),
+                // (2,12): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // using A2 = nuint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 12)
+            };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (1,11): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // using N = nint;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(1, 11));
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void Using()
+        {
+            var source =
+@"using nint;
+using nuint;
+class Program
+{
+}";
+            var expectedDiagnostics = new[]
+            {
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using nint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using nint;").WithLocation(1, 1),
+                // (1,7): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // using nint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using nuint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using nuint;").WithLocation(2, 1),
+                // (2,7): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // using nuint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 7)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType()
+        {
+            var source =
+@"[nint]
+[nuint]
+class Program
+{
+}";
+            var expectedDiagnostics = new[]
+            {
+                // (1,2): error CS0246: The type or namespace name 'nintAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [nint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nintAttribute").WithLocation(1, 2),
+                // (1,2): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // [nint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 2),
+                // (2,2): error CS0246: The type or namespace name 'nuintAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuintAttribute").WithLocation(2, 2),
+                // (2,2): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // [nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 2)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void GetSpeculativeTypeInfo()
+        {
+            var source =
+@"#pragma warning disable 219
+class Program
+{
+    static void Main()
+    {
+        nint i = 0;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var typeSyntax = SyntaxFactory.ParseTypeName("nuint");
+            int spanStart = source.IndexOf("nint i = 0;");
+            var type = model.GetSpeculativeTypeInfo(spanStart, typeSyntax, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+            Assert.True(type.IsNativeIntegerType);
         }
 
         [Fact]
