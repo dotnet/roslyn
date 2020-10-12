@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -978,8 +980,8 @@ class A
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
             var diagnosticsMap = await diagnosticComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
-            var builder = diagnosticsMap.AnalysisResult.Values.Single();
-            var diagnostic = kind == AnalysisKind.Syntax ? builder.SyntaxLocals.Values.Single().Single() : builder.SemanticLocals.Values.Single().Single();
+            var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
+            var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();
             Assert.Equal(CancellationTestAnalyzer.NonCanceledDiagnosticId, diagnostic.Id);
         }
 

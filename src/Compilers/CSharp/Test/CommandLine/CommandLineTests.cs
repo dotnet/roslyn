@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -489,7 +491,7 @@ d.cs
                 Diagnostic(ErrorCode.ERR_NoOutputDirectory).WithLocation(1, 1)
                 );
         }
-#nullable restore
+#nullable disable
 
         [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
         public void NoSdkPath()
@@ -12212,13 +12214,14 @@ dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerC
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
 
-            var expectedErrorCode = analyzerConfigSeverity == ReportDiagnostic.Error ? 1 : 0;
+            var expectedErrorCode = !noWarn && analyzerConfigSeverity == ReportDiagnostic.Error ? 1 : 0;
             Assert.Equal(expectedErrorCode, exitCode);
 
             // NOTE: Info diagnostics are only logged on command line when /errorlog is specified. See https://github.com/dotnet/roslyn/issues/42166 for details.
-            if (analyzerConfigSeverity == ReportDiagnostic.Error ||
+            if (!noWarn &&
+                (analyzerConfigSeverity == ReportDiagnostic.Error ||
                 analyzerConfigSeverity == ReportDiagnostic.Warn ||
-                (analyzerConfigSeverity == ReportDiagnostic.Info && errorlog))
+                (analyzerConfigSeverity == ReportDiagnostic.Info && errorlog)))
             {
                 var prefix = analyzerConfigSeverity == ReportDiagnostic.Error ? "error" : analyzerConfigSeverity == ReportDiagnostic.Warn ? "warning" : "info";
                 Assert.Contains($"{prefix} {descriptor.Id}: {descriptor.MessageFormat}", outWriter.ToString());
@@ -13002,9 +13005,9 @@ dotnet_diagnostic.CS0164.severity = warning;
             verify(configs: globalOnly, noWarn: "CS0164", expectedWarnings: 0);
             verify(configs: globalOnly, noWarn: "164", expectedWarnings: 0); // cmdline can be shortened, but still works
 
-            // the non global config wins and downgrades the error back to warning, and overrides the cmdline too
+            // the editor config downgrades the error back to warning, but the cmdline setting overrides it
             verify(configs: globalAndSpecific, expectedWarnings: 1);
-            verify(configs: globalAndSpecific, noWarn: "CS0164", expectedWarnings: 1);
+            verify(configs: globalAndSpecific, noWarn: "CS0164", expectedWarnings: 0);
 
 
             void verify(TempFile[] configs, int expectedWarnings = 0, int expectedErrors = 0, string noWarn = "0")
@@ -13078,7 +13081,7 @@ dotnet_diagnostic.CS0164.severity = warning;
 
         [Fact]
         [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
-        public void GlobalAnalyzerConfigSectionsOverrideCommandLine()
+        public void GlobalAnalyzerConfigSectionsDoNotOverrideCommandLine()
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText(@"
@@ -13096,7 +13099,7 @@ is_global = true
 dotnet_diagnostic.CS0164.severity = error;
 ");
 
-            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:0164", "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:0164", "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 0, includeCurrentAssemblyAsAnalyzerReference: false);
         }
 
         [Fact]
@@ -13141,7 +13144,109 @@ dotnet_diagnostic.Warning01.severity = error;
 
             CleanupAllGeneratedFiles(srcDirectory.Path);
         }
+
+        [Theory]
+        // "/warnaserror" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        // "/warnaserror:CS0169" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/warnaserror:CS0169", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/warnaserror:CS0169", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/warnaserror:CS0169", /*expectError*/true, /*expectWarning*/false)]
+        // "/nowarn" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/nowarn:CS0169", /*expectError*/false, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/nowarn:CS0169", /*expectError*/false, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/nowarn:CS0169", /*expectError*/false, /*expectWarning*/false)]
+        // Neither "/nowarn" nor "/warnaserror" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
+        [InlineData(/*analyzerConfigSeverity*/"error", /*additionalArg*/null, /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
+        [WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")]
+        public void TestCompilationOptionsOverrideAnalyzerConfig_CompilerWarning(string analyzerConfigSeverity, string additionalArg, bool expectError, bool expectWarning)
+        {
+            var src = @"
+class C
+{
+    int _f;     // CS0169: unused field
+}";
+            TestCompilationOptionsOverrideAnalyzerConfigCore(src, diagnosticId: "CS0169", analyzerConfigSeverity, additionalArg, expectError, expectWarning);
+        }
+
+        [Theory]
+        // "/warnaserror" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        // "/warnaserror:DiagnosticId" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/warnaserror:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/warnaserror:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/warnaserror:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/true, /*expectWarning*/false)]
+        // "/nowarn" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/nowarn:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/false, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/nowarn:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/false, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/nowarn:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/false, /*expectWarning*/false)]
+        // Neither "/nowarn" nor "/warnaserror" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
+        [InlineData(/*analyzerConfigSeverity*/"error", /*additionalArg*/null, /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
+        [WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")]
+        public void TestCompilationOptionsOverrideAnalyzerConfig_AnalyzerWarning(string analyzerConfigSeverity, string additionalArg, bool expectError, bool expectWarning)
+        {
+            var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
+            var src = @"class C { }";
+            TestCompilationOptionsOverrideAnalyzerConfigCore(src, CompilationAnalyzerWithSeverity.DiagnosticId, analyzerConfigSeverity, additionalArg, expectError, expectWarning, analyzer);
+        }
+
+        private void TestCompilationOptionsOverrideAnalyzerConfigCore(
+            string source,
+            string diagnosticId,
+            string analyzerConfigSeverity,
+            string additionalArg,
+            bool expectError,
+            bool expectWarning,
+            params DiagnosticAnalyzer[] analyzers)
+        {
+            Assert.True(!expectError || !expectWarning);
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(source);
+
+            var additionalArgs = Array.Empty<string>();
+            if (analyzerConfigSeverity != null)
+            {
+                var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+[*.cs]
+dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}");
+
+                additionalArgs = additionalArgs.Append("/analyzerconfig:" + analyzerConfig.Path).ToArray();
+            }
+
+            if (!string.IsNullOrEmpty(additionalArg))
+            {
+                additionalArgs = additionalArgs.Append(additionalArg);
+            }
+
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false,
+                                        additionalArgs,
+                                        expectedErrorCount: expectError ? 1 : 0,
+                                        expectedWarningCount: expectWarning ? 1 : 0,
+                                        analyzers: analyzers);
+            if (expectError)
+            {
+                Assert.Contains($"error {diagnosticId}", output);
+            }
+            else if (expectWarning)
+            {
+                Assert.Contains($"warning {diagnosticId}", output);
+            }
+            else
+            {
+                Assert.DoesNotContain(diagnosticId, output);
+            }
+        }
     }
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal abstract class CompilationStartedAnalyzer : DiagnosticAnalyzer
     {

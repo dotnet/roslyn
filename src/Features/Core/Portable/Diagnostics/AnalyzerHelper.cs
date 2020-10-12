@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -280,10 +278,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return ex =>
                 {
-                    if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
+                    if (ex is not OperationCanceledException && project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
                     {
-                        // if option is on, crash the host to get crash dump.
-                        FatalError.ReportUnlessCanceled(ex);
+                        // report telemetry
+                        FatalError.ReportAndPropagate(ex);
+
+                        // force fail fast (the host might not crash when reporting telemetry):
+                        FailFast.OnFatalException(ex);
                     }
 
                     return true;
@@ -503,7 +504,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic?>
         {
-            internal static readonly DiagnosticComparer Instance = new DiagnosticComparer();
+            internal static readonly DiagnosticComparer Instance = new();
 
             public bool Equals(Diagnostic? x, Diagnostic? y)
             {

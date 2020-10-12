@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -598,7 +596,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         private static UnifiedSuggestedActionSet WithPriority(
             UnifiedSuggestedActionSet set, UnifiedSuggestedActionSetPriority priority)
-            => new UnifiedSuggestedActionSet(set.CategoryName, set.Actions, set.Title, priority, set.ApplicableToSpan);
+            => new(set.CategoryName, set.Actions, set.Title, priority, set.ApplicableToSpan);
 
         private static ImmutableArray<UnifiedSuggestedActionSet> InlineActionSetsIfDesirable(
             ImmutableArray<UnifiedSuggestedActionSet> allActionSets)

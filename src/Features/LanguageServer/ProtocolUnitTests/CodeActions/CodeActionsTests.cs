@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -192,7 +194,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             LSP.Location caret,
             LSP.ClientCapabilities clientCapabilities = null)
         {
-            var result = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CodeActionParams, LSP.VSCodeAction[]>(
+            var queue = CreateRequestQueue(solution);
+            var result = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CodeActionParams, LSP.VSCodeAction[]>(queue,
                 LSP.Methods.TextDocumentCodeActionName, CreateCodeActionParams(caret),
                 clientCapabilities, null, CancellationToken.None);
             return result;

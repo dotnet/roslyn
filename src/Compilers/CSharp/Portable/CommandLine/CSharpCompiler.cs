@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,13 +9,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -60,9 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
-                Parallel.For(0, sourceFiles.Length, UICultureUtilities.WithCurrentUICulture<int>(i =>
-                {
-                    try
+                RoslynParallel.For(
+                    0,
+                    sourceFiles.Length,
+                    UICultureUtilities.WithCurrentUICulture<int>(i =>
                     {
                         //NOTE: order of trees is important!!
                         trees[i] = ParseFile(
@@ -72,12 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             sourceFiles[i],
                             diagnosticBag,
                             out normalizedFilePaths[i]);
-                    }
-                    catch (Exception e) when (FatalError.Report(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                }));
+                    }),
+                    CancellationToken.None);
             }
             else
             {

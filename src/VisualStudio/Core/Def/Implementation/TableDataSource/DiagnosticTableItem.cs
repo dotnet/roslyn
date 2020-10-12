@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
@@ -44,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => Data.ProjectId;
 
         public override LinePosition GetOriginalPosition()
-            => new LinePosition(Data.DataLocation?.OriginalStartLine ?? 0, Data.DataLocation?.OriginalStartColumn ?? 0);
+            => new(Data.DataLocation?.OriginalStartLine ?? 0, Data.DataLocation?.OriginalStartColumn ?? 0);
 
         public override string GetOriginalFilePath()
             => Data.DataLocation?.OriginalFilePath;
@@ -78,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// </summary>
         internal sealed class GroupingComparer : IEqualityComparer<DiagnosticData>, IEqualityComparer<DiagnosticTableItem>
         {
-            public static readonly GroupingComparer Instance = new GroupingComparer();
+            public static readonly GroupingComparer Instance = new();
 
             public bool Equals(DiagnosticData left, DiagnosticData right)
             {

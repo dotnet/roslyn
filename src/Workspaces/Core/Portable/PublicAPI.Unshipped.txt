@@ -1,1 +1,1 @@
-
+Microsoft.CodeAnalysis.Editing.DeclarationKind.Record = 29 -> Microsoft.CodeAnalysis.Editing.DeclarationKind

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         // Regardless of how many tasks we can run in parallel on the machine, we likely won't need more than 256
         // instrumentation points in flight at a given time.
         // Use an object pool since we may be logging up to 1-10k events/second
-        private static readonly ObjectPool<RoslynLogBlock> s_pool = new ObjectPool<RoslynLogBlock>(() => new RoslynLogBlock(s_pool), Math.Min(Environment.ProcessorCount * 8, 256));
+        private static readonly ObjectPool<RoslynLogBlock> s_pool = new(() => new RoslynLogBlock(s_pool), Math.Min(Environment.ProcessorCount * 8, 256));
 
         private static IDisposable CreateLogBlock(FunctionId functionId, LogMessage message, int blockId, CancellationToken cancellationToken)
         {

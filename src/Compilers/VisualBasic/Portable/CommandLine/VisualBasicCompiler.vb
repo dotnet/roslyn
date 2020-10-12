@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -99,22 +100,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim trees(sourceFiles.Length - 1) As SyntaxTree
 
             If Arguments.CompilationOptions.ConcurrentBuild Then
-                Parallel.For(0, sourceFiles.Length,
-                   UICultureUtilities.WithCurrentUICulture(Of Integer)(
+                RoslynParallel.For(
+                    0,
+                    sourceFiles.Length,
+                    UICultureUtilities.WithCurrentUICulture(Of Integer)(
                         Sub(i As Integer)
-                            Try
-                                ' NOTE: order of trees is important!!
-                                trees(i) = ParseFile(
+                            ' NOTE: order of trees is important!!
+                            trees(i) = ParseFile(
                                 consoleOutput,
                                 parseOptions,
                                 scriptParseOptions,
                                 hadErrors,
                                 sourceFiles(i),
                                 errorLogger)
-                            Catch ex As Exception When FatalError.Report(ex)
-                                Throw ExceptionUtilities.Unreachable
-                            End Try
-                        End Sub))
+                        End Sub),
+                    CancellationToken.None)
             Else
                 For i = 0 To sourceFiles.Length - 1
                     ' NOTE: order of trees is important!!

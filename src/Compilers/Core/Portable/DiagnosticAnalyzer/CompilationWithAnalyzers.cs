@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -595,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     await ComputeAnalyzerDiagnosticsAsync(pendingAnalysisScope, getPendingEventsOpt: null, taskToken, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -700,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -831,7 +829,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 FreeEventQueue(eventQueue, _eventQueuePool);
                                             }
                                         }
-                                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                                         {
                                             throw ExceptionUtilities.Unreachable;
                                         }
@@ -870,7 +868,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     FreeDriver(driver);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -964,7 +962,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1011,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1139,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     await WaitForExecutingTaskAsync(executingTreeTask.Item1).ConfigureAwait(false);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1346,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var executionTime = GetAnalyzerExecutionTime(analyzer);
                 return new AnalyzerTelemetryInfo(actionCounts, suppressionActionCounts, executionTime);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

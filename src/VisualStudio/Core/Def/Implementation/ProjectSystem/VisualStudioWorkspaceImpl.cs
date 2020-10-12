@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -53,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// </summary>
     internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspace
     {
-        private static readonly IntPtr s_docDataExisting_Unknown = new IntPtr(-1);
+        private static readonly IntPtr s_docDataExisting_Unknown = new(-1);
         private const string AppCodeFolderName = "App_Code";
 
         private readonly IThreadingContext _threadingContext;
@@ -65,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ITextBufferCloneService _textBufferCloneService;
 
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         /// <summary>
         /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
@@ -74,18 +72,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
-        private readonly Dictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = new Dictionary<ProjectId, string?>();
+        private readonly Dictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = new();
 
         /// <summary>
         /// A map to fetch the path to a rule set file for a project. This right now is only used to implement
         /// <see cref="TryGetRuleSetPathForProject(ProjectId)"/> and any other use is extremely suspicious, since direct use of this is out of
         /// sync with the Workspace if there is active batching happening.
         /// </summary>
-        private readonly Dictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = new Dictionary<ProjectId, Func<string?>>();
+        private readonly Dictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = new();
 
-        private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new Dictionary<string, List<VisualStudioProject>>();
+        private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new();
 
-        private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new Dictionary<string, UIContext?>();
+        private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new();
 
         /// <summary>
         /// A set of documents that were added by <see cref="VisualStudioProject.AddSourceTextContainer"/>, and aren't otherwise
@@ -653,6 +651,76 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        internal override void ApplyMappedFileChanges(SolutionChanges solutionChanges)
+        {
+            // Get the original text changes from all documents and call the span mapping service to get span mappings for the text changes.
+            // Create mapped text changes using the mapped spans and original text changes' text.
+
+            // Mappings for opened razor files are retrieved via the LSP client making a request to the razor server.
+            // If we wait for the result on the UI thread, we will hit a bug in the LSP client that brings us to a code path
+            // using ConfigureAwait(true).  This deadlocks as it then attempts to return to the UI thread which is already blocked by us.
+            // Instead, we invoke this in JTF run which will mitigate deadlocks when the ConfigureAwait(true)
+            // tries to switch back to the main thread in the LSP client.
+            // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
+            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChanges(solutionChanges));
+
+            // Group the mapped text changes by file, then apply all mapped text changes for the file.
+            foreach (var changesForFile in mappedChanges)
+            {
+                // It doesn't matter which of the file's projectIds we pass to the invisible editor, so just pick the first.
+                var projectId = changesForFile.Value.First().ProjectId;
+                // Make sure we only take distinct changes - we'll have duplicates from different projects for linked files or multi-targeted files.
+                var distinctTextChanges = changesForFile.Value.Select(change => change.TextChange).Distinct().ToImmutableArray();
+                using var invisibleEditor = new InvisibleEditor(ServiceProvider.GlobalProvider, changesForFile.Key, GetHierarchy(projectId), needsSave: true, needsUndoDisabled: false);
+                TextEditApplication.UpdateText(distinctTextChanges, invisibleEditor.TextBuffer, EditOptions.None);
+            }
+
+            return;
+
+            async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChanges(SolutionChanges solutionChanges)
+            {
+                var filePathToMappedTextChanges = new MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>();
+                foreach (var projectChanges in solutionChanges.GetProjectChanges())
+                {
+                    foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
+                    {
+                        var oldDocument = projectChanges.OldProject.GetRequiredDocument(changedDocumentId);
+                        if (!ShouldApplyChangesToMappedDocuments(oldDocument, out var mappingService))
+                        {
+                            continue;
+                        }
+
+                        var newDocument = projectChanges.NewProject.GetRequiredDocument(changedDocumentId);
+                        var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(false)).ToImmutableArray();
+                        var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
+
+                        Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
+
+                        for (var i = 0; i < mappedSpanResults.Length; i++)
+                        {
+                            // Only include changes that could be mapped.
+                            var newText = textChanges[i].NewText;
+                            if (!mappedSpanResults[i].IsDefault && newText != null)
+                            {
+                                var newTextChange = new TextChange(mappedSpanResults[i].Span, newText);
+                                filePathToMappedTextChanges.Add(mappedSpanResults[i].FilePath, (newTextChange, projectChanges.ProjectId));
+                            }
+                        }
+                    }
+                }
+
+                return filePathToMappedTextChanges;
+            }
+
+            bool ShouldApplyChangesToMappedDocuments(CodeAnalysis.Document document, [NotNullWhen(true)] out ISpanMappingService? spanMappingService)
+            {
+                spanMappingService = document.Services.GetService<ISpanMappingService>();
+                // Only consider files that are mapped and that we are unable to apply changes to.
+                // TODO - refactor how this is determined - https://github.com/dotnet/roslyn/issues/47908
+                return spanMappingService != null && document?.CanApplyChange() == false;
+            }
+        }
+
         protected override void ApplyProjectReferenceAdded(
             ProjectId projectId, ProjectReference projectReference)
         {
@@ -1038,7 +1106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only
                 // depends on the file path.
 
-                var openDocumentService = ServiceProvider.GlobalProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
+                var openDocumentService = IServiceProviderExtensions.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(ServiceProvider.GlobalProvider);
                 return ErrorHandler.Succeeded(openDocumentService.OpenDocumentViaProject(
                     filePath,
                     VSConstants.LOGVIEWID.TextView_guid,
@@ -1077,7 +1145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var filePath = this.GetFilePath(documentId);
                 if (filePath != null)
                 {
-                    var openDocumentService = ServiceProvider.GlobalProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
+                    var openDocumentService = IServiceProviderExtensions.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(ServiceProvider.GlobalProvider);
                     if (ErrorHandler.Succeeded(openDocumentService.IsDocumentOpen(null, 0, filePath, Guid.Empty, 0, out _, null, out var frame, out _)))
                     {
                         // TODO: do we need save argument for CloseDocument?
@@ -1136,7 +1204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (document.FilePath == null)
                 {
-                    FatalError.ReportWithoutCrash(new Exception("Attempting to change the information of a document without a file path."));
+                    FatalError.ReportAndCatch(new Exception("Attempting to change the information of a document without a file path."));
                     return;
                 }
 
@@ -1489,7 +1557,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
+        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new();
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
@@ -1546,7 +1614,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private sealed class ProjectReferenceInformation
         {
-            public readonly List<string> OutputPaths = new List<string>();
+            public readonly List<string> OutputPaths = new();
             public readonly List<(string path, ProjectReference projectReference)> ConvertedProjectReferences = new List<(string path, ProjectReference)>();
         }
 
@@ -1556,7 +1624,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// any bug by a project adding the wrong output path means we could end up with some duplication.
         /// In that case, we'll temporarily have two until (hopefully) somebody removes it.
         /// </summary>
-        private readonly Dictionary<string, List<ProjectId>> _projectsByOutputPath = new Dictionary<string, List<ProjectId>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<ProjectId>> _projectsByOutputPath = new(StringComparer.OrdinalIgnoreCase);
 
         public void AddProjectOutputPath(ProjectId projectId, string outputPath)
         {

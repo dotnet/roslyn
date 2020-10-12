@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             // This is e.g. useful in the name simplification, where a whole qualified name is annotated
             protected bool alwaysSimplify;
 
-            private readonly HashSet<SyntaxNode> _processedParentNodes = new HashSet<SyntaxNode>();
+            private readonly HashSet<SyntaxNode> _processedParentNodes = new();
 
             protected AbstractReductionRewriter(ObjectPool<IReductionRewriter> pool)
                 => _pool = pool;
