@@ -22,4 +22,4 @@ Any more additional information you would like to add.
 
 **Documentation requirements:**
 
-When this analyzer is implemented, it must be documented by following the steps at [Documentation for IDE CodeStyle analyzers](../../docs/contributing/Documentation for IDE CodeStyle analyzers.md)
+When this analyzer is implemented, it must be documented by following the steps at [Documentation for IDE CodeStyle analyzers](../../docs/contributing/Documentation for IDE CodeStyle analyzers.md).
