@@ -4107,7 +4107,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
         <target state="needs-review-translation">partial' 修飾元只可緊接在 'class'、'struct'、'interface' 或 'void' 之前。</target>
         <note />
       </trans-unit>
