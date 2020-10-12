@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,6 +31,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             var (document, _, cancellationToken) = context;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFacts is null)
+                return;
 
             // If there is a const keyword, do not offer the refactoring (an interpolated string is not const)
             var declarator = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsVariableDeclarator);
@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var isVerbatim = syntaxFacts.IsVerbatimStringLiteral(stringToken);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root is null)
+                return;
+
             var interpolatedString = CreateInterpolatedString(document, isVerbatim, literalExpression);
 
             context.RegisterRefactoring(
@@ -56,9 +59,14 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         protected abstract bool IsAppropriateLiteralKind(TExpressionSyntax literalExpression);
 
-        protected abstract string GetTextWithoutQuotes(string text, bool isVerbatim);
+        private static string GetTextWithoutQuotes(string text, bool isVerbatim)
+        {
+            // Trim off an extra character (@ symbol) for verbatim strings
+            var startIndex = isVerbatim ? 2 : 1;
+            return text[startIndex..^1];
+        }
 
-        private SyntaxNode CreateInterpolatedString(
+        private static SyntaxNode CreateInterpolatedString(
             Document document, bool isVerbatimStringLiteral, SyntaxNode literalExpression)
         {
             var generator = SyntaxGenerator.GetGenerator(document);

@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
         }
 
         protected override bool IsAppropriateLiteralKind(LiteralExpressionSyntax literalExpression)
-            => literalExpression.Kind() == SyntaxKind.StringLiteralExpression;
-
-        protected override string GetTextWithoutQuotes(string text, bool isVerbatim)
-            => isVerbatim
-                ? text.Substring("@'".Length, text.Length - "@''".Length)
-                : text.Substring("'".Length, text.Length - "''".Length);
+            => literalExpression.IsKind(SyntaxKind.StringLiteralExpression);
     }
 }

@@ -19,11 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
         End Sub
 
         Protected Overrides Function IsAppropriateLiteralKind(literalExpression As LiteralExpressionSyntax) As Boolean
-            Return literalExpression.Kind = SyntaxKind.StringLiteralExpression
-        End Function
-
-        Protected Overrides Function GetTextWithoutQuotes(text As String, isVerbatim As Boolean) As String
-            Return text.Substring("'".Length, text.Length - "''".Length)
+            Return literalExpression.IsKind(SyntaxKind.StringLiteralExpression)
         End Function
     End Class
 End Namespace
