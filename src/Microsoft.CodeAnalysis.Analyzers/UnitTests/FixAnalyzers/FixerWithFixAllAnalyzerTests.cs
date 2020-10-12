@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Analyzers.FixAnalyzers;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
+using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.FixAnalyzers.FixerWithFixAllAnalyzer,
@@ -373,6 +375,63 @@ class C1 : CodeFixProvider
             var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
 
             await TestCSharpCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true);
+        }
+
+        [Fact, WorkItem(3475, "https://github.com/dotnet/roslyn-analyzers/issues/3475")]
+        public async Task CSharp_CodeActionCreateNestedActions_NoDiagnostics()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Default.AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.3.0"))),
+                TestCode = @"
+using System;
+using System.Collections.Immutable;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeActions;
+
+class C1 : CodeFixProvider
+{
+    public override ImmutableArray<string> FixableDiagnosticIds
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public override FixAllProvider GetFixAllProvider()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        var c1 = CodeAction.Create(
+            ""Title1"",
+            ImmutableArray.Create(
+                CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document), equivalenceKey: ""Title1_1""),
+                {|#0:CodeAction.Create(""Title1_2"", _ => Task.FromResult(context.Document))|}
+            ),
+            false);
+
+        var c2 = CodeAction.Create(
+            ""Title2"",
+            ImmutableArray.Create(
+                CodeAction.Create(""Title2_1"", _ => Task.FromResult(context.Document), equivalenceKey: ""Title2_1""),
+                {|#1:CodeAction.Create(""Title2_2"", _ => Task.FromResult(context.Document))|}
+            ),
+            true);
+
+        return null;
+    }
+}",
+                ExpectedDiagnostics =
+                {
+                    VerifyCS.Diagnostic(FixerWithFixAllAnalyzer.CreateCodeActionEquivalenceKeyRule).WithLocation(0).WithArguments("equivalenceKey"),
+                    VerifyCS.Diagnostic(FixerWithFixAllAnalyzer.CreateCodeActionEquivalenceKeyRule).WithLocation(1).WithArguments("equivalenceKey"),
+                }
+            }.RunAsync();
         }
 
         #endregion

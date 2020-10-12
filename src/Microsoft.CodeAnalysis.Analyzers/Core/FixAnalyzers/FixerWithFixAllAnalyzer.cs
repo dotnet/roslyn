@@ -280,7 +280,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     IParameterSymbol param = invocation.TargetMethod.Parameters.FirstOrDefault(p => p.Name == EquivalenceKeyParameterName);
                     if (param == null)
                     {
-                        return true;
+                        // User is calling an overload without the equivalenceKey parameter
+                        return false;
                     }
 
                     foreach (var argument in invocation.Arguments)
@@ -345,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                             return _codeActionsWithEquivalenceKey != null && _codeActionsWithEquivalenceKey.Contains(namedType);
                         }
 
-                        // For types in different compilation, perfom the check.
+                        // For types in different compilation, perform the check.
                         return IsCodeActionWithOverriddenEquivlanceKeyCore(namedType);
                     }
                 }

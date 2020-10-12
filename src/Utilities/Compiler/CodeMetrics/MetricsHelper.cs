@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 }
                 else
                 {
-                    // Ensure that we do not count the leading and trailing emtpy new lines.
+                    // Ensure that we do not count the leading and trailing empty new lines.
                     var additionalNewLines = Math.Max(0, GetNewlineCount(declSyntax.GetLeadingTrivia(), leading: true) + GetNewlineCount(declSyntax.GetTrailingTrivia(), leading: false) - 1);
                     delta -= additionalNewLines;
                 }
