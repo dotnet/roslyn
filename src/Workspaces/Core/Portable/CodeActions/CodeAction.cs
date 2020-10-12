@@ -436,13 +436,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal class NoChangeAction : SimpleCodeAction
         {
-            public NoChangeAction(string title, CodeActionPriority priority = CodeActionPriority.Medium, string? equivalenceKey = null)
+            public NoChangeAction(string title, string? equivalenceKey = null)
                 : base(title, equivalenceKey)
             {
-                Priority = priority;
             }
-
-            internal override CodeActionPriority Priority { get; }
 
             protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
                 => SpecializedTasks.Null<Solution>();

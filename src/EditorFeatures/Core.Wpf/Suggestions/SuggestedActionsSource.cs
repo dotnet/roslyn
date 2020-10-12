@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(UnifiedSuggestedActionSetPriority unifiedSuggestedActionSetPriority)
                     => unifiedSuggestedActionSetPriority switch
                     {
-                        UnifiedSuggestedActionSetPriority.None => SuggestedActionSetPriority.None,
+                        UnifiedSuggestedActionSetPriority.Lowest => SuggestedActionSetPriority.None,
                         UnifiedSuggestedActionSetPriority.Low => SuggestedActionSetPriority.Low,
                         UnifiedSuggestedActionSetPriority.Medium => SuggestedActionSetPriority.Medium,
                         UnifiedSuggestedActionSetPriority.High => SuggestedActionSetPriority.High,

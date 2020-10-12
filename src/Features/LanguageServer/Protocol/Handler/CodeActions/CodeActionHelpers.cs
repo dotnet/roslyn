@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         request, documentText,
                         suggestedAction: suggestedAction,
                         codeActionKind: GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!),
+                        setPriority: set.Priority,
                         applicableRange: set.ApplicableToSpan.HasValue ? ProtocolConversions.TextSpanToRange(set.ApplicableToSpan.Value, documentText) : null,
                         currentSetNumber: currentSetNumber,
                         currentHighestSetNumber: ref currentHighestSetNumber));
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             SourceText documentText,
             IUnifiedSuggestedAction suggestedAction,
             LSP.CodeActionKind codeActionKind,
+            UnifiedSuggestedActionSetPriority setPriority,
             LSP.Range? applicableRange,
             int currentSetNumber,
             ref int currentHighestSetNumber,
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 Kind = codeActionKind,
                 Diagnostics = request.Context.Diagnostics,
                 Children = nestedActions,
-                Priority = CodeActionPriorityToPriorityLevel(codeAction.Priority),
+                Priority = UnifiedSuggestedActionSetPriorityToPriorityLevel(setPriority),
                 Group = $"Roslyn{currentSetNumber}",
                 ApplicableRange = applicableRange,
                 Data = new CodeActionResolveData(currentTitle, request.Range, request.TextDocument)
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     foreach (var nestedSuggestedAction in nestedActionSet.Actions)
                     {
                         nestedActions.Add(GenerateVSCodeAction(
-                            request, documentText, nestedSuggestedAction, codeActionKind,
+                            request, documentText, nestedSuggestedAction, codeActionKind, nestedActionSet.Priority,
                             applicableRange: nestedActionSet.ApplicableToSpan.HasValue
                                 ? ProtocolConversions.TextSpanToRange(nestedActionSet.ApplicableToSpan.Value, documentText) : null,
                             nestedSetNumber, ref currentHighestSetNumber, currentTitle));
@@ -243,15 +245,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 _ => throw ExceptionUtilities.UnexpectedValue(categoryName)
             };
 
-        private static LSP.PriorityLevel? CodeActionPriorityToPriorityLevel(CodeActionPriority priority)
+        private static LSP.PriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(UnifiedSuggestedActionSetPriority priority)
             => priority switch
             {
-                // TO-DO: CodeActionPriority.Lowest should map to a separate LSP enum type
+                // TO-DO: UnifiedSuggestedActionSetPriority.Lowest should map to a separate LSP enum type
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1229543
-                CodeActionPriority.Lowest => null,
-                CodeActionPriority.Low => LSP.PriorityLevel.Low,
-                CodeActionPriority.Medium => LSP.PriorityLevel.Normal,
-                CodeActionPriority.High => LSP.PriorityLevel.High,
+                UnifiedSuggestedActionSetPriority.Lowest => LSP.PriorityLevel.Low,
+                UnifiedSuggestedActionSetPriority.Low => LSP.PriorityLevel.Low,
+                UnifiedSuggestedActionSetPriority.Medium => LSP.PriorityLevel.Normal,
+                UnifiedSuggestedActionSetPriority.High => LSP.PriorityLevel.High,
                 _ => throw ExceptionUtilities.UnexpectedValue(priority)
             };
 
