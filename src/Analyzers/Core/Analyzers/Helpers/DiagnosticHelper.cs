@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
