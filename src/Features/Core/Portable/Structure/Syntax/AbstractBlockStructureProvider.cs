@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Structure
 
                 ProvideBlockStructureWorker(context, syntaxRoot);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Structure
 
                 ProvideBlockStructureWorker(context, syntaxRoot);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
