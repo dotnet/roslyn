@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -30,14 +31,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
             Contract.ThrowIfNull(document);
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var change in request.ContentChanges)
-            {
-                // We very deliberately do not just call doc.ApplyTextChanges here, because that updates the workspace
-                var textChange = ProtocolConversions.ContentChangeEventToTextChange(change, text);
-                // Per the LSP spec, each text change builds upon the previous, so we don't need to translate
-                // any text positions here.
-                text = text.WithChanges(textChange);
-            }
+
+            // Per the LSP spec, each text change builds upon the previous, so we don't need to translate
+            // any text positions between changes, which makes this quite easy.
+            var changes = request.ContentChanges.Select(change => ProtocolConversions.ContentChangeEventToTextChange(change, text));
+
+            text = text.WithChanges(changes);
 
             document = document.WithText(text);
 
