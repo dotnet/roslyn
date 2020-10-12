@@ -366,28 +366,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return node.WithInitializer((ConstructorInitializerSyntax)_statementsOrMemberOrAccessorToInsert.Single());
                 }
 
-                public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
-                {
-                    if (node != ContainerOfStatementsOrFieldToReplace)
-                    {
-                        return base.VisitClassDeclaration(node);
-                    }
-
-                    var newMembers = VisitList(ReplaceMembers(node.Members, global: false));
-                    return node.WithMembers(newMembers);
-                }
-
-                public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
-                {
-                    if (node != ContainerOfStatementsOrFieldToReplace)
-                    {
-                        return base.VisitStructDeclaration(node);
-                    }
-
-                    var newMembers = VisitList(ReplaceMembers(node.Members, global: false));
-                    return node.WithMembers(newMembers);
-                }
-
                 public override SyntaxNode VisitAccessorList(AccessorListSyntax node)
                 {
                     if (node != ContainerOfStatementsOrFieldToReplace)
