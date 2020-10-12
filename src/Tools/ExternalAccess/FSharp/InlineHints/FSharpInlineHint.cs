@@ -39,5 +39,4 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints
         public Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, CancellationToken cancellationToken)
             => _getDescriptionAsync?.Invoke(document, cancellationToken) ?? SpecializedTasks.EmptyImmutableArray<TaggedText>();
     }
-
 }
