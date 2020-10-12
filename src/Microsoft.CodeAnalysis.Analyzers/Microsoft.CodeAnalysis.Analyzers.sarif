@@ -243,7 +243,7 @@
         "RS1024": {
           "id": "RS1024",
           "shortDescription": "Compare symbols correctly",
-          "fullDescription": "Symbols should be compared for equality, not identity.",
+          "fullDescription": "Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",

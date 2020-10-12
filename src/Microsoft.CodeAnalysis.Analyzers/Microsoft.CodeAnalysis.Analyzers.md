@@ -294,7 +294,7 @@ MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGe
 
 ## RS1024: Compare symbols correctly
 
-Symbols should be compared for equality, not identity.
+Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.
 
 |Item|Value|
 |-|-|
