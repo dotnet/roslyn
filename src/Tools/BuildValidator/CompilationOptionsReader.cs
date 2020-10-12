@@ -126,7 +126,7 @@ namespace BuildValidator
 
             if (blobs.Any())
             {
-                return blobs.First();
+                return blobs.Single();
             }
 
             throw new InvalidDataException($"No blob found for {infoGuid}");

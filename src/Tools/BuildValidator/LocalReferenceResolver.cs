@@ -44,12 +44,6 @@ namespace BuildValidator
             return new DirectoryInfo(nugetPackageDirectory);
         }
 
-        public Task<MetadataReference> ResolveReferenceAsync(MetadataReferenceInfo referenceInfo)
-        {
-            var path = Search(referenceInfo.Mvid, referenceInfo.Name);
-            return Task.FromResult<MetadataReference>(MetadataReference.CreateFromFile(path));
-        }
-
         public ImmutableArray<MetadataReference> ResolveReferences(IEnumerable<MetadataReferenceInfo> references)
         {
             var referenceArray = references.ToImmutableArray();
@@ -61,36 +55,14 @@ namespace BuildValidator
             return metadataReferences;
         }
 
-        public string Search(Guid mvid, string name)
-        {
-            if (_cache.TryGetValue(mvid, out var referencePath))
-            {
-                return referencePath;
-            }
-
-            foreach (var directory in _indexDirectories)
-            {
-                var foundFile = directory.GetFiles(name, SearchOption.AllDirectories).FirstOrDefault();
-                if (foundFile is null)
-                {
-                    continue;
-                }
-
-                if (mvid == GetMvidForFile(foundFile))
-                {
-                    referencePath = foundFile.FullName;
-                    _cache[mvid] = referencePath;
-
-                    _logger.LogTrace($"Caching [{mvid}, {referencePath}]");
-                    return referencePath;
-                }
-            }
-
-            throw new KeyNotFoundException($"[{mvid}, {name}]");
-        }
-
         public void CacheNames(ImmutableArray<MetadataReferenceInfo> names)
         {
+            if (names.All(r => _cache.ContainsKey(r.Mvid)))
+            {
+                // All references have already been cached, no reason to look in the file system
+                return;
+            }
+
             foreach (var directory in _indexDirectories)
             {
                 foreach (var file in directory.GetFiles("*.*", SearchOption.AllDirectories))
@@ -105,18 +77,13 @@ namespace BuildValidator
                     }
 
                     var mvid = GetMvidForFile(file);
-                    if (!mvid.HasValue)
+                    if (!mvid.HasValue || _cache.ContainsKey(mvid.Value))
                     {
                         continue;
                     }
 
                     var matchedReference = potentialMatches.SingleOrDefault(m => m.Mvid == mvid);
                     if (matchedReference.FileInfo is null)
-                    {
-                        continue;
-                    }
-
-                    if (_cache.ContainsKey(mvid.Value))
                     {
                         continue;
                     }
