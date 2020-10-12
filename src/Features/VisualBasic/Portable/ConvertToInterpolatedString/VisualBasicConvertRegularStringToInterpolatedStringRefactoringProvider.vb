@@ -6,20 +6,15 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertToInterpolatedString
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ExtractMethod), [Shared]>
     Friend NotInheritable Class VisualBasicConvertRegularStringToInterpolatedStringRefactoringProvider
-        Inherits AbstractConvertRegularStringToInterpolatedStringRefactoringProvider(Of LiteralExpressionSyntax)
+        Inherits AbstractConvertRegularStringToInterpolatedStringRefactoringProvider
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
-
-        Protected Overrides Function IsAppropriateLiteralKind(literalExpression As LiteralExpressionSyntax) As Boolean
-            Return literalExpression.IsKind(SyntaxKind.StringLiteralExpression)
-        End Function
     End Class
 End Namespace

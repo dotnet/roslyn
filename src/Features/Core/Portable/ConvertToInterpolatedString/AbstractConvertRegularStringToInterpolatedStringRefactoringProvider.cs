@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -16,20 +17,31 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
     /// <summary>
     /// Code refactoring that converts a regular string containing braces to an interpolated string
     /// </summary>
-    internal abstract class AbstractConvertRegularStringToInterpolatedStringRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
-        where TExpressionSyntax : SyntaxNode
+    internal abstract class AbstractConvertRegularStringToInterpolatedStringRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var literalExpression = await context.TryGetRelevantNodeAsync<TExpressionSyntax>().ConfigureAwait(false);
-            if (literalExpression == null || !IsAppropriateLiteralKind(literalExpression))
-                return;
-
-            var stringToken = literalExpression.GetFirstToken();
-            if (stringToken.Text is null || (!stringToken.Text.Contains("{") && !stringToken.Text.Contains("}")))
-                return;
-
             var (document, _, cancellationToken) = context;
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root is null)
+                return;
+
+            var token = root.FindToken(context.Span.Start);
+            if (!context.Span.IntersectsWith(token.Span))
+                return;
+
+            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
+            if (token.RawKind != syntaxKinds.StringLiteralToken)
+                return;
+
+            var literalExpression = token.Parent;
+            if (literalExpression == null || literalExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                return;
+
+            if (!token.Text.Contains("{") && !token.Text.Contains("}"))
+                return;
+
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFacts is null)
                 return;
@@ -43,21 +55,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     return;
             }
 
-            var isVerbatim = syntaxFacts.IsVerbatimStringLiteral(stringToken);
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root is null)
-                return;
-
-            var interpolatedString = CreateInterpolatedString(document, isVerbatim, literalExpression);
+            var isVerbatim = syntaxFacts.IsVerbatimStringLiteral(token);
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    _ => UpdateDocumentAsync(document, root, literalExpression, interpolatedString)),
+                    _ => UpdateDocumentAsync(document, root, literalExpression, isVerbatim)),
                 literalExpression.Span);
         }
-
-        protected abstract bool IsAppropriateLiteralKind(TExpressionSyntax literalExpression);
 
         private static string GetTextWithoutQuotes(string text, bool isVerbatim)
         {
@@ -66,26 +70,26 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return text[startIndex..^1];
         }
 
-        private static SyntaxNode CreateInterpolatedString(
-            Document document, bool isVerbatimStringLiteral, SyntaxNode literalExpression)
+        private static SyntaxNode CreateInterpolatedString(Document document, SyntaxNode literalExpression, bool isVerbatim)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var startToken = generator.CreateInterpolatedStringStartToken(isVerbatimStringLiteral)
-                                .WithLeadingTrivia(literalExpression.GetLeadingTrivia());
+            var startToken = generator.CreateInterpolatedStringStartToken(isVerbatim)
+                .WithLeadingTrivia(literalExpression.GetLeadingTrivia());
             var endToken = generator.CreateInterpolatedStringEndToken()
-                                .WithTrailingTrivia(literalExpression.GetTrailingTrivia());
+                .WithTrailingTrivia(literalExpression.GetTrailingTrivia());
 
             var text = literalExpression.GetFirstToken().Text;
             var textWithEscapedBraces = text.Replace("{", "{{").Replace("}", "}}");
-            var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, isVerbatimStringLiteral);
+            var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, isVerbatim);
             var newNode = generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutQuotes));
 
             return generator.InterpolatedStringExpression(startToken, new[] { newNode }, endToken);
         }
 
-        private static Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString)
+        private static Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode literalExpression, bool isVerbatim)
         {
-            var newRoot = root.ReplaceNode(top, interpolatedString);
+            var interpolatedString = CreateInterpolatedString(document, literalExpression, isVerbatim);
+            var newRoot = root.ReplaceNode(literalExpression, interpolatedString);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 

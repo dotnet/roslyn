@@ -52,6 +52,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestOnRegularStringWithBracesAndEscapedCharacters()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = [||]""string { \r\n \t"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""string {{ \r\n \t"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingOnInterpolatedString()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -88,6 +108,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestOnVerbatimStringWithBracesAndEscapedQuotes()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = @[||]""string """"foo""""
+}"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $@""string """"foo""""
+}}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingOnRegularStringWithBracesAssignedToConst()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -96,6 +138,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
     void M()
     {
         const string v = [||]""string {"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestMissingOnUnterminatedStringWithBraces()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = [||]""string {
     }
 }");
         }
