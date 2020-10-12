@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -15,11 +17,17 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
 {
     public class AddParameterTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public AddParameterTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddParameterCodeFixProvider());
 
@@ -2783,6 +2791,32 @@ void outer()
     }
 }
 ");
+        }
+
+        [WorkItem(42559, "https://github.com/dotnet/roslyn/issues/42559")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestAddParameter_TargetTypedNew()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    C(int i) { }
+
+    void M()
+    {
+       C c = [||]new(1, 2);
+    }
+}",
+@"
+class C
+{
+    C(int i, int v) { }
+
+    void M()
+    {
+       C c = new(1, 2);
+    }
+}");
         }
     }
 }

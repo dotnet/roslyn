@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,7 +23,9 @@ namespace RunTests
             StringComparer.OrdinalIgnoreCase,
             "devenv",
             "xunit.console",
-            "xunit.console.x86");
+            "xunit.console.x86",
+            "ServiceHub.RoslynCodeAnalysisService",
+            "ServiceHub.RoslynCodeAnalysisService32");
 
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
@@ -328,7 +332,7 @@ namespace RunTests
                 outputDirectory: options.TestResultXmlOutputDirectory,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
-                useHtml: options.UseHtml,
+                includeHtml: options.IncludeHtml,
                 test64: options.Test64,
                 testVsi: options.TestVsi);
             return new ProcessTestExecutor(testExecutionOptions);

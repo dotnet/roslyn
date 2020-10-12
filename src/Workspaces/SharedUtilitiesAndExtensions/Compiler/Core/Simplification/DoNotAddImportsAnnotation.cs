@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.Simplification
 {
     // When applied to a SyntaxNode, prevents AbstractImportsAdder from adding imports for this
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     // This is therefore implemented as a separate annotation.
     internal class DoNotAddImportsAnnotation
     {
-        public static readonly SyntaxAnnotation Annotation = new SyntaxAnnotation(Kind);
+        public static readonly SyntaxAnnotation Annotation = new(Kind);
         public const string Kind = "DoNotAddImports";
     }
 }

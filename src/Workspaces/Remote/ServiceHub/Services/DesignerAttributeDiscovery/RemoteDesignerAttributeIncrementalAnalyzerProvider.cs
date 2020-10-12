@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
@@ -24,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new RemoteDesignerAttributeIncrementalAnalyzer(workspace, _callback);
+            => new RemoteDesignerAttributeIncrementalAnalyzer(_callback);
     }
 }

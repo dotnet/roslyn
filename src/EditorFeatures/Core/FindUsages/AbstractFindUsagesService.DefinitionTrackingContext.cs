@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private class DefinitionTrackingContext : IFindUsagesContext
         {
             private readonly IFindUsagesContext _underlyingContext;
-            private readonly object _gate = new object();
-            private readonly List<DefinitionItem> _definitions = new List<DefinitionItem>();
+            private readonly object _gate = new();
+            private readonly List<DefinitionItem> _definitions = new();
 
             public DefinitionTrackingContext(IFindUsagesContext underlyingContext)
                 => _underlyingContext = underlyingContext;

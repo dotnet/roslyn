@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -104,10 +102,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private const string ChecksumColumnName = "Checksum";
         private const string DataColumnName = "Data";
 
-        private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _shutdownTokenSource = new();
 
         private readonly IDisposable _dbOwnershipLock;
-        private readonly IPersistentStorageFaultInjector? _faultInjectorOpt;
+        private readonly IPersistentStorageFaultInjector? _faultInjector;
 
         // Accessors that allow us to retrieve/store data into specific DB tables.  The
         // core Accessor type has logic that we to share across all reading/writing, while
@@ -128,19 +126,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         // reconnecting.  The connections also cache the prepared statements used
         // to get/set data from the db.  A connection is safe to use by one thread
         // at a time, but is not safe for simultaneous use by multiple threads.
-        private readonly object _connectionGate = new object();
-        private readonly Stack<SqlConnection> _connectionsPool = new Stack<SqlConnection>();
+        private readonly object _connectionGate = new();
+        private readonly Stack<SqlConnection> _connectionsPool = new();
 
         public SQLitePersistentStorage(
             string workingFolderPath,
             string solutionFilePath,
             string databaseFile,
             IDisposable dbOwnershipLock,
-            IPersistentStorageFaultInjector? faultInjectorOpt)
+            IPersistentStorageFaultInjector? faultInjector)
             : base(workingFolderPath, solutionFilePath, databaseFile)
         {
             _dbOwnershipLock = dbOwnershipLock;
-            _faultInjectorOpt = faultInjectorOpt;
+            _faultInjector = faultInjector;
 
             _solutionAccessor = new SolutionAccessor(this);
             _projectAccessor = new ProjectAccessor(this);
@@ -170,7 +168,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             // Otherwise create a new connection.
-            return SqlConnection.Create(_faultInjectorOpt, DatabaseFile);
+            return SqlConnection.Create(_faultInjector, DatabaseFile);
         }
 
         private void ReleaseConnection(SqlConnection connection)

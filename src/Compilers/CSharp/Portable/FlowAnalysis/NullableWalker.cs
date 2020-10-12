@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 #if DEBUG
 // See comment in DefiniteAssignment.
 #define REFERENCE_STATE
@@ -5797,9 +5795,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var visitArgumentResult = argumentResults[i];
                 var lambdaState = visitArgumentResult.StateForLambda;
-                var argumentResult = visitArgumentResult.LValueType;
-                if (!argumentResult.HasType)
-                    argumentResult = visitArgumentResult.RValueType.ToTypeWithAnnotations(compilation);
+                // Note: for `out` arguments, the argument result contains the declaration type (see `VisitArgumentEvaluate`)
+                var argumentResult = visitArgumentResult.RValueType.ToTypeWithAnnotations(compilation);
                 builder.Add(getArgumentForMethodTypeInference(arguments[i], argumentResult, lambdaState));
             }
             return builder.ToImmutableAndFree();
@@ -6545,7 +6542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportRemainingWarnings = false;
                 isSuppressed = true;
             }
-#nullable restore
+#nullable disable
 
             TypeSymbol targetType = targetTypeWithNullability.Type;
             switch (conversion.Kind)

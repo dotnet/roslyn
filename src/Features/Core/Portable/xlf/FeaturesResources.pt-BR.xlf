@@ -2081,13 +2081,13 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
-        <source>'{0}' cannot be null or empty</source>
-        <target state="translated">'{0}' não pode ser nulo ou vazio</target>
+        <source>'{0}' cannot be null or empty.</source>
+        <target state="needs-review-translation">'{0}' não pode ser nulo ou vazio.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_whitespace">
-        <source>'{0}' cannot be null or whitespace</source>
-        <target state="translated">'{0}' não pode ser nulo ou ter espaço em branco</target>
+        <source>'{0}' cannot be null or whitespace.</source>
+        <target state="needs-review-translation">'{0}' não pode ser nulo ou ter espaço em branco.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">

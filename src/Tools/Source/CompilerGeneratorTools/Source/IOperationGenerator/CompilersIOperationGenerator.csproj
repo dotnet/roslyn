@@ -8,6 +8,5 @@
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsShipping>false</IsShipping>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 </Project>

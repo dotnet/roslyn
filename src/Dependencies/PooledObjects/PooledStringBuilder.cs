@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Text;
 
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
     /// </summary>
     internal sealed partial class PooledStringBuilder
     {
-        public readonly StringBuilder Builder = new StringBuilder();
+        public readonly StringBuilder Builder = new();
         private readonly ObjectPool<PooledStringBuilder> _pool;
 
         private PooledStringBuilder(ObjectPool<PooledStringBuilder> pool)

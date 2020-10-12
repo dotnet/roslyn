@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -53,6 +51,12 @@ namespace Microsoft.CodeAnalysis.Remote
             // this is the very first service which will be called from client (VS)
             // we set up logger here
             RoslynLogger.SetLogger(new EtwLogger(s_logChecker));
+
+#if DEBUG
+            // Make sure debug assertions in ServiceHub result in exceptions instead of the assertion UI
+            Trace.Listeners.Clear();
+            Trace.Listeners.Add(new ThrowingTraceListener());
+#endif
 
             SetNativeDllSearchDirectories();
         }
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return EndPoint.InvokeAsync(
                         nameof(IRemoteHostServiceCallback.GetAssetsAsync),
                         new object[] { scopeId, checksums.ToArray() },
-                        (stream, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(stream, scopeId, checksums, serializerService, cancellationToken).AsTask(),
+                        (stream, cancellationToken) => Task.FromResult(RemoteHostAssetSerialization.ReadData(stream, scopeId, checksums, serializerService, cancellationToken)),
                         cancellationToken);
                 }
             }, cancellationToken).ConfigureAwait(false);

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -97,8 +95,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
         }
 
         private static async Task<LSP.ActiveProjectContexts?> RunGetProjectContext(Solution solution, Uri uri)
-            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.GetTextDocumentWithContextParams, LSP.ActiveProjectContexts?>(LSP.MSLSPMethods.ProjectContextsName,
-                CreateGetProjectContextParams(uri), new LSP.ClientCapabilities(), clientName: null, cancellationToken: CancellationToken.None);
+        {
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.GetTextDocumentWithContextParams, LSP.ActiveProjectContexts?>(queue, LSP.MSLSPMethods.ProjectContextsName,
+                           CreateGetProjectContextParams(uri), new LSP.ClientCapabilities(), clientName: null, cancellationToken: CancellationToken.None);
+        }
 
         private static LSP.GetTextDocumentWithContextParams CreateGetProjectContextParams(Uri uri)
             => new LSP.GetTextDocumentWithContextParams()

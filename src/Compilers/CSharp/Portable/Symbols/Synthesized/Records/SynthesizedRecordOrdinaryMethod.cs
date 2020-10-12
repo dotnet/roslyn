@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, DiagnosticBag diagnostics) => ImmutableArray<TypeParameterSymbol>.Empty;
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses() => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext) => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         protected sealed override void PartialMethodChecks(DiagnosticBag diagnostics)
         {

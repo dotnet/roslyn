@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private const int HashSize = 20;
 
-        public static readonly Checksum Null = new Checksum(default);
+        public static readonly Checksum Null = new(default);
 
         [DataMember(Order = 0)]
         private readonly HashData _checksum;
@@ -140,7 +142,7 @@ namespace Microsoft.CodeAnalysis
             => _checksum.WriteTo(writer);
 
         public static Checksum ReadFrom(ObjectReader reader)
-            => new Checksum(HashData.ReadFrom(reader));
+            => new(HashData.ReadFrom(reader));
 
         public static string GetChecksumLogInfo(Checksum checksum)
             => checksum.ToString();

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -162,6 +164,20 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         classDecl.Identifier.Span,
                         GetInheritanceNames(stringTable, classDecl.BaseList),
                         IsNestedType(classDecl));
+                    return true;
+                case SyntaxKind.RecordDeclaration:
+                    var recordDecl = (RecordDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        stringTable,
+                        recordDecl.Identifier.ValueText,
+                        GetTypeParameterSuffix(recordDecl.TypeParameterList),
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Record,
+                        GetAccessibility(recordDecl, recordDecl.Modifiers),
+                        recordDecl.Identifier.Span,
+                        GetInheritanceNames(stringTable, recordDecl.BaseList),
+                        IsNestedType(recordDecl));
                     return true;
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
