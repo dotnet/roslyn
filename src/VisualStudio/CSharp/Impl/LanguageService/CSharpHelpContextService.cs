@@ -360,10 +360,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             
             if (token.IsKind(SyntaxKind.ClassKeyword)) {
                 if (token.Parent is ClassOrStructConstraintSyntax) {
-                    text = "classconstraint_CSharpKeyword";
+                    text = Keyword("classconstraint");
                     return true;
                 } else {
-                    text = "class_CSharpKeyword";
+                    text = Keyword("class");
                     return true;
                 }
             }
