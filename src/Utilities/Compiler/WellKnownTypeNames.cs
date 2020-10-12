@@ -170,6 +170,7 @@ namespace Analyzer.Utilities
         public const string SystemDiagnosticsContractsPureAttribute = "System.Diagnostics.Contracts.PureAttribute";
         public const string SystemDiagnosticsDebug = "System.Diagnostics.Debug";
         public const string SystemDiagnosticsDebuggerNonUserCode = "System.Diagnostics.DebuggerNonUserCodeAttribute";
+        public const string SystemDiagnosticsDebuggerTypeProxyAttribute = "System.Diagnostics.DebuggerTypeProxyAttribute";
         public const string SystemDiagnosticsProcess = "System.Diagnostics.Process";
         public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
         public const string SystemDiagnosticsTraceListener = "System.Diagnostics.TraceListener";
