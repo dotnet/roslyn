@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataIdToInfo = metadataIdToInfo;
             }
 
-            public async Task<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(
+            public async ValueTask<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(
                 Solution solution,
                 PortableExecutableReference reference,
                 CancellationToken cancellationToken)

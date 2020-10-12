@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -28,42 +27,61 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         }
 
         protected override void AddAllParameterNameHintLocations(
-             SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes,
-             Action<InlineParameterHint> addHint, CancellationToken cancellationToken)
+             SemanticModel semanticModel,
+             SyntaxNode node,
+             ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+             CancellationToken cancellationToken)
         {
-            foreach (var node in nodes)
+            if (node is BaseArgumentListSyntax argumentList)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (node is ArgumentSyntax argument)
-                {
-                    if (argument.NameColon == null)
-                    {
-                        var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                        if (!string.IsNullOrEmpty(param?.Name))
-                            addHint(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, argument.SpanStart, GetKind(argument.Expression)));
-                    }
-                }
-                else if (node is AttributeArgumentSyntax attribute)
-                {
-                    if (attribute.NameEquals == null && attribute.NameColon == null)
-                    {
-                        var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                        if (!string.IsNullOrEmpty(param?.Name))
-                            addHint(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, attribute.SpanStart, GetKind(attribute.Expression)));
-                    }
-                }
+                AddArguments(semanticModel, buffer, argumentList, cancellationToken);
+            }
+            else if (node is AttributeArgumentListSyntax attributeArgumentList)
+            {
+                AddArguments(semanticModel, buffer, attributeArgumentList, cancellationToken);
             }
         }
 
-        private static InlineParameterHintKind GetKind(ExpressionSyntax arg)
+        private static void AddArguments(
+            SemanticModel semanticModel,
+            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+            AttributeArgumentListSyntax argumentList,
+            CancellationToken cancellationToken)
+        {
+            foreach (var argument in argumentList.Arguments)
+            {
+                if (argument.NameEquals != null || argument.NameColon != null)
+                    continue;
+
+                var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)));
+            }
+        }
+
+        private static void AddArguments(
+            SemanticModel semanticModel,
+            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+            BaseArgumentListSyntax argumentList,
+            CancellationToken cancellationToken)
+        {
+            foreach (var argument in argumentList.Arguments)
+            {
+                if (argument.NameColon != null)
+                    continue;
+
+                var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)));
+            }
+        }
+
+        private static HintKind GetKind(ExpressionSyntax arg)
             => arg switch
             {
-                LiteralExpressionSyntax or InterpolatedStringExpressionSyntax => InlineParameterHintKind.Literal,
-                ObjectCreationExpressionSyntax => InlineParameterHintKind.ObjectCreation,
+                LiteralExpressionSyntax or InterpolatedStringExpressionSyntax => HintKind.Literal,
+                ObjectCreationExpressionSyntax => HintKind.ObjectCreation,
                 CastExpressionSyntax cast => GetKind(cast.Expression),
                 PrefixUnaryExpressionSyntax prefix => GetKind(prefix.Operand),
-                _ => InlineParameterHintKind.Other,
+                _ => HintKind.Other,
             };
     }
 }

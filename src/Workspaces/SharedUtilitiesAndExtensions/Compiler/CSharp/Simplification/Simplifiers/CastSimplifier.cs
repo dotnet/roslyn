@@ -148,6 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (expressionToCastType.IsIdentity)
                 return true;
 
+            // Is this a cast inside a conditional expression? Because of target typing we already sorted that out
+            // in ReplacementChangesSemantics()
+            if (IsBranchOfConditionalExpression(castNode))
+            {
+                return true;
+            }
+
             // We already bailed out of we had an explicit/none conversions back in CastMustBePreserved 
             // (except for implicit user defined conversions).
             Debug.Assert(!expressionToCastType.IsExplicit || expressionToCastType.IsUserDefined);
@@ -402,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
 
             // Almost all explicit conversions can cause an exception or data loss, hence can never be removed.
-            if (IsExplicitCastThatMustBePreserved(conversion))
+            if (IsExplicitCastThatMustBePreserved(castNode, conversion))
                 return true;
 
             // If this conversion doesn't even exist, then this code is in error, and we don't want to touch it.
@@ -590,10 +597,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool IsExplicitCastThatMustBePreserved(Conversion conversion)
+        private static bool IsExplicitCastThatMustBePreserved(ExpressionSyntax castNode, Conversion conversion)
         {
             if (conversion.IsExplicit)
             {
+                // Consider the explicit cast in a line like:
+                //
+                // string? s = conditional ? (string?)"hello" : null;
+                //
+                // That string? cast is an explicit conversion that not IsUserDefined, but it may be removable if we support
+                // target-typed conditionals; in that case we'll return false here and force the full algorithm to be ran rather
+                // than this fast-path.
+                if (IsBranchOfConditionalExpression(castNode) &&
+                    !CastMustBePreservedInConditionalBranch(castNode, conversion))
+                {
+                    return false;
+                }
+
                 // if it's not a user defined conversion, we must preserve it as it has runtime impact that we don't want to change.
                 if (!conversion.IsUserDefined)
                     return true;
@@ -649,8 +669,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                    castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression);
         }
 
+        private static bool IsBranchOfConditionalExpression(ExpressionSyntax expression)
+        {
+            return expression.Parent is ConditionalExpressionSyntax conditionalExpression &&
+                   expression != conditionalExpression.Condition;
+        }
+
         private static bool CastMustBePreservedInConditionalBranch(
-            ExpressionSyntax expression, Conversion conversion)
+            ExpressionSyntax castNode, Conversion conversion)
         {
             // `... ? (int?)i : default`.  This cast is necessary as the 'null/default' on the other side of the
             // conditional can change meaning since based on the type on the other side.
@@ -659,18 +685,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // `... ? (int)1 : default`.
             if (!conversion.IsIdentity)
             {
-                expression = expression.WalkUpParentheses();
-                if (expression.Parent is ConditionalExpressionSyntax conditionalExpression)
+                castNode = castNode.WalkUpParentheses();
+                if (castNode.Parent is ConditionalExpressionSyntax conditionalExpression)
                 {
-                    if (conditionalExpression.WhenTrue == expression ||
-                        conditionalExpression.WhenFalse == expression)
+                    if (conditionalExpression.WhenTrue == castNode ||
+                        conditionalExpression.WhenFalse == castNode)
                     {
-                        var otherSide = conditionalExpression.WhenTrue == expression
+                        var otherSide = conditionalExpression.WhenTrue == castNode
                             ? conditionalExpression.WhenFalse
                             : conditionalExpression.WhenTrue;
 
                         otherSide = otherSide.WalkDownParentheses();
-                        return otherSide.IsKind(SyntaxKind.NullLiteralExpression) ||
+
+                        // In C# 9 we can potentially remove the cast if the other side is null, since the cast was previously required to
+                        // resolve a situation like:
+                        //
+                        //     var x = condition ? (int?)i : null
+                        //
+                        // but it isn't with target-typed conditionals. We do have to keep the cast if it's default, as:
+                        //
+                        //     var x = condition ? (int?)i : default
+                        //
+                        // is inferred by the compiler to mean 'default(int?)', whereas removing the cast would mean default(int).
+                        var languageVersion = ((CSharpParseOptions)castNode.SyntaxTree.Options).LanguageVersion;
+
+                        return (otherSide.IsKind(SyntaxKind.NullLiteralExpression) && languageVersion < LanguageVersion.CSharp9) ||
                                otherSide.IsKind(SyntaxKind.DefaultLiteralExpression);
                     }
                 }

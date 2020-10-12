@@ -21,32 +21,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
 
         Protected Overrides Sub AddAllParameterNameHintLocations(
                 semanticModel As SemanticModel,
-                nodes As IEnumerable(Of SyntaxNode),
-                addHint As Action(Of InlineParameterHint),
+                node As SyntaxNode,
+                buffer As ArrayBuilder(Of (position As Integer, parameter As IParameterSymbol, kind As HintKind)),
                 cancellationToken As CancellationToken)
 
-            For Each node In nodes
-                cancellationToken.ThrowIfCancellationRequested()
-                Dim simpleArgument = TryCast(node, SimpleArgumentSyntax)
-                If simpleArgument?.Expression IsNot Nothing Then
-                    If Not simpleArgument.IsNamed AndAlso simpleArgument.NameColonEquals Is Nothing Then
-                        Dim param = simpleArgument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
-                        If Not String.IsNullOrEmpty(param?.Name) Then
-                            addHint(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start, GetKind(simpleArgument.Expression)))
-                        End If
-                    End If
+            Dim argumentList = TryCast(node, ArgumentListSyntax)
+            If argumentList Is Nothing Then
+                Return
+            End If
+
+            For Each arg In argumentList.Arguments
+                Dim argument = TryCast(arg, SimpleArgumentSyntax)
+                If argument Is Nothing Then
+                    Continue For
                 End If
+
+                If argument?.Expression Is Nothing Then
+                    Continue For
+                End If
+
+                If argument.IsNamed OrElse argument.NameColonEquals IsNot Nothing Then
+                    Continue For
+                End If
+
+                Dim parameter = argument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+                If String.IsNullOrEmpty(parameter?.Name) Then
+                    Continue For
+                End If
+
+                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)))
             Next
         End Sub
 
-        Private Function GetKind(arg As ExpressionSyntax) As InlineParameterHintKind
+        Private Function GetKind(arg As ExpressionSyntax) As HintKind
             If TypeOf arg Is LiteralExpressionSyntax OrElse
                TypeOf arg Is InterpolatedStringExpressionSyntax Then
-                Return InlineParameterHintKind.Literal
+                Return HintKind.Literal
             End If
 
             If TypeOf arg Is ObjectCreationExpressionSyntax Then
-                Return InlineParameterHintKind.ObjectCreation
+                Return HintKind.ObjectCreation
             End If
 
             Dim predefinedCast = TryCast(arg, PredefinedCastExpressionSyntax)
@@ -70,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
                 Return GetKind(unary.Operand)
             End If
 
-            Return InlineParameterHintKind.Other
+            Return HintKind.Other
         End Function
     End Class
 End Namespace

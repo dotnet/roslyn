@@ -7486,6 +7486,17 @@ struct C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RecordDestructor()
+        {
+            var markup = @"
+record C
+{
+   ~$$
+}";
+            await VerifyItemExistsAsync(markup, "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldAvailableInBothLinkedFiles()
         {
             var markup = @"<Workspace>
