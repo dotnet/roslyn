@@ -2,19 +2,19 @@
 
 ## Overview
 
-1. Official documentation for all [IDE analyzer diagnostic IDs](../../src/Analyzers/Core/Analyzers/IDEDiagnosticIds.cs) is added to `dotnet/docs` repo at https://github.com/dotnet/docs/tree/master/docs/fundamentals/code-analysis/style-rules
+1. Official documentation for all [IDE analyzer diagnostic IDs](../../src/Analyzers/Core/Analyzers/IDEDiagnosticIds.cs) is added to `dotnet/docs` repo at <https://github.com/dotnet/docs/tree/master/docs/fundamentals/code-analysis/style-rules>
 
 2. Each IDE diagnostic ID has a dedicated documentation page. For example:
-   1. Diagnostic with code style option: https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0011
-   2. Diagnostic without code style option: https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0004
-   3. Multiple diagnostic IDs sharing the same option(s): https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0003-ide0009
+   1. Diagnostic with code style option: <https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0011>
+   2. Diagnostic without code style option: <https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0004>
+   3. Multiple diagnostic IDs sharing the same option(s): <https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0003-ide0009>
 
 3. We have tabular indices for IDE diagnostic IDs and code style options for easier reference and navigation:
-   1. Primary index (rule ID + code style options): https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/
-   2. Secondary index (code style options only): https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/language-rules#net-style-rules
+   1. Primary index (rule ID + code style options): <https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/>
+   2. Secondary index (code style options only): <https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/language-rules#net-style-rules>
    3. Indices for each preference/option group. For example:
-      1. Modifier preferences: https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/modifier-preferences
-      2. Expression-level preferences: https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/expression-level-preferences
+      1. Modifier preferences: <https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/modifier-preferences>
+      2. Expression-level preferences: <https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/expression-level-preferences>
  
 ## Action items when adding or updating IDE analyzers
 
