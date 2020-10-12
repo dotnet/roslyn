@@ -269,8 +269,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 didChangeParams, _clientCapabilities, _clientName, cancellationToken);
 
         [JsonRpcMethod(Methods.TextDocumentDidOpenName, UseSingleObjectParameterDeserialization = true)]
-        public Task<object> HandleDocumentDidOpenAsync(DidOpenTextDocumentParams didOpenParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(_queue, Methods.TextDocumentDidOpenName,
+        public Task<object?> HandleDocumentDidOpenAsync(DidOpenTextDocumentParams didOpenParams, CancellationToken cancellationToken)
+            => _requestHandlerProvider.ExecuteRequestAsync<DidOpenTextDocumentParams, object?>(_queue, Methods.TextDocumentDidOpenName,
                 didOpenParams, _clientCapabilities, _clientName, cancellationToken);
 
         [JsonRpcMethod(Methods.TextDocumentDidCloseName, UseSingleObjectParameterDeserialization = true)]
