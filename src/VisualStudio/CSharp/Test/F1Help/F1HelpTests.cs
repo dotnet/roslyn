@@ -851,7 +851,7 @@ class C
                 break;
         }
     }
-}", "defaultvalue");
+}", "default");
         }
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
@@ -869,7 +869,7 @@ class C
                 break;
         }
     }
-}", "defaultvalue");
+}", "default");
         }
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
@@ -880,7 +880,7 @@ class C
 @"class C
 {
     int field = defa[||]ult;
-}", "defaultvalue");
+}", "default");
         }
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
@@ -891,7 +891,7 @@ class C
 @"class C
 {
     int field = defa[||]ult(int);
-}", "defaultvalue");
+}", "default");
         }
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
@@ -903,7 +903,7 @@ class C
 {
     void M1(int parameter = defa[||]ult) {
     }
-}", "defaultvalue");
+}", "default");
         }
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
@@ -915,7 +915,7 @@ class C
 {
     void M1(int parameter = defa[||]ult(int)) {
     }
-}", "defaultvalue");
+}", "default");
         }
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
@@ -928,7 +928,7 @@ class C
     void M1() {
         M2(defa[||]ult);
     }
-}", "defaultvalue");
+}", "default");
         }
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
@@ -941,7 +941,7 @@ class C
     void M1() {
         M2(defa[||]ult(int));
     }
-}", "defaultvalue");
+}", "default");
         }
     }
 }
