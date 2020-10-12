@@ -359,13 +359,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
             
             if (token.IsKind(SyntaxKind.ClassKeyword)) {
-                if (token.Parent is ClassDeclarationSyntax) {
-                    text = "class_CSharpKeyword";
-                    return true;
-                }
-
                 if (token.Parent is ClassOrStructConstraintSyntax) {
                     text = "classconstraint_CSharpKeyword";
+                    return true;
+                } else {
+                    text = "class_CSharpKeyword";
                     return true;
                 }
             }
