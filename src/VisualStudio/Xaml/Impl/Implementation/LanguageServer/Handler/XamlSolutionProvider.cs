@@ -41,10 +41,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             return _solutionProvider.GetDocuments(documentUri);
         }
-
-        public ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri)
-        {
-            return _solutionProvider.GetTextDocuments(documentUri);
-        }
     }
 }
