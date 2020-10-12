@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,8 +19,15 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
     /// <summary>
     /// Code refactoring that converts a regular string containing braces to an interpolated string
     /// </summary>
-    internal abstract class AbstractConvertRegularStringToInterpolatedStringRefactoringProvider : CodeRefactoringProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString), Shared]
+    internal sealed class ConvertRegularStringToInterpolatedStringRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public ConvertRegularStringToInterpolatedStringRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
@@ -54,6 +63,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 if (generator.GetModifiers(declarator).IsConst)
                     return;
             }
+
+            // If this is an attribute parameter, do not offer the refactoring either
+            declarator = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsAttribute);
+            if (declarator != null)
+                return;
 
             var isVerbatim = syntaxFacts.IsVerbatimStringLiteral(token);
 

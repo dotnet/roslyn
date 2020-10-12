@@ -6,7 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
+using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
     public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpConvertRegularStringToInterpolatedStringRefactoringProvider();
+            => new ConvertRegularStringToInterpolatedStringRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingOnRegularStringWithNoBraces()
@@ -152,6 +152,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
     {
         var v = [||]""string {
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestMissingOnAttributeStringParameterWithBraces()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"[System.Diagnostics.DebuggerDisplay([||]""FirstName={FirstName}, LastName={LastName}"")]
+public class C
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
 }");
         }
     }
