@@ -357,15 +357,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 text = Keyword("defaultcase");
                 return true;
             }
-            
-            if (token.IsKind(SyntaxKind.ClassKeyword)) {
-                if (token.Parent is ClassOrStructConstraintSyntax) {
-                    text = Keyword("classconstraint");
-                    return true;
-                } else {
-                    text = Keyword("class");
-                    return true;
-                }
+
+            if (token.IsKind(SyntaxKind.ClassKeyword) && token.Parent is ClassOrStructConstraintSyntax) {
+                text = Keyword("classconstraint");
+                return true;
             }
 
             if (token.IsKeyword())
