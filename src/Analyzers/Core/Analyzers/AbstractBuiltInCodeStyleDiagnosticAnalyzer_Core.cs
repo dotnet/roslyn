@@ -2,63 +2,74 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
-
-namespace Microsoft.CodeAnalysis.CodeQuality
+namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal abstract class AbstractCodeQualityDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private readonly GeneratedCodeAnalysisFlags _generatedCodeAnalysisFlags;
+        protected readonly string? DescriptorId;
 
-        protected AbstractCodeQualityDiagnosticAnalyzer(
-            ImmutableArray<DiagnosticDescriptor> descriptors,
-            GeneratedCodeAnalysisFlags generatedCodeAnalysisFlags)
+        protected readonly DiagnosticDescriptor Descriptor;
+
+        protected readonly LocalizableString _localizableTitle;
+        protected readonly LocalizableString _localizableMessageFormat;
+
+        private AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+            string descriptorId, LocalizableString title,
+            LocalizableString? messageFormat,
+            bool isUnnecessary,
+            bool configurable)
         {
-            SupportedDiagnostics = descriptors;
-            _generatedCodeAnalysisFlags = generatedCodeAnalysisFlags;
+            DescriptorId = descriptorId;
+            _localizableTitle = title;
+            _localizableMessageFormat = messageFormat ?? title;
+
+            Descriptor = CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, isUnnecessary: isUnnecessary, isConfigurable: configurable);
+            SupportedDiagnostics = ImmutableArray.Create(Descriptor);
         }
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+        /// <summary>
+        /// Constructor for a code style analyzer with a multiple diagnostic descriptors such that all the descriptors have no unique code style option to configure the descriptors.
+        /// </summary>
+        protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)
+        {
+            SupportedDiagnostics = supportedDiagnostics;
+
+            Descriptor = SupportedDiagnostics[0];
+            _localizableTitle = Descriptor.Title;
+            _localizableMessageFormat = Descriptor.MessageFormat;
+        }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+
+        protected static DiagnosticDescriptor CreateDescriptorWithId(
+            string id,
+            LocalizableString title,
+            LocalizableString messageFormat,
+            bool isUnnecessary = false,
+            bool isConfigurable = true,
+            LocalizableString? description = null,
+            params string[] customTags)
+            => new(
+                    id, title, messageFormat,
+                    DiagnosticCategory.Style,
+                    DiagnosticSeverity.Hidden,
+                    isEnabledByDefault: true,
+                    description: description,
+                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, customTags));
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            context.ConfigureGeneratedCodeAnalysis(_generatedCodeAnalysisFlags);
+            // Code style analyzers should not run on generated code.
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
             InitializeWorker(context);
         }
 
         protected abstract void InitializeWorker(AnalysisContext context);
-
-        public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-
-        public bool OpenFileOnly(OptionSet options)
-            => false;
-
-        protected static DiagnosticDescriptor CreateDescriptor(
-            string id,
-            LocalizableString title,
-            LocalizableString messageFormat,
-            bool isUnnecessary,
-            bool isEnabledByDefault = true,
-            bool isConfigurable = true,
-            LocalizableString description = null,
-            params string[] customTags)
-            => new(
-                    id, title, messageFormat,
-                    DiagnosticCategory.CodeQuality,
-                    DiagnosticSeverity.Info,
-                    isEnabledByDefault,
-                    description,
-                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, customTags));
     }
 }

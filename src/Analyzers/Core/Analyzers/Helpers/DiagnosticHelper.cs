@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
@@ -254,6 +255,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 additionalLocations,
                 descriptor.CustomTags,
                 properties);
+        }
+
+        public static string GetHelpLinkForDiagnosticId(string id)
+        {
+            Debug.Assert(id.StartsWith("IDE", StringComparison.Ordinal));
+            return $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
         }
 
         public sealed class LocalizableStringWithArguments : LocalizableString, IObjectWritable
