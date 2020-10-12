@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -14,11 +16,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
@@ -26,10 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// The TaggerProvider that calls upon the service in order to locate the spans and names
     /// </summary>
     [Export(typeof(IViewTaggerProvider))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [TagType(typeof(InlineParameterNameHintDataTag))]
-    [Name(nameof(InlineParameterNameHintsDataTaggerProvider))]
-    internal class InlineParameterNameHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineParameterNameHintDataTag>
+    [VSUtilities.ContentType(ContentTypeNames.RoslynContentType)]
+    [TagType(typeof(InlineHintDataTag))]
+    [VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
+    internal class InlineHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineHintDataTag>
     {
         private readonly IAsynchronousOperationListener _listener;
 
@@ -37,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         [ImportingConstructor]
-        public InlineParameterNameHintsDataTaggerProvider(
+        public InlineHintsDataTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
             IForegroundNotificationService notificationService)
@@ -57,7 +60,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForObjectCreationParameters, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForOtherParameters, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForTypes, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForImplicitVariableTypes, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLambdaParameterTypes, TaggerDelay.NearImmediate));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
@@ -76,27 +82,45 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<InlineParameterNameHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var cancellationToken = context.CancellationToken;
+            await AddTypeHintsAsync(context, documentSnapshotSpan, cancellationToken).ConfigureAwait(false);
+            await AddParameterNameHintsAsync(context, documentSnapshotSpan, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task AddTypeHintsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, CancellationToken cancellationToken)
+        {
             var document = documentSnapshotSpan.Document;
+            var service = document.GetLanguageService<IInlineTypeHintsService>();
+            if (service == null)
+                return;
 
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var paramNameHintsService = document.GetLanguageService<IInlineParameterNameHintsService>();
-            if (paramNameHintsService != null)
+            var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+            foreach (var hint in hints)
             {
-                var parameterHints = await paramNameHintsService.GetInlineParameterNameHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-                foreach (var parameterHint in parameterHints)
-                {
-                    Contract.ThrowIfNull(parameterHint.Parameter);
+                context.AddTag(new TagSpan<InlineHintDataTag>(
+                    new SnapshotSpan(snapshotSpan.Snapshot, hint.Span.ToSpan()),
+                    new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
+            }
+        }
 
-                    cancellationToken.ThrowIfCancellationRequested();
-                    context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(
-                        new SnapshotSpan(snapshotSpan.Snapshot, parameterHint.Position, 0),
-                        new InlineParameterNameHintDataTag(
-                            parameterHint.Parameter.GetSymbolKey(cancellationToken),
-                            parameterHint.Parameter.Name)));
-                }
+        private static async Task AddParameterNameHintsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, CancellationToken cancellationToken)
+        {
+            var document = documentSnapshotSpan.Document;
+            var service = document.GetLanguageService<IInlineParameterNameHintsService>();
+            if (service == null)
+                return;
+
+            var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+            var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+            foreach (var hint in hints)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                context.AddTag(new TagSpan<InlineHintDataTag>(
+                    new SnapshotSpan(snapshotSpan.Snapshot, hint.Span.ToSpan()),
+                    new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
             }
         }
     }

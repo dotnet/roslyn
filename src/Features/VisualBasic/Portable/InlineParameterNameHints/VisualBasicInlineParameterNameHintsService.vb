@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
         Protected Overrides Sub AddAllParameterNameHintLocations(
                 semanticModel As SemanticModel,
                 node As SyntaxNode,
-                buffer As ArrayBuilder(Of InlineParameterHint),
+                buffer As ArrayBuilder(Of (position As Integer, parameter As IParameterSymbol, kind As HintKind)),
                 cancellationToken As CancellationToken)
 
             Dim argumentList = TryCast(node, ArgumentListSyntax)
@@ -49,21 +49,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
                     Continue For
                 End If
 
-                buffer.Add(New InlineParameterHint(
-                    parameter,
-                    argument.Span.Start,
-                    GetKind(argument.Expression)))
+                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)))
             Next
         End Sub
 
-        Private Function GetKind(arg As ExpressionSyntax) As InlineParameterHintKind
+        Private Function GetKind(arg As ExpressionSyntax) As HintKind
             If TypeOf arg Is LiteralExpressionSyntax OrElse
                TypeOf arg Is InterpolatedStringExpressionSyntax Then
-                Return InlineParameterHintKind.Literal
+                Return HintKind.Literal
             End If
 
             If TypeOf arg Is ObjectCreationExpressionSyntax Then
-                Return InlineParameterHintKind.ObjectCreation
+                Return HintKind.ObjectCreation
             End If
 
             Dim predefinedCast = TryCast(arg, PredefinedCastExpressionSyntax)
@@ -87,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
                 Return GetKind(unary.Operand)
             End If
 
-            Return InlineParameterHintKind.Other
+            Return HintKind.Other
         End Function
     End Class
 End Namespace
