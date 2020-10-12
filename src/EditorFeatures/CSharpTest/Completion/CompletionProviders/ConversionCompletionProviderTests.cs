@@ -5,15 +5,18 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
+using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
@@ -120,7 +123,7 @@ public class Program
         c.$$
     }
 }
-", "float", displayTextSuffix: ")");
+", "float", displayTextSuffix: ")", matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

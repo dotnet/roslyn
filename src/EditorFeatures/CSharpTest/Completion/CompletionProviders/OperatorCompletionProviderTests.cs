@@ -9,8 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -111,7 +113,7 @@ public class Program
         c.$$;
     }
 }
-", "+");
+", "+", matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]

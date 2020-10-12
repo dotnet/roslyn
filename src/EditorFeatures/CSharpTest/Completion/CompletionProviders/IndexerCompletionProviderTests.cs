@@ -5,11 +5,13 @@
 #nullable enable
 
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -42,7 +44,7 @@ public class Program
         c.$$
     }
 }
-", "this", displayTextSuffix: "[]");
+", "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
