@@ -75,8 +75,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             var exportAttributeApplication = exportAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttribute));
-            if (exportAttributeApplication is null ||
-                exportAttributeApplication.ApplicationSyntaxReference is null)
+            if (exportAttributeApplication is null)
             {
                 return;
             }
@@ -85,8 +84,15 @@ namespace Roslyn.Diagnostics.Analyzers
                 ad.AttributeClass.Name == nameof(PartNotDiscoverableAttribute)
                 && Equals(ad.AttributeClass.ContainingNamespace, exportAttribute.ContainingNamespace)))
             {
-                // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
-                context.ReportDiagnostic(exportAttributeApplication.ApplicationSyntaxReference.CreateDiagnostic(Rule, context.CancellationToken, namedType.Name));
+                if (exportAttributeApplication.ApplicationSyntaxReference == null)
+                {
+                    context.ReportDiagnostic(context.Symbol.CreateDiagnostic(Rule, namedType.Name));
+                }
+                else
+                {
+                    // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
+                    context.ReportDiagnostic(exportAttributeApplication.ApplicationSyntaxReference.CreateDiagnostic(Rule, context.CancellationToken, namedType.Name));
+                }
             }
         }
     }

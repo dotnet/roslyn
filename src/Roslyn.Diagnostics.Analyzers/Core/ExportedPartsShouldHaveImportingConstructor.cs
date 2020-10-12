@@ -123,14 +123,10 @@ namespace Roslyn.Diagnostics.Analyzers
                 importingConstructor = constructor;
                 if (constructor.DeclaredAccessibility != Accessibility.Public)
                 {
-                    if (appliedImportingConstructorAttribute.ApplicationSyntaxReference != null)
-                    {
-                        // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(
-                            appliedImportingConstructorAttribute.ApplicationSyntaxReference.CreateDiagnostic(
-                                Rule, ScenarioProperties.NonPublicConstructor, context.CancellationToken, namedType.Name));
-                    }
-
+                    // '{0}' is MEF-exported and should have a single importing constructor of the correct form
+                    context.ReportDiagnostic(
+                        appliedImportingConstructorAttribute.ApplicationSyntaxReference.CreateDiagnostic(
+                            Rule, ScenarioProperties.NonPublicConstructor, context.CancellationToken, namedType.Name));
                     continue;
                 }
             }

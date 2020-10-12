@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             {
                                 if (attribute.ConstructorArguments[0].Value is INamedTypeSymbol forwardedType)
                                 {
-                                    VisitForwardedTypeRecursively(forwardedType, reportDiagnostic, attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None, cancellationToken);
+                                    VisitForwardedTypeRecursively(forwardedType, reportDiagnostic, attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken).GetLocation(), cancellationToken);
                                 }
                             }
                         }
