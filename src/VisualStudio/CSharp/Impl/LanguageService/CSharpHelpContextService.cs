@@ -352,16 +352,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 }
             }
 
-            if (token.IsKind(SyntaxKind.DefaultKeyword))
-            {
-                if (token.Parent is DefaultSwitchLabelSyntax)
-                {
-                    text = Keyword("defaultcase");
-                    return true;
-                } else {
-                    text = Keyword(token.Text);
-                    return true;
-                }
+            if (token.IsKind(SyntaxKind.DefaultKeyword) && token.Parent is DefaultSwitchLabelSyntax) {
+                text = Keyword("defaultcase");
+                return true;
             }
 
             if (token.IsKeyword())
