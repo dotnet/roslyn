@@ -13,8 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -197,17 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (logThrowAwayTelemetry)
                 {
-                    var telemetry = _workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
-                    // If we already have a compilation, then this change will mean it gets throw away, so log it
-                    if (_workspace.CurrentSolution.State.TryGetCompilation(Id, out var previousCompilation))
-                    {
-                        int numTrees = previousCompilation.SyntaxTrees.Count();
-                        if (numTrees > 0)
-                        {
-                            var projectState = _workspace.CurrentSolution.State.GetRequiredProjectState(Id);
-                            telemetry.ReportCompilationThrownAway(projectState.ProjectInfo.Attributes.TelemetryId, numTrees);
-                        }
-                    }
+                    TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
                 }
 
                 if (_activeBatchScopes > 0)
@@ -218,6 +208,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(Id, withNewValue);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Reports a telemetry event if compilation information is being thrown away after being previous computed
+        /// </summary>
+        private static void TryReportCompilationThrownAway(SolutionState solutionState, ProjectId projectId)
+        {
+            // We log the number of syntax trees that have been parsed even if there was no compilation created yet
+            var projectState = solutionState.GetRequiredProjectState(projectId);
+            var parsedTrees = 0;
+            foreach (var documentState in projectState.DocumentStates.Values)
+            {
+                if (documentState.TryGetSyntaxTree(out _))
+                {
+                    parsedTrees++;
+                }
+            }
+
+            // But we also want to know if a compilation was created
+            var hadCompilation = solutionState.TryGetCompilation(projectId, out var previousCompilation);
+
+            if (parsedTrees > 0 || hadCompilation)
+            {
+                Logger.Log(FunctionId.Workspace_Project_CompilationThrownAway, KeyValueLogMessage.Create(m =>
+                {
+                    // Note: Not using our project Id. This is the same ProjectGuid that the project system uses
+                    // so data can be correlated
+                    m["ProjectGuid"] = projectState.ProjectInfo.Attributes.TelemetryId.ToString("B");
+                    m["SyntaxTreesParsed"] = parsedTrees;
+                    m["HadCompilation"] = hadCompilation;
+                }));
             }
         }
 
