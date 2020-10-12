@@ -11,6 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />

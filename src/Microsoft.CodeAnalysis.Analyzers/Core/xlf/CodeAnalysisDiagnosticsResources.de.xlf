@@ -23,8 +23,13 @@
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
-        <source>Symbols should be compared for equality, not identity.</source>
-        <target state="translated">Symbole sollten hinsichtlich Gleichheit verglichen werden, nicht hinsichtlich Identität.</target>
+        <source>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</source>
+        <target state="needs-review-translation">Symbole sollten hinsichtlich Gleichheit verglichen werden, nicht hinsichtlich Identität.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyDescriptionGetHashCode">
+        <source>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</source>
+        <target state="new">Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
@@ -531,8 +536,8 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
-        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="translated">Ein CodeFixProvider sollte FixAll-Unterstützung bereitstellen, um mehrere Instanzen der zugrunde liegenden Diagnose mit einer einzigen Codefehlerbehebung zu korrigieren. Weitere Informationen finden Sie in der Dokumentation unter https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md.</target>
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
+        <target state="needs-review-translation">Ein CodeFixProvider sollte FixAll-Unterstützung bereitstellen, um mehrere Instanzen der zugrunde liegenden Diagnose mit einer einzigen Codefehlerbehebung zu korrigieren. Weitere Informationen finden Sie in der Dokumentation unter https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">

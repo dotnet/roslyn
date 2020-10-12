@@ -23,8 +23,13 @@
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
-        <source>Symbols should be compared for equality, not identity.</source>
-        <target state="translated">Semboller kimlik değil eşitlik için karşılaştırılmalıdır.</target>
+        <source>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</source>
+        <target state="needs-review-translation">Semboller kimlik değil eşitlik için karşılaştırılmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyDescriptionGetHashCode">
+        <source>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</source>
+        <target state="new">Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
@@ -531,8 +536,8 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
-        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="translated">CodeFixProvider, kullanıcıların tek bir kod düzeltmesiyle temel tanılamanın birden çok örneğini düzeltebilmesi için FixAll desteği sağlamalıdır. Daha fazla ayrıntı için https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md adresindeki belgelere bakın.</target>
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
+        <target state="needs-review-translation">CodeFixProvider, kullanıcıların tek bir kod düzeltmesiyle temel tanılamanın birden çok örneğini düzeltebilmesi için FixAll desteği sağlamalıdır. Daha fazla ayrıntı için https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md adresindeki belgelere bakın.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">

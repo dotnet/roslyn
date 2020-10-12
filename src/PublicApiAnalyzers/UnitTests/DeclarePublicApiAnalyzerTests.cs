@@ -1295,6 +1295,61 @@ C<T>.Nested.Nested() -> void
         #region Fix tests
 
         [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructor()
+        {
+            var source = @"
+public struct {|RS0016:C|}
+{
+}
+";
+
+            var shippedText = @"
+C";
+            var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructorWithExplicitPrivateCtorWithParameters()
+        {
+            var source = @"
+public struct {|RS0016:C|}
+{
+    private C(string x) {}
+}
+";
+
+            var shippedText = @"
+C";
+            var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructorWithOtherOverloadsAsync()
+        {
+            var source = @"
+public struct {|RS0016:C|}
+{
+    public C(int value)
+    {
+    }
+}
+";
+
+            var shippedText = @"
+C
+C.C(int value) -> void";
+            var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
         public async Task AnalyzerFileMissing_Both_Fix()
         {
@@ -1526,7 +1581,7 @@ public static class C<T1, T2>
     where T1 : class
     where T2 : System.IComparable<
 #nullable disable
-        T2
+        T1
 #nullable enable
         >
 {

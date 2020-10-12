@@ -647,7 +647,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Walks down consequtive parenthesized operations until an operand is reached that isn't a parenthesized operation.
+        /// Walks down consecutive parenthesized operations until an operand is reached that isn't a parenthesized operation.
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
@@ -672,7 +672,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Walks down consequtive conversion operations until an operand is reached that isn't a conversion operation.
+        /// Walks down consecutive conversion operations until an operand is reached that isn't a conversion operation.
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
@@ -1079,9 +1079,9 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Retursn true if the given operation is a regular compound assignment,
+        /// Returns true if the given operation is a regular compound assignment,
         /// i.e. <see cref="ICompoundAssignmentOperation"/> such as <code>a += b</code>,
-        /// or a special null coalescing compoud assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
+        /// or a special null coalescing compound assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
         /// such as <code>a ??= b</code>.
         /// </summary>
         public static bool IsAnyCompoundAssignment(this IOperation operation)
