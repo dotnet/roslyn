@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -260,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static string GetHelpLinkForDiagnosticId(string id)
         {
-            if (id == AbstractRegexDiagnosticAnalyzer.DiagnosticId)
+            if (id == "RE0001")
             {
                 // TODO: Add documentation for Regex analyzer
                 // Tracked with https://github.com/dotnet/roslyn/issues/48530
