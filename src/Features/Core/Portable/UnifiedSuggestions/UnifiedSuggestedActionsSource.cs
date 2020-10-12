@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         private static UnifiedSuggestedActionSetPriority GetUnifiedSuggestedActionSetPriority(CodeActionPriority key)
             => key switch
             {
-                CodeActionPriority.None => UnifiedSuggestedActionSetPriority.None,
+                CodeActionPriority.Lowest => UnifiedSuggestedActionSetPriority.None,
                 CodeActionPriority.Low => UnifiedSuggestedActionSetPriority.Low,
                 CodeActionPriority.Medium => UnifiedSuggestedActionSetPriority.Medium,
                 CodeActionPriority.High => UnifiedSuggestedActionSetPriority.High,

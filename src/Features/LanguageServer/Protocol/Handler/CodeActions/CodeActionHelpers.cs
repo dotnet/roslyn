@@ -246,10 +246,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         private static LSP.PriorityLevel? CodeActionPriorityToPriorityLevel(CodeActionPriority priority)
             => priority switch
             {
+                // TO-DO: CodeActionPriority.Lowest should map to a separate LSP enum type
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1229543
+                CodeActionPriority.Lowest => null,
                 CodeActionPriority.Low => LSP.PriorityLevel.Low,
                 CodeActionPriority.Medium => LSP.PriorityLevel.Normal,
                 CodeActionPriority.High => LSP.PriorityLevel.High,
-                CodeActionPriority.None => null, // If Roslyn doesn't assign a priority, let LSP decide the priority
                 _ => throw ExceptionUtilities.UnexpectedValue(priority)
             };
 
