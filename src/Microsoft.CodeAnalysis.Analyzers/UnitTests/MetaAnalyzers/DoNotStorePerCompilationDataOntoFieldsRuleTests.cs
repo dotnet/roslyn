@@ -163,6 +163,16 @@ class MyAnalyzer : DiagnosticAnalyzer
         {
         }
     }
+
+    private struct NestedStructCompilationAnalyzer
+    {
+        // Ok to store per-compilation data here.
+        private readonly Dictionary<MyCompilation, MyNamedType> y;
+
+        internal void StartCompilation(CompilationStartAnalysisContext context)
+        {
+        }
+    }
 }
 
 class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
@@ -228,6 +238,14 @@ Class MyAnalyzer
         Friend Sub StartCompilation(context As CompilationStartAnalysisContext)
         End Sub
     End Class
+
+    Structure NestedStructCompilationAnalyzer
+        ' Ok to store per-compilation data here.
+        Private ReadOnly y As Dictionary(Of MyCompilation, MyNamedType)
+
+        Friend Sub StartCompilation(context As CompilationStartAnalysisContext)
+        End Sub
+    End Structure
 End Class
 
 Class MyAnalyzerWithoutAttribute

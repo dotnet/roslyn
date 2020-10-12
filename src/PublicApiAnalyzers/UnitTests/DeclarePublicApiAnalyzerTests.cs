@@ -1526,7 +1526,7 @@ public static class C<T1, T2>
     where T1 : class
     where T2 : System.IComparable<
 #nullable disable
-        T2
+        T1
 #nullable enable
         >
 {
