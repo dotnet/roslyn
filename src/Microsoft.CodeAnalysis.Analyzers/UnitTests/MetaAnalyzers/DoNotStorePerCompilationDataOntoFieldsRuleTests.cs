@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpDiagnosticAnalyzerFieldsAnalyzer,
@@ -267,6 +268,70 @@ End Class
 ";
 
             await VerifyVB.VerifyAnalyzerAsync(source);
+        }
+
+        [Fact, WorkItem(4308, "https://github.com/dotnet/roslyn-analyzers/issues/4308")]
+        public async Task CSharp_NestedStruct_NoDiagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+
+namespace MyNamespace
+{
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class AnyInstanceInjectionAnalyzer : DiagnosticAnalyzer
+    {
+        public struct DependencyAccess
+        {
+            public IMethodSymbol method;
+            public string expectedName;
+        }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+            context.RegisterCompilationStartAction(OnCompilationStart);
+        }
+
+        public void OnCompilationStart(CompilationStartAnalysisContext context)
+        {
+            var accessors = new ConcurrentBag<DependencyAccess>();
+
+            context.RegisterSymbolAction(
+                symbolContext => AnalyzeSymbol(symbolContext, accessors),
+                SymbolKind.Property,
+                SymbolKind.Field
+            );
+
+            context.RegisterSemanticModelAction(
+                semanticModelContext => AnalyzeSemanticModel(semanticModelContext, accessors)
+            );
+        }
+
+        public void AnalyzeSymbol(SymbolAnalysisContext context, ConcurrentBag<DependencyAccess> accessors)
+        {
+            // collect symbols for analysis
+        }
+
+        public void AnalyzeSemanticModel(SemanticModelAnalysisContext context, ConcurrentBag<DependencyAccess> accessors)
+        {
+            foreach (var access in accessors)
+            {
+                // analyze
+            }
+        }
+    }
+}");
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName) =>
