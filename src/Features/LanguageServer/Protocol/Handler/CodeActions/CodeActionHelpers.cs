@@ -249,7 +249,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 CodeActionPriority.Low => LSP.PriorityLevel.Low,
                 CodeActionPriority.Medium => LSP.PriorityLevel.Normal,
                 CodeActionPriority.High => LSP.PriorityLevel.High,
-                _ => null // If Roslyn doesn't assign a priority, let LSP decide the priority
+                CodeActionPriority.None => null, // If Roslyn doesn't assign a priority, let LSP decide the priority
+                _ => throw ExceptionUtilities.UnexpectedValue(priority)
             };
 
         public static CodeAction? GetCodeActionToResolve(string distinctTitle, ImmutableArray<CodeAction> codeActions)
