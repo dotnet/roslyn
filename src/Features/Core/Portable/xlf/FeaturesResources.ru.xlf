@@ -655,6 +655,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Отсутствуют закрывающие круглые скобки</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="new">Operators</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
         <target state="translated">Не удается обновить ссылку на свойство</target>

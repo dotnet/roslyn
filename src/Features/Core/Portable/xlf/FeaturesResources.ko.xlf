@@ -655,6 +655,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">부족 )'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="new">Operators</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
         <target state="translated">속성 참조를 업데이트할 수 없습니다.</target>

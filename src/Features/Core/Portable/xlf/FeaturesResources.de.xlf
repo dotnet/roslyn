@@ -655,6 +655,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Zu wenige )-Zeichen</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="new">Operators</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
         <target state="translated">Der Eigenschaftenverweis kann nicht aktualisiert werden.</target>

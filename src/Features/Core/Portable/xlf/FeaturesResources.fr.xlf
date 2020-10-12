@@ -655,6 +655,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Pas assez de )'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="new">Operators</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
         <target state="translated">La référence de propriété ne peut pas être mise à jour</target>

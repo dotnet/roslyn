@@ -655,6 +655,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Parentesi chiuse insufficienti</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="new">Operators</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
         <target state="translated">Non è possibile aggiornare il riferimento alla proprietà</target>

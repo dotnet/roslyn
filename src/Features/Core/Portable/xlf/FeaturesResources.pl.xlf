@@ -655,6 +655,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zbyt mało znaków )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="new">Operators</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
         <target state="translated">Nie można zaktualizować referencji właściwości</target>
