@@ -320,16 +320,16 @@ namespace Microsoft.CodeAnalysis.Text
                     if (tryGetNextNewChange()) continue;
                     else break;
                 }
-                else if (newChange.SpanEnd < oldChange.Span.Start + oldDelta)
+                else if (newChange.SpanEnd <= oldChange.Span.Start + oldDelta)
                 {
                     // new change is entirely before old change, so just take the new change
                     //                old[--------]
                     // new[--------]
-                    addAdjustedNewChange(builder, oldDelta, newChange);
+                    adjustAndAddNewChange(builder, oldDelta, newChange);
                     if (tryGetNextNewChange()) continue;
                     else break;
                 }
-                else if (newChange.SpanStart > oldChange.NewEnd + oldDelta)
+                else if (newChange.SpanStart >= oldChange.NewEnd + oldDelta)
                 {
                     // new change is entirely after old change, so just take the old change
                     // old[--------]
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Text
                     // new|ddd|
                     //    |bbbbbb|
                     var newChangeLeadingDeletion = oldChange.Span.Start + oldDelta - newChange.SpanStart;
-                    addAdjustedNewChange(builder, oldDelta, new UnadjustedNewChange(newChange.SpanStart, newChangeLeadingDeletion, newLength: 0));
+                    adjustAndAddNewChange(builder, oldDelta, new UnadjustedNewChange(newChange.SpanStart, newChangeLeadingDeletion, newLength: 0));
                     newChange = new UnadjustedNewChange(oldChange.Span.Start + oldDelta, newChange.SpanLength - newChangeLeadingDeletion, newChange.NewLength);
                     continue;
                 }
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                         // since the new change insertion occurs before the old change, consume it now
                         newChange = new UnadjustedNewChange(newChange.SpanEnd, spanLength: 0, newChange.NewLength);
-                        addAdjustedNewChange(builder, oldDelta, newChange);
+                        adjustAndAddNewChange(builder, oldDelta, newChange);
                         if (tryGetNextNewChange()) continue;
                         else break;
                     }
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             while (newIndex < newChanges.Length)
             {
-                addAdjustedNewChange(builder, oldDelta, newChange);
+                adjustAndAddNewChange(builder, oldDelta, newChange);
                 tryGetNextNewChange();
             }
 
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Text
                 add(builder, oldChange);
             }
 
-            static void addAdjustedNewChange(ArrayBuilder<TextChangeRange> builder, int oldDelta, UnadjustedNewChange newChange)
+            static void adjustAndAddNewChange(ArrayBuilder<TextChangeRange> builder, int oldDelta, UnadjustedNewChange newChange)
             {
                 // unadjusted new change is relative to the original text with old changes applied. Subtract oldDelta to make it relative to the original text.
                 add(builder, new TextChangeRange(new TextSpan(newChange.SpanStart - oldDelta, newChange.SpanLength), newChange.NewLength));
