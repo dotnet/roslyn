@@ -26,13 +26,18 @@ stages:
   jobs:
   - job: OfficialBuild
     displayName: Official Build
-    pool:
-      name: VSEng-MicroBuildVS2017
-      demands: 
-      - msbuild
-      - visualstudio
-      - DotNetFramework
     timeoutInMinutes: 360
+    # Conditionally set build pool so we can share this YAML when building with different pipeline (devdiv vs dnceng) 
+    pool:      
+      ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+        name: VSEng-MicroBuildVS2017
+        demands: 
+        - msbuild
+        - visualstudio
+        - DotNetFramework
+      ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
+        name: NetCoreInternal-Pool
+        queue: BuildPool.Windows.10.Amd64.VS2019
 
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
