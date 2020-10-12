@@ -10,6 +10,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InlineHints
 {
+    /// <summary>
+    /// Gets inline hints for type locations.  This is an internal service only for C# and VB.  Use <see
+    /// cref="IInlineHintsService"/> for other languages.
+    /// </summary>
     internal interface IInlineTypeHintsService : ILanguageService
     {
         Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);

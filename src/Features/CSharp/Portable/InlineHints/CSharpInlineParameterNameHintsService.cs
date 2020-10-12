@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 {
+
     /// <summary>
     /// The service to locate the positions in which the adornments should appear
     /// as well as associate the adornments back to the parameter name

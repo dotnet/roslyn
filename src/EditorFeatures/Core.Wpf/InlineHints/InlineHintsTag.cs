@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private readonly IToolTipService _toolTipService;
         private readonly ITextView _textView;
         private readonly SnapshotSpan _span;
-        private readonly SymbolKey? _key;
+        private readonly InlineHint _hint;
         private readonly IThreadingContext _threadingContext;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
@@ -47,13 +48,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             FrameworkElement adornment,
             ITextView textView,
             SnapshotSpan span,
-            SymbolKey? key,
+            InlineHint hint,
             InlineHintsTaggerProvider taggerProvider)
             : base(adornment, removalCallback: null, PositionAffinity.Predecessor)
         {
             _textView = textView;
             _span = span;
-            _key = key;
+            _hint = hint;
             _streamingPresenter = taggerProvider.StreamingFindUsagesPresenter;
             _threadingContext = taggerProvider.ThreadingContext;
             _toolTipService = taggerProvider.ToolTipService;
@@ -71,68 +72,30 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// </summary>
         /// <param name="textView">The view of the editor</param>
         /// <param name="span">The span that has the location of the hint</param>
-        /// <param name="key">The symbolkey associated with each parameter</param>
         public static InlineHintsTag Create(
-            ImmutableArray<SymbolDisplayPart> parts,
+            InlineHint hint,
             TextFormattingRunProperties format,
             IWpfTextView textView,
             SnapshotSpan span,
-            SymbolKey? key,
             InlineHintsTaggerProvider taggerProvider,
             IClassificationFormatMap formatMap,
             bool classify)
         {
             return new InlineHintsTag(
-                CreateElement(parts, textView, span, format, formatMap, taggerProvider.TypeMap, classify),
-                textView, span, key, taggerProvider);
+                CreateElement(hint.DisplayParts, textView, span, format, formatMap, taggerProvider.TypeMap, classify),
+                textView, span, hint, taggerProvider);
         }
 
         public async Task<IReadOnlyCollection<object>> CreateDescriptionAsync(CancellationToken cancellationToken)
         {
-            if (_key != null)
+            var document = _span.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document != null)
             {
-                var document = _span.Snapshot.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                if (document != null)
+                var taggedText = await _hint.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
+                if (!taggedText.IsDefaultOrEmpty)
                 {
-                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var symbol = _key.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-
-                    if (symbol != null)
-                    {
-                        var textContentBuilder = new List<TaggedText>();
-
-                        var workspace = document.Project.Solution.Workspace;
-                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        var symbolDisplayService = document.GetRequiredLanguageService<ISymbolDisplayService>();
-                        var formatter = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
-                        var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, _span.Start, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
-                        textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
-                        if (formatter != null)
-                        {
-                            var documentation = symbol.GetDocumentationParts(semanticModel, _span.Start, formatter, cancellationToken);
-
-                            if (documentation.Any())
-                            {
-                                textContentBuilder.AddLineBreak();
-                                textContentBuilder.AddRange(documentation);
-                            }
-                        }
-
-                        if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out var parts))
-                        {
-                            if (!parts.IsDefaultOrEmpty)
-                            {
-                                textContentBuilder.AddLineBreak();
-                                textContentBuilder.AddLineBreak();
-                                textContentBuilder.AddRange(parts);
-                            }
-                        }
-
-                        var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(),
-                            document, _threadingContext, _streamingPresenter);
-                        return uiCollection;
-                    }
+                    return Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(
+                        taggedText, document, _threadingContext, _streamingPresenter);
                 }
             }
 
@@ -140,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         }
 
         private static FrameworkElement CreateElement(
-            ImmutableArray<SymbolDisplayPart> parts,
+            ImmutableArray<TaggedText> taggedTexts,
             IWpfTextView textView,
             SnapshotSpan span,
             TextFormattingRunProperties format,
@@ -163,7 +126,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
-            var taggedTexts = parts.ToTaggedText();
             foreach (var taggedText in taggedTexts)
             {
                 var run = new Run(taggedText.ToVisibleDisplayString(includeLeftToRightMarker: true));

@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim inlineHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
 
                 Dim producedTags = From hint In inlineHints
-                                   Select hint.Parts.GetFullText() + hint.Span.ToString
+                                   Select hint.DisplayParts.GetFullText() + hint.Span.ToString
 
                 ValidateSpans(hostDocument, producedTags)
             End Using
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim typeHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
 
                 Dim producedTags = From hint In typeHints
-                                   Select hint.Parts.GetFullText() + ":" + hint.Span.ToString()
+                                   Select hint.DisplayParts.GetFullText() + ":" + hint.Span.ToString()
 
                 ValidateSpans(hostDocument, producedTags)
             End Using
