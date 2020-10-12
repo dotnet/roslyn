@@ -377,6 +377,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return node.WithMembers(newMembers);
                 }
 
+                public override SyntaxNode VisitRecordDeclaration(RecordDeclarationSyntax node)
+                {
+                    if (node != ContainerOfStatementsOrFieldToReplace)
+                    {
+                        return base.VisitRecordDeclaration(node);
+                    }
+
+                    var newMembers = VisitList(ReplaceMembers(node.Members, global: false));
+                    return node.WithMembers(newMembers);
+                }
+
                 public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
                 {
                     if (node != ContainerOfStatementsOrFieldToReplace)
