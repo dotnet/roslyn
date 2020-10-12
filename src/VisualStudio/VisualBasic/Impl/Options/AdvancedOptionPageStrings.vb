@@ -33,6 +33,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             BasicVSResources.Show_procedure_line_separators
 
+        Public ReadOnly Property Option_Display_all_hints_while_pressing_Ctrl_Alt As String =
+            ServicesVSResources.Display_all_hints_while_pressing_Ctrl_Alt
+
+        Public ReadOnly Property Option_Color_hints As String =
+            ServicesVSResources.Color_hints
+
         Public ReadOnly Property Option_Inline_Hints_experimental As String =
             ServicesVSResources.Inline_Hints_experimental
 
@@ -48,11 +54,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_hints_for_everything_else As String =
             ServicesVSResources.Show_hints_for_everything_else
 
-        Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String
-            Get
-                Return BasicVSResources.Don_t_put_ByRef_on_custom_structure
-            End Get
-        End Property
+        Public ReadOnly Property Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent As String =
+            ServicesVSResources.Suppress_hints_when_parameter_name_matches_the_method_s_intent
+
+        Public ReadOnly Property Option_Suppress_hints_when_parameter_names_differ_only_by_suffix As String =
+            ServicesVSResources.Suppress_hints_when_parameter_names_differ_only_by_suffix
+
+        Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
+            BasicVSResources.Don_t_put_ByRef_on_custom_structure
 
         Public ReadOnly Property Option_EditorHelp As String
             Get

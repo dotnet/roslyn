@@ -621,6 +621,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 var provider = _owner;
+
+                // The _owner flag is cleared on Dispose. This should only occur when cancellation has already been
+                // requested, but at least in 16.8 Preview 3.0 it was not always the case.
+                cancellationToken.ThrowIfCancellationRequested();
+                //Assumes.Present(provider);
+                if (provider is null)
+                {
+                    // The object was unexpectedly disposed while still in use (caller error)
+                    return null;
+                }
+
                 using var asyncToken = provider.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync));
                 var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
