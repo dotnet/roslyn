@@ -470,18 +470,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NullableAnnotation newAnnotation;
 
-            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.DefaultType) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
+            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
 
-            if (newTypeWithModifiers.NullableAnnotation.IsAnnotated())
-            {
-                if (newTypeWithModifiers._extensions is LazyNullableTypeParameter)
-                {
-                    Debug.Assert(newCustomModifiers.IsEmpty);
-                    return newTypeWithModifiers;
-                }
-                newAnnotation = NullableAnnotation.Annotated;
-            }
-            else if (NullableAnnotation.IsAnnotated())
+            if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
             {
                 newAnnotation = NullableAnnotation.Annotated;
             }
