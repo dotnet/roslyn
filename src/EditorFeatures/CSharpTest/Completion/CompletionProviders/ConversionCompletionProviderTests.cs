@@ -928,27 +928,29 @@ public class Program
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        // From property is not Nullable<From>
-        [InlineData("class", "class", false, false, false)] // c.From class -> class = (To)
-        [InlineData("class", "class", false, true, false)] // c?.From class -> class = (To)
-        [InlineData("struct", "class", false, false, false)] // c.From struct -> class = (To)
-        [InlineData("struct", "class", false, true, false)] // c?.From struct -> class = (To)
-        [InlineData("class", "struct", false, false, false)] // c.From class -> struct = (To)
-        [InlineData("class", "struct", false, true, false)] // c?.From class -> struct = (To)
-        [InlineData("struct", "struct", false, false, false)] // c.From struct -> struct = (To)
-        [InlineData("struct", "struct", false, true, true)] // c?.From struct -> struct = (To?)
-
-        // From property is Nullable<From>
-        [InlineData("struct", "class", true, false, false)] // c.From struct -> class = (To)
-        [InlineData("struct", "class", true, true, false)] // c?.From struct -> class = (To)
-        [InlineData("struct", "struct", true, false, true)] // c.From struct -> struct = (To?)
-        [InlineData("struct", "struct", true, true, true)] // c?.From struct -> struct = (To?)
-        public async Task ExplicitConversionOfConditionalAccessFromClassOrStructToClassOrStruct(string fromClassOrStruct, string toClassOrStruct, bool propertyIsNullabale, bool conditionalAccess, bool shouldBeNullable)
+        [CombinatorialData]
+        public async Task ExplicitConversionOfConditionalAccessFromClassOrStructToClassOrStruct(
+            [CombinatorialValues("struct", "class")] string fromClassOrStruct,
+            [CombinatorialValues("struct", "class")] string toClassOrStruct,
+            bool propertyIsNullabale,
+            bool conditionalAccess)
         {
-            Assert.False(fromClassOrStruct == "class" && propertyIsNullabale);
+            if (fromClassOrStruct == "class" && propertyIsNullabale)
+            {
+                // This test is solely about lifting of nullable value types. The CombinatorialData also 
+                // adds cases for nullable reference types: public class From ... public From? From { get; }
+                // We don't want to test NRT cases here.
+                return;
+            }
+
+            var assertShouldBeNullable =
+                fromClassOrStruct == "struct" &&
+                toClassOrStruct == "struct" &&
+                (propertyIsNullabale || conditionalAccess);
+
             var propertyNullableQuestionmark = propertyIsNullabale ? "?" : "";
             var conditionalAccessQuestionmark = conditionalAccess ? "?" : "";
-            var shouldBeNullableQuestionMark = shouldBeNullable ? "?" : "";
+            var shouldBeNullableQuestionMark = assertShouldBeNullable ? "?" : "";
             await VerifyCustomCommitProviderAsync(@$"
 public {fromClassOrStruct} From {{
     public static explicit operator To(From _) => default;
