@@ -23,7 +23,7 @@ namespace Roslyn.Diagnostics.Analyzers
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RoslynDiagnosticIds.MissingSharedAttributeRuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessage,
-                                                                             DiagnosticCategory.RoslyDiagnosticsReliability,
+                                                                             DiagnosticCategory.RoslynDiagnosticsReliability,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: true,
                                                                              description: s_localizableDescription,
@@ -56,13 +56,18 @@ namespace Roslyn.Diagnostics.Analyzers
 
                     var exportAttributeApplication = exportAttributes.FirstOrDefault();
 
-                    if (exportAttributeApplication != null)
+                    if (exportAttributeApplication != null &&
+                        !namedTypeAttributes.Any(ad => ad.AttributeClass.Name == "SharedAttribute" &&
+                                                       ad.AttributeClass.ContainingNamespace.Equals(exportAttribute.ContainingNamespace)))
                     {
-                        if (!namedTypeAttributes.Any(ad => ad.AttributeClass.Name == "SharedAttribute" &&
-                                                           ad.AttributeClass.ContainingNamespace.Equals(exportAttribute.ContainingNamespace)))
+                        if (exportAttributeApplication.ApplicationSyntaxReference == null)
+                        {
+                            symbolContext.ReportDiagnostic(symbolContext.Symbol.CreateDiagnostic(Rule, namedType.Name));
+                        }
+                        else
                         {
                             // '{0}' is exported with MEFv2 and hence must be marked as Shared
-                            symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                            symbolContext.ReportDiagnostic(exportAttributeApplication.ApplicationSyntaxReference.CreateDiagnostic(Rule, symbolContext.CancellationToken, namedType.Name));
                         }
                     }
                 }, SymbolKind.NamedType);

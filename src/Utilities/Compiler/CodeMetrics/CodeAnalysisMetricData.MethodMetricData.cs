@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -26,17 +26,19 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
             }
 
-            internal static async Task<MethodMetricData> ComputeAsync(IMethodSymbol method, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+            internal static async Task<MethodMetricData> ComputeAsync(IMethodSymbol method, CodeMetricsAnalysisContext context)
             {
+                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
+
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = method.DeclaringSyntaxReferences;
-                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, method, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, method, context).ConfigureAwait(false);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
-                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, method, coupledTypesBuilder, semanticModelProvider, cancellationToken).ConfigureAwait(false);
-                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, method.Parameters);
+                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, method, coupledTypesBuilder, context).ConfigureAwait(false);
+                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, method.Parameters);
                 if (!method.ReturnsVoid)
                 {
-                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, method.ReturnType);
+                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, method.ReturnType);
                 }
                 int? depthOfInheritance = null;
                 int maintainabilityIndex = CalculateMaintainabilityIndex(computationalComplexityMetrics, cyclomaticComplexity);

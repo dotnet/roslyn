@@ -1,0 +1,26 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net472</TargetFrameworks>
+    
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecPackageId>Microsoft.CodeAnalysis.RulesetToEditorconfigConverter</NuspecPackageId>
+    <Description>Utility to convert ruleset files to equivalent .editorconfig files. Editorconfig files are respected by C# and VB compilers on VS2019 16.3 or later. See https://docs.microsoft.com/visualstudio/code-quality/use-roslyn-analyzers#set-rule-severity-in-an-editorconfig-file for details.</Description>
+    <Summary>Utility to convert ruleset files to equivalent .editorconfig files</Summary>
+    <ReleaseNotes>Utility to convert ruleset files to equivalent .editorconfig files</ReleaseNotes>
+    <PackageTags>Roslyn CodeAnalysis Ruleset EditorConfig Compiler FxCop CSharp VB VisualBasic Syntax Semantics</PackageTags>
+    <ContainsPortedFxCopRules>false</ContainsPortedFxCopRules>
+	  <GeneratePackagePropsFile>false</GeneratePackagePropsFile>
+    
+	  <NoWarn>$(NoWarn);NU5100</NoWarn>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <AnalyzerNupkgFolder Include="RulesetToEditorconfigConverter" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Tools\RulesetToEditorconfigConverter\Source\RulesetToEditorconfigConverter.csproj" />
+  </ItemGroup>
+</Project>

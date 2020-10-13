@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
     [Shared]
     public class CompareSymbolsCorrectlyFix : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CompareSymbolsCorrectlyAnalyzer.Rule.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CompareSymbolsCorrectlyAnalyzer.EqualityRule.Id);
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;
@@ -26,12 +26,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
-                        cancellationToken => ConvertToEqualsAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
-                        equivalenceKey: nameof(CompareSymbolsCorrectlyFix)),
-                    diagnostic);
+                if (diagnostic.Descriptor == CompareSymbolsCorrectlyAnalyzer.EqualityRule)
+                {
+                    context.RegisterCodeFix(
+                        CodeAction.Create(
+                            CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
+                            cancellationToken => ConvertToEqualsAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
+                            equivalenceKey: nameof(CompareSymbolsCorrectlyFix)),
+                        diagnostic);
+                }
             }
 
             return Task.CompletedTask;
@@ -62,19 +65,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
 
-            if (invocationOperation.Instance is null)
-            {
-                var replacement = generator.InvocationExpression(
-                                    GetEqualityComparerDefaultEquals(generator),
-                                    invocationOperation.Arguments.Select(argument => argument.Syntax).ToImmutableArray());
+            var arguments = invocationOperation.Arguments.Select(argument => argument.Syntax);
 
-                editor.ReplaceNode(invocationOperation.Syntax, replacement.WithTriviaFrom(invocationOperation.Syntax));
-            }
-            else
+            if (invocationOperation.Instance is not null)
             {
-                var replacement = generator.AddParameters(invocationOperation.Syntax, new[] { GetEqualityComparerDefault(generator) });
-                editor.ReplaceNode(invocationOperation.Syntax, replacement.WithTriviaFrom(invocationOperation.Syntax));
+                arguments = new[] { invocationOperation.Instance.Syntax }.Concat(arguments);
             }
+
+            var replacement = generator.InvocationExpression(
+                                    GetEqualityComparerDefaultEquals(generator),
+                                    arguments);
+
+            editor.ReplaceNode(invocationOperation.Syntax, replacement.WithTriviaFrom(invocationOperation.Syntax));
 
             return editor.GetChangedDocument();
         }

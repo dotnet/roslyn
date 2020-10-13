@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.EnableConcurrentExecutionTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.EnableConcurrentExecutionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.EnableConcurrentExecutionDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticIds.EnableConcurrentExecutionRuleId,
@@ -24,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
@@ -43,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             var compilation = compilationContext.Compilation;
 
-            var analysisContext = compilation.GetOrCreateTypeByMetadataName(AnalysisContextFullName);
+            var analysisContext = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsAnalysisContext);
             if (analysisContext is null)
             {
                 return null;
@@ -130,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             {
                 if (!EnabledConcurrentExecution)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, _analysisContextParameter.Locations.FirstOrDefault()));
+                    context.ReportDiagnostic(_analysisContextParameter.CreateDiagnostic(Rule));
                 }
             }
         }

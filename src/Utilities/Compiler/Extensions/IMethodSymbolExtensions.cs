@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 
 #if HAS_IOPERATION
-using System.Collections.Concurrent;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 #endif
@@ -163,6 +163,16 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Checks if the given method implements IAsyncDisposable.Dispose()
+        /// </summary>
+        public static bool IsAsyncDisposeImplementation(this IMethodSymbol method, Compilation compilation)
+        {
+            INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
+            INamedTypeSymbol? valueTaskType = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
+            return method.IsAsyncDisposeImplementation(iAsyncDisposable, valueTaskType);
+        }
+
+        /// <summary>
         /// Checks if the given method implements <see cref="IDisposable.Dispose"/> or overrides an implementation of <see cref="IDisposable.Dispose"/>.
         /// </summary>
         public static bool IsDisposeImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iDisposable)
@@ -185,12 +195,43 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Checks if the given method implements "IAsyncDisposable.Dispose" or overrides an implementation of "IAsyncDisposable.Dispose".
+        /// </summary>
+        public static bool IsAsyncDisposeImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iAsyncDisposable, [NotNullWhen(returnValue: true)] INamedTypeSymbol? valueTaskType)
+        {
+            if (method == null)
+            {
+                return false;
+            }
+
+            if (method.IsOverride)
+            {
+                return method.OverriddenMethod.IsAsyncDisposeImplementation(iAsyncDisposable, valueTaskType);
+            }
+
+            // Identify the implementor of IAsyncDisposable.Dispose in the given method's containing type and check
+            // if it is the given method.
+            return method.ReturnType != null && method.ReturnType.Equals(valueTaskType) && method.Parameters.IsEmpty &&
+                method.IsImplementationOfInterfaceMethod(null, iAsyncDisposable, "DisposeAsync");
+        }
+
+        /// <summary>
         /// Checks if the given method has the signature "void Dispose()".
         /// </summary>
         private static bool HasDisposeMethodSignature(this IMethodSymbol method)
         {
             return method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
                 method.ReturnsVoid && method.Parameters.IsEmpty;
+        }
+
+        /// <summary>
+        /// Checks if the given method matches Dispose method convention and can be recognized by "using".
+        /// </summary>
+        public static bool HasDisposeSignatureByConvention(this IMethodSymbol method)
+        {
+            return method.HasDisposeMethodSignature()
+                && !method.IsStatic
+                && !method.IsPrivate();
         }
 
         /// <summary>
@@ -218,6 +259,12 @@ namespace Analyzer.Utilities.Extensions
             return method.Name == "Close" && method.MethodKind == MethodKind.Ordinary &&
                 method.ReturnsVoid && method.Parameters.IsEmpty;
         }
+
+        /// <summary>
+        /// Checks if the given method has the signature "Task CloseAsync()".
+        /// </summary>
+        private static bool HasDisposeCloseAsyncMethodSignature(this IMethodSymbol method, INamedTypeSymbol? taskType)
+            => taskType != null && method.Parameters.IsEmpty && method.Name == "CloseAsync" && method.ReturnType.Equals(taskType);
 
         /// <summary>
         /// Checks if the given method has the signature "Task DisposeAsync()" or "ValueTask DisposeAsync()".
@@ -272,7 +319,12 @@ namespace Analyzer.Utilities.Extensions
             {
                 if (IsDisposeImplementation(method, iDisposable) ||
                     (Equals(method.ContainingType, iDisposable) &&
-                     method.HasDisposeMethodSignature()))
+                     method.HasDisposeMethodSignature())
+#if CODEANALYSIS_V3_OR_BETTER
+                    || (method.ContainingType.IsRefLikeType &&
+                     method.HasDisposeSignatureByConvention())
+#endif
+                )
                 {
                     return DisposeMethodKind.Dispose;
                 }
@@ -291,6 +343,10 @@ namespace Analyzer.Utilities.Extensions
                 else if (method.HasDisposeCloseMethodSignature())
                 {
                     return DisposeMethodKind.Close;
+                }
+                else if (method.HasDisposeCloseAsyncMethodSignature(task))
+                {
+                    return DisposeMethodKind.CloseAsync;
                 }
             }
 
@@ -320,6 +376,19 @@ namespace Analyzer.Utilities.Extensions
                 method.IsImplementationOfInterfaceMethod(null, iDeserializationCallback, "OnDeserialization");
         }
 
+        public static bool IsSerializationConstructor([NotNullWhen(returnValue: true)] this IMethodSymbol? method, INamedTypeSymbol? serializationInfoType, INamedTypeSymbol? streamingContextType)
+            => method.IsConstructor() &&
+                method.Parameters.Length == 2 &&
+                method.Parameters[0].Type.Equals(serializationInfoType) &&
+                method.Parameters[1].Type.Equals(streamingContextType);
+
+        public static bool IsGetObjectData([NotNullWhen(returnValue: true)] this IMethodSymbol? method, INamedTypeSymbol? serializationInfoType, INamedTypeSymbol? streamingContextType)
+            => method?.Name == "GetObjectData" &&
+                method.ReturnsVoid &&
+                method.Parameters.Length == 2 &&
+                method.Parameters[0].Type.Equals(serializationInfoType) &&
+                method.Parameters[1].Type.Equals(streamingContextType);
+
         /// <summary>
         /// Checks if the method is a property getter.
         /// </summary>
@@ -343,8 +412,8 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsPropertyAccessor(this IMethodSymbol method)
         {
-            return method.MethodKind == MethodKind.PropertyGet ||
-                   method.MethodKind == MethodKind.PropertySet;
+            return method.MethodKind is MethodKind.PropertyGet or
+                   MethodKind.PropertySet;
         }
 
         /// <summary>
@@ -352,14 +421,14 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsEventAccessor(this IMethodSymbol method)
         {
-            return method.MethodKind == MethodKind.EventAdd ||
-                   method.MethodKind == MethodKind.EventRaise ||
-                   method.MethodKind == MethodKind.EventRemove;
+            return method.MethodKind is MethodKind.EventAdd or
+                   MethodKind.EventRaise or
+                   MethodKind.EventRemove;
         }
 
         public static bool IsOperator(this IMethodSymbol methodSymbol)
         {
-            return methodSymbol.MethodKind == MethodKind.UserDefinedOperator || methodSymbol.MethodKind == MethodKind.BuiltinOperator;
+            return methodSymbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.BuiltinOperator;
         }
 
         public static bool HasOptionalParameters(this IMethodSymbol methodSymbol)
@@ -527,19 +596,24 @@ namespace Analyzer.Utilities.Extensions
                 }
             }
 
-            throw new ArgumentException("Invalid paramater", nameof(parameterSymbol));
+            throw new ArgumentException("Invalid parameter", nameof(parameterSymbol));
         }
 
         /// <summary>
         /// Returns true for void returning methods with two parameters, where
         /// the first parameter is of <see cref="object"/> type and the second
-        /// parameter inherits from or equals <see cref="EventArgs"/> type.
+        /// parameter inherits from or equals <see cref="EventArgs"/> type or
+        /// whose name ends with 'EventArgs'.
         /// </summary>
         public static bool HasEventHandlerSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? eventArgsType)
             => eventArgsType != null &&
+               method.ReturnsVoid &&
                method.Parameters.Length == 2 &&
                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-               method.Parameters[1].Type.DerivesFrom(eventArgsType, baseTypesOnly: true);
+               // FxCop compat: Struct with name ending with "EventArgs" are allowed
+               // + UWP has specific EventArgs not inheriting from 'System.EventArgs'.
+               // See https://github.com/dotnet/roslyn-analyzers/issues/3106
+               (method.Parameters[1].Type.DerivesFrom(eventArgsType, baseTypesOnly: true) || method.Parameters[1].Type.Name.EndsWith("EventArgs", StringComparison.Ordinal));
 
         public static bool IsLockMethod(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? systemThreadingMonitor)
         {
@@ -550,7 +624,6 @@ namespace Analyzer.Utilities.Extensions
                    !method.Parameters.IsEmpty &&
                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
         }
-
 
         public static bool IsInterlockedExchangeMethod(this IMethodSymbol method, INamedTypeSymbol? systemThreadingInterlocked)
         {
@@ -619,5 +692,37 @@ namespace Analyzer.Utilities.Extensions
                 method.Parameters.Length == 1 &&
                 !method.Parameters[0].Type.IsValueType;
         }
+
+        public static bool IsXUnitTestMethod(this IMethodSymbol method, ConcurrentDictionary<INamedTypeSymbol, bool> knownTestAttributes, INamedTypeSymbol xunitFactAttribute)
+        {
+            foreach (var attribute in method.GetAttributes())
+            {
+                if (attribute.AttributeClass.IsXUnitTestAttribute(knownTestAttributes, xunitFactAttribute))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Check if a method is an auto-property accessor.
+        /// </summary>
+        public static bool IsAutoPropertyAccessor(this IMethodSymbol methodSymbol)
+            => methodSymbol.IsPropertyAccessor()
+            && methodSymbol.AssociatedSymbol is IPropertySymbol propertySymbol
+            && propertySymbol.IsAutoProperty();
+
+        /// <summary>
+        /// Check if the given <paramref name="methodSymbol"/> is an implicitly generated method for top level statements.
+        /// </summary>
+        public static bool IsTopLevelStatementsEntryPointMethod([NotNullWhen(true)] this IMethodSymbol? methodSymbol)
+            => methodSymbol?.ContainingType.IsTopLevelStatementsEntryPointType() == true &&
+               methodSymbol.IsStatic &&
+               methodSymbol.Name switch
+               {
+                   "$Main" => true,
+                   "<Main>$" => true,
+                   _ => false
+               };
     }
 }

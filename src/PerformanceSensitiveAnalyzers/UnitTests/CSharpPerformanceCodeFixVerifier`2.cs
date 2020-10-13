@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        private const string PerformanceSensitiveAttributeSource = @"
+        internal const string PerformanceSensitiveAttributeSource = @"
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -62,7 +62,6 @@ namespace Roslyn.Utilities
                         ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
                     },
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             test.ExpectedDiagnostics.AddRange(expected);
@@ -87,8 +86,14 @@ namespace Roslyn.Utilities
                         ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
                     },
                 },
-                FixedCode = fixedSource,
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        fixedSource,
+                        ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
+                    },
+                },
             };
 
             test.ExpectedDiagnostics.AddRange(expected);

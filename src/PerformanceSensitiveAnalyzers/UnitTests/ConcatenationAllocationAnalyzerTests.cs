@@ -103,7 +103,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         System.DateTime c = System.DateTime.Now;
         string s1 = ""char value will box"" + c;

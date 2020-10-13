@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,9 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(ConfigureGeneratedCodeAnalysisFix))]
-    [Shared]
-    public sealed class ConfigureGeneratedCodeAnalysisFix : CodeFixProvider
+    public abstract class ConfigureGeneratedCodeAnalysisFix : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ConfigureGeneratedCodeAnalysisAnalyzer.Rule.Id);
 
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             return Task.CompletedTask;
         }
 
-        private static async Task<Document> ConfigureGeneratedCodeAnalysisAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private async Task<Document> ConfigureGeneratedCodeAnalysisAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generatedCodeAnalysisFlags = semanticModel.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsGeneratedCodeAnalysisFlags);
@@ -53,33 +51,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var parameterDeclaration = analysisContextParameter;
-            var declarationKind = generator.GetDeclarationKind(parameterDeclaration);
-            while (declarationKind != DeclarationKind.Parameter)
+            var parameterDeclaration = generator.TryGetContainingDeclaration(analysisContextParameter, DeclarationKind.Parameter);
+            if (parameterDeclaration is null)
             {
-                parameterDeclaration = generator.GetDeclaration(parameterDeclaration.Parent);
-                if (parameterDeclaration is null)
-                {
-                    return document;
-                }
-
-                declarationKind = generator.GetDeclarationKind(parameterDeclaration);
+                return document;
             }
 
-            var methodDeclaration = parameterDeclaration.Parent;
-            declarationKind = generator.GetDeclarationKind(methodDeclaration);
-            while (declarationKind != DeclarationKind.Method)
+            var methodDeclaration = generator.TryGetContainingDeclaration(parameterDeclaration.Parent, DeclarationKind.Method);
+            if (methodDeclaration is null)
             {
-                methodDeclaration = generator.GetDeclaration(methodDeclaration.Parent);
-                if (methodDeclaration is null)
-                {
-                    return document;
-                }
-
-                declarationKind = generator.GetDeclarationKind(methodDeclaration);
+                return document;
             }
 
-            var statements = generator.GetStatements(methodDeclaration);
+            var statements = GetStatements(methodDeclaration);
             var newInvocation = generator.InvocationExpression(
                 generator.MemberAccessExpression(
                     generator.IdentifierName(generator.GetName(parameterDeclaration)),
@@ -92,9 +76,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                         generator.TypeExpressionForStaticMemberAccess(generatedCodeAnalysisFlags),
                         nameof(GeneratedCodeAnalysisFlags.ReportDiagnostics))));
 
-            var newStatements = new SyntaxNode[] { newInvocation }.Concat(statements).ToArray();
+            var newStatements = new SyntaxNode[] { newInvocation }.Concat(statements);
             var newMethodDeclaration = generator.WithStatements(methodDeclaration, newStatements);
             return document.WithSyntaxRoot(root.ReplaceNode(methodDeclaration, newMethodDeclaration));
         }
+
+        protected abstract IEnumerable<SyntaxNode> GetStatements(SyntaxNode methodDeclaration);
     }
 }

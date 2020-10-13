@@ -12,34 +12,30 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class DiagnosticExtensions
     {
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<SyntaxNode> nodes,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (SyntaxNode node in nodes)
-            {
-                yield return node.CreateDiagnostic(rule, args);
-            }
-        }
-
         public static Diagnostic CreateDiagnostic(
             this SyntaxNode node,
             DiagnosticDescriptor rule,
             params object[] args)
-        {
-            return node.GetLocation().CreateDiagnostic(rule, args);
-        }
+            => node.CreateDiagnostic(rule, properties: null, args);
 
         public static Diagnostic CreateDiagnostic(
             this SyntaxNode node,
             DiagnosticDescriptor rule,
-            ImmutableDictionary<string, string?> properties,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+            => node.CreateDiagnostic(rule, additionalLocations: ImmutableArray<Location>.Empty, properties, args);
+
+        public static Diagnostic CreateDiagnostic(
+            this SyntaxNode node,
+            DiagnosticDescriptor rule,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
             params object[] args)
             => node
                 .GetLocation()
                 .CreateDiagnostic(
                     rule: rule,
+                    additionalLocations: additionalLocations,
                     properties: properties,
                     args: args);
 
@@ -47,19 +43,25 @@ namespace Analyzer.Utilities.Extensions
             this IOperation operation,
             DiagnosticDescriptor rule,
             params object[] args)
-        {
-            return operation.Syntax.CreateDiagnostic(rule, args);
-        }
+            => operation.CreateDiagnostic(rule, properties: null, args);
 
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<SyntaxToken> tokens,
+        public static Diagnostic CreateDiagnostic(
+            this IOperation operation,
             DiagnosticDescriptor rule,
+            ImmutableDictionary<string, string?>? properties,
             params object[] args)
         {
-            foreach (SyntaxToken token in tokens)
-            {
-                yield return token.CreateDiagnostic(rule, args);
-            }
+            return operation.Syntax.CreateDiagnostic(rule, properties, args);
+        }
+
+        public static Diagnostic CreateDiagnostic(
+            this IOperation operation,
+            DiagnosticDescriptor rule,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+        {
+            return operation.Syntax.CreateDiagnostic(rule, additionalLocations, properties, args);
         }
 
         public static Diagnostic CreateDiagnostic(
@@ -70,42 +72,21 @@ namespace Analyzer.Utilities.Extensions
             return token.GetLocation().CreateDiagnostic(rule, args);
         }
 
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<SyntaxNodeOrToken> nodesOrTokens,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (SyntaxNodeOrToken nodeOrToken in nodesOrTokens)
-            {
-                yield return nodeOrToken.CreateDiagnostic(rule, args);
-            }
-        }
-
-        public static Diagnostic CreateDiagnostic(
-            this SyntaxNodeOrToken nodeOrToken,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            return nodeOrToken.GetLocation().CreateDiagnostic(rule, args);
-        }
-
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<ISymbol> symbols,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (ISymbol symbol in symbols)
-            {
-                yield return symbol.CreateDiagnostic(rule, args);
-            }
-        }
-
         public static Diagnostic CreateDiagnostic(
             this ISymbol symbol,
             DiagnosticDescriptor rule,
             params object[] args)
         {
             return symbol.Locations.CreateDiagnostic(rule, args);
+        }
+
+        public static Diagnostic CreateDiagnostic(
+            this ISymbol symbol,
+            DiagnosticDescriptor rule,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+        {
+            return symbol.Locations.CreateDiagnostic(rule, properties, args);
         }
 
         public static Diagnostic CreateDiagnostic(
@@ -121,7 +102,15 @@ namespace Analyzer.Utilities.Extensions
         public static Diagnostic CreateDiagnostic(
             this Location location,
             DiagnosticDescriptor rule,
-            ImmutableDictionary<string, string?> properties,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+            => location.CreateDiagnostic(rule, ImmutableArray<Location>.Empty, properties, args);
+
+        public static Diagnostic CreateDiagnostic(
+            this Location location,
+            DiagnosticDescriptor rule,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
             params object[] args)
         {
             if (!location.IsInSource)
@@ -132,19 +121,9 @@ namespace Analyzer.Utilities.Extensions
             return Diagnostic.Create(
                 descriptor: rule,
                 location: location,
+                additionalLocations: additionalLocations,
                 properties: properties,
                 messageArgs: args);
-        }
-
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<IEnumerable<Location>> setOfLocations,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (IEnumerable<Location> locations in setOfLocations)
-            {
-                yield return locations.CreateDiagnostic(rule, args);
-            }
         }
 
         public static Diagnostic CreateDiagnostic(
@@ -177,7 +156,7 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// TODO: Revert this reflection based workaround once we move to Microsoft.CodeAnalysis version 3.0
         /// </summary>
-        private static readonly PropertyInfo s_syntaxTreeDiagnosticOptionsProperty =
+        private static readonly PropertyInfo? s_syntaxTreeDiagnosticOptionsProperty =
             typeof(SyntaxTree).GetTypeInfo().GetDeclaredProperty("DiagnosticOptions");
 
         public static void ReportNoLocationDiagnostic(
@@ -185,13 +164,6 @@ namespace Analyzer.Utilities.Extensions
             DiagnosticDescriptor rule,
             params object[] args)
             => context.Compilation.ReportNoLocationDiagnostic(rule, context.ReportDiagnostic, properties: null, args);
-
-        public static void ReportNoLocationDiagnostic(
-            this Compilation compilation,
-            DiagnosticDescriptor rule,
-            Action<Diagnostic> addDiagnostic,
-            params object[] args)
-            => compilation.ReportNoLocationDiagnostic(rule, addDiagnostic, properties: null, args);
 
         public static void ReportNoLocationDiagnostic(
             this Compilation compilation,
@@ -229,7 +201,7 @@ namespace Analyzer.Utilities.Extensions
                 ReportDiagnostic? overriddenSeverity = null;
                 foreach (var tree in compilation.SyntaxTrees)
                 {
-                    var options = (ImmutableDictionary<string, ReportDiagnostic>)s_syntaxTreeDiagnosticOptionsProperty.GetValue(tree);
+                    var options = (ImmutableDictionary<string, ReportDiagnostic>)s_syntaxTreeDiagnosticOptionsProperty.GetValue(tree)!;
                     if (options.TryGetValue(rule.Id, out var configuredValue))
                     {
                         if (configuredValue == ReportDiagnostic.Suppress)

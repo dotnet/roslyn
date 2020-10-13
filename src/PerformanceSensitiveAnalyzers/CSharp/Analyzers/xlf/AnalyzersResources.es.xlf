@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="es" original="../AnalyzersResources.resx">
+    <body>
+      <trans-unit id="ClosureCaptureRuleMessage">
+        <source>The compiler will emit a class that will hold this as a field to allow capturing of this closure</source>
+        <target state="translated">El compilador emitirá una clase que lo contiene como campo para permitir la captura de esta clausura.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClosureCaptureRuleTitle">
+        <source>Display class allocation to capture closure</source>
+        <target state="translated">Mostrar la asignación de clase para capturar la clausura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClosureDriverRuleMessage">
+        <source>Heap allocation of closure Captures: {0}</source>
+        <target state="translated">Asignación del montón de las capturas de clausura: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClosureDriverRuleTitle">
+        <source>Closure Allocation Source</source>
+        <target state="translated">Origen de la asignación de clausura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DelegateOnStructInstanceRuleMessage">
+        <source>Struct instance method being used for delegate creation, this will result in a boxing instruction</source>
+        <target state="translated">Método de instancia de struct que se usa para la creación de delegado, lo que dará como resultado una instrucción de conversión boxing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DelegateOnStructInstanceRuleTitle">
+        <source>Delegate on struct instance caused a boxing allocation</source>
+        <target state="translated">El delegado en la instancia de struct causó una asignación de conversión boxing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleMessage">
+        <source>Considering moving this out of the generic method</source>
+        <target state="translated">Considere la posibilidad de extraerlo del método genérico</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleTitle">
+        <source>Lambda or anonymous method in a generic method allocates a delegate instance</source>
+        <target state="translated">Una expresión lambda o un método anónimo en un método genérico asigna una instancia de delegado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodGroupAllocationRuleMessage">
+        <source>This will allocate a delegate instance</source>
+        <target state="translated">Asignará una instancia de delegado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodGroupAllocationRuleTitle">
+        <source>Delegate allocation from a method group</source>
+        <target state="translated">Asignación de delegado desde un grupo de métodos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ParamsParameterRuleMessage">
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
+        <target state="translated">Este sitio de llamada invoca a una función con un parámetro "params", lo que da lugar a una asignación de matriz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ParamsParameterRuleTitle">
+        <source>Array allocation for params parameter</source>
+        <target state="translated">Asignación de matriz para el parámetro params</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReadonlyMethodGroupAllocationRuleMessage">
+        <source>This will allocate a delegate instance</source>
+        <target state="translated">Asignará una instancia de delegado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReadonlyMethodGroupAllocationRuleTitle">
+        <source>Delegate allocation from a method group</source>
+        <target state="translated">Asignación de delegado desde un grupo de métodos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceTypeEnumeratorRuleMessage">
+        <source>Non-ValueType enumerator may result in a heap allocation</source>
+        <target state="translated">Un enumerador distinto de ValueType puede producir una asignación del montón</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceTypeEnumeratorRuleTitle">
+        <source>Possible allocation of reference type enumerator</source>
+        <target state="translated">Posible asignación del enumerador de tipo de referencia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StringConcatenationAllocationRuleMessage">
+        <source>Considering using StringBuilder</source>
+        <target state="translated">Considere la posibilidad de usar StringBuilder</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StringConcatenationAllocationRuleTitle">
+        <source>Implicit string concatenation allocation</source>
+        <target state="translated">Asignación implícita de concatenación de cadenas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeNonOverridenCallRuleMessage">
+        <source>Non-overridden virtual method call on a value type adds a boxing or constrained instruction</source>
+        <target state="translated">La llamada de método virtual no reemplazado en un tipo de valor agrega una instrucción de conversión boxing o restringida.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeNonOverridenCallRuleTitle">
+        <source>Non-overridden virtual method call on value type</source>
+        <target state="translated">Llamada de método virtual no reemplazado en el tipo de valor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
+        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
+        <target state="translated">La conversión del tipo de valor al tipo de referencia genera una conversión boxing en el sitio de llamada (aquí) y otra de tipo unboxing en el sitio del destinatario. Considere la posibilidad de usar valores genéricos, si procede.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
+        <source>Value type to reference type conversion causing boxing allocation</source>
+        <target state="translated">La conversión del tipo de valor al tipo de referencia causa una asignación de conversión boxing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
+        <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
+        <target state="translated">Se está aplicando una conversión boxing del tipo de valor ({0}) a un tipo de referencia para una concatenación de cadenas.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">
+        <source>Value type to reference type conversion allocation for string concatenation</source>
+        <target state="translated">Asignación de conversión de tipo de valor a tipo de referencia para la concatenación de cadenas</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -1,5 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+#pragma warning disable CA1305
+
+using System;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
@@ -13,6 +18,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 {
     public class DeclarePublicApiAnalyzerTests
     {
+        #region Helpers
         private static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string path, DiagnosticDescriptor descriptor, params object[] arguments)
         {
             return new DiagnosticResult(descriptor)
@@ -43,7 +49,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     Sources = { source },
                     AdditionalFiles = { },
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             if (shippedApiText != null)
@@ -60,7 +65,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
-        private async Task VerifyCSharpAsync(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
+        private async Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, params DiagnosticResult[] expected)
         {
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>
             {
@@ -69,7 +74,32 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     Sources = { source },
                     AdditionalFiles = { },
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
+            };
+
+            if (shippedApiText != null)
+            {
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
+            }
+
+            if (unshippedApiText != null)
+            {
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, unshippedApiText));
+            }
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
+
+        private async Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, string? editorConfigText, params DiagnosticResult[] expected)
+        {
+            var test = new CSharpCodeFixVerifier<DeclarePublicApiAnalyzer, DeclarePublicApiFix>.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { },
+                },
+                AnalyzerConfigDocument = editorConfigText,
             };
 
             if (shippedApiText != null)
@@ -111,32 +141,33 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
-        private async Task VerifyCSharpAdditionalFileFixAsync(string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText)
+        private async Task VerifyCSharpAdditionalFileFixAsync(string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText)
         {
             await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText);
         }
 
-        private async Task VerifyAdditionalFileFixAsync(string language, string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText)
+        private async Task VerifyAdditionalFileFixAsync(string language, string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText)
         {
             var test = language == LanguageNames.CSharp
                 ? new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>()
                 : (CodeFixTest<XUnitVerifier>)new VisualBasicCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>();
 
-            test.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
-
             test.TestState.Sources.Add(source);
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, oldUnshippedApiText));
+            if (shippedApiText != null)
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
+            if (oldUnshippedApiText != null)
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, oldUnshippedApiText));
 
-            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
+            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText ?? string.Empty));
             test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, newUnshippedApiText));
 
             await test.RunAsync();
         }
+        #endregion
 
         #region Diagnostic tests
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
+        [Fact]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
         public async Task AnalyzerFileMissing_Shipped()
         {
@@ -147,13 +178,15 @@ public class C
 }
 ";
 
-            string shippedText = null;
-            string unshippedText = @"";
+            string? shippedText = null;
+            string? unshippedText = @"";
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
+            var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.PublicApiFileMissing)
+                .WithArguments(DeclarePublicApiAnalyzer.ShippedFileName);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
+        [Fact]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
         public async Task AnalyzerFileMissing_Unshipped()
         {
@@ -164,15 +197,21 @@ public class C
 }
 ";
 
-            string shippedText = @"";
-            string unshippedText = null;
+            string? shippedText = @"";
+            string? unshippedText = null;
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
+            var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.PublicApiFileMissing)
+                .WithArguments(DeclarePublicApiAnalyzer.UnshippedFileName);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("dotnet_public_api_analyzer.require_api_files = false")]
+        [InlineData("dotnet_public_api_analyzer.require_api_files = true")]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
-        public async Task AnalyzerFileMissing_Both()
+        public async Task AnalyzerFileMissing_Both(string? editorconfigText)
         {
             var source = @"
 public class C
@@ -181,10 +220,17 @@ public class C
 }
 ";
 
-            string shippedText = null;
-            string unshippedText = null;
+            string? shippedText = null;
+            string? unshippedText = null;
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
+            var expectedDiagnostics = Array.Empty<DiagnosticResult>();
+            if (editorconfigText == null ||
+                !editorconfigText.EndsWith("true", StringComparison.OrdinalIgnoreCase))
+            {
+                expectedDiagnostics = new[] { GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C") };
+            }
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText, editorconfigText, expectedDiagnostics);
         }
 
         [Fact]
@@ -212,6 +258,23 @@ public class C
             var unshippedText = @"";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
+        }
+
+        [Fact, WorkItem(2690, "https://github.com/dotnet/wpf/issues/2690")]
+        public async Task XamlGeneratedNamespaceWorkaround()
+        {
+            var source = @"
+namespace XamlGeneratedNamespace {
+    public sealed class GeneratedInternalTypeHelper
+    {
+    }
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
@@ -412,7 +475,7 @@ public class C
 C";
             var unshippedText = @"";
 
-            var arg = string.Format(PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, "C");
+            var arg = string.Format(CultureInfo.CurrentCulture, PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, "C");
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                 // Test0.cs(2,14): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
                 GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, arg));
@@ -693,14 +756,19 @@ C.Method() -> void
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparison))]
 ";
 
+#if NETCOREAPP
+            var containingAssembly = "System.Runtime";
+#else
+            var containingAssembly = "mscorlib";
+#endif
             string shippedText = $@"
-System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.CurrentCulture = 0 -> System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.CurrentCultureIgnoreCase = 1 -> System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.InvariantCulture = 2 -> System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.InvariantCultureIgnoreCase = 3 -> System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.Ordinal = 4 -> System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwarded, contained in mscorlib)
+System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.CurrentCulture = 0 -> System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.CurrentCultureIgnoreCase = 1 -> System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.InvariantCulture = 2 -> System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.InvariantCultureIgnoreCase = 3 -> System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.Ordinal = 4 -> System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwarded, contained in {containingAssembly})
 ";
             string unshippedText = $@"";
 
@@ -713,23 +781,43 @@ System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwar
             var source = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparer))]
 ";
+
+#if NETCOREAPP
+            var containingAssembly = "System.Runtime.Extensions";
+            const string NonNullSuffix = "!";
+            const string NullableSuffix = "?";
+#else
+            var containingAssembly = "mscorlib";
+            const string NonNullSuffix = "";
+            const string NullableSuffix = "";
+#endif
             string shippedText = $@"
-System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.InvariantCulture.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.InvariantCultureIgnoreCase.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.CurrentCulture.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.CurrentCultureIgnoreCase.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.Ordinal.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.OrdinalIgnoreCase.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.Create(System.Globalization.CultureInfo culture, bool ignoreCase) -> System.StringComparer (forwarded, contained in mscorlib)
-System.StringComparer.Compare(object x, object y) -> int (forwarded, contained in mscorlib)
-System.StringComparer.Equals(object x, object y) -> bool (forwarded, contained in mscorlib)
-System.StringComparer.GetHashCode(object obj) -> int (forwarded, contained in mscorlib)
-abstract System.StringComparer.Compare(string x, string y) -> int (forwarded, contained in mscorlib)
-abstract System.StringComparer.Equals(string x, string y) -> bool (forwarded, contained in mscorlib)
-abstract System.StringComparer.GetHashCode(string obj) -> int (forwarded, contained in mscorlib)
-System.StringComparer.StringComparer() -> void (forwarded, contained in mscorlib)
+System.StringComparer (forwarded, contained in {containingAssembly})
+static System.StringComparer.InvariantCulture.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.InvariantCultureIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.CurrentCulture.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.CurrentCultureIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.Ordinal.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.OrdinalIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.Create(System.Globalization.CultureInfo{NonNullSuffix} culture, bool ignoreCase) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+System.StringComparer.Compare(object{NullableSuffix} x, object{NullableSuffix} y) -> int (forwarded, contained in {containingAssembly})
+System.StringComparer.Equals(object{NullableSuffix} x, object{NullableSuffix} y) -> bool (forwarded, contained in {containingAssembly})
+System.StringComparer.GetHashCode(object{NonNullSuffix} obj) -> int (forwarded, contained in {containingAssembly})
+abstract System.StringComparer.Compare(string{NullableSuffix} x, string{NullableSuffix} y) -> int (forwarded, contained in {containingAssembly})
+abstract System.StringComparer.Equals(string{NullableSuffix} x, string{NullableSuffix} y) -> bool (forwarded, contained in {containingAssembly})
+abstract System.StringComparer.GetHashCode(string{NonNullSuffix} obj) -> int (forwarded, contained in {containingAssembly})
+System.StringComparer.StringComparer() -> void (forwarded, contained in {containingAssembly})
 ";
+
+#if NETCOREAPP
+            shippedText = $@"
+#nullable enable
+{shippedText}
+static System.StringComparer.Create(System.Globalization.CultureInfo{NonNullSuffix} culture, System.Globalization.CompareOptions options) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.FromComparison(System.StringComparison comparisonType) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+";
+#endif
+
             string unshippedText = $@"";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText);
@@ -882,9 +970,402 @@ C.Method6(string p1) -> void
                 GetCSharpResultAt(32, 17, DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method6", DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri));
         }
 
+        [Fact]
+        public async Task ObliviousMember_Simple()
+        {
+            var source = @"
+public class C
+{
+    public string Field;
+    public string Property { get; set; }
+    public string Method(string x) => throw null!;
+    public string ArrowExpressionProperty => throw null!;
+}
+";
+
+            var shippedText = @"#nullable enable
+C
+C.ArrowExpressionProperty.get -> string
+C.C() -> void
+C.Field -> string
+C.Method(string x) -> string
+C.Property.get -> string
+C.Property.set -> void";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                GetCSharpResultAt(4, 19, DeclarePublicApiAnalyzer.AnnotateApiRule, "Field"),
+                GetCSharpResultAt(4, 19, DeclarePublicApiAnalyzer.ObliviousApiRule, "Field"),
+                GetCSharpResultAt(5, 30, DeclarePublicApiAnalyzer.AnnotateApiRule, "Property.get"),
+                GetCSharpResultAt(5, 30, DeclarePublicApiAnalyzer.ObliviousApiRule, "Property.get"),
+                GetCSharpResultAt(5, 35, DeclarePublicApiAnalyzer.AnnotateApiRule, "Property.set"),
+                GetCSharpResultAt(5, 35, DeclarePublicApiAnalyzer.ObliviousApiRule, "Property.set"),
+                GetCSharpResultAt(6, 19, DeclarePublicApiAnalyzer.AnnotateApiRule, "Method"),
+                GetCSharpResultAt(6, 19, DeclarePublicApiAnalyzer.ObliviousApiRule, "Method"),
+                GetCSharpResultAt(7, 46, DeclarePublicApiAnalyzer.AnnotateApiRule, "ArrowExpressionProperty.get"),
+                GetCSharpResultAt(7, 46, DeclarePublicApiAnalyzer.ObliviousApiRule, "ArrowExpressionProperty.get")
+                );
+        }
+
+        [Fact]
+        public async Task ObliviousMember_AlreadyMarkedAsOblivious()
+        {
+            var source = @"
+public class C
+{
+    public string Field;
+    public D<string
+#nullable enable
+        > Field2;
+#nullable disable
+    public string Property { get; set; }
+    public void Method(string x) => throw null!;
+    public string Method2() => throw null!;
+    public string ArrowExpressionProperty => throw null!;
+#nullable enable
+    public D<string>.E<
+#nullable disable
+        string
+#nullable enable
+            > Method3() => throw null!;
+#nullable disable
+    public string this[string x] { get => throw null!; set => throw null!; }
+}
+public class D<T> { public class E<T> { } }
+";
+
+            var shippedText = @"#nullable enable
+C
+~C.ArrowExpressionProperty.get -> string
+C.C() -> void
+~C.Field -> string
+~C.Field2 -> D<string>!
+~C.Method(string x) -> void
+~C.Method2() -> string
+~C.Property.get -> string
+~C.Property.set -> void
+~C.Method3() -> D<string!>.E<string>!
+~C.this[string x].set -> void
+~C.this[string x].get -> string
+D<T>
+D<T>.D() -> void
+D<T>.E<T>
+D<T>.E<T>.E() -> void";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                GetCSharpResultAt(4, 19, DeclarePublicApiAnalyzer.ObliviousApiRule, "Field"),
+                GetCSharpResultAt(7, 11, DeclarePublicApiAnalyzer.ObliviousApiRule, "Field2"),
+                GetCSharpResultAt(9, 30, DeclarePublicApiAnalyzer.ObliviousApiRule, "Property.get"),
+                GetCSharpResultAt(9, 35, DeclarePublicApiAnalyzer.ObliviousApiRule, "Property.set"),
+                GetCSharpResultAt(10, 17, DeclarePublicApiAnalyzer.ObliviousApiRule, "Method"),
+                GetCSharpResultAt(11, 19, DeclarePublicApiAnalyzer.ObliviousApiRule, "Method2"),
+                GetCSharpResultAt(12, 46, DeclarePublicApiAnalyzer.ObliviousApiRule, "ArrowExpressionProperty.get"),
+                GetCSharpResultAt(18, 15, DeclarePublicApiAnalyzer.ObliviousApiRule, "Method3"),
+                GetCSharpResultAt(20, 36, DeclarePublicApiAnalyzer.ObliviousApiRule, "this.get"),
+                GetCSharpResultAt(20, 56, DeclarePublicApiAnalyzer.ObliviousApiRule, "this.set")
+                );
+        }
+
+        [Fact]
+        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithClassConstraint()
+        {
+            var source = @"
+public class C
+{
+    public void M<T>(T t) where T : class { }
+
+#nullable enable
+    public void M2<T>(T t) where T : class { }
+    public void M3<T>(T t) where T : class? { }
+#nullable disable
+}
+public class D<T> where T : class { }
+public class E { public class F<T> where T : class { } }
+";
+
+            var shippedText = @"#nullable enable
+C
+C.C() -> void
+~C.M<T>(T t) -> void
+C.M2<T>(T! t) -> void
+C.M3<T>(T t) -> void
+~D<T>
+D<T>.D() -> void
+E
+E.E() -> void
+~E.F<T>
+E.F<T>.F() -> void
+";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                GetCSharpResultAt(4, 17, DeclarePublicApiAnalyzer.ObliviousApiRule, "M<T>"),
+                GetCSharpResultAt(11, 14, DeclarePublicApiAnalyzer.ObliviousApiRule, "D<T>"),
+                GetCSharpResultAt(12, 31, DeclarePublicApiAnalyzer.ObliviousApiRule, "F<T>")
+                );
+        }
+
+        [Fact]
+        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithNotNullConstraint()
+        {
+            var source = @"
+public class C
+{
+    public void M<T>(T t) where T : notnull { }
+
+#nullable enable
+    public void M2<T>(T t) where T : notnull { }
+#nullable disable
+}
+";
+
+            var shippedText = @"#nullable enable
+C
+C.C() -> void
+C.M<T>(T t) -> void
+C.M2<T>(T t) -> void
+";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithMiscConstraints()
+        {
+            var source = @"
+public interface I { }
+public class C
+{
+    public void M1<T>() where T : I { }
+    public void M2<T>() where T : C { }
+    public void M3<T, U>() where T : U where U : class { }
+
+#nullable enable
+    public void M1b<T>() where T : I { }
+    public void M2b<T>() where T : C? { }
+    public void M3b<T, U>() where T : U where U : class { }
+#nullable disable
+}
+";
+
+            var shippedText = @"#nullable enable
+I
+C
+C.C() -> void
+~C.M1<T>() -> void
+~C.M2<T>() -> void
+~C.M3<T, U>() -> void
+C.M1b<T>() -> void
+C.M2b<T>() -> void
+C.M3b<T, U>() -> void
+";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                GetCSharpResultAt(5, 17, DeclarePublicApiAnalyzer.ObliviousApiRule, "M1<T>"),
+                GetCSharpResultAt(6, 17, DeclarePublicApiAnalyzer.ObliviousApiRule, "M2<T>"),
+                GetCSharpResultAt(7, 17, DeclarePublicApiAnalyzer.ObliviousApiRule, "M3<T, U>")
+                );
+        }
+
+        [Fact]
+        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithMiscConstraints2()
+        {
+            var source = @"
+public interface I<T> { }
+public class C
+{
+#nullable enable
+    public void M1<T>() where T : I<
+#nullable disable
+        string
+#nullable enable
+            > { }
+#nullable disable
+}
+";
+
+            var shippedText = @"#nullable enable
+I<T>
+C
+C.C() -> void
+~C.M1<T>() -> void
+";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                GetCSharpResultAt(6, 17, DeclarePublicApiAnalyzer.ObliviousApiRule, "M1<T>")
+                );
+        }
+
+        [Fact]
+        public async Task ObliviousMember_NestedEnumIsNotOblivious()
+        {
+            var source = @"
+public class C
+{
+    public enum E
+    {
+        None,
+        Some
+    }
+}
+";
+
+            var shippedText = @"#nullable enable
+C
+C.C() -> void
+C.E
+C.E.None = 0 -> C.E
+C.E.Some = 1 -> C.E";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        public async Task NestedEnumIsNotOblivious()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public enum E
+    {
+        None,
+        Some
+    }
+}
+";
+
+            var shippedText = @"#nullable enable
+C
+C.C() -> void
+C.E
+C.E.None = 0 -> C.E
+C.E.Some = 1 -> C.E";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        public async Task ObliviousTypeArgumentInContainingType()
+        {
+            var source = @"
+#nullable enable
+public class C<T>
+{
+    public struct Nested { }
+
+    public C<
+#nullable disable
+        string
+#nullable enable
+            >.Nested field;
+}
+";
+
+            var shippedText = @"#nullable enable
+C<T>
+C<T>.C() -> void
+C<T>.Nested
+C<T>.Nested.Nested() -> void
+~C<T>.field -> C<string>.Nested";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                GetCSharpResultAt(11, 22, DeclarePublicApiAnalyzer.ObliviousApiRule, "field")
+                );
+        }
+
         #endregion
 
         #region Fix tests
+
+        [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructor()
+        {
+            var source = @"
+public struct {|RS0016:C|}
+{
+}
+";
+
+            var shippedText = @"
+C";
+            var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructorWithExplicitPrivateCtorWithParameters()
+        {
+            var source = @"
+public struct {|RS0016:C|}
+{
+    private C(string x) {}
+}
+";
+
+            var shippedText = @"
+C";
+            var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructorWithOtherOverloadsAsync()
+        {
+            var source = @"
+public struct {|RS0016:C|}
+{
+    public C(int value)
+    {
+    }
+}
+";
+
+            var shippedText = @"
+C
+C.C(int value) -> void";
+            var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
+        public async Task AnalyzerFileMissing_Both_Fix()
+        {
+            var source = @"
+public class {|RS0016:C|}
+{
+    private C() { }
+}
+";
+
+            string? shippedText = null;
+            string? unshippedText = null;
+            var fixedUnshippedText = @"C";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
 
         [Fact]
         public async Task TestSimpleMissingMember_Fix()
@@ -894,7 +1375,7 @@ public class C
 {
     public int Field;
     public int Property { get; set; }
-    public void Method() { } 
+    public void Method() { }
     public int ArrowExpressionProperty => 0;
 
     public int {|RS0016:NewField|}; // Newly added field, not in current public API.
@@ -922,6 +1403,285 @@ C.Property.set -> void";
         }
 
         [Fact]
+        public async Task TestSimpleMissingMember_Fix_WithoutNullability()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? {|RS0037:{|RS0016:NewField|}|}; // Newly added field, not in current public API.
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"C
+C.C() -> void";
+            var fixedUnshippedText = @"C
+C.C() -> void
+C.NewField -> string";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task TestSimpleMissingMember_Fix_WithNullability()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? {|RS0016:NewField|}; // Newly added field, not in current public API.
+}
+";
+
+            var shippedText = $@"#nullable enable";
+            var unshippedText = @"C
+C.C() -> void";
+            var fixedUnshippedText = @"C
+C.C() -> void
+C.NewField -> string?";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task TestSimpleMissingMember_Fix_WithNullability2()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? OldField;
+    public string? {|RS0016:NewField|}; // Newly added field, not in current public API.
+}
+";
+            var shippedText = $@"#nullable enable";
+            var unshippedText = @"C
+C.C() -> void
+C.OldField -> string?";
+            var fixedUnshippedText = @"C
+C.C() -> void
+C.NewField -> string?
+C.OldField -> string?";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task TestSimpleMissingMember_Fix_WithNullability3()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? OldField;
+    public string? NewField;
+}
+";
+            var shippedText = $@"#nullable enable
+C
+C.C() -> void
+C.NewField -> string?
+C.OldField -> string?";
+
+            var unshippedText = "";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithRemovedNullability()
+        {
+            var source = @"
+public class C
+{
+    public string {|RS0041:{|RS0016:ChangedField|}|}; // oblivious
+}
+";
+            var shippedText = $@"#nullable enable";
+            var unshippedText = @"C
+C.C() -> void
+{|RS0017:C.ChangedField -> string?|}";
+            var fixedUnshippedText = @"C
+C.C() -> void
+~C.ChangedField -> string";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact, WorkItem(3793, "https://github.com/dotnet/roslyn-analyzers/issues/3793")]
+        public async Task ObliviousApiDiagnosticInGeneratedFileStillWarn()
+        {
+            // We complain about oblivious APIs in generated files too (no special treatment)
+            var source = @"
+// <autogenerated />
+public class C
+{
+    public string ObliviousField;
+}
+";
+            var shippedText = "#nullable enable";
+            var unshippedText = @"C
+C.C() -> void
+C.ObliviousField -> string";
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // /0/Test0.cs(5,19): warning RS0036: Symbol 'ObliviousField' is missing nullability annotations in the declared API.
+                GetCSharpResultAt(5, 19, DeclarePublicApiAnalyzer.AnnotateApiRule, "ObliviousField"),
+                // /0/Test0.cs(5,19): warning RS0041: Symbol 'ObliviousField' uses some oblivious reference types.
+                GetCSharpResultAt(5, 19, DeclarePublicApiAnalyzer.ObliviousApiRule, "ObliviousField")
+                );
+        }
+
+        [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
+        public async Task TypeArgumentRefersToTypeParameter_OnMethod()
+        {
+            var source = @"
+#nullable enable
+public static class C
+{
+    public static void M<T>()
+        where T : System.IComparable<T>
+    {
+    }
+}
+";
+            var shippedText = "#nullable enable";
+            var unshippedText = @"";
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // /0/Test0.cs(3,21): warning RS0016: Symbol 'C' is not part of the declared API.
+                GetCSharpResultAt(3, 21, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"),
+                // /0/Test0.cs(5,24): warning RS0016: Symbol 'M<T>' is not part of the declared API.
+                GetCSharpResultAt(5, 24, DeclarePublicApiAnalyzer.DeclareNewApiRule, "M<T>")
+                );
+        }
+
+        [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
+        public async Task TypeArgumentRefersToTypeParameter_OnType()
+        {
+            var source = @"
+#nullable enable
+public static class C<T>
+    where T : System.IComparable<T>
+{
+}
+";
+            var shippedText = "#nullable enable";
+            var unshippedText = @"";
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // /0/Test0.cs(3,21): warning RS0016: Symbol 'C<T>' is not part of the declared API.
+                GetCSharpResultAt(3, 21, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C<T>")
+                );
+        }
+
+        [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
+        public async Task TypeArgumentRefersToTypeParameter_OnType_SecondTypeArgument()
+        {
+            var source = @"
+#nullable enable
+public static class C<T1, T2>
+    where T1 : class
+    where T2 : System.IComparable<
+#nullable disable
+        T1
+#nullable enable
+        >
+{
+}
+";
+            var shippedText = "#nullable enable";
+            var unshippedText = @"";
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // /0/Test0.cs(3,21): warning RS0016: Symbol 'C<T1, T2>' is not part of the declared API.
+                GetCSharpResultAt(3, 21, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C<T1, T2>"),
+                // /0/Test0.cs(3,21): warning RS0041: Symbol 'C<T1, T2>' uses some oblivious reference types.
+                GetCSharpResultAt(3, 21, DeclarePublicApiAnalyzer.ObliviousApiRule, "C<T1, T2>")
+                );
+        }
+
+        [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
+        public async Task TypeArgumentRefersToTypeParameter_OnType_ObliviousReference()
+        {
+            var source = @"
+#nullable enable
+public static class C<T>
+    where T : class, System.IComparable<
+#nullable disable
+        T
+#nullable enable
+>
+{
+}
+";
+            var shippedText = "#nullable enable";
+            var unshippedText = @"";
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // /0/Test0.cs(3,21): warning RS0016: Symbol 'C<T>' is not part of the declared API.
+                GetCSharpResultAt(3, 21, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C<T>"),
+                // /0/Test0.cs(3,21): warning RS0041: Symbol 'C<T>' uses some oblivious reference types.
+                GetCSharpResultAt(3, 21, DeclarePublicApiAnalyzer.ObliviousApiRule, "C<T>")
+                );
+        }
+
+        [Fact]
+        public async Task ApiFileShippedWithDuplicateNullableEnable()
+        {
+            var source = @"
+public class C
+{
+}
+";
+
+            string shippedText = $@"
+#nullable enable
+#nullable enable
+";
+
+            string unshippedText = $@"";
+
+            var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.PublicApiFilesInvalid)
+                .WithArguments(DeclarePublicApiAnalyzer.InvalidReasonMisplacedNullableEnable);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
+        }
+
+        [Fact]
+        public async Task ApiFileUnshippedWithDuplicateNullableEnable()
+        {
+            var source = @"
+public class C
+{
+}
+";
+
+            string shippedText = $@"";
+
+            string unshippedText = $@"
+#nullable enable
+#nullable enable
+";
+
+            var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.PublicApiFilesInvalid)
+                .WithArguments(DeclarePublicApiAnalyzer.InvalidReasonMisplacedNullableEnable);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
+        }
+
+        [Fact]
+        public async Task ApiFileShippedWithoutNullableEnable_AvoidUnnecessaryDiagnostic()
+        {
+            var source = @"
+public class C
+{
+}
+";
+
+            string shippedText = $@"C
+C.C() -> void";
+
+            string unshippedText = $@"";
+
+            // Only oblivious APIs, so no need to warn about lack of '#nullable enable'
+            await VerifyCSharpAsync(source, shippedText, unshippedText, System.Array.Empty<DiagnosticResult>());
+        }
+
+        [Fact]
         public async Task TestAddAndRemoveMembers_CSharp_Fix()
         {
             // Unshipped file has a state 'ObsoleteField' entry and a missing 'NewField' entry.
@@ -930,7 +1690,7 @@ public class C
 {
     public int Field;
     public int Property { get; set; }
-    public void Method() { } 
+    public void Method() { }
     public int ArrowExpressionProperty => 0;
 
     public int {|RS0016:NewField|};
@@ -1012,6 +1772,26 @@ public class C
             // previously method had no params, so the fix should remove the previous overload.
             var unshippedText = @"{|RS0017:C.Method() -> void|}";
             var fixedUnshippedText = @"C.Method(int p1) -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task TestChangingMethodSignatureForAnUnshippedMethod_Fix_WithNullability()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public void {|RS0016:Method|}(object? p1){ }
+}
+";
+
+            var shippedText = $@"#nullable enable
+C";
+            // previously method had no params, so the fix should remove the previous overload.
+            var unshippedText = @"{|RS0017:C.Method(string p1) -> void|}";
+            var fixedUnshippedText = @"C.Method(object? p1) -> void";
 
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
@@ -1442,6 +2222,27 @@ B.B() -> void
 E
 E.E() -> void";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+        }
+
+        [Fact, WorkItem(2195, "https://github.com/dotnet/roslyn-analyzers/issues/2195")]
+        public async Task TestPartialType()
+        {
+            var source = @"
+public partial class {|RS0016:{|RS0016:C|}|}
+{
+}
+
+public partial class {|RS0016:{|RS0016:C|}|}
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+            var fixedUnshippedText = @"C
+C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         #endregion

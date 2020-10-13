@@ -18,13 +18,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// It tracks <see cref="_lazyPredicateDataMap"/>, which contains the true/false <see cref="PerEntityPredicatedAnalysisData"/> for every predicated <see cref="AnalysisEntity"/>, and
     /// <see cref="IsReachableBlockData"/>, which tracks if the current data is for a reachable code path based on the predicate analysis.
     /// Predicate analysis data is used to improve the preciseness of analysis when we can apply the <see cref="PerEntityPredicatedAnalysisData.TruePredicatedData"/> or <see cref="PerEntityPredicatedAnalysisData.FalsePredicatedData"/>
-    /// on the control flow paths where the corresonding <see cref="AnalysisEntity"/> is known to have <code>true</code> or <code>false</code> value respectively.
+    /// on the control flow paths where the corresponding <see cref="AnalysisEntity"/> is known to have <see langword="true"/> or <see langword="false"/> value respectively.
     /// </summary>
     public abstract partial class PredicatedAnalysisData<TKey, TValue> : AbstractAnalysisData
     {
-#pragma warning disable CA2213 // Disposable fields should be disposed - https://github.com/dotnet/roslyn-analyzers/issues/2182
         private DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>? _lazyPredicateDataMap;
-#pragma warning restore CA2213 // Disposable fields should be disposed
 
         protected PredicatedAnalysisData()
         {
@@ -88,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, DictionaryAnalysisData<TKey, TValue>? truePredicatedData, DictionaryAnalysisData<TKey, TValue>? falsePredicatedData)
         {
             Debug.Assert(predicatedEntity.IsCandidatePredicateEntity());
-            Debug.Assert(predicatedEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
+            Debug.Assert(predicatedEntity.CaptureId != null, "Currently we only support predicated data tracking for flow captures");
 
             AssertValidAnalysisData();
 
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             RoslynDebug.Assert(_lazyPredicateDataMap != null);
             Debug.Assert(HasPredicatedDataForEntity(predicatedEntity));
-            RoslynDebug.Assert(predicatedEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
+            RoslynDebug.Assert(predicatedEntity.CaptureId != null, "Currently we only support predicated data tracking for flow captures");
             AssertValidAnalysisData();
 
             if (_lazyPredicateDataMap.TryGetValue(predicatedEntity, out var perEntityPredicatedAnalysisData))
@@ -126,8 +124,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Debug.Assert(HasPredicatedDataForEntity(fromEntity));
             RoslynDebug.Assert(_lazyPredicateDataMap != null);
-            RoslynDebug.Assert(fromEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
-            RoslynDebug.Assert(toEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
+            RoslynDebug.Assert(fromEntity.CaptureId != null, "Currently we only support predicated data tracking for flow captures");
+            RoslynDebug.Assert(toEntity.CaptureId != null, "Currently we only support predicated data tracking for flow captures");
             AssertValidAnalysisData();
 
             if (_lazyPredicateDataMap!.TryGetValue(fromEntity, out var fromEntityPredicatedData))
