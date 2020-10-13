@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -18,13 +20,15 @@ namespace RoslynEx
 
 #if !ROSLYNEX_INTERFACE
         private readonly DiagnosticBag _diagnostics;
+        private readonly IAnalyzerAssemblyLoader _assemblyLoader;
 
         internal TransformerContext(
-            Compilation compilation, AnalyzerConfigOptions globalOptions, DiagnosticBag diagnostics)
+            Compilation compilation, AnalyzerConfigOptions globalOptions, DiagnosticBag diagnostics, IAnalyzerAssemblyLoader assemblyLoader)
         {
             Compilation = compilation;
             GlobalOptions = globalOptions;
             _diagnostics = diagnostics;
+            _assemblyLoader = assemblyLoader;
             ManifestResources = new List<ResourceDescription>();
         }
 #endif
@@ -56,6 +60,24 @@ namespace RoslynEx
         {
 #if !ROSLYNEX_INTERFACE
             _diagnostics.Add(diagnostic);
+#endif
+        }
+
+        public Assembly LoadReferencedAssembly(IAssemblySymbol assemblySymbol)
+        {
+#if ROSLYNEX_INTERFACE
+            throw new InvalidOperationException("This operation works only inside RoslynEx.");
+#else
+            if (Compilation.GetMetadataReference(assemblySymbol) is not { } reference)
+                throw new ArgumentException("Could not retrive MetadataReference for the given assembly symbol.", nameof(assemblySymbol));
+
+            if (reference is not PortableExecutableReference peReference)
+                throw new ArgumentException("The given assembly symbol does not correspond to a PE reference.", nameof(assemblySymbol));
+
+            if (peReference.FilePath is not { } path)
+                throw new ArgumentException("Could not access path for the given assembly symbol.", nameof(assemblySymbol));
+
+            return _assemblyLoader.LoadFromPath(path);
 #endif
         }
     }

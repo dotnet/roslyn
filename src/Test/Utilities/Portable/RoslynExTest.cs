@@ -24,7 +24,7 @@ namespace Roslyn.Test.Utilities
             var diagnostics = new DiagnosticBag();
 
             var result = CSharpCompiler.RunTransformers(
-                ref compilation, transformers, CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, null);
+                ref compilation, transformers, CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, null, null!);
 
             diagnostics.ToReadOnlyAndFree().Verify();
 

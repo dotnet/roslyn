@@ -394,12 +394,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics) =>
             RunTransformers(
                 ref input, transformers, analyzerConfigProvider, diagnostics,
-                resources => Arguments.ManifestResources = Arguments.ManifestResources.AddRange(resources));
+                resources => Arguments.ManifestResources = Arguments.ManifestResources.AddRange(resources), AssemblyLoader);
 
 
         internal static Compilation RunTransformers(
             ref Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics,
-            Action<IEnumerable<ResourceDescription>>? addManifestResources)
+            Action<IEnumerable<ResourceDescription>>? addManifestResources, IAnalyzerAssemblyLoader assemblyLoader)
         {
             if (!ShouldDebugTransformedCode(analyzerConfigProvider))
             {
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 try
                 {
-                    var context = new TransformerContext(compilation, analyzerConfigProvider.GlobalOptions, diagnostics);
+                    var context = new TransformerContext(compilation, analyzerConfigProvider.GlobalOptions, diagnostics, assemblyLoader);
                     compilation = transformer.Execute(context);
                     addManifestResources?.Invoke(context.ManifestResources);
                 }
