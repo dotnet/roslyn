@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             // If this is an attribute parameter, do not offer the refactoring either
-            declarator = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsAttribute);
-            if (declarator != null)
+            var attribute = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsAttribute);
+            if (attribute != null)
                 return;
 
             var isVerbatim = syntaxFacts.IsVerbatimStringLiteral(token);
