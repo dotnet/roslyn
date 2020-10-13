@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
                 return;
             }
 
-            var service = workspace.Services.GetService<IAutomaticallyAddMissingUsingsService>();
+            var service = workspace.Services.GetService<IAutomaticallyAddMissingImportsService>();
             if (service is null)
             {
                 return;

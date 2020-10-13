@@ -36,14 +36,10 @@ class Program
 }";
             SetUpEditor(markup);
 
-            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
-            {
-                VisualStudio.Editor.Paste(@"
+            VisualStudio.Editor.Paste(@"
 Task DoThingAsync() => Task.CompletedTask;");
 
-                telemetry.VerifyFired("vs/ide/vbcs/addusings/onpaste");
-
-                VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 using System;
 using System.Threading.Tasks;
 
@@ -54,7 +50,7 @@ class Program
     }
 
     Task DoThingAsync() => Task.CompletedTask;
-");
+}");
 
             }
         }

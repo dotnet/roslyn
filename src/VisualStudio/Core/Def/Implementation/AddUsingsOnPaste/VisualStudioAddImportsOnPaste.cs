@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-#nullable enable 
+// See the LICENSE file in the project root for more information. 
 
 using System;
 using System.Threading.Tasks;
@@ -22,14 +20,14 @@ using Microsoft.CodeAnalysis.AddMissingImports;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.AddUsingsOnPaste
 {
-    [ExportWorkspaceService(typeof(IAutomaticallyAddMissingUsingsService)), Shared]
-    internal class VisualStudioAddUsingsOnPaste : IAutomaticallyAddMissingUsingsService
+    [ExportWorkspaceService(typeof(IAutomaticallyAddMissingImportsService)), Shared]
+    internal class VisualStudioAddImportsOnPaste : IAutomaticallyAddMissingImportsService
     {
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioAddUsingsOnPaste(
+        public VisualStudioAddImportsOnPaste(
             IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
@@ -37,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.AddUsingsOnPast
 
         public void AddMissingUsings(Document document, TextSpan textSpan, IUIThreadOperationContext operationContext)
         {
-            using var _ = operationContext.AddScope(true, ServicesVSResources.Adding_missing_import_statements);
+            using var _ = operationContext.AddScope(allowCancellation: true, ServicesVSResources.Adding_missing_import_statements);
             var cancellationToken = operationContext.UserCancellationToken;
 
             var updatedProject = _threadingContext.JoinableTaskFactory.Run(() => AddMissingUsingsAsync(document, textSpan, cancellationToken));
