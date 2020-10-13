@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 data = ReadDiagnosticDataArray(reader, project, document, cancellationToken);
                 return true;
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
             {
                 return false;
             }
