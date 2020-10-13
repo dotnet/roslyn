@@ -361,7 +361,6 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            Debug.Assert(list[0].Node is object);
             return new SyntaxTokenList(null, GreenNode.CreateList(list.Select(n => n.RequiredNode)), 0, 0);
         }
 
@@ -378,7 +377,6 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.RemoveAt(index);
-            Debug.Assert(Node is object);
             return new SyntaxTokenList(null, GreenNode.CreateList(list.Select(n => n.Node!)), 0, 0);
         }
 
@@ -425,7 +423,6 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTokens);
-                Debug.Assert(Node is object);
                 return new SyntaxTokenList(null, GreenNode.CreateList(list.Select(n => n.Node!)), 0, 0);
             }
 
