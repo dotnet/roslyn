@@ -1009,6 +1009,72 @@ class C
     delegate T MyDelegate<T>() where T : cla[||]ss;
 }", "classconstraint");
         }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestOuterStructDeclaration()
+        {
+            await Test_KeywordAsync(
+@"str[||]uct OuterStruct<T> where T : struct
+{ 
+    struct InnerStruct<T> where T : struct { }
+}", "struct");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestInnerStructDeclaration()
+        {
+            await Test_KeywordAsync(
+@"struct OuterStruct<T> where T : struct
+{ 
+    str[||]uct InnerStruct<T> where T : struct { }
+}", "struct");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStructConstraintInOuterStruct()
+        {
+            await Test_KeywordAsync(
+@"struct OuterStruct<T> where T : str[||]uct
+{ 
+    struct InnerStruct<T> where T : struct { }
+}", "structconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStructConstraintInInnerStruct()
+        {
+            await Test_KeywordAsync(
+@"struct OuterStruct<T> where T : struct
+{ 
+    struct InnerStruct<T> where T : str[||]uct { }
+}", "structconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStructConstraintInGenericMethod()
+        {
+            await Test_KeywordAsync(
+@"struct C
+{ 
+    void M1<T>() where T : str[||]uct { }
+}", "structconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStructConstraintInGenericDelegate()
+        {
+            await Test_KeywordAsync(
+@"struct C
+{ 
+    delegate T MyDelegate<T>() where T : str[||]uct;
+}", "structconstraint");
+        }
     }
 }
 
