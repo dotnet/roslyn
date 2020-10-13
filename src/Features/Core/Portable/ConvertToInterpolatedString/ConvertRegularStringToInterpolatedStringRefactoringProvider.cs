@@ -44,8 +44,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             if (token.RawKind != syntaxKinds.StringLiteralToken)
                 return;
 
-            var literalExpression = token.Parent;
-            if (literalExpression == null || literalExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            var literalExpression = token.GetRequiredParent();
+            
+            // Check the string literal for errors.  This will ensure that we do not try to fixup an incomplete string.
+            if (literalExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return;
 
             if (!token.Text.Contains("{") && !token.Text.Contains("}"))
