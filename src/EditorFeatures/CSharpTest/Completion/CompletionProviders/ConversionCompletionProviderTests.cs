@@ -1378,5 +1378,24 @@ public class Program
 }
 ", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("C", "byte")]
+        [InlineData("byte", "C")]
+        public async Task ExplicitBuiltinConversionWithAlias(string fromType, string expected)
+        {
+            await VerifyItemExistsAsync(@$"
+using C = System.Char;
+public class Program
+{{
+    public static void Main()
+    {{
+        var test = new {fromType}();
+        var i = test.$$
+    }}
+}}
+", expected, displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+        }
     }
 }
