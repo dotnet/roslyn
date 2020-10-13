@@ -202,7 +202,7 @@
       "vsBranch": "rel/d16.8",
       "vsMajorVersion": 16
     },
-    "release/dev16.9-preview1-vs-deps": {
+    "release/dev16.9-vs-deps": {
       "nugetKind": [ "Shipping", "NonShipping" ],
       "version": "3.9.*",
       "packageFeeds": "default",
