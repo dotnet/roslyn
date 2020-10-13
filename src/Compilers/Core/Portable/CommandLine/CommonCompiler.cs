@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [return: NotNullIfNotNull("hash")]
-        internal static string? ExtractShortCommitHash(string hash)
+        internal static string? ExtractShortCommitHash(string? hash)
         {
             // leave "<developer build>" alone, but truncate SHA to 8 characters
             if (hash != null && hash.Length >= 8 && hash[0] != '<')
@@ -177,9 +177,7 @@ namespace Microsoft.CodeAnalysis
         private static string? GetShortCommitHash(Type type)
         {
             var hash = type.Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
-            return hash is object
-                ? ExtractShortCommitHash(hash)
-                : null;
+            return ExtractShortCommitHash(hash);
         }
 
         /// <summary>
@@ -1570,7 +1568,7 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        private static string? ResolveRelativePath(CommonMessageProvider messageProvider, string? path, string? baseDirectory, DiagnosticBag diagnostics)
+        private static string? ResolveRelativePath(CommonMessageProvider messageProvider, string path, string? baseDirectory, DiagnosticBag diagnostics)
         {
             string? fullPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
             if (fullPath == null)

@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Generic;
@@ -19,8 +20,15 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    public class VBCSCompilerServerTests
+    public class VBCSCompilerServerTests : IDisposable
     {
+        public TempRoot TempRoot { get; } = new TempRoot();
+
+        public void Dispose()
+        {
+            TempRoot.Dispose();
+        }
+
         public class StartupTests : VBCSCompilerServerTests
         {
             [Fact]
@@ -278,11 +286,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var compilerServerHost = new TestableCompilerServerHost((request, cancellationToken) => ProtocolUtil.EmptyBuildResponse);
                 using var serverData = await ServerUtil.CreateServer(compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                var workingDirectory = TempRoot.CreateDirectory().Path;
 
                 for (var i = 0; i < connectionCount; i++)
                 {
                     var request = i + 1 >= connectionCount
-                        ? ProtocolUtil.CreateEmptyCSharpWithKeepAlive(TimeSpan.FromSeconds(3))
+                        ? ProtocolUtil.CreateEmptyCSharpWithKeepAlive(TimeSpan.FromSeconds(3), workingDirectory)
                         : ProtocolUtil.EmptyCSharpBuildRequest;
                     await serverData.SendAsync(request).ConfigureAwait(false);
                 }
@@ -318,7 +327,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 readyMre.Set();
 
-                await serverData.SendAsync(ProtocolUtil.CreateEmptyCSharpWithKeepAlive(TimeSpan.FromSeconds(3))).ConfigureAwait(false);
+                var workingDirectory = TempRoot.CreateDirectory().Path;
+                await serverData.SendAsync(ProtocolUtil.CreateEmptyCSharpWithKeepAlive(TimeSpan.FromSeconds(3), workingDirectory)).ConfigureAwait(false);
                 await Task.WhenAll(list).ConfigureAwait(false);
 
                 // Don't use Complete here because we want to see the server shutdown naturally
