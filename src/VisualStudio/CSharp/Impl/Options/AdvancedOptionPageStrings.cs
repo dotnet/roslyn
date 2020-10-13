@@ -37,6 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Display_all_hints_while_pressing_Ctrl_Alt
             => ServicesVSResources.Display_all_hints_while_pressing_Ctrl_Alt;
 
+        public static string Option_Color_hints
+            => ServicesVSResources.Color_hints;
+
         public static string Option_Display_inline_parameter_name_hints
             => ServicesVSResources.Display_inline_parameter_name_hints;
 
@@ -55,13 +58,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Suppress_hints_when_parameter_names_differ_only_by_suffix
             => ServicesVSResources.Suppress_hints_when_parameter_names_differ_only_by_suffix;
 
+        public static string Option_Display_inline_type_hints
+            => ServicesVSResources.Display_inline_type_hints;
+
+        public static string Option_Show_hints_for_variables_with_inferred_types
+            => ServicesVSResources.Show_hints_for_variables_with_inferred_types;
+
+        public static string Option_Show_hints_for_lambda_parameter_types
+            => ServicesVSResources.Show_hints_for_lambda_parameter_types;
+
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
 
         public static string Option_DisplayLineSeparators
-        {
-            get { return CSharpVSResources.Show_procedure_line_separators; }
-        }
+            => CSharpVSResources.Show_procedure_line_separators;
 
         public static string Option_DontPutOutOrRefOnStruct
         {
@@ -123,9 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CSharpVSResources.Insert_at_the_start_of_new_lines_when_writing_comments;
 
         public static string Option_ShowRemarksInQuickInfo
-        {
-            get { return CSharpVSResources.Show_remarks_in_Quick_Info; }
-        }
+            => CSharpVSResources.Show_remarks_in_Quick_Info;
 
         public static string Option_Highlighting
         {

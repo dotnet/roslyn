@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // Indicates bug on client side or in serialization, report NFW and propagate the exception.
-            return FatalError.ReportWithoutCrashAndPropagate(exception);
+            return FatalError.ReportAndPropagate(exception);
         }
 
         private static Exception OnUnexpectedException(Exception exception, CancellationToken cancellationToken)

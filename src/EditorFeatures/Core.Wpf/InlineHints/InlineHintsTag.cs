@@ -10,16 +10,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
@@ -29,27 +33,28 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// This is the tag which implements the IntraTextAdornmentTag and is meant to create the UIElements that get shown
     /// in the editor
     /// </summary>
-    internal class InlineParameterNameHintsTag : IntraTextAdornmentTag
+    internal class InlineHintsTag : IntraTextAdornmentTag
     {
-        public const string TagId = "inline parameter name hints";
+        public const string TagId = "inline hints";
+
         private readonly IToolTipService _toolTipService;
         private readonly ITextView _textView;
         private readonly SnapshotSpan _span;
-        private readonly SymbolKey _key;
+        private readonly InlineHint _hint;
         private readonly IThreadingContext _threadingContext;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
-        private InlineParameterNameHintsTag(
+        private InlineHintsTag(
             FrameworkElement adornment,
             ITextView textView,
             SnapshotSpan span,
-            SymbolKey key,
-            InlineParameterNameHintsTaggerProvider taggerProvider)
+            InlineHint hint,
+            InlineHintsTaggerProvider taggerProvider)
             : base(adornment, removalCallback: null, PositionAffinity.Predecessor)
         {
             _textView = textView;
             _span = span;
-            _key = key;
+            _hint = hint;
             _streamingPresenter = taggerProvider.StreamingFindUsagesPresenter;
             _threadingContext = taggerProvider.ThreadingContext;
             _toolTipService = taggerProvider.ToolTipService;
@@ -67,64 +72,44 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// </summary>
         /// <param name="textView">The view of the editor</param>
         /// <param name="span">The span that has the location of the hint</param>
-        /// <param name="key">The symbolkey associated with each parameter</param>
-        public static InlineParameterNameHintsTag Create(string text, TextFormattingRunProperties format,
-                                                         IWpfTextView textView, SnapshotSpan span, SymbolKey key,
-                                                         InlineParameterNameHintsTaggerProvider taggerProvider)
+        public static InlineHintsTag Create(
+            InlineHint hint,
+            TextFormattingRunProperties format,
+            IWpfTextView textView,
+            SnapshotSpan span,
+            InlineHintsTaggerProvider taggerProvider,
+            IClassificationFormatMap formatMap,
+            bool classify)
         {
-            return new InlineParameterNameHintsTag(CreateElement(text, textView, format), textView,
-                                                   span, key, taggerProvider);
+            return new InlineHintsTag(
+                CreateElement(hint.DisplayParts, textView, span, format, formatMap, taggerProvider.TypeMap, classify),
+                textView, span, hint, taggerProvider);
         }
 
         public async Task<IReadOnlyCollection<object>> CreateDescriptionAsync(CancellationToken cancellationToken)
         {
-            var document = _textView.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var textContentBuilder = new List<TaggedText>();
-
+            var document = _span.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
-                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var symbol = _key.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-
-                if (symbol != null)
+                var taggedText = await _hint.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
+                if (!taggedText.IsDefaultOrEmpty)
                 {
-                    var workspace = document.Project.Solution.Workspace;
-                    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var symbolDisplayService = document.Project.LanguageServices.GetRequiredService<ISymbolDisplayService>();
-                    var formatter = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
-                    var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, _span.Start, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
-                    textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
-                    if (formatter != null)
-                    {
-                        var documentation = symbol.GetDocumentationParts(semanticModel, _span.Start, formatter, cancellationToken);
-
-                        if (documentation.Any())
-                        {
-                            textContentBuilder.AddLineBreak();
-                            textContentBuilder.AddRange(documentation);
-                        }
-                    }
-
-                    if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out var parts))
-                    {
-                        if (!parts.IsDefaultOrEmpty)
-                        {
-                            textContentBuilder.AddLineBreak();
-                            textContentBuilder.AddLineBreak();
-                            textContentBuilder.AddRange(parts);
-                        }
-                    }
+                    return Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(
+                        taggedText, document, _threadingContext, _streamingPresenter);
                 }
-
-                var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(),
-                    document, _threadingContext, _streamingPresenter);
-                return uiCollection;
             }
 
             return Array.Empty<object>();
         }
 
-        private static FrameworkElement CreateElement(string text, IWpfTextView textView, TextFormattingRunProperties format)
+        private static FrameworkElement CreateElement(
+            ImmutableArray<TaggedText> taggedTexts,
+            IWpfTextView textView,
+            SnapshotSpan span,
+            TextFormattingRunProperties format,
+            IClassificationFormatMap formatMap,
+            ClassificationTypeMap typeMap,
+            bool classify)
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
             // page. Calculates a font size 1/4 smaller than the font size of the rest of the editor
@@ -137,14 +122,32 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 // Adds a little bit of padding to the left of the text relative to the border
                 // to make the text seem more balanced in the border
-                Padding = new Thickness(left: 1, top: 0, right: 0, bottom: 0),
-                Text = text + ":",
+                Padding = new Thickness(left: 1, top: 0, right: 1, bottom: 0),
                 VerticalAlignment = VerticalAlignment.Center,
             };
+
+            foreach (var taggedText in taggedTexts)
+            {
+                var run = new Run(taggedText.ToVisibleDisplayString(includeLeftToRightMarker: true));
+
+                if (classify && taggedText.Tag != TextTags.Text)
+                {
+                    var properties = formatMap.GetTextProperties(typeMap.GetClassificationType(taggedText.Tag.ToClassificationTypeName()));
+                    var brush = properties.ForegroundBrush.Clone();
+                    run.Foreground = brush;
+                }
+
+                block.Inlines.Add(run);
+            }
 
             // Encapsulates the textblock within a border. Sets the height of the border to be 3/4 of the original 
             // height. Gets foreground/background colors from the options menu. The margin is the distance from the 
             // adornment to the text and pushing the adornment upwards to create a separation when on a specific line
+
+            // If the tag is followed by a space, just create a normal border (as there will already be a buffer to the right).
+            // If not, then pad the right a little so the tag doesn't feel too cramped with the following text.
+            var right = span.End < span.Snapshot.Length && char.IsWhiteSpace(span.End.GetChar()) ? 0 : 5;
+
             var border = new Border
             {
                 Background = format.BackgroundBrush,
@@ -152,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 CornerRadius = new CornerRadius(2),
                 Height = textView.LineHeight - (0.25 * textView.LineHeight),
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(left: 0, top: -0.20 * textView.LineHeight, right: 5, bottom: 0),
+                Margin = new Thickness(left: 0, top: -0.20 * textView.LineHeight, right, bottom: 0),
                 Padding = new Thickness(1),
 
                 // Need to set SnapsToDevicePixels and UseLayoutRounding to avoid unnecessary reformatting

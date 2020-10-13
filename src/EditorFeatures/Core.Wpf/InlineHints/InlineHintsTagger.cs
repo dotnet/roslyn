@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -15,13 +17,13 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
     /// <summary>
-    /// The purpose of this tagger is to convert the <see cref="InlineParameterNameHintDataTag"/> to
-    /// the <see cref="InlineParameterNameHintsTag"/>, which actually creates the UIElement. It reacts to
-    /// tags changing and updates the adornments accordingly.
+    /// The purpose of this tagger is to convert the <see cref="InlineHintDataTag"/> to the <see
+    /// cref="InlineHintsTag"/>, which actually creates the UIElement. It reacts to tags changing and updates the
+    /// adornments accordingly.
     /// </summary>
-    internal sealed class InlineParameterNameHintsTagger : ITagger<IntraTextAdornmentTag>, IDisposable
+    internal sealed class InlineHintsTagger : ITagger<IntraTextAdornmentTag>, IDisposable
     {
-        private readonly ITagAggregator<InlineParameterNameHintDataTag> _tagAggregator;
+        private readonly ITagAggregator<InlineHintDataTag> _tagAggregator;
 
         /// <summary>
         /// stores the parameter hint tags in a global location 
@@ -42,26 +44,30 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private readonly IClassificationType _hintClassification;
 
         private readonly ForegroundThreadAffinitizedObject _threadAffinitizedObject;
-        private readonly InlineParameterNameHintsTaggerProvider _inlineParameterNameHintsTaggerProvider;
+        private readonly InlineHintsTaggerProvider _taggerProvider;
 
         private readonly ITextBuffer _buffer;
         private readonly IWpfTextView _textView;
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
-        public InlineParameterNameHintsTagger(InlineParameterNameHintsTaggerProvider taggerProvider, IWpfTextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
+        public InlineHintsTagger(
+            InlineHintsTaggerProvider taggerProvider,
+            IWpfTextView textView,
+            ITextBuffer buffer,
+            ITagAggregator<InlineHintDataTag> tagAggregator)
         {
             _cache = new List<ITagSpan<IntraTextAdornmentTag>>();
 
             _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
-            _inlineParameterNameHintsTaggerProvider = taggerProvider;
+            _taggerProvider = taggerProvider;
 
             _textView = textView;
             _buffer = buffer;
 
             _tagAggregator = tagAggregator;
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
-            _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineParameterNameHintsTag.TagId);
+            _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineHintsTag.TagId);
             _formatMap.ClassificationFormatMappingChanged += this.OnClassificationFormatMappingChanged;
             _tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
         }
@@ -110,25 +116,26 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 _cache.Clear();
                 _cacheSnapshot = snapshot;
 
+                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var classify = document?.Project.Solution.Workspace.Options.GetOption(InlineHintsOptions.ColorHints, document?.Project.Language) ?? false;
+
                 // Calling into the InlineParameterNameHintsDataTaggerProvider which only responds with the current
                 // active view and disregards and requests for tags not in that view
                 var fullSpan = new SnapshotSpan(snapshot, 0, snapshot.Length);
-                var dataTags = _tagAggregator.GetTags(new NormalizedSnapshotSpanCollection(fullSpan));
-                foreach (var dataTag in dataTags)
+                var tags = _tagAggregator.GetTags(new NormalizedSnapshotSpanCollection(fullSpan));
+                foreach (var tag in tags)
                 {
                     // Gets the associated span from the snapshot span and creates the IntraTextAdornmentTag from the data
                     // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
                     // occuring 
-                    var dataTagSpans = dataTag.Span.GetSpans(snapshot);
-                    var textTag = dataTag.Tag;
+                    var dataTagSpans = tag.Span.GetSpans(snapshot);
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];
-                        var parameterHintSnapshotSpan = new SnapshotSpan(dataTagSpan.Start, 0);
-                        var parameterHintUITag = InlineParameterNameHintsTag.Create(textTag.ParameterName,
-                                   Format, _textView, dataTagSpan, textTag.ParameterSymbolKey, _inlineParameterNameHintsTaggerProvider);
+                        var parameterHintUITag = InlineHintsTag.Create(
+                            tag.Tag.Hint, Format, _textView, dataTagSpan, _taggerProvider, _formatMap, classify);
 
-                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(parameterHintSnapshotSpan, parameterHintUITag));
+                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(dataTagSpan, parameterHintUITag));
                     }
                 }
             }

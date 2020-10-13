@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
                 return await _encService.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return true;
             }
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 var (summary, deltas) = await _encService.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                 return new ManagedModuleUpdates(summary.ToModuleUpdateStatus(), deltas.SelectAsArray(ModuleUtilities.ToModuleUpdate).ToReadOnlyCollection());
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 _encService.ReportApplyChangesException(solution, e.Message);
                 return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<DkmManagedModuleUpdate>.Empty.ToReadOnlyCollection());
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 _encService.CommitSolutionUpdate();
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
         }
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 _encService.DiscardSolutionUpdate();
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
         }

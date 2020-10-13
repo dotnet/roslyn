@@ -77,9 +77,9 @@
         <target state="translated">기본으로 이동</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Parameter_Name_Hints">
-        <source>Inline Parameter Name Hints</source>
-        <target state="new">Inline Parameter Name Hints</target>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="new">Inline Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">

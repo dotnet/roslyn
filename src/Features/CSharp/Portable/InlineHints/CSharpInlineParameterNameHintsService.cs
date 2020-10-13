@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 {
+
     /// <summary>
     /// The service to locate the positions in which the adornments should appear
     /// as well as associate the adornments back to the parameter name
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         protected override void AddAllParameterNameHintLocations(
              SemanticModel semanticModel,
              SyntaxNode node,
-             ArrayBuilder<InlineParameterHint> buffer,
+             ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
              CancellationToken cancellationToken)
         {
             if (node is BaseArgumentListSyntax argumentList)
@@ -42,7 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
             }
         }
 
-        private static void AddArguments(SemanticModel semanticModel, ArrayBuilder<InlineParameterHint> buffer, AttributeArgumentListSyntax argumentList, CancellationToken cancellationToken)
+        private static void AddArguments(
+            SemanticModel semanticModel,
+            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+            AttributeArgumentListSyntax argumentList,
+            CancellationToken cancellationToken)
         {
             foreach (var argument in argumentList.Arguments)
             {
@@ -50,14 +55,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     continue;
 
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                buffer.Add(new InlineParameterHint(
-                    parameter,
-                    argument.Span.Start,
-                    GetKind(argument.Expression)));
+                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)));
             }
         }
 
-        private static void AddArguments(SemanticModel semanticModel, ArrayBuilder<InlineParameterHint> buffer, BaseArgumentListSyntax argumentList, CancellationToken cancellationToken)
+        private static void AddArguments(
+            SemanticModel semanticModel,
+            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+            BaseArgumentListSyntax argumentList,
+            CancellationToken cancellationToken)
         {
             foreach (var argument in argumentList.Arguments)
             {
@@ -65,21 +71,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     continue;
 
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                buffer.Add(new InlineParameterHint(
-                    parameter,
-                    argument.Span.Start,
-                    GetKind(argument.Expression)));
+                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)));
             }
         }
 
-        private static InlineParameterHintKind GetKind(ExpressionSyntax arg)
+        private static HintKind GetKind(ExpressionSyntax arg)
             => arg switch
             {
-                LiteralExpressionSyntax or InterpolatedStringExpressionSyntax => InlineParameterHintKind.Literal,
-                ObjectCreationExpressionSyntax => InlineParameterHintKind.ObjectCreation,
+                LiteralExpressionSyntax or InterpolatedStringExpressionSyntax => HintKind.Literal,
+                ObjectCreationExpressionSyntax => HintKind.ObjectCreation,
                 CastExpressionSyntax cast => GetKind(cast.Expression),
                 PrefixUnaryExpressionSyntax prefix => GetKind(prefix.Operand),
-                _ => InlineParameterHintKind.Other,
+                _ => HintKind.Other,
             };
     }
 }

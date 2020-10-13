@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                         blockStructure.Spans);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                         blockStructure.Spans);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                             {
                                 throw new InvalidOutliningRegionException(service, snapshot, snapshotSpan, regionSpan);
                             }
-                            catch (InvalidOutliningRegionException e) when (FatalError.ReportWithoutCrash(e))
+                            catch (InvalidOutliningRegionException e) when (FatalError.ReportAndCatch(e))
                             {
                             }
                         }
