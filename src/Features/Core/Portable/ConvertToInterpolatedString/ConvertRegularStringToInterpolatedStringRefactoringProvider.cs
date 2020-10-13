@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     return;
             }
 
-            // If this is an attribute parameter, do not offer the refactoring either
+            // Attributes also only allow constant values.
             var attribute = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsAttribute);
             if (attribute != null)
                 return;
