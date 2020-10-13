@@ -248,9 +248,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         private static LSP.PriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(UnifiedSuggestedActionSetPriority priority)
             => priority switch
             {
-                // TO-DO: UnifiedSuggestedActionSetPriority.Lowest should map to a separate LSP enum type
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1229543
-                UnifiedSuggestedActionSetPriority.Lowest => LSP.PriorityLevel.Low,
+                UnifiedSuggestedActionSetPriority.Lowest => LSP.PriorityLevel.Lowest,
                 UnifiedSuggestedActionSetPriority.Low => LSP.PriorityLevel.Low,
                 UnifiedSuggestedActionSetPriority.Medium => LSP.PriorityLevel.Normal,
                 UnifiedSuggestedActionSetPriority.High => LSP.PriorityLevel.High,
