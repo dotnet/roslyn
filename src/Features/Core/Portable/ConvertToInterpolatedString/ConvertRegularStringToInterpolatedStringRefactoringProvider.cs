@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
 
             var literalExpression = token.GetRequiredParent();
-            
+
             // Check the string literal for errors.  This will ensure that we do not try to fixup an incomplete string.
             if (literalExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return;
@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
             // If there is a const keyword, do not offer the refactoring (an interpolated string is not const)
             var declarator = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsVariableDeclarator);
             if (declarator != null)
@@ -68,11 +69,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             if (attribute != null)
                 return;
 
-            var isVerbatim = syntaxFacts.IsVerbatimStringLiteral(token);
-
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    _ => UpdateDocumentAsync(document, root, literalExpression, isVerbatim)),
+                    _ => UpdateDocumentAsync(document, root, token)),
                 literalExpression.Span);
         }
 
@@ -99,8 +98,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return generator.InterpolatedStringExpression(startToken, new[] { newNode }, endToken);
         }
 
-        private static Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode literalExpression, bool isVerbatim)
+        private static Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxToken token)
         {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var isVerbatim = syntaxFacts.IsVerbatimStringLiteral(token);
+            var literalExpression = token.GetRequiredParent();
             var interpolatedString = CreateInterpolatedString(document, literalExpression, isVerbatim);
             var newRoot = root.ReplaceNode(literalExpression, interpolatedString);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));

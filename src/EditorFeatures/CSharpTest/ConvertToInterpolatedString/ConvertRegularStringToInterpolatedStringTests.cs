@@ -166,5 +166,18 @@ public class C
     public string LastName { get; set; }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestMissingOnRegularStringWithBracesCursorOutOfBounds()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v [||]= ""string {"";
+    }
+}");
+        }
     }
 }
