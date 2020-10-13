@@ -53,10 +53,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             if (!token.Text.Contains("{") && !token.Text.Contains("}"))
                 return;
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts is null)
-                return;
-
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             // If there is a const keyword, do not offer the refactoring (an interpolated string is not const)
             var declarator = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsVariableDeclarator);
             if (declarator != null)
