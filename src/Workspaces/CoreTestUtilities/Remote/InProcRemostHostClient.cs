@@ -103,28 +103,14 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public void RegisterService(RemoteServiceName serviceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceCreator)
             => _inprocServices.RegisterService(serviceName, serviceCreator);
 
-        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
-        {
-            var options = new ServiceActivationOptions();
-
-            if (callbackTarget is not null)
-            {
-                options.ClientRpcTarget = callbackTarget;
-            }
-
-            var assetStorage = _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8);
-
-            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-            await TaskScheduler.Default;
-
-#pragma warning disable ISB001 // Dispose of proxies - caller disposes
-            var proxy = await _inprocServices.ServiceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
-#pragma warning restore
-
-            Contract.ThrowIfNull(proxy);
-            return new BrokeredServiceConnection<T>(proxy, assetStorage, _workspaceServices.GetRequiredService<IErrorReportingService>(), shutdownCancellationService: null);
-        }
+        public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget) where T : class
+            => new BrokeredServiceConnection<T>(
+                callbackTarget,
+                _inprocServices.ServiceBrokerClient,
+                _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
+                _workspaceServices.GetRequiredService<IErrorReportingService>(),
+                shutdownCancellationService: null,
+                isRemoteHost64Bit: IntPtr.Size == 8);
 
         public override async Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {

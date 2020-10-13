@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public static IEnumerable<object[]> ServiceTypes
             => ServiceDescriptors.Descriptors.Select(descriptor => new object[] { descriptor.Key });
 
+        public static IEnumerable<object[]> DescriptorsWitchCallback64
+            => ServiceDescriptors.Descriptors.Where(d => d.Value.descriptor64.ClientInterface != null).Select(descriptor => new object[] { descriptor.Value.descriptor64 });
+
         private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
         {
             var interfaces = new List<Type>();
@@ -164,6 +167,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public void GetFeatureName(Type serviceType)
         {
             Assert.NotEmpty(ServiceDescriptors.GetFeatureName(serviceType));
+        }
+
+        [Theory]
+        [MemberData(nameof(DescriptorsWitchCallback64))]
+        internal void CallbackDispatchers(ServiceDescriptor descriptor)
+        {
+            Assert.True(descriptor.ClientInterface.IsAssignableFrom(descriptor.CallbackDispatcher.GetType()));
         }
     }
 }

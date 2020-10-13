@@ -28,21 +28,20 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var connection = await client.CreateConnectionAsync<IRemoteSymbolSearchUpdateService>(logService, cancellationToken).ConfigureAwait(false);
-                return new RemoteUpdateEngine(connection);
+                return new RemoteUpdateEngine(client, logService);
             }
 
             // Couldn't go out of proc.  Just do everything inside the current process.
-            return CreateEngineInProcess(logService);
+            return CreateEngineInProcess();
         }
 
         /// <summary>
         /// This returns a No-op engine if called on non-Windows OS, because the backing storage depends on Windows APIs.
         /// </summary>
-        public static ISymbolSearchUpdateEngine CreateEngineInProcess(ISymbolSearchLogService logService)
+        public static ISymbolSearchUpdateEngine CreateEngineInProcess()
         {
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? new SymbolSearchUpdateEngine(logService)
+                ? new SymbolSearchUpdateEngine()
                 : (ISymbolSearchUpdateEngine)new NoOpUpdateEngine();
         }
 
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
                 => new(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
 
-            public ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
+            public ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, ISymbolSearchLogService logService, CancellationToken cancellationToken)
                 => default;
         }
 
@@ -65,8 +64,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         {
             private readonly RemoteServiceConnection<IRemoteSymbolSearchUpdateService> _connection;
 
-            public RemoteUpdateEngine(RemoteServiceConnection<IRemoteSymbolSearchUpdateService> connection)
-                => _connection = connection;
+            public RemoteUpdateEngine(RemoteHostClient client, ISymbolSearchLogService logService)
+                => _connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(logService);
 
             public void Dispose()
                 => _connection.Dispose();
@@ -100,10 +99,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 return result.HasValue ? result.Value : ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty;
             }
 
-            public async ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
+            public async ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, ISymbolSearchLogService logService, CancellationToken cancellationToken)
             {
+                // logService parameter is ignore since it's already set on the connection as a callback
+
                 _ = await _connection.TryInvokeAsync(
-                    (service, cancellationToken) => service.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, cancellationToken),
+                    (service, callbackId, cancellationToken) => service.UpdateContinuouslyAsync(callbackId, sourceName, localSettingsDirectory, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
         }
