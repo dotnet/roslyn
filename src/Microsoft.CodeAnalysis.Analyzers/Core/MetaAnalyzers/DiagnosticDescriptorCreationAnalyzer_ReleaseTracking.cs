@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor DeclareDiagnosticIdInAnalyzerReleaseRule = new DiagnosticDescriptor(
             id: DiagnosticIds.DeclareDiagnosticIdInAnalyzerReleaseRuleId,
-            title: CodeAnalysisDiagnosticsResources.DeclareDiagnosticIdInAnalyzerReleaseTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.DeclareDiagnosticIdInAnalyzerReleaseMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DeclareDiagnosticIdInAnalyzerReleaseTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DeclareDiagnosticIdInAnalyzerReleaseMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor UpdateDiagnosticIdInAnalyzerReleaseRule = new DiagnosticDescriptor(
             id: DiagnosticIds.UpdateDiagnosticIdInAnalyzerReleaseRuleId,
-            title: CodeAnalysisDiagnosticsResources.UpdateDiagnosticIdInAnalyzerReleaseTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.UpdateDiagnosticIdInAnalyzerReleaseMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UpdateDiagnosticIdInAnalyzerReleaseTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UpdateDiagnosticIdInAnalyzerReleaseMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor RemoveUnshippedDeletedDiagnosticIdRule = new DiagnosticDescriptor(
             id: DiagnosticIds.RemoveUnshippedDeletedDiagnosticIdRuleId,
-            title: CodeAnalysisDiagnosticsResources.RemoveUnshippedDeletedDiagnosticIdTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.RemoveUnshippedDeletedDiagnosticIdMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveUnshippedDeletedDiagnosticIdTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveUnshippedDeletedDiagnosticIdMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor RemoveShippedDeletedDiagnosticIdRule = new DiagnosticDescriptor(
             id: DiagnosticIds.RemoveShippedDeletedDiagnosticIdRuleId,
-            title: CodeAnalysisDiagnosticsResources.RemoveShippedDeletedDiagnosticIdTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.RemoveShippedDeletedDiagnosticIdMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveShippedDeletedDiagnosticIdTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveShippedDeletedDiagnosticIdMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdRule = new DiagnosticDescriptor(
             id: DiagnosticIds.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdRuleId,
-            title: CodeAnalysisDiagnosticsResources.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor RemoveDuplicateEntriesForAnalyzerReleaseRule = new DiagnosticDescriptor(
             id: DiagnosticIds.RemoveDuplicateEntriesForAnalyzerReleaseRuleId,
-            title: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor RemoveDuplicateEntriesBetweenAnalyzerReleasesRule = new DiagnosticDescriptor(
             id: DiagnosticIds.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleId,
-            title: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor InvalidEntryInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
-            title: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -114,8 +114,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor InvalidHeaderInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
-            title: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.InvalidHeaderInAnalyzerReleasesFileRuleMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidHeaderInAnalyzerReleasesFileRuleMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor InvalidUndetectedEntryInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
-            title: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -136,8 +136,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
-            title: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly DiagnosticDescriptor EnableAnalyzerReleaseTrackingRule = new DiagnosticDescriptor(
             id: DiagnosticIds.EnableAnalyzerReleaseTrackingRuleId,
-            title: CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleMessage,
+            title: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
+            messageFormat: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
