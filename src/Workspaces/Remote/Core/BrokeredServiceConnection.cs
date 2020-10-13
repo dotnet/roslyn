@@ -163,7 +163,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
                 return await invocation(rental.Service, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
->>>>>>> f82c13a266f... Callback dispatchers
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
