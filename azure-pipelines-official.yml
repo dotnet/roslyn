@@ -76,7 +76,10 @@ stages:
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
     - task: NuGetAuthenticate@0
       inputs:
-        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
+        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+          nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
+        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+          nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
 
     - task: NuGetCommand@2
       displayName: Restore internal tools
