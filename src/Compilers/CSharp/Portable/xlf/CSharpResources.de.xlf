@@ -4107,7 +4107,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
         <target state="needs-review-translation">Der "partial"-Modifizierer kann nur unmittelbar vor "class", "struct", "interface" oder "void" verwendet werden.</target>
         <note />
       </trans-unit>
