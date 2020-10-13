@@ -186,4 +186,7 @@
   <data name="FeatureName_AsynchronousOperationListener" xml:space="preserve">
     <value>Asynchronous operation listener</value>
   </data>
+  <data name="FeatureName_AssetSynchronization" xml:space="preserve">
+    <value>Asset synchronization</value>
+  </data>
 </root>
