@@ -23,24 +23,26 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(IntraTextAdornmentTag))]
-    [Name(nameof(InlineParameterNameHintsTaggerProvider))]
-    internal class InlineParameterNameHintsTaggerProvider : IViewTaggerProvider
+    [Name(nameof(InlineHintsTaggerProvider))]
+    internal class InlineHintsTaggerProvider : IViewTaggerProvider
     {
         private readonly IViewTagAggregatorFactoryService _viewTagAggregatorFactoryService;
         public readonly IClassificationFormatMapService ClassificationFormatMapService;
         public readonly IClassificationTypeRegistryService ClassificationTypeRegistryService;
         public readonly IThreadingContext ThreadingContext;
         public readonly IToolTipService ToolTipService;
+        public readonly ClassificationTypeMap TypeMap;
         public readonly Lazy<IStreamingFindUsagesPresenter> StreamingFindUsagesPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParameterNameHintsTaggerProvider(
+        public InlineHintsTaggerProvider(
             IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService,
             IThreadingContext threadingContext,
             IToolTipService toolTipService,
+            ClassificationTypeMap typeMap,
             Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter)
         {
             _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
@@ -49,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             this.ThreadingContext = threadingContext;
             this.ToolTipService = toolTipService;
             this.StreamingFindUsagesPresenter = streamingFindUsagesPresenter;
+            this.TypeMap = typeMap;
         }
 
         public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
@@ -60,8 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 return null;
             }
 
-            var tagAggregator = _viewTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(textView);
-            return new InlineParameterNameHintsTagger(this, (IWpfTextView)textView, buffer, tagAggregator) as ITagger<T>;
+            var tagAggregator = _viewTagAggregatorFactoryService.CreateTagAggregator<InlineHintDataTag>(textView);
+            return new InlineHintsTagger(this, (IWpfTextView)textView, buffer, tagAggregator) as ITagger<T>;
         }
     }
 }

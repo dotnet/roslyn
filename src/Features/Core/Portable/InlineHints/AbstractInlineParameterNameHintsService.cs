@@ -15,38 +15,45 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
+        protected enum HintKind
+        {
+            Literal,
+            ObjectCreation,
+            Other
+        }
+
         protected abstract void AddAllParameterNameHintLocations(
             SemanticModel semanticModel,
             SyntaxNode node,
-            ArrayBuilder<InlineParameterHint> buffer,
+            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
             CancellationToken cancellationToken);
 
-        public async Task<ImmutableArray<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
 
-            var forParameters = displayAllOverride || options.GetOption(InlineHintsOptions.EnabledForParameters);
-            if (!forParameters)
-                return ImmutableArray<InlineParameterHint>.Empty;
+            var enabledForParameters = displayAllOverride || options.GetOption(InlineHintsOptions.EnabledForParameters);
+            if (!enabledForParameters)
+                return ImmutableArray<InlineHint>.Empty;
 
             var literalParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForLiteralParameters);
             var objectCreationParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForObjectCreationParameters);
             var otherParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForOtherParameters);
             if (!literalParameters && !objectCreationParameters && !otherParameters)
-                return ImmutableArray<InlineParameterHint>.Empty;
+                return ImmutableArray<InlineHint>.Empty;
 
-            var suppressForParametersThatDifferOnlyBySuffix = options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
-            var suppressForParametersThatMatchMethodIntent = options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
+            var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
+            var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            using var _1 = ArrayBuilder<InlineParameterHint>.GetInstance(out var result);
-            using var _2 = ArrayBuilder<InlineParameterHint>.GetInstance(out var buffer);
+            using var _1 = ArrayBuilder<InlineHint>.GetInstance(out var result);
+            using var _2 = ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
 
-            foreach (var node in root.DescendantNodes(textSpan))
+            foreach (var node in root.DescendantNodes(textSpan, n => n.Span.IntersectsWith(textSpan)))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 AddAllParameterNameHintLocations(semanticModel, node, buffer, cancellationToken);
@@ -65,21 +72,27 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 if (suppressForParametersThatDifferOnlyBySuffix && ParametersDifferOnlyBySuffix(buffer))
                     return;
 
-                foreach (var hint in buffer)
+                foreach (var (position, parameter, kind) in buffer)
                 {
-                    if (string.IsNullOrEmpty(hint.Parameter?.Name))
+                    if (string.IsNullOrEmpty(parameter?.Name))
                         continue;
 
-                    if (suppressForParametersThatMatchMethodIntent && MatchesMethodIntent(hint))
+                    if (suppressForParametersThatMatchMethodIntent && MatchesMethodIntent(parameter))
                         continue;
 
-                    if (HintMatches(hint, literalParameters, objectCreationParameters, otherParameters))
-                        result.Add(hint);
+                    if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
+                    {
+                        result.Add(new InlineHint(
+                            new TextSpan(position, 0),
+                            ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ":")),
+                            InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey())));
+                    }
                 }
             }
         }
 
-        private static bool ParametersDifferOnlyBySuffix(ArrayBuilder<InlineParameterHint> parameterHints)
+        private static bool ParametersDifferOnlyBySuffix(
+            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> parameterHints)
         {
             // Only relevant if we have two or more parameters.
             if (parameterHints.Count <= 1)
@@ -88,14 +101,15 @@ namespace Microsoft.CodeAnalysis.InlineHints
             return ParametersDifferOnlyByAlphaSuffix(parameterHints) ||
                    ParametersDifferOnlyByNumericSuffix(parameterHints);
 
-            static bool ParametersDifferOnlyByAlphaSuffix(ArrayBuilder<InlineParameterHint> parameterHints)
+            static bool ParametersDifferOnlyByAlphaSuffix(
+                ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> parameterHints)
             {
-                if (!HasAlphaSuffix(parameterHints[0], out var firstPrefix))
+                if (!HasAlphaSuffix(parameterHints[0].parameter, out var firstPrefix))
                     return false;
 
                 for (var i = 1; i < parameterHints.Count; i++)
                 {
-                    if (!HasAlphaSuffix(parameterHints[i], out var nextPrefix))
+                    if (!HasAlphaSuffix(parameterHints[i].parameter, out var nextPrefix))
                         return false;
 
                     if (!firstPrefix.Span.Equals(nextPrefix.Span, StringComparison.Ordinal))
@@ -105,14 +119,15 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 return true;
             }
 
-            static bool ParametersDifferOnlyByNumericSuffix(ArrayBuilder<InlineParameterHint> parameterHints)
+            static bool ParametersDifferOnlyByNumericSuffix(
+                ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> parameterHints)
             {
-                if (!HasNumericSuffix(parameterHints[0], out var firstPrefix))
+                if (!HasNumericSuffix(parameterHints[0].parameter, out var firstPrefix))
                     return false;
 
                 for (var i = 1; i < parameterHints.Count; i++)
                 {
-                    if (!HasNumericSuffix(parameterHints[i], out var nextPrefix))
+                    if (!HasNumericSuffix(parameterHints[i].parameter, out var nextPrefix))
                         return false;
 
                     if (!firstPrefix.Span.Equals(nextPrefix.Span, StringComparison.Ordinal))
@@ -122,9 +137,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 return true;
             }
 
-            static bool HasAlphaSuffix(InlineParameterHint hint, out ReadOnlyMemory<char> prefix)
+            static bool HasAlphaSuffix(IParameterSymbol? parameter, out ReadOnlyMemory<char> prefix)
             {
-                var name = hint.Parameter?.Name;
+                var name = parameter?.Name;
 
                 // Has to end with A-Z
                 // That A-Z can't be following another A-Z (that's just a capitalized word).
@@ -140,9 +155,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 return false;
             }
 
-            static bool HasNumericSuffix(InlineParameterHint hint, out ReadOnlyMemory<char> prefix)
+            static bool HasNumericSuffix(IParameterSymbol? parameter, out ReadOnlyMemory<char> prefix)
             {
-                var name = hint.Parameter?.Name;
+                var name = parameter?.Name;
 
                 // Has to end with 0-9.  only handles single-digit numeric suffix for now for simplicity
                 if (name?.Length >= 2 &&
@@ -163,22 +178,21 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 => c is >= '0' and <= '9';
         }
 
-        private static bool HintMatches(InlineParameterHint hint, bool literalParameters, bool objectCreationParameters, bool otherParameters)
-            => hint.Kind switch
+        private static bool HintMatches(HintKind kind, bool literalParameters, bool objectCreationParameters, bool otherParameters)
+            => kind switch
             {
-                InlineParameterHintKind.Literal => literalParameters,
-                InlineParameterHintKind.ObjectCreation => objectCreationParameters,
-                InlineParameterHintKind.Other => otherParameters,
-                _ => throw ExceptionUtilities.UnexpectedValue(hint.Kind),
+                HintKind.Literal => literalParameters,
+                HintKind.ObjectCreation => objectCreationParameters,
+                HintKind.Other => otherParameters,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
 
-        protected static bool MatchesMethodIntent(InlineParameterHint hint)
+        protected static bool MatchesMethodIntent(IParameterSymbol? parameter)
         {
             // Methods like `SetColor(color: "y")` `FromResult(result: "x")` `Enable/DisablePolling(bool)` don't need
             // parameter names to improve clarity.  The parameter is clear from the context of the method name.
 
             // First, this only applies to methods (as we're looking at the method name itself) so filter down to those.
-            var parameter = hint.Parameter;
             if (parameter is not { ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.Ordinary } method })
                 return false;
 

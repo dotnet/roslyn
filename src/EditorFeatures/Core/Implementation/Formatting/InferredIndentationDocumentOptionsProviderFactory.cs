@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                             }
                             else
                             {
-                                FatalError.ReportWithoutCrash(new System.Exception("We had an open document but it wasn't associated with a buffer. That meant we coudln't apply formatting settings."));
+                                FatalError.ReportAndCatch(new System.Exception("We had an open document but it wasn't associated with a buffer. That meant we coudln't apply formatting settings."));
                             }
                         }
                     }

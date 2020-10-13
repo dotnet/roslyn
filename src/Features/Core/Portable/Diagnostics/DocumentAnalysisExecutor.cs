@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (!AnalyzerHelper.AreEquivalent(rangeDiagnostics, wholeDiagnostics))
                 {
                     // otherwise, report non-fatal watson so that we can fix those cases
-                    FatalError.ReportWithoutCrash(new Exception("Bug in GetDiagnostics"));
+                    FatalError.ReportAndCatch(new Exception("Bug in GetDiagnostics"));
 
                     // make sure we hold onto these for debugging.
                     GC.KeepAlive(rangeDeclaractionDiagnostics);

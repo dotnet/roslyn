@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
     {
-        internal override AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector faultInjector)
+        internal override AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector)
             => new SQLitePersistentStorageService(locationService, faultInjector);
 
         [Fact]
@@ -68,12 +66,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         private class PersistentStorageFaultInjector : IPersistentStorageFaultInjector
         {
-            private readonly Action _onNewConnection;
-            private readonly Action<Exception> _onFatalError;
+            private readonly Action? _onNewConnection;
+            private readonly Action<Exception>? _onFatalError;
 
             public PersistentStorageFaultInjector(
-                Action onNewConnection = null,
-                Action<Exception> onFatalError = null)
+                Action? onNewConnection = null,
+                Action<Exception>? onFatalError = null)
             {
                 _onNewConnection = onNewConnection;
                 _onFatalError = onFatalError;

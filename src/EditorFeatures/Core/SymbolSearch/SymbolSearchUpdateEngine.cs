@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new PatchService(),
                    new DatabaseFactoryService(),
                    // Report all exceptions we encounter, but don't crash on them.
-                   FatalError.ReportWithoutCrash)
+                   FatalError.ReportAndCatch)
         {
         }
 

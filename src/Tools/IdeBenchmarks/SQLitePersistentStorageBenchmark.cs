@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,6 +32,15 @@ namespace IdeBenchmarks
         private IChecksummedPersistentStorage _storage;
         private Document _document;
         private Random _random;
+
+        public SQLitePersistentStorageBenchmarks()
+        {
+            _document = null!;
+            _storage = null!;
+            _storageService = null!;
+            _workspace = null!;
+            _random = null!;
+        }
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -80,12 +87,12 @@ namespace IdeBenchmarks
                 throw new InvalidOperationException();
             }
 
-            _document = null;
+            _document = null!;
             _storage.Dispose();
-            _storage = null;
-            _storageService = null;
+            _storage = null!;
+            _storageService = null!;
             _workspace.Dispose();
-            _workspace = null;
+            _workspace = null!;
 
             _useExportProviderAttribute.After(null);
         }

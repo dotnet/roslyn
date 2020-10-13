@@ -147,6 +147,11 @@
         <target state="translated">Kod analizi, Çözüm için tamamlanmadan önce sonlandırıldı.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Color_hints">
+        <source>Color hints</source>
+        <target state="new">Color hints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Normal ifadeleri renklendir</target>
@@ -185,6 +190,11 @@
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
         <target state="new">Disp_lay inline parameter name hints</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_type_hints">
+        <source>Display inline type hints</source>
+        <target state="new">Display inline type hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -787,9 +797,19 @@
         <target state="new">Show hints for everything else</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_lambda_parameter_types">
+        <source>Show hints for lambda parameter types</source>
+        <target state="new">Show hints for lambda parameter types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_literals">
         <source>Show hints for literals</source>
         <target state="new">Show hints for literals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_variables_with_inferred_types">
+        <source>Show hints for variables with inferred types</source>
+        <target state="new">Show hints for variables with inferred types</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
