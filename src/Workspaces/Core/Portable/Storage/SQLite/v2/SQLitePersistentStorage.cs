@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             if (checkScheduler)
             {
                 var scheduler = TaskScheduler.Current;
-                if (scheduler != _readerWriterLock.ConcurrentScheduler && scheduler != _readerWriterLock.ExclusiveScheduler)
+                if (scheduler != s_readerWriterLock.ConcurrentScheduler && scheduler != s_readerWriterLock.ExclusiveScheduler)
                     throw new InvalidOperationException("Cannot get a connection to the DB unless running on one of _readerWriterLock's schedulers");
             }
 
