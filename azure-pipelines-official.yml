@@ -37,7 +37,7 @@ stages:
         - DotNetFramework
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: NetCoreInternal-Pool
-        queue: BuildPool.Windows.10.Amd64.VS2019
+        queue: BuildPool.Windows.10.Amd64.VS2019.Pre
 
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
