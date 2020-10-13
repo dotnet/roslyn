@@ -306,10 +306,10 @@ namespace Microsoft.CodeAnalysis
 
             var nodes = this.ToList();
             nodes.InsertRange(index, nodesAndTokens);
-            return CreateList(nodes[0].UnderlyingNode!, nodes);
+            return CreateList(nodes);
         }
 
-        private static SyntaxNodeOrTokenList CreateList(GreenNode creator, List<SyntaxNodeOrToken> items)
+        private static SyntaxNodeOrTokenList CreateList(List<SyntaxNodeOrToken> items)
         {
             if (items.Count == 0)
             {
@@ -336,10 +336,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            var node = this[index];
             var nodes = this.ToList();
             nodes.RemoveAt(index);
-            return CreateList(node.UnderlyingNode!, nodes);
+            return CreateList(nodes);
         }
 
         /// <summary>
@@ -385,7 +384,7 @@ namespace Microsoft.CodeAnalysis
                 var nodes = this.ToList();
                 nodes.RemoveAt(index);
                 nodes.InsertRange(index, newNodesAndTokens);
-                return CreateList(nodeOrTokenInList.UnderlyingNode!, nodes);
+                return CreateList(nodes);
             }
 
             throw new ArgumentOutOfRangeException(nameof(nodeOrTokenInList));
