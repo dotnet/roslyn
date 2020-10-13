@@ -4,17 +4,14 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Pipelines;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using MessagePack;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Nerdbank.Streams;
+using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
