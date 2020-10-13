@@ -1,0 +1,18 @@
+# Build on windows desktop
+parameters:
+- name: jobName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+
+steps:
+  - task: PublishPipelineArtifact@1
+    displayName: Publish Logs
+    inputs:
+      targetPath: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
+      artifactName: '${{ parameters.jobName }} Logs'
+    continueOnError: true
+    condition: not(succeeded())
+

@@ -158,11 +158,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
-            if (SynchronizationContext.Current != null)
-            {
-                Dispatcher.CurrentDispatcher.DoEvents();
-            }
-
             if (_backgroundParser != null)
             {
                 _backgroundParser.CancelAllParses();

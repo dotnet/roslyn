@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -29,11 +30,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
+        private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem request)
+        {
+            Contract.ThrowIfNull(request.Data);
+
+            return ((JToken)request.Data).ToObject<CompletionResolveData>();
+        }
+
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
             => GetCompletionResolveData(request).TextDocument;
-
-        private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem completionItem)
-            => completionItem.Data as CompletionResolveData ?? ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {

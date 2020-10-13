@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private readonly CancellationTokenSource _shutdownTokenSource = new();
 
         private readonly IDisposable _dbOwnershipLock;
-        private readonly IPersistentStorageFaultInjector? _faultInjectorOpt;
+        private readonly IPersistentStorageFaultInjector? _faultInjector;
 
         // Accessors that allow us to retrieve/store data into specific DB tables.  The
         // core Accessor type has logic that we to share across all reading/writing, while
@@ -134,11 +134,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             string solutionFilePath,
             string databaseFile,
             IDisposable dbOwnershipLock,
-            IPersistentStorageFaultInjector? faultInjectorOpt)
+            IPersistentStorageFaultInjector? faultInjector)
             : base(workingFolderPath, solutionFilePath, databaseFile)
         {
             _dbOwnershipLock = dbOwnershipLock;
-            _faultInjectorOpt = faultInjectorOpt;
+            _faultInjector = faultInjector;
 
             _solutionAccessor = new SolutionAccessor(this);
             _projectAccessor = new ProjectAccessor(this);
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             // Otherwise create a new connection.
-            return SqlConnection.Create(_faultInjectorOpt, DatabaseFile);
+            return SqlConnection.Create(_faultInjector, DatabaseFile);
         }
 
         private void ReleaseConnection(SqlConnection connection)
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             if (checkScheduler)
             {
                 var scheduler = TaskScheduler.Current;
-                if (scheduler != _readerWriterLock.ConcurrentScheduler && scheduler != _readerWriterLock.ExclusiveScheduler)
+                if (scheduler != s_readerWriterLock.ConcurrentScheduler && scheduler != s_readerWriterLock.ExclusiveScheduler)
                     throw new InvalidOperationException("Cannot get a connection to the DB unless running on one of _readerWriterLock's schedulers");
             }
 

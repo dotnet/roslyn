@@ -215,7 +215,7 @@ class Program
             var expectedToolTip = new ContainerElement(
                 ContainerElementStyle.Wrapped,
                 new ClassifiedTextElement(
-                    new ClassifiedTextRun(ClassificationTypeNames.Text, "CS0246"),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, "CS0246", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)", UriKind.Absolute)), "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)"),
                     new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                     new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                     new ClassifiedTextRun(ClassificationTypeNames.Text, firstDiagnostic.Message)));

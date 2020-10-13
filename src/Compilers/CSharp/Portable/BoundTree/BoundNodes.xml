@@ -1744,9 +1744,9 @@
     <!-- Used by IOperation to reconstruct the receiver for this expression. -->
     <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
     
-    <!-- BinderOpt is a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <!-- Binder is a temporary solution for IOperation implementation and should probably be removed in the future -->
     <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
-    <Field Name="BinderOpt" Type="Binder?"/>
+    <Field Name="Binder" Type="Binder"/>
   </Node>
 
   <Node Name="BoundDynamicObjectInitializerMember" Base="BoundExpression">

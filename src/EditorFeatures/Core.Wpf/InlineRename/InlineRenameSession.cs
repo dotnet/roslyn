@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
                     if (textSnapshot == null)
                     {
-                        FatalError.ReportWithoutCrash(new NullTextBufferException(document, text));
+                        FatalError.ReportAndCatch(new NullTextBufferException(document, text));
                         continue;
                     }
                     Contract.ThrowIfNull(textSnapshot.TextBuffer);

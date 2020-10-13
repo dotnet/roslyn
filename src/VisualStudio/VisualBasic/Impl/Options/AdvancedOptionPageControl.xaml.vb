@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Fading
 Imports Microsoft.CodeAnalysis.ImplementType
+Imports Microsoft.CodeAnalysis.InlineHints
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.SolutionCrawler
@@ -62,7 +63,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(EnableLineCommit, FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)
             BindToOption(AutomaticInsertionOfInterfaceAndMustOverrideMembers, FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic)
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.VisualBasic)
-            BindToOption(DisplayInlineParameterNameHints, FeatureOnOffOptions.InlineParameterNameHints, LanguageNames.VisualBasic)
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.VisualBasic)
             BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.VisualBasic)
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.VisualBasic)
@@ -85,6 +85,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Show_completion_list, RegularExpressionsOptions.ProvideRegexCompletions, LanguageNames.VisualBasic)
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme)
+
+            BindToOption(DisplayAllHintsWhilePressingCtrlAlt, InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt)
+            BindToOption(ColorHints, InlineHintsOptions.ColorHints, LanguageNames.VisualBasic)
+
+            BindToOption(DisplayInlineParameterNameHints, InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForLiterals, InlineHintsOptions.ForLiteralParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForNewExpressions, InlineHintsOptions.ForObjectCreationParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.VisualBasic)
+            BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
+            BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -97,7 +107,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Customized_Theme_Warning.Visibility = If(isSupportedTheme AndAlso isCustomized, Visibility.Visible, Visibility.Collapsed)
             Custom_VS_Theme_Warning.Visibility = If(isSupportedTheme, Visibility.Collapsed, Visibility.Visible)
 
+            UpdateInlineHintsOptions()
+
             MyBase.OnLoad()
+        End Sub
+
+        Private Sub UpdateInlineHintsOptions()
+            Dim enabledForParameters = Me.OptionStore.GetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic) <> False
+            ShowHintsForLiterals.IsEnabled = enabledForParameters
+            ShowHintsForNewExpressions.IsEnabled = enabledForParameters
+            ShowHintsForEverythingElse.IsEnabled = enabledForParameters
+            SuppressHintsWhenParameterNameMatchesTheMethodsIntent.IsEnabled = enabledForParameters
+            SuppressHintsWhenParameterNamesDifferOnlyBySuffix.IsEnabled = enabledForParameters
+        End Sub
+
+        Private Sub DisplayInlineParameterNameHints_Checked()
+            Me.OptionStore.SetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic, True)
+            UpdateInlineHintsOptions()
+        End Sub
+
+        Private Sub DisplayInlineParameterNameHints_Unchecked()
+            Me.OptionStore.SetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic, False)
+            UpdateInlineHintsOptions()
         End Sub
     End Class
 End Namespace
