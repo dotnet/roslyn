@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.Editor.AddMissingImports
 {
     internal interface IAutomaticallyAddMissingImportsService : IWorkspaceService
     {
-        void AddMissingUsings(Document document, TextSpan textSpan, IUIThreadOperationContext operationContext);
+        void AddMissingImports(Document document, TextSpan textSpan, IUIThreadOperationContext operationContext);
     }
 }

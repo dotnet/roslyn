@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.AddUsingsOnPast
             _threadingContext = threadingContext;
         }
 
-        public void AddMissingUsings(Document document, TextSpan textSpan, IUIThreadOperationContext operationContext)
+        public void AddMissingImports(Document document, TextSpan textSpan, IUIThreadOperationContext operationContext)
         {
             using var _ = operationContext.AddScope(allowCancellation: true, ServicesVSResources.Adding_missing_import_statements);
             var cancellationToken = operationContext.UserCancellationToken;
@@ -51,15 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.AddUsingsOnPast
 
         private async Task<Project?> AddMissingUsingsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            // Check pasted text span for missing imports
             var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
-            var hasMissingImports = await addMissingImportsService.HasMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-
-            if (!hasMissingImports)
-            {
-                return null;
-            }
-
             return await addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         }
     }

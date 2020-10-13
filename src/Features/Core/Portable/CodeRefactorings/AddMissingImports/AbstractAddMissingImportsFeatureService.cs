@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -28,27 +26,38 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
     {
         protected abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        public async Task<bool> HasMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        /// <inheritdoc/>
+        public async Task<Project?> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            // Get the diagnostics that indicate a missing import.
-            var diagnostics = await GetDiagnosticsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (diagnostics.IsEmpty)
-            {
-                return false;
-            }
-
-            // Find fixes for the diagnostic where there is only a single fix.
-            var usableFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
-            return !usableFixes.IsEmpty;
+            var analysisResult = await AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            return await AddMissingImportsAsync(analysisResult, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<Project> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        /// <inheritdoc/>
+        public async Task<Project?> AddMissingImportsAsync(AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken)
+        {
+            if (analysisResult.CanAddMissingImports)
+            {
+                // Apply those fixes to the document.
+                var newDocument = await ApplyFixesAsync(analysisResult.Document, analysisResult.AddImportFixData, cancellationToken).ConfigureAwait(false);
+                return newDocument.Project;
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc/>
+        public async Task<AddMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             // Get the diagnostics that indicate a missing import.
             var diagnostics = await GetDiagnosticsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (diagnostics.IsEmpty)
             {
-                return document.Project;
+                return new AddMissingImportsAnalysisResult(
+                    ImmutableArray<AddImportFixData>.Empty,
+                    document,
+                    textSpan,
+                    canAddMissingImports: false);
             }
 
             // Find fixes for the diagnostic where there is only a single fix.
@@ -56,14 +65,12 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             // We do not want to add project or framework references without the user's input, so filter those out.
             var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
-            if (usableFixes.IsEmpty)
-            {
-                return document.Project;
-            }
 
-            // Apply those fixes to the document.
-            var newDocument = await ApplyFixesAsync(document, usableFixes, cancellationToken).ConfigureAwait(false);
-            return newDocument.Project;
+            return new AddMissingImportsAnalysisResult(
+                    usableFixes,
+                    document,
+                    textSpan,
+                    canAddMissingImports: !usableFixes.IsEmpty);
         }
 
         private static bool DoesNotAddReference(AddImportFixData fixData, ProjectId currentProjectId)

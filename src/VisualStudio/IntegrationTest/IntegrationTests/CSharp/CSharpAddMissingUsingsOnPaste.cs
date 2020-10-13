@@ -51,8 +51,6 @@ class Program
 
     Task DoThingAsync() => Task.CompletedTask;
 }");
-
-            }
         }
     }
 }

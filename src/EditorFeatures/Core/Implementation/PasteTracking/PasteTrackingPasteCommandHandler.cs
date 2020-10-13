@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
                 return;
             }
 
-            service.AddMissingUsings(document, textSpan, executionContext.OperationContext);
+            service.AddMissingImports(document, textSpan, executionContext.OperationContext);
         }
     }
 }

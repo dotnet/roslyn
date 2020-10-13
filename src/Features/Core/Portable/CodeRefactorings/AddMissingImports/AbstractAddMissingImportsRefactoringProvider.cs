@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
@@ -34,25 +35,23 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             // Check pasted text span for missing imports
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
-            var hasMissingImports = await addMissingImportsService.HasMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
-            if (!hasMissingImports)
+            var analysis = await addMissingImportsService.AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            if (!analysis.CanAddMissingImports)
             {
                 return;
             }
 
             var addImportsCodeAction = new AddMissingImportsCodeAction(
                 CodeActionTitle,
-                cancellationToken => AddMissingImportsAsync(document, textSpan, cancellationToken));
-            context.RegisterRefactoring(addImportsCodeAction, textSpan);
-        }
+                async cancellationToken =>
+                {
+                    var modifiedProject = await addMissingImportsService.AddMissingImportsAsync(analysis, cancellationToken).ConfigureAwait(false);
+                    RoslynDebug.AssertNotNull(modifiedProject);
+                    return modifiedProject.Solution;
+                });
 
-        private static async Task<Solution> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            // Add missing imports for the pasted text span.
-            var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
-            var newProject = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return newProject.Solution;
+            context.RegisterRefactoring(addImportsCodeAction, textSpan);
         }
 
         private class AddMissingImportsCodeAction : CodeActions.CodeAction.SolutionChangeAction
