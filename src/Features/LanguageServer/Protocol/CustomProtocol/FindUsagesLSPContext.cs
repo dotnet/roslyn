@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                         Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                     };
                 }
-                catch (UriFormatException e) when (FatalError.ReportWithoutCrash(e))
+                catch (UriFormatException e) when (FatalError.ReportAndCatch(e))
                 {
                     // We might reach this point if the file path is formatted incorrectly.
                     return null;

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -27,11 +26,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri? documentUri)
         {
             return GetDocuments(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
-        }
-
-        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri? documentUri)
-        {
-            return GetDocuments(solution, documentUri, (s, i) => s.GetRequiredTextDocument(i));
         }
 
         private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri? documentUri, Func<Solution, DocumentId, T> getDocument) where T : TextDocument
@@ -68,11 +62,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return GetDocuments(solutionProvider, uri, (s, u, c) => s.GetDocuments(u), clientName);
         }
 
-        public static ImmutableArray<TextDocument> GetTextDocuments(this ILspSolutionProvider solutionProvider, Uri? uri, string? clientName)
-        {
-            return GetDocuments(solutionProvider, uri, (s, u, c) => s.GetTextDocuments(u), clientName);
-        }
-
         private static ImmutableArray<T> GetDocuments<T>(
             this ILspSolutionProvider solutionProvider,
             Uri? uri,
@@ -102,11 +91,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static Document? GetDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier? documentIdentifier, string? clientName = null)
         {
             return GetDocument(solutionProvider, documentIdentifier, (s, d, c) => s.GetDocuments(d, c), clientName);
-        }
-
-        public static TextDocument? GetTextDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
-        {
-            return GetDocument<TextDocument>(solutionProvider, documentIdentifier, (s, d, c) => s.GetTextDocuments(d, c), clientName);
         }
 
         private static T? GetDocument<T>(

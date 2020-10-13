@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // If the queue is asked to shut down between the start of the while loop, and the Dequeue call
                 // we could end up here, but we don't want to report an error. The Shutdown call will take care of things.
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 OnRequestServerShutdown($"Error occured processing queue: {e.Message}.");
             }

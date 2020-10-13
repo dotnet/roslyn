@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                         textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // report NFW and continue.
                 // also, rather than return partial results, return nothing

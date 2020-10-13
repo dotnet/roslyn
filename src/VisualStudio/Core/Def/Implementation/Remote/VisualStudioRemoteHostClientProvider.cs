@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 return client;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return null;
             }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         /// <summary>
         /// For testing purposes to simulate failures during testing.
         /// </summary>
-        private readonly IPersistentStorageFaultInjector _faultInjector;
+        private readonly IPersistentStorageFaultInjector? _faultInjector;
 #pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         /// </summary>
         public bool IsInTransaction { get; private set; }
 
-        public static SqlConnection Create(IPersistentStorageFaultInjector faultInjector, string databasePath)
+        public static SqlConnection Create(IPersistentStorageFaultInjector? faultInjector, string databasePath)
         {
             faultInjector?.OnNewConnection();
 
@@ -112,7 +110,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             }
         }
 
-        private SqlConnection(SafeSqliteHandle handle, IPersistentStorageFaultInjector faultInjector, Dictionary<string, SqlStatement> queryToStatement)
+        private SqlConnection(SafeSqliteHandle handle, IPersistentStorageFaultInjector? faultInjector, Dictionary<string, SqlStatement> queryToStatement)
         {
             _handle = handle;
             _faultInjector = faultInjector;
@@ -176,7 +174,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 state =>
                 {
                     state.action(state.state);
-                    return (object)null;
+                    return (object?)null;
                 },
                 (action, state));
         }
@@ -239,7 +237,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             => (int)NativeMethods.sqlite3_last_insert_rowid(_handle);
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Stream ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
+        public Stream? ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
         {
             // NOTE: we do need to do the blob reading in a transaction because of the
             // following: https://www.sqlite.org/c3ref/blob_open.html

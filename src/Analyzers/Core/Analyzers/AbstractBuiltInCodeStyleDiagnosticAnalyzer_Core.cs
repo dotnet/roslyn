@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer
+    internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         protected readonly string? DescriptorId;
 
@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected readonly LocalizableString _localizableTitle;
         protected readonly LocalizableString _localizableMessageFormat;
 
-        protected AbstractCodeStyleDiagnosticAnalyzer(
+        private AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string descriptorId, LocalizableString title,
-            LocalizableString? messageFormat = null,
-            bool isUnnecessary = false,
-            bool configurable = true)
+            LocalizableString? messageFormat,
+            bool isUnnecessary,
+            bool configurable)
         {
             DescriptorId = descriptorId;
             _localizableTitle = title;
@@ -30,7 +30,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             SupportedDiagnostics = ImmutableArray.Create(Descriptor);
         }
 
-        protected AbstractCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)
+        /// <summary>
+        /// Constructor for a code style analyzer with a multiple diagnostic descriptors such that all the descriptors have no unique code style option to configure the descriptors.
+        /// </summary>
+        protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)
         {
             SupportedDiagnostics = supportedDiagnostics;
 
@@ -55,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     DiagnosticSeverity.Hidden,
                     isEnabledByDefault: true,
                     description: description,
+                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
                     customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, customTags));
 
         public sealed override void Initialize(AnalysisContext context)

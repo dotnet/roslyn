@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     // nop
                 }
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     // nop
                 }
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     // nop
                 }
