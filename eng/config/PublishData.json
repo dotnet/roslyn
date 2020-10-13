@@ -204,7 +204,7 @@
     },
     "release/dev16.9-preview1-vs-deps": {
       "nugetKind": [ "Shipping", "NonShipping" ],
-      "version": "3.8.*",
+      "version": "3.9.*",
       "packageFeeds": "default",
       "channels": [ "dev16.9p1" ],
       "vsBranch": "rel/d16.9",
