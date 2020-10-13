@@ -473,14 +473,18 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new token from this token with the leading trivia specified..
+        /// Creates a new token from this token with the leading trivia specified.
         /// </summary>
         public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
-            var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
-
+            IReadOnlyList<SyntaxTrivia>? list = trivia switch
+            {
+                null => null,
+                IReadOnlyList<SyntaxTrivia> l => l,
+                _ => trivia.ToArray()
+            };
             return Node != null
-                ? new SyntaxToken(null, Node.WithLeadingTrivia(GreenNode.CreateList(greenList)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithLeadingTrivia(GreenNode.CreateList(list, t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
@@ -505,10 +509,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
-            var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
-
+            IReadOnlyList<SyntaxTrivia>? list = trivia switch
+            {
+                null => null,
+                IReadOnlyList<SyntaxTrivia> l => l,
+                _ => trivia.ToArray()
+            };
             return Node != null
-                ? new SyntaxToken(null, Node.WithTrailingTrivia(GreenNode.CreateList(greenList)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithTrailingTrivia(GreenNode.CreateList(list, t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
