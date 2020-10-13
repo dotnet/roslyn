@@ -176,16 +176,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             Contract.ThrowIfNull(enumType.EnumUnderlyingType);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
-            foreach (var member in enumType.GetMembers())
+            foreach (var field in enumType.GetMembers().OfType<IFieldSymbol>())
             {
-                if (member.Kind == SymbolKind.Field)
+                if (field is { HasConstantValue: true, ConstantValue: not null })
                 {
-                    var field = (IFieldSymbol)member;
-                    if (field.HasConstantValue)
-                    {
-                        var value = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
-                        allFieldsAndValues.Add((field, value));
-                    }
+                    var value = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
+                    allFieldsAndValues.Add((field, value));
                 }
             }
 
@@ -199,18 +195,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
 
             // See if there's a member with this value.  If so, then use that.
-            foreach (var member in enumType.GetMembers())
+            foreach (var field in enumType.GetMembers().OfType<IFieldSymbol>())
             {
-                if (member.Kind == SymbolKind.Field)
+                if (field is { HasConstantValue: true, ConstantValue: not null })
                 {
-                    var field = (IFieldSymbol)member;
-                    if (field.HasConstantValue)
+                    var fieldValue = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
+                    if (constantValueULong == fieldValue)
                     {
-                        var fieldValue = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
-                        if (constantValueULong == fieldValue)
-                        {
-                            return CreateMemberAccessExpression(field, enumType, underlyingSpecialType);
-                        }
+                        return CreateMemberAccessExpression(field, enumType, underlyingSpecialType);
                     }
                 }
             }
