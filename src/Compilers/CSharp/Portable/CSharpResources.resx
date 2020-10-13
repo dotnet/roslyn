@@ -1150,7 +1150,7 @@
     <value>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</value>
   </data>
   <data name="ERR_PartialMisplaced" xml:space="preserve">
-    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</value>
+    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</value>
   </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
     <value>Imported type '{0}' is invalid. It contains a circular base type dependency.</value>
@@ -6565,5 +6565,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
+  </data>
+  <data name="ERR_FunctionPointersCannotBeCalledWithNamedArguments" xml:space="preserve">
+    <value>A function pointer cannot be called with named arguments.</value>
   </data>
 </root>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Reflection;
@@ -2899,7 +2901,7 @@ namespace ClassLibrary7
 
             // CompilationExtensions is in the Microsoft.CodeAnalysis.Test.Utilities namespace 
             // which has a "Traits" type that conflicts with the one in Roslyn.Test.Utilities
-            var reference = MetadataReference.CreateFromImage(Test.Utilities.CompilationExtensions.EmitToArray(compilation));
+            var reference = MetadataReference.CreateFromImage(CompilationExtensions.EmitToArray(compilation));
             var p1 = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
             var updatedP1 = p1.AddMetadataReference(reference);
             workspace.ChangeSolution(updatedP1.Solution);
@@ -2950,7 +2952,7 @@ public class SomeClass : Base
             var origComp = await workspace.CurrentSolution.Projects.Single().GetCompilationAsync();
             var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
             var libComp = origComp.RemoveAllSyntaxTrees().AddSyntaxTrees(CSharpSyntaxTree.ParseText(before, options: options));
-            var libRef = MetadataReference.CreateFromImage(Test.Utilities.CompilationExtensions.EmitToArray(libComp));
+            var libRef = MetadataReference.CreateFromImage(CompilationExtensions.EmitToArray(libComp));
 
             var project = workspace.CurrentSolution.Projects.Single();
             var updatedProject = project.AddMetadataReference(libRef);

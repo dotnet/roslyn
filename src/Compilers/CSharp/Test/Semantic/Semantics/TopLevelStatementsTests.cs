@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -8601,6 +8603,79 @@ for (Span<int> inner = stackalloc int[10];; inner = outer)
                 //     outer = inner;
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(7, 13)
                 );
+        }
+
+        [Fact]
+        [WorkItem(1179569, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1179569")]
+        public void Issue1179569()
+        {
+            var text1 =
+@"Task v0123456789012345678901234567()
+{
+    Console.Write(""start v0123456789012345678901234567"");
+    await Task.Delay(2 * 1000);
+    Console.Write(""end v0123456789012345678901234567"");
+}
+
+Task On01234567890123456()
+{
+    return v0123456789012345678901234567();
+}
+
+string
+
+return Task.WhenAll(
+    Task.WhenAll(this.c01234567890123456789012345678.Select(v01234567 => On01234567890123456(v01234567))),
+    Task.WhenAll(this.c01234567890123456789.Select(v01234567 => v01234567.U0123456789012345678901234())));
+";
+
+            var oldTree = Parse(text: text1, options: TestOptions.RegularDefault);
+
+            var text2 =
+@"Task v0123456789012345678901234567()
+{
+    Console.Write(""start v0123456789012345678901234567"");
+    await Task.Delay(2 * 1000);
+    Console.Write(""end v0123456789012345678901234567"");
+}
+
+Task On01234567890123456()
+{
+    return v0123456789012345678901234567();
+}
+
+string[
+
+return Task.WhenAll(
+    Task.WhenAll(this.c01234567890123456789012345678.Select(v01234567 => On01234567890123456(v01234567))),
+    Task.WhenAll(this.c01234567890123456789.Select(v01234567 => v01234567.U0123456789012345678901234())));
+";
+
+            var newText = Microsoft.CodeAnalysis.Text.StringText.From(text2, System.Text.Encoding.UTF8);
+            using var lexer = new Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.Lexer(newText, TestOptions.RegularDefault);
+            using var parser = new Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser(lexer,
+                                       (CSharpSyntaxNode)oldTree.GetRoot(), new[] { new Microsoft.CodeAnalysis.Text.TextChangeRange(new Microsoft.CodeAnalysis.Text.TextSpan(282, 0), 1) });
+
+            var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
+            var tree = CSharpSyntaxTree.Create(compilationUnit, TestOptions.RegularDefault, encoding: System.Text.Encoding.UTF8);
+            Assert.Equal(text2, tree.GetText().ToString());
+            tree.VerifySource();
+
+            var fullParseTree = Parse(text: text2, options: TestOptions.RegularDefault);
+            var nodes1 = tree.GetRoot().DescendantNodesAndTokensAndSelf(descendIntoTrivia: true).ToArray();
+            var nodes2 = fullParseTree.GetRoot().DescendantNodesAndTokensAndSelf(descendIntoTrivia: true).ToArray();
+            Assert.Equal(nodes1.Length, nodes2.Length);
+
+            for (int i = 0; i < nodes1.Length; i++)
+            {
+                var node1 = nodes1[i];
+                var node2 = nodes2[i];
+                Assert.Equal(node1.RawKind, node2.RawKind);
+                Assert.Equal(node1.Span, node2.Span);
+                Assert.Equal(node1.FullSpan, node2.FullSpan);
+                Assert.Equal(node1.ToString(), node2.ToString());
+                Assert.Equal(node1.ToFullString(), node2.ToFullString());
+            }
         }
     }
 }

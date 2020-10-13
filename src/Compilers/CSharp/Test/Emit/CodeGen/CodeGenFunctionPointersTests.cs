@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -10559,6 +10558,96 @@ public unsafe class C
             AssertEx.Equal("System.Func<delegate* unmanaged<System.Int32, System.Void>>",
                            typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: false));
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
+        }
+
+        [Fact, WorkItem(47487, "https://github.com/dotnet/roslyn/issues/47487")]
+        public void InAndRefParameter()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe
+{
+    delegate*<in int, ref char, void> F = &Test;
+    char c = 'a';
+    F(int.MaxValue, ref c);
+}
+
+static void Test(in int b, ref char c)
+{
+    Console.WriteLine($""b = {b}, c = {c}"");
+}
+", expectedOutput: "b = 2147483647, c = a");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (char V_0, //c
+                delegate*<in int, ref char, void> V_1,
+                int V_2)
+  IL_0000:  ldftn      ""void <Program>$.<<Main>$>g__Test|0_0(in int, ref char)""
+  IL_0006:  ldc.i4.s   97
+  IL_0008:  stloc.0
+  IL_0009:  stloc.1
+  IL_000a:  ldc.i4     0x7fffffff
+  IL_000f:  stloc.2
+  IL_0010:  ldloca.s   V_2
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  ldloc.1
+  IL_0015:  calli      ""delegate*<in int, ref char, void>""
+  IL_001a:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(47487, "https://github.com/dotnet/roslyn/issues/47487")]
+        public void OutDiscard()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe
+{
+    delegate*<out int, out int, void> F = &Test;
+    F(out var i1, out _);
+    F(out _, out var i2);
+    Console.Write(i1);
+    Console.Write(i2);
+}
+
+static void Test(out int i1, out int i2)
+{
+    i1 = 1;
+    i2 = 2;
+}
+", expectedOutput: "12");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  4
+  .locals init (int V_0, //i1
+                int V_1, //i2
+                int V_2,
+                delegate*<out int, out int, void> V_3)
+  IL_0000:  ldftn      ""void <Program>$.<<Main>$>g__Test|0_0(out int, out int)""
+  IL_0006:  dup
+  IL_0007:  stloc.3
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldloca.s   V_2
+  IL_000c:  ldloc.3
+  IL_000d:  calli      ""delegate*<out int, out int, void>""
+  IL_0012:  stloc.3
+  IL_0013:  ldloca.s   V_2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  ldloc.3
+  IL_0018:  calli      ""delegate*<out int, out int, void>""
+  IL_001d:  ldloc.0
+  IL_001e:  call       ""void System.Console.Write(int)""
+  IL_0023:  ldloc.1
+  IL_0024:  call       ""void System.Console.Write(int)""
+  IL_0029:  ret
+}
+");
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

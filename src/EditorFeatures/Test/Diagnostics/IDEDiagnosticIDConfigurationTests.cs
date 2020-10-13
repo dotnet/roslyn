@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -263,7 +265,7 @@ dotnet_diagnostic.IDE0036.severity = %value%
 dotnet_diagnostic.IDE0037.severity = %value%
 
 # IDE0038
-dotnet_diagnostic.IDE0038.severity = %value%
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 
 # IDE0039
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
@@ -399,6 +401,9 @@ csharp_style_prefer_not_pattern = true:suggestion
 
 # IDE0090
 csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+
+# IDE0100
+dotnet_diagnostic.IDE0100.severity = %value%
 
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
@@ -557,6 +562,9 @@ dotnet_diagnostic.IDE0082.severity = %value%
 
 # IDE0084
 visual_basic_style_prefer_isnot_expression = true:suggestion
+
+# IDE0100
+dotnet_diagnostic.IDE0100.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -798,8 +806,8 @@ dotnet_style_prefer_inferred_tuple_names = true:suggestion
 # IDE0037, PreferInferredAnonymousTypeMemberNames
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 
-# IDE0038
-No editorconfig based code style option
+# IDE0038, PreferPatternMatchingOverIsWithCastCheck
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 
 # IDE0039, PreferLocalOverAnonymousFunction
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
@@ -825,8 +833,17 @@ dotnet_style_prefer_conditional_expression_over_assignment = true:silent
 # IDE0046, PreferConditionalExpressionOverReturn
 dotnet_style_prefer_conditional_expression_over_return = true:silent
 
-# IDE0047
-No editorconfig based code style option
+# IDE0047, ArithmeticBinaryParentheses
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
+
+# IDE0047, OtherBinaryParentheses
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
+
+# IDE0047, OtherParentheses
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
+
+# IDE0047, RelationalBinaryParentheses
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
 
 # IDE0048, ArithmeticBinaryParentheses
 dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
@@ -948,6 +965,9 @@ csharp_style_prefer_not_pattern = true:suggestion
 # IDE0090, ImplicitObjectCreationWhenTypeIsApparent
 csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
 
+# IDE0100
+No editorconfig based code style option
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -1055,8 +1075,17 @@ dotnet_style_prefer_conditional_expression_over_assignment = true:silent
 # IDE0046, PreferConditionalExpressionOverReturn
 dotnet_style_prefer_conditional_expression_over_return = true:silent
 
-# IDE0047
-No editorconfig based code style option
+# IDE0047, ArithmeticBinaryParentheses
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
+
+# IDE0047, OtherBinaryParentheses
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
+
+# IDE0047, OtherParentheses
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
+
+# IDE0047, RelationalBinaryParentheses
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
 
 # IDE0048, ArithmeticBinaryParentheses
 dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
@@ -1138,6 +1167,9 @@ No editorconfig based code style option
 
 # IDE0084, PreferIsNotExpression
 visual_basic_style_prefer_isnot_expression = true:suggestion
+
+# IDE0100
+No editorconfig based code style option
 
 # IDE1006
 No editorconfig based code style option

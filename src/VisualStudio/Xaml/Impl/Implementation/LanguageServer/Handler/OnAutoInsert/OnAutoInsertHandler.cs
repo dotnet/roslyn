@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -15,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
@@ -55,12 +54,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return response.ToArray();
             }
 
+            Contract.ThrowIfNull(result.TextChange.NewText);
             var insertText = result.TextChange.NewText;
             var insertFormat = LSP.InsertTextFormat.Plaintext;
             if (result.CaretOffset.HasValue)
             {
                 insertFormat = LSP.InsertTextFormat.Snippet;
-                insertText = insertText?.Insert(result.CaretOffset.Value, "$0");
+                insertText = insertText.Insert(result.CaretOffset.Value, "$0");
             }
 
             response.Add(new LSP.DocumentOnAutoInsertResponseItem

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -45,9 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 
         public static readonly PerLanguageOption2<bool> PrettyListing = new(nameof(FeatureOnOffOptions), nameof(PrettyListing), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PrettyListing"));
-
-        public static readonly PerLanguageOption2<bool> InlineParameterNameHints = new(nameof(FeatureOnOffOptions), nameof(InlineParameterNameHints), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints"));
 
         public static readonly PerLanguageOption2<bool> AutoFormattingOnTyping = new(
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnTyping), defaultValue: true,
@@ -113,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.AutoXmlDocCommentGeneration,
             FeatureOnOffOptions.AutoInsertBlockCommentStartString,
             FeatureOnOffOptions.PrettyListing,
-            FeatureOnOffOptions.InlineParameterNameHints,
             FeatureOnOffOptions.AutoFormattingOnTyping,
             FeatureOnOffOptions.AutoFormattingOnCloseBrace,
             FeatureOnOffOptions.AutoFormattingOnSemicolon,

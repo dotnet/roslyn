@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // When we are asked to flush, go actually acquire the write-scheduler and perform the actual writes from
             // it. Note: this is only called max every FlushAllDelayMS.  So we don't bother trying to avoid the delegate
             // allocation here.
-            return this.PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
+            return PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
         }
 
         private void FlushWritesOnClose()
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private void FlushInMemoryDataToDisk()
         {
             // We're writing.  This better always be under the exclusive scheduler.
-            Debug.Assert(TaskScheduler.Current == _readerWriterLock.ExclusiveScheduler);
+            Contract.ThrowIfFalse(TaskScheduler.Current == s_readerWriterLock.ExclusiveScheduler);
 
             // Don't flush from a bg task if we've been asked to shutdown.  The shutdown logic in the storage service
             // will take care of the final writes to the main db.

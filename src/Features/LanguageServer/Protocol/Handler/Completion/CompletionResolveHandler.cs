@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Linq;
@@ -14,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -31,11 +30,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
+        private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem request)
+        {
+            Contract.ThrowIfNull(request.Data);
+
+            return ((JToken)request.Data).ToObject<CompletionResolveData>();
+        }
+
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
             => GetCompletionResolveData(request).TextDocument;
-
-        private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem completionItem)
-            => completionItem.Data as CompletionResolveData ?? ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var list = await completionService.GetCompletionsAsync(document, position, data.CompletionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
                 return completionItem;

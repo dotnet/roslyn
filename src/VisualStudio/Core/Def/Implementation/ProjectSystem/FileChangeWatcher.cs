@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -189,14 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                             if (watchedDirectory.ExtensionFilter != null)
                             {
-                                // TODO: switch to proper reference assemblies
-                                var filterDirectoryChangesAsyncMethod = service.GetType().GetMethod("FilterDirectoryChangesAsync");
-
-                                if (filterDirectoryChangesAsyncMethod != null)
-                                {
-                                    var arguments = new object[] { cookie, new string[] { watchedDirectory.ExtensionFilter }, CancellationToken.None };
-                                    await ((Task)filterDirectoryChangesAsyncMethod.Invoke(service, arguments)).ConfigureAwait(false);
-                                }
+                                await service.FilterDirectoryChangesAsync(cookie, new string[] { watchedDirectory.ExtensionFilter }, CancellationToken.None).ConfigureAwait(false);
                             }
                         });
                 }

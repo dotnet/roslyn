@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1614,7 +1612,7 @@ unsafe class D : C<delegate*<void>>
                                       .OfType<InvocationExpressionSyntax>()
                                       .Select(s => model.GetSymbolInfo(s).CandidateSymbols.Single())
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -1676,7 +1674,7 @@ unsafe class C
                                           return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
                                       })
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -1749,7 +1747,7 @@ unsafe class C
                                           return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
                                       })
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -3090,6 +3088,44 @@ unsafe class C
                 // (11,31): error CS1919: Unsafe type 'delegate*<void>' cannot be used in object creation
                 //         delegate*<void> ptr = new();
                 Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new()").WithArguments("delegate*<void>").WithLocation(11, 31)
+            );
+        }
+
+        [Fact, WorkItem(48071, "https://github.com/dotnet/roslyn/issues/48071")]
+        public void FunctionPointerCalledWithNamedArguments()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    public unsafe void M(delegate*<string, int, void> ptr)
+    {
+        ptr(""a"", arg1: 1);
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,18): error CS8904: A function pointer cannot be called with named arguments.
+                //         ptr("a", arg1: 1);
+                Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg1").WithLocation(6, 18)
+            );
+        }
+
+        [Fact, WorkItem(48071, "https://github.com/dotnet/roslyn/issues/48071")]
+        public void FunctionPointerCalledWithNamedArguments2()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    public unsafe void M(delegate*<string, int, void> ptr)
+    {
+        ptr(arg0: ""a"", arg1: 1);
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,13): error CS8904: A function pointer cannot be called with named arguments.
+                //         ptr(arg0: "a", arg1: 1);
+                Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg0").WithLocation(6, 13)
             );
         }
     }
