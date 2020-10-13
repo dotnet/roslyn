@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -20,20 +21,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public partial class FindAllDeclarationsTests
     {
         private readonly ITestOutputHelper _logger;
-        private AdhocWorkspace _lazyWorkspace;
 
         public FindAllDeclarationsTests(ITestOutputHelper logger)
         {
             _logger = logger;
         }
 
-        public override void Dispose()
-        {
-            base.Dispose();
-            _lazyWorkspace?.Dispose();
-        }
-
-        private static void Verify(string searchTerm, bool respectCase, WorkspaceKind workspaceKind, IEnumerable<ISymbol> declarations, params string[] expectedResults)
+        private static void Verify(string searchTerm, bool respectCase, SolutionKind workspaceKind, IEnumerable<ISymbol> declarations, params string[] expectedResults)
         {
             var actualResultCount = declarations.Count();
             var expectedResultCount = expectedResults.Length;
@@ -43,14 +37,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     expectedResultCount,
                     actualResultCount,
                     respectCase,
-                    Enum.GetName(typeof(WorkspaceKind), workspaceKind)));
+                    Enum.GetName(typeof(SolutionKind), workspaceKind)));
             if (actualResultCount > 0)
             {
                 VerifyResults(declarations, expectedResults);
             }
         }
 
-        private static void Verify(WorkspaceKind workspaceKind, IEnumerable<ISymbol> declarations, params string[] expectedResults)
+        private static void Verify(SolutionKind workspaceKind, IEnumerable<ISymbol> declarations, params string[] expectedResults)
         {
             var actualResultCount = declarations.Count();
             var expectedResultCount = expectedResults.Length;
@@ -58,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 string.Format("Expected '{0}' results, found '{1}. Workspace {2} was used",
                     expectedResultCount,
                     actualResultCount,
-                    Enum.GetName(typeof(WorkspaceKind), workspaceKind)));
+                    Enum.GetName(typeof(SolutionKind), workspaceKind)));
             if (actualResultCount > 0)
             {
                 VerifyResults(declarations, expectedResults);
@@ -80,26 +74,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private Solution CreateSolution(TestHost testHost = TestHost.InProcess)
+        private Workspace CreateWorkspace(TestHost testHost = TestHost.InProcess)
         {
-            Assert.True(_lazyWorkspace == null, "Only one workspace can be created by a single test");
-
             var composition = FeaturesTestCompositions.Features.WithTestHostParts(testHost);
-            _lazyWorkspace = new AdhocWorkspace(composition.GetHostServices());
+            var workspace = new AdhocWorkspace(composition.GetHostServices());
 
             if (testHost == TestHost.OutOfProcess)
             {
-                var remoteHostProvider = (InProcRemoteHostClientProvider)_lazyWorkspace.Services.GetRequiredService<IRemoteHostClientProvider>();
+                var remoteHostProvider = (InProcRemoteHostClientProvider)workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
                 remoteHostProvider.TraceListener = new XunitTraceListener(_logger);
             }
 
-            return _lazyWorkspace.CurrentSolution;
+            return workspace;
         }
 
-        private Solution GetSingleProjectSolution(TestHost testHost, string[] sourceTexts)
+        private Workspace CreateWorkspaceWithSingleProjectSolution(TestHost testHost, string[] sourceTexts, out Solution solution)
         {
             var pid = ProjectId.CreateNewId();
-            var solution = CreateSolution(testHost)
+            var workspace = CreateWorkspace(testHost);
+
+            solution = workspace.CurrentSolution
                     .AddProject(pid, "TestCases", "TestCases", LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef);
             for (var i = 0; i < sourceTexts.Length; i++)
@@ -108,12 +102,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 solution = solution.AddDocument(did, "goo" + i + ".cs", SourceText.From(sourceTexts[i]));
             }
 
-            return solution;
+            return workspace;
         }
 
-        private Solution GetMultipleProjectSolution(TestHost testHost, string[] sourceTexts)
+        private Workspace CreateWorkspaceWithMultipleProjectSolution(TestHost testHost, string[] sourceTexts, out Solution solution)
         {
-            var solution = CreateSolution(testHost);
+            var workspace = CreateWorkspace(testHost);
+            solution = workspace.CurrentSolution;
             for (var i = 0; i < sourceTexts.Length; i++)
             {
                 var pid = ProjectId.CreateNewId();
@@ -124,28 +119,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 solution = solution.AddDocument(did, "goo" + i + ".cs", SourceText.From(sourceTexts[i]));
             }
 
-            return solution;
+            return workspace;
         }
 
-        private Solution GetSolution(WorkspaceKind workspaceKind, TestHost testHost = TestHost.InProcess)
-            => workspaceKind switch
+        private Workspace CreateWorkspaceWithSolution(SolutionKind solutionKind, out Solution solution, TestHost testHost = TestHost.InProcess)
+            => solutionKind switch
             {
-                WorkspaceKind.SingleClass => GetSingleProjectSolution(testHost, new[] { SingleClass }),
-                WorkspaceKind.SingleClassWithSingleMethod => GetSingleProjectSolution(testHost, new[] { SingleClassWithSingleMethod }),
-                WorkspaceKind.SingleClassWithSingleProperty => GetSingleProjectSolution(testHost, new[] { SingleClassWithSingleProperty }),
-                WorkspaceKind.SingleClassWithSingleField => GetSingleProjectSolution(testHost, new[] { SingleClassWithSingleField }),
-                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod => GetMultipleProjectSolution(testHost, new[] { SingleClassWithSingleMethod, SingleClassWithSingleMethod }),
-                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty => GetMultipleProjectSolution(testHost, new[] { SingleClassWithSingleProperty, SingleClassWithSingleProperty }),
-                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField => GetMultipleProjectSolution(testHost, new[] { SingleClassWithSingleField, SingleClassWithSingleField }),
-                WorkspaceKind.NestedClass => GetSingleProjectSolution(testHost, new[] { NestedClass }),
-                WorkspaceKind.TwoNamespacesWithIdenticalClasses => GetSingleProjectSolution(testHost, new[] { Namespace1, Namespace2 }),
-                _ => null,
+                SolutionKind.SingleClass => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClass }, out solution),
+                SolutionKind.SingleClassWithSingleMethod => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleMethod }, out solution),
+                SolutionKind.SingleClassWithSingleProperty => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleProperty }, out solution),
+                SolutionKind.SingleClassWithSingleField => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleField }, out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleMethod => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleMethod, SingleClassWithSingleMethod }, out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleProperty => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleProperty, SingleClassWithSingleProperty }, out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleField => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleField, SingleClassWithSingleField }, out solution),
+                SolutionKind.NestedClass => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { NestedClass }, out solution),
+                SolutionKind.TwoNamespacesWithIdenticalClasses => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { Namespace1, Namespace2 }, out solution),
+                _ => throw ExceptionUtilities.UnexpectedValue(solutionKind),
             };
 
-        private Project GetProject(WorkspaceKind workspaceKind, TestHost testHost = TestHost.InProcess)
-            => GetSolution(workspaceKind, testHost).Projects.First();
+        private Workspace CreateWorkspaceWithProject(SolutionKind solutionKind, out Project project, TestHost testHost = TestHost.InProcess)
+        {
+            var workspace = CreateWorkspaceWithSolution(solutionKind, out var solution, testHost);
+            project = solution.Projects.First();
+            return workspace;
+        }
 
-        public enum WorkspaceKind
+        public enum SolutionKind
         {
             SingleClass,
             SingleClassWithSingleMethod,
