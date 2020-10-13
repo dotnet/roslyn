@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal static class CodeGenerationHelpers
     {
-        public static SyntaxNode GenerateThrowStatement(
+        public static SyntaxNode? GenerateThrowStatement(
             SyntaxGenerator factory,
             SemanticDocument document,
             string exceptionMetadataName)
@@ -38,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return factory.ThrowStatement(exceptionCreationExpression);
         }
 
-        public static TSyntaxNode AddAnnotationsTo<TSyntaxNode>(ISymbol symbol, TSyntaxNode syntax)
+        [return: NotNullIfNotNull("syntax")]
+        public static TSyntaxNode? AddAnnotationsTo<TSyntaxNode>(ISymbol symbol, TSyntaxNode syntax)
             where TSyntaxNode : SyntaxNode
         {
             if (syntax != null && symbol is CodeGenerationSymbol)
@@ -104,12 +104,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static bool IsSpecialType(ITypeSymbol type, SpecialType specialType)
             => type != null && type.SpecialType == specialType;
 
-        public static int GetPreferredIndex(int index, IList<bool> availableIndices, bool forward)
+        public static int GetPreferredIndex(int index, IList<bool>? availableIndices, bool forward)
         {
             if (availableIndices == null)
-            {
                 return index;
-            }
 
             if (forward)
             {
@@ -135,7 +133,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return -1;
         }
 
-        public static bool TryGetDocumentationComment(ISymbol symbol, string commentToken, out string comment, CancellationToken cancellationToken = default)
+        public static bool TryGetDocumentationComment(
+            ISymbol symbol, string commentToken, [NotNullWhen(true)] out string? comment, CancellationToken cancellationToken = default)
         {
             var xml = symbol.GetDocumentationCommentXml(cancellationToken: cancellationToken);
             if (string.IsNullOrEmpty(xml))
@@ -209,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                             }).ToList();
         }
 
-        public static T GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CodeGenerationOptions options)
+        public static T? GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CodeGenerationOptions options)
             where T : SyntaxNode
         {
             Contract.ThrowIfNull(symbol);
@@ -219,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 : null;
         }
 
-        public static T GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)
+        public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)
             where T : SyntaxNode
         {
             Contract.ThrowIfNull(attribute);
@@ -236,8 +235,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IList<bool> availableIndices,
             IComparer<TDeclaration> comparerWithoutNameCheck,
             IComparer<TDeclaration> comparerWithNameCheck,
-            Func<SyntaxList<TDeclaration>, TDeclaration> after = null,
-            Func<SyntaxList<TDeclaration>, TDeclaration> before = null)
+            Func<SyntaxList<TDeclaration>, TDeclaration>? after = null,
+            Func<SyntaxList<TDeclaration>, TDeclaration>? before = null)
             where TDeclaration : SyntaxNode
         {
             Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
@@ -341,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static int? TryGetDesiredIndexIfGrouped<TDeclarationSyntax>(
             SyntaxList<TDeclarationSyntax> declarationList,
             TDeclarationSyntax declaration,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             IComparer<TDeclarationSyntax> comparerWithoutNameCheck,
             IComparer<TDeclarationSyntax> comparerWithNameCheck)
             where TDeclarationSyntax : SyntaxNode
@@ -366,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private static int? TryGetDesiredIndexIfGroupedWorker<TDeclarationSyntax>(
             SyntaxList<TDeclarationSyntax> declarationList,
             TDeclarationSyntax declaration,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             IComparer<TDeclarationSyntax> comparerWithoutNameCheck,
             IComparer<TDeclarationSyntax> comparerWithNameCheck)
             where TDeclarationSyntax : SyntaxNode
