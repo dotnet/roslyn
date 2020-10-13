@@ -299,6 +299,25 @@ class C
                 );
         }
 
+        [Fact]
+        public void NoHiddenDiagnosticsForWarningLevel0()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C 
+{
+    void M()
+    {
+        return;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(0));
+            comp.VerifyDiagnostics();
+        }
+
         [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void INF_UnusedUsingDirective()
