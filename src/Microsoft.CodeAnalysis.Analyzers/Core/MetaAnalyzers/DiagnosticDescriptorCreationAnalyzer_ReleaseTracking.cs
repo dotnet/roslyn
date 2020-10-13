@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     long.TryParse(ruleId[2..], out _))
                 {
 #pragma warning disable CA1308 // Normalize strings to uppercase - use lower case ID in help link
-                    return $"https://docs.microsoft.com/visualstudio/code-quality/{ruleId.ToLowerInvariant()}";
+                    return $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/{ruleId.ToLowerInvariant()}";
 #pragma warning restore CA1308 // Normalize strings to uppercase
                 }
 
