@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Symbols
 {
@@ -44,26 +45,27 @@ class C
             Assert.Equal(new[] { symbol }, foundSymbols);
         }
 
-        [Fact]
-        public void TupleParameterMethod()
+        [Theory]
+        [InlineData(
+            "void DoStuff((int i, int) tuple) {}",
+            "M:C.DoStuff(System.ValueTuple{System.Int32,System.Int32})")]
+        [InlineData(
+            "void DoStuff((int, int, int, int, int, int, int, int, int) tuple) { }",
+            "M:C.DoStuff(System.ValueTuple{System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.ValueTuple{System.Int32,System.Int32}})")]
+        public void TupleParameterMethod(string methodCode, string expectedDocId)
         {
-            string code = @"
+            string code = $@"
 class C
-{
-    void DoStuff((int i, int) tuple) {}
-}";
+{{
+    {methodCode}
+}}";
 
             var comp = CreateCompilation(code);
             comp.VerifyDiagnostics();
 
             var symbol = comp.GetSymbolsWithName("DoStuff").Single();
-
             var actualDocId = DocumentationCommentId.CreateDeclarationId(symbol);
-
-            string expectedDocId = "M:C.DoStuff(System.ValueTuple{System.Int32,System.Int32})";
-
             Assert.Equal(expectedDocId, actualDocId);
-
             var foundSymbols = DocumentationCommentId.GetSymbolsForDeclarationId(expectedDocId, comp);
 
             Assert.Equal(new[] { symbol }, foundSymbols);
