@@ -26,7 +26,7 @@ When removing a public type or member the corresponding entry in PublicAPI.txt s
 
 ## [RS0022](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Constructor make noninheritable base class inheritable
 
-Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.
+Constructor makes its noninheritable base class inheritable, thereby exposing its protected members
 
 |Item|Value|
 |-|-|
@@ -50,7 +50,7 @@ The contents of the public API files are invalid: {0}
 
 ## [RS0025](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Do not duplicate symbols in public API files
 
-The symbol '{0}' appears more than once in the public API files.
+The symbol '{0}' appears more than once in the public API files
 
 |Item|Value|
 |-|-|
@@ -72,7 +72,7 @@ Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads
 |CodeFix|False|
 ---
 
-## [RS0027](https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md): Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+## [RS0027](https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md): Public API with optional parameter(s) should have the most parameters amongst its public overloads
 
 Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.
 

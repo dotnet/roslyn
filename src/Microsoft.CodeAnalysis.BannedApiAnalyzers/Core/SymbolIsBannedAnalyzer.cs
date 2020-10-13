@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
         public static readonly DiagnosticDescriptor SymbolIsBannedRule = new DiagnosticDescriptor(
             id: DiagnosticIds.SymbolIsBannedRuleId,
-            title: BannedApiAnalyzerResources.SymbolIsBannedTitle,
-            messageFormat: BannedApiAnalyzerResources.SymbolIsBannedMessage,
+            title: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.SymbolIsBannedTitle), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            messageFormat: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.SymbolIsBannedMessage), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
         public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new DiagnosticDescriptor(
             id: DiagnosticIds.DuplicateBannedSymbolRuleId,
-            title: BannedApiAnalyzerResources.DuplicateBannedSymbolTitle,
-            messageFormat: BannedApiAnalyzerResources.DuplicateBannedSymbolMessage,
+            title: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.DuplicateBannedSymbolTitle), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            messageFormat: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.DuplicateBannedSymbolMessage), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,

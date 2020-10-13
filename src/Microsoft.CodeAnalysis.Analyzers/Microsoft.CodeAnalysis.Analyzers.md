@@ -412,7 +412,7 @@ The diagnostic description should be one or multiple sentences ending with a pun
 |CodeFix|True|
 ---
 
-## [RS2000](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Add analyzer diagnostic IDs to analyzer release.
+## [RS2000](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Add analyzer diagnostic IDs to analyzer release
 
 All supported analyzer diagnostic IDs should be part of an analyzer release.
 
@@ -424,7 +424,7 @@ All supported analyzer diagnostic IDs should be part of an analyzer release.
 |CodeFix|True|
 ---
 
-## [RS2001](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.
+## [RS2001](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release
 
 Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.
 
@@ -436,7 +436,7 @@ Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer releas
 |CodeFix|True|
 ---
 
-## [RS2002](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Do not add removed analyzer diagnostic IDs to unshipped analyzer release.
+## [RS2002](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Do not add removed analyzer diagnostic IDs to unshipped analyzer release
 
 Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.
 
@@ -448,7 +448,7 @@ Entries for analyzer diagnostic IDs that are no longer reported and never shippe
 |CodeFix|False|
 ---
 
-## [RS2003](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.
+## [RS2003](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file
 
 Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.
 
@@ -460,7 +460,7 @@ Shipped diagnostic IDs that are no longer reported should have an entry in the '
 |CodeFix|False|
 ---
 
-## [RS2004](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.
+## [RS2004](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers
 
 Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.
 
@@ -472,7 +472,7 @@ Diagnostic IDs marked as removed in analyzer release file should not be reported
 |CodeFix|False|
 ---
 
-## [RS2005](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Remove duplicate entries for diagnostic ID in the same analyzer release.
+## [RS2005](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Remove duplicate entries for diagnostic ID in the same analyzer release
 
 Remove duplicate entries for diagnostic ID in the same analyzer release.
 
@@ -484,7 +484,7 @@ Remove duplicate entries for diagnostic ID in the same analyzer release.
 |CodeFix|False|
 ---
 
-## [RS2006](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Remove duplicate entries for diagnostic ID between analyzer releases.
+## [RS2006](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Remove duplicate entries for diagnostic ID between analyzer releases
 
 Remove duplicate entries for diagnostic ID between analyzer releases.
 
@@ -496,7 +496,7 @@ Remove duplicate entries for diagnostic ID between analyzer releases.
 |CodeFix|False|
 ---
 
-## [RS2007](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Invalid entry in analyzer release file.
+## [RS2007](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Invalid entry in analyzer release file
 
 Invalid entry in analyzer release file.
 
