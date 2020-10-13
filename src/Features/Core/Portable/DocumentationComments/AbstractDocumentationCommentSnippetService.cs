@@ -6,14 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
+namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal abstract class AbstractDocumentationCommentSnippetService<TDocumentationComment, TMemberNode> : IDocumentationCommentSnippetService
         where TDocumentationComment : SyntaxNode, IStructuredTriviaSyntax
@@ -48,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
-            if (!options.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
+            if (!options.GetOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration))
             {
                 return null;
             }
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
             // on ENTER inside an existing XML doc comment.
 
-            if (options.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
+            if (options.GetOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration))
             {
                 var result = GenerateDocumentationCommentAfterEnter(syntaxTree, text, position, options, cancellationToken);
                 if (result != null)
