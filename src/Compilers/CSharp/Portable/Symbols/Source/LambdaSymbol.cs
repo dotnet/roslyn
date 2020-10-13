@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInitOnly => false;
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext) => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses() => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

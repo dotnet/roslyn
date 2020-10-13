@@ -570,19 +570,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool canIgnoreNullableContext)
+        internal override void EnsureAllConstraintsAreResolved()
         {
-            canIgnoreNullableContext = false; // Resolve bounds eagerly.
-            if (!_lazyBounds.HasValue(canIgnoreNullableContext))
+            if (!_lazyBounds.IsSet())
             {
                 var typeParameters = (_containingSymbol.Kind == SymbolKind.Method) ?
                     ((PEMethodSymbol)_containingSymbol).TypeParameters :
                     ((PENamedTypeSymbol)_containingSymbol).TypeParameters;
-                EnsureAllConstraintsAreResolved(typeParameters, canIgnoreNullableContext);
+                EnsureAllConstraintsAreResolved(typeParameters);
             }
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool canIgnoreNullableContext)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             var bounds = this.GetBounds(inProgress);
             return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeWithAnnotations>.Empty;
@@ -637,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var diagnostics = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
                 bool inherited = (_containingSymbol.Kind == SymbolKind.Method) && ((MethodSymbol)_containingSymbol).IsOverride;
-                var bounds = this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited, ignoresNullableContext: false, currentCompilation: null,
+                var bounds = this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited, currentCompilation: null,
                                                 diagnosticsBuilder: diagnostics, useSiteDiagnosticsBuilder: ref useSiteDiagnosticsBuilder);
                 DiagnosticInfo errorInfo = null;
 
@@ -673,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override DiagnosticInfo GetConstraintsUseSiteErrorInfo()
         {
-            EnsureAllConstraintsAreResolved(canIgnoreNullableContext: false);
+            EnsureAllConstraintsAreResolved();
             Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
             return _lazyConstraintsUseSiteErrorInfo;
         }

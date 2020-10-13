@@ -63,21 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static readonly TypeParameterConstraintClause Empty = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.None,
-            ImmutableArray<TypeWithAnnotations>.Empty,
-            ignoresNullableContext: false);
+            ImmutableArray<TypeWithAnnotations>.Empty);
 
         internal static readonly TypeParameterConstraintClause ObliviousNullabilityIfReferenceType = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType,
-            ImmutableArray<TypeWithAnnotations>.Empty,
-            ignoresNullableContext: false);
+            ImmutableArray<TypeWithAnnotations>.Empty);
 
         internal static TypeParameterConstraintClause Create(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeWithAnnotations> constraintTypes,
-            bool ignoresNullableContext)
+            ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
             Debug.Assert(!constraintTypes.IsDefault);
-            if (!ignoresNullableContext && constraintTypes.IsEmpty)
+            if (constraintTypes.IsEmpty)
             {
                 switch (constraints)
                 {
@@ -89,13 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return new TypeParameterConstraintClause(constraints, constraintTypes, ignoresNullableContext);
+            return new TypeParameterConstraintClause(constraints, constraintTypes);
         }
 
         private TypeParameterConstraintClause(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeWithAnnotations> constraintTypes,
-            bool ignoresNullableContext)
+            ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
 #if DEBUG
             switch (constraints & TypeParameterConstraintKind.AllReferenceTypeKinds)
@@ -115,12 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
-            this.IgnoresNullableContext = ignoresNullableContext;
         }
 
         public readonly TypeParameterConstraintKind Constraints;
         public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
-        public readonly bool IgnoresNullableContext;
 
         internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty;
 
@@ -220,43 +214,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal static class TypeParameterConstraintClauseExtensions
     {
-        internal static bool HasValue(this ImmutableArray<TypeParameterConstraintClause> constraintClauses, bool canIgnoreNullableContext)
-        {
-            if (constraintClauses.IsDefault)
-            {
-                return false;
-            }
-            return canIgnoreNullableContext || !constraintClauses.IgnoresNullableContext();
-        }
-
-        internal static bool IgnoresNullableContext(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
-        {
-            return constraintClauses.Any(clause => clause.IgnoresNullableContext);
-        }
-
         internal static bool ContainsOnlyEmptyConstraintClauses(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
             return constraintClauses.All(clause => clause.IsEmpty);
-        }
-
-        // Returns true if constraintClauses was updated with value.
-        // Returns false if constraintClauses already had a value with sufficient 'IgnoresNullableContext'
-        // or was updated to a value with sufficient 'IgnoresNullableContext' on another thread.
-        internal static bool InterlockedUpdate(ref ImmutableArray<TypeParameterConstraintClause> constraintClauses, ImmutableArray<TypeParameterConstraintClause> value)
-        {
-            bool canIgnoreNullableContext = value.IgnoresNullableContext();
-            while (true)
-            {
-                var comparand = constraintClauses;
-                if (comparand.HasValue(canIgnoreNullableContext))
-                {
-                    return false;
-                }
-                if (ImmutableInterlocked.InterlockedCompareExchange(ref constraintClauses, value, comparand) == comparand)
-                {
-                    return true;
-                }
-            }
         }
     }
 }

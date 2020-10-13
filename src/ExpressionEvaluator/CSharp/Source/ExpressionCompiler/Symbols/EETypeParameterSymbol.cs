@@ -117,14 +117,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return true; }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool canIgnoreNullableContext)
+        internal override void EnsureAllConstraintsAreResolved()
         {
-            _sourceTypeParameter.EnsureAllConstraintsAreResolved(canIgnoreNullableContext);
+            _sourceTypeParameter.EnsureAllConstraintsAreResolved();
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool canIgnoreNullableContext)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
-            var constraintTypes = _sourceTypeParameter.GetConstraintTypes(inProgress, canIgnoreNullableContext);
+            var constraintTypes = _sourceTypeParameter.GetConstraintTypes(inProgress);
 
             if (constraintTypes.IsEmpty)
             {
