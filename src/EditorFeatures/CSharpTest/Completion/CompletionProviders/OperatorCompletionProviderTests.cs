@@ -113,7 +113,7 @@ public class Program
         c.$$;
     }
 }
-", "+", matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+", "+", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -722,7 +722,7 @@ public class Program
         var d = new Derived();
         d.$$
     }
-}", "+");
+}", "+", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -740,7 +740,7 @@ public class Program
         var r = new R();
         r.$$
     }
-}", "==");
+}", "==", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
     }
 }

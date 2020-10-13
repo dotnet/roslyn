@@ -123,7 +123,7 @@ public class Program
         c.$$
     }
 }
-", "float", displayTextSuffix: ")", matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+", "float", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -145,7 +145,7 @@ public class Program
         c.fl$$
     }
 }
-", "float", displayTextSuffix: ")");
+", "float", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -851,7 +851,7 @@ public class Program
         s.$$
     }
 }
-", "int", displayTextSuffix: "?)");
+", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -990,7 +990,7 @@ public class Program
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitConversionDescriptionIsIsGiven()
         {
-            await VerifyItemExistsAsync(@"
+            const string Markup = @"
 public struct S {
         /// <summary>
         /// Explicit conversion of <see cref=""S""/> to <see cref=""int""/>.
@@ -1007,8 +1007,12 @@ public class Program
         s.$$
     }
 }
-", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
-$@"S.explicit operator int(S value)
+";
+            await VerifyItemExistsAsync(Markup, "int", displayTextSuffix: ")",
+                glyph: (int)Glyph.Operator,
+                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                expectedDescriptionOrNull:
+@"S.explicit operator int(S value)
 Explicit conversion of S to int.");
         }
 
@@ -1016,7 +1020,7 @@ Explicit conversion of S to int.");
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitConversionDescriptionIsIsGivenLifted()
         {
-            await VerifyItemExistsAsync(@"
+            const string Markup = @"
 public struct S {
         /// <summary>
         /// Explicit conversion of <see cref=""S""/> to <see cref=""int""/>.
@@ -1033,7 +1037,11 @@ public class Program
         s.$$
     }
 }
-", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+";
+            await VerifyItemExistsAsync(Markup, "int", displayTextSuffix: "?)",
+                glyph: (int)Glyph.Operator,
+                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                expectedDescriptionOrNull:
 @"S.explicit operator int(S value)
 Explicit conversion of S to int.");
         }
@@ -1100,7 +1108,7 @@ public class Program
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInNumericConversionDescriptionIsLikeAConversionOperatorDescription()
         {
-            await VerifyItemExistsAsync(@"
+            const string Markup = @"
 public class Program
 {
     public static void Main()
@@ -1109,16 +1117,20 @@ public class Program
         i.$$
     }
 }
-", "byte", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+";
+            await VerifyItemExistsAsync(Markup, "byte", displayTextSuffix: ")",
+                glyph: (int)Glyph.Operator,
+                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                expectedDescriptionOrNull:
 $@"int.explicit operator byte(int value)
-{FormatExplicitConversionDescription(fromType: "int", toType: "byte")}");
+{(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInNumericConversionDescriptionIsLikeAConversionOperatorDescriptionLifted()
         {
-            await VerifyItemExistsAsync(@"
+            const string Markup = @"
 public class Program
 {
     public static void Main()
@@ -1127,9 +1139,13 @@ public class Program
         i.$$
     }
 }
-", "byte", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+";
+            await VerifyItemExistsAsync(Markup, "byte", displayTextSuffix: "?)",
+                glyph: (int)Glyph.Operator,
+                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                expectedDescriptionOrNull:
 $@"int.explicit operator byte(int value)
-{FormatExplicitConversionDescription(fromType: "int", toType: "byte")}");
+{(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1242,7 +1258,7 @@ public class Program
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInEnumConversionDescriptionIsLikeAConversionOperatorDescription()
         {
-            await VerifyItemExistsAsync(@"
+            const string Markup = @"
 public enum E { One }
 public class Program
 {
@@ -1252,7 +1268,11 @@ public class Program
         e.$$
     }
 }
-", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+";
+            await VerifyItemExistsAsync(Markup, "int", displayTextSuffix: ")",
+                glyph: (int)Glyph.Operator,
+                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                expectedDescriptionOrNull:
 $@"E.explicit operator int(E value)
 {FormatExplicitConversionDescription("E", "int")}");
         }
@@ -1261,7 +1281,7 @@ $@"E.explicit operator int(E value)
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInEnumConversionDescriptionIsLikeAConversionOperatorDescriptionLifted()
         {
-            await VerifyItemExistsAsync(@"
+            const string Markup = @"
 public enum E { One }
 public class Program
 {
@@ -1271,16 +1291,20 @@ public class Program
         e.$$
     }
 }
-", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+";
+            await VerifyItemExistsAsync(Markup, "int", displayTextSuffix: "?)",
+                glyph: (int)Glyph.Operator,
+                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                expectedDescriptionOrNull:
 $@"E.explicit operator int(E value)
-{FormatExplicitConversionDescription(fromType: "E", toType: "int")}");
+{(FormatExplicitConversionDescription(fromType: "E", toType: "int"))}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInEnumConversionDescriptionIsLikeAConversionOperatorDescriptionUnimportedNamespaceMinimalName()
         {
-            await VerifyItemExistsAsync(@"
+            const string Markup = @"
 namespace A.B
 {
     public enum E { One }
@@ -1296,7 +1320,11 @@ namespace A.C
         }
     }
 }
-", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, expectedDescriptionOrNull:
+";
+            await VerifyItemExistsAsync(Markup, "int", displayTextSuffix: ")",
+                glyph: (int)Glyph.Operator,
+                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                expectedDescriptionOrNull:
 @$"B.E.explicit operator int(B.E value)
 {FormatExplicitConversionDescription("B.E", "int")}");
         }
@@ -1346,7 +1374,7 @@ public class Program
         var i = d.$$
     }
 }
-", "int", displayTextSuffix: ")");
+", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
     }
 }
