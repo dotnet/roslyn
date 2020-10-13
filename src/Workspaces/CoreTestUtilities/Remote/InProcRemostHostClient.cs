@@ -127,6 +127,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             _endPoint.Disconnected -= OnDisconnected;
             _endPoint.Dispose();
 
+            _inprocServices.Dispose();
+
             base.Dispose();
         }
 
@@ -206,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             }
         }
 
-        private sealed class InProcRemoteServices
+        private sealed class InProcRemoteServices : IDisposable
         {
             public readonly ServiceProvider ServiceProvider;
             private readonly Dictionary<ServiceMoniker, Func<object>> _inProcBrokeredServicesMap = new();
@@ -215,6 +217,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             private readonly Dictionary<string, WellKnownServiceHubService> _serviceNameMap = new();
 
             public readonly IServiceBroker ServiceBroker;
+            public readonly ServiceBrokerClient ServiceBrokerClient;
 
             public InProcRemoteServices(HostWorkspaceServices workspaceServices, TraceListener? traceListener, RemoteHostTestData testData)
             {
@@ -231,6 +234,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 ServiceProvider = new ServiceProvider(remoteLogger, testData);
 
                 ServiceBroker = new InProcServiceBroker(this);
+#pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
+                ServiceBrokerClient = new ServiceBrokerClient(ServiceBroker);
+#pragma warning restore
 
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
@@ -257,6 +263,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
                 RegisterService(WellKnownServiceHubService.RemoteLanguageServer, (s, p, o) => new RemoteLanguageServer(s, p));
             }
+
+            public void Dispose()
+                => ServiceBrokerClient.Dispose();
 
             public RemoteHostTestData TestData => ServiceProvider.TestData;
 
