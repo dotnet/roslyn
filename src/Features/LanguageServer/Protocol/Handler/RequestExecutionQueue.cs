@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
 
+        public CancellationToken CancellationToken => _cancelSource.Token;
+
         /// <summary>
         /// Raised when the execution queue has failed, or the solution state its tracking is in an unknown state
         /// and so the only course of action is to shutdown the server so that the client re-connects and we can
