@@ -84,10 +84,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         private static SyntaxNode CreateInterpolatedString(Document document, SyntaxNode literalExpression, bool isVerbatim)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var startToken = generator.CreateInterpolatedStringStartToken(isVerbatim)
-                .WithLeadingTrivia(literalExpression.GetLeadingTrivia());
-            var endToken = generator.CreateInterpolatedStringEndToken()
-                .WithTrailingTrivia(literalExpression.GetTrailingTrivia());
+            var startToken = generator.CreateInterpolatedStringStartToken(isVerbatim).WithLeadingTrivia(literalExpression.GetLeadingTrivia());
+            var endToken = generator.CreateInterpolatedStringEndToken().WithTrailingTrivia(literalExpression.GetTrailingTrivia());
 
             var text = literalExpression.GetFirstToken().Text;
             var textWithEscapedBraces = text.Replace("{", "{{").Replace("}", "}}");
