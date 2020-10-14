@@ -16,7 +16,7 @@
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",
-            "isEnabledByDefault": true,
+            "isEnabledByDefault": false,
             "typeName": "DiagnosticAnalyzerAttributeAnalyzer",
             "languages": [
               "C#",
