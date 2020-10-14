@@ -88,9 +88,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var endToken = generator.CreateInterpolatedStringEndToken().WithTrailingTrivia(literalExpression.GetTrailingTrivia());
 
             var text = literalExpression.GetFirstToken().Text;
-            var textWithEscapedBraces = text.Replace("{", "{{").Replace("}", "}}");
-            var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, isVerbatim);
-            var newNode = generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutQuotes));
+            var newNode = generator.InterpolatedStringText(
+                generator.InterpolatedStringTextToken(
+                    GetTextWithoutQuotes(text.Replace("{", "{{").Replace("}", "}}"),
+                    isVerbatim)));
 
             return generator.InterpolatedStringExpression(startToken, new[] { newNode }, endToken);
         }
