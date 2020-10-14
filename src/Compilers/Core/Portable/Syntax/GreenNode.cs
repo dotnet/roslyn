@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
-        
+
         public SyntaxNode CreateRed()
         {
             return CreateRed(null, 0);
