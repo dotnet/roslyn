@@ -66,6 +66,6 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private static bool UseInMemoryWriteCache(HostWorkspaceServices workspaceServices)
             => workspaceServices.Workspace.Options.GetOption(StorageOptions.SQLiteInMemoryWriteCache) ||
-               workspaceServices.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.SQLiteInMemoryWriteCache) == true;
+               workspaceServices.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.SQLiteInMemoryWriteCache2) == true;
     }
 }
