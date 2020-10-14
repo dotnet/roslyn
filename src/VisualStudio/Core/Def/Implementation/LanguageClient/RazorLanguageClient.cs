@@ -39,10 +39,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorLanguageClient(LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
-            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, ClientName)
+            : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, ClientName)
         {
         }
     }

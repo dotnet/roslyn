@@ -358,6 +358,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            if (token.IsKind(SyntaxKind.ClassKeyword) && token.Parent is ClassOrStructConstraintSyntax)
+            {
+                text = Keyword("classconstraint");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.StructKeyword) && token.Parent is ClassOrStructConstraintSyntax)
+            {
+                text = Keyword("structconstraint");
+                return true;
+            }
+
             if (token.IsKeyword())
             {
                 text = Keyword(token.Text);

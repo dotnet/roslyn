@@ -11,12 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -34,7 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     /// </summary>
     internal class InProcLanguageServer
     {
-        private readonly IDiagnosticService _diagnosticService;
         private readonly IAsynchronousOperationListener _listener;
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
@@ -49,7 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             Stream outputStream,
             AbstractRequestHandlerProvider requestHandlerProvider,
             Workspace workspace,
-            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider,
             string? clientName)
@@ -65,7 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _jsonRpc.AddLocalRpcTarget(this);
             _jsonRpc.StartListening();
 
-            _diagnosticService = diagnosticService;
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
@@ -286,38 +282,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }).CompletesAsyncOperation(asyncToken);
         }
 
-        /// <summary>
-        /// Stores the last published LSP diagnostics with the Roslyn document that they came from.
-        /// This is useful in the following scenario.  Imagine we have documentA which has contributions to mapped files m1 and m2.
-        /// dA -> m1
-        /// And m1 has contributions from documentB.
-        /// m1 -> dA, dB
-        /// When we query for diagnostic on dA, we get a subset of the diagnostics on m1 (missing the contributions from dB)
-        /// Since each publish diagnostics notification replaces diagnostics per document,
-        /// we must union the diagnostics contribution from dB and dA to produce all diagnostics for m1 and publish all at once.
-        ///
-        /// This dictionary stores the previously computed diagnostics for the published file so that we can
-        /// union the currently computed diagnostics (e.g. for dA) with previously computed diagnostics (e.g. from dB).
-        /// </summary>
-        private readonly Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> _publishedFileToDiagnostics =
-            new();
-
-        /// <summary>
-        /// Stores the mapping of a document to the uri(s) of diagnostics previously produced for this document.  When
-        /// we get empty diagnostics for the document we need to find the uris we previously published for this
-        /// document. Then we can publish the updated diagnostics set for those uris (either empty or the diagnostic
-        /// contributions from other documents).  We use a sorted set to ensure consistency in the order in which we
-        /// report URIs.  While it's not necessary to publish a document's mapped file diagnostics in a particular
-        /// order, it does make it much easier to write tests and debug issues if we have a consistent ordering.
-        /// </summary>
-        private readonly Dictionary<DocumentId, ImmutableSortedSet<Uri>> _documentsToPublishedUris = new();
-
-        /// <summary>
-        /// Basic comparer for Uris used by <see cref="_documentsToPublishedUris"/> when publishing notifications.
-        /// </summary>
-        private static readonly Comparer<Uri> s_uriComparer = Comparer<Uri>.Create((uri1, uri2)
-            => Uri.Compare(uri1, uri2, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase));
-
         internal TestAccessor GetTestAccessor() => new(this);
 
         internal readonly struct TestAccessor
@@ -327,25 +291,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             internal TestAccessor(InProcLanguageServer server)
             {
                 _server = server;
-            }
-
-            internal ImmutableArray<Uri> GetFileUrisInPublishDiagnostics()
-                => _server._publishedFileToDiagnostics.Keys.ToImmutableArray();
-
-            internal ImmutableArray<DocumentId> GetDocumentIdsInPublishedUris()
-                => _server._documentsToPublishedUris.Keys.ToImmutableArray();
-
-            internal IImmutableSet<Uri> GetFileUrisForDocument(DocumentId documentId)
-                => _server._documentsToPublishedUris.GetValueOrDefault(documentId, ImmutableSortedSet<Uri>.Empty);
-
-            internal ImmutableArray<LSP.Diagnostic> GetDiagnosticsForUriAndDocument(DocumentId documentId, Uri uri)
-            {
-                if (_server._publishedFileToDiagnostics.TryGetValue(uri, out var dict) && dict.TryGetValue(documentId, out var diagnostics))
-                {
-                    return diagnostics;
-                }
-
-                return ImmutableArray<LSP.Diagnostic>.Empty;
             }
         }
     }

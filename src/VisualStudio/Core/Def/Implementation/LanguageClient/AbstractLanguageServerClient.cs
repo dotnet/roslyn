@@ -20,7 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     internal abstract class AbstractLanguageServerClient : ILanguageClient
     {
         private readonly string? _diagnosticsClientName;
-        private readonly IDiagnosticService _diagnosticService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly Workspace _workspace;
@@ -60,14 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         public AbstractLanguageServerClient(AbstractRequestHandlerProvider requestHandlerProvider,
             VisualStudioWorkspace workspace,
-            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider,
             string? diagnosticsClientName)
         {
             _requestHandlerProvider = requestHandlerProvider;
             _workspace = workspace;
-            _diagnosticService = diagnosticService;
             _listenerProvider = listenerProvider;
             _diagnosticsClientName = diagnosticsClientName;
             _solutionProvider = solutionProvider;
@@ -79,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
             _languageServer = new InProcLanguageServer(serverStream, serverStream, _requestHandlerProvider, _workspace,
-                _diagnosticService, _listenerProvider, _solutionProvider, clientName: _diagnosticsClientName);
+                _listenerProvider, _solutionProvider, clientName: _diagnosticsClientName);
             return Task.FromResult(new Connection(clientStream, clientStream));
         }
 

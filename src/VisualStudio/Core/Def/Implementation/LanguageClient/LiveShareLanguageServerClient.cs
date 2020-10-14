@@ -26,10 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public LiveShareLanguageServerClient(LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
-            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
+            : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
         }
 
