@@ -110,6 +110,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
+            internal override CodeActionPriority Priority => CodeActionPriority.Low;
+
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument)
             {
