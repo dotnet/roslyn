@@ -99,11 +99,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         private static Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxToken token)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var isVerbatim = syntaxFacts.IsVerbatimStringLiteral(token);
             var literalExpression = token.GetRequiredParent();
-            var interpolatedString = CreateInterpolatedString(document, literalExpression, isVerbatim);
-            var newRoot = root.ReplaceNode(literalExpression, interpolatedString);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            return Task.FromResult(document.WithSyntaxRoot(
+                root.ReplaceNode(
+                    literalExpression,
+                    CreateInterpolatedString(document, literalExpression, syntaxFacts.IsVerbatimStringLiteral(token)))));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
