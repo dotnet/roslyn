@@ -30,10 +30,6 @@
     <AnalyzerNupkgDependency Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" />
   </ItemGroup>
   <ItemGroup>
-    <AnalyzerRulesetAssembly Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.dll" TargetFramework="netstandard1.3" />
-    <AnalyzerRulesetAssembly Include="Microsoft.CodeAnalysis.BannedApiAnalyzers.dll" TargetFramework="netstandard1.3" />
-    <AnalyzerRulesetAssembly Include="Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll" TargetFramework="netstandard1.3" />
-    <AnalyzerRulesetAssembly Include="Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.dll" TargetFramework="netstandard1.3" />
     <AnalyzerRulesetAssembly Include="Roslyn.Diagnostics.Analyzers.dll" />
     <AnalyzerRulesetAssembly Include="Roslyn.Diagnostics.CSharp.Analyzers.dll" />
     <AnalyzerRulesetAssembly Include="Roslyn.Diagnostics.VisualBasic.Analyzers.dll" />
