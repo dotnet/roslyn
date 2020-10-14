@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            Debug.Assert(checksums.Contains(Checksum.Null));
+            Debug.Assert(!checksums.Contains(Checksum.Null));
 
             using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(out var results);
 
