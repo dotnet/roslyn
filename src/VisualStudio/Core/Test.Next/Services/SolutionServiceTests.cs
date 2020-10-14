@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var remoteWorkspace = CreateRemoteWorkspace();
 
             var solution = workspace.CurrentSolution;
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             var synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
@@ -59,7 +59,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var solution = workspace.CurrentSolution;
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
             var synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch, solution.WorkspaceVersion, cancellationToken: CancellationToken.None);
             Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
@@ -87,7 +87,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     ProjectId.CreateNewId(), VersionStamp.Create(), "test", "test.dll", LanguageNames.CSharp,
                     filePath: filePath, outputFilePath: filePath));
 
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, workspace.CurrentSolution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, workspace.CurrentSolution);
 
             var solutionChecksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
             var solution = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
@@ -116,7 +116,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     ProjectId.CreateNewId(), VersionStamp.Create(), "test", "test.dll", LanguageNames.CSharp,
                     filePath: filePath, outputFilePath: filePath));
 
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, workspace.CurrentSolution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, workspace.CurrentSolution);
 
             var solutionChecksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
             var solution = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
@@ -140,7 +140,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var remoteWorkspace = CreateRemoteWorkspace();
 
             var solution = workspace.CurrentSolution;
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
             var first = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
@@ -340,7 +340,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // create solution service
             var solution = workspace.CurrentSolution;
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
             // update primary workspace
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
@@ -383,7 +383,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // create solution service
             var solution1 = workspace.CurrentSolution;
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution1);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution1);
 
             var remoteSolution1 = await GetInitialOOPSolutionAsync(remoteWorkspace, assetProvider, solution1);
 
@@ -451,7 +451,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var map = new Dictionary<Checksum, object>();
 
             using var remoteWorkspace = CreateRemoteWorkspace();
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution, map);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution, map);
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
             // update primary workspace
@@ -485,7 +485,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             newSolutionValidator?.Invoke(recoveredNewSolution);
         }
 
-        private static async Task<AssetProvider> GetAssetProviderAsync(RemoteWorkspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
+        private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, RemoteWorkspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
         {
             // make sure checksum is calculated
             await solution.State.GetChecksumAsync(CancellationToken.None);
@@ -495,7 +495,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new SolutionAssetCache();
-            var assetSource = new SimpleAssetSource(map);
+            var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
         }
