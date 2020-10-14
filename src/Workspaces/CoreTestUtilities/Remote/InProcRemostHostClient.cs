@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                 clientConnection.StartListening();
 
-                return ValueTaskFactory.FromResult(clientConnection.ConstructRpcClient<T>());
+                return ValueTaskFactory.FromResult((T?)clientConnection.ConstructRpcClient<T>());
             }
         }
 

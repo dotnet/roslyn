@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             {
                 return ValueTaskFactory.FromResult(BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol));
             }
-            
+
             if (symbol.Kind == SymbolKind.Property ||
                 symbol.Kind == SymbolKind.Method ||
                 symbol.Kind == SymbolKind.Event)
