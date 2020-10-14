@@ -933,23 +933,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            if (node.Parent is { } parent)
+            switch (node.Parent)
             {
-                switch (parent.Kind())
-                {
-                    case SyntaxKind.Attribute:
-                    case SyntaxKind.UsingDirective:
-                        return null;
-                    case SyntaxKind.Argument:
-                        if (IsInsideNameof &&
-                            parent.Parent?.Parent is InvocationExpressionSyntax invocation &&
-                            (invocation.Expression as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.NameOfKeyword)
-                        {
-                            // Don't bind nameof(nint) or nameof(nuint) so that ERR_NameNotInContext is reported.
-                            return null;
-                        }
-                        break;
-                }
+                case AttributeSyntax parent when parent.Name == node: // [nint]
+                    return null;
+                case UsingDirectiveSyntax parent when parent.Name == node: // using nint; using A = nuint;
+                    return null;
+                case ArgumentSyntax parent when // nameof(nint)
+                    (IsInsideNameof &&
+                        parent.Parent?.Parent is InvocationExpressionSyntax invocation &&
+                        (invocation.Expression as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.NameOfKeyword):
+                    // Don't bind nameof(nint) or nameof(nuint) so that ERR_NameNotInContext is reported.
+                    return null;
             }
 
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);

@@ -3502,9 +3502,43 @@ interface I
             }
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
         public void AliasName_02()
+        {
+            var source =
+@"using @nint = System.Int16;
+interface I
+{
+    @nint Add(nint x, nuint y);
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,23): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //      nint Add(nint x, nuint y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 23));
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var method = comp.GetMember<MethodSymbol>("I.Add");
+                Assert.Equal("System.Int16 I.Add(System.Int16 x, nuint y)", method.ToTestDisplayString());
+                var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
+                var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
+                Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
+                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
+                Assert.True(underlyingType1.IsNativeIntegerType);
+            }
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AliasName_03()
         {
             var source =
 @"using A1 = nint;
@@ -3533,7 +3567,33 @@ class Program
 
         [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
-        public void Using()
+        public void AliasName_04()
+        {
+            var source1 =
+@"using A1 = nint;
+using A2 = nuint;
+class Program
+{
+    A1 F1() => default;
+    A2.B F2() => default;
+}";
+            var source2 =
+@"class nint { }
+namespace nuint
+{
+    class B { }
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void Using_01()
         {
             var source =
 @"using nint;
@@ -3566,12 +3626,47 @@ class Program
 
         [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
-        public void AttributeType()
+        public void Using_02()
+        {
+            var source1 =
+@"using nint;
+using nuint;
+class Program
+{
+    static void Main()
+    {
+        _ = new A();
+        _ = new B();
+    }
+}";
+            var source2 =
+@"namespace nint
+{
+    class A { }
+}
+namespace nuint
+{
+    class B { }
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_01()
         {
             var source =
 @"[nint]
-[nuint]
+[A, nuint()]
 class Program
+{
+}
+class AAttribute : System.Attribute
 {
 }";
             var expectedDiagnostics = new[]
@@ -3582,12 +3677,12 @@ class Program
                 // (1,2): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
                 // [nint]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 2),
-                // (2,2): error CS0246: The type or namespace name 'nuintAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                // [nuint]
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuintAttribute").WithLocation(2, 2),
-                // (2,2): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
-                // [nuint]
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 2)
+                // (2,5): error CS0246: The type or namespace name 'nuintAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [A, nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuintAttribute").WithLocation(2, 5),
+                // (2,5): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // [A, nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 5)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
@@ -3595,6 +3690,56 @@ class Program
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_02()
+        {
+            var source1 =
+@"[nint]
+[nuint()]
+class Program
+{
+}";
+            var source2 =
+@"using System;
+class nint : Attribute { }
+class nuintAttribute : Attribute { }";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_03()
+        {
+            var source1 =
+@"[A(nint: 0)]
+[B(nuint = 2)]
+class Program
+{
+}";
+            var source2 =
+@"using System;
+class AAttribute : Attribute
+{
+    public AAttribute(int nint) { }
+}
+class BAttribute : Attribute
+{
+    public int nuint;
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
