@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,6 +45,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
+            // Capture the pre-paste caret position
+            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
+            if (!caretPosition.HasValue)
+            {
+                return;
+            }
+
             nextCommandHandler();
 
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
@@ -51,9 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
-            // Capture the pre-paste caret position
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (!caretPosition.HasValue)
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AddImportsOnPaste))
             {
                 return;
             }

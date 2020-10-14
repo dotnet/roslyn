@@ -11,9 +11,9 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
+    public class CSharpAddMissingImportsOnPaste : AbstractEditorTest
     {
-        public CSharpAddMissingUsingsOnPaste(VisualStudioInstanceFactory instanceFactory)
+        public CSharpAddMissingImportsOnPaste(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
         }
@@ -21,7 +21,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         protected override string LanguageName => LanguageNames.CSharp;
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingImports)]
-        public void VerifyAddUsingsOnPaste()
+        public void VerifyAddImportsOnPaste()
         {
             var markup = @"
 using System;

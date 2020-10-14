@@ -242,6 +242,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String =
             BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
 
+        Public ReadOnly Property Option_Add_Import_Directives_On_Paste As String =
+            BasicVSResources.Add_missing_import_directives_on_paste
+
         Public ReadOnly Property Option_Regular_Expressions As String =
             ServicesVSResources.Regular_Expressions
 
