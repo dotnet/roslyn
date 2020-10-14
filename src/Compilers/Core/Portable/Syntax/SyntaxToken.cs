@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis
             return this.WithLeadingTrivia((IEnumerable<SyntaxTrivia>?)trivia);
         }
 
-        private static IReadOnlyList<SyntaxTrivia>? GetList(IEnumerable<SyntaxTrivia>? trivia)
+        private static List<SyntaxTrivia>? GetList(IEnumerable<SyntaxTrivia>? trivia)
         {
             if (trivia is null)
                 return null;
@@ -480,8 +480,8 @@ namespace Microsoft.CodeAnalysis
             return trivia switch
             {
                 null => null,
-                IReadOnlyList<SyntaxTrivia> l => l,
-                _ => trivia.ToArray()
+                List<SyntaxTrivia> l => l,
+                _ => trivia.ToList()
             };
         }
         

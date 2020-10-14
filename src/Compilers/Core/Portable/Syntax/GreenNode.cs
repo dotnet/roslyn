@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis
         public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
 
-        public static GreenNode? CreateList<TFrom>(IReadOnlyList<TFrom>? list, Func<TFrom, GreenNode> select)
+        public static GreenNode? CreateList<TFrom>(List<TFrom>? list, Func<TFrom, GreenNode> select)
         {
             if (list == null)
             {
