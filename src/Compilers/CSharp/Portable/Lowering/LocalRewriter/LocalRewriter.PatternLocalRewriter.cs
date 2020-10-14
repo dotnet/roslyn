@@ -288,14 +288,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (rewrittenExpr.Type.IsPointerOrFunctionPointer())
                 {
-                    TypeSymbol objectType = _factory.Compilation.GetSpecialType(SpecialType.System_Object);
-                    var operandType = new PointerTypeSymbol(TypeWithAnnotations.Create(_factory.Compilation.GetSpecialType(SpecialType.System_Void)));
+                    TypeSymbol objectType = _factory.SpecialType(SpecialType.System_Object);
+                    var operandType = new PointerTypeSymbol(TypeWithAnnotations.Create(_factory.SpecialType(SpecialType.System_Void)));
                     return _localRewriter.MakeBinaryOperator(
                         syntax,
                         operatorKind,
                         _factory.Convert(operandType, rewrittenExpr),
                         _factory.Convert(operandType, new BoundLiteral(syntax, ConstantValue.Null, objectType)),
-                        _factory.Compilation.GetSpecialType(SpecialType.System_Boolean),
+                        _factory.SpecialType(SpecialType.System_Boolean),
                         null);
                 }
 
