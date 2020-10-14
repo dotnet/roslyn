@@ -93,7 +93,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     GetTextWithoutQuotes(text.Replace("{", "{{").Replace("}", "}}"),
                     isVerbatim)));
 
-            return generator.InterpolatedStringExpression(startToken, new[] { newNode }, endToken);
+            return generator.InterpolatedStringExpression(
+                generator.CreateInterpolatedStringStartToken(isVerbatim),
+                new[] { newNode },
+                generator.CreateInterpolatedStringEndToken()).WithTriviaFrom(literalExpression);
         }
 
         private static Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxToken token)
