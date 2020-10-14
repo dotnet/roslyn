@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _listener = listenerProvider.GetListener(FeatureAttribute.InfoBar);
         }
 
-        public void ShowInfoBarInGlobalView(string message, params InfoBarUI[] items)
+        public void ShowInfoBar(string message, params InfoBarUI[] items)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     CreateInfoBar(infoBarHost, message, items);
                 }
-            }, _listener.BeginAsyncOperation(nameof(ShowInfoBarInGlobalView)));
+            }, _listener.BeginAsyncOperation(nameof(ShowInfoBar)));
         }
 
         private bool TryGetInfoBarData(out IVsInfoBarHost infoBarHost)

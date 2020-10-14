@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Extensions
         /// <summary>
         /// Show global info bar
         /// </summary>
-        void ShowInfoBarInGlobalView(string message, params InfoBarUI[] items);
+        void ShowInfoBar(string message, params InfoBarUI[] items);
     }
 
     internal struct InfoBarUI

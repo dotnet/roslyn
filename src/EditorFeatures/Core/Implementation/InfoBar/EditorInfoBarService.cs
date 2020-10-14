@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         {
         }
 
-        public void ShowInfoBarInGlobalView(string message, params InfoBarUI[] items)
+        public void ShowInfoBar(string message, params InfoBarUI[] items)
             => Logger.Log(FunctionId.Extension_InfoBar, message);
     }
 }
