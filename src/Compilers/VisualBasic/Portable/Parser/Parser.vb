@@ -4186,7 +4186,11 @@ checkNullable:
                 ' TODO - GreenSepList knows its error count. Expose it instead of recomputing it.
                 If propertyParameters.Count = 0 Then
                     Dim unexpected = ResyncAt({SyntaxKind.AsKeyword, SyntaxKind.ImplementsKeyword, SyntaxKind.EqualsToken})
-                    closeParen = closeParen.AddTrailingSyntax(unexpected)
+                    If unexpected.Count > 0 Then
+                        closeParen = closeParen.AddTrailingSyntax(unexpected, ERRID.ERR_ExpectedEOS)
+                    Else
+                        closeParen = closeParen.AddTrailingSyntax(unexpected)
+                    End If
                 End If
 
                 optionalParameters = SyntaxFactory.ParameterList(openParen, propertyParameters, closeParen)

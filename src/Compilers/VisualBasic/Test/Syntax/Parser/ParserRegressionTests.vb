@@ -934,4 +934,15 @@ End Enum
         Assert.Equal(Syntax.InternalSyntax.Scanner.BadTokenCountLimit, tree.GetDiagnostics().Where(Function(d) d.Code = ERRID.ERR_IllegalChar).Count())
     End Sub
 
+    <Fact, WorkItem(48587, "https://github.com/dotnet/roslyn/issues/48587")>
+    Public Sub ParseTrailingTextAfterPropertyWithParentheses()
+        ParseAndVerify(<![CDATA[
+Class C
+    Public ReadOnly Property NumberOfResult() String Integer JohnDoe WwwIIWww Wow
+End Class
+]]>,
+<errors>
+    <error id="30205"/>
+</errors>)
+    End Sub
 End Class
