@@ -15,7 +15,7 @@ The minimal required version of .NET Framework is 4.7.2.
 
 ## Developing with Visual Studio 2019
 
-1. [Visual Studio 2019 16.8p2](https://visualstudio.microsoft.com/downloads/)
+1. [Visual Studio 2019 16.8p3](https://visualstudio.microsoft.com/downloads/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
     - Ensure Visual Studio is on Version "16.8 Preview 3" or greater
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
