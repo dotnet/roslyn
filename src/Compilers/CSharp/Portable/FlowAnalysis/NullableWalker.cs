@@ -4918,8 +4918,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // normally we delay visiting the lambda until we can visit it along with its conversion.
-                // since we can't visit its conversion here, or it doesn't have one, we dig back in and
+                // Normally we delay visiting the lambda until we can visit it along with its conversion.
+                // Since we can't visit its conversion here, or it doesn't have one, we dig back in and
                 // visit the lambda here to ensure all nodes have nullability info for public API
                 for (int i = 0; i < results.Length; i++)
                 {
@@ -7344,8 +7344,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLambda(BoundLambda node)
         {
-            // note: actual lambda analysis happens after this call, primarily in VisitConversion.
-            // here we just indicate that a lambda expression produces a non-null value.
+            // Note: actual lambda analysis happens after this call (primarily in VisitConversion).
+            // Here we just indicate that a lambda expression produces a non-null value.
             SetNotNullResult(node);
             return null;
         }
