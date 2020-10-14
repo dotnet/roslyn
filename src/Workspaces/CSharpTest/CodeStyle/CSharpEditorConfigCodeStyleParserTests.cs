@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData("true : warning", (int)ExpressionBodyPreference.WhenPossible, ReportDiagnostic.Warn)]
         [InlineData("when_on_single_line : error", (int)ExpressionBodyPreference.WhenOnSingleLine, ReportDiagnostic.Error)]
 
-        [InlineData("false", (int)ExpressionBodyPreference.Never, ReportDiagnostic.Suppress)]
+        [InlineData("false", (int)ExpressionBodyPreference.Never, null)]
         [InlineData("true", (int)ExpressionBodyPreference.WhenPossible, null)]
         [InlineData("when_on_single_line", (int)ExpressionBodyPreference.WhenOnSingleLine, null)]
         public void TestParseExpressionBodyPreference(string optionString, int parsedValue, ReportDiagnostic? severity)
