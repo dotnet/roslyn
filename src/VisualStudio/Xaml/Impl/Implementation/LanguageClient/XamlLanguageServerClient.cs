@@ -23,8 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public XamlLanguageServerClient(XamlLanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService, IAsynchronousOperationListenerProvider listenerProvider, ILspSolutionProvider solutionProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
+        public XamlLanguageServerClient(XamlLanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IAsynchronousOperationListenerProvider listenerProvider, ILspSolutionProvider solutionProvider)
+            : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
         }
 
