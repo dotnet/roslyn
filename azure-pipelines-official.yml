@@ -18,6 +18,8 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
+  - group: DotNet-Blob-Feed
+  - group: DotNet-Symbol-Server-Pats
 
 stages:
 - stage: build
@@ -94,6 +96,8 @@ stages:
       inputs:
         signType: $(SignType)
         zipSources: false
+        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+          feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
       condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
     - task: PowerShell@2
