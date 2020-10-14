@@ -305,6 +305,21 @@ class Class
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
+        public async Task TestValueInPropertyInit()
+        {
+            await TestTryDoAsync(@"
+class Class
+{
+    string Name
+    {
+        get { return """"; }
+        init { $$ }
+    }
+}", "this", "value");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestValueInEventAdd()
         {
             await TestTryDoAsync(@"
