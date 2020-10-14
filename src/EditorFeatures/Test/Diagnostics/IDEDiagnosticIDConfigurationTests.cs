@@ -248,7 +248,7 @@ dotnet_diagnostic.IDE0036.severity = %value%
 dotnet_diagnostic.IDE0037.severity = %value%
 
 # IDE0038
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+dotnet_diagnostic.IDE0038.severity = %value%
 
 # IDE0039
 dotnet_diagnostic.IDE0039.severity = %value%
@@ -790,7 +790,7 @@ dotnet_style_prefer_inferred_tuple_names = true
 dotnet_style_prefer_inferred_anonymous_type_member_names = true
 
 # IDE0038, PreferPatternMatchingOverIsWithCastCheck
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+csharp_style_pattern_matching_over_is_with_cast_check = true
 
 # IDE0039, PreferLocalOverAnonymousFunction
 csharp_style_pattern_local_over_anonymous_function = true
@@ -817,16 +817,16 @@ dotnet_style_prefer_conditional_expression_over_assignment = true
 dotnet_style_prefer_conditional_expression_over_return = true
 
 # IDE0047, ArithmeticBinaryParentheses
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
 
 # IDE0047, OtherBinaryParentheses
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity
 
 # IDE0047, OtherParentheses
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary
 
 # IDE0047, RelationalBinaryParentheses
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
 
 # IDE0048, ArithmeticBinaryParentheses
 dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
@@ -1059,16 +1059,16 @@ dotnet_style_prefer_conditional_expression_over_assignment = true
 dotnet_style_prefer_conditional_expression_over_return = true
 
 # IDE0047, ArithmeticBinaryParentheses
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
 
 # IDE0047, OtherBinaryParentheses
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity
 
 # IDE0047, OtherParentheses
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary
 
 # IDE0047, RelationalBinaryParentheses
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
 
 # IDE0048, ArithmeticBinaryParentheses
 dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
