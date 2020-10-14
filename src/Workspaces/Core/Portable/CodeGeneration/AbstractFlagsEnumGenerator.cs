@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object? constantValue);
         protected abstract bool IsValidName(INamedTypeSymbol enumType, string name);
 
-        internal SyntaxNode? CreateEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
+        public SyntaxNode? TryCreateEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
             // Code copied from System.Enum.
             var isFlagsEnum = IsFlagsEnum(enumType);
