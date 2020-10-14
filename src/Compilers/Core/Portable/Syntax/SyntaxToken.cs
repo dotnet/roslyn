@@ -472,11 +472,8 @@ namespace Microsoft.CodeAnalysis
             return this.WithLeadingTrivia((IEnumerable<SyntaxTrivia>?)trivia);
         }
 
-        private static List<SyntaxTrivia>? GetList(IEnumerable<SyntaxTrivia>? trivia)
+        private static List<SyntaxTrivia>? AsList(IEnumerable<SyntaxTrivia>? trivia)
         {
-            if (trivia is null)
-                return null;
-
             return trivia switch
             {
                 null => null,
@@ -491,7 +488,7 @@ namespace Microsoft.CodeAnalysis
         public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
             return Node != null
-                ? new SyntaxToken(null, Node.WithLeadingTrivia(GreenNode.CreateList(GetList(trivia), static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithLeadingTrivia(GreenNode.CreateList(AsList(trivia), static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
@@ -517,7 +514,7 @@ namespace Microsoft.CodeAnalysis
         public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
             return Node != null
-                ? new SyntaxToken(null, Node.WithTrailingTrivia(GreenNode.CreateList(GetList(trivia), static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithTrailingTrivia(GreenNode.CreateList(AsList(trivia), static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
