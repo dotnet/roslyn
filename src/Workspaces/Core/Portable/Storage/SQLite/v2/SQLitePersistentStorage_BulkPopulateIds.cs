@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 // We should always be able to index directly into these maps.  This function is only
                 // ever called after we called AddIndividualProjectAndDocumentComponentIds.
-                var documentPathId = _stringToIdMap[document.FilePath];
+                var documentPathId = _stringToIdMap[document.FilePath ?? ""];
                 var documentNameId = _stringToIdMap[document.Name];
 
                 var documentIdString = SQLitePersistentStorage.GetDocumentIdString(
