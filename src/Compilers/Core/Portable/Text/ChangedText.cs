@@ -25,9 +25,36 @@ namespace Microsoft.CodeAnalysis.Text
             RoslynDebug.Assert(oldText != null);
             Debug.Assert(oldText != newText);
             Debug.Assert(!changeRanges.IsDefault);
+            RequiresChangeRangesAreValid(oldText, newText, changeRanges);
 
             _newText = newText;
             _info = new ChangeInfo(changeRanges, new WeakReference<SourceText>(oldText), (oldText as ChangedText)?._info);
+        }
+
+        private static void RequiresChangeRangesAreValid(
+            SourceText oldText, SourceText newText, ImmutableArray<TextChangeRange> changeRanges)
+        {
+            var deltaLength = 0;
+            foreach (var change in changeRanges)
+                deltaLength += change.NewLength - change.Span.Length;
+
+            if (oldText.Length + deltaLength != newText.Length)
+                throw new InvalidOperationException("Delta length difference of change ranges didn't match before/after text length.");
+
+            var position = 0;
+            foreach (var change in changeRanges)
+            {
+                if (change.Span.Start < position)
+                    throw new InvalidOperationException("Change preceded current position in oldText");
+
+                if (change.Span.Start > oldText.Length)
+                    throw new InvalidOperationException("Change start was after the end of oldText");
+
+                if (change.Span.End > oldText.Length)
+                    throw new InvalidOperationException("Change end was after the end of oldText");
+
+                position = change.Span.End;
+            }
         }
 
         private class ChangeInfo
