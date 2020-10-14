@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     static bool IsSingleThrowNotImplementedOperation(IOperation firstBlock)
                     {
-                        var compilation = firstBlock.SemanticModel.Compilation;
+                        var compilation = firstBlock.SemanticModel!.Compilation;
                         var notImplementedExceptionType = compilation.NotImplementedExceptionType();
                         if (notImplementedExceptionType == null)
                             return false;

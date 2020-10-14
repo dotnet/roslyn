@@ -72,11 +72,11 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation &&
                 HasNonImplicitInstance(invocation) &&
                 !syntaxFacts.IsBaseExpression(invocation.Instance.Syntax) &&
-                !invocation.Instance.Type.IsRefLikeType)
+                !invocation.Instance.Type!.IsRefLikeType)
             {
                 if (invocation.Arguments.Length == 1 &&
                     invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
-                    invocation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.IFormattable).FullName!) is { } systemIFormattable &&
+                    invocation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.IFormattable).FullName!) is { } systemIFormattable &&
                     invocation.Instance.Type.Implements(systemIFormattable))
                 {
                     unwrapped = invocation.Instance;
