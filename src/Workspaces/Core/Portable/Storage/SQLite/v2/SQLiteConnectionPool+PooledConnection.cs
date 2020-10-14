@@ -3,26 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
-    internal partial class SQLitePersistentStorage : AbstractPersistentStorage
+    internal partial class SQLiteConnectionPool
     {
-        private struct PooledConnection : IDisposable
+        internal readonly struct PooledConnection : IDisposable
         {
-            private readonly SQLitePersistentStorage _storage;
+            private readonly SQLiteConnectionPool _connectionPool;
             public readonly SqlConnection Connection;
 
-            public PooledConnection(SQLitePersistentStorage storage, SqlConnection sqlConnection)
+            public PooledConnection(SQLiteConnectionPool connectionPool, SqlConnection sqlConnection)
             {
-                _storage = storage;
+                _connectionPool = connectionPool;
                 Connection = sqlConnection;
             }
 
             public void Dispose()
-                => _storage.ReleaseConnection(Connection);
+                => _connectionPool.ReleaseConnection(Connection);
         }
     }
 }
