@@ -24,6 +24,7 @@ RS1019 |  | DiagnosticId must be unique across analyzers |
 RS1020 |  | Category for analyzers must be from the specified values |
 RS1021 |  | Invalid entry in analyzer category and diagnostic ID range specification file |
 RS1022 |  | Do not use types from Workspaces assembly in an analyzer |
+RS1024 |  | Compare symbols correctly |
 RS1025 |  | Configure generated code analysis |
 RS1026 |  | Enable concurrent execution |
 RS1027 |  | Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer |

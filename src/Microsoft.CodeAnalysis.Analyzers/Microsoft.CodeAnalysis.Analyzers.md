@@ -12,7 +12,7 @@ Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAna
 |CodeFix|True|
 ---
 
-## RS1002: Missing kind argument when registering a analyzer action
+## RS1002: Missing kind argument when registering an analyzer action
 
 You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.
 
