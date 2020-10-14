@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Array:
                 case TypeKind.Class:
                 case TypeKind.Dynamic:
-                    Error(diagnostics, ErrorCode.ERR_TypelessNewIllegalTargetType, syntax, type);
+                    Error(diagnostics, ErrorCode.ERR_ImplicitObjectCreationIllegalTargetType, syntax, type);
                     goto case TypeKind.Error;
                 case TypeKind.Pointer:
                 case TypeKind.FunctionPointer:
