@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         /// Creates a new parameter symbol paired with the original captured symbol for each captured variables.
         /// </summary>
         private static ImmutableArray<(IParameterSymbol symbol, ISymbol capture)> CreateParameterSymbols(ImmutableArray<ISymbol> captures)
-            => captures.SelectAsArray(c =>
+            => captures.SelectAsArray(static c =>
             {
                 var symbolType = c.GetSymbolType();
                 Contract.ThrowIfNull(symbolType);
