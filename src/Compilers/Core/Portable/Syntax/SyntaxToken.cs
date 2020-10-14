@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis
         public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
             return Node != null
-                ? new SyntaxToken(null, Node.WithLeadingTrivia(GreenNode.CreateList(GetList(trivia), t => t.RequiredUnderlyingNode)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithLeadingTrivia(GreenNode.CreateList(GetList(trivia), static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis
         public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
             return Node != null
-                ? new SyntaxToken(null, Node.WithTrailingTrivia(GreenNode.CreateList(GetList(trivia), t => t.RequiredUnderlyingNode)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithTrailingTrivia(GreenNode.CreateList(GetList(trivia), static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
