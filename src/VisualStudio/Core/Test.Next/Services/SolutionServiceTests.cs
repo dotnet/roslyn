@@ -13,12 +13,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -431,6 +433,41 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 // verify remote workspace got updated
                 Assert.True(expectRemoteSolutionToCurrent == (remoteSolution == remoteSolution.Workspace.CurrentSolution));
             }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/48564")]
+        [WorkItem(48564, "https://github.com/dotnet/roslyn/issues/48564")]
+        public async Task TestAddingProjectsWithExplicitOptions()
+        {
+            using var workspace = TestWorkspace.CreateCSharp(@"public class C { }");
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            // Initial empty solution
+            var solution = workspace.CurrentSolution;
+            solution = solution.RemoveProject(solution.ProjectIds.Single());
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            var synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 0, CancellationToken.None);
+            Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+
+            // Add a C# project and a VB project, set some options, and check again
+            var csharpDocument = new TestHostDocument("public class C { }");
+            var csharpProject = new TestHostProject(workspace, csharpDocument, language: LanguageNames.CSharp, name: "project2");
+            var csharpProjectInfo = csharpProject.ToProjectInfo();
+
+            var vbDocument = new TestHostDocument("Public Class D \r\n  Inherits C\r\nEnd Class");
+            var vbProject = new TestHostProject(workspace, vbDocument, language: LanguageNames.VisualBasic, name: "project3");
+            var vbProjectInfo = vbProject.ToProjectInfo();
+
+            solution = solution.AddProject(csharpProjectInfo).AddProject(vbProjectInfo);
+            solution = solution.WithOptions(solution.Options
+                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.CSharp, FormattingOptions2.NewLine.DefaultValue)
+                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.VisualBasic, FormattingOptions2.NewLine.DefaultValue));
+
+            assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+            solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 2, CancellationToken.None);
+            Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
         }
 
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
