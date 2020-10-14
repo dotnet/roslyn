@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Error,  // Force build break on invalid external access.
             isEnabledByDefault: true,
-            description: BannedApiAnalyzerResources.RestrictedInternalsVisibleToDescription,
+            description: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.RestrictedInternalsVisibleToDescription), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
             helpLinkUri: null, // TODO: Add help link
             customTags: WellKnownDiagnosticTags.Telemetry);
 
