@@ -19,16 +19,14 @@ variables:
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
 
-  ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-    - group: DotNet-Blob-Feed
-    - group: DotNet-Symbol-Server-Pats
-
-  ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+  - ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
     - name: _DevDivDropAccessToken
       value: $(System.AccessToken)
   
-  ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+  - ${{ if eq(variables['System.TeamProject'], 'internal') }}:
     - group: DotNet-VSTS-Infra-Access
+    - group: DotNet-Blob-Feed
+    - group: DotNet-Symbol-Server-Pats
     - name: _DevDivDropAccessToken
       value: $(dn-bot-devdiv-drop-rw-code-rw)
 
