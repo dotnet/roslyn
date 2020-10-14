@@ -37,11 +37,6 @@
         <target state="translated">Paramètre ajouté.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_missing_import_statements">
-        <source>Adding missing import statements</source>
-        <target state="new">Adding missing import statements</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
         <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
         <target state="translated">Des changements supplémentaires sont nécessaires pour effectuer la refactorisation. Passez en revue les changements ci-dessous.</target>

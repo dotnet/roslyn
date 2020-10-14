@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_missing_imports_on_paste">
+        <source>Add Missing Imports On Paste</source>
+        <target state="new">Add Missing Imports On Paste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_missing_import_statements">
+        <source>Adding missing import statements...</source>
+        <target state="new">Adding missing import statements...</target>
+        <note>Used as a thread awaited dialog letting the user know that work is being done on paste</note>
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">Für den Bezeichner "{0}" ist eine Inline-Umbenennungssitzung aktiv. Rufen Sie die Inline-Umbenennung erneut auf, um auf zusätzliche Optionen zuzugreifen. Sie können den Bezeichner, der gerade umbenannt wird, jederzeit weiterbearbeiten.</target>

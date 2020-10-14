@@ -37,11 +37,6 @@
         <target state="translated">매개 변수를 추가했습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_missing_import_statements">
-        <source>Adding missing import statements</source>
-        <target state="new">Adding missing import statements</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
         <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
         <target state="translated">리팩터링을 완료하려면 추가 변경이 필요합니다. 아래 변경 내용을 검토하세요.</target>

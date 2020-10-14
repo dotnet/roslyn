@@ -4,14 +4,9 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.AddMissingImports;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -38,7 +33,9 @@ namespace Microsoft.CodeAnalysis.PasteTracking
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PasteTrackingPasteCommandHandler(PasteTrackingService pasteTrackingService)
-            => _pasteTrackingService = pasteTrackingService;
+        {
+            _pasteTrackingService = pasteTrackingService;
+        }
 
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
             => nextCommandHandler();
@@ -62,34 +59,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             var snapshotSpan = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot);
             var textSpan = TextSpan.FromBounds(snapshotSpan.Start, snapshotSpan.End);
 
-            AddUsingsForPaste(args, executionContext, textSpan);
-
             _pasteTrackingService.RegisterPastedTextSpan(args.SubjectBuffer, textSpan);
-        }
-
-        private static void AddUsingsForPaste(PasteCommandArgs args, CommandExecutionContext executionContext, TextSpan textSpan)
-        {
-            var sourceTextContainer = args.SubjectBuffer.AsTextContainer();
-            if (!Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
-            {
-                return;
-            }
-
-            var documentId = workspace.GetDocumentIdInCurrentContext(sourceTextContainer);
-            var document = workspace.CurrentSolution.GetDocument(documentId);
-
-            if (document is null)
-            {
-                return;
-            }
-
-            var service = workspace.Services.GetService<IAutomaticallyAddMissingImportsService>();
-            if (service is null)
-            {
-                return;
-            }
-
-            service.AddMissingImports(document, textSpan, executionContext.OperationContext);
         }
     }
 }
