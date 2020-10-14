@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsInfo(code) || IsHidden(code))
             {
                 // Info and hidden diagnostics should always be produced because some analyzers depend on them.
-                return 1;
+                return Diagnostic.InfoAndHiddenWarningLevel;
             }
 
             switch (code)
