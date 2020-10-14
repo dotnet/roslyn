@@ -304,10 +304,11 @@ namespace Microsoft.CodeAnalysis
                     break;
                 }
 
+                Debug.Assert(normalizedPath is object);
                 var directory = Path.GetDirectoryName(normalizedPath) ?? normalizedPath;
                 var editorConfig = AnalyzerConfig.Parse(fileContent, normalizedPath);
 
-                if (!editorConfig.IsGlobal && directory is object)
+                if (!editorConfig.IsGlobal)
                 {
                     if (processedDirs.Contains(directory))
                     {
@@ -1063,6 +1064,7 @@ namespace Microsoft.CodeAnalysis
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            // https://github.com/dotnet/roslyn/issues/48599
             string outputName = GetOutputFileName(compilation, cancellationToken)!;
             var finalPeFilePath = Arguments.GetOutputFilePath(outputName);
             var finalPdbFilePath = Arguments.GetPdbFilePath(outputName);
