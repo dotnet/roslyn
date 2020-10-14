@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: BannedApiAnalyzerResources.SymbolIsBannedDescription,
+            description: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.SymbolIsBannedDescription), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: BannedApiAnalyzerResources.DuplicateBannedSymbolDescription,
+            description: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.DuplicateBannedSymbolDescription), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
     }

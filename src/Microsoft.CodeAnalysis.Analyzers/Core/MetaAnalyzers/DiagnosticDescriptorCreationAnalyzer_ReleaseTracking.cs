@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.DeclareDiagnosticIdInAnalyzerReleaseDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DeclareDiagnosticIdInAnalyzerReleaseDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.UpdateDiagnosticIdInAnalyzerReleaseDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UpdateDiagnosticIdInAnalyzerReleaseDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.RemoveUnshippedDeletedDiagnosticIdDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveUnshippedDeletedDiagnosticIdDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.RemoveShippedDeletedDiagnosticIdDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveShippedDeletedDiagnosticIdDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleDescription,
+            description: new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
