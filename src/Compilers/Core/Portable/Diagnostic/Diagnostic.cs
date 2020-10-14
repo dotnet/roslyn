@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis
         internal const int DefaultWarningLevel = 4;
 
         /// <summary>
+        /// The warning level used for hidden and info diagnostics.
+        /// </summary>
+        internal const int InfoAndHiddenWarningLevel = 1;
+
+        /// <summary>
         /// Creates a <see cref="Diagnostic"/> instance.
         /// </summary>
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic</param>
