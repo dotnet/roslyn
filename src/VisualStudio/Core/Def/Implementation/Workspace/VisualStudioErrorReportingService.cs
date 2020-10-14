@@ -21,9 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public string HostDisplayName => "Visual Studio";
 
-        public void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items)
-            => _infoBarService.ShowInfoBarInActiveView(message, items);
-
         public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
             => _infoBarService.ShowInfoBarInGlobalView(message, items);
 
