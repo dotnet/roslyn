@@ -70,8 +70,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
 
             context.RegisterRefactoring(
-                new MyCodeAction(
-                    _ => UpdateDocumentAsync(document, root, token)),
+                new MyCodeAction(_ => UpdateDocumentAsync(document, root, token)),
                 literalExpression.Span);
         }
 
