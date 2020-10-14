@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -365,7 +367,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // Triggers language server to send notifications.
             foreach (var document in documentsToPublish)
             {
-                await languageServer.PublishDiagnosticsAsync(document).ConfigureAwait(false);
+                await languageServer.PublishDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
             }
 
             // Waits for all notifications to be recieved.

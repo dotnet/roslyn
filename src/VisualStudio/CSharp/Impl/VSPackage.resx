@@ -142,7 +142,7 @@
     <comment>"C#" node help text in profile Import/Export.</comment>
   </data>
   <data name="306" xml:space="preserve">
-    <value>Display inline parameter name hints;
+    <value>Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 

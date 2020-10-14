@@ -1880,6 +1880,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             {
                 case SyntaxKind.ClassDeclaration:
                     return DeclarationKind.Class;
+                case SyntaxKind.RecordDeclaration:
+                    return DeclarationKind.Record;
                 case SyntaxKind.StructDeclaration:
                     return DeclarationKind.Struct;
                 case SyntaxKind.InterfaceDeclaration:

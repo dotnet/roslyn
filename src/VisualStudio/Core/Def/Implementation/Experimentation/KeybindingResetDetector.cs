@@ -116,11 +116,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return;
             }
 
-            var vsShell = _serviceProvider.GetService<SVsShell, IVsShell>();
+            var vsShell = IServiceProviderExtensions.GetService<SVsShell, IVsShell>(_serviceProvider);
             var hr = vsShell.IsPackageInstalled(ReSharperPackageGuid, out var extensionEnabled);
             if (ErrorHandler.Failed(hr))
             {
-                FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                 return;
             }
 
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (_resharperExtensionInstalledAndEnabled)
             {
                 // We need to monitor for suspend/resume commands, so create and install the command target and the modal callback.
-                var priorityCommandTargetRegistrar = _serviceProvider.GetService<SVsRegisterPriorityCommandTarget, IVsRegisterPriorityCommandTarget>();
+                var priorityCommandTargetRegistrar = IServiceProviderExtensions.GetService<SVsRegisterPriorityCommandTarget, IVsRegisterPriorityCommandTarget>(_serviceProvider);
                 hr = priorityCommandTargetRegistrar.RegisterPriorityCommandTarget(
                     dwReserved: 0 /* from docs must be 0 */,
                     pCmdTrgt: this,
@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                     return;
                 }
 
@@ -319,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                     await ShutdownAsync().ConfigureAwait(false);
 
                     return 0;
@@ -337,7 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                _oleCommandTarget = _serviceProvider.GetService<SUIHostCommandDispatcher, IOleCommandTarget>();
+                _oleCommandTarget = IServiceProviderExtensions.GetService<SUIHostCommandDispatcher, IOleCommandTarget>(_serviceProvider);
             }
         }
 
@@ -347,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             if (_uiShell == null)
             {
-                _uiShell = _serviceProvider.GetService<SVsUIShell, IVsUIShell>();
+                _uiShell = IServiceProviderExtensions.GetService<SVsUIShell, IVsUIShell>(_serviceProvider);
             }
 
             ErrorHandler.ThrowOnFailure(_uiShell.PostExecCommand(
@@ -434,14 +434,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             if (_priorityCommandTargetCookie != VSConstants.VSCOOKIE_NIL)
             {
-                var priorityCommandTargetRegistrar = _serviceProvider.GetService<SVsRegisterPriorityCommandTarget, IVsRegisterPriorityCommandTarget>();
+                var priorityCommandTargetRegistrar = IServiceProviderExtensions.GetService<SVsRegisterPriorityCommandTarget, IVsRegisterPriorityCommandTarget>(_serviceProvider);
                 var cookie = _priorityCommandTargetCookie;
                 _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
                 var hr = priorityCommandTargetRegistrar.UnregisterPriorityCommandTarget(cookie);
 
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                 }
             }
 

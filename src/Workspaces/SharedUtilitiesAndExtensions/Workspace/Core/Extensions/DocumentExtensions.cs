@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -30,15 +29,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
             => document.Project.GetRequiredLanguageService<TLanguageService>();
 
-        public static async Task<SemanticModel> GetRequiredSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        public static async ValueTask<SemanticModel> GetRequiredSemanticModelAsync(this Document document, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (document.TryGetSemanticModel(out var semanticModel))
+                return semanticModel;
+
+            semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return semanticModel ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
         }
 
-        public static async Task<SyntaxTree> GetRequiredSyntaxTreeAsync(this Document document, CancellationToken cancellationToken)
+        public static async ValueTask<SyntaxTree> GetRequiredSyntaxTreeAsync(this Document document, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            if (document.TryGetSyntaxTree(out var syntaxTree))
+                return syntaxTree;
+
+            syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return syntaxTree ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
         }
 
@@ -50,9 +55,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 #endif
 
-        public static async Task<SyntaxNode> GetRequiredSyntaxRootAsync(this Document document, CancellationToken cancellationToken)
+        public static async ValueTask<SyntaxNode> GetRequiredSyntaxRootAsync(this Document document, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (document.TryGetSyntaxRoot(out var root))
+                return root;
+
+            root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
         }
 
@@ -76,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <para/>
         /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
-        public static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, int position, CancellationToken cancellationToken)
+        public static ValueTask<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, int position, CancellationToken cancellationToken)
             => ReuseExistingSpeculativeModelAsync(document, new TextSpan(position, 0), cancellationToken);
 
         /// <summary>
@@ -93,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <para/>
         /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
-        public static async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
+        public static async ValueTask<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.SupportsSemanticModel);
 
@@ -118,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <para/>
         /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
-        public static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
+        public static ValueTask<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
         {
             if (node == null)
                 return document.GetRequiredSemanticModelAsync(cancellationToken);

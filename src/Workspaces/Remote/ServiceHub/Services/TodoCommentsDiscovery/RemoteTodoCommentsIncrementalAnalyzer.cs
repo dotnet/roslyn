@@ -21,12 +21,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected override async ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
         {
-            // cancel whenever the analyzer runner cancels or the client disconnects and the request is canceled:
-            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
-
             await _callback.InvokeAsync(
                 (callback, cancellationToken) => callback.ReportTodoCommentDataAsync(documentId, data, cancellationToken),
-                linkedSource.Token).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 if (!contextBuffer.ContentType.IsOfType(this.ContentTypeName))
                 {
-                    FatalError.ReportWithoutCrash(
+                    FatalError.ReportAndCatch(
                         new ArgumentException($"Expected content type {this.ContentTypeName} " +
                         $"but got buffer of content type {contextBuffer.ContentType}"));
 

@@ -88,37 +88,35 @@ stages:
         zipSources: false
       condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
-    - task: MicroBuildOptProfPlugin@5
-      inputs:
-        ShouldSkipOptimize: true
-      displayName: 'Install OptProf Plugin'
-
-    # Required by MicroBuildBuildVSBootstrapper
-    - task: MicroBuildSwixPlugin@2
-      inputs:
-        dropName: $(VisualStudio.DropName) 
-        feedSource: 'https://devdiv.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json'
-
-    - script: eng\cibuild.cmd
-                -configuration $(BuildConfiguration)
-                -officialBuildId $(Build.BuildNumber)
-                -officialSkipTests $(SkipTests)
-                -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
-                -officialSourceBranchName $(SourceBranchName)
-                -officialIbcDrop $(IbcDrop)
-                /p:RepositoryName=$(Build.Repository.Name)
-                /p:VisualStudioDropAccessToken=$(System.AccessToken)
-                /p:VisualStudioDropName=$(VisualStudio.DropName)
-                /p:DotNetSignType=$(SignType)
-                /p:DotNetPublishToBlobFeed=true
-                /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
-                /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
-                /p:PublishToSymbolServer=true
-                /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-                /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
-                /p:DotnetPublishUsingPipelines=true
+    - task: PowerShell@2
       displayName: Build
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci 
+                   -restore
+                   -build
+                   -pack
+                   -sign
+                   -publish
+                   -binaryLog 
+                   -configuration $(BuildConfiguration)
+                   -officialBuildId $(Build.BuildNumber)
+                   -officialSkipTests $(SkipTests)
+                   -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                   -officialSourceBranchName $(SourceBranchName)
+                   -officialIbcDrop $(IbcDrop)
+                   /p:RepositoryName=$(Build.Repository.Name)
+                   /p:VisualStudioDropAccessToken=$(System.AccessToken)
+                   /p:VisualStudioDropName=$(VisualStudio.DropName)
+                   /p:DotNetSignType=$(SignType)
+                   /p:DotNetPublishToBlobFeed=true
+                   /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
+                   /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
+                   /p:PublishToSymbolServer=true
+                   /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                   /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                   /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
+                   /p:DotnetPublishUsingPipelines=true
       condition: succeeded()
 
     - task: PowerShell@2
@@ -147,37 +145,6 @@ stages:
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
         ArtifactName: 'OptProf Data Files'
-      condition: succeeded()
-
-    # Build VS bootstrapper
-    # Generates $(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
-    - task: ms-vseng.MicroBuildTasks.0e9d0d4d-71ec-4e4e-ae40-db9896f1ae74.MicroBuildBuildVSBootstrapper@2
-      inputs:
-        vsMajorVersion: $(VisualStudio.MajorVersion)
-        channelName: $(VisualStudio.ChannelName)
-        manifests: $(VisualStudio.SetupManifestList)
-        outputFolder: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\Insertion'
-      displayName: 'OptProf - Build VS bootstrapper'
-      condition: succeeded()
-
-    # Publish run settings
-    - task: PowerShell@2
-      inputs:
-        filePath: eng\common\sdk-task.ps1
-        arguments: -configuration $(BuildConfiguration)
-                  -task VisualStudio.BuildIbcTrainingSettings
-                  /p:VisualStudioDropName=$(VisualStudio.DropName)
-                  /p:BootstrapperInfoPath=$(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
-      displayName: 'OptProf - Build IBC training settings'
-      condition: succeeded()
-
-    # Publish bootstrapper info
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: $(Build.StagingDirectory)\MicroBuild\Output
-        ArtifactName: MicroBuildOutputs
-        ArtifactType: Container
-      displayName: 'OptProf - Publish Artifact: MicroBuildOutputs'
       condition: succeeded()
 
     - task: PublishBuildArtifacts@1
@@ -250,13 +217,6 @@ stages:
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
         ArtifactName: AssetManifests
-      condition: succeeded()
-
-    # Tag the build at the very end when we know it's been successful.
-    - task: colinsalmcorner.colinsalmcorner-buildtasks.tag-build-task.tagBuildOrRelease@0
-      displayName: Tag build as ready for optimization training
-      inputs:
-        tags: 'ready-for-training'
       condition: succeeded()
 
     - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1

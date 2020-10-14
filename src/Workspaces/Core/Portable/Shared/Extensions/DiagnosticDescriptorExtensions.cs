@@ -30,11 +30,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var effectiveSeverity = descriptor.GetEffectiveSeverity(compilationOptions);
 
-            // Apply analyzer config options on top of compilation options.
-            // Note that they override any diagnostic settings from compilation options (/nowarn, /warnaserror).
-            if (analyzerConfigOptions.HasValue)
+            // Apply analyzer config options, unless configured with a non-default value in compilation options.
+            // Note that compilation options (/nowarn, /warnaserror) override analyzer config options.
+            if (analyzerConfigOptions.HasValue &&
+                (!compilationOptions.SpecificDiagnosticOptions.TryGetValue(descriptor.Id, out var reportDiagnostic) ||
+                 reportDiagnostic == ReportDiagnostic.Default))
             {
-                if (analyzerConfigOptions.Value.TreeOptions.TryGetValue(descriptor.Id, out var reportDiagnostic) && reportDiagnostic != ReportDiagnostic.Default ||
+                if (analyzerConfigOptions.Value.TreeOptions.TryGetValue(descriptor.Id, out reportDiagnostic) && reportDiagnostic != ReportDiagnostic.Default ||
                     TryGetSeverityFromBulkConfiguration(descriptor, analyzerConfigOptions.Value, out reportDiagnostic))
                 {
                     Debug.Assert(reportDiagnostic != ReportDiagnostic.Default);

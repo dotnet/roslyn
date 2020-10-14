@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project>? projects = null, CancellationToken cancellationToken = default)
             => SpecializedTasks.EmptyImmutableArray<Project>();
 
-        public Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        public ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
+            return new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
     }
 }
