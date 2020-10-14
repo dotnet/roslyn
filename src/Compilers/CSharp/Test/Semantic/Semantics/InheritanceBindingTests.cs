@@ -8302,7 +8302,10 @@ public class D : I1, I3 { }
             comp.VerifyDiagnostics(
                 // (4,23): error CS1966: 'I2': cannot implement a dynamic interface 'I0<dynamic>'
                 // public interface I2 : I0<dynamic> { }
-                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("I2", "I0<dynamic>").WithLocation(4, 23)
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("I2", "I0<dynamic>").WithLocation(4, 23),
+                // (7,14): error CS8779: 'I0<dynamic>' is already listed in the interface list on type 'C' as 'I0<object>'.
+                // public class C : I1, I2 { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C").WithArguments("I0<dynamic>", "I0<object>", "C").WithLocation(7, 14)
                 );
         }
 

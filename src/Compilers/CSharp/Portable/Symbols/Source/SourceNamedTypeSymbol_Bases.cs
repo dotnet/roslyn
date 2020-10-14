@@ -185,7 +185,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             Debug.Assert(!other.Equals(@interface, TypeCompareKind.ConsiderEverything));
 
-                            if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers))
+                            if (!other.Equals(@interface, TypeCompareKind.CLRSignatureCompareOptions | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                            {
+                                continue;
+                            }
+
+                            if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
                                 if (!other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny | TypeCompareKind.IgnoreNativeIntegers))
                                 {
@@ -195,6 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, location, @interface, other, this);
                             }
                         }
                     }
@@ -502,11 +511,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                         foreach (var t in localInterfaces)
                         {
-                            if (t.Equals(baseType, TypeCompareKind.IgnoreNativeIntegers))
+                            if (t.Equals(baseType, TypeCompareKind.ConsiderEverything))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceInBaseList, location, baseType);
                             }
-                            else if (t.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny | TypeCompareKind.IgnoreNativeIntegers))
+                            else if (t.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny))
                             {
                                 // duplicates with ?/! differences are reported later, we report local differences between oblivious and ?/! here
                                 diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, baseType, this);

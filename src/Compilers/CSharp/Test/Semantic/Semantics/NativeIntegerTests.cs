@@ -13381,7 +13381,7 @@ class C1<T, U> where U : I<nint>, I<nint> { }
 class C2<T, U> where U : I<nint>, I<System.IntPtr> { }
 class C3<T, U> where U : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (2,35): error CS0405: Duplicate constraint 'I<nint>' for type parameter 'U'
                 // class C1<T, U> where U : I<nint>, I<nint> { }
@@ -13403,17 +13403,17 @@ class C1 : I<nint>, I<nint> { }
 class C2 : I<nint>, I<System.IntPtr> { }
 class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (2,21): error CS0528: 'I<nint>' is already listed in interface list
                 // class C1 : I<nint>, I<nint> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<nint>").WithArguments("I<nint>").WithLocation(2, 21),
-                // (3,21): error CS0528: 'I<IntPtr>' is already listed in interface list
+                // (3,7): error CS8779: 'I<IntPtr>' is already listed in the interface list on type 'C2' as 'I<nint>'.
                 // class C2 : I<nint>, I<System.IntPtr> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<System.IntPtr>").WithArguments("I<System.IntPtr>").WithLocation(3, 21),
-                // (4,49): error CS0528: 'I<nuint>' is already listed in interface list
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("I<System.IntPtr>", "I<nint>", "C2").WithLocation(3, 7),
+                // (4,7): error CS8779: 'I<nuint>' is already listed in the interface list on type 'C3' as 'I<UIntPtr>'.
                 // class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<nuint>").WithArguments("I<nuint>").WithLocation(4, 49));
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("I<nuint>", "I<System.UIntPtr>", "C3").WithLocation(4, 7));
         }
 
         [Fact]
@@ -13436,14 +13436,141 @@ class C3 :
 #nullable enable
     I<nuint[]?>
 { }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (3,7): warning CS8645: 'I<IntPtr[]?>' is already listed in the interface list on type 'C1' with different nullability of reference types.
+                // (3,7): error CS8779: 'I<IntPtr[]?>' is already listed in the interface list on type 'C1' as 'I<nint[]>'.
                 // class C1 :
-                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C1").WithArguments("I<System.IntPtr[]?>", "C1").WithLocation(3, 7),
-                // (15,5): warning CS8645: 'I<nuint[]?>' is already listed in the interface list on type 'C3' with different nullability of reference types.
-                //     I<nuint[]?>
-                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "I<nuint[]?>").WithArguments("I<nuint[]?>", "C3").WithLocation(15, 5));
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C1").WithArguments("I<System.IntPtr[]?>", "I<nint[]>", "C1").WithLocation(3, 7),
+                // (7,7): error CS8779: 'I<nint[]>' is already listed in the interface list on type 'C2' as 'I<IntPtr[]>'.
+                // class C2 :
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("I<nint[]>", "I<System.IntPtr[]>", "C2").WithLocation(7, 7),
+                // (12,7): error CS8779: 'I<nuint[]?>' is already listed in the interface list on type 'C3' as 'I<UIntPtr[]>'.
+                // class C3 :
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("I<nuint[]?>", "I<System.UIntPtr[]>", "C3").WithLocation(12, 7));
+        }
+
+        [Fact]
+        public void DuplicateInterface_03()
+        {
+            var source =
+@"#nullable enable
+interface I<T> { }
+class C0 : I<(System.IntPtr, object)>, I<(System.IntPtr, object)> { } // differences: none
+class C1 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, object)> { } // differences: names
+class C2 : I<(System.IntPtr, object)>, I<(nint, object)> { } // differences: nint
+class C3 : I<(System.IntPtr, object)>, I<(System.IntPtr, dynamic)> { } // differences: dynamic
+class C4 : I<(System.IntPtr, object?)>, I<(System.IntPtr, object)> { } // differences: nullable
+class C5 : I<(System.IntPtr X, object Y)>, I<(nint, object)> { } // differences: names, nint
+class C6 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, dynamic)> { } // differences: names, dynamic
+class C7 : I<(System.IntPtr X, object? Y)>, I<(System.IntPtr, object)> { } // differences: names, nullable
+class C8 : I<(System.IntPtr, object)>, I<(nint, dynamic)> { } // differences: nint, dynamic
+class C9 : I<(System.IntPtr, object?)>, I<(nint, object)> { } // differences: nint, nullable
+class CA : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: dynamic, nullable
+class CB : I<(System.IntPtr X, object Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic
+class CC : I<(System.IntPtr X, object? Y)>, I<(nint, object)> { } // differences: names, nint, nullable
+class CD : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: nint, dynamic, nullable
+class CE : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, dynamic, nullable
+class CF : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic, nullable
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,40): error CS0528: 'I<(IntPtr, object)>' is already listed in interface list
+                // class C0 : I<(System.IntPtr, object)>, I<(System.IntPtr, object)> { } // differences: none
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<(System.IntPtr, object)>").WithArguments("I<(System.IntPtr, object)>").WithLocation(3, 40),
+                // (4,7): error CS8140: 'I<(IntPtr, object)>' is already listed in the interface list on type 'C1' with different tuple element names, as 'I<(IntPtr X, object Y)>'.
+                // class C1 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, object)> { } // differences: names
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I<(System.IntPtr, object)>", "I<(System.IntPtr X, object Y)>", "C1").WithLocation(4, 7),
+                // (5,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'C2' as 'I<(IntPtr, object)>'.
+                // class C2 : I<(System.IntPtr, object)>, I<(nint, object)> { } // differences: nint
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("I<(nint, object)>", "I<(System.IntPtr, object)>", "C2").WithLocation(5, 7),
+                // (6,7): error CS8779: 'I<(IntPtr, dynamic)>' is already listed in the interface list on type 'C3' as 'I<(IntPtr, object)>'.
+                // class C3 : I<(System.IntPtr, object)>, I<(System.IntPtr, dynamic)> { } // differences: dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("I<(System.IntPtr, dynamic)>", "I<(System.IntPtr, object)>", "C3").WithLocation(6, 7),
+                // (6,40): error CS1966: 'C3': cannot implement a dynamic interface 'I<(IntPtr, dynamic)>'
+                // class C3 : I<(System.IntPtr, object)>, I<(System.IntPtr, dynamic)> { } // differences: dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(System.IntPtr, dynamic)>").WithArguments("C3", "I<(System.IntPtr, dynamic)>").WithLocation(6, 40),
+                // (7,7): warning CS8645: 'I<(IntPtr, object)>' is already listed in the interface list on type 'C4' with different nullability of reference types.
+                // class C4 : I<(System.IntPtr, object?)>, I<(System.IntPtr, object)> { } // differences: nullable
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C4").WithArguments("I<(System.IntPtr, object)>", "C4").WithLocation(7, 7),
+                // (8,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'C5' as 'I<(IntPtr X, object Y)>'.
+                // class C5 : I<(System.IntPtr X, object Y)>, I<(nint, object)> { } // differences: names, nint
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C5").WithArguments("I<(nint, object)>", "I<(System.IntPtr X, object Y)>", "C5").WithLocation(8, 7),
+                // (9,7): error CS8779: 'I<(IntPtr, dynamic)>' is already listed in the interface list on type 'C6' as 'I<(IntPtr X, object Y)>'.
+                // class C6 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, dynamic)> { } // differences: names, dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C6").WithArguments("I<(System.IntPtr, dynamic)>", "I<(System.IntPtr X, object Y)>", "C6").WithLocation(9, 7),
+                // (9,44): error CS1966: 'C6': cannot implement a dynamic interface 'I<(IntPtr, dynamic)>'
+                // class C6 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, dynamic)> { } // differences: names, dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(System.IntPtr, dynamic)>").WithArguments("C6", "I<(System.IntPtr, dynamic)>").WithLocation(9, 44),
+                // (10,7): error CS8140: 'I<(IntPtr, object)>' is already listed in the interface list on type 'C7' with different tuple element names, as 'I<(IntPtr X, object? Y)>'.
+                // class C7 : I<(System.IntPtr X, object? Y)>, I<(System.IntPtr, object)> { } // differences: names, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C7").WithArguments("I<(System.IntPtr, object)>", "I<(System.IntPtr X, object? Y)>", "C7").WithLocation(10, 7),
+                // (11,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'C8' as 'I<(IntPtr, object)>'.
+                // class C8 : I<(System.IntPtr, object)>, I<(nint, dynamic)> { } // differences: nint, dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C8").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr, object)>", "C8").WithLocation(11, 7),
+                // (11,40): error CS1966: 'C8': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class C8 : I<(System.IntPtr, object)>, I<(nint, dynamic)> { } // differences: nint, dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("C8", "I<(nint, dynamic)>").WithLocation(11, 40),
+                // (12,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'C9' as 'I<(IntPtr, object?)>'.
+                // class C9 : I<(System.IntPtr, object?)>, I<(nint, object)> { } // differences: nint, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C9").WithArguments("I<(nint, object)>", "I<(System.IntPtr, object?)>", "C9").WithLocation(12, 7),
+                // (13,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CA' as 'I<(IntPtr, object?)>'.
+                // class CA : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CA").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr, object?)>", "CA").WithLocation(13, 7),
+                // (13,41): error CS1966: 'CA': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CA : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CA", "I<(nint, dynamic)>").WithLocation(13, 41),
+                // (14,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CB' as 'I<(IntPtr X, object Y)>'.
+                // class CB : I<(System.IntPtr X, object Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CB").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr X, object Y)>", "CB").WithLocation(14, 7),
+                // (14,44): error CS1966: 'CB': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CB : I<(System.IntPtr X, object Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CB", "I<(nint, dynamic)>").WithLocation(14, 44),
+                // (15,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'CC' as 'I<(IntPtr X, object? Y)>'.
+                // class CC : I<(System.IntPtr X, object? Y)>, I<(nint, object)> { } // differences: names, nint, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CC").WithArguments("I<(nint, object)>", "I<(System.IntPtr X, object? Y)>", "CC").WithLocation(15, 7),
+                // (16,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CD' as 'I<(IntPtr, object?)>'.
+                // class CD : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CD").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr, object?)>", "CD").WithLocation(16, 7),
+                // (16,41): error CS1966: 'CD': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CD : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CD", "I<(nint, dynamic)>").WithLocation(16, 41),
+                // (17,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CE' as 'I<(IntPtr X, object? Y)>'.
+                // class CE : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CE").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr X, object? Y)>", "CE").WithLocation(17, 7),
+                // (17,45): error CS1966: 'CE': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CE : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CE", "I<(nint, dynamic)>").WithLocation(17, 45),
+                // (18,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CF' as 'I<(IntPtr X, object? Y)>'.
+                // class CF : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CF").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr X, object? Y)>", "CF").WithLocation(18, 7),
+                // (18,45): error CS1966: 'CF': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CF : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CF", "I<(nint, dynamic)>").WithLocation(18, 45));
+        }
+
+        [Fact]
+        public void DuplicateInterface_04()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1 : IA<nint> { }
+interface IB2<T> : IA<T> { }
+class C1 : IA<System.IntPtr>, IB1 { }
+class C2 : IB2<nint>, IA<System.IntPtr> { }
+class C3 : IB1, IB2<System.IntPtr> { }
+class C4 : IB1, IB2<nint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS8779: 'IA<nint>' is already listed in the interface list on type 'C1' as 'IA<IntPtr>'.
+                // class C1 : IA<System.IntPtr>, IB1 { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C1").WithArguments("IA<nint>", "IA<System.IntPtr>", "C1").WithLocation(4, 7),
+                // (5,7): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C2' as 'IA<nint>'.
+                // class C2 : IB2<nint>, IA<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("IA<System.IntPtr>", "IA<nint>", "C2").WithLocation(5, 7),
+                // (6,7): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C3' as 'IA<nint>'.
+                // class C3 : IB1, IB2<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("IA<System.IntPtr>", "IA<nint>", "C3").WithLocation(6, 7));
         }
 
         [Fact]
@@ -13456,7 +13583,7 @@ class C2<T> : I<(nint, T)>, I<(T, System.IntPtr)> { }
 class C3<T> : I<(T, T)>, I<(System.UIntPtr, nuint)> { }
 class C4<T> : I<(T, T)>, I<(nint, nuint)> { }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (2,7): error CS0695: 'C1<T>' cannot implement both 'I<nint>' and 'I<T>' because they may unify for some type parameter substitutions
                 // class C1<T> : I<nint>, I<T> { }
@@ -13481,7 +13608,7 @@ class C3 : I<System.IntPtr> { }
 class C4 : I<(nint, nuint[])> { }
 class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var type1 = getInterface(comp, "C1");

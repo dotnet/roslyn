@@ -287,6 +287,11 @@
         <target state="translated">'{0}' bir defadan fazla açıkça uygulanmış.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
+        <target state="new">'{0}' is already listed in the interface list on type '{2}' as '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
         <target state="translated">Yinelenen null gizleme işleci ('!')</target>
