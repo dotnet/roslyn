@@ -18,8 +18,19 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
-  - group: DotNet-Blob-Feed
-  - group: DotNet-Symbol-Server-Pats
+
+  ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+    - group: DotNet-Blob-Feed
+    - group: DotNet-Symbol-Server-Pats
+
+  ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+    - name: _DevDivDropAccessToken
+      value: $(System.AccessToken)
+  
+  ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+    - group: DotNet-VSTS-Infra-Access
+    - name: _DevDivDropAccessToken
+      value: $(dn-bot-devdiv-drop-rw-code-rw)
 
 stages:
 - stage: build
@@ -117,8 +128,8 @@ stages:
                    -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
                    -officialSourceBranchName $(SourceBranchName)
                    -officialIbcDrop $(IbcDrop)
+                   -devdivDropAccessToken $(_DevDivDropAccessToken)
                    /p:RepositoryName=$(Build.Repository.Name)
-                   /p:VisualStudioDropAccessToken=$(System.AccessToken)
                    /p:VisualStudioDropName=$(VisualStudio.DropName)
                    /p:DotNetSignType=$(SignType)
                    /p:DotNetPublishToBlobFeed=true
