@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             Document = document;
             TextSpan = textSpan;
             CanAddMissingImports = canAddMissingImports;
-
         }
     }
 }
