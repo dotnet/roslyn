@@ -376,6 +376,20 @@ namespace N
         }
 
         [Fact]
+        public void Class_ModifiersUpdate_IgnoreUnsafe()
+        {
+            var src1 = "public class C { }";
+            var src2 = "public unsafe class C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public class C { }]@0 -> [public unsafe class C { }]@0");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
         public void Struct_Modifiers_Ref_Update1()
         {
             var src1 = "public struct C { }";
