@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -623,7 +622,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
                             symbol.GetSymbolType().IsErrorType() ||
                             (symbol.IsStatic && symbol.Kind == SymbolKind.Local) ||
-                            NamingStyleRules.IsSymbolWithSpecialDiscardName(symbol))
+                            symbol.IsSymbolWithSpecialDiscardName())
                         {
                             return false;
                         }

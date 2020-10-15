@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            if (NamingStyleRules.IsSymbolWithSpecialDiscardName(symbol))
+            if (symbol.IsSymbolWithSpecialDiscardName())
             {
                 return null;
             }

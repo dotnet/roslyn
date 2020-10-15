@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -260,7 +259,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // without disabling the diagnostic completely.
                 // We ignore parameter names that start with an underscore and are optionally followed by an integer,
                 // such as '_', '_1', '_2', etc.
-                if (NamingStyleRules.IsSymbolWithSpecialDiscardName(parameter))
+                if (parameter.IsSymbolWithSpecialDiscardName())
                 {
                     return false;
                 }
