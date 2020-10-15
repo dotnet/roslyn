@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
         RemoteServiceCallbackDispatcher.Handle CreateHandle(object? instance);
     }
 
-    internal abstract class RemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
+    internal class RemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
     {
         internal readonly struct Handle : IDisposable
         {

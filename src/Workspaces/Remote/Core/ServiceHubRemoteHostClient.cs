@@ -37,9 +37,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly IErrorReportingService? _errorReportingService;
         private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
-        private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
+        private readonly IRemoteServiceCallbackDispatcherProvider _callbackDispatcherProvider;
 
         private readonly ConnectionPools? _connectionPools;
+        private readonly bool _isRemoteHost64Bit;
+        private readonly bool _isRemoteHostServerGC;
 
         private ServiceHubRemoteHostClient(
             HostWorkspaceServices services,
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ServiceBrokerClient serviceBrokerClient,
             HubClient hubClient,
             Stream stream,
-            RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
+            IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider)
         {
             _connectionPools = new ConnectionPools(
                 connectionFactory: (serviceName, pool, cancellationToken) => CreateConnectionImplAsync(serviceName, callbackTarget: null, pool, cancellationToken),
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _serviceBroker = serviceBroker;
             _serviceBrokerClient = serviceBrokerClient;
             _hubClient = hubClient;
-            _callbackDispatchers = callbackDispatchers;
+            _callbackDispatcherProvider = callbackDispatcherProvider;
             _endPoint = new RemoteEndPoint(stream, hubClient.Logger, incomingCallTarget: this);
             _endPoint.Disconnected += OnDisconnected;
             _endPoint.UnexpectedExceptionThrown += OnUnexpectedExceptionThrown;
@@ -70,6 +72,8 @@ namespace Microsoft.CodeAnalysis.Remote
             _serializer = services.GetRequiredService<ISerializerService>();
             _errorReportingService = services.GetService<IErrorReportingService>();
             _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
+            _isRemoteHost64Bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
+            _isRemoteHostServerGC = RemoteHostOptions.IsServiceHubProcessServerGC(services);
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
@@ -182,16 +186,29 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        /// <summary>
+        /// Creates connection to built-in remote service.
+        /// </summary>
         public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
-            => new BrokeredServiceConnection<T>(
+            => CreateConnection<T>(ServiceDescriptors.Instance, _callbackDispatcherProvider, callbackTarget);
+
+        /// <summary>
+        /// This overload is meant to be used by partner teams from their External Access layer.
+        /// </summary>
+        internal RemoteServiceConnection<T> CreateConnection<T>(ServiceDescriptors descriptors, IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider, object? callbackTarget) where T : class
+        {
+            var descriptor = descriptors.GetServiceDescriptor(typeof(T), _isRemoteHost64Bit, _isRemoteHostServerGC);
+            var callbackDispatcher = (descriptor.ClientInterface != null) ? callbackDispatcherProvider.GetDispatcher(typeof(T)) : null;
+
+            return new BrokeredServiceConnection<T>(
+                descriptor,
                 callbackTarget,
-                _callbackDispatchers,
+                callbackDispatcher,
                 _serviceBrokerClient,
                 _assetStorage,
                 _errorReportingService,
-                _shutdownCancellationService,
-                isRemoteHost64Bit: RemoteHostOptions.IsServiceHubProcess64Bit(_services),
-                isRemoteHostServerGC: RemoteHostOptions.IsServiceHubProcessServerGC(_services));
+                _shutdownCancellationService);
+        }
 
         public override Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {

@@ -92,6 +92,11 @@
         <target state="new">Semantic classification cache</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SolutionAssetProvider">
+        <source>Asset provider</source>
+        <target state="new">Asset provider</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
         <source>Symbol finder</source>
         <target state="new">Symbol finder</target>
