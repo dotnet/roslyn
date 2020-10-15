@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServices;
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml
             }
 
             // There has to be a match
-            return document.Project.Solution.Projects.First(p => p.SupportsCompilation && p.FilePath == document.Project.FilePath);
+            return document.Project.Solution.Projects.Single(p => p.SupportsCompilation && p.FilePath == document.Project.FilePath);
         }
     }
 }
