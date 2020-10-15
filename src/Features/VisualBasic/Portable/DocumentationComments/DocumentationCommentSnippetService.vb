@@ -4,11 +4,11 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
+Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
     <ExportLanguageService(GetType(IDocumentationCommentSnippetService), LanguageNames.VisualBasic), [Shared]>
     Friend Class DocumentationCommentSnippetService
         Inherits AbstractDocumentationCommentSnippetService(Of DocumentationCommentTriviaSyntax, DeclarationStatementSyntax)

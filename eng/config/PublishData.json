@@ -198,15 +198,23 @@
       "version": "3.8.*",
       "vsix": null,
       "packageFeeds": "default",
-      "channels": [ "dev16.8p4" ],
+      "channels": [ "dev16.8p5" ],
       "vsBranch": "rel/d16.8",
+      "vsMajorVersion": 16
+    },
+    "release/dev16.9-vs-deps": {
+      "nugetKind": [ "Shipping", "NonShipping" ],
+      "version": "3.9.*",
+      "packageFeeds": "default",
+      "channels": [ "dev16.9p1" ],
+      "vsBranch": "rel/d16.9",
       "vsMajorVersion": 16
     },
     "master-vs-deps": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.8.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.9", "dev16.9p1" ],
+      "channels": [ "dev16.9", "dev16.9p2" ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },

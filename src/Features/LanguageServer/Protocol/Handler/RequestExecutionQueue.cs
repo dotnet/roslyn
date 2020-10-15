@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly CancellationTokenSource _cancelSource;
         private readonly DocumentChangeTracker _documentChangeTracker;
 
+        public CancellationToken CancellationToken => _cancelSource.Token;
+
         /// <summary>
         /// Raised when the execution queue has failed, or the solution state its tracking is in an unknown state
         /// and so the only course of action is to shutdown the server so that the client re-connects and we can
@@ -200,7 +202,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // If the queue is asked to shut down between the start of the while loop, and the Dequeue call
                 // we could end up here, but we don't want to report an error. The Shutdown call will take care of things.
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 OnRequestServerShutdown($"Error occured processing queue: {e.Message}.");
             }
