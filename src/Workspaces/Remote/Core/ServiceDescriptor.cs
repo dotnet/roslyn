@@ -33,21 +33,25 @@ namespace Microsoft.CodeAnalysis.Remote
             ProtocolMajorVersion = 3
         }.GetFrozenCopy();
 
-        private ServiceDescriptor(ServiceMoniker serviceMoniker, Type? clientInterface)
+        private readonly Func<string, string> _featureDisplayNameProvider;
+
+        private ServiceDescriptor(ServiceMoniker serviceMoniker, Func<string, string> displayNameProvider, Type? clientInterface)
             : base(serviceMoniker, clientInterface, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader, s_multiplexingStreamOptions)
         {
+            _featureDisplayNameProvider = displayNameProvider;
         }
 
         private ServiceDescriptor(ServiceDescriptor copyFrom)
           : base(copyFrom)
         {
+            _featureDisplayNameProvider = copyFrom._featureDisplayNameProvider;
         }
 
-        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, Type? clientInterface)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface);
+        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, Func<string, string> featureDisplayNameProvider, Type? clientInterface)
+            => new ServiceDescriptor(new ServiceMoniker(serviceName), featureDisplayNameProvider, clientInterface);
 
-        public static ServiceDescriptor CreateInProcServiceDescriptor(string serviceName)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface: null);
+        public static ServiceDescriptor CreateInProcServiceDescriptor(string serviceName, Func<string, string> featureDisplayNameProvider)
+            => new ServiceDescriptor(new ServiceMoniker(serviceName), featureDisplayNameProvider, clientInterface: null);
 
         protected override ServiceRpcDescriptor Clone()
             => new ServiceDescriptor(this);
@@ -75,6 +79,9 @@ namespace Microsoft.CodeAnalysis.Remote
             connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
             return connection;
         }
+
+        internal string GetFeatureDisplayName()
+            => _featureDisplayNameProvider(Moniker.Name);
 
         internal static class TestAccessor
         {

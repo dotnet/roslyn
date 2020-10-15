@@ -92,6 +92,11 @@
         <target state="translated">의미 체계 분류 캐시</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SolutionAssetProvider">
+        <source>Asset provider</source>
+        <target state="new">Asset provider</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
         <source>Symbol finder</source>
         <target state="translated">기호 찾기</target>
