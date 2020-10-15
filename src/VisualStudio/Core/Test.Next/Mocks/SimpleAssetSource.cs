@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             _map = map;
         }
 
-        public Task<ImmutableArray<(Checksum, object)>> GetAssetsAsync(
+        public ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(
             int serviceId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             var results = new List<(Checksum, object)>();
@@ -42,10 +40,10 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 }
             }
 
-            return Task.FromResult(results.ToImmutableArray());
+            return new ValueTask<ImmutableArray<(Checksum, object)>>(results.ToImmutableArray());
         }
 
-        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => SpecializedTasks.False;
+        public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+            => new ValueTask<bool>(false);
     }
 }

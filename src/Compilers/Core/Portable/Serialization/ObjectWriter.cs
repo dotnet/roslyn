@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -388,10 +386,10 @@ namespace Roslyn.Utilities
             private int _nextId;
 
             private static readonly ObjectPool<Dictionary<object, int>> s_referenceDictionaryPool =
-                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
+                new(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
 
             private static readonly ObjectPool<Dictionary<object, int>> s_valueDictionaryPool =
-                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128));
+                new(() => new Dictionary<object, int>(128));
 
             public WriterReferenceMap(bool valueEquality)
             {

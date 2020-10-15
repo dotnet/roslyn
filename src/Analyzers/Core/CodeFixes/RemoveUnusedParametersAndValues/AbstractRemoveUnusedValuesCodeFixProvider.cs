@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -55,10 +57,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         where TSwitchCaseBlockSyntax : SyntaxNode
         where TSwitchCaseLabelOrClauseSyntax : SyntaxNode
     {
-        private static readonly SyntaxAnnotation s_memberAnnotation = new SyntaxAnnotation();
-        private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new SyntaxAnnotation();
-        private static readonly SyntaxAnnotation s_unusedLocalDeclarationAnnotation = new SyntaxAnnotation();
-        private static readonly SyntaxAnnotation s_existingLocalDeclarationWithoutInitializerAnnotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_memberAnnotation = new();
+        private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new();
+        private static readonly SyntaxAnnotation s_unusedLocalDeclarationAnnotation = new();
+        private static readonly SyntaxAnnotation s_existingLocalDeclarationWithoutInitializerAnnotation = new();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
                                                                                                     IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);

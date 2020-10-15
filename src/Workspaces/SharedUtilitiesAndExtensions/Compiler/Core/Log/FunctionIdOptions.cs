@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Options;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     internal static class FunctionIdOptions
     {
         private static readonly ConcurrentDictionary<FunctionId, Option2<bool>> s_options =
-            new ConcurrentDictionary<FunctionId, Option2<bool>>();
+            new();
 
         private static readonly Func<FunctionId, Option2<bool>> s_optionCreator = CreateOption;
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -520,6 +522,27 @@ interface IMyClass
     void ExtractableMethod_ParameterTypes(CorrelationManager x, int? y = 7, string z = ""42"");
     void NotActuallyUnsafeMethod(int p);
     unsafe void UnsafeMethod(int* p);
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task ExtractInterface_CodeGen_MethodsInRecord()
+        {
+            var markup = @"
+abstract record R$$
+{
+    public void M() { }
+}";
+
+            var expectedInterfaceCode = @"interface IR
+{
+    bool Equals(object obj);
+    bool Equals(R other);
+    int GetHashCode();
+    void M();
+    string ToString();
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);

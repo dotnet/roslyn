@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -53,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly TaskQueue _taskQueue;
 
         // Gate for concurrent access and fields guarded with this gate.
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private InProgressState? _stateDoNotAccessDirectly;
         private CancellationTokenSource? _activeCancellationSourceDoNotAccessDirectly;
 
@@ -506,7 +504,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                    CreateArgumentKey(id), _workspace, solution, projectId, documentId));
         }
 
-        private static ArgumentKey CreateArgumentKey(object? id) => new ArgumentKey(id);
+        private static ArgumentKey CreateArgumentKey(object? id) => new(id);
 
         private void RaiseBuildProgressChanged(BuildProgress progress)
             => BuildProgressChanged?.Invoke(this, progress);
@@ -538,7 +536,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             /// <remarks>
             /// This map may be accessed concurrently, so needs to ensure thread safety by using locks.
             /// </remarks>
-            private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _allDiagnosticIdMap = new Dictionary<ProjectId, ImmutableHashSet<string>>();
+            private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _allDiagnosticIdMap = new();
 
             /// <summary>
             /// Map from project ID to all the possible intellisense analyzer diagnostic IDs that can be reported in the project.
@@ -549,7 +547,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             /// <remarks>
             /// This map may be accessed concurrently, so needs to ensure thread safety by using locks.
             /// </remarks>
-            private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _liveDiagnosticIdMap = new Dictionary<ProjectId, ImmutableHashSet<string>>();
+            private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _liveDiagnosticIdMap = new();
 
             // Fields that are used only from APIs invoked from serialized task queue, hence don't need to be thread safe.
             #region Serialized fields
@@ -560,7 +558,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             /// Integral counter value for each diagnostic is used to order the reported diagnostics in error list
             /// based on the order in which they were reported during build.
             /// </summary>
-            private readonly Dictionary<ProjectId, Dictionary<DiagnosticData, int>> _projectMap = new Dictionary<ProjectId, Dictionary<DiagnosticData, int>>();
+            private readonly Dictionary<ProjectId, Dictionary<DiagnosticData, int>> _projectMap = new();
 
             /// <summary>
             /// Map from document ID to a dictionary of reported document level diagnostics to an integral counter.
@@ -568,23 +566,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             /// Integral counter value for each diagnostic is used to order the reported diagnostics in error list
             /// based on the order in which they were reported during build.
             /// </summary>
-            private readonly Dictionary<DocumentId, Dictionary<DiagnosticData, int>> _documentMap = new Dictionary<DocumentId, Dictionary<DiagnosticData, int>>();
+            private readonly Dictionary<DocumentId, Dictionary<DiagnosticData, int>> _documentMap = new();
 
             /// <summary>
             /// Set of projects for which we have already cleared the build and intellisense diagnostics in the error list.
             /// </summary>
-            private readonly HashSet<ProjectId> _projectsWithErrorsCleared = new HashSet<ProjectId>();
+            private readonly HashSet<ProjectId> _projectsWithErrorsCleared = new();
 
             /// <summary>
             /// Set of projects for which we have reported all intellisense/live diagnostics.
             /// </summary>
-            private readonly HashSet<ProjectId> _projectsWithAllLiveErrorsReported = new HashSet<ProjectId>();
+            private readonly HashSet<ProjectId> _projectsWithAllLiveErrorsReported = new();
 
             /// <summary>
             /// Set of projects which have at least one project or document diagnostic in
             /// <see cref="_projectMap"/> and/or <see cref="_documentMap"/>.
             /// </summary>
-            private readonly HashSet<ProjectId> _projectsWithErrors = new HashSet<ProjectId>();
+            private readonly HashSet<ProjectId> _projectsWithErrors = new();
 
             /// <summary>
             /// Last project for which build reported an error through one of the <see cref="M:AddError"/> methods.
@@ -909,7 +907,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private sealed class DiagnosticDataComparer : IEqualityComparer<DiagnosticData>
         {
-            public static readonly DiagnosticDataComparer Instance = new DiagnosticDataComparer();
+            public static readonly DiagnosticDataComparer Instance = new();
 
             public bool Equals(DiagnosticData item1, DiagnosticData item2)
             {

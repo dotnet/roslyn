@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -16,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
     [ExportLanguageService(typeof(IChangeSignatureViewModelFactoryService), LanguageNames.CSharp), Shared]
     internal class CSharpChangeSignatureViewModelFactoryService : ChangeSignatureViewModelFactoryService
     {
-        private static readonly CSharpParseOptions s_langVersionLatestParseOptions = new CSharpParseOptions(LanguageVersion.Preview);
+        private static readonly CSharpParseOptions s_langVersionLatestParseOptions = new(LanguageVersion.Preview);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

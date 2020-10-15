@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.IO;
 using System.Threading;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// <summary>
         /// This lock guards all mutable fields in this type.
         /// </summary>
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
         private ReferenceCountedDisposable<IChecksummedPersistentStorage>? _currentPersistentStorage;
         private SolutionId? _currentPersistentStorageSolutionId;
 
@@ -205,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

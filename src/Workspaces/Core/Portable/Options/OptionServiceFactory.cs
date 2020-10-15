@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Options
             /// <summary>
             /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
             /// </summary>
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> _eventHandlers =
                 ImmutableArray<EventHandler<OptionChangedEventArgs>>.Empty;

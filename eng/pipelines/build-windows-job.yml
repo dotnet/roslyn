@@ -1,0 +1,49 @@
+# Build on windows desktop
+parameters:
+- name: jobName
+  type: string
+  default: ''
+- name: testArtifactName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+
+jobs:
+- job: ${{ parameters.jobName }}
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.Open
+  timeoutInMinutes: 40
+
+  steps:
+    - task: PowerShell@2
+      displayName: Restore
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog
+
+    - task: PowerShell@2 
+      displayName: Build
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -pack -sign -publish -binaryLog 
+
+    - task: PowerShell@2 
+      displayName: Prepare Unit Tests
+      inputs:
+        filePath: eng/prepare-tests.ps1
+        arguments: -configuration ${{ parameters.configuration }}
+
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Test Payload
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)\artifacts\testPayload'
+        artifactName: ${{ parameters.testArtifactName }}
+
+    - template: publish-logs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+        jobName: ${{ parameters.jobName }}
+

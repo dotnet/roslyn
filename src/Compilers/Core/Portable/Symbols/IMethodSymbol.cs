@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 
@@ -134,7 +132,7 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol ConstructedFrom { get; }
 
         /// <summary>
-        /// Indicates whether the method is readonly, i.e.
+        /// Indicates whether the method is readonly,
         /// i.e. whether the 'this' receiver parameter is 'ref readonly'.
         /// Returns true for readonly instance methods and accessors
         /// and for reduced extension methods with a 'this in' parameter.

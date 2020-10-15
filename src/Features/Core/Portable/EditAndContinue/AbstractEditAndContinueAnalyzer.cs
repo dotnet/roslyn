@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -854,7 +852,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             public LambdaInfo WithMatch(Match<SyntaxNode> match, SyntaxNode newLambdaBody)
-                => new LambdaInfo(ActiveNodeIndices, match, newLambdaBody);
+                => new(ActiveNodeIndices, match, newLambdaBody);
         }
 
         internal readonly struct UpdatedMemberInfo
@@ -2116,7 +2114,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => obj?.Identity.GetHashCode() ?? 0;
         }
 
-        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(
+        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new(
             AssemblyEqualityComparer.Instance, distinguishRefFromOut: true, tupleNamesMustMatch: false);
 
         protected static bool SignaturesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
@@ -3875,7 +3873,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #region Testing
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
