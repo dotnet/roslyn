@@ -2730,7 +2730,7 @@ class C
 
         [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
         [Fact]
-        public void ExpressionTreeLocalFunctionUsage()
+        public void ExpressionTreeLocalFunctionUsage_01()
         {
             var source = @"
 using System;
@@ -2755,16 +2755,54 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (16,35): error CS8096: An expression tree may not contain a reference to a local function
-    //         Console.Write(Local(() => Id(2)));
-    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id(2)").WithLocation(16, 35),
-    // (17,51): error CS8096: An expression tree may not contain a reference to a local function
-    //         Console.Write(Local<Func<int, int>>(() => Id));
-    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id").WithLocation(17, 51),
-    // (18,35): error CS8096: An expression tree may not contain a reference to a local function
-    //         Console.Write(Local(() => new Func<int, int>(Id)));
-    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id").WithLocation(18, 54)
-    );
+                // (16,35): error CS8096: An expression tree may not contain a reference to a local function
+                //         Console.Write(Local(() => Id(2)));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id(2)").WithLocation(16, 35),
+                // (17,51): error CS8096: An expression tree may not contain a reference to a local function
+                //         Console.Write(Local<Func<int, int>>(() => Id));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id").WithLocation(17, 51),
+                // (18,35): error CS8096: An expression tree may not contain a reference to a local function
+                //         Console.Write(Local(() => new Func<int, int>(Id)));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id").WithLocation(18, 54)
+                );
+        }
+
+        [Fact]
+        public void ExpressionTreeLocalFunctionUsage_02()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        static T Id<T>(T x)
+        {
+            return x;
+        }
+        static Expression<Func<T>> Local<T>(Expression<Func<T>> f)
+        {
+            return f;
+        }
+        Console.Write(Local(() => Id(2)));
+        Console.Write(Local<Func<int, int>>(() => Id));
+        Console.Write(Local(() => new Func<int, int>(Id)));
+        Console.Write(Local(() => nameof(Id)));
+    }
+}
+";
+            VerifyDiagnostics(source,
+                // (16,35): error CS8096: An expression tree may not contain a reference to a local function
+                //         Console.Write(Local(() => Id(2)));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id(2)").WithLocation(16, 35),
+                // (17,51): error CS8096: An expression tree may not contain a reference to a local function
+                //         Console.Write(Local<Func<int, int>>(() => Id));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id").WithLocation(17, 51),
+                // (18,35): error CS8096: An expression tree may not contain a reference to a local function
+                //         Console.Write(Local(() => new Func<int, int>(Id)));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id").WithLocation(18, 54)
+                );
         }
 
         [Fact]
@@ -2787,17 +2825,17 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (8,40): error CS0834: A lambda expression with a statement body cannot be converted to an expression tree
-    //         Expression<Func<int, int>> f = x =>
-    Diagnostic(ErrorCode.ERR_StatementLambdaToExpressionTree, @"x =>
-        {
-            int Local(int y) => y;
-            return Local(x);
-        }").WithLocation(8, 40),
-    // (11,20): error CS8096: An expression tree may not contain a local function or a reference to a local function
-    //             return Local(x);
-    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Local(x)").WithLocation(11, 20)
-    );
+                // (8,40): error CS0834: A lambda expression with a statement body cannot be converted to an expression tree
+                //         Expression<Func<int, int>> f = x =>
+                Diagnostic(ErrorCode.ERR_StatementLambdaToExpressionTree, @"x =>
+                    {
+                        int Local(int y) => y;
+                        return Local(x);
+                    }").WithLocation(8, 40),
+                // (11,20): error CS8096: An expression tree may not contain a local function or a reference to a local function
+                //             return Local(x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Local(x)").WithLocation(11, 20)
+                );
         }
         [Fact]
         public void BadScoping()
@@ -6743,6 +6781,47 @@ class C
         }
 
         /// <summary>
+        /// Emit 'call' rather than 'callvirt' for local functions regardless of whether
+        /// the local function is static.
+        /// </summary>
+        [Fact]
+        public void EmitCallInstruction()
+        {
+            var source =
+@"using static System.Console;
+class Program
+{
+    static void Main()
+    {
+        int i;
+        void L1() => WriteLine(i++);
+        static void L2(int i) => WriteLine(i);
+        i = 1;
+        L1();
+        L2(i);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"1
+2");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (Program.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  stfld      ""int Program.<>c__DisplayClass0_0.i""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""void Program.<Main>g__L1|0_0(ref Program.<>c__DisplayClass0_0)""
+  IL_000f:  ldloc.0
+  IL_0010:  ldfld      ""int Program.<>c__DisplayClass0_0.i""
+  IL_0015:  call       ""void Program.<Main>g__L2|0_1(int)""
+  IL_001a:  ret
+}");
+        }
+
+        /// <summary>
         /// '_' should bind to '_' symbol in outer scope even in static local function.
         /// </summary>
         [Fact]
@@ -6854,6 +6933,101 @@ namespace N
                 "System.String y",
             };
             AssertEx.Equal(expectedSymbols, actualSymbols);
+        }
+
+        [Fact]
+        public void AwaitWithinAsyncOuterScope_01()
+        {
+            var source =
+@"#pragma warning disable 1998
+#pragma warning disable 8321
+using System.Threading.Tasks;
+class Program
+{
+    void F1()
+    {
+        void A1() { await Task.Yield(); }
+        static void B1() { await Task.Yield(); }
+    }
+    void F2()
+    {
+        async void A2() { await Task.Yield(); }
+        async static void B2() { await Task.Yield(); }
+    }
+    async void F3()
+    {
+        void A3() { await Task.Yield(); }
+        static void B3() { await Task.Yield(); }
+    }
+    async void F4()
+    {
+        async void A4() { await Task.Yield(); }
+        async static void B4() { await Task.Yield(); }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,21): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                //         void A1() { await Task.Yield(); }
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await Task.Yield()").WithLocation(8, 21),
+                // (9,28): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                //         static void B1() { await Task.Yield(); }
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await Task.Yield()").WithLocation(9, 28),
+                // (18,21): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                //         void A3() { await Task.Yield(); }
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await Task.Yield()").WithLocation(18, 21),
+                // (19,28): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                //         static void B3() { await Task.Yield(); }
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await Task.Yield()").WithLocation(19, 28));
+        }
+
+        /// <summary>
+        /// 'await' should be a contextual keyword in the same way,
+        /// regardless of whether local function is static.
+        /// </summary>
+        [Fact]
+        public void AwaitWithinAsyncOuterScope_02()
+        {
+            var source =
+@"#pragma warning disable 1998
+#pragma warning disable 8321
+class Program
+{
+    void F1()
+    {
+        void A1<await>() { }
+        static void B1<await>() { }
+    }
+    void F2()
+    {
+        async void A2<await>() { }
+        async static void B2<await>() { }
+    }
+    async void F3()
+    {
+        void A3<await>() { }
+        static void B3<await>() { }
+    }
+    async void F4()
+    {
+        async void A4<await>() { }
+        async static void B4<await>() { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,23): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         async void A2<await>() { }
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(12, 23),
+                // (13,30): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         async static void B2<await>() { }
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(13, 30),
+                // (22,23): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         async void A4<await>() { }
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(22, 23),
+                // (23,30): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         async static void B4<await>() { }
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(23, 30));
         }
     }
 }
