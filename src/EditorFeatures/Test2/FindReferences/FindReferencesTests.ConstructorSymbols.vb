@@ -820,7 +820,7 @@ public class A
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestConstructor_TargetTypedNew_Local(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestConstructor_ImplicitObjectCreation_Local(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -846,7 +846,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestConstructor_TargetTypedNew_Local_WithArguments(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestConstructor_ImplicitObjectCreation_Local_WithArguments(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -872,7 +872,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestConstructor_TargetTypedNew_Field(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestConstructor_ImplicitObjectCreation_Field(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

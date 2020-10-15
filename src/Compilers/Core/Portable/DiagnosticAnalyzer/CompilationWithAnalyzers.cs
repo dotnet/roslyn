@@ -1078,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var task in executingTasks)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    await WaitForExecutingTaskAsync(task.Item1).ConfigureAwait(false);
+                    await WaitForExecutingTaskAsync(task.Item1, alwaysYield: false).ConfigureAwait(false);
                 }
 
                 executingTasks.Clear();
@@ -1134,7 +1134,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    await WaitForExecutingTaskAsync(executingTreeTask.Item1).ConfigureAwait(false);
+                    // Wait for the higher-priority operation to complete, and make sure to yield so its continuations
+                    // (which remove the operation from the collections) have a chance to execute.
+                    await WaitForExecutingTaskAsync(executingTreeTask.Item1, alwaysYield: true).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
@@ -1143,8 +1145,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task WaitForExecutingTaskAsync(Task executingTask)
+        private static async Task WaitForExecutingTaskAsync(Task executingTask, bool alwaysYield)
         {
+            if (executingTask.IsCompleted)
+            {
+                if (alwaysYield)
+                {
+                    // Make sure to yield so continuations of 'executingTask' can make progress.
+                    await Task.Yield().ConfigureAwait(false);
+                }
+
+                return;
+            }
+
             try
             {
                 await executingTask.ConfigureAwait(false);
