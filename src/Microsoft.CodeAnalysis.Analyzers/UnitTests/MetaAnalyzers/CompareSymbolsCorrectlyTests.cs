@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpSecurityCodeFixVerifier<
@@ -571,6 +566,66 @@ class TestClass
         if ({@operator}SymbolEqualityComparer.Default.Equals(x, y)) return;
     }}
 }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithConditionalAccess_VisualBasic()
+        {
+            var source = @"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Sub Method1(x As ISymbol, y As ISymbol)
+        If x?[|.Equals(y)|] Then Exit Sub
+    End Sub
+End Class
+";
+
+            var fixedSource = @"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Sub Method1(x As ISymbol, y As ISymbol)
+        If SymbolEqualityComparer.Default.Equals(x, y) Then Exit Sub
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubVisualBasic } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubVisualBasic } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithNullConditionalAccess_CSharp()
+        {
+            var source = @"
+using Microsoft.CodeAnalysis;
+class TestClass
+{
+    void Method1(ISymbol x , ISymbol y)
+    {
+        if (x?[|.Equals(y)|] == true) return;
+    }
+}
+";
+
+            var fixedSource = @"
+using Microsoft.CodeAnalysis;
+class TestClass
+{
+    void Method1(ISymbol x , ISymbol y)
+    {
+        if (SymbolEqualityComparer.Default.Equals(x, y) == true) return;
+    }
+}
 ";
 
             await new VerifyCS.Test

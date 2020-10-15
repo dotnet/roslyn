@@ -76,7 +76,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                                     GetEqualityComparerDefaultEquals(generator),
                                     arguments);
 
-            editor.ReplaceNode(invocationOperation.Syntax, replacement.WithTriviaFrom(invocationOperation.Syntax));
+            // With "a?.b?.c?.Equals(b)", the invocation operation syntax is only ".Equals(b)". Walk-up the tree to replace the whole expression.
+            IOperation currentOperation = invocationOperation;
+            while (currentOperation.Parent is IConditionalAccessOperation)
+            {
+                currentOperation = currentOperation.Parent;
+            }
+
+            var nodeToReplace = currentOperation.Syntax;
+            editor.ReplaceNode(nodeToReplace, replacement.WithTriviaFrom(nodeToReplace));
 
             return editor.GetChangedDocument();
         }
