@@ -947,7 +947,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         driver.Initialize(_compilation, _analysisOptions, _compilationData, categorizeDiagnostics: true, cancellationToken: cancellationToken);
                     }
 
-                    // Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
                     // Wait for driver initialization to complete: this executes the Initialize and CompilationStartActions to compute all registered actions per-analyzer.
                     await driver.WhenInitializedTask.ConfigureAwait(false);
 

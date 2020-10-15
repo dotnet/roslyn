@@ -4415,7 +4415,7 @@ unsafe class C
 
             verifier.VerifyIL("C.Main", expectedIL: @"
 {
-  // Code size       32 (0x20)
+  // Code size       33 (0x21)
   .maxstack  4
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     ""delegate*<string, void>""
@@ -4436,10 +4436,11 @@ unsafe class C
   IL_0014:  stelem.i
   IL_0015:  ldc.i4.0
   IL_0016:  ldelem.i
-  IL_0017:  ldnull
-  IL_0018:  ceq
-  IL_001a:  call       ""void System.Console.Write(bool)""
-  IL_001f:  ret
+  IL_0017:  ldc.i4.0
+  IL_0018:  conv.u
+  IL_0019:  ceq
+  IL_001b:  call       ""void System.Console.Write(bool)""
+  IL_0020:  ret
 }
 ");
         }
@@ -4820,14 +4821,15 @@ unsafe class C
 
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldc.i4.0
   IL_0001:  conv.u
-  IL_0002:  ldnull
-  IL_0003:  ceq
-  IL_0005:  call       ""void System.Console.Write(bool)""
-  IL_000a:  ret
+  IL_0002:  ldc.i4.0
+  IL_0003:  conv.u
+  IL_0004:  ceq
+  IL_0006:  call       ""void System.Console.Write(bool)""
+  IL_000b:  ret
 }
 ");
 
