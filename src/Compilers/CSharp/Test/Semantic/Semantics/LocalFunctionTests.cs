@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -5660,6 +5661,54 @@ class C
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(8, 25));
         }
 
+        /// <summary>
+        /// Can reference type parameters from enclosing scope.
+        /// </summary>
+        [Fact]
+        public void StaticWithTypeParameterReferences()
+        {
+            var source =
+@"using static System.Console;
+class A<T>
+{
+    internal string F1()
+    {
+        static string L1() => typeof(T).FullName;
+        return L1();
+    }
+}
+class B
+{
+    internal string F2<T>()
+    {
+        static string L2() => typeof(T).FullName;
+        return L2();
+    }
+    internal static string F3()
+    {
+        static string L3<T>()
+        {
+            static string L4() => typeof(T).FullName;
+            return L4();
+        }
+        return L3<byte>();
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new A<int>().F1());
+        WriteLine(new B().F2<string>());
+        WriteLine(B.F3());
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"System.Int32
+System.String
+System.Byte");
+        }
+
         [Fact]
         public void Conditional_ThisReferenceInStatic()
         {
@@ -6645,15 +6694,166 @@ class C
 {
     static void M<T>()
     {
-        static void local(T t) { }
+        static void local(T t) { System.Console.Write(t.GetType().FullName); }
         System.Action<T> action = local;
+        action(default(T));
+    }
+    static void Main()
+    {
+         M<int>();
     }
 }";
-            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "System.Int32", symbolValidator: m =>
             {
                 var method = (MethodSymbol)m.GlobalNamespace.GetMember("Program.<M>g__local|0_0");
                 Assert.True(method.IsStatic);
+                Assert.True(method.IsGenericMethod);
+                Assert.Equal("void Program.<M>g__local|0_0<T>(T t)", method.ToTestDisplayString());
             });
+        }
+
+        /// <summary>
+        /// Local function in generic method is emitted as a generic
+        /// method even if no references to type parameters.
+        /// </summary>
+        [Fact]
+        [WorkItem(38143, "https://github.com/dotnet/roslyn/issues/38143")]
+        public void EmittedAsStatic_03()
+        {
+            var source =
+@"class Program
+{
+    static void M<T>() where T : new()
+    {
+        static void local(object o) { System.Console.Write(o.GetType().FullName); }
+        local(new T());
+    }
+    static void Main()
+    {
+         M<int>();
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "System.Int32", symbolValidator: m =>
+            {
+                var method = (MethodSymbol)m.GlobalNamespace.GetMember("Program.<M>g__local|0_0");
+                Assert.True(method.IsStatic);
+                Assert.True(method.IsGenericMethod);
+                Assert.Equal("void Program.<M>g__local|0_0<T>(System.Object o)", method.ToTestDisplayString());
+            });
+        }
+
+        /// <summary>
+        /// '_' should bind to '_' symbol in outer scope even in static local function.
+        /// </summary>
+        [Fact]
+        public void UnderscoreInOuterScope()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C1
+{
+    object _;
+    void F1()
+    {
+        void A1(object x) => _ = x;
+        static void B1(object y) => _ = y;
+    }
+}
+class C2
+{
+    static void F2()
+    {
+        object _;
+        void A2(object x) => _ = x;
+        static void B2(object y) => _ = y;
+    }
+    static void F3()
+    {
+        void A3(object x) => _ = x;
+        static void B3(object y) => _ = y;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,37): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //         static void B1(object y) => _ = y;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "_").WithLocation(8, 37),
+                // (17,37): error CS8421: A static local function cannot contain a reference to '_'.
+                //         static void B2(object y) => _ = y;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "_").WithArguments("_").WithLocation(17, 37));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
+            var actualSymbols = nodes.Select(n => model.GetSymbolInfo(n.Left).Symbol).Select(s => $"{s.Kind}: {s.ToTestDisplayString()}").ToArray();
+            var expectedSymbols = new[]
+            {
+                "Field: System.Object C1._",
+                "Field: System.Object C1._",
+                "Local: System.Object _",
+                "Local: System.Object _",
+                "Discard: System.Object _",
+                "Discard: System.Object _",
+            };
+            AssertEx.Equal(expectedSymbols, actualSymbols);
+        }
+
+        /// <summary>
+        /// 'var' should bind to 'var' symbol in outer scope even in static local function.
+        /// </summary>
+        [Fact]
+        public void VarInOuterScope()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C1
+{
+    class var { }
+    static void F1()
+    {
+        void A1(object x) { var y = x; }
+        static void B1(object x) { var y = x; }
+    }
+}
+namespace N
+{
+    using var = System.String;
+    class C2
+    {
+        static void F2()
+        {
+            void A2(object x) { var y = x; }
+            static void B3(object x) { var y = x; }
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,37): error CS0266: Cannot implicitly convert type 'object' to 'C1.var'. An explicit conversion exists (are you missing a cast?)
+                //         void A1(object x) { var y = x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("object", "C1.var").WithLocation(7, 37),
+                // (8,44): error CS0266: Cannot implicitly convert type 'object' to 'C1.var'. An explicit conversion exists (are you missing a cast?)
+                //         static void B1(object x) { var y = x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("object", "C1.var").WithLocation(8, 44),
+                // (18,41): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //             void A2(object x) { var y = x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("object", "string").WithLocation(18, 41),
+                // (19,48): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //             static void B3(object x) { var y = x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("object", "string").WithLocation(19, 48));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
+            var actualSymbols = nodes.Select(n => model.GetDeclaredSymbol(n)).ToTestDisplayStrings();
+            var expectedSymbols = new[]
+            {
+                "C1.var y",
+                "C1.var y",
+                "System.String y",
+                "System.String y",
+            };
+            AssertEx.Equal(expectedSymbols, actualSymbols);
         }
     }
 }
