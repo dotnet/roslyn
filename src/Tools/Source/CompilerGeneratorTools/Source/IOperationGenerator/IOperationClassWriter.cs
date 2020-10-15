@@ -425,7 +425,7 @@ namespace IOperationGenerator
 
             writeClassHeader(type.IsAbstract ? "abstract" : "sealed", @class, @base, type.Name);
 
-            if (type is Node node)
+            if (type is Node and var node)
             {
                 if (publicIOperationProps.Count != 0)
                 {
@@ -437,7 +437,7 @@ namespace IOperationGenerator
             }
             else
             {
-                node = null!;
+                node = null;
             }
 
             writeConstructor(type.IsAbstract ? "protected" : "internal", @class, allProps, baseProperties, type, hasType, hasConstantValue, multipleValidKinds);
@@ -605,7 +605,6 @@ namespace IOperationGenerator
             {
                 WriteLine($"public override void Accept(OperationVisitor visitor) => visitor.{visitorName}(this);");
                 WriteLine($"public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.{visitorName}(this, argument);");
-
             }
 
             string getKind(Node node)
@@ -1008,7 +1007,10 @@ namespace IOperationGenerator
             {
                 const string internalName = "internalOperation";
 
-                if (!PortedTypes.Contains(node.Name)) continue;
+                if (!PortedTypes.Contains(node.Name))
+                {
+                    continue;
+                }
 
                 string nameMinusI = node.Name[1..];
                 WriteLine($"{(node.IsInternal ? "internal" : "public")} override IOperation {GetVisitorName(node)}({node.Name} operation, object? argument)");
