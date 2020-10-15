@@ -59,6 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
+            // Don't perform work if we're inside the interactive window
+            if (args.TextView.IsBufferInInteractiveWindow(args.SubjectBuffer))
+            {
+                return;
+            }
+
             if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AddImportsOnPaste))
             {
                 return;

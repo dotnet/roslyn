@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     public class CSharpAddMissingImportsOnPaste : AbstractEditorTest
     {
         public CSharpAddMissingImportsOnPaste(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+            : base(instanceFactory, nameof(CSharpAddMissingImportsOnPaste))
         {
         }
 
@@ -23,7 +23,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingImports)]
         public void VerifyAddImportsOnPaste()
         {
-            var markup = @"
+            var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddFile(project, "Foo.cs", contents: @"
+public class Foo
+{
+}
+");
+            SetUpEditor(@"
 using System;
 
 class Program
@@ -33,11 +39,9 @@ class Program
     }
 
     $$
-}";
-            SetUpEditor(markup);
+}");
 
-            VisualStudio.Editor.Paste(@"
-Task DoThingAsync() => Task.CompletedTask;");
+            VisualStudio.Editor.Paste(@"Task DoThingAsync() => Task.CompletedTask;");
 
             VisualStudio.Editor.Verify.TextContains(@"
 using System;
