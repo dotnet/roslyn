@@ -507,6 +507,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework,
                                 string.Format(CodeAnalysisResources.AssemblyReferencesNetFramework, typeName),
                                 typeNameOpt: typeName));
+                            continue;
                         }
                     }
 
