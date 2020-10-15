@@ -2807,4 +2807,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Pull_members_up_to_new_base_class" xml:space="preserve">
     <value>Pull member(s) up to new base class...</value>
   </data>
+  <data name="The_assembly_0_containing_type_1_references_NET_Framework" xml:space="preserve">
+    <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+  </data>
 </root>
