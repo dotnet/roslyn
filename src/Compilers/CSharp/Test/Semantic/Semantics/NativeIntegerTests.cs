@@ -3473,16 +3473,58 @@ interface I
         {
             var source =
 @"using nint = System.Int16;
-interface I
+using nuint = System.Object;
+class Program
 {
-    nint Add(nint x, nuint y);
+    static @nint F(nint x, nuint y)
+    {
+        System.Console.WriteLine(x.GetType().FullName);
+        System.Console.WriteLine(y.GetType().FullName);
+        return x;
+    }
+    static void Main()
+    {
+        F(new nint(), new nuint());
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseExe);
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.Int16
+System.Object");
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, System.Object y)", method.ToTestDisplayString());
+                var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
+                var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
+                Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
+                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.Equal(SpecialType.System_Object, underlyingType1.SpecialType);
+                Assert.False(underlyingType1.IsNativeIntegerType);
+            }
+        }
+
+        [Fact]
+        public void AliasName_02()
+        {
+            var source =
+@"using nint = System.Int16;
+class Program
+{
+    static @nint F(nint x, nuint y) => x;
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,22): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 22));
+                // (4,28): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     static @nint F(nint x, nuint y) => x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 28));
             verify(comp);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -3491,8 +3533,8 @@ interface I
 
             static void verify(CSharpCompilation comp)
             {
-                var method = comp.GetMember<MethodSymbol>("I.Add");
-                Assert.Equal("System.Int16 I.Add(System.Int16 x, nuint y)", method.ToTestDisplayString());
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToTestDisplayString());
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
@@ -3503,20 +3545,20 @@ interface I
         }
 
         [Fact]
-        public void AliasName_02()
+        public void AliasName_03()
         {
             var source =
 @"using @nint = System.Int16;
-interface I
+class Program
 {
-    @nint Add(nint x, nuint y);
+    static @nint F(nint x, nuint y) => x;
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,23): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //      nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 23));
+                // (4,28): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     static @nint F(nint x, nuint y) => x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 28));
             verify(comp);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -3525,8 +3567,8 @@ interface I
 
             static void verify(CSharpCompilation comp)
             {
-                var method = comp.GetMember<MethodSymbol>("I.Add");
-                Assert.Equal("System.Int16 I.Add(System.Int16 x, nuint y)", method.ToTestDisplayString());
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToTestDisplayString());
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
@@ -3538,7 +3580,7 @@ interface I
 
         [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
-        public void AliasName_03()
+        public void AliasName_04()
         {
             var source =
 @"using A1 = nint;
@@ -3567,7 +3609,7 @@ class Program
 
         [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
-        public void AliasName_04()
+        public void AliasName_05()
         {
             var source1 =
 @"using A1 = nint;
