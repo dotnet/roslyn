@@ -937,6 +937,16 @@
         <target state="new">target-typed object creation</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="new">Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</target>
@@ -1144,7 +1154,7 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
@@ -1252,7 +1262,7 @@
 -target:winmdobj              Criar um arquivo intermediário do Windows Runtime que
                               seja consumido por WinMDExp (Forma abreviada: -t:winmdobj)
 -doc:&lt;file&gt;                   Arquivo de documentação XML a ser gerado
--refout:&lt;file&gt;                Saída do assembly de referência a ser gerada 
+-refout:&lt;file&gt;                Saída do assembly de referência a ser gerada
 -platform:&lt;string&gt;            Limitar em quais plataformas esse código pode ser executado: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred ou
                               anycpu. O padrão é anycpu.
@@ -1278,7 +1288,7 @@
 
                        - RECURSOS -
 -win32res:&lt;file&gt;              Especificar um arquivo de recurso Win32 (.res)
--win32icon:&lt;file&gt;             Usar esse ícone para a saída 
+-win32icon:&lt;file&gt;             Usar esse ícone para a saída
 -win32manifest:&lt;file&gt;         Especificar um arquivo de manifesto Win32 (.xml)
 -nowin32manifest              Não incluir o manifesto Win32 padrão
 -resource:&lt;resinfo&gt;           Inserir o recurso especificado (Forma abreviada: -res)
@@ -1287,7 +1297,7 @@
                               é &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - GERAÇÃO DE CÓDIGO -
--debug[+|-]                   Emitir informações de depuração 
+-debug[+|-]                   Emitir informações de depuração
 -debug:{full|pdbonly|portable|embedded}
                               Especificar o tipo de depuração ('full' é o padrão,
                                'portable' é um formato de plataforma cruzada,
@@ -1315,7 +1325,7 @@
                               tempo de execução.
 
                        - LINGUAGEM -
--checked[+|-]                 Gerar verificações de estouro 
+-checked[+|-]                 Gerar verificações de estouro
 -unsafe[+|-]                  Permitir código 'unsafe'
 -define:&lt;symbol list&gt;         Definir símbolos de compilação condicionais (Forma
                               abreviada: -d)
@@ -1334,13 +1344,13 @@
 -delaysign[+|-]               Assinar com atraso o assembly usando apenas a parte
                               pública da chave de nome forte
 -publicsign[+|-]              Assinar de modo público o assembly usando apenas a parte pública
-                              da chave de nome forte 
+                              da chave de nome forte
 -keyfile:&lt;file&gt;               Especificar um arquivo de chave de nome forte
 -keycontainer:&lt;string&gt;        Especificar um contêiner de chave de nome forte
 -highentropyva[+|-]           Habilitar ASLR de alta entropia
 
                        - DIVERSOS -
-@&lt;file&gt;                       Ler o arquivo de resposta para obter mais opções 
+@&lt;file&gt;                       Ler o arquivo de resposta para obter mais opções
 -help                         Exibir esta mensagem de uso (Forma abreviada: -?)
 -nologo                       Suprimir a mensagem de direitos autorais do compilador
 -noconfig                     Não incluir automaticamente o arquivo CSC.RSP

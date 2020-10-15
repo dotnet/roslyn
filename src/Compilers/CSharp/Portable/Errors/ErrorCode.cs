@@ -1847,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_PrecedenceInversion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
 
-        // Available = 8850,
+        WRN_AnalyzerReferencesFramework = 8850,
 
         // WRN_EqualsWithoutGetHashCode is for object.Equals and works for classes.
         // WRN_RecordEqualsWithoutGetHashCode is for IEquatable<T>.Equals and works for records.
