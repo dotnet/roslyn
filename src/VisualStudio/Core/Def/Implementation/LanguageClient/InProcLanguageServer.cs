@@ -281,17 +281,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 await ExitAsync(_: default).ConfigureAwait(false);
             }).CompletesAsyncOperation(asyncToken);
         }
-
-        internal TestAccessor GetTestAccessor() => new(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly InProcLanguageServer _server;
-
-            internal TestAccessor(InProcLanguageServer server)
-            {
-                _server = server;
-            }
-        }
     }
 }
