@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Create a linked cancellation token to cancel any requests in progress when this shuts down
                     var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
 
-                    var context = await CreateRequestContextAsync(work, cancellationToken).ConfigureAwait(false);
+                    var context = CreateRequestContext(work);
 
                     if (work.MutatesSolutionState)
                     {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private async Task<RequestContext> CreateRequestContextAsync(QueueItem queueItem, CancellationToken cancellationToken)
+        private RequestContext CreateRequestContext(QueueItem queueItem)
         {
             // This method asks the solution provider for a solution, and then updates it based on the state of the world
             // as we know it. You may look at this and think "why doesn't the solution provider keep track of the state
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var (document, solution) = _solutionProvider.GetDocumentAndSolution(queueItem.TextDocument, queueItem.ClientName);
 
             // Now we can update the solution to represent the LSP view of the world, with any text changes we received
-            solution = await GetSolutionWithReplacedDocumentsAsync(solution, cancellationToken).ConfigureAwait(false);
+            solution = GetSolutionWithReplacedDocuments(solution);
 
             // Now we need to get the document again, because if the request is for an open document, the original
             // one we got might not be up to date
@@ -280,18 +280,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// but with document text for any open documents updated to match the LSP view of the world. This makes
         /// the LSP server the source of truth for all document text, but all other changes come from the workspace
         /// </summary>
-        private async Task<Solution> GetSolutionWithReplacedDocumentsAsync(Solution solution, CancellationToken cancellationToken)
+        private Solution GetSolutionWithReplacedDocuments(Solution solution)
         {
-            foreach (var trackedDoc in _documentChangeTracker.GetTrackedDocuments())
+            foreach (var (id, text) in _documentChangeTracker.GetTrackedDocuments())
             {
                 // We are tracking documents from multiple solutions, so this might not be one we care about
-                if (!solution.ContainsDocument(trackedDoc.Id))
+                if (!solution.ContainsDocument(id))
                 {
                     continue;
                 }
 
-                var text = await trackedDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                solution = solution.WithDocumentText(trackedDoc.Id, text);
+                solution = solution.WithDocumentText(id, text);
             }
 
             return solution;

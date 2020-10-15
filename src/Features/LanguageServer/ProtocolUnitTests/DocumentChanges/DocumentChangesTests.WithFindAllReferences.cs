@@ -34,7 +34,7 @@ class B
             {
                 var queue = CreateRequestQueue(workspace.CurrentSolution);
 
-                Assert.Empty(queue.GetTestAccessor().GetTrackedDocuments());
+                Assert.Empty(queue.GetTestAccessor().GetTrackedTexts());
 
                 await DidOpen(queue, workspace.CurrentSolution, CreateDidOpenTextDocumentParams(locationTyped, documentText));
 

@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -17,24 +18,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         internal class DocumentChangeTracker : IWorkspaceService
         {
-            private readonly Dictionary<(Workspace, DocumentId), Document> _trackedDocuments = new();
+            private readonly Dictionary<(Workspace Workspace, DocumentId Id), SourceText> _trackedDocuments = new();
 
-            internal void StartTracking(Document document)
+            internal void StartTracking(Document document, SourceText initialText)
             {
                 var key = (document.Project.Solution.Workspace, document.Id);
 
                 Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(key), "didOpen received for an already open document.");
 
-                _trackedDocuments.Add(key, document);
+                _trackedDocuments.Add(key, initialText);
             }
 
-            internal void UpdateTrackedDocument(Document document)
+            internal void UpdateTrackedDocument(Document document, SourceText text)
             {
                 var key = (document.Project.Solution.Workspace, document.Id);
 
                 Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(key), "didChange received for a document that isn't open.");
 
-                _trackedDocuments[key] = document;
+                _trackedDocuments[key] = text;
             }
 
             internal void StopTracking(Document document)
@@ -46,8 +47,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _trackedDocuments.Remove(key);
             }
 
-            internal IEnumerable<Document> GetTrackedDocuments()
-                => _trackedDocuments.Values;
+            internal IEnumerable<(DocumentId Id, SourceText Text)> GetTrackedDocuments()
+                => _trackedDocuments.Select(k => (k.Key.Id, k.Value));
         }
 
         internal TestAccessor GetTestAccessor()
@@ -60,8 +61,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public TestAccessor(RequestExecutionQueue queue)
                 => _queue = queue;
 
-            public List<Document> GetTrackedDocuments()
-                => _queue._documentChangeTracker.GetTrackedDocuments().ToList();
+            public List<SourceText> GetTrackedTexts()
+                => _queue._documentChangeTracker.GetTrackedDocuments().Select(i => i.Text).ToList();
         }
     }
 }

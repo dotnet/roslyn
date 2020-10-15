@@ -33,9 +33,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 
             // Add the document and ensure the text we have matches whats on the client
             var sourceText = SourceText.From(request.TextDocument.Text);
-            var newDocument = document.WithText(sourceText);
 
-            context.StartTracking(newDocument);
+            context.StartTracking(document, sourceText);
 
             return SpecializedTasks.Default<object>();
         }

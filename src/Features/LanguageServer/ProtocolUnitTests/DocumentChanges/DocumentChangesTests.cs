@@ -43,23 +43,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             {
                 var queue = CreateRequestQueue(workspace.CurrentSolution);
 
-                Assert.Empty(queue.GetTestAccessor().GetTrackedDocuments());
+                Assert.Empty(queue.GetTestAccessor().GetTrackedTexts());
 
                 await DidOpen(queue, workspace.CurrentSolution, CreateDidOpenTextDocumentParams(locationTyped, documentText));
 
-                Assert.Single(queue.GetTestAccessor().GetTrackedDocuments());
+                Assert.Single(queue.GetTestAccessor().GetTrackedTexts());
 
-                var document = queue.GetTestAccessor().GetTrackedDocuments().Single();
-                Assert.Equal(documentText, document.GetTextSynchronously(default).ToString());
+                var document = queue.GetTestAccessor().GetTrackedTexts().Single();
+                Assert.Equal(documentText, document.ToString());
 
                 await DidChange(queue, workspace.CurrentSolution, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there")));
 
-                document = queue.GetTestAccessor().GetTrackedDocuments().Single();
-                Assert.Equal(expected, document.GetTextSynchronously(default).ToString());
+                document = queue.GetTestAccessor().GetTrackedTexts().Single();
+                Assert.Equal(expected, document.ToString());
 
                 await DidClose(queue, workspace.CurrentSolution, CreateDidCloseTextDocumentParams(locationTyped));
 
-                Assert.Empty(queue.GetTestAccessor().GetTrackedDocuments());
+                Assert.Empty(queue.GetTestAccessor().GetTrackedTexts());
             }
         }
 
@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 await DidOpen(queue, workspace.CurrentSolution, CreateDidOpenTextDocumentParams(locationTyped, documentText));
 
-                var document = queue.GetTestAccessor().GetTrackedDocuments().FirstOrDefault();
+                var document = queue.GetTestAccessor().GetTrackedTexts().FirstOrDefault();
 
                 Assert.NotNull(document);
-                Assert.Equal(documentText, document.GetTextSynchronously(default).ToString());
+                Assert.Equal(documentText, document.ToString());
             }
         }
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 await DidClose(queue, workspace.CurrentSolution, CreateDidCloseTextDocumentParams(locationTyped));
 
-                Assert.Empty(queue.GetTestAccessor().GetTrackedDocuments());
+                Assert.Empty(queue.GetTestAccessor().GetTrackedTexts());
             }
         }
 
@@ -210,10 +210,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 await DidChange(queue, workspace.CurrentSolution, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there")));
 
-                var document = queue.GetTestAccessor().GetTrackedDocuments().FirstOrDefault();
+                var document = queue.GetTestAccessor().GetTrackedTexts().FirstOrDefault();
 
                 Assert.NotNull(document);
-                Assert.Equal(expected, document.GetTextSynchronously(default).ToString());
+                Assert.Equal(expected, document.ToString());
             }
         }
 
@@ -288,10 +288,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 await DidChange(queue, workspace.CurrentSolution, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there"), (5, 0, "        // this builds on that\r\n")));
 
-                var document = queue.GetTestAccessor().GetTrackedDocuments().FirstOrDefault();
+                var document = queue.GetTestAccessor().GetTrackedTexts().FirstOrDefault();
 
                 Assert.NotNull(document);
-                Assert.Equal(expected, document.GetTextSynchronously(default).ToString());
+                Assert.Equal(expected, document.ToString());
             }
         }
 
@@ -328,10 +328,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 await DidChange(queue, workspace.CurrentSolution, CreateDidChangeTextDocumentParams(locationTyped.Uri, (5, 0, "        // this builds on that\r\n")));
 
-                var document = queue.GetTestAccessor().GetTrackedDocuments().FirstOrDefault();
+                var document = queue.GetTestAccessor().GetTrackedTexts().FirstOrDefault();
 
                 Assert.NotNull(document);
-                Assert.Equal(expected, document.GetTextSynchronously(default).ToString());
+                Assert.Equal(expected, document.ToString());
             }
         }
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
@@ -50,21 +51,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Allows a mutating request to open a document and start it being tracked.
         /// </summary>
-        public void StartTracking(Document document)
+        public void StartTracking(Document document, SourceText initialText)
         {
             Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
 
-            _documentChangeTracker.StartTracking(document);
+            _documentChangeTracker.StartTracking(document, initialText);
         }
 
         /// <summary>
         /// Allows a mutating request to update the contents of a tracked document.
         /// </summary>
-        public void UpdateTrackedDocument(Document document)
+        public void UpdateTrackedDocument(Document document, SourceText changedText)
         {
             Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
 
-            _documentChangeTracker.UpdateTrackedDocument(document);
+            _documentChangeTracker.UpdateTrackedDocument(document, changedText);
         }
 
         /// <summary>
