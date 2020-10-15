@@ -119,8 +119,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Debug.Assert(_updateSources.Contains(source));
 
-                // check cheap early bail out
+                // The diagnostic service itself caches all diagnostics produced by the IDiagnosticUpdateSource's.  As
+                // such, we want to grab all the diagnostics (regardless of push/pull setting) and cache inside
+                // ourselves.  Later, when anyone calls GetDiagnostics or GetDiagnosticBuckets we will check if their 
+                // push/pull request matches the current user setting and return these if appropriate.
                 var diagnostics = args.GetAllDiagnosticsRegardlessOfPushPullSetting();
+
+                // check cheap early bail out
                 if (diagnostics.Length == 0 && !_map.ContainsKey(source))
                 {
                     // no new diagnostic, and we don't have update source for it.
