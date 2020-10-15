@@ -35,7 +35,7 @@ namespace ObjectFormatterFixtures
 
         internal class SpinLockDebugView
         {
-            private MockDesktopSpinLock m_spinLock;
+            private readonly MockDesktopSpinLock m_spinLock;
 
             public bool? IsHeldByCurrentThread
                 => m_spinLock.IsHeldByCurrentThread;
