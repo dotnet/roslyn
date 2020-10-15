@@ -261,14 +261,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (test)
                 {
                     case BoundDagNonNullTest d:
-                        return _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullNotEqual : BinaryOperatorKind.NotEqual);
+                        return MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullNotEqual : BinaryOperatorKind.NotEqual);
 
                     case BoundDagTypeTest d:
                         // Note that this tests for non-null as a side-effect. We depend on that to sometimes avoid the null check.
                         return _factory.Is(input, d.Type);
 
                     case BoundDagExplicitNullTest d:
-                        return _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal);
+                        return MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal);
 
                     case BoundDagValueTest d:
                         Debug.Assert(!input.Type.IsNullableType());
@@ -283,6 +283,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(test);
                 }
             }
+
+            private BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
+            {
+                if (rewrittenExpr.Type.IsPointerOrFunctionPointer())
+                {
+                    TypeSymbol objectType = _factory.SpecialType(SpecialType.System_Object);
+                    var operandType = new PointerTypeSymbol(TypeWithAnnotations.Create(_factory.SpecialType(SpecialType.System_Void)));
+                    return _localRewriter.MakeBinaryOperator(
+                        syntax,
+                        operatorKind,
+                        _factory.Convert(operandType, rewrittenExpr),
+                        _factory.Convert(operandType, new BoundLiteral(syntax, ConstantValue.Null, objectType)),
+                        _factory.SpecialType(SpecialType.System_Boolean),
+                        null);
+                }
+
+                return _localRewriter.MakeNullCheck(syntax, rewrittenExpr, operatorKind);
+            }
+
             protected BoundExpression MakeValueTest(SyntaxNode syntax, BoundExpression input, ConstantValue value)
             {
                 TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();

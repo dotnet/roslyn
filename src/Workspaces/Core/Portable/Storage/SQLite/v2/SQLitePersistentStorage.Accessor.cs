@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 // Have to run the blob reading in a transaction.  This is necessary
                 // for two reasons.  First, blob reading outside a transaction is not
-                // safe to do with the sqlite API.  It may produce corrupt bits if 
+                // safe to do with the sqlite API.  It may produce corrupt bits if
                 // another thread is writing to the blob.  Second, if a checksum was
                 // passed in, we need to validate that the checksums match.  This is
                 // only safe if we are in a transaction and no-one else can race with
@@ -214,10 +214,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 #pragma warning restore CA1822 // Mark members as static
             {
                 // For the Document and Project tables, our dataId is our rowId:
-                // 
+                //
                 // https://sqlite.org/lang_createtable.html
-                // if a rowid table has a primary key that consists of a single column and the 
-                // declared type of that column is "INTEGER" in any mixture of upper and lower 
+                // if a rowid table has a primary key that consists of a single column and the
+                // declared type of that column is "INTEGER" in any mixture of upper and lower
                 // case, then the column becomes an alias for the rowid. Such a column is usually
                 // referred to as an "integer primary key". A PRIMARY KEY column only becomes an
                 // integer primary key if the declared type name is exactly "INTEGER"
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 }
 #endif
 
-                // Can just return out dataId as the rowId without actually having to hit the 
+                // Can just return out dataId as the rowId without actually having to hit the
                 // database at all.
                 rowId = dataId;
                 return true;
@@ -242,11 +242,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected bool GetActualRowIdFromDatabase(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId)
             {
                 // See https://sqlite.org/autoinc.html
-                // > In SQLite, table rows normally have a 64-bit signed integer ROWID which is 
+                // > In SQLite, table rows normally have a 64-bit signed integer ROWID which is
                 // unique among all rows in the same table. (WITHOUT ROWID tables are the exception.)
-                // 
-                // You can access the ROWID of an SQLite table using one of the special column names 
-                // ROWID, _ROWID_, or OID. Except if you declare an ordinary table column to use one 
+                //
+                // You can access the ROWID of an SQLite table using one of the special column names
+                // ROWID, _ROWID_, or OID. Except if you declare an ordinary table column to use one
                 // of those special names, then the use of that name will refer to the declared column
                 // not to the internal ROWID.
                 using var resettableStatement = connection.GetResettableStatement(database == Database.WriteCache

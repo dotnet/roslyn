@@ -454,6 +454,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             // get previous line
             Contract.ThrowIfFalse(line.LineNumber > 0);
             var previousLine = text.Lines[line.LineNumber - 1];
+
+            // if the span is past the end of the line (ie, in whitespace) then
+            // return to the end of the line including whitespace
+            if (textSpan.Start > previousLine.End)
+            {
+                return TextSpan.FromBounds(textSpan.Start, previousLine.EndIncludingLineBreak);
+            }
+
             return TextSpan.FromBounds(textSpan.Start, previousLine.End);
         }
 

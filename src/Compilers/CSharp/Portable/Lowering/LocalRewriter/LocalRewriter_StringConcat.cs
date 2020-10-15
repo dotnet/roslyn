@@ -195,8 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // attempting to access its value as a string.
 
                         var rightConstant = boundCoalesce.RightOperand.ConstantValue;
-                        // See https://github.com/dotnet/roslyn/issues/41964 for eliminating the !. below
-                        if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue!.Length == 0)
+                        if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
                         {
                             arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
                             return true;

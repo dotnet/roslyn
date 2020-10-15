@@ -93,14 +93,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // but most URIs are blocked other than file:// and http://; they also get extra handling to attempt to download the file so
             // those aren't really usable anyways.
 
-            // We put all the files related to the same project in a single directory
             var generatorType = generator.GetType();
-            var projectDirectory = Path.Combine(_temporaryDirectory, project.Id.Id.ToString());
-            Directory.CreateDirectory(projectDirectory);
 
             // The file name we generate here is chosen to match the compiler's choice, so the debugger can recognize the files should match.
             // This can only be changed if the compiler changes the algorithm as well.
-            var temporaryFilePath = Path.Combine(projectDirectory, generatorType.Assembly.GetName().Name ?? string.Empty, generatorType.FullName, generatedSourceHintName);
+            var temporaryFilePath = Path.Combine(
+                _temporaryDirectory,
+                project.Id.Id.ToString(),
+                generatorType.Assembly.GetName().Name ?? string.Empty,
+                generatorType.FullName,
+                generatedSourceHintName);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(temporaryFilePath));
 
             // Don't write to the file if it's already there, as that potentially triggers a file reload
             if (!File.Exists(temporaryFilePath))
