@@ -2440,8 +2440,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 // Adding or removing unsafe modifier while debugging shouldn't be an issue.
-                var oldNodeModifiersWithoutUnsafe = oldNode.Modifiers.Where(m => !m.IsKind(SyntaxKind.UnsafeKeyword));
-                var newNodeModifiersWithoutUnsafe = newNode.Modifiers.Where(m => !m.IsKind(SyntaxKind.UnsafeKeyword));
+                var oldNodeModifiersWithoutUnsafe = oldNode.Modifiers.Where(m => !m.IsKind(SyntaxKind.UnsafeKeyword)).ToSyntaxTokenList();
+                var newNodeModifiersWithoutUnsafe = newNode.Modifiers.Where(m => !m.IsKind(SyntaxKind.UnsafeKeyword)).ToSyntaxTokenList();
                 if (!SyntaxFactory.AreEquivalent(oldNodeModifiersWithoutUnsafe, newNodeModifiersWithoutUnsafe))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
