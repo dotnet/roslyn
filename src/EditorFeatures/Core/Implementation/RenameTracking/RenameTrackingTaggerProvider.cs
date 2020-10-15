@@ -105,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
         public static (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
             Document document, TextSpan textSpan,
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
                 CancellationToken cancellationToken)
         {
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         stateMachine.CanInvokeRename(out _, cancellationToken: cancellationToken))
                     {
                         return stateMachine.TryGetCodeAction(
-                            document, text, textSpan, refactorNotifyServices, undoHistoryRegistry, cancellationToken);
+                            document, text, textSpan, undoHistoryRegistry, cancellationToken);
                     }
                 }
 

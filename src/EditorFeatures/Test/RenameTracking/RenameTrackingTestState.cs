@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -49,37 +50,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private readonly IEditorOperations _editorOperations;
         public IEditorOperations EditorOperations { get { return _editorOperations; } }
 
-        private readonly MockRefactorNotifyService _mockRefactorNotifyService;
-        public MockRefactorNotifyService RefactorNotifyService { get { return _mockRefactorNotifyService; } }
-
         private readonly RenameTrackingCodeRefactoringProvider _codeRefactoringProvider;
         private readonly RenameTrackingCancellationCommandHandler _commandHandler = new RenameTrackingCancellationCommandHandler();
 
         public static RenameTrackingTestState Create(
             string markup,
-            string languageName,
-            bool onBeforeGlobalSymbolRenamedReturnValue = true,
-            bool onAfterGlobalSymbolRenamedReturnValue = true)
+            string languageName)
         {
             var workspace = CreateTestWorkspace(markup, languageName);
-            return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
+            return new RenameTrackingTestState(workspace, languageName);
         }
 
         public static RenameTrackingTestState CreateFromWorkspaceXml(
             string workspaceXml,
-            string languageName,
-            bool onBeforeGlobalSymbolRenamedReturnValue = true,
-            bool onAfterGlobalSymbolRenamedReturnValue = true)
+            string languageName)
         {
             var workspace = CreateTestWorkspace(workspaceXml);
-            return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
+            return new RenameTrackingTestState(workspace, languageName);
         }
 
         public RenameTrackingTestState(
             TestWorkspace workspace,
-            string languageName,
-            bool onBeforeGlobalSymbolRenamedReturnValue = true,
-            bool onAfterGlobalSymbolRenamedReturnValue = true)
+            string languageName)
         {
             this.Workspace = workspace;
 
@@ -88,11 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             _view.Caret.MoveTo(new SnapshotPoint(_view.TextSnapshot, _hostDocument.CursorPosition.Value));
             _editorOperations = Workspace.GetService<IEditorOperationsFactoryService>().GetEditorOperations(_view);
             _historyRegistry = Workspace.ExportProvider.GetExport<ITextUndoHistoryRegistry>().Value;
-            _mockRefactorNotifyService = new MockRefactorNotifyService
-            {
-                OnBeforeSymbolRenamedReturnValue = onBeforeGlobalSymbolRenamedReturnValue,
-                OnAfterSymbolRenamedReturnValue = onAfterGlobalSymbolRenamedReturnValue
-            };
 
             // Mock the action taken by the workspace INotificationService
             var notificationService = (INotificationServiceCallback)Workspace.Services.GetRequiredService<INotificationService>();
@@ -111,8 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 languageName == LanguageNames.VisualBasic)
             {
                 _codeRefactoringProvider = new RenameTrackingCodeRefactoringProvider(
-                    _historyRegistry,
-                    SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService));
+                    _historyRegistry);
             }
             else
             {
@@ -163,6 +149,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             var tags = _tagger.GetTags(_view.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
 
             Assert.Equal(0, tags.Count());
+        }
+
+        public async Task AssertRenameAnnotationAsync(string oldName, string newName)
+        {
+            await WaitForAsyncOperationsAsync();
+
+            var codeAction = await TryGetCodeActionAsync();
+            var operations = (await codeAction.GetOperationsAsync(CancellationToken.None)).ToArray();
+            Assert.Equal(1, operations.Length);
+
+            var applyChangesOperation = operations[0] as RenameTrackingTaggerProvider.RenameTrackingOperation;
+            Assert.NotNull(applyChangesOperation);
+
+            var solutionPair = await applyChangesOperation.GetChangedSolutionAsync(CancellationToken.None);
+            await RenameHelpers.AssertRenameAnnotationsAsync(solutionPair.originalSolution, solutionPair.newSolution, RenameHelpers.MakeSymbolPairs(oldName, newName));
         }
 
         /// <param name="textSpan">If <see langword="null"/> the current caret position will be used.</param>

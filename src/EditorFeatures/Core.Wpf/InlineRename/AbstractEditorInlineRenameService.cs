@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal abstract partial class AbstractEditorInlineRenameService : IEditorInlineRenameService
     {
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
-
-        protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices)
-            => _refactorNotifyServices = refactorNotifyServices;
-
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var triggerToken = await GetTriggerTokenAsync(document, position, cancellationToken).ConfigureAwait(false);
@@ -32,11 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
 
-            return await GetRenameInfoAsync(_refactorNotifyServices, document, triggerToken, cancellationToken).ConfigureAwait(false);
+            return await GetRenameInfoAsync(document, triggerToken, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<IInlineRenameInfo> GetRenameInfoAsync(
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             Document document, SyntaxToken triggerToken, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -199,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var triggerText = sourceText.ToString(triggerToken.Span);
 
             return new SymbolInlineRenameInfo(
-                refactorNotifyServices, document, triggerToken.Span, triggerText,
+                document, triggerToken.Span, triggerText,
                 symbol, forceRenameOverloads, documentSpans.ToImmutableAndFree(), cancellationToken);
         }
 

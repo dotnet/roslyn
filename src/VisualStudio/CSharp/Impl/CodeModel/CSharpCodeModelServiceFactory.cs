@@ -20,7 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     internal partial class CSharpCodeModelServiceFactory : ILanguageServiceFactory
     {
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,10 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)
         {
             _editorOptionsFactoryService = editorOptionsFactoryService;
-            _refactorNotifyServices = refactorNotifyServices;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpCodeModelService(provider, _editorOptionsFactoryService, _refactorNotifyServices);
+            => new CSharpCodeModelService(provider, _editorOptionsFactoryService);
     }
 }

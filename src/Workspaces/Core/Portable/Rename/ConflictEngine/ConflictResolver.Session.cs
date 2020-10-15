@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
@@ -768,11 +769,39 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 try
                 {
+                    var solutionWithRenameSymbolAnnotations = originalSolution;
+
+                    if (RenameSymbolAnnotation.ShouldAnnotateSymbol(_renameLocationSet.Symbol))
+                    {
+                        // Add the RenameSymbolAnnotation to declarations that will change
+                        foreach (var syntaxReferenceGroup in _renameLocationSet.Symbol.DeclaringSyntaxReferences.GroupBy(r => r.SyntaxTree))
+                        {
+                            var syntaxTree = syntaxReferenceGroup.Key;
+                            var syntaxReferences = syntaxReferenceGroup.AsArray();
+
+                            var document = solutionWithRenameSymbolAnnotations.GetRequiredDocument(syntaxTree);
+                            var documentEditor = await DocumentEditor.CreateAsync(document, _cancellationToken).ConfigureAwait(false);
+
+                            foreach (var syntaxReference in syntaxReferences)
+                            {
+                                var node = await syntaxReference.GetSyntaxAsync(_cancellationToken).ConfigureAwait(false);
+
+                                if (RenameSymbolAnnotation.TryAnnotateNode(node, _renameLocationSet.Symbol, out var annotatedNode))
+                                {
+                                    documentEditor.ReplaceNode(node, annotatedNode);
+                                }
+                            }
+
+                            var annotatedDocument = documentEditor.GetChangedDocument();
+                            solutionWithRenameSymbolAnnotations = annotatedDocument.Project.Solution;
+                        }
+                    }
+
                     foreach (var documentId in documentIdsToRename.ToList())
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var document = originalSolution.GetRequiredDocument(documentId);
+                        var document = solutionWithRenameSymbolAnnotations.GetRequiredDocument(documentId);
                         var semanticModel = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
@@ -806,7 +835,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             allTextSpansInSingleSourceTree,
                             stringAndCommentTextSpansInSingleSourceTree,
                             conflictLocationSpans,
-                            originalSolution,
+                            solutionWithRenameSymbolAnnotations,
                             _renameLocationSet.Symbol,
                             replacementTextValid,
                             renameSpansTracker,

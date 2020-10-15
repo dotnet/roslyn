@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     {
         private static readonly TestComposition s_compositionWithoutOptions = FeaturesTestCompositions.Features
             .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-            .AddParts(
-                typeof(MockDiagnosticUpdateSourceRegistrationService),
-                typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
+            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
         private static readonly TestComposition s_composition = s_compositionWithoutOptions.AddParts(
             typeof(TestMoveToNamespaceOptionsService));

@@ -22,15 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         {
             private readonly string _title;
             private readonly Document _document;
-            private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
             private RenameTrackingCommitter _renameTrackingCommitter;
 
-            public RenameTrackingCodeAction(Document document, string title, IEnumerable<IRefactorNotifyService> refactorNotifyServices, ITextUndoHistoryRegistry undoHistoryRegistry)
+            public RenameTrackingCodeAction(Document document, string title, ITextUndoHistoryRegistry undoHistoryRegistry)
             {
                 _document = document;
                 _title = title;
-                _refactorNotifyServices = refactorNotifyServices;
                 _undoHistoryRegistry = undoHistoryRegistry;
             }
 
@@ -85,9 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         }
 
                         var snapshotSpan = stateMachine.TrackingSession.TrackingSpan.GetSpan(stateMachine.Buffer.CurrentSnapshot);
-                        var newName = snapshotSpan.GetText();
-                        var displayText = string.Format(EditorFeaturesResources.Rename_0_to_1, stateMachine.TrackingSession.OriginalName, newName);
-                        _renameTrackingCommitter = new RenameTrackingCommitter(stateMachine, snapshotSpan, _refactorNotifyServices, _undoHistoryRegistry, displayText);
+                        _renameTrackingCommitter = new RenameTrackingCommitter(stateMachine, snapshotSpan, _undoHistoryRegistry);
                         return true;
                     }
                 }
@@ -95,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return false;
             }
 
-            private sealed class RenameTrackingCommitterOperation : CodeActionOperation
+            private class RenameTrackingCommitterOperation : RenameTrackingOperation
             {
                 private readonly RenameTrackingCommitter _committer;
 
@@ -104,6 +100,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                     => _committer.Commit(cancellationToken);
+
+                public override async Task<(Solution originalSolution, Solution newSolution)> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                {
+                    var solutionSet = await _committer.RenameSymbolAsync(cancellationToken).ConfigureAwait(false);
+                    return (solutionSet.OriginalSolution, solutionSet.RenamedSolution);
+                }
             }
         }
     }

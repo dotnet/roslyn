@@ -5,10 +5,12 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
         protected async Task TestRenameDocument(
             DocumentWithInfo[] startDocuments,
             DocumentWithInfo[] endDocuments,
+            ImmutableDictionary<string, string> renamedSymbols = null,
             string[] expectedErrors = null)
         {
             using var workspace = new AdhocWorkspace();
@@ -64,6 +67,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
                 documentIdToDocumentInfoMap.Add((documentId, endDocuments[i]));
             }
+
+            var originalSolution = solution;
 
             foreach (var (documentId, endDocument) in documentIdToDocumentInfoMap)
             {
@@ -98,6 +103,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 AssertEx.EqualOrDiff(endDocument.Text, (await updatedDocument.GetTextAsync()).ToString());
                 Assert.Equal(0, remainingErrors.Count);
             }
+
+            if (renamedSymbols is not null)
+            {
+                await RenameHelpers.AssertRenameAnnotationsAsync(originalSolution, solution, renamedSymbols, CancellationToken.None);
+            }
         }
 
         private static string[] GetDocumentFolders(string filePath)
@@ -116,51 +126,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             return splitPath.Take(splitPath.Length - 1).ToArray();
         }
 
-        protected Task TestRenameDocument(string startText, string expectedText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null, string[] expectedErrors = null)
-        {
-            var defaultDocumentName = documentName ?? DefaultDocumentName;
-            var defaultDocumentPath = documentPath ?? s_defaultDocumentPath;
-
-            var startDocuments = new[]
-            {
-                new DocumentWithInfo()
-                {
-                    Text = startText,
-                    DocumentName = defaultDocumentName,
-                    DocumentFilePath = defaultDocumentPath
-                }
-            };
-
-            var endDocuments = new[]
-            {
-                new DocumentWithInfo()
-                {
-                    Text = expectedText,
-                    DocumentName = newDocumentName,
-                    DocumentFilePath = newDocumentPath
-                }
-            };
-
-            return TestRenameDocument(startDocuments, endDocuments, expectedErrors);
-        }
-
         protected async Task TestEmptyActionSet(string startText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null)
         {
-            var defaultDocumentName = documentName ?? DefaultDocumentName;
-            var defaultDocumentPath = documentPath ?? s_defaultDocumentPath;
-
             var startDocuments = new[]
             {
-                new DocumentWithInfo()
-                {
-                    Text = startText,
-                    DocumentName = defaultDocumentName,
-                    DocumentFilePath = defaultDocumentPath
-                }
+                MakeDocumentWithInfo(startText, documentName, documentPath)
             };
 
             var endDocuments = new[]
             {
+                // Respect null values for final documents to test API correctly
                 new DocumentWithInfo()
                 {
                     Text = startText,
@@ -234,5 +209,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             var documentRenameResult = await Rename.Renamer.RenameDocumentAsync(document, newDocumentName, GetDocumentFolders(s_defaultDocumentPath));
             Assert.Empty(documentRenameResult.ApplicableActions);
         }
+        protected static DocumentWithInfo MakeDocumentWithInfo(string text, string name = null, string path = null)
+        {
+            return new DocumentWithInfo()
+            {
+                Text = text,
+                DocumentName = name ?? DefaultDocumentName,
+                DocumentFilePath = path ?? s_defaultDocumentPath
+            };
+        }
+
+        protected static DocumentWithInfo[] MakeSingleDocumentWithInfoArray(string text, string name = null, string path = null)
+            => new[] { MakeDocumentWithInfo(text, name, path) };
     }
 }

@@ -5,7 +5,7 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Renamer
@@ -17,9 +17,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
         [Fact]
         public Task CSharp_TestEmptyDocument()
             => TestRenameDocument(
-                "",
-                "",
-                newDocumentName: "NewDocumentName");
+                MakeSingleDocumentWithInfoArray(""),
+                MakeSingleDocumentWithInfoArray("", "NewDocumentName"));
 
         [Fact]
         public Task CSharp_TestNullDocumentName()
@@ -37,34 +36,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
         [Fact]
         public Task CSharp_RenameDocument_RenameType()
         => TestRenameDocument(
-            @"class OriginalName {}",
-            @"class NewDocumentName {}",
-            documentName: "OriginalName.cs",
-            newDocumentName: "NewDocumentName.cs");
+            MakeSingleDocumentWithInfoArray(@"class OriginalName {}", "OriginalName.cs"),
+            MakeSingleDocumentWithInfoArray(@"class NewDocumentName {}", "NewDocumentName.cs"),
+            RenameHelpers.MakeSymbolPairs("OriginalName", "NewDocumentName"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameType_CaseInsensitive()
         => TestRenameDocument(
-            @"class OriginalName {}",
-            @"class NewDocumentName {}",
-            documentName: "originalName.cs",
-            newDocumentName: "NewDocumentName.cs");
+            MakeSingleDocumentWithInfoArray(@"class OriginalName {}", "originalName.cs"),
+            MakeSingleDocumentWithInfoArray(@"class NewDocumentName {}", "NewDocumentName.cs"),
+            RenameHelpers.MakeSymbolPairs("OriginalName", "NewDocumentName"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameInterface()
         => TestRenameDocument(
-            @"interface IInterface {}",
-            @"interface IInterface2 {}",
-            documentName: "IInterface.cs",
-            newDocumentName: "IInterface2.cs");
+            MakeSingleDocumentWithInfoArray(@"interface IInterface {}", "IInterface.cs"),
+            MakeSingleDocumentWithInfoArray(@"interface IInterface2 {}", "IInterface2.cs"),
+            RenameHelpers.MakeSymbolPairs("IInterface", "IInterface2"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenameEnum()
         => TestRenameDocument(
-            @"enum MyEnum {}",
-            @"enum MyEnum2 {}",
-            documentName: "MyEnum.cs",
-            newDocumentName: "MyEnum2.cs");
+            MakeSingleDocumentWithInfoArray(@"enum MyEnum {}", "MyEnum.cs"),
+            MakeSingleDocumentWithInfoArray(@"enum MyEnum2 {}", "MyEnum2.cs"),
+            RenameHelpers.MakeSymbolPairs("MyEnum", "MyEnum2"));
 
         [Fact]
         public Task CSharp_RenameDocument_RenamePartialClass()
@@ -131,7 +126,7 @@ namespace Test
                 }
             };
 
-            return TestRenameDocument(originalDocuments, expectedDocuments);
+            return TestRenameDocument(originalDocuments, expectedDocuments, RenameHelpers.MakeSymbolPairs("Test.C", "Test.C2"));
         }
 
         [Fact]
@@ -144,30 +139,43 @@ namespace Test
     }
 }",
         documentPath: @"Test\Path\Document.cs",
-        documentName: @"Document.cs");
+        newDocumentPath: @"Test\Path\Document.cs");
 
         [Fact]
         public Task CSharp_RenameDocument_RenameNamespace()
-        => TestRenameDocument(
+        {
+
+            var originalDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test.Path
 {
     class C
     {
     }
 }",
+                path: @"Test\Path\Document.cs",
+                name: "Document.cs");
+
+            var newDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test.Path.After.Test
 {
     class C
     {
     }
 }",
-        documentPath: @"Test\Path\Document.cs",
-        documentName: @"Document.cs",
-        newDocumentPath: @"Test\Path\After\Test\Document.cs");
+                path: @"Test\Path\After\Test\Document.cs",
+                name: "Document.cs");
+
+            return TestRenameDocument(
+                originalDocuments,
+                newDocuments,
+                RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.Path.After.Test.C"));
+        }
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces()
-       => TestRenameDocument(
+        {
+
+            var originalDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test.Path
 {
     class C
@@ -181,6 +189,10 @@ namespace Test.Path
     {
     }
 }",
+                path: @"Test\Path\Document.cs",
+                name: "Document.cs");
+
+            var newDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test.Path.After.Test
 {
     class C
@@ -194,13 +206,19 @@ namespace Test.Path.After.Test
     {
     }
 }",
-       documentPath: @"Test\Path\Document.cs",
-       documentName: @"Document.cs",
-       newDocumentPath: @"Test\Path\After\Test\Document.cs");
+                path: @"Test\Path\After\Test\Document.cs",
+                name: "Document.cs");
+
+            return TestRenameDocument(
+                originalDocuments,
+                newDocuments,
+                RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.Path.After.Test.C", "Test.Path.C2", "Test.Path.After.Test.C2"));
+        }
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces2()
-       => TestRenameDocument(
+        {
+            var originalDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test.Path
 {
     class C
@@ -221,6 +239,10 @@ namespace Other.Namespace
     {
     }
 }",
+                name: "Document.cs",
+                path: @"Test\Path\Document.cs");
+
+            var newDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test.Path.After.Test
 {
     class C
@@ -241,13 +263,19 @@ namespace Other.Namespace
     {
     }
 }",
-       documentPath: @"Test\Path\Document.cs",
-       documentName: @"Document.cs",
-       newDocumentPath: @"Test\Path\After\Test\Document.cs");
+                name: "Document.cs",
+                path: @"Test\Path\After\Test\Document.cs");
+
+            return TestRenameDocument(
+                originalDocuments,
+                newDocuments,
+                RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.Path.After.Test.C", "Test.Path.C2", "Test.Path.After.Test.C2"));
+        }
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces3()
-       => TestRenameDocument(
+        {
+            var originalDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test.Path
 {
     class C
@@ -268,6 +296,10 @@ namespace Test.Path
     {
     }
 }",
+                name: "Document.cs",
+                path: @"Test\Path\Document.cs");
+
+            var newDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test.Path.After.Test
 {
     class C
@@ -288,13 +320,19 @@ namespace Test.Path.After.Test
     {
     }
 }",
-       documentPath: @"Test\Path\Document.cs",
-       documentName: @"Document.cs",
-       newDocumentPath: @"Test\Path\After\Test\Document.cs");
+                name: "Document.cs",
+                path: @"Test\Path\After\Test\Document.cs");
+
+            return TestRenameDocument(
+                originalDocuments,
+                newDocuments,
+                RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.Path.After.Test.C", "Test.Path.C3", "Test.Path.After.Test.C3"));
+        }
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces_Nested()
-=> TestRenameDocument(
+        {
+            var originalDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test.Path
 {
     class C
@@ -311,6 +349,10 @@ namespace Test
         }
     }
 }",
+                path: @"Test\Path\Document.cs",
+                name: "Document.cs");
+
+            var newDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test.Path.After.Test
 {
     class C
@@ -327,38 +369,57 @@ namespace Test
         }
     }
 }",
-documentPath: @"Test\Path\Document.cs",
-documentName: @"Document.cs",
-newDocumentPath: @"Test\Path\After\Test\Document.cs");
+                name: @"Document.cs",
+                path: @"Test\Path\After\Test\Document.cs");
+
+            return TestRenameDocument(
+                originalDocuments,
+                newDocuments,
+                RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.Path.After.Test.C"));
+        }
 
         [Fact]
         public Task CSharp_RenameDocument_RenameNamespace2()
-        => TestRenameDocument(
-@"namespace Test.Path
+        {
+            var originalDocuments = MakeSingleDocumentWithInfoArray(@"namespace Test.Path
 {
     class C
     {
     }
 }",
+                path: @"Test\Path\Document.cs",
+                name: "Document.cs");
+
+            var newDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test
 {
     class C
     {
     }
 }",
-        documentPath: @"Test\Path\Document.cs",
-        documentName: @"Document.cs",
-        newDocumentPath: @"Test\Document.cs");
+                name: @"Document.cs",
+                path: @"Test\Document.cs");
+
+            return TestRenameDocument(
+                originalDocuments,
+                newDocuments,
+                RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.C"));
+        }
 
         [Fact]
         public Task CSharp_RenameDocument_RenameNamespaceAndClass()
-        => TestRenameDocument(
+        {
+            var originalDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test.Path
 {
     class C
     {
     }
 }",
+                path: @"Test\Path\C.cs",
+                name: "C.cs");
+
+            var newDocuments = MakeSingleDocumentWithInfoArray(
 @"namespace Test
 {
     class C2
@@ -370,6 +431,12 @@ newDocumentPath: @"Test\Path\After\Test\Document.cs");
         newDocumentName: @"C2",
         newDocumentPath: @"Test\C2.cs");
 
+         return TestRenameDocument(
+                originalDocuments,
+                newDocuments,
+                RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.C2"));
+        }
+
         [Fact]
         [WorkItem(46580, "https://github.com/dotnet/roslyn/issues/46580")]
         public Task CSharp_RenameDocument_MappedDocumentHasNoResults()
@@ -380,6 +447,8 @@ newDocumentPath: @"Test\Path\After\Test\Document.cs");
 @code {}";
 
             return TestRenameMappedFile(documentText, documentName, newDocumentName: "MyComponent.razor");
+                path: @"Test\C2.cs",
+                name: "C2.cs");
         }
     }
 }

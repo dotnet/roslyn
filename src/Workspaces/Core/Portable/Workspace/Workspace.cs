@@ -1927,7 +1927,6 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeAnalyzerConfigDocument));
             this.OnAnalyzerConfigDocumentTextLoaderChanged(id, TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())));
         }
-
         #endregion
 
         #region Checks and Asserts

@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -614,7 +615,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     placeSystemNamespaceFirst,
                     cancellationToken).ConfigureAwait(false);
 
-            var root = await documentWithAddedImports.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await GetRenameAnnotatedRootAsync(documentWithAddedImports, cancellationToken).ConfigureAwait(false);
 
             root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts)
                 .WithAdditionalAnnotations(Formatter.Annotation);
@@ -625,6 +626,34 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             root = root.WithAdditionalAnnotations(Simplifier.Annotation);
             var formattedDocument = documentWithAddedImports.WithSyntaxRoot(root);
             return await Simplifier.ReduceAsync(formattedDocument, optionSet, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Annotated all of the members that will be "renamed" as part of changing the namespace they are in
+        /// </summary>
+        private static async Task<SyntaxNode> GetRenameAnnotatedRootAsync(Document document, CancellationToken cancellationToken)
+        {
+            var documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
+            var root = documentEditor.OriginalRoot;
+            var semanticModel = documentEditor.SemanticModel;
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            var container = root.GetAnnotatedNodes(ContainerAnnotation).Single();
+
+            var members = container is TCompilationUnitSyntax
+                ? syntaxFactsService.GetMembersOfCompilationUnit(container)
+                : syntaxFactsService.GetMembersOfNamespaceDeclaration(container);
+
+            foreach (var member in members)
+            {
+                var declaredSymbol = semanticModel.GetDeclaredSymbol(member, cancellationToken);
+                if (RenameSymbolAnnotation.TryAnnotateNode(member, declaredSymbol, out var annotatedNode))
+                {
+                    documentEditor.ReplaceNode(member, annotatedNode);
+                }
+            }
+
+            return documentEditor.GetChangedRoot();
         }
 
         private static async Task<Document> FixReferencingDocumentAsync(
