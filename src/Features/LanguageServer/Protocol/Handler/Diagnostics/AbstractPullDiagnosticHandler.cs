@@ -144,11 +144,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // diagnostics.  Compute and report the current diagnostics info for this document.
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var diagnostics);
-            foreach (var diagnostic in _diagnosticService.GetDiagnostics(document, includeSuppressedDiagnostics: false, cancellationToken))
-                diagnostics.Add(ConvertDiagnostic(document, text, diagnostic));
+            using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
 
-            progress.Report(RecordDiagnosticReport(document, diagnostics.ToArray()));
+            var diagnostics = _diagnosticService.GetDiagnostics(document, includeSuppressedDiagnostics: false, forPullDiagnostics: true, cancellationToken);
+            foreach (var diagnostic in diagnostics)
+                result.Add(ConvertDiagnostic(document, text, diagnostic));
+
+            progress.Report(RecordDiagnosticReport(document, result.ToArray()));
         }
 
         private void HandleRemovedDocuments(DiagnosticParams[]? previousResults, BufferedProgress<TReport> progress)
