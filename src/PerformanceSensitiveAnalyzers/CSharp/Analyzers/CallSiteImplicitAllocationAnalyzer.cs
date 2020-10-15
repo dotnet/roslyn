@@ -2,12 +2,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
@@ -44,8 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(SyntaxKind.InvocationExpression);
 
-        private static readonly object[] EmptyMessageArgs = Array.Empty<object>();
-
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context, in PerformanceSensitiveInfo info)
         {
             var node = context.Node;
@@ -53,52 +49,39 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             Action<Diagnostic> reportDiagnostic = context.ReportDiagnostic;
             var cancellationToken = context.CancellationToken;
 
-            var invocationExpression = (InvocationExpressionSyntax)node;
-
-            if (semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol is IMethodSymbol methodInfo)
+            if (semanticModel.GetOperation(node, cancellationToken) is not IInvocationOperation invocationOperation)
             {
-                if (methodInfo.IsOverride)
-                {
-                    CheckNonOverridenMethodOnStruct(methodInfo, reportDiagnostic, invocationExpression);
-                }
-
-                if (!methodInfo.Parameters.IsEmpty && invocationExpression.ArgumentList != null)
-                {
-                    var lastParam = methodInfo.Parameters[^1];
-                    if (lastParam.IsParams)
-                    {
-                        CheckParam(invocationExpression, methodInfo, semanticModel, reportDiagnostic, cancellationToken);
-                    }
-                }
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void CheckParam(InvocationExpressionSyntax invocationExpression, IMethodSymbol methodInfo, SemanticModel semanticModel, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
-        {
-            var arguments = invocationExpression.ArgumentList.Arguments;
-            if (arguments.Count == methodInfo.Parameters.Length - 1)
-            {
-                // Up to net45 the System.Array.Empty<T> singleton didn't existed so an empty params array was still causing some memory allocation.
-                if (semanticModel.Compilation.GetSpecialType(SpecialType.System_Array).GetMembers("Empty").IsEmpty)
-                {
-                    reportDiagnostic(invocationExpression.CreateDiagnostic(ParamsParameterRule, EmptyMessageArgs));
-                }
                 return;
             }
 
-            if (arguments.Count != methodInfo.Parameters.Length)
+            var targetMethod = invocationOperation.TargetMethod;
+
+            if (targetMethod.IsOverride)
             {
-                reportDiagnostic(invocationExpression.CreateDiagnostic(ParamsParameterRule, EmptyMessageArgs));
+                CheckNonOverridenMethodOnStruct(targetMethod, reportDiagnostic, node);
             }
-            else
+
+            bool compilationHasSystemArrayEmpty = !semanticModel.Compilation.GetSpecialType(SpecialType.System_Array).GetMembers("Empty").IsEmpty;
+
+            // Loop on every argument because params argument may not be the last one.
+            //     static void Fun1() => Fun2(args: "", i: 5);
+            //     static void Fun2(int i = 0, params object[] args) {}
+            foreach (var argument in invocationOperation.Arguments)
             {
-                var lastIndex = arguments.Count - 1;
-                var lastArgumentTypeInfo = semanticModel.GetTypeInfo(arguments[lastIndex].Expression, cancellationToken);
-                if (lastArgumentTypeInfo.Type != null && !lastArgumentTypeInfo.Type.Equals(methodInfo.Parameters[lastIndex].Type))
+                if (argument.ArgumentKind != ArgumentKind.ParamArray)
                 {
-                    reportDiagnostic(invocationExpression.CreateDiagnostic(ParamsParameterRule, EmptyMessageArgs));
+                    continue;
                 }
+
+                bool isEmpty = (argument.Value as IArrayCreationOperation)?.Initializer.ElementValues.IsEmpty == true;
+
+                // Up to net45 the System.Array.Empty<T> singleton didn't existed so an empty params array was still causing some memory allocation.
+                if (argument.IsImplicit && (!isEmpty || !compilationHasSystemArrayEmpty))
+                {
+                    reportDiagnostic(node.CreateDiagnostic(ParamsParameterRule));
+                }
+
+                break;
             }
         }
 
@@ -110,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
                 var containingType = methodInfo.ContainingType.ToString();
                 if (string.Equals(containingType, "System.ValueType", StringComparison.OrdinalIgnoreCase) || string.Equals(containingType, "System.Enum", StringComparison.OrdinalIgnoreCase))
                 {
-                    reportDiagnostic(node.CreateDiagnostic(ValueTypeNonOverridenCallRule, EmptyMessageArgs));
+                    reportDiagnostic(node.CreateDiagnostic(ValueTypeNonOverridenCallRule));
                 }
             }
         }

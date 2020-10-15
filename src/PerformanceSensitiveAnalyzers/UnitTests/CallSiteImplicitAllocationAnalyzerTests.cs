@@ -162,6 +162,34 @@ public class MyClass
         }
 
         [Fact]
+        public async Task ParamsIsPrecededByOptionalParameters()
+        {
+            var sampleProgram = @"
+using System.IO;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    static class Demo
+    {
+        [PerformanceSensitive(""uri"")]
+        static void Fun1()
+        {
+            Fun2();
+            {|#0:Fun2(args: """", i: 5)|};
+        }
+
+        static void Fun2(int i = 0, params object[] args)
+        {
+        }
+    }
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+                VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(0));
+        }
+
+        [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
         public async Task Calling_non_overridden_virtual_methods_on_value_types()
         {
