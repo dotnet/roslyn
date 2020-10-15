@@ -54,6 +54,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         [Fact]
+        public async Task TestNoDocumentDiagnosticsForOpenFilesWithFSAOffIfInPushMode()
+        {
+            var markup =
+@"class A {";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects, pullDiagnostics: false);
+
+            // Calling GetTextBuffer will effectively open the file.
+            workspace.Documents.Single().GetTextBuffer();
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+
+            Assert.Empty(results.Single().Diagnostics);
+        }
+
+        [Fact]
         public async Task TestDocumentDiagnosticsForRemovedDocument()
         {
             var markup =
@@ -219,6 +235,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Empty(results[1].Diagnostics);
+        }
+
+        [Fact]
+        public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOnAndInPushMode()
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, pullDiagnostics: false);
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+
+            Assert.Equal(2, results.Length);
+            Assert.Empty(results[0].Diagnostics);
             Assert.Empty(results[1].Diagnostics);
         }
 
@@ -443,26 +474,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             };
         }
 
-        private TestWorkspace CreateTestWorkspaceWithDiagnostics(string markup, BackgroundAnalysisScope scope)
+        private TestWorkspace CreateTestWorkspaceWithDiagnostics(string markup, BackgroundAnalysisScope scope, bool pullDiagnostics = true)
         {
             var workspace = CreateTestWorkspace(markup, out _);
-            InitializeDiagnostics(scope, workspace);
+            InitializeDiagnostics(scope, workspace, pullDiagnostics);
             return workspace;
         }
 
-        private TestWorkspace CreateTestWorkspaceWithDiagnostics(string[] markups, BackgroundAnalysisScope scope)
+        private TestWorkspace CreateTestWorkspaceWithDiagnostics(string[] markups, BackgroundAnalysisScope scope, bool pullDiagnostics = true)
         {
             var workspace = CreateTestWorkspace(markups, out _);
-            InitializeDiagnostics(scope, workspace);
+            InitializeDiagnostics(scope, workspace, pullDiagnostics);
             return workspace;
         }
 
-        private static void InitializeDiagnostics(BackgroundAnalysisScope scope, TestWorkspace workspace)
+        private static void InitializeDiagnostics(BackgroundAnalysisScope scope, TestWorkspace workspace, bool pullDiagnostics)
         {
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.Options
                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope)
-                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope)));
+                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope)
+                    .WithChangedOption(InternalDiagnosticsOptions.LspPullDiagnostics, pullDiagnostics)));
 
             var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
