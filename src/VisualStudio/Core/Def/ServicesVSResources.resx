@@ -1587,4 +1587,7 @@ I agree to all of the foregoing:</value>
   <data name="Display_all_hints_while_pressing_Ctrl_Alt" xml:space="preserve">
     <value>Display all hints while pressing Ctrl+Alt</value>
   </data>
+  <data name="Enable_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
+    <value>Enable 'pull' diagnostics (experimental, requires restart)</value>
+  </data>
 </root>

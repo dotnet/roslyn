@@ -222,6 +222,11 @@
         <target state="translated">요소가 잘못되었습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
+        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="new">Enable 'pull' diagnostics (experimental, requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
         <source>Enter a call site value or choose a different value injection kind</source>
         <target state="translated">호출 사이트 값을 입력하거나 다른 값 삽입 종류를 선택하세요.</target>
