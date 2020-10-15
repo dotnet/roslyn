@@ -26,6 +26,7 @@
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageReference Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" PrivateAssets="all" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
@@ -47,6 +48,8 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
