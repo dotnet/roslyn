@@ -33,10 +33,5 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string TargetTypedCompletionFilter = "Roslyn.TargetTypedCompletionFilter";
         public const string TriggerCompletionInArgumentLists = "Roslyn.TriggerCompletionInArgumentLists";
         public const string SQLiteInMemoryWriteCache = "Roslyn.SQLiteInMemoryWriteCache";
-
-        /// <remarks>
-        /// From https://devdiv.visualstudio.com/DevDiv/_git/VSLanguageServerClient?path=%2Fsrc%2Fproduct%2FRemoteLanguage%2FImpl%2FFeatures%2FDiagnostics%2FRemoteDiagnosticsBrokerHelper.cs&amp;version=GBdevelop&amp;line=28&amp;lineEnd=29&amp;lineStartColumn=1&amp;lineEndColumn=1&amp;lineStyle=plain
-        /// </remarks>
-        public const string LspPullDiagnostics = "VS.LSPPullModelDiagnosticVSLS";
     }
 }
