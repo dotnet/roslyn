@@ -17,20 +17,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
     [ExportLspMethod(LSP.Methods.TextDocumentDidChangeName, mutatesSolutionState: true)]
     internal class DidChangeHandler : IRequestHandler<LSP.DidChangeTextDocumentParams, object>
     {
+        private readonly ILspSolutionProvider _solutionProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DidChangeHandler()
+        public DidChangeHandler(ILspSolutionProvider solutionProvider)
         {
+            _solutionProvider = solutionProvider;
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
 
         public async Task<object> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            Contract.ThrowIfNull(document);
+            var documents = _solutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
+            Contract.ThrowIfTrue(documents.IsEmpty);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            // We can't get the text from the documents that come from the solution provider, above, because
+            // they have not got the latest content. Only the document that comes from the RequestContext
+            // has the right text according to the LSP view of the world.
+            // TODO: Remove this after https://github.com/dotnet/roslyn/issues/48617 is fixed
+            Contract.ThrowIfNull(context.Document);
+            var text = await context.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Per the LSP spec, each text change builds upon the previous, so we don't need to translate
             // any text positions between changes, which makes this quite easy.
@@ -38,7 +46,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 
             text = text.WithChanges(changes);
 
-            context.UpdateTrackedDocument(document, text);
+            foreach (var document in documents)
+            {
+                context.UpdateTrackedDocument(document, text);
+            }
 
             return true;
         }

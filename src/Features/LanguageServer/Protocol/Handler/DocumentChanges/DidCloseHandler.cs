@@ -16,20 +16,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
     [ExportLspMethod(LSP.Methods.TextDocumentDidCloseName, mutatesSolutionState: true)]
     internal class DidCloseHandler : IRequestHandler<LSP.DidCloseTextDocumentParams, object?>
     {
+        private readonly ILspSolutionProvider _solutionProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DidCloseHandler()
+        public DidCloseHandler(ILspSolutionProvider solutionProvider)
         {
+            _solutionProvider = solutionProvider;
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => null;
 
         public Task<object?> HandleRequestAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            Contract.ThrowIfNull(document);
+            var documents = _solutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
+            Contract.ThrowIfTrue(documents.IsEmpty);
 
-            context.StopTracking(document);
+            foreach (var document in documents)
+            {
+                context.StopTracking(document);
+            }
 
             return SpecializedTasks.Default<object>();
         }
