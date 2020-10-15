@@ -490,8 +490,7 @@ namespace N
             edits.VerifyEdits(
                 "Update [unsafe struct C { }]@0 -> [struct C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "struct C", CSharpFeaturesResources.struct_));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
