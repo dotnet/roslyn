@@ -2454,8 +2454,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.BaseList, newNode.BaseList));
-                ReportError(RudeEditKind.BaseTypeOrInterfaceUpdate);
+                if (!SyntaxFactory.AreEquivalent(oldNode.BaseList, newNode.BaseList))
+                {
+                    ReportError(RudeEditKind.BaseTypeOrInterfaceUpdate);
+                    return;
+                }
             }
 
             private void ClassifyUpdate(EnumDeclarationSyntax oldNode, EnumDeclarationSyntax newNode)
