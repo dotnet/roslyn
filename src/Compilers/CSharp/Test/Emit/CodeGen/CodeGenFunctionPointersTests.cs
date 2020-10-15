@@ -1199,17 +1199,17 @@ using System.Runtime.InteropServices;
 public unsafe class UnmanagedFunctionPointer 
 {{
     [UnmanagedFunctionPointer(CallingConvention.{enumConvention})]
-    private delegate string CombineStrings(string s1, string s2);
+    public delegate string CombineStrings(string s1, string s2);
     
     private static string CombineStringsImpl(string s1, string s2)
     {{
         return s1 + s2;
     }}
 
-    public static delegate* unmanaged[{unmanagedConvention}]<string, string, string> GetFuncPtr()
+    public static delegate* unmanaged[{unmanagedConvention}]<string, string, string> GetFuncPtr(out CombineStrings del)
     {{
-        var ptr = Marshal.GetFunctionPointerForDelegate((CombineStrings)CombineStringsImpl);
-        GC.KeepAlive(ptr);
+        del = CombineStringsImpl;
+        var ptr = Marshal.GetFunctionPointerForDelegate(del);
         return (delegate* unmanaged[{unmanagedConvention}]<string, string, string>)ptr;
     }}
 }}
@@ -1217,7 +1217,8 @@ class Caller
 {{
     public unsafe static void Main()
     {{
-        Call(UnmanagedFunctionPointer.GetFuncPtr());
+        Call(UnmanagedFunctionPointer.GetFuncPtr(out var del));
+        GC.KeepAlive(del);
     }}
 
     public unsafe static void Call(delegate* unmanaged[{unmanagedConvention}]<string, string, string> ptr)
