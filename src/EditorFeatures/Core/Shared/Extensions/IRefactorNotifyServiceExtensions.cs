@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 var refactorNotifyTask = refactorNotifyServices.TryNotifyChangesAsync(workspace, newSolution, oldSolution, cancellationToken);
                 refactorNotifyTask.Wait();
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 // No reason to fail because notify fails, but we want to track failure to see if there's something we're doing wrong. This results
                 // in a potentially bad user experience, but not complete broken and not worth crashing. 

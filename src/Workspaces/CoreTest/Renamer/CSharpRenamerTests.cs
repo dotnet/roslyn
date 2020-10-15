@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Renamer
@@ -426,10 +427,8 @@ namespace Test
     {
     }
 }",
-        documentPath: @"Test\Path\C2.cs",
-        documentName: @"C.cs",
-        newDocumentName: @"C2",
-        newDocumentPath: @"Test\C2.cs");
+        path: @"Test\C2.cs",
+        name: @"C.cs");
 
          return TestRenameDocument(
                 originalDocuments,
@@ -447,8 +446,6 @@ namespace Test
 @code {}";
 
             return TestRenameMappedFile(documentText, documentName, newDocumentName: "MyComponent.razor");
-                path: @"Test\C2.cs",
-                name: "C2.cs");
         }
     }
 }
