@@ -4925,7 +4925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (argumentsNoConversions[i] is BoundLambda lambda)
                     {
-                        VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda, disableDiagnostics: true);
+                        VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda);
                     }
                 }
             }
@@ -7350,7 +7350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitLambda(BoundLambda node, NamedTypeSymbol? delegateTypeOpt, Optional<LocalState> initialState = default, bool disableDiagnostics = false)
+        private void VisitLambda(BoundLambda node, NamedTypeSymbol? delegateTypeOpt, Optional<LocalState> initialState = default)
         {
             Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
 
@@ -7361,17 +7361,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUpdatedSymbol(node, node.Symbol, delegateTypeOpt!);
             }
 
-            var oldDisableDiagnostics = _disableDiagnostics;
-            _disableDiagnostics |= disableDiagnostics;
-
             AnalyzeLocalFunctionOrLambda(
                 node,
                 node.Symbol,
                 initialState.HasValue ? initialState.Value : State.Clone(),
                 delegateInvokeMethod,
                 useDelegateInvokeParameterTypes);
-
-            _disableDiagnostics = oldDisableDiagnostics;
         }
 
         private static bool UseDelegateInvokeParameterTypes(BoundLambda lambda, MethodSymbol? delegateInvokeMethod)
