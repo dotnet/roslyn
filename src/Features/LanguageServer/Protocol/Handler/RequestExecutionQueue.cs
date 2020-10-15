@@ -251,17 +251,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // There are multiple possible solutions that we could be interested in, so we need to find the document
             // first and then get the solution from there. If we're not given a document, this will return the default
             // solution
-            var (document, solution) = _solutionProvider.GetDocumentAndSolution(queueItem.TextDocument, queueItem.ClientName);
+            var (documentId, solution) = _solutionProvider.GetDocumentAndSolution(queueItem.TextDocument, queueItem.ClientName);
 
             // Now we can update the solution to represent the LSP view of the world, with any text changes we received
             solution = GetSolutionWithReplacedDocuments(solution);
 
-            // Now we need to get the document again, because if the request is for an open document, the original
-            // one we got might not be up to date
-            if (document is not null)
-            {
-                document = solution.GetDocument(document.Id);
-            }
+            // If we got a document id back, we pull it out of our updated solution so the handler is operating on the latest
+            // document text. If document id is null here, this will just return null
+            var document = solution.GetDocument(documentId);
 
             DocumentChangeTracker? trackerToUse = null;
             if (queueItem.MutatesSolutionState)

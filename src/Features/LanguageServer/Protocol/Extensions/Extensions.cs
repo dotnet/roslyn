@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documentIds.SelectAsArray(id => getDocument(solution, id));
         }
 
-        public static (Document?, Solution) GetDocumentAndSolution(this ILspSolutionProvider provider, TextDocumentIdentifier? textDocument, string? clientName)
+        public static (DocumentId?, Solution) GetDocumentAndSolution(this ILspSolutionProvider provider, TextDocumentIdentifier? textDocument, string? clientName)
         {
             var solution = provider.GetCurrentSolutionForMainWorkspace();
             if (textDocument != null)
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var document = provider.GetDocument(textDocument, clientName);
                 var solutionOfDocument = document?.Project.Solution;
 
-                return (document, solutionOfDocument ?? solution);
+                return (document?.Id, solutionOfDocument ?? solution);
             }
 
             return (null, solution);
