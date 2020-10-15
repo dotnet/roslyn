@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         internal const int DefaultWarningLevel = 4;
 
         /// <summary>
-        /// The warning level used for hidden and info diagnostics.
+        /// The warning level used for hidden and info diagnostics. Because these diagnostics interact with other editor features, we want them to always be produced unless /warn:0 is set.
         /// </summary>
         internal const int InfoAndHiddenWarningLevel = 1;
 
