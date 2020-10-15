@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal class DocumentationCommentSnippet
     {

@@ -11,11 +11,11 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class TargetTypedObjectCreationParsingTests : ParsingTests
+    public class ImplicitObjectCreationParsingTests : ParsingTests
     {
         private static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular9;
 
-        public TargetTypedObjectCreationParsingTests(ITestOutputHelper output) : base(output) { }
+        public ImplicitObjectCreationParsingTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void TestNoRegressionOnNew()

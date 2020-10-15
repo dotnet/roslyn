@@ -28,21 +28,21 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private const string Version = "3";
 
         /// <summary>
-        /// Inside the DB we have a table dedicated to storing strings that also provides a unique 
+        /// Inside the DB we have a table dedicated to storing strings that also provides a unique
         /// integral ID per string.  This allows us to store data keyed in a much more efficient
         /// manner as we can use those IDs instead of duplicating strings all over the place.  For
-        /// example, there may be many pieces of data associated with a file.  We don't want to 
+        /// example, there may be many pieces of data associated with a file.  We don't want to
         /// key off the file path in all these places as that would cause a large amount of bloat.
-        /// 
+        ///
         /// Because the string table can map from arbitrary strings to unique IDs, it can also be
         /// used to create IDs for compound objects.  For example, given the IDs for the FilePath
         /// and Name of a Project, we can get an ID that represents the project itself by just
         /// creating a compound key of those two IDs.  This ID can then be used in other compound
-        /// situations.  For example, a Document's ID is creating by compounding its Project's 
+        /// situations.  For example, a Document's ID is creating by compounding its Project's
         /// ID, along with the IDs for the Document's FilePath and Name.
-        /// 
+        ///
         /// The format of the table is:
-        /// 
+        ///
         ///  StringInfo
         ///  --------------------------------------------------------------
         ///  | Id (integer, primary key, auto increment) | Data (varchar) |
@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private const string StringInfoTableName = "StringInfo" + Version;
 
         /// <summary>
-        /// Inside the DB we have a table for data corresponding to the <see cref="Solution"/>.  The 
+        /// Inside the DB we have a table for data corresponding to the <see cref="Solution"/>.  The
         /// data is just a blob that is keyed by a string Id.  Data with this ID can be retrieved
         /// or overwritten.
-        /// 
+        ///
         /// The format of the table is:
-        /// 
+        ///
         ///  SolutionData
         ///  -------------------------------------------------------------------
         ///  | DataId (primary key, varchar) | | Checksum (blob) | Data (blob) |
@@ -68,12 +68,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>.
         /// The data is keyed off of an integral value produced by combining the ID of the Project and
         /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(ProjectKey, Project?, string, Checksum?, CancellationToken)"/>.
-        /// 
-        /// This gives a very efficient integral key, and means that the we only have to store a 
+        ///
+        /// This gives a very efficient integral key, and means that the we only have to store a
         /// single mapping from stream name to ID in the string table.
-        /// 
+        ///
         /// The format of the table is:
-        /// 
+        ///
         ///  ProjectData
         ///  -------------------------------------------------------------------
         ///  | DataId (primary key, integer) | | Checksum (blob) | Data (blob) |
@@ -85,12 +85,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>.
         /// The data is keyed off of an integral value produced by combining the ID of the Document and
         /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(DocumentKey, Document?, string, Checksum?, CancellationToken)"/>.
-        /// 
-        /// This gives a very efficient integral key, and means that the we only have to store a 
+        ///
+        /// This gives a very efficient integral key, and means that the we only have to store a
         /// single mapping from stream name to ID in the string table.
-        /// 
+        ///
         /// The format of the table is:
-        /// 
+        ///
         ///  DocumentData
         ///  -------------------------------------------------------------------
         ///  | DataId (primary key, integer) | | Checksum (blob) | Data (blob) |
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 throw new InvalidOperationException();
             }
 
-            // Ensure the database has tables for the types we care about. 
+            // Ensure the database has tables for the types we care about.
 
             // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
             // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             // Set "synchronous" mode to "normal" instead of default "full" to reduce the amount of buffer flushing syscalls,
             // significantly reducing both the blocked time and the amount of context switches.
-            // When coupled with WAL, this (according to https://sqlite.org/pragma.html#pragma_synchronous and 
+            // When coupled with WAL, this (according to https://sqlite.org/pragma.html#pragma_synchronous and
             // https://www.sqlite.org/wal.html#performance_considerations) is unlikely to significantly affect durability,
             // while significantly increasing performance, because buffer flushing is done for each checkpoint, instead of each
             // transaction. While some writes can be lost, they are never reordered, and higher layers will recover from that.
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             // First, create all string tables in the main on-disk db.  These tables
             // don't need to be in the write-cache as all string looks go to/from the
-            // main db.  This isn't a perf problem as we write the strings in bulk, 
+            // main db.  This isn't a perf problem as we write the strings in bulk,
             // so there's no need for a write caching layer.  This also keeps consistency
             // totally clear as there's only one source of truth.
             connection.ExecuteCommand(
@@ -247,7 +247,7 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             var fetched = TryFetchStringTable(connection);
 
             // If we weren't able to retrieve the entire string table in one batch,
-            // attempt to retrieve it for each 
+            // attempt to retrieve it for each
             var fetchStringTable = !fetched;
 
             // Try to bulk populate all the IDs we'll need for strings/projects/documents.

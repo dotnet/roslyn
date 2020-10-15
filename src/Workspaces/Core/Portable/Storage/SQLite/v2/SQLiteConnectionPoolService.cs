@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         ///
         /// To prevent this scenario, we control our access to the db explicitly with operations that
         /// can concurrently read, and operations that exclusively write.
-        /// 
+        ///
         /// All code that reads or writes from the db should go through this.
         /// </summary>
         public ConcurrentExclusiveSchedulerPair Scheduler { get; } = new();
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     _connectionPools.Add(databaseFilePath, pool);
                     return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
                 }
-                catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex, cancellationToken))
+                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
                 {
                     if (pool is not null)
                     {

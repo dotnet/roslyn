@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             var hr = vsShell.IsPackageInstalled(ReSharperPackageGuid, out var extensionEnabled);
             if (ErrorHandler.Failed(hr))
             {
-                FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                 return;
             }
 
@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                     return;
                 }
 
@@ -319,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                     await ShutdownAsync().ConfigureAwait(false);
 
                     return 0;
@@ -441,7 +441,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                 }
             }
 
