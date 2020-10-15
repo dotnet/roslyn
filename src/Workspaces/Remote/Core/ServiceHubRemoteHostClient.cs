@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly IErrorReportingService? _errorReportingService;
         private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
+        private readonly RemoteServiceCallbackDispatchers _callbackDispatchers;
 
         private readonly ConnectionPools? _connectionPools;
 
@@ -44,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Remote
             IServiceBroker serviceBroker,
             ServiceBrokerClient serviceBrokerClient,
             HubClient hubClient,
-            Stream stream)
+            Stream stream,
+            RemoteServiceCallbackDispatchers callbackDispatchers)
         {
             _connectionPools = new ConnectionPools(
                 connectionFactory: (serviceName, pool, cancellationToken) => CreateConnectionImplAsync(serviceName, callbackTarget: null, pool, cancellationToken),
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _serviceBroker = serviceBroker;
             _serviceBrokerClient = serviceBrokerClient;
             _hubClient = hubClient;
-
+            _callbackDispatchers = callbackDispatchers;
             _endPoint = new RemoteEndPoint(stream, hubClient.Logger, incomingCallTarget: this);
             _endPoint.Disconnected += OnDisconnected;
             _endPoint.UnexpectedExceptionThrown += OnUnexpectedExceptionThrown;
@@ -72,7 +75,12 @@ namespace Microsoft.CodeAnalysis.Remote
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
             => _errorReportingService?.ShowRemoteHostCrashedErrorInfo(unexpectedException);
 
-        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, AsynchronousOperationListenerProvider listenerProvider, IServiceBroker serviceBroker, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(
+            HostWorkspaceServices services,
+            AsynchronousOperationListenerProvider listenerProvider,
+            IServiceBroker serviceBroker,
+            RemoteServiceCallbackDispatchers callbackDispatchers,
+            CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
             {
@@ -87,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var remoteHostStream = await RequestServiceAsync(services, hubClient, WellKnownServiceHubService.RemoteHost, cancellationToken).ConfigureAwait(false);
 
-                var client = new ServiceHubRemoteHostClient(services, serviceBroker, serviceBrokerClient, hubClient, remoteHostStream);
+                var client = new ServiceHubRemoteHostClient(services, serviceBroker, serviceBrokerClient, hubClient, remoteHostStream, callbackDispatchers);
 
                 var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
                 var cultureLCID = CultureInfo.CurrentCulture.LCID;
@@ -170,6 +178,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
             => new BrokeredServiceConnection<T>(
                 callbackTarget,
+                _callbackDispatchers,
                 _serviceBrokerClient,
                 _assetStorage,
                 _errorReportingService,

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
@@ -30,16 +31,17 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
     {
         private readonly HostWorkspaceServices _workspaceServices;
         private readonly InProcRemoteServices _inprocServices;
+        private readonly RemoteServiceCallbackDispatchers _callbackDispatchers;
         private readonly RemoteEndPoint _endPoint;
         private readonly TraceSource _logger;
 
-        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, TraceListener? traceListener, RemoteHostTestData testData)
+        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, RemoteServiceCallbackDispatchers callbackDispatchers, TraceListener? traceListener, RemoteHostTestData testData)
         {
             var inprocServices = new InProcRemoteServices(services, traceListener, testData);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubService.RemoteHost).ConfigureAwait(false);
 
-            var instance = new InProcRemoteHostClient(services, inprocServices, remoteHostStream);
+            var instance = new InProcRemoteHostClient(services, inprocServices, callbackDispatchers, remoteHostStream);
 
             // make sure connection is done right
             var uiCultureLCIDE = 0;
@@ -59,9 +61,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private InProcRemoteHostClient(
             HostWorkspaceServices services,
             InProcRemoteServices inprocServices,
+            RemoteServiceCallbackDispatchers callbackDispatchers,
             Stream stream)
         {
             _workspaceServices = services;
+            _callbackDispatchers = callbackDispatchers;
             _logger = new TraceSource("Default");
 
             _inprocServices = inprocServices;
@@ -106,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget) where T : class
             => new BrokeredServiceConnection<T>(
                 callbackTarget,
+                _callbackDispatchers,
                 _inprocServices.ServiceBrokerClient,
                 _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
                 _workspaceServices.GetRequiredService<IErrorReportingService>(),

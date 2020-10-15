@@ -15,19 +15,19 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
+    [UseExportProvider]
     public class ServiceDescriptorTests
     {
         public static IEnumerable<object[]> ServiceTypes
             => ServiceDescriptors.Descriptors.Select(descriptor => new object[] { descriptor.Key });
-
-        public static IEnumerable<object[]> DescriptorsWitchCallback64
-            => ServiceDescriptors.Descriptors.Where(d => d.Value.descriptor64.ClientInterface != null).Select(descriptor => new object[] { descriptor.Value.descriptor64 });
 
         private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
         {
@@ -169,11 +169,15 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Assert.NotEmpty(ServiceDescriptors.GetFeatureName(serviceType));
         }
 
-        [Theory]
-        [MemberData(nameof(DescriptorsWitchCallback64))]
-        internal void CallbackDispatchers(ServiceDescriptor descriptor)
+        [Fact]
+        internal void CallbackDispatchers()
         {
-            Assert.True(descriptor.ClientInterface.IsAssignableFrom(descriptor.CallbackDispatcher.GetType()));
+            var hostServices = FeaturesTestCompositions.Features.WithTestHostParts(Testing.TestHost.OutOfProcess).GetHostServices();
+            var callbackDispatchers = ((IMefHostExportProvider)hostServices).GetExports<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatchers.ExportMetadata>();
+
+            var descriptorsWithCallbackServiceTypes = ServiceDescriptors.Descriptors.Where(d => d.Value.descriptor32.ClientInterface != null).Select(d => d.Key);
+            var callbackDispatcherServiceTypes = callbackDispatchers.Select(d => d.Metadata.ServiceInterface);
+            AssertEx.SetEqual(descriptorsWithCallbackServiceTypes, callbackDispatcherServiceTypes);
         }
     }
 }

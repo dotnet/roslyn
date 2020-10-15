@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -27,13 +29,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly IAsyncServiceProvider _vsServiceProvider;
             private readonly AsynchronousOperationListenerProvider _listenerProvider;
+            private readonly RemoteServiceCallbackDispatchers _callbackDispatchers;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(SVsServiceProvider vsServiceProvider, AsynchronousOperationListenerProvider listenerProvider)
+            public Factory(
+                SVsServiceProvider vsServiceProvider,
+                AsynchronousOperationListenerProvider listenerProvider,
+                [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatchers.ExportMetadata>> callbackDispatchers)
             {
                 _vsServiceProvider = (IAsyncServiceProvider)vsServiceProvider;
                 _listenerProvider = listenerProvider;
+                _callbackDispatchers = new RemoteServiceCallbackDispatchers(callbackDispatchers);
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
@@ -46,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new DefaultRemoteHostClientProvider();
                 }
 
-                return new VisualStudioRemoteHostClientProvider(workspaceServices, _vsServiceProvider, _listenerProvider);
+                return new VisualStudioRemoteHostClientProvider(workspaceServices, _vsServiceProvider, _listenerProvider, _callbackDispatchers);
             }
         }
 
@@ -54,12 +61,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly AsyncLazy<RemoteHostClient?> _lazyClient;
         private readonly IAsyncServiceProvider _vsServiceProvider;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
+        private readonly RemoteServiceCallbackDispatchers _callbackDispatchers;
 
-        private VisualStudioRemoteHostClientProvider(HostWorkspaceServices services, IAsyncServiceProvider vsServiceProvider, AsynchronousOperationListenerProvider listenerProvider)
+        private VisualStudioRemoteHostClientProvider(
+            HostWorkspaceServices services,
+            IAsyncServiceProvider vsServiceProvider,
+            AsynchronousOperationListenerProvider listenerProvider,
+            RemoteServiceCallbackDispatchers callbackDispatchers)
         {
             _services = services;
             _vsServiceProvider = vsServiceProvider;
             _listenerProvider = listenerProvider;
+            _callbackDispatchers = callbackDispatchers;
             _lazyClient = new AsyncLazy<RemoteHostClient?>(CreateHostClientAsync, cacheResult: true);
         }
 
@@ -70,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var brokeredServiceContainer = await _vsServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
-                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, _listenerProvider, serviceBroker, cancellationToken).ConfigureAwait(false);
+                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, _listenerProvider, serviceBroker, _callbackDispatchers, cancellationToken).ConfigureAwait(false);
 
                 // proffer in-proc brokered services:
                 _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(_services)));
