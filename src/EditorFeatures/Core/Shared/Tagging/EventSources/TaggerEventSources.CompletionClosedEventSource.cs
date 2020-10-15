@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private class CompletionClosedEventSource : AbstractTaggerEventSource
         {
             private readonly IIntellisenseSessionStack _sessionStack;
-            private readonly HashSet<ICompletionSession> _trackedSessions = new HashSet<ICompletionSession>();
+            private readonly HashSet<ICompletionSession> _trackedSessions = new();
 
             public CompletionClosedEventSource(
                 IIntellisenseSessionStack sessionStack,

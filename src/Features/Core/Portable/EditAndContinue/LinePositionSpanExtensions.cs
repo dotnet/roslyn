@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal static class LinePositionSpanExtensions
     {
         internal static LinePositionSpan AddLineDelta(this LinePositionSpan span, int lineDelta)
-            => new LinePositionSpan(new LinePosition(span.Start.Line + lineDelta, span.Start.Character), new LinePosition(span.End.Line + lineDelta, span.End.Character));
+            => new(new LinePosition(span.Start.Line + lineDelta, span.Start.Character), new LinePosition(span.End.Line + lineDelta, span.End.Character));
 
         internal static int GetLineDelta(this LinePositionSpan oldSpan, LinePositionSpan newSpan)
             => newSpan.Start.Line - oldSpan.Start.Line;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -64,27 +66,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 
         protected override bool CanControlFlowOut(SyntaxNode node)
         {
-            switch (node.Kind())
+            switch (node)
             {
-                case SyntaxKind.SwitchSection:
-                case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                case SyntaxKind.DoStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.ForStatement:
-                case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachVariableStatement:
+                case SwitchSectionSyntax:
+                case LocalFunctionStatementSyntax:
+                case AccessorDeclarationSyntax:
+                case MemberDeclarationSyntax:
+                case AnonymousFunctionExpressionSyntax:
+                case CommonForEachStatementSyntax:
+                case DoStatementSyntax:
+                case WhileStatementSyntax:
+                case ForStatementSyntax:
                     return false;
             }
 
@@ -106,31 +98,21 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 
         protected override int GetJumpStatementRawKind(SyntaxNode node)
         {
-            switch (node.Kind())
+            switch (node)
             {
-                case SyntaxKind.SwitchSection:
+                case SwitchSectionSyntax:
                     return (int)SyntaxKind.BreakStatement;
 
-                case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.ParenthesizedLambdaExpression:
+                case LocalFunctionStatementSyntax:
+                case AccessorDeclarationSyntax:
+                case MemberDeclarationSyntax:
+                case AnonymousFunctionExpressionSyntax:
                     return (int)SyntaxKind.ReturnStatement;
 
-                case SyntaxKind.DoStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.ForStatement:
-                case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachVariableStatement:
+                case CommonForEachStatementSyntax:
+                case DoStatementSyntax:
+                case WhileStatementSyntax:
+                case ForStatementSyntax:
                     return (int)SyntaxKind.ContinueStatement;
             }
 

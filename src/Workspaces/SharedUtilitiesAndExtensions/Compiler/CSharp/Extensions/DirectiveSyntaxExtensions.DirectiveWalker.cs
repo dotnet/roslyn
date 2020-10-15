@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private readonly IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> _conditionalMap;
             private readonly CancellationToken _cancellationToken;
 
-            private readonly Stack<DirectiveTriviaSyntax> _regionStack = new Stack<DirectiveTriviaSyntax>();
-            private readonly Stack<DirectiveTriviaSyntax> _ifStack = new Stack<DirectiveTriviaSyntax>();
+            private readonly Stack<DirectiveTriviaSyntax> _regionStack = new();
+            private readonly Stack<DirectiveTriviaSyntax> _ifStack = new();
 
             public DirectiveWalker(
                 IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> directiveMap,

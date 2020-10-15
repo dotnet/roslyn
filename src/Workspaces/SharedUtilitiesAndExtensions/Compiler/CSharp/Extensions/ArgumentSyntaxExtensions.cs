@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -49,18 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool allowParams = false,
             CancellationToken cancellationToken = default)
         {
-            if (!(argument.Parent is BaseArgumentListSyntax argumentList))
-            {
-                return null;
-            }
-
-            if (!(argumentList.Parent is ExpressionSyntax invocableExpression))
+            if (argument.Parent is not BaseArgumentListSyntax argumentList ||
+                argumentList.Parent is null)
             {
                 return null;
             }
 
             // Get the symbol as long if it's not null or if there is only one candidate symbol
-            var symbolInfo = semanticModel.GetSymbolInfo(invocableExpression, cancellationToken);
+            var symbolInfo = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken);
             var symbol = symbolInfo.Symbol;
             if (symbol == null && symbolInfo.CandidateSymbols.Length == 1)
             {

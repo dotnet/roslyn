@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -32,11 +34,17 @@ namespace RunTests
         {
             var assemblyName = Path.GetFileName(assemblyInfo.AssemblyPath);
             var resultsFilePath = GetResultsFilePath(assemblyInfo);
+            var xmlResultsFilePath = Path.ChangeExtension(resultsFilePath, ".xml");
+            var htmlResultsFilePath = Path.ChangeExtension(resultsFilePath, ".html");
 
             var builder = new StringBuilder();
             builder.AppendFormat(@"""{0}""", assemblyInfo.AssemblyPath);
             builder.AppendFormat(@" {0}", assemblyInfo.ExtraArguments);
-            builder.AppendFormat(@" -{0} ""{1}""", Options.UseHtml ? "html" : "xml", resultsFilePath);
+            builder.AppendFormat($@" -xml ""{xmlResultsFilePath}""");
+
+            if (Options.IncludeHtml)
+                builder.AppendFormat($@" -html ""{htmlResultsFilePath}""");
+
             builder.Append(" -noshadow -verbose");
 
             if (!string.IsNullOrWhiteSpace(Options.Trait))
@@ -70,7 +78,7 @@ namespace RunTests
             var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
 
             // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
-            if (Options.TestVsi && !Options.UseHtml && !result.Succeeded)
+            if (Options.TestVsi && !Options.IncludeHtml && !result.Succeeded)
             {
                 return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
             }

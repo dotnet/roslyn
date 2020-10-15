@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
@@ -9,14 +11,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     internal partial struct InvocationReasons
     {
         public static readonly InvocationReasons DocumentAdded =
-            new InvocationReasons(
+            new(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.DocumentAdded,
                                     PredefinedInvocationReasons.SyntaxChanged,
                                     PredefinedInvocationReasons.SemanticChanged));
 
         public static readonly InvocationReasons DocumentRemoved =
-            new InvocationReasons(
+            new(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.DocumentRemoved,
                                     PredefinedInvocationReasons.SyntaxChanged,
@@ -24,61 +26,61 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     PredefinedInvocationReasons.HighPriority));
 
         public static readonly InvocationReasons ProjectParseOptionChanged =
-            new InvocationReasons(
+            new(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.ProjectParseOptionsChanged,
                                     PredefinedInvocationReasons.SyntaxChanged,
                                     PredefinedInvocationReasons.SemanticChanged));
 
         public static readonly InvocationReasons ProjectConfigurationChanged =
-            new InvocationReasons(
+            new(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.ProjectConfigurationChanged,
                                     PredefinedInvocationReasons.SyntaxChanged,
                                     PredefinedInvocationReasons.SemanticChanged));
 
         public static readonly InvocationReasons SolutionRemoved =
-            new InvocationReasons(
+            new(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.SolutionRemoved,
                                     PredefinedInvocationReasons.DocumentRemoved));
 
         public static readonly InvocationReasons DocumentOpened =
-            new InvocationReasons(
+            new(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.DocumentOpened,
                                     PredefinedInvocationReasons.HighPriority));
 
         public static readonly InvocationReasons DocumentClosed =
-            new InvocationReasons(
+            new(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.DocumentClosed,
                                     PredefinedInvocationReasons.HighPriority));
 
         public static readonly InvocationReasons DocumentChanged =
-            new InvocationReasons(
+            new(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.SyntaxChanged,
                                     PredefinedInvocationReasons.SemanticChanged));
 
         public static readonly InvocationReasons AdditionalDocumentChanged =
-            new InvocationReasons(
+            new(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.SyntaxChanged,
                                     PredefinedInvocationReasons.SemanticChanged));
 
         public static readonly InvocationReasons SyntaxChanged =
-            new InvocationReasons(
+            new(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.SyntaxChanged));
 
         public static readonly InvocationReasons SemanticChanged =
-            new InvocationReasons(
+            new(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.SemanticChanged));
 
         public static readonly InvocationReasons Reanalyze =
-            new InvocationReasons(PredefinedInvocationReasons.Reanalyze);
+            new(PredefinedInvocationReasons.Reanalyze);
 
         public static readonly InvocationReasons ReanalyzeHighPriority =
             Reanalyze.With(PredefinedInvocationReasons.HighPriority);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,21 +24,21 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Workspace
     {
         // open documents
-        private readonly Dictionary<ProjectId, HashSet<DocumentId>> _projectToOpenDocumentsMap = new Dictionary<ProjectId, HashSet<DocumentId>>();
+        private readonly Dictionary<ProjectId, HashSet<DocumentId>> _projectToOpenDocumentsMap = new();
 
         // text buffer maps
         /// <summary>
         /// Tracks the document ID in the current context for a source text container for an opened text buffer.
         /// </summary>
         /// <remarks>For each entry in this map, there must be a corresponding entry in <see cref="_bufferToAssociatedDocumentsMap"/> where the document ID in current context is one of associated document IDs.</remarks>
-        private readonly Dictionary<SourceTextContainer, DocumentId> _bufferToDocumentInCurrentContextMap = new Dictionary<SourceTextContainer, DocumentId>();
+        private readonly Dictionary<SourceTextContainer, DocumentId> _bufferToDocumentInCurrentContextMap = new();
 
         /// <summary>
         /// Tracks all the associated document IDs for a source text container for an opened text buffer.
         /// </summary>
-        private readonly Dictionary<SourceTextContainer, OneOrMany<DocumentId>> _bufferToAssociatedDocumentsMap = new Dictionary<SourceTextContainer, OneOrMany<DocumentId>>();
+        private readonly Dictionary<SourceTextContainer, OneOrMany<DocumentId>> _bufferToAssociatedDocumentsMap = new();
 
-        private readonly Dictionary<DocumentId, TextTracker> _textTrackers = new Dictionary<DocumentId, TextTracker>();
+        private readonly Dictionary<DocumentId, TextTracker> _textTrackers = new();
 
         /// <summary>
         /// True if this workspace supports manually opening and closing documents.
@@ -246,7 +248,7 @@ namespace Microsoft.CodeAnalysis
         private DocumentId? GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
             => _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var documentId) ? documentId : null;
 
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Finds the <see cref="DocumentId"/> related to the given <see cref="DocumentId"/> that

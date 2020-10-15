@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -88,7 +86,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         private readonly Dictionary<DocumentId, DocumentState> _documentState;
 
-        private readonly object _guard = new object();
+        private readonly object _guard = new();
 
         public CommittedSolution(DebuggingSession debuggingSession, Solution solution)
         {

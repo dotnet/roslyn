@@ -7,6 +7,11 @@
         <target state="translated">Em operadores relacionais:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Como   É</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments">
+        <source>Insert ' at the start of new lines when writing ' comments</source>
+        <target state="new">Insert ' at the start of new lines when writing ' comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
         <source>Microsoft Visual Basic</source>
         <target state="translated">Microsoft Visual Basic</target>
@@ -40,6 +45,11 @@
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">Prefira 'Is Nothing' para as verificações de igualdade de referência</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_New_expressions">
+        <source>Show hints for 'New' expressions</source>
+        <target state="new">Show hints for 'New' expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">

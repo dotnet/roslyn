@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var stackTrace = new StackTrace();
             foreach (var frame in stackTrace.GetFrames())
             {
-                if (frame.GetMethod()?.DeclaringType?.FullName?.Contains("ChangedText") ?? false)
+                if (frame?.GetMethod()?.DeclaringType?.FullName?.Contains("ChangedText") ?? false)
                 {
                     // 😢 https://github.com/dotnet/roslyn/issues/47234
                     return;

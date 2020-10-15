@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -263,7 +265,7 @@ dotnet_diagnostic.IDE0036.severity = %value%
 dotnet_diagnostic.IDE0037.severity = %value%
 
 # IDE0038
-dotnet_diagnostic.IDE0038.severity = %value%
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 
 # IDE0039
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
@@ -396,6 +398,12 @@ dotnet_diagnostic.IDE0082.severity = %value%
 
 # IDE0083
 csharp_style_prefer_not_pattern = true:suggestion
+
+# IDE0090
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+
+# IDE0100
+dotnet_diagnostic.IDE0100.severity = %value%
 
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
@@ -554,6 +562,9 @@ dotnet_diagnostic.IDE0082.severity = %value%
 
 # IDE0084
 visual_basic_style_prefer_isnot_expression = true:suggestion
+
+# IDE0100
+dotnet_diagnostic.IDE0100.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -795,8 +806,8 @@ dotnet_style_prefer_inferred_tuple_names = true:suggestion
 # IDE0037, PreferInferredAnonymousTypeMemberNames
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 
-# IDE0038
-No editorconfig based code style option
+# IDE0038, PreferPatternMatchingOverIsWithCastCheck
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 
 # IDE0039, PreferLocalOverAnonymousFunction
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
@@ -941,6 +952,12 @@ No editorconfig based code style option
 
 # IDE0083, PreferNotPattern
 csharp_style_prefer_not_pattern = true:suggestion
+
+# IDE0090, ImplicitObjectCreationWhenTypeIsApparent
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+
+# IDE0100
+No editorconfig based code style option
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion
@@ -1132,6 +1149,9 @@ No editorconfig based code style option
 
 # IDE0084, PreferIsNotExpression
 visual_basic_style_prefer_isnot_expression = true:suggestion
+
+# IDE0100
+No editorconfig based code style option
 
 # IDE1006
 No editorconfig based code style option

@@ -77,9 +77,9 @@
         <target state="translated">基本へ移動</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Parameter_Name_Hints">
-        <source>Inline Parameter Name Hints</source>
-        <target state="new">Inline Parameter Name Hints</target>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="new">Inline Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -141,6 +141,11 @@
         <source>Rename symbol's _file</source>
         <target state="translated">シンボルのファイルの名前を変更する(_F)</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="new">Split comment</target>
+        <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
