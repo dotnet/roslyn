@@ -945,11 +945,11 @@ Do you want to proceed?</value>
   <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
     <value>Error creating instance of CodeFixProvider</value>
   </data>
-  <data name="Adding_missing_import_statements" xml:space="preserve">
-    <value>Adding missing import statements...</value>
-    <comment>Used as a thread awaited dialog letting the user know that work is being done on paste</comment>
+  <data name="Adding_missing_import_directives" xml:space="preserve">
+    <value>Adding missing import directives...</value>
+    <comment>Used as a thread awaited dialog letting the user know that work is being done on paste. "import" is a language specific term</comment>
   </data>
-  <data name="Add_missing_imports_on_paste" xml:space="preserve">
+  <data name="Add_Missing_Imports_On_Paste" xml:space="preserve">
     <value>Add Missing Imports On Paste</value>
   </data>
 </root>

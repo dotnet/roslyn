@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
     [Order(Before = PredefinedCommandHandlerNames.FormatDocument)]
     internal class AddImportsPasteCommandHandler : IChainedCommandHandler<PasteCommandArgs>
     {
-        public string DisplayName => EditorFeaturesResources.Add_missing_imports_on_paste;
+        public string DisplayName => EditorFeaturesResources.Add_Missing_Imports_On_Paste;
 
         private readonly IThreadingContext _threadingContext;
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
-            using var _ = executionContext.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Adding_missing_import_statements);
+            using var _ = executionContext.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Adding_missing_import_directives);
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
 
             var updatedProject = _threadingContext.JoinableTaskFactory.Run(() => AddMissingImportsAsync(document, textSpan, cancellationToken));
