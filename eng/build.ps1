@@ -308,7 +308,8 @@ function GetIbcDropName() {
     $branch = GetIbcSourceBranchName
     Write-Host "Optimization data branch name is '$branch'."
 
-    $drop = Find-OptimizationInputsStoreForBranch -ProjectName "DevDiv" -RepositoryName "VS" -BranchName $branch -PAT $devdivDropAccessToken
+    $pat = ConvertTo-SecureString $devdivDropAccessToken -AsPlainText -Force
+    $drop = Find-OptimizationInputsStoreForBranch -ProjectName "DevDiv" -RepositoryName "VS" -BranchName $branch -PAT $pat
     return $drop.Name
 }
 
