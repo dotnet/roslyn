@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns the name With which the assembly should be output
+        /// Returns the name with which the assembly should be output
         /// </summary>
         protected abstract string GetOutputFileName(Compilation compilation, CancellationToken cancellationToken);
 
