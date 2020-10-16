@@ -1075,6 +1075,95 @@ class C
     delegate T MyDelegate<T>() where T : str[||]uct;
 }", "structconstraint");
         }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUsingStaticOnUsingKeyword()
+        {
+            await Test_KeywordAsync(
+@"us[||]ing static namespace.Class;
+
+static class C
+{ 
+    static int Field;
+
+    static void Method() {}
+}", "using-static");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNormalUsing()
+        {
+            await Test_KeywordAsync(
+@"us[||]ing namespace.Class;
+
+static class C
+{ 
+    static int Field;
+
+    static void Method() {}
+}", "using");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUsingStaticOnStaticKeyword()
+        {
+            await Test_KeywordAsync(
+@"using sta[||]tic namespace.Class;
+
+static class C
+{ 
+    static int Field;
+
+    static void Method() {}
+}", "using-static");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStaticClass()
+        {
+            await Test_KeywordAsync(
+@"using static namespace.Class;
+
+sta[||]tic class C
+{ 
+    static int Field;
+
+    static void Method() {}
+}", "static");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStaticField()
+        {
+            await Test_KeywordAsync(
+@"using static namespace.Class;
+
+static class C
+{ 
+    sta[||]tic int Field;
+
+    static void Method() {}
+}", "static");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStaticMethod()
+        {
+            await Test_KeywordAsync(
+@"using static namespace.Class;
+
+static class C
+{ 
+    static int Field;
+
+    sta[||]tic void Method() {}
+}", "static");
+        }
     }
 }
-
