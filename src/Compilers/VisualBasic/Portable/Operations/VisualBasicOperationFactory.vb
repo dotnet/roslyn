@@ -458,11 +458,14 @@ Namespace Microsoft.CodeAnalysis.Operations
                    If(boundCall.ReceiverOpt?.Kind <> BoundKind.MyBaseReference, False) AndAlso
                    If(boundCall.ReceiverOpt?.Kind <> BoundKind.MyClassReference, False)
 
+            Dim boundReceiver As BoundExpression = If(boundCall.ReceiverOpt, boundCall.MethodGroupOpt?.ReceiverOpt)
+            Dim receiver as IOperation = CreateReceiverOperation(boundReceiver, targetMethod)
+            Dim arguments As ImmutableArray(Of IArgumentOperation) = DeriveArguments(boundCall)
+
             Dim syntax As SyntaxNode = boundCall.Syntax
             Dim type As ITypeSymbol = boundCall.Type
-            Dim constantValue As ConstantValue = boundCall.ConstantValueOpt
             Dim isImplicit As Boolean = boundCall.WasCompilerGenerated
-            Return New VisualBasicLazyInvocationOperation(Me, boundCall, targetMethod, isVirtual, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InvocationOperation(targetMethod, receiver, isVirtual, arguments, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundOmittedArgumentOperation(boundOmittedArgument As BoundOmittedArgument) As IOmittedArgumentOperation
@@ -1606,14 +1609,14 @@ Namespace Microsoft.CodeAnalysis.Operations
                                         GetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault), MethodSymbol)
 
             If method IsNot Nothing Then
-                Return New VisualBasicLazyInvocationOperation(Me,
-                                                              boundNullableIsTrueOperator,
-                                                              method.AsMember(DirectCast(boundNullableIsTrueOperator.Operand.Type, NamedTypeSymbol)),
+                Dim receiver as IOperation = CreateReceiverOperation(boundNullableIsTrueOperator.Operand, method)
+                Return New InvocationOperation(method.AsMember(DirectCast(boundNullableIsTrueOperator.Operand.Type, NamedTypeSymbol)),
+                                                              receiver,
                                                               isVirtual:=False,
-                                                              semanticModel:=_semanticModel,
+                                                              arguments:=ImmutableArray(Of IArgumentOperation).Empty,
+                                                              _semanticModel,
                                                               syntax,
                                                               boundNullableIsTrueOperator.Type,
-                                                              constantValue,
                                                               isImplicit)
             Else
                 Return New VisualBasicLazyInvalidOperation(Me, boundNullableIsTrueOperator, _semanticModel, syntax, type, constantValue, isImplicit)

@@ -116,7 +116,8 @@ namespace Microsoft.CodeAnalysis.Operations
             return boundLocal == null ? null : new VariableDeclaratorOperation(boundLocal.LocalSymbol.GetPublicSymbol(), initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: null, isImplicit: false);
         }
 
-        internal IOperation CreateReceiverOperation(BoundNode instance, Symbol symbol)
+#nullable enable
+        internal IOperation? CreateReceiverOperation(BoundNode? instance, Symbol symbol)
         {
             if (instance == null || instance.Kind == BoundKind.TypeExpression)
             {
@@ -132,15 +133,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return Create(instance);
         }
 
-        private bool IsCallVirtual(MethodSymbol targetMethod, BoundExpression receiver)
+        private bool IsCallVirtual(MethodSymbol? targetMethod, BoundExpression? receiver)
         {
-            return (object)targetMethod != null && receiver != null &&
+            return (object?)targetMethod != null && receiver != null &&
                    (targetMethod.IsVirtual || targetMethod.IsAbstract || targetMethod.IsOverride) &&
                    !receiver.SuppressVirtualCalls;
         }
 
         private bool IsMethodInvalid(LookupResultKind resultKind, MethodSymbol targetMethod) =>
             resultKind == LookupResultKind.OverloadResolutionFailure || targetMethod?.OriginalDefinition is ErrorMethodSymbol;
+#nullable disable
 
         internal IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {

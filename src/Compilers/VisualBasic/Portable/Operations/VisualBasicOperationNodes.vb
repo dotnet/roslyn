@@ -522,48 +522,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyInvocationOperation
-        Inherits LazyInvocationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _invocable As BoundExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundCall, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            Me.New(operationFactory, DirectCast(invocable, BoundExpression), targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        End Sub
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundNullableIsTrueOperator, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            Me.New(operationFactory, DirectCast(invocable, BoundExpression), targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        End Sub
-
-        Private Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundExpression, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _invocable = invocable
-        End Sub
-
-        Protected Overrides Function CreateInstance() As IOperation
-            Dim receiver As BoundExpression
-            Select Case _invocable.Kind
-                Case BoundKind.Call
-                    Dim [call] = DirectCast(_invocable, BoundCall)
-                    receiver = If([call].ReceiverOpt, [call].MethodGroupOpt?.ReceiverOpt)
-                Case BoundKind.NullableIsTrueOperator
-                    receiver = DirectCast(_invocable, BoundNullableIsTrueOperator).Operand
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(_invocable.Kind)
-            End Select
-            Return _operationFactory.CreateReceiverOperation(receiver, TargetMethod)
-        End Function
-
-        Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            If _invocable.Kind = BoundKind.NullableIsTrueOperator Then
-                Return ImmutableArray(Of IArgumentOperation).Empty
-            End If
-            Return _operationFactory.DeriveArguments(_invocable)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyIsTypeOperation
         Inherits LazyIsTypeOperation
 

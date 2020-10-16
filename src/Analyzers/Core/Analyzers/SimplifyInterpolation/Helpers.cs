@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         {
             if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation &&
                 HasNonImplicitInstance(invocation) &&
-                !syntaxFacts.IsBaseExpression(invocation.Instance.Syntax) &&
+                !syntaxFacts.IsBaseExpression(invocation.Instance!.Syntax) &&
                 !invocation.Instance.Type!.IsRefLikeType)
             {
                 if (invocation.Arguments.Length == 1 &&
@@ -142,12 +142,12 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                             {
                                 var alignmentSyntax = alignmentOp.Syntax;
 
-                                unwrapped = invocation.Instance;
+                                unwrapped = invocation.Instance!;
                                 alignment = alignmentSyntax as TExpressionSyntax;
                                 negate = targetName == nameof(string.PadRight);
 
                                 unnecessarySpans.AddRange(invocation.Syntax.Span
-                                    .Subtract(invocation.Instance.Syntax.FullSpan)
+                                    .Subtract(invocation.Instance!.Syntax.FullSpan)
                                     .Subtract(alignmentSyntax.FullSpan));
                                 return;
                             }

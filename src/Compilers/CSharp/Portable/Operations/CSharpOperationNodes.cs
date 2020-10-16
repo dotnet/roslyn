@@ -761,52 +761,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyInvocationOperation : LazyInvocationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundExpression _invocableExpression;
-
-        internal CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundCall invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(operationFactory, (BoundExpression)invocableExpression, targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        internal CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundCollectionElementInitializer invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(operationFactory, (BoundExpression)invocableExpression, targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        private CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundExpression invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _invocableExpression = invocableExpression;
-        }
-
-        protected override IOperation CreateInstance()
-        {
-            BoundExpression receiver;
-            switch (_invocableExpression)
-            {
-                case BoundCall call:
-                    receiver = call.ReceiverOpt;
-                    break;
-                case BoundCollectionElementInitializer initializer:
-                    receiver = initializer.ImplicitReceiverOpt;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(_invocableExpression.Kind);
-            }
-
-            return _operationFactory.CreateReceiverOperation(receiver, TargetMethod.GetSymbol());
-        }
-
-        protected override ImmutableArray<IArgumentOperation> CreateArguments()
-        {
-            return _operationFactory.DeriveArguments(_invocableExpression);
-        }
-    }
-
     internal sealed class CSharpLazyIsTypeOperation : LazyIsTypeOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

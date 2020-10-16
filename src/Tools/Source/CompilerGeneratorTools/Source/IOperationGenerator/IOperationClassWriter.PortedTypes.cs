@@ -35,7 +35,8 @@ namespace IOperationGenerator
             "IUsingOperation",
             "IExpressionStatementOperation",
             "ILocalFunctionOperation",
-            "IRaiseEventOperation"
+            "IRaiseEventOperation",
+            "IInvocationOperation"
         };
     }
 }

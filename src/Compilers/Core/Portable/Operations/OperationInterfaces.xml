@@ -635,7 +635,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IInvocationOperation" Base="IOperation" ChildrenOrder="Instance,Arguments">
+  <Node Name="IInvocationOperation" Base="IOperation" ChildrenOrder="Instance,Arguments" HasType="true">
     <Comments>
       <summary>
         Represents an invocation of a method.
@@ -658,7 +658,7 @@
         <summary>Method to be invoked.</summary>
       </Comments>
     </Property>
-    <Property Name="Instance" Type="IOperation">
+    <Property Name="Instance" Type="IOperation?">
       <Comments>
         <summary>'This' or 'Me' instance to be supplied to the method, or null if the method is static.</summary>
       </Comments>

@@ -712,6 +712,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         bool IsChecked { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents an invocation of a method.
     /// <para>
@@ -744,7 +745,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// 'This' or 'Me' instance to be supplied to the method, or null if the method is static.
         /// </summary>
-        IOperation Instance { get; }
+        IOperation? Instance { get; }
         /// <summary>
         /// True if the invocation uses a virtual mechanism, and false otherwise.
         /// </summary>
@@ -758,6 +759,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </remarks>
         ImmutableArray<IArgumentOperation> Arguments { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a reference to an array element.
     /// <para>
@@ -4341,78 +4343,44 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseInvocationOperation : OperationOld, IInvocationOperation
+    #nullable enable
+    internal sealed partial class InvocationOperation : Operation, IInvocationOperation
     {
-        internal BaseInvocationOperation(IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Invocation, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal InvocationOperation(IMethodSymbol targetMethod, IOperation? instance, bool isVirtual, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             TargetMethod = targetMethod;
+            Instance = SetParentOperation(instance, this);
             IsVirtual = isVirtual;
+            Arguments = SetParentOperation(arguments, this);
+            Type = type;
         }
         public IMethodSymbol TargetMethod { get; }
-        public abstract IOperation Instance { get; }
+        public IOperation? Instance { get; }
         public bool IsVirtual { get; }
-        public abstract ImmutableArray<IArgumentOperation> Arguments { get; }
+        public ImmutableArray<IArgumentOperation> Arguments { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Instance is object) yield return Instance;
-                foreach (var child in Arguments)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Instance is not null) builder.Add(Instance);
+                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Invocation;
         public override void Accept(OperationVisitor visitor) => visitor.VisitInvocation(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInvocation(this, argument);
     }
-    internal sealed partial class InvocationOperation : BaseInvocationOperation, IInvocationOperation
-    {
-        internal InvocationOperation(IMethodSymbol targetMethod, IOperation instance, bool isVirtual, ImmutableArray<IArgumentOperation> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Instance = SetParentOperation(instance, this);
-            Arguments = SetParentOperation(arguments, this);
-        }
-        public override IOperation Instance { get; }
-        public override ImmutableArray<IArgumentOperation> Arguments { get; }
-    }
-    internal abstract partial class LazyInvocationOperation : BaseInvocationOperation, IInvocationOperation
-    {
-        private IOperation _lazyInstance = s_unset;
-        private ImmutableArray<IArgumentOperation> _lazyArguments;
-        internal LazyInvocationOperation(IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateInstance();
-        public override IOperation Instance
-        {
-            get
-            {
-                if (_lazyInstance == s_unset)
-                {
-                    IOperation instance = CreateInstance();
-                    SetParentOperation(instance, this);
-                    Interlocked.CompareExchange(ref _lazyInstance, instance, s_unset);
-                }
-                return _lazyInstance;
-            }
-        }
-        protected abstract ImmutableArray<IArgumentOperation> CreateArguments();
-        public override ImmutableArray<IArgumentOperation> Arguments
-        {
-            get
-            {
-                if (_lazyArguments.IsDefault)
-                {
-                    ImmutableArray<IArgumentOperation> arguments = CreateArguments();
-                    SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArguments, arguments);
-                }
-                return _lazyArguments;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseArrayElementReferenceOperation : OperationOld, IArrayElementReferenceOperation
     {
         internal BaseArrayElementReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8995,6 +8963,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (LiteralOperation)operation;
             return new LiteralOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitInvocation(IInvocationOperation operation, object? argument)
+        {
+            var internalOperation = (InvocationOperation)operation;
+            return new InvocationOperation(internalOperation.TargetMethod, Visit(internalOperation.Instance), internalOperation.IsVirtual, VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitLocalReference(ILocalReferenceOperation operation, object? argument)
         {

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -79,7 +79,9 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                             //      (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
                             //
                             // recurse on the value we're calling GetHashCode on.
-                            return TryAddHashedSymbol(invocation.Instance, seenHash: true);
+                            Debug.Assert(invocation.Instance is not null);
+                            // Need the suppression for codestyle, which doesn't respect the above assertion
+                            return TryAddHashedSymbol(invocation.Instance!, seenHash: true);
                         }
 
                         if (targetMethod.Name == nameof(GetHashCode) &&
