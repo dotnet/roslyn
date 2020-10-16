@@ -62,6 +62,11 @@
         <target state="translated">W operatorach relacyjnych:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
+        <source>Insert // at the start of new lines when writing // comments</source>
+        <target state="new">Insert // at the start of new lines when writing // comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
         <target state="translated">W elemencie namespace</target>
@@ -115,6 +120,11 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">Usuń niepotrzebne użycia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_new_expressions">
+        <source>Show hints for 'new' expressions</source>
+        <target state="new">Show hints for 'new' expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">

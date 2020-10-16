@@ -254,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension>
-        Public Function GetRightmostName(node As ExpressionSyntax) As NameSyntax
+        Public Function GetRightmostName(node As ExpressionSyntax) As SimpleNameSyntax
             Dim memberAccess = TryCast(node, MemberAccessExpressionSyntax)
             If memberAccess IsNot Nothing AndAlso memberAccess.Name IsNot Nothing Then
                 Return memberAccess.Name
@@ -265,12 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return qualified.Right
             End If
 
-            Dim simple = TryCast(node, SimpleNameSyntax)
-            If simple IsNot Nothing Then
-                Return simple
-            End If
-
-            Return Nothing
+            Return TryCast(node, SimpleNameSyntax)
         End Function
 
         <Extension>

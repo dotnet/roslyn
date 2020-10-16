@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
+            return new SyntaxTriviaList(default(SyntaxToken), GreenNode.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
         }
 
         /// <summary>
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTrivia);
-                return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
+                return new SyntaxTriviaList(default(SyntaxToken), GreenNode.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
             }
 
             throw new ArgumentOutOfRangeException(nameof(triviaInList));

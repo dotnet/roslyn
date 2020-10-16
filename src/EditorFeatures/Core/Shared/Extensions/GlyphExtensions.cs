@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -221,5 +222,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     throw new ArgumentException(nameof(glyph));
             }
         }
+
+        public static ImageElement GetImageElement(this Glyph glyph)
+            => new ImageElement(glyph.GetImageId());
     }
 }
