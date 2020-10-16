@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private static async Task<ImmutableArray<AddImportFixData>> GetUnambiguousFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var symbolSearchService = solution.Workspace.Services.GetService<ISymbolSearchService>();
+            var symbolSearchService = solution.Workspace.Services.GetRequiredService<ISymbolSearchService>();
             // Since we are not currently considering NuGet packages, pass an empty array
             var packageSources = ImmutableArray<PackageSource>.Empty;
             var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
