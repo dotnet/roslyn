@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -1415,12 +1415,10 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundExpressionStatementOperation(boundExpressionStatement As BoundExpressionStatement) As IExpressionStatementOperation
-            Dim expression As BoundNode = boundExpressionStatement.Expression
+            Dim expression As IOperation = Create(boundExpressionStatement.Expression)
             Dim syntax As SyntaxNode = boundExpressionStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundExpressionStatement.WasCompilerGenerated
-            Return New VisualBasicLazyExpressionStatementOperation(Me, expression, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ExpressionStatementOperation(expression, _semanticModel, syntax, isImplicit)
         End Function
 
         Friend Function CreateBoundRaiseEventStatementEventReference(boundRaiseEventStatement As BoundRaiseEventStatement) As IEventReferenceOperation
@@ -1475,10 +1473,8 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundAddHandlerStatementOperation(boundAddHandlerStatement As BoundAddHandlerStatement) As IExpressionStatementOperation
             Dim expression As IOperation = GetAddRemoveHandlerStatementExpression(boundAddHandlerStatement)
             Dim syntax As SyntaxNode = boundAddHandlerStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundAddHandlerStatement.WasCompilerGenerated
-            Return New ExpressionStatementOperation(expression, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ExpressionStatementOperation(expression, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundRemoveHandlerStatementOperation(boundRemoveHandlerStatement As BoundRemoveHandlerStatement) As IExpressionStatementOperation
@@ -1487,7 +1483,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundRemoveHandlerStatement.WasCompilerGenerated
-            Return New ExpressionStatementOperation(expression, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ExpressionStatementOperation(expression, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundTupleLiteralOperation(boundTupleLiteral As BoundTupleLiteral) As ITupleOperation

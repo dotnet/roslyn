@@ -32,7 +32,8 @@ namespace IOperationGenerator
             "IReturnOperation",
             "ILockOperation",
             "ITryOperation",
-            "IUsingOperation"
+            "IUsingOperation",
+            "IExpressionStatementOperation"
         };
     }
 }

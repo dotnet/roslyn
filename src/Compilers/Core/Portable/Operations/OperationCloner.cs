@@ -108,11 +108,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new AggregateQueryOperation(Visit(operation.Group), Visit(operation.Aggregation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitExpressionStatement(IExpressionStatementOperation operation, object argument)
-        {
-            return new ExpressionStatementOperation(Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         internal override IOperation VisitWithStatement(IWithStatementOperation operation, object argument)
         {
             return new WithStatementOperation(Visit(operation.Body), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

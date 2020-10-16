@@ -323,23 +323,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyExpressionStatementOperation
-        Inherits LazyExpressionStatementOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operation As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operation = operation
-        End Sub
-
-        Protected Overrides Function CreateOperation() As IOperation
-            Return _operationFactory.Create(_operation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyVariableInitializerOperation
         Inherits LazyVariableInitializerOperation
 

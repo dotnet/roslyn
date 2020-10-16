@@ -3230,8 +3230,7 @@ oneMoreTime:
                     Debug.Assert(_currentStatement is not null);
                     var expressionStatement = (IExpressionStatementOperation)_currentStatement;
                     result = new ExpressionStatementOperation(result, semanticModel: null, expressionStatement.Syntax,
-                                                     expressionStatement.Type, expressionStatement.GetConstantValue(),
-                                                     IsImplicit(expressionStatement));
+                                                              IsImplicit(expressionStatement));
                 }
 
                 AddStatement(result);
@@ -3297,9 +3296,8 @@ oneMoreTime:
             _currentConditionalAccessInstance = null;
             return result;
         }
-#nullable disable
 
-        public override IOperation VisitExpressionStatement(IExpressionStatementOperation operation, int? captureIdForResult)
+        public override IOperation? VisitExpressionStatement(IExpressionStatementOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -3315,8 +3313,9 @@ oneMoreTime:
                 return FinishVisitingStatement(operation);
             }
 
-            return FinishVisitingStatement(operation, new ExpressionStatementOperation(underlying, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
+            return FinishVisitingStatement(operation, new ExpressionStatementOperation(underlying, semanticModel: null, operation.Syntax, IsImplicit(operation)));
         }
+#nullable disable
 
         public override IOperation VisitWhileLoop(IWhileLoopOperation operation, int? captureIdForResult)
         {

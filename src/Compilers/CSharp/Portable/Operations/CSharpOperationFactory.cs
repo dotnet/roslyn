@@ -1882,21 +1882,19 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundLabeledStatement.WasCompilerGenerated;
             return new LabeledOperation(label, labeledStatement, _semanticModel, syntax, isImplicit);
         }
-#nullable disable
 
         private IExpressionStatementOperation CreateBoundExpressionStatementOperation(BoundExpressionStatement boundExpressionStatement)
         {
-            BoundNode expression = boundExpressionStatement.Expression;
+            IOperation expression = Create(boundExpressionStatement.Expression);
             SyntaxNode syntax = boundExpressionStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
 
             // lambda body can point to expression directly and binder can insert expression statement there. and end up statement pointing to
             // expression syntax node since there is no statement syntax node to point to. this will mark such one as implicit since it doesn't
             // actually exist in code
             bool isImplicit = boundExpressionStatement.WasCompilerGenerated || boundExpressionStatement.Syntax == boundExpressionStatement.Expression.Syntax;
-            return new CSharpLazyExpressionStatementOperation(this, expression, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ExpressionStatementOperation(expression, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         internal IOperation CreateBoundTupleLiteralOperation(BoundTupleLiteral boundTupleLiteral, bool createDeclaration = true)
         {
