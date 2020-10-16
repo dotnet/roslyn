@@ -44,16 +44,22 @@ namespace RunTests
                     builder.Append(typeInfo.FullName);
                 }
 
-                foreach (var trait in Options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                if (Options.Trait is object)
                 {
-                    MaybeAddSeparator();
-                    builder.Append($"Trait={trait}");
+                    foreach (var trait in Options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        MaybeAddSeparator();
+                        builder.Append($"Trait={trait}");
+                    }
                 }
 
-                foreach (var trait in Options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                if (Options.NoTrait is object)
                 {
-                    MaybeAddSeparator('&');
-                    builder.Append($"Trait!~{trait}");
+                    foreach (var trait in Options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        MaybeAddSeparator('&');
+                        builder.Append($"Trait!~{trait}");
+                    }
                 }
 
                 void MaybeAddSeparator(char separator = '|')

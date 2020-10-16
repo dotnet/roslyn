@@ -140,6 +140,7 @@ namespace RunTests
             string? procDumpFilePath = null;
             var optionSet = new OptionSet()
             {
+                { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
                 { "platform=", "Platform to test: x86 or x64", (string s) => platform = s },
                 { "tfm=", "Target framework to test", (string s) => targetFramework = s },
                 { "testVsi", "Test Visual Studio", (object o) => testVsi = o is object },

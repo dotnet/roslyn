@@ -347,13 +347,12 @@ function TestUsingOptimizedRunner() {
     ExitWithExitCode 1
   }
 
-  $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net472"
-  $args = "`"$xunitDir`""
-  $args += " `"--dotnet:$dotnet`""
-  $args += " `"--out:$testResultsDir`""
-  $args += " `"--logs:$LogDir`""
-  $args += " `"--secondaryLogs:$secondaryLogDir`""
-  $args += " --tfm:net472"
+  $dotnetExe = Join-Path $dotnet "dotnet.exe"
+  $args += " --dotnet `"$dotnetExe`""
+  $args += " --out `"$testResultsDir`""
+  $args += " --logs `"$LogDir`""
+  $args += " --secondaryLogs `"$secondaryLogDir`""
+  $args += " --tfm net472"
 
   if ($testDesktop -or $testIOperation) {
     if ($test32) {
@@ -393,15 +392,15 @@ function TestUsingOptimizedRunner() {
 
   if ($ci) {
     if ($testVsi) {
-      $args += " --timeout:110"
+      $args += " --timeout 110"
     } else {
-      $args += " --timeout:90"
+      $args += " --timeout 90"
     }
   }
 
   if ($procdump) {
     $procdumpFilePath = Ensure-ProcDump
-    $args += " --procdumppath:$procDumpFilePath"
+    $args += " --procdumppath $procDumpFilePath"
     $args += " --useprocdump";
   }
 
