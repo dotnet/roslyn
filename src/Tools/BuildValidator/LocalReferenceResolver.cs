@@ -76,19 +76,18 @@ namespace BuildValidator
                         continue;
                     }
 
-                    var mvid = GetMvidForFile(file);
-                    if (!mvid.HasValue || _cache.ContainsKey(mvid.Value))
+                    if (!(GetMvidForFile(file) is {} mvid) || !_cache.ContainsKey(mvid))
                     {
                         continue;
                     }
 
-                    var matchedReference = potentialMatches.SingleOrDefault(m => m.Mvid == mvid);
+                    var matchedReference = potentialMatches.FirstOrDefault(m => m.Mvid == mvid);
                     if (matchedReference.FileInfo is null)
                     {
                         continue;
                     }
 
-                    _logger.LogTrace($"Caching [{mvid}, {file.FullName}]");
+                    _logger.LogTrace($"Caching [{mvid.Value}, {file.FullName}]");
                     _cache[mvid.Value] = file.FullName;
                 }
             }
