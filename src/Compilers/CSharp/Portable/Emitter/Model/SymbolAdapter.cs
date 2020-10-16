@@ -16,8 +16,45 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class Symbol : Cci.IReference
+    internal abstract partial class
+#if DEBUG
+        SymbolAdapter
+#else
+        Symbol
+#endif 
+        : Cci.IReference
     {
+
+#if DEBUG
+        internal abstract Symbol AdaptedSymbol { get; }
+
+        public override string ToString()
+        {
+            return AdaptedSymbol.ToString();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return AdaptedSymbol.Equals((obj as SymbolAdapter)?.AdaptedSymbol);
+        }
+
+        public override int GetHashCode()
+        {
+            return AdaptedSymbol.GetHashCode();
+        }
+#else
+        internal Symbol AdaptedSymbol => this;
+        internal Symbol GetAdapter() => this;
+#endif
+
+#if DEBUG
+    }
+
+    internal abstract partial class Symbol
+    {
+        internal SymbolAdapter GetAdapter() => GetAdapterImpl();
+        protected virtual SymbolAdapter GetAdapterImpl() => throw ExceptionUtilities.Unreachable;
+#endif
         /// <summary>
         /// Checks if this symbol is a definition and its containing module is a SourceModuleSymbol.
         /// </summary>
@@ -33,16 +70,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                          (this.Kind == SymbolKind.NetModule && this is SourceModuleSymbol));
         }
 
+        Cci.IReference CodeAnalysis.Symbols.ISymbolInternal.GetAdapter() => GetAdapter();
+#if DEBUG
+    }
+
+    internal partial class SymbolAdapter
+    {
+        [Conditional("DEBUG")]
+        protected internal void CheckDefinitionInvariant() => AdaptedSymbol.CheckDefinitionInvariant();
+#endif
         Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.AsSymbol => AdaptedSymbol;
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
+#if DEBUG
+    }
+
+    internal abstract partial class Symbol
+    {
+#endif
         /// <summary>
         /// Return whether the symbol is either the original definition
         /// or distinct from the original. Intended for use in Debug.Assert
@@ -52,12 +106,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.IsDefinition || !this.Equals(this.OriginalDefinition, SymbolEqualityComparer.ConsiderEverything.CompareKind);
         }
+#if DEBUG
+    }
+
+    internal partial class SymbolAdapter
+    {
+        internal bool IsDefinitionOrDistinct()
+        {
+            return AdaptedSymbol.IsDefinitionOrDistinct();
+        }
+#endif
 
         IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
-            return GetCustomAttributesToEmit((PEModuleBuilder)context.Module);
+            return AdaptedSymbol.GetCustomAttributesToEmit((PEModuleBuilder)context.Module);
         }
+#if DEBUG
+    }
 
+    internal abstract partial class Symbol
+    {
+#endif
         internal virtual IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             CheckDefinitionInvariant();

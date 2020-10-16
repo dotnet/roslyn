@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // Same type may be represented by multiple instances.
                 // Therefore the use of "Equals" here.
                 return _constraints == other._constraints &&
-                    (_type == other._type || _type.Equals(other._type));
+                    (_type == other._type || ((object?)_type.AsSymbol ?? _type).Equals((object?)other._type.AsSymbol ?? other._type)); // PROTOTYPE: Deal with equality
             }
 
             public override int GetHashCode()
-                => Hash.Combine(_type, (int)_constraints);
+                => Hash.Combine(((object?)_type.AsSymbol ?? _type), (int)_constraints); // PROTOTYPE: Deal with equality
 
             public override bool Equals(object? obj)
                 => obj is LocalSignature ls && Equals(ls);

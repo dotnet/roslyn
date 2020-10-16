@@ -9,37 +9,98 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class PropertySymbol :
+    internal partial class
+#if DEBUG
+        PropertySymbolAdapter : SymbolAdapter,
+#else
+        PropertySymbol :
+#endif 
         IPropertyDefinition
     {
+#if DEBUG
+        internal PropertySymbolAdapter(PropertySymbol underlyingPropertySymbol)
+        {
+            AdaptedPropertySymbol = underlyingPropertySymbol;
+
+            if (underlyingPropertySymbol is NativeIntegerPropertySymbol)
+            {
+                // Emit should use underlying symbol only.
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedPropertySymbol;
+        internal PropertySymbol AdaptedPropertySymbol { get; }
+#else
+        internal PropertySymbol AdaptedPropertySymbol => this;
+#endif
+    }
+
+    internal partial class PropertySymbol
+    {
+#if DEBUG
+        private PropertySymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetAdapterImpl() => GetAdapter();
+#endif
+        internal new
+#if DEBUG
+            PropertySymbolAdapter
+#else
+            PropertySymbol
+#endif
+            GetAdapter()
+        {
+#if DEBUG
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new PropertySymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+#else
+            return this;
+#endif
+        }
+    }
+
+    internal partial class
+#if DEBUG
+        PropertySymbolAdapter
+#else
+        PropertySymbol
+#endif
+    {
+
         #region IPropertyDefinition Members
 
         IEnumerable<IMethodReference> IPropertyDefinition.GetAccessors(EmitContext context)
         {
             CheckDefinitionInvariant();
 
-            MethodSymbol getMethod = this.GetMethod;
+            var getMethod = AdaptedPropertySymbol.GetMethod?.GetAdapter();
             if (getMethod != null && getMethod.ShouldInclude(context))
             {
                 yield return getMethod;
             }
 
-            MethodSymbol setMethod = this.SetMethod;
+            var setMethod = AdaptedPropertySymbol.SetMethod?.GetAdapter();
             if (setMethod != null && setMethod.ShouldInclude(context))
             {
                 yield return setMethod;
             }
 
-            var sourceProperty = this as SourcePropertySymbolBase;
-            if ((object)sourceProperty != null && sourceProperty.ShouldInclude(context))
+            var sourceProperty = AdaptedPropertySymbol as SourcePropertySymbolBase;
+            if ((object)sourceProperty != null && this.ShouldInclude(context))
             {
                 SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
                 if ((object)synthesizedAccessor != null)
                 {
-                    yield return synthesizedAccessor;
+                    yield return synthesizedAccessor.GetAdapter();
                 }
             }
         }
@@ -58,10 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                MethodSymbol getMethod = this.GetMethod;
-                if ((object)getMethod != null || !this.IsSealed)
+                MethodSymbol getMethod = AdaptedPropertySymbol.GetMethod;
+                if ((object)getMethod != null || !AdaptedPropertySymbol.IsSealed)
                 {
-                    return getMethod;
+                    return getMethod.GetAdapter();
                 }
 
                 return GetSynthesizedSealedAccessor(MethodKind.PropertyGet);
@@ -82,10 +143,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return HasRuntimeSpecialName;
+                return AdaptedPropertySymbol.HasRuntimeSpecialName;
             }
         }
+    }
 
+    internal partial class PropertySymbol
+    {
         internal virtual bool HasRuntimeSpecialName
         {
             get
@@ -94,13 +158,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        PropertySymbolAdapter
+#else
+        PropertySymbol
+#endif
+    {
         bool IPropertyDefinition.IsSpecialName
         {
             get
             {
                 CheckDefinitionInvariant();
-                return this.HasSpecialName;
+                return AdaptedPropertySymbol.HasSpecialName;
             }
         }
 
@@ -109,7 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return StaticCast<IParameterDefinition>.From(this.Parameters);
+#if DEBUG
+                return AdaptedPropertySymbol.Parameters.SelectAsArray<ParameterSymbol, IParameterDefinition>(p => p.GetAdapter());
+#else
+                return StaticCast<IParameterDefinition>.From(AdaptedPropertySymbol.Parameters);
+#endif
             }
         }
 
@@ -118,10 +194,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                MethodSymbol setMethod = this.SetMethod;
-                if ((object)setMethod != null || !this.IsSealed)
+                MethodSymbol setMethod = AdaptedPropertySymbol.SetMethod;
+                if ((object)setMethod != null || !AdaptedPropertySymbol.IsSealed)
                 {
-                    return setMethod;
+                    return setMethod?.GetAdapter();
                 }
 
                 return GetSynthesizedSealedAccessor(MethodKind.PropertySet);
@@ -136,10 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckDefinitionInvariantAllowEmbedded()
         {
             // can't be generic instantiation
-            Debug.Assert(this.IsDefinition);
+            Debug.Assert(AdaptedPropertySymbol.IsDefinition);
 
             // must be declared in the module we are building
-            Debug.Assert(this.ContainingModule is SourceModuleSymbol || this.ContainingAssembly.IsLinked);
+            Debug.Assert(AdaptedPropertySymbol.ContainingModule is SourceModuleSymbol || AdaptedPropertySymbol.ContainingAssembly.IsLinked);
         }
 
         CallingConvention ISignature.CallingConvention
@@ -147,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariantAllowEmbedded();
-                return this.CallingConvention;
+                return AdaptedPropertySymbol.CallingConvention;
             }
         }
 
@@ -156,14 +232,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return (ushort)this.ParameterCount;
+                return (ushort)AdaptedPropertySymbol.ParameterCount;
             }
         }
 
         ImmutableArray<IParameterTypeInformation> ISignature.GetParameters(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return StaticCast<IParameterTypeInformation>.From(this.Parameters);
+#if DEBUG
+            return AdaptedPropertySymbol.Parameters.SelectAsArray<ParameterSymbol, IParameterTypeInformation>(p => p.GetAdapter());
+#else
+            return StaticCast<IParameterTypeInformation>.From(AdaptedPropertySymbol.Parameters);
+#endif
         }
 
         ImmutableArray<ICustomModifier> ISignature.ReturnValueCustomModifiers
@@ -171,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariantAllowEmbedded();
-                return this.TypeWithAnnotations.CustomModifiers.As<ICustomModifier>();
+                return AdaptedPropertySymbol.TypeWithAnnotations.CustomModifiers.As<ICustomModifier>();
             }
         }
 
@@ -180,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariantAllowEmbedded();
-                return this.RefCustomModifiers.As<ICustomModifier>();
+                return AdaptedPropertySymbol.RefCustomModifiers.As<ICustomModifier>();
             }
         }
 
@@ -189,14 +269,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariantAllowEmbedded();
-                return this.RefKind.IsManagedReference();
+                return AdaptedPropertySymbol.RefKind.IsManagedReference();
             }
         }
 
         ITypeReference ISignature.GetType(EmitContext context)
         {
             CheckDefinitionInvariantAllowEmbedded();
-            return ((PEModuleBuilder)context.Module).Translate(this.Type,
+            return ((PEModuleBuilder)context.Module).Translate(AdaptedPropertySymbol.Type,
                                                       syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                       diagnostics: context.Diagnostics);
         }
@@ -210,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.ContainingType;
+                return AdaptedPropertySymbol.ContainingType.GetAdapter();
             }
         }
 
@@ -219,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return PEModuleBuilder.MemberVisibility(this);
+                return PEModuleBuilder.MemberVisibility(AdaptedPropertySymbol);
             }
         }
 
@@ -230,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ITypeReference ITypeMemberReference.GetContainingType(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return this.ContainingType;
+            return AdaptedPropertySymbol.ContainingType.GetAdapter();
         }
 
         #endregion
@@ -258,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.MetadataName;
+                return AdaptedPropertySymbol.MetadataName;
             }
         }
 
@@ -266,11 +346,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private IMethodReference GetSynthesizedSealedAccessor(MethodKind targetMethodKind)
         {
-            var sourceProperty = this as SourcePropertySymbolBase;
+            var sourceProperty = AdaptedPropertySymbol as SourcePropertySymbolBase;
             if ((object)sourceProperty != null)
             {
                 SynthesizedSealedPropertyAccessor synthesized = sourceProperty.SynthesizedSealedAccessorOpt;
-                return (object)synthesized != null && synthesized.MethodKind == targetMethodKind ? synthesized : null;
+                return (object)synthesized != null && synthesized.MethodKind == targetMethodKind ? synthesized.GetAdapter() : null;
             }
 
             return null;

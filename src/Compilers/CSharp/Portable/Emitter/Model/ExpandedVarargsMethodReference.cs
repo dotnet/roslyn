@@ -151,6 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.AsSymbol => null;
+
         string Cci.INamedEntity.Name
         {
             get { return _underlyingMethod.Name; }
@@ -177,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public override string ToString()
         {
             var result = PooledStringBuilder.GetInstance();
-            Append(result, _underlyingMethod);
+            Append(result, _underlyingMethod.AsSymbol ?? (object)_underlyingMethod);
 
             result.Builder.Append(" with __arglist( ");
 

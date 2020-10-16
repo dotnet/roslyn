@@ -1449,7 +1449,7 @@ namespace Microsoft.Cci
 
         private static Location GetNamedEntityLocation(INamedEntity errorEntity)
         {
-            return GetSymbolLocation(errorEntity as ISymbolInternal);
+            return GetSymbolLocation((errorEntity as Cci.IReference)?.AsSymbol);
         }
 
         protected static Location GetSymbolLocation(ISymbolInternal symbolOpt)

@@ -14,8 +14,63 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed partial class FunctionPointerTypeSymbol : IFunctionPointerTypeReference
+    internal sealed partial class
+#if DEBUG
+        FunctionPointerTypeSymbolAdapter : SymbolAdapter,
+#else
+        FunctionPointerTypeSymbol :
+#endif 
+        IFunctionPointerTypeReference
     {
+#if DEBUG
+        internal FunctionPointerTypeSymbolAdapter(FunctionPointerTypeSymbol underlyingFunctionPointerTypeSymbol)
+        {
+            AdaptedFunctionPointerTypeSymbol = underlyingFunctionPointerTypeSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedFunctionPointerTypeSymbol;
+        internal FunctionPointerTypeSymbol AdaptedFunctionPointerTypeSymbol { get; }
+#else
+        internal FunctionPointerTypeSymbol AdaptedFunctionPointerTypeSymbol => this;
+#endif 
+    }
+
+    internal partial class FunctionPointerTypeSymbol
+    {
+#if DEBUG
+        private FunctionPointerTypeSymbolAdapter? _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetAdapterImpl() => GetAdapter();
+#endif
+        internal new
+#if DEBUG
+            FunctionPointerTypeSymbolAdapter
+#else
+            FunctionPointerTypeSymbol
+#endif
+            GetAdapter()
+        {
+#if DEBUG
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new FunctionPointerTypeSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+#else
+            return this;
+#endif
+        }
+    }
+
+    internal partial class
+#if DEBUG
+        FunctionPointerTypeSymbolAdapter
+#else
+        FunctionPointerTypeSymbol
+#endif
+    {
+
         private FunctionPointerMethodSignature? _lazySignature;
         ISignature IFunctionPointerTypeReference.Signature
         {
@@ -23,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazySignature is null)
                 {
-                    Interlocked.CompareExchange(ref _lazySignature, new FunctionPointerMethodSignature(Signature), null);
+                    Interlocked.CompareExchange(ref _lazySignature, new FunctionPointerMethodSignature(AdaptedFunctionPointerTypeSymbol.Signature), null);
                 }
 
                 return _lazySignature;
@@ -44,6 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         INestedTypeDefinition? ITypeReference.AsNestedTypeDefinition(EmitContext context) => null;
         ITypeDefinition? ITypeReference.AsTypeDefinition(EmitContext context) => null;
         ITypeDefinition? ITypeReference.GetResolvedType(EmitContext context) => null;
+        bool ITypeReference.IsValueType => AdaptedFunctionPointerTypeSymbol.IsValueType;
+
         IEnumerable<ICustomAttribute> IReference.GetAttributes(EmitContext context) => SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
         IDefinition? IReference.AsDefinition(EmitContext context) => null;
 
@@ -55,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class FunctionPointerMethodSignature : ISignature, ISymbolCompareKindComparableInternal
         {
             private readonly FunctionPointerMethodSymbol _underlying;
-            internal ISignature Underlying => _underlying;
+            internal ISignature Underlying => _underlying.GetAdapter();
 
             internal FunctionPointerMethodSignature(FunctionPointerMethodSymbol underlying)
             {

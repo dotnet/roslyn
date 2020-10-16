@@ -118,5 +118,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         IEnumerable<TypeReferenceWithAttributes> ITypeDefinition.Interfaces(EmitContext context) => UnderlyingType.Interfaces(context);
 
         Cci.PrimitiveTypeCode ITypeReference.TypeCode => UnderlyingType.TypeCode;
+
+        Symbols.ISymbolInternal IReference.AsSymbol => null;
     }
 }

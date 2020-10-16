@@ -168,6 +168,8 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
+        Symbols.ISymbolInternal Cci.IReference.AsSymbol => null;
+
         string Cci.INamedEntity.Name
         {
             get
@@ -217,6 +219,8 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 return null;
             }
+
+            Symbols.ISymbolInternal Cci.IReference.AsSymbol => null;
 
             string Cci.INamedEntity.Name => s_identity.Name;
         }

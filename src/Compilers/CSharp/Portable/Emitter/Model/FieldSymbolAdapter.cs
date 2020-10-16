@@ -11,21 +11,75 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class FieldSymbol :
+    internal partial class
+#if DEBUG
+        FieldSymbolAdapter : SymbolAdapter,
+#else
+        FieldSymbol :
+#endif 
         Cci.IFieldReference,
         Cci.IFieldDefinition,
         Cci.ITypeMemberReference,
         Cci.ITypeDefinitionMember,
         Cci.ISpecializedFieldReference
     {
+#if DEBUG
+        internal FieldSymbolAdapter(FieldSymbol underlyingFieldSymbol)
+        {
+            AdaptedFieldSymbol = underlyingFieldSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedFieldSymbol;
+        internal FieldSymbol AdaptedFieldSymbol { get; }
+#else
+        internal FieldSymbol AdaptedFieldSymbol => this;
+#endif 
+    }
+
+    internal partial class FieldSymbol
+    {
+#if DEBUG
+        private FieldSymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetAdapterImpl() => GetAdapter();
+#endif
+        internal new
+#if DEBUG
+            FieldSymbolAdapter
+#else
+            FieldSymbol
+#endif
+            GetAdapter()
+        {
+#if DEBUG
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new FieldSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+#else
+            return this;
+#endif
+        }
+    }
+
+    internal partial class
+#if DEBUG
+        FieldSymbolAdapter
+#else
+        FieldSymbol
+#endif
+    {
+
         Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            TypeWithAnnotations fieldTypeWithAnnotations = this.TypeWithAnnotations;
+            TypeWithAnnotations fieldTypeWithAnnotations = AdaptedFieldSymbol.TypeWithAnnotations;
             var customModifiers = fieldTypeWithAnnotations.CustomModifiers;
-            var isFixed = this.IsFixedSizeBuffer;
-            var implType = isFixed ? this.FixedImplementationType(moduleBeingBuilt) : fieldTypeWithAnnotations.Type;
+            var isFixed = AdaptedFieldSymbol.IsFixedSizeBuffer;
+            var implType = isFixed ? AdaptedFieldSymbol.FixedImplementationType(moduleBeingBuilt) : fieldTypeWithAnnotations.Type;
             var type = moduleBeingBuilt.Translate(implType,
                                                   syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                   diagnostics: context.Diagnostics);
@@ -49,8 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            if (this.IsDefinition &&
-                this.ContainingModule == moduleBeingBuilt.SourceModule)
+            if (AdaptedFieldSymbol.IsDefinition &&
+                AdaptedFieldSymbol.ContainingModule == moduleBeingBuilt.SourceModule)
             {
                 return this;
             }
@@ -64,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this.IsDefinitionOrDistinct());
 
-                if (!this.IsDefinition)
+                if (!AdaptedFieldSymbol.IsDefinition)
                 {
                     return this;
                 }
@@ -79,21 +133,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            return moduleBeingBuilt.Translate(this.ContainingType,
+            return moduleBeingBuilt.Translate(AdaptedFieldSymbol.ContainingType,
                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                               diagnostics: context.Diagnostics,
-                                              needDeclaration: this.IsDefinition);
+                                              needDeclaration: AdaptedFieldSymbol.IsDefinition);
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            if (!this.IsDefinition)
+            if (!AdaptedFieldSymbol.IsDefinition)
             {
                 visitor.Visit((Cci.ISpecializedFieldReference)this);
             }
-            else if (this.ContainingModule == ((PEModuleBuilder)visitor.Context.Module).SourceModule)
+            else if (AdaptedFieldSymbol.ContainingModule == ((PEModuleBuilder)visitor.Context.Module).SourceModule)
             {
                 visitor.Visit((Cci.IFieldDefinition)this);
             }
@@ -114,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.MetadataName;
+                return AdaptedFieldSymbol.MetadataName;
             }
         }
 
@@ -137,14 +191,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // A constant field of type decimal is not treated as a compile time value in CLR,
             // so check if it is a metadata constant, not just a constant to exclude decimals.
-            if (this.IsMetadataConstant)
+            if (AdaptedFieldSymbol.IsMetadataConstant)
             {
                 // NOTE: We would like to be able to assert that the constant value of this field
                 // is not bad (i.e. ConstantValue.Bad) if it is being consumed by CCI, but we can't
                 // because this method is called by the ReferenceIndexer in the metadata-only case
                 // (and we specifically don't want to prevent metadata-only emit because of a bad
                 // constant).  If the constant value is bad, we'll end up exposing null to CCI.
-                return ((PEModuleBuilder)context.Module).CreateConstant(this.Type, this.ConstantValue,
+                return ((PEModuleBuilder)context.Module).CreateConstant(AdaptedFieldSymbol.Type, AdaptedFieldSymbol.ConstantValue,
                                                                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                                diagnostics: context.Diagnostics);
             }
@@ -168,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckDefinitionInvariant();
                 // A constant field of type decimal is not treated as a compile time value in CLR,
                 // so check if it is a metadata constant, not just a constant to exclude decimals.
-                return this.IsMetadataConstant;
+                return AdaptedFieldSymbol.IsMetadataConstant;
             }
         }
 
@@ -177,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsNotSerialized;
+                return AdaptedFieldSymbol.IsNotSerialized;
             }
         }
 
@@ -186,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsReadOnly || (this.IsConst && !this.IsMetadataConstant);
+                return AdaptedFieldSymbol.IsReadOnly || (AdaptedFieldSymbol.IsConst && !AdaptedFieldSymbol.IsMetadataConstant);
             }
         }
 
@@ -195,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.HasRuntimeSpecialName;
+                return AdaptedFieldSymbol.HasRuntimeSpecialName;
             }
         }
 
@@ -204,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.HasSpecialName;
+                return AdaptedFieldSymbol.HasSpecialName;
             }
         }
 
@@ -213,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsStatic;
+                return AdaptedFieldSymbol.IsStatic;
             }
         }
 
@@ -222,10 +276,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsMarshalledExplicitly;
+                return AdaptedFieldSymbol.IsMarshalledExplicitly;
             }
         }
+    }
 
+    internal partial class FieldSymbol
+    {
         internal virtual bool IsMarshalledExplicitly
         {
             get
@@ -234,13 +291,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.MarshallingInformation != null;
             }
         }
+    }
+
+    internal partial class
+#if DEBUG
+        FieldSymbolAdapter
+#else
+        FieldSymbol
+#endif
+    {
 
         Cci.IMarshallingInformation Cci.IFieldDefinition.MarshallingInformation
         {
             get
             {
                 CheckDefinitionInvariant();
-                return this.MarshallingInformation;
+                return AdaptedFieldSymbol.MarshallingInformation;
             }
         }
 
@@ -249,10 +315,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.MarshallingDescriptor;
+                return AdaptedFieldSymbol.MarshallingDescriptor;
             }
         }
 
+    }
+
+    internal partial class FieldSymbol
+    {
         internal virtual ImmutableArray<byte> MarshallingDescriptor
         {
             get
@@ -261,13 +331,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default(ImmutableArray<byte>);
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        FieldSymbolAdapter
+#else
+        FieldSymbol
+#endif
+    {
         int Cci.IFieldDefinition.Offset
         {
             get
             {
                 CheckDefinitionInvariant();
-                return TypeLayoutOffset ?? 0;
+                return AdaptedFieldSymbol.TypeLayoutOffset ?? 0;
             }
         }
 
@@ -276,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.ContainingType;
+                return AdaptedFieldSymbol.ContainingType.GetAdapter();
             }
         }
 
@@ -285,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return PEModuleBuilder.MemberVisibility(this);
+                return PEModuleBuilder.MemberVisibility(AdaptedFieldSymbol);
             }
         }
 
@@ -293,8 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!this.IsDefinition);
-                return (FieldSymbol)this.OriginalDefinition;
+                Debug.Assert(!AdaptedFieldSymbol.IsDefinition);
+                return AdaptedFieldSymbol.OriginalDefinition.GetAdapter();
             }
         }
     }

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 payloadRootField = _instrumentationPayloadRootFields.GetOrAdd(analysisKind, kind => new InstrumentationPayloadRootField(this, kind, payloadRootType));
             }
 
-            Debug.Assert(payloadRootField.Type.Equals(payloadRootType));
+            Debug.Assert(object.Equals(payloadRootField.Type.AsSymbol, payloadRootType.AsSymbol));
             return payloadRootField;
         }
 
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _name = name;
         }
 
-        public override string ToString() => $"{_type} {_containingType}.{this.Name}";
+        public override string ToString() => $"{(object?)_type.AsSymbol ?? _type} {(object?)_containingType.AsSymbol ?? _containingType}.{this.Name}";
 
         public MetadataConstant? GetCompileTimeValue(EmitContext context) => null;
 
@@ -417,6 +417,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        Symbols.ISymbolInternal? Cci.IReference.AsSymbol => null;
 
         public string Name => _name;
 
@@ -538,6 +540,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             => SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
 
         public Cci.IDefinition AsDefinition(EmitContext context) => this;
+
+        Symbols.ISymbolInternal? Cci.IReference.AsSymbol => null;
 
         public bool IsEnum => false;
 

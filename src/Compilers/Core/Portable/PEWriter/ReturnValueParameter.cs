@@ -113,5 +113,7 @@ namespace Microsoft.Cci
         {
             return this as IDefinition;
         }
+
+        CodeAnalysis.Symbols.ISymbolInternal? Cci.IReference.AsSymbol => null;
     }
 }

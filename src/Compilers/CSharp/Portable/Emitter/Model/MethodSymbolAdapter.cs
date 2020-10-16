@@ -14,7 +14,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class MethodSymbol :
+    internal partial class
+#if DEBUG
+        MethodSymbolAdapter : SymbolAdapter,
+#else
+        MethodSymbol :
+#endif 
         Cci.ITypeMemberReference,
         Cci.IMethodReference,
         Cci.IGenericMethodInstanceReference,
@@ -22,14 +27,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeDefinitionMember,
         Cci.IMethodDefinition
     {
+#if DEBUG
+        internal MethodSymbolAdapter(MethodSymbol underlyingMethodSymbol)
+        {
+            UnderlyingMethodSymbol = underlyingMethodSymbol;
+
+            if (underlyingMethodSymbol is NativeIntegerMethodSymbol)
+            {
+                // Emit should use underlying symbol only.
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        internal sealed override Symbol AdaptedSymbol => UnderlyingMethodSymbol;
+        internal MethodSymbol UnderlyingMethodSymbol { get; }
+#else
+        internal MethodSymbol UnderlyingMethodSymbol => this;
+#endif 
+    }
+
+    internal partial class MethodSymbol
+    {
+#if DEBUG
+        private MethodSymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetAdapterImpl() => GetAdapter();
+#endif
+        internal new
+#if DEBUG
+            MethodSymbolAdapter
+#else
+            MethodSymbol
+#endif
+            GetAdapter()
+        {
+#if DEBUG
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new MethodSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+#else
+            return this;
+#endif
+        }
+    }
+
+    internal partial class
+#if DEBUG
+        MethodSymbolAdapter
+#else
+        MethodSymbol
+#endif
+    {
+
         Cci.IGenericMethodInstanceReference Cci.IMethodReference.AsGenericMethodInstanceReference
         {
             get
             {
                 Debug.Assert(this.IsDefinitionOrDistinct());
 
-                if (!this.IsDefinition &&
-                    this.IsGenericMethod)
+                if (!UnderlyingMethodSymbol.IsDefinition &&
+                    UnderlyingMethodSymbol.IsGenericMethod)
                 {
                     return this;
                 }
@@ -44,11 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this.IsDefinitionOrDistinct());
 
-                if (!this.IsDefinition &&
-                    (!this.IsGenericMethod || PEModuleBuilder.IsGenericType(this.ContainingType)))
+                if (!UnderlyingMethodSymbol.IsDefinition &&
+                    (!UnderlyingMethodSymbol.IsGenericMethod || PEModuleBuilder.IsGenericType(UnderlyingMethodSymbol.ContainingType)))
                 {
-                    Debug.Assert((object)this.ContainingType != null &&
-                            PEModuleBuilder.IsGenericType(this.ContainingType));
+                    Debug.Assert((object)UnderlyingMethodSymbol.ContainingType != null &&
+                            PEModuleBuilder.IsGenericType(UnderlyingMethodSymbol.ContainingType));
                     return this;
                 }
 
@@ -65,28 +125,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            var synthesizedGlobalMethod = this as SynthesizedGlobalMethodSymbol;
+            var synthesizedGlobalMethod = UnderlyingMethodSymbol as SynthesizedGlobalMethodSymbol;
             if ((object)synthesizedGlobalMethod != null)
             {
                 return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
             }
 
-            NamedTypeSymbol containingType = this.ContainingType;
+            NamedTypeSymbol containingType = UnderlyingMethodSymbol.ContainingType;
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             return moduleBeingBuilt.Translate(containingType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                 diagnostics: context.Diagnostics,
-                needDeclaration: this.IsDefinition);
+                needDeclaration: UnderlyingMethodSymbol.IsDefinition);
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            if (!this.IsDefinition)
+            if (!UnderlyingMethodSymbol.IsDefinition)
             {
-                if (this.IsGenericMethod)
+                if (UnderlyingMethodSymbol.IsGenericMethod)
                 {
                     Debug.Assert(((Cci.IMethodReference)this).AsGenericMethodInstanceReference != null);
                     visitor.Visit((Cci.IGenericMethodInstanceReference)this);
@@ -100,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)visitor.Context.Module;
-                if (this.ContainingModule == moduleBeingBuilt.SourceModule)
+                if (UnderlyingMethodSymbol.ContainingModule == moduleBeingBuilt.SourceModule)
                 {
                     Debug.Assert(((Cci.IMethodReference)this).GetResolvedMethod(visitor.Context) != null);
                     visitor.Visit((Cci.IMethodDefinition)this);
@@ -114,14 +174,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         string Cci.INamedEntity.Name
         {
-            get { return this.MetadataName; }
+            get { return UnderlyingMethodSymbol.MetadataName; }
         }
 
         bool Cci.IMethodReference.AcceptsExtraArguments
         {
             get
             {
-                return this.IsVararg;
+                return UnderlyingMethodSymbol.IsVararg;
             }
         }
 
@@ -129,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (ushort)this.Arity;
+                return (ushort)UnderlyingMethodSymbol.Arity;
             }
         }
 
@@ -137,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsGenericMethod;
+                return UnderlyingMethodSymbol.IsGenericMethod;
             }
         }
 
@@ -145,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (ushort)this.ParameterCount;
+                return (ushort)UnderlyingMethodSymbol.ParameterCount;
             }
         }
 
@@ -159,10 +219,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinitionOrDistinct());
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            if (this.IsDefinition && // can't be generic instantiation
-                this.ContainingModule == moduleBeingBuilt.SourceModule) // must be declared in the module we are building
+            if (UnderlyingMethodSymbol.IsDefinition && // can't be generic instantiation
+                UnderlyingMethodSymbol.ContainingModule == moduleBeingBuilt.SourceModule) // must be declared in the module we are building
             {
-                Debug.Assert((object)this.PartialDefinitionPart == null); // must be definition
+                Debug.Assert((object)UnderlyingMethodSymbol.PartialDefinitionPart == null); // must be definition
                 return this;
             }
 
@@ -181,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.CallingConvention;
+                return UnderlyingMethodSymbol.CallingConvention;
             }
         }
 
@@ -190,28 +250,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinitionOrDistinct());
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            if (this.IsDefinition && this.ContainingModule == moduleBeingBuilt.SourceModule)
+            if (UnderlyingMethodSymbol.IsDefinition && UnderlyingMethodSymbol.ContainingModule == moduleBeingBuilt.SourceModule)
             {
                 return StaticCast<Cci.IParameterTypeInformation>.From(this.EnumerateDefinitionParameters());
             }
             else
             {
-                return moduleBeingBuilt.Translate(this.Parameters);
+                return moduleBeingBuilt.Translate(UnderlyingMethodSymbol.Parameters);
             }
         }
 
         private ImmutableArray<Cci.IParameterDefinition> EnumerateDefinitionParameters()
         {
-            Debug.Assert(this.Parameters.All(p => p.IsDefinition));
+            Debug.Assert(UnderlyingMethodSymbol.Parameters.All(p => p.IsDefinition));
 
-            return StaticCast<Cci.IParameterDefinition>.From(this.Parameters);
+#if DEBUG
+            return UnderlyingMethodSymbol.Parameters.SelectAsArray<ParameterSymbol, Cci.IParameterDefinition>(p => p.GetAdapter());
+#else
+            return StaticCast<Cci.IParameterDefinition>.From(UnderlyingMethodSymbol.Parameters);
+#endif
         }
 
         ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
         {
             get
             {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(this.ReturnTypeWithAnnotations.CustomModifiers);
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethodSymbol.ReturnTypeWithAnnotations.CustomModifiers);
             }
         }
 
@@ -219,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(this.RefCustomModifiers);
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethodSymbol.RefCustomModifiers);
             }
         }
 
@@ -227,13 +291,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.RefKind.IsManagedReference();
+                return UnderlyingMethodSymbol.RefKind.IsManagedReference();
             }
         }
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(this.ReturnType,
+            return ((PEModuleBuilder)context.Module).Translate(UnderlyingMethodSymbol.ReturnType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                 diagnostics: context.Diagnostics);
         }
@@ -244,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(((Cci.IMethodReference)this).AsGenericMethodInstanceReference != null);
 
-            foreach (var arg in this.TypeArgumentsWithAnnotations)
+            foreach (var arg in UnderlyingMethodSymbol.TypeArgumentsWithAnnotations)
             {
                 Debug.Assert(arg.CustomModifiers.IsEmpty);
                 yield return moduleBeingBuilt.Translate(arg.Type,
@@ -257,19 +321,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(((Cci.IMethodReference)this).AsGenericMethodInstanceReference != null);
 
-            NamedTypeSymbol container = this.ContainingType;
+            NamedTypeSymbol container = UnderlyingMethodSymbol.ContainingType;
 
             if (!PEModuleBuilder.IsGenericType(container))
             {
                 // NoPia method might come through here.
                 return ((PEModuleBuilder)context.Module).Translate(
-                    (MethodSymbol)this.OriginalDefinition,
+                    (MethodSymbol)UnderlyingMethodSymbol.OriginalDefinition,
                     syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                     diagnostics: context.Diagnostics,
                     needDeclaration: true);
             }
 
-            MethodSymbol methodSymbol = this.ConstructedFrom;
+            MethodSymbol methodSymbol = UnderlyingMethodSymbol.ConstructedFrom;
 
             return new SpecializedMethodReference(methodSymbol);
         }
@@ -279,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Debug.Assert(((Cci.IMethodReference)this).AsSpecializedMethodReference != null);
-                return (MethodSymbol)this.OriginalDefinition;
+                return ((MethodSymbol)UnderlyingMethodSymbol.OriginalDefinition).GetAdapter();
             }
         }
 
@@ -289,13 +353,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                var synthesizedGlobalMethod = this as SynthesizedGlobalMethodSymbol;
+                var synthesizedGlobalMethod = UnderlyingMethodSymbol as SynthesizedGlobalMethodSymbol;
                 if ((object)synthesizedGlobalMethod != null)
                 {
                     return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
                 }
 
-                return this.ContainingType;
+                return UnderlyingMethodSymbol.ContainingType.GetAdapter();
             }
         }
 
@@ -304,14 +368,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return PEModuleBuilder.MemberVisibility(this);
+                return PEModuleBuilder.MemberVisibility(UnderlyingMethodSymbol);
             }
         }
 
         Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return ((PEModuleBuilder)context.Module).GetMethodBody(this);
+            return ((PEModuleBuilder)context.Module).GetMethodBody(UnderlyingMethodSymbol);
         }
 
         IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters
@@ -320,10 +384,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                foreach (var @param in this.TypeParameters)
+                foreach (var @param in UnderlyingMethodSymbol.TypeParameters)
                 {
                     Debug.Assert(@param.IsDefinition);
-                    yield return @param;
+                    yield return @param.GetAdapter();
                 }
             }
         }
@@ -333,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.HasDeclarativeSecurity;
+                return UnderlyingMethodSymbol.HasDeclarativeSecurity;
             }
         }
 
@@ -342,8 +406,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                Debug.Assert(this.HasDeclarativeSecurity);
-                return this.GetSecurityInformation();
+                Debug.Assert(UnderlyingMethodSymbol.HasDeclarativeSecurity);
+                return UnderlyingMethodSymbol.GetSecurityInformation();
             }
         }
 
@@ -352,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsAbstract;
+                return UnderlyingMethodSymbol.IsAbstract;
             }
         }
 
@@ -362,10 +426,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                return this.IsAccessCheckedOnOverride;
+                return UnderlyingMethodSymbol.IsAccessCheckedOnOverride;
             }
         }
+    }
 
+    internal partial class MethodSymbol
+    {
         internal virtual bool IsAccessCheckedOnOverride
         {
             get
@@ -380,16 +447,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (accessibility == Accessibility.Private ||
                         accessibility == Accessibility.ProtectedAndInternal ||
                         accessibility == Accessibility.Internal)
-                       && ((Cci.IMethodDefinition)this).IsVirtual && !((Cci.IMethodDefinition)this).IsSealed;
+                       && this.IsMetadataVirtual() && !this.IsMetadataFinal;
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        MethodSymbolAdapter
+#else
+        MethodSymbol
+#endif
+    {
         bool Cci.IMethodDefinition.IsConstructor
         {
             get
             {
                 CheckDefinitionInvariant();
-                return this.MethodKind == MethodKind.Constructor;
+                return UnderlyingMethodSymbol.MethodKind == MethodKind.Constructor;
             }
         }
 
@@ -399,10 +474,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                return this.IsExternal;
+                return UnderlyingMethodSymbol.IsExternal;
             }
         }
+    }
 
+    internal partial class MethodSymbol
+    {
         internal virtual bool IsExternal
         {
             get
@@ -416,13 +494,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.IsExtern || (object)ContainingType != null && ContainingType.TypeKind == TypeKind.Delegate;
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        MethodSymbolAdapter
+#else
+        MethodSymbol
+#endif
+    {
         bool Cci.IMethodDefinition.IsHiddenBySignature
         {
             get
             {
                 CheckDefinitionInvariant();
-                return !this.HidesBaseMethodsByName;
+                return !UnderlyingMethodSymbol.HidesBaseMethodsByName;
             }
         }
 
@@ -431,10 +517,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsMetadataNewSlot();
+                return UnderlyingMethodSymbol.IsMetadataNewSlot();
             }
         }
+    }
 
+    internal partial class MethodSymbol
+    {
         /// <summary>
         /// This method indicates whether or not the runtime will regard the method
         /// as newslot (as indicated by the presence of the "newslot" modifier in the
@@ -447,13 +536,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// NOTE: Not ignoring changes can only result in a value that is more true.
         /// </summary>
         internal abstract bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false);
+    }
 
+    internal partial class
+#if DEBUG
+        MethodSymbolAdapter
+#else
+        MethodSymbol
+#endif
+    {
         bool Cci.IMethodDefinition.IsPlatformInvoke
         {
             get
             {
                 CheckDefinitionInvariant();
-                return this.GetDllImportData() != null;
+                return UnderlyingMethodSymbol.GetDllImportData() != null;
             }
         }
 
@@ -462,14 +559,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.GetDllImportData();
+                return UnderlyingMethodSymbol.GetDllImportData();
             }
         }
 
         System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return this.ImplementationAttributes;
+            return UnderlyingMethodSymbol.ImplementationAttributes;
         }
 
         bool Cci.IMethodDefinition.IsRuntimeSpecial
@@ -477,10 +574,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.HasRuntimeSpecialName;
+                return UnderlyingMethodSymbol.HasRuntimeSpecialName;
             }
         }
+    }
 
+    internal partial class MethodSymbol
+    {
         internal virtual bool HasRuntimeSpecialName
         {
             get
@@ -490,16 +590,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     || this.MethodKind == MethodKind.StaticConstructor;
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        MethodSymbolAdapter
+#else
+        MethodSymbol
+#endif
+    {
         bool Cci.IMethodDefinition.IsSealed
         {
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsMetadataFinal;
+                return UnderlyingMethodSymbol.IsMetadataFinal;
             }
         }
+    }
 
+    internal partial class MethodSymbol
+    {
         internal virtual bool IsMetadataFinal
         {
             get
@@ -512,13 +623,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                      !(this.IsVirtual || this.IsOverride || this.IsAbstract || this.MethodKind == MethodKind.Destructor));
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        MethodSymbolAdapter
+#else
+        MethodSymbol
+#endif
+    {
         bool Cci.IMethodDefinition.IsSpecialName
         {
             get
             {
                 CheckDefinitionInvariant();
-                return this.HasSpecialName;
+                return UnderlyingMethodSymbol.HasSpecialName;
             }
         }
 
@@ -527,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsStatic;
+                return UnderlyingMethodSymbol.IsStatic;
             }
         }
 
@@ -536,10 +655,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsMetadataVirtual();
+                return UnderlyingMethodSymbol.IsMetadataVirtual();
             }
         }
+    }
 
+    internal partial class MethodSymbol
+    {
         /// <summary>
         /// This method indicates whether or not the runtime will regard the method
         /// as virtual (as indicated by the presence of the "virtual" modifier in the
@@ -552,7 +674,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// NOTE: Not ignoring changes can only result in a value that is more true.
         /// </summary>
         internal abstract bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false);
+    }
 
+    internal partial class
+#if DEBUG
+        MethodSymbolAdapter
+#else
+        MethodSymbol
+#endif
+    {
         ImmutableArray<Cci.IParameterDefinition> Cci.IMethodDefinition.Parameters
         {
             get
@@ -568,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                return this.RequiresSecurityObject;
+                return UnderlyingMethodSymbol.RequiresSecurityObject;
             }
         }
 
@@ -576,13 +706,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            ImmutableArray<CSharpAttributeData> userDefined = this.GetReturnTypeAttributes();
+            ImmutableArray<CSharpAttributeData> userDefined = UnderlyingMethodSymbol.GetReturnTypeAttributes();
             ArrayBuilder<SynthesizedAttributeData> synthesized = null;
-            this.AddSynthesizedReturnTypeAttributes((PEModuleBuilder)context.Module, ref synthesized);
+            UnderlyingMethodSymbol.AddSynthesizedReturnTypeAttributes((PEModuleBuilder)context.Module, ref synthesized);
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
-            return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType: true, emittingAssemblyAttributesInNetModule: false);
+            return UnderlyingMethodSymbol.GetCustomAttributesToEmit(userDefined, synthesized, isReturnType: true, emittingAssemblyAttributesInNetModule: false);
         }
 
         bool Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly
@@ -590,10 +720,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.ReturnValueIsMarshalledExplicitly;
+                return UnderlyingMethodSymbol.ReturnValueIsMarshalledExplicitly;
             }
         }
+    }
 
+    internal partial class MethodSymbol
+    {
         internal virtual bool ReturnValueIsMarshalledExplicitly
         {
             get
@@ -602,13 +735,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.ReturnValueMarshallingInformation != null;
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        MethodSymbolAdapter
+#else
+        MethodSymbol
+#endif
+    {
         Cci.IMarshallingInformation Cci.IMethodDefinition.ReturnValueMarshallingInformation
         {
             get
             {
                 CheckDefinitionInvariant();
-                return this.ReturnValueMarshallingInformation;
+                return UnderlyingMethodSymbol.ReturnValueMarshallingInformation;
             }
         }
 
@@ -617,10 +758,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.ReturnValueMarshallingDescriptor;
+                return UnderlyingMethodSymbol.ReturnValueMarshallingDescriptor;
             }
         }
+    }
 
+    internal partial class MethodSymbol
+    {
         internal virtual ImmutableArray<byte> ReturnValueMarshallingDescriptor
         {
             get
@@ -629,12 +773,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default(ImmutableArray<byte>);
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        MethodSymbolAdapter
+#else
+        MethodSymbol
+#endif
+    {
         Cci.INamespace Cci.IMethodDefinition.ContainingNamespace
         {
             get
             {
-                return ContainingNamespace;
+                return UnderlyingMethodSymbol.ContainingNamespace.GetAdapter();
             }
         }
     }

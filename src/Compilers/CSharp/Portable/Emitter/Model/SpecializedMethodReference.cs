@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return UnderlyingMethod.OriginalDefinition;
+                return UnderlyingMethod.OriginalDefinition.GetAdapter();
             }
         }
 

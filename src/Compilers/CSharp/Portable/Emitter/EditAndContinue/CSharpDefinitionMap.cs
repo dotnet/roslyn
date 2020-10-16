@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeDefinitionHandle handle)
         {
-            if (_mapToMetadata.MapDefinition(def) is PENamedTypeSymbol other)
+            if (_mapToMetadata.MapDefinition(def)?.AsSymbol is PENamedTypeSymbol other)
             {
                 handle = other.Handle;
                 return true;
@@ -72,7 +72,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override bool TryGetEventHandle(Cci.IEventDefinition def, out EventDefinitionHandle handle)
         {
-            if (_mapToMetadata.MapDefinition(def) is PEEventSymbol other)
+            if (_mapToMetadata.MapDefinition(def) is
+#if DEBUG
+                EventSymbolAdapter
+                {
+                    AdaptedEventSymbol:
+#endif
+                    PEEventSymbol other
+#if DEBUG
+                }
+#endif
+                )
             {
                 handle = other.Handle;
                 return true;
@@ -84,7 +94,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override bool TryGetFieldHandle(Cci.IFieldDefinition def, out FieldDefinitionHandle handle)
         {
-            if (_mapToMetadata.MapDefinition(def) is PEFieldSymbol other)
+            if (_mapToMetadata.MapDefinition(def) is
+#if DEBUG
+                FieldSymbolAdapter
+                {
+                    AdaptedFieldSymbol:
+#endif
+                    PEFieldSymbol other
+#if DEBUG
+                }
+#endif
+                )
             {
                 handle = other.Handle;
                 return true;
@@ -96,7 +116,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodDefinitionHandle handle)
         {
-            if (_mapToMetadata.MapDefinition(def) is PEMethodSymbol other)
+            if (_mapToMetadata.MapDefinition(def) is
+#if DEBUG
+                MethodSymbolAdapter
+                {
+                    UnderlyingMethodSymbol:
+#endif
+                    PEMethodSymbol other
+#if DEBUG
+                }
+#endif
+                )
             {
                 handle = other.Handle;
                 return true;
@@ -108,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyDefinitionHandle handle)
         {
-            if (_mapToMetadata.MapDefinition(def) is PEPropertySymbol other)
+            if (_mapToMetadata.MapDefinition(def)?.AsSymbol is PEPropertySymbol other)
             {
                 handle = other.Handle;
                 return true;
@@ -147,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                 var field = (FieldSymbol)member;
 
                                 // correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
-                                awaiters[(Cci.ITypeReference)field.Type] = slotIndex;
+                                awaiters[(Cci.ITypeReference)field.Type.GetAdapter()] = slotIndex;
 
                                 if (slotIndex > maxAwaiterSlotIndex)
                                 {
@@ -168,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                     continue;
                                 }
 
-                                var key = new EncHoistedLocalInfo(localSlotDebugInfo[slotIndex], (Cci.ITypeReference)field.Type);
+                                var key = new EncHoistedLocalInfo(localSlotDebugInfo[slotIndex], (Cci.ITypeReference)field.Type.GetAdapter());
 
                                 // correct metadata won't contain duplicate ids, but malformed might, ignore the duplicate:
                                 hoistedLocals[key] = slotIndex;
@@ -237,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         // previous version of the local if it had custom modifiers.
                         if (metadata.CustomModifiers.IsDefaultOrEmpty)
                         {
-                            var local = new EncLocalInfo(slot, (Cci.ITypeReference)metadata.Type, metadata.Constraints, metadata.SignatureOpt);
+                            var local = new EncLocalInfo(slot, (Cci.ITypeReference)metadata.Type.GetAdapter(), metadata.Constraints, metadata.SignatureOpt);
                             map.Add(local, slotIndex);
                         }
                     }

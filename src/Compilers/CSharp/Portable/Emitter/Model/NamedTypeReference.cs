@@ -150,5 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             return null;
         }
+
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.AsSymbol => null;
     }
 }

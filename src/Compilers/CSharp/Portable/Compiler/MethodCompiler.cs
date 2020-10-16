@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     entryPoint = synthesizedEntryPoint;
                     if ((object)moduleBeingBuilt != null)
                     {
-                        moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
+                        moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint.GetAdapter());
                     }
                 }
             }
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If this method has been successfully built, we emit it.
                     if (_moduleBeingBuiltOpt.GetMethodBody(method) != null)
                     {
-                        _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, method);
+                        _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, method.GetAdapter());
                     }
                 }
             }
@@ -636,8 +636,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_moduleBeingBuiltOpt != null);
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
-            foreach (MethodSymbol method in privateImplClass.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics, metadataOnly: false, includePrivateMembers: true)))
+            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics, metadataOnly: false, includePrivateMembers: true)))
             {
+                var method = (MethodSymbol)definition.AsSymbol;
                 Debug.Assert(method.SynthesizesLoweredBoundBody);
                 method.GenerateMethodBody(compilationState, diagnostics);
             }
@@ -786,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     synthesizedExplicitImpl.GenerateMethodBody(compilationState, discardedDiagnostics);
                     Debug.Assert(!discardedDiagnostics.HasAnyErrors());
                     discardedDiagnostics.Free();
-                    _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, synthesizedExplicitImpl);
+                    _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, synthesizedExplicitImpl.GetAdapter());
                 }
             }
         }
@@ -804,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!discardedDiagnostics.HasAnyErrors());
                 discardedDiagnostics.Free();
 
-                _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor);
+                _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor.GetAdapter());
             }
         }
 
@@ -1476,7 +1477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool isAsyncMainMoveNext = entryPointOpt?.UserMain.Equals(kickoffMethod) == true;
 
                     moveNextBodyDebugInfoOpt = new AsyncMoveNextBodyDebugInfo(
-                        kickoffMethod,
+                        kickoffMethod.GetAdapter(),
                         catchHandlerOffset: (kickoffMethod.ReturnsVoid || isAsyncMainMoveNext) ? asyncCatchHandlerOffset : -1,
                         asyncYieldPoints,
                         asyncResumePoints);
@@ -1487,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if ((object)kickoffMethod != null)
                     {
-                        moveNextBodyDebugInfoOpt = new IteratorMoveNextBodyDebugInfo(kickoffMethod);
+                        moveNextBodyDebugInfoOpt = new IteratorMoveNextBodyDebugInfo(kickoffMethod.GetAdapter());
                     }
                 }
 
@@ -1539,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MethodBody(
                     builder.RealizedIL,
                     builder.MaxStack,
-                    method.PartialDefinitionPart ?? method,
+                    (method.PartialDefinitionPart ?? method).GetAdapter(),
                     variableSlotAllocatorOpt?.MethodId ?? new DebugId(methodOrdinal, moduleBuilder.CurrentGenerationOrdinal),
                     localVariables,
                     builder.RealizedSequencePoints,
@@ -1582,7 +1583,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hoistedVariables = ArrayBuilder<EncHoistedLocalInfo>.GetInstance();
             var awaiters = ArrayBuilder<Cci.ITypeReference>.GetInstance();
 
-            foreach (StateMachineFieldSymbol field in fieldDefs)
+            foreach (StateMachineFieldSymbol field in
+                     fieldDefs
+#if DEBUG
+                     .Select(f => ((FieldSymbolAdapter)f).AdaptedFieldSymbol)
+#endif
+                     )
             {
                 int index = field.SlotIndex;
 

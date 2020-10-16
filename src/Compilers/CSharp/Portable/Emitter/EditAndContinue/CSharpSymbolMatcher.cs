@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override Cci.IDefinition MapDefinition(Cci.IDefinition definition)
         {
-            if (definition is Symbol symbol)
+            if (definition.AsSymbol is Symbol symbol)
             {
-                return (Cci.IDefinition)_symbols.Visit(symbol);
+                return (Cci.IDefinition)_symbols.Visit(symbol)?.GetAdapter();
             }
 
             return _defs.VisitDef(definition);
@@ -63,14 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override Cci.INamespace MapNamespace(Cci.INamespace @namespace)
         {
-            return (Cci.INamespace)_symbols.Visit((NamespaceSymbol)@namespace);
+            return (Cci.INamespace)_symbols.Visit((NamespaceSymbol)((Cci.IReference)@namespace).AsSymbol)?.GetAdapter();
         }
 
         public override Cci.ITypeReference MapReference(Cci.ITypeReference reference)
         {
-            if (reference is Symbol symbol)
+            if (reference?.AsSymbol is Symbol symbol)
             {
-                return (Cci.ITypeReference)_symbols.Visit(symbol);
+                return (Cci.ITypeReference)_symbols.Visit(symbol)?.GetAdapter();
             }
 
             return null;
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     }
                     else
                     {
-                        builder.Add((Cci.INamespaceTypeDefinition)member);
+                        builder.Add((Cci.INamespaceTypeDefinition)member.GetAdapter());
                     }
                 }
             }
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         {
                             Debug.Assert((object)otherContainer == (object)_otherAssembly.GlobalNamespace);
                             TryFindAnonymousType(template, out var value);
-                            return (NamedTypeSymbol)value.Type;
+                            return (NamedTypeSymbol)value.Type?.AsSymbol;
                         }
 
                         if (sourceType.IsAnonymousType)

@@ -1671,14 +1671,14 @@ class C : I
             var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
             Assert.Equal(interfaceMethod, explicitImpl);
 
-            var typeDef = (Cci.ITypeDefinition)@class;
+            var typeDef = (Cci.ITypeDefinition)@class.GetAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType);
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
-            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod);
+            Assert.Equal(@class, explicitOverride.ContainingType.GetSymbol());
+            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetSymbol());
+            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetSymbol());
             context.Diagnostics.Verify();
         }
 
@@ -1715,14 +1715,14 @@ class F : System.IFormattable
             var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
             Assert.Equal(interfaceMethod, explicitImpl);
 
-            var typeDef = (Cci.ITypeDefinition)@class;
+            var typeDef = (Cci.ITypeDefinition)@class.GetAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType);
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
-            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod);
+            Assert.Equal(@class, explicitOverride.ContainingType.GetSymbol());
+            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetSymbol());
+            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetSymbol());
             context.Diagnostics.Verify();
         }
 
@@ -1762,14 +1762,14 @@ class C : I
             var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
             Assert.Equal(interfaceMethod, explicitImpl);
 
-            var typeDef = (Cci.ITypeDefinition)@class;
+            var typeDef = (Cci.ITypeDefinition)@class.GetAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType);
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
-            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod);
+            Assert.Equal(@class, explicitOverride.ContainingType.GetSymbol());
+            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetSymbol());
+            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetSymbol());
             context.Diagnostics.Verify();
         }
 
@@ -1816,16 +1816,16 @@ class IC : Namespace.I<int>
             Assert.Equal(substitutedInterface, explicitImpl.ContainingType);
             Assert.Equal(substitutedInterfaceMethod.OriginalDefinition, explicitImpl.OriginalDefinition);
 
-            var typeDef = (Cci.ITypeDefinition)@class;
+            var typeDef = (Cci.ITypeDefinition)@class.GetAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType);
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
+            Assert.Equal(@class, explicitOverride.ContainingType.GetSymbol());
+            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetSymbol());
 
             var explicitOverrideImplementedMethod = explicitOverride.ImplementedMethod;
-            Assert.Equal(substitutedInterface, explicitOverrideImplementedMethod.GetContainingType(context));
+            Assert.Equal(substitutedInterface, explicitOverrideImplementedMethod.GetContainingType(context).GetSymbol());
             Assert.Equal(substitutedInterfaceMethod.Name, explicitOverrideImplementedMethod.Name);
             Assert.Equal(substitutedInterfaceMethod.Arity, explicitOverrideImplementedMethod.GenericParameterCount);
             context.Diagnostics.Verify();
@@ -1859,8 +1859,8 @@ class C
             Assert.False(method4.IsVirtual);
 
             //1 and 3 - read before set
-            Assert.True(((Cci.IMethodDefinition)method1).IsVirtual);
-            Assert.False(((Cci.IMethodDefinition)method3).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)method1.GetAdapter()).IsVirtual);
+            Assert.False(((Cci.IMethodDefinition)method3.GetAdapter()).IsVirtual);
 
             //2 and 4 - set before read
             method2.EnsureMetadataVirtual();
@@ -1870,8 +1870,8 @@ class C
             method2.EnsureMetadataVirtual();
             method4.EnsureMetadataVirtual();
 
-            Assert.True(((Cci.IMethodDefinition)method2).IsVirtual);
-            Assert.True(((Cci.IMethodDefinition)method4).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)method2.GetAdapter()).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)method4.GetAdapter()).IsVirtual);
 
             //API view unchanged
             Assert.True(method1.IsVirtual);
@@ -1957,14 +1957,14 @@ public class C : B
             var methodB = classB.GetMember<MethodSymbol>("get_P");
             var methodC = classC.GetMember<PropertySymbol>("P").GetMethod;
 
-            var typeDefC = (Cci.ITypeDefinition)classC;
+            var typeDefC = (Cci.ITypeDefinition)classC.GetAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(classC, explicitOverride.ContainingType);
-            Assert.Equal(methodC, explicitOverride.ImplementingMethod);
-            Assert.Equal(methodA, explicitOverride.ImplementedMethod);
+            Assert.Equal(classC, explicitOverride.ContainingType.GetSymbol());
+            Assert.Equal(methodC, explicitOverride.ImplementingMethod.GetSymbol());
+            Assert.Equal(methodA, explicitOverride.ImplementedMethod.GetSymbol());
             context.Diagnostics.Verify();
         }
 
@@ -2001,14 +2001,14 @@ public class C : B
             var methodB = classB.GetMember<PropertySymbol>("P").GetMethod;
             var methodC = classC.GetMember<MethodSymbol>("get_P");
 
-            var typeDefC = (Cci.ITypeDefinition)classC;
+            var typeDefC = (Cci.ITypeDefinition)classC.GetAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(classC, explicitOverride.ContainingType);
-            Assert.Equal(methodC, explicitOverride.ImplementingMethod);
-            Assert.Equal(methodA, explicitOverride.ImplementedMethod);
+            Assert.Equal(classC, explicitOverride.ContainingType.GetSymbol());
+            Assert.Equal(methodC, explicitOverride.ImplementingMethod.GetSymbol());
+            Assert.Equal(methodA, explicitOverride.ImplementedMethod.GetSymbol());
             context.Diagnostics.Verify();
         }
 

@@ -794,5 +794,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return symbol.GetSymbol<FunctionPointerTypeSymbol>();
         }
+
+        // PROTOTYPE: Now Cci.IReference.AsSymbol?
+        internal static Symbol GetSymbol(this Cci.IReference adapter)
+        {
+#if DEBUG
+            return ((SymbolAdapter)adapter).AdaptedSymbol;
+#else
+            return (Symbol)adapter;
+#endif
+        }
     }
 }

@@ -110,5 +110,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Function IReferenceAsDefinition(context As EmitContext) As Cci.IDefinition Implements Cci.IReference.AsDefinition
             Return Nothing
         End Function
+
+        Private ReadOnly Property IReferenceAsSymbol As CodeAnalysis.Symbols.ISymbolInternal Implements Cci.IReference.AsSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
     End Class
 End Namespace

@@ -17,7 +17,10 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract Cci.INamespace MapNamespace(Cci.INamespace @namespace);
 
         public ISymbolInternal MapDefinitionOrNamespace(ISymbolInternal symbol)
-            => (symbol is Cci.IDefinition definition) ? (ISymbolInternal)MapDefinition(definition) : (ISymbolInternal)MapNamespace((Cci.INamespace)symbol);
+        {
+            var adapter = symbol.GetAdapter();
+            return ((adapter is Cci.IDefinition definition) ? MapDefinition(definition) : (Cci.IReference)MapNamespace((Cci.INamespace)adapter))?.AsSymbol;
+        }
 
         public EmitBaseline MapBaselineToCompilation(
             EmitBaseline baseline,

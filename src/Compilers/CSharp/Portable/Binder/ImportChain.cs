@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var ns = (NamespaceSymbol)namespaceOrType;
                         var assemblyRef = TryGetAssemblyScope(ns, moduleBuilder, diagnostics);
-                        usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateNamespace(ns, assemblyRef));
+                        usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateNamespace(ns.GetAdapter(), assemblyRef));
                     }
                     else if (!namespaceOrType.ContainingAssembly.IsLinked)
                     {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var ns = (NamespaceSymbol)target;
                         var assemblyRef = TryGetAssemblyScope(ns, moduleBuilder, diagnostics);
-                        usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateNamespace(ns, assemblyRef, alias));
+                        usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateNamespace(ns.GetAdapter(), assemblyRef, alias));
                     }
                     else if (!target.ContainingAssembly.IsLinked)
                     {

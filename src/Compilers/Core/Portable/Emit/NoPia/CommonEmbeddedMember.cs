@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 throw ExceptionUtilities.Unreachable;
             }
+
+            Symbols.ISymbolInternal Cci.IReference.AsSymbol => null;
         }
     }
 }

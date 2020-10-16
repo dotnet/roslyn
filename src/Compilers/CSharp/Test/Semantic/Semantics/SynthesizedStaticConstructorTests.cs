@@ -304,7 +304,7 @@ class C
 
         private static bool IsBeforeFieldInit(NamedTypeSymbol typeSymbol)
         {
-            return ((Microsoft.Cci.ITypeDefinition)typeSymbol).IsBeforeFieldInit;
+            return ((Microsoft.Cci.ITypeDefinition)typeSymbol.GetAdapter()).IsBeforeFieldInit;
         }
     }
 }

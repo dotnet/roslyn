@@ -604,12 +604,12 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var typeRef in GetTypeRefs())
             {
-                ReportReferencesToAddedSymbol(typeRef as ISymbolInternal);
+                ReportReferencesToAddedSymbol(typeRef.AsSymbol);
             }
 
             foreach (var memberRef in GetMemberRefs())
             {
-                ReportReferencesToAddedSymbol(memberRef as ISymbolInternal);
+                ReportReferencesToAddedSymbol(memberRef.AsSymbol);
             }
         }
 
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // local type is already translated, but not recursively
             ITypeReference translatedType = localDef.Type;
-            ITypeSymbolInternal typeSymbol = translatedType as ITypeSymbolInternal;
+            ITypeSymbolInternal typeSymbol = translatedType.AsSymbol as ITypeSymbolInternal;
             if (typeSymbol != null)
             {
                 translatedType = Context.Module.EncTranslateType(typeSymbol, Context.Diagnostics);

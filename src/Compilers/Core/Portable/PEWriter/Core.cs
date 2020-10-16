@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Symbols;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -38,5 +39,7 @@ namespace Microsoft.Cci
         /// or null if the referenced entity isn't defined in the context.
         /// </summary>
         IDefinition? AsDefinition(EmitContext context);
+
+        ISymbolInternal? AsSymbol { get; }
     }
 }

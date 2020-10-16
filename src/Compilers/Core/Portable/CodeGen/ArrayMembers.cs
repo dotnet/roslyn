@@ -10,6 +10,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.SymbolStore;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 
@@ -364,6 +365,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             => null;
 
         public override string ToString()
-            => arrayType.ToString() + "." + Name;
+            => ((object?)arrayType.AsSymbol ?? arrayType).ToString() + "." + Name;
+
+        Symbols.ISymbolInternal? Cci.IReference.AsSymbol => null;
     }
 }

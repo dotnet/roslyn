@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // Handle cases when the previous method doesn't exist.
 
             MethodDefinitionHandle previousHandle;
-            if (!TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method, out previousHandle))
+            if (!TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method.GetAdapter(), out previousHandle))
             {
                 // Unrecognized method. Must have been added in the current compilation.
                 return null;
