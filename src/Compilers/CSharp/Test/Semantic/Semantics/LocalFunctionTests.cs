@@ -1719,7 +1719,6 @@ class C
                 //         void Local<[A, B, CLSCompliant, D]T>() { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
-
             var model = comp.GetSemanticModel(tree);
 
             var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.ValueText == "x").Single();
@@ -1925,7 +1924,6 @@ class C
                 // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A, B, CLSCompliant, D]T>() { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
-
 
             var localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
             var model = comp.GetSemanticModel(tree);
@@ -2483,7 +2481,6 @@ class C
                 // (13,17): warning CS8321: The local function 'BadLocal2' is declared but never used
                 //     public void BadLocal2()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "BadLocal2").WithArguments("BadLocal2").WithLocation(13, 17));
-
         }
 
         [Fact]
@@ -2825,18 +2822,19 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-                // (8,40): error CS0834: A lambda expression with a statement body cannot be converted to an expression tree
-                //         Expression<Func<int, int>> f = x =>
-                Diagnostic(ErrorCode.ERR_StatementLambdaToExpressionTree, @"x =>
-                    {
-                        int Local(int y) => y;
-                        return Local(x);
-                    }").WithLocation(8, 40),
-                // (11,20): error CS8096: An expression tree may not contain a local function or a reference to a local function
-                //             return Local(x);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Local(x)").WithLocation(11, 20)
-                );
+    // (8,40): error CS0834: A lambda expression with a statement body cannot be converted to an expression tree
+    //         Expression<Func<int, int>> f = x =>
+    Diagnostic(ErrorCode.ERR_StatementLambdaToExpressionTree, @"x =>
+        {
+            int Local(int y) => y;
+            return Local(x);
+        }").WithLocation(8, 40),
+    // (11,20): error CS8096: An expression tree may not contain a local function or a reference to a local function
+    //             return Local(x);
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Local(x)").WithLocation(11, 20)
+    );
         }
+
         [Fact]
         public void BadScoping()
         {
