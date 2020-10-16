@@ -8,14 +8,13 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -60,8 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
 
         protected override async Task<Document> ConvertFromAsToCastAsync(Document document, BinaryExpressionSyntax asExpression, CancellationToken cancellationToken)
         {
-            var generator = new CSharpSyntaxGenerator();
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var expression = asExpression.Left;
             if (asExpression.Right is not TypeSyntax typeNode)
             {
@@ -69,22 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
             }
 
             var castExpression = CastExpression(typeNode, expression.WithoutTrailingTrivia());
-            var newRoot = generator.ReplaceNode(root, asExpression, castExpression);
 
-            return document.WithSyntaxRoot(newRoot);
+            return await document.ReplaceNodeAsync<SyntaxNode>(asExpression, castExpression, cancellationToken).ConfigureAwait(false);
         }
 
         protected override async Task<Document> ConvertFromCastToAsAsync(Document document, CastExpressionSyntax castExpression, CancellationToken cancellationToken)
         {
-            var generator = new CSharpSyntaxGenerator();
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var typeNode = castExpression.Type;
             var expression = castExpression.Expression;
 
             var asExpression = BinaryExpression(SyntaxKind.AsExpression, expression, typeNode);
-            var newRoot = generator.ReplaceNode(root, castExpression, asExpression);
 
-            return document.WithSyntaxRoot(newRoot);
+            return await document.ReplaceNodeAsync<SyntaxNode>(castExpression, asExpression, cancellationToken).ConfigureAwait(false);
         }
 
         protected override string GetTitle()
