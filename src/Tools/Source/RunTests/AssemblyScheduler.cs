@@ -97,7 +97,7 @@ namespace RunTests
                 var list = new List<PartitionInfo>();
                 var hasEventListenerGuard = typeInfoList.Any(x => x.FullName == EventListenerGuardFullName);
                 var currentTypeInfoList = new List<TypeInfo>();
-                var currentClassNameLengthSum = 0;
+                var currentClassNameLengthSum = -1;
                 var currentId = 0;
 
                 BeginPartition();
@@ -115,6 +115,7 @@ namespace RunTests
 
                 void BeginPartition()
                 {
+                    currentId++;
                     currentTypeInfoList.Clear();
                     currentClassNameLengthSum = 0;
 

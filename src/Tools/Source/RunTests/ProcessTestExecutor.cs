@@ -37,7 +37,7 @@ namespace RunTests
             if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.Trait) || !string.IsNullOrWhiteSpace(Options.NoTrait))
             {
                 builder.Append(" --filter ");
-                var any = true;
+                var any = false;
                 foreach (var typeInfo in typeInfoList)
                 {
                     MaybeAddSeparator();
@@ -64,7 +64,7 @@ namespace RunTests
 
                 void MaybeAddSeparator(char separator = '|')
                 {
-                    if (!any)
+                    if (any)
                     {
                         builder.Append(separator);
                     }
@@ -73,18 +73,18 @@ namespace RunTests
                 }
             }
 
-            builder.AppendFormat($@" --framework {assemblyInfo.TargetFramework}");
-            builder.AppendFormat($@" --logger:""trx;LogFilName={GetResultsFilePath(assemblyInfo, ".xml")}""");
+            builder.Append($@" --framework {assemblyInfo.TargetFramework}");
+            builder.Append($@" --logger ""xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}""");
 
             if (Options.IncludeHtml)
             {
-                builder.AppendFormat($@" --logger:""html;LogFilName={GetResultsFilePath(assemblyInfo, ".html")}""");
+                builder.AppendFormat($@" --logger ""html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}""");
             }
 
             return builder.ToString();
         }
 
-        private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = ".xml")
+        private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = "xml")
         {
             var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}.{suffix}";
             return Path.Combine(Options.TestResultsDirectory, fileName);

@@ -143,9 +143,9 @@ namespace RunTests
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
                 { "platform=", "Platform to test: x86 or x64", (string s) => platform = s },
                 { "tfm=", "Target framework to test", (string s) => targetFramework = s },
-                { "testVsi", "Test Visual Studio", (object o) => testVsi = o is object },
-                { "html", "Include HTML file output", (object o) => includeHtml = o is object },
-                { "sequential", "Run tests sequentially", (object o) => sequential = o is object },
+                { "testVsi", "Test Visual Studio", o => testVsi = o is object },
+                { "html", "Include HTML file output", o => includeHtml = o is object },
+                { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "traits=", "xUnit traits to include (semicolon delimited)", (string s) => traits = s },
                 { "noTraits=", "xUnit traits to exclude (semicolon delimited)", (string s) => noTraits = s },
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
@@ -154,7 +154,7 @@ namespace RunTests
                 { "secondaryLogs=", "Log secondary file directory", (string s) => logFileSecondaryDirectory = s },
                 { "display=", "Display", (Display d) => display = d },
                 { "procdumpPath=", "Path to procdump", (string s) => procDumpFilePath = s },
-                { "useProcdump", "Whether or not to use procdump", (object o) => useProcDump = o is object },
+                { "useProcdump", "Whether or not to use procdump", o => useProcDump = o is object },
             };
 
             List<string> assemblyList;
@@ -162,9 +162,9 @@ namespace RunTests
             {
                 assemblyList = optionSet.Parse(args);
             }
-            catch (OptionException)
+            catch (OptionException e)
             {
-                Console.WriteLine("Error parsing command line arguments");
+                Console.WriteLine($"Error parsing command line arguments: {e.Message}");
                 optionSet.WriteOptionDescriptions(Console.Out);
                 return null;
             }
