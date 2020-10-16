@@ -37,12 +37,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 BulkPopulateProjectIds(connection, bulkLoadSnapshot.State, projectState, fetchStringTable);
         }
 
-        private void BulkPopulateProjectIds(SqlConnection connection, SolutionState? bulkLoadSolution, ProjectState? bulkLoadProject, bool fetchStringTable)
+        private void BulkPopulateProjectIds(SqlConnection connection, SolutionState bulkLoadSolution, ProjectState bulkLoadProject, bool fetchStringTable)
         {
-            // Can only bulk populate if we were given a snapshot we can walk to grab data from.
-            if (bulkLoadProject == null)
-                return;
-
             // Ensure that only one caller is trying to bulk populate a project at a time.
             var gate = _projectBulkPopulatedLock.GetOrAdd(bulkLoadProject.Id, _ => new object());
             lock (gate)
@@ -71,7 +67,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     }
                 }
 
-                if (!BulkPopulateProjectIdsWorker(connection, bulkLoadSolution!, bulkLoadProject))
+                if (!BulkPopulateProjectIdsWorker(connection, bulkLoadSolution, bulkLoadProject))
                 {
                     // Something went wrong.  Try to bulk populate this project later.
                     return;
