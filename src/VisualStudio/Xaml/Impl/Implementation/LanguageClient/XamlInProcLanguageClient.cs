@@ -9,21 +9,21 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
+    [DisableUserExperience(true)] // Remove this when we are ready to use LSP everywhere
     [ContentType(ContentTypeNames.XamlContentType)]
-    [DisableUserExperience(disableUserExperience: true)] // Remove this when we are ready to use LSP everywhere
     [Export(typeof(ILanguageClient))]
-    internal class XamlLanguageServerClient : AbstractLanguageServerClient
+    internal class XamlInProcLanguageClient : AbstractInProcLanguageClient
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public XamlLanguageServerClient(XamlLanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService, IAsynchronousOperationListenerProvider listenerProvider, XamlSolutionProvider solutionProvider)
+        public XamlInProcLanguageClient(XamlLanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService, IAsynchronousOperationListenerProvider listenerProvider, XamlSolutionProvider solutionProvider)
             : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
         }

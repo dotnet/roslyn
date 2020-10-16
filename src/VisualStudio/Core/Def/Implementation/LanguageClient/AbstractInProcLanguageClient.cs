@@ -15,9 +15,9 @@ using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    internal abstract class AbstractLanguageServerClient : ILanguageClient
+    internal abstract class AbstractInProcLanguageClient : ILanguageClient
     {
         private readonly string? _diagnosticsClientName;
         private readonly IDiagnosticService _diagnosticService;
@@ -58,7 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
-        public AbstractLanguageServerClient(AbstractRequestHandlerProvider requestHandlerProvider,
+        public AbstractInProcLanguageClient(
+            AbstractRequestHandlerProvider requestHandlerProvider,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,

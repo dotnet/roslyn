@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ClientName(ClientName)]
     [Export(typeof(ILanguageClient))]
-    internal class RazorLanguageClient : AbstractLanguageServerClient
+    internal class RazorInProcLanguageClient : AbstractInProcLanguageClient
     {
         public const string ClientName = "RazorCSharp";
 
@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RazorLanguageClient(LanguageServerProtocol languageServerProtocol,
+        public RazorInProcLanguageClient(
+            LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
