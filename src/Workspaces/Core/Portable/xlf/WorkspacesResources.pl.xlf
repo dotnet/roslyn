@@ -192,6 +192,11 @@
         <target state="translated">Synchronizuj przestrzeń nazw ze strukturą folderów</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
+        <source>The contents of a SourceGeneratedDocument may not be changed.</source>
+        <target state="new">The contents of a SourceGeneratedDocument may not be changed.</target>
+        <note>{locked:SourceGeneratedDocument}</note>
+      </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>
         <target state="translated">Projekt już zawiera określone odwołanie.</target>

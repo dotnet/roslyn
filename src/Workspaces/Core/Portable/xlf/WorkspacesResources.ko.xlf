@@ -192,6 +192,11 @@
         <target state="translated">네임스페이스를 폴더 구조로 동기화</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
+        <source>The contents of a SourceGeneratedDocument may not be changed.</source>
+        <target state="new">The contents of a SourceGeneratedDocument may not be changed.</target>
+        <note>{locked:SourceGeneratedDocument}</note>
+      </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>
         <target state="translated">지정된 참조가 이미 프로젝트에 포함되어 있습니다.</target>
