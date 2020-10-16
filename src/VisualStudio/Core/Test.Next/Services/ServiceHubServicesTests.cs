@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -100,11 +99,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var newText = oldText.WithChanges(new TextChange(TextSpan.FromBounds(0, 0), "/* test */"));
 
             // sync
-            await client.RunRemoteAsync(
-                WellKnownServiceHubService.RemoteHost,
-                nameof(IRemoteHostService.SynchronizeTextAsync),
-                solution: null,
-                new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) },
+            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText), cancellationToken),
                 callbackTarget: null,
                 CancellationToken.None);
 
@@ -458,11 +454,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
         {
-            await client.RunRemoteAsync(
-                WellKnownServiceHubService.RemoteHost,
-                nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+            var checksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                 solution,
-                new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
+                async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, checksum, _solutionVersion++, cancellationToken),
                 callbackTarget: null,
                 CancellationToken.None);
         }
