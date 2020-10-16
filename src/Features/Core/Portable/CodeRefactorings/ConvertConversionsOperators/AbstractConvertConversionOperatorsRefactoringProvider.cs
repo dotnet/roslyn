@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
         protected abstract string GetTitle();
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-
             var castExpressions = await context.GetRelevantNodesAsync<TCastExpressionSyntax>().ConfigureAwait(false);
             var asExpressions = await context.GetRelevantNodesAsync<TAsExpressionSyntax>().ConfigureAwait(false);
 
@@ -44,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
             }
 
             var (document, cancellationToken) = (context.Document, context.CancellationToken);
-            var semanticModelFactory = AsyncLazy.Create<SemanticModel>(cancellationToken
-               => document.GetRequiredSemanticModelAsync(cancellationToken), cacheResult: true);
+            var semanticModelFactory = AsyncLazy.Create(async cancellationToken
+                => await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false), cacheResult: true);
 
             castExpressions = await FilterCastExpressionCandidatesAsync(castExpressions, semanticModelFactory, cancellationToken).ConfigureAwait(false);
             asExpressions = await FilterAsExpressionCandidatesAsync(asExpressions, semanticModelFactory, cancellationToken).ConfigureAwait(false);
