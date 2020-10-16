@@ -1,4 +1,4 @@
-' Licensed to the .NET Foundation under one or more agreements.
+﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -1454,8 +1454,6 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundRaiseEventStatementOperation(boundRaiseEventStatement As BoundRaiseEventStatement) As IOperation
             Dim syntax As SyntaxNode = boundRaiseEventStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundRaiseEventStatement.WasCompilerGenerated
 
             Dim eventSymbol = boundRaiseEventStatement.EventSymbol
@@ -1464,10 +1462,13 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' Return an invalid statement for invalid raise event statement
             If eventInvocation Is Nothing OrElse (eventInvocation.ReceiverOpt Is Nothing AndAlso Not eventSymbol.IsShared) Then
                 Debug.Assert(boundRaiseEventStatement.HasErrors)
-                Return New VisualBasicLazyInvalidOperation(Me, boundRaiseEventStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+                Return New VisualBasicLazyInvalidOperation(Me, boundRaiseEventStatement, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit)
             End If
 
-            Return New VisualBasicLazyRaiseEventOperation(Me, boundRaiseEventStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+            Dim eventReference = CreateBoundRaiseEventStatementEventReference(boundRaiseEventStatement)
+            Dim arguments = DeriveArguments(boundRaiseEventStatement)
+
+            Return New RaiseEventOperation(eventReference, arguments, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundAddHandlerStatementOperation(boundAddHandlerStatement As BoundAddHandlerStatement) As IExpressionStatementOperation

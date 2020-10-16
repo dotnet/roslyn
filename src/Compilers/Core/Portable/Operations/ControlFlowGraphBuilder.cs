@@ -6542,6 +6542,7 @@ oneMoreTime:
             }
         }
 
+#nullable enable
         public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
@@ -6554,14 +6555,15 @@ oneMoreTime:
             }
 
             ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(operation.Arguments);
-            IOperation visitedInstance = instance == null ? null : PopOperand();
+            IOperation? visitedInstance = instance == null ? null : PopOperand();
             var visitedEventReference = new EventReferenceOperation(operation.EventReference.Event, visitedInstance,
                 semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.GetConstantValue(), IsImplicit(operation.EventReference));
 
             PopStackFrame(frame);
             return FinishVisitingStatement(operation, new RaiseEventOperation(visitedEventReference, visitedArguments, semanticModel: null,
-                                                                              operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
+                                                                              operation.Syntax, IsImplicit(operation)));
         }
+#nullable disable
 
         public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
         {

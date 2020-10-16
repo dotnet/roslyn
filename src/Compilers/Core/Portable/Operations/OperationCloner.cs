@@ -431,11 +431,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new TranslatedQueryOperation(Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, object argument)
-        {
-            return new RaiseEventOperation(Visit(operation.EventReference), VisitArray(operation.Arguments), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, object argument)
         {
             return new ConstructorBodyOperation(operation.Locals, ((Operation)operation).OwningSemanticModel, operation.Syntax, Visit(operation.Initializer), Visit(operation.BlockBody), Visit(operation.ExpressionBody));

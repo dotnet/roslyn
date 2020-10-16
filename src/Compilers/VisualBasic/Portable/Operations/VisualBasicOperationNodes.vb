@@ -564,27 +564,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyRaiseEventOperation
-        Inherits LazyRaiseEventOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _raiseEventStatement As BoundRaiseEventStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, raiseEventStatement As BoundRaiseEventStatement, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _raiseEventStatement = raiseEventStatement
-        End Sub
-
-        Protected Overrides Function CreateEventReference() As IEventReferenceOperation
-            Return _operationFactory.CreateBoundRaiseEventStatementEventReference(_raiseEventStatement)
-        End Function
-
-        Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            Return _operationFactory.DeriveArguments(_raiseEventStatement)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyIsTypeOperation
         Inherits LazyIsTypeOperation
 

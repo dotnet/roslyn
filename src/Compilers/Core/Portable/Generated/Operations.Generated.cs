@@ -614,6 +614,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an operation for raising an event.
     /// <para>
@@ -644,6 +645,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </remarks>
         ImmutableArray<IArgumentOperation> Arguments { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents a textual literal numeric, string, etc.
@@ -4236,72 +4238,39 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitEnd(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseRaiseEventOperation : OperationOld, IRaiseEventOperation
+    #nullable enable
+    internal sealed partial class RaiseEventOperation : Operation, IRaiseEventOperation
     {
-        internal BaseRaiseEventOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.RaiseEvent, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IEventReferenceOperation EventReference { get; }
-        public abstract ImmutableArray<IArgumentOperation> Arguments { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                if (EventReference is object) yield return EventReference;
-                foreach (var child in Arguments)
-                {
-                    if (child is object) yield return child;
-                }
-            }
-        }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitRaiseEvent(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitRaiseEvent(this, argument);
-    }
-    internal sealed partial class RaiseEventOperation : BaseRaiseEventOperation, IRaiseEventOperation
-    {
-        internal RaiseEventOperation(IEventReferenceOperation eventReference, ImmutableArray<IArgumentOperation> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal RaiseEventOperation(IEventReferenceOperation eventReference, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             EventReference = SetParentOperation(eventReference, this);
             Arguments = SetParentOperation(arguments, this);
         }
-        public override IEventReferenceOperation EventReference { get; }
-        public override ImmutableArray<IArgumentOperation> Arguments { get; }
-    }
-    internal abstract partial class LazyRaiseEventOperation : BaseRaiseEventOperation, IRaiseEventOperation
-    {
-        private IEventReferenceOperation _lazyEventReference = s_unsetEventReference;
-        private ImmutableArray<IArgumentOperation> _lazyArguments;
-        internal LazyRaiseEventOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IEventReferenceOperation CreateEventReference();
-        public override IEventReferenceOperation EventReference
+        public IEventReferenceOperation EventReference { get; }
+        public ImmutableArray<IArgumentOperation> Arguments { get; }
+        public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (_lazyEventReference == s_unsetEventReference)
+                if (_lazyChildren is null)
                 {
-                    IEventReferenceOperation eventReference = CreateEventReference();
-                    SetParentOperation(eventReference, this);
-                    Interlocked.CompareExchange(ref _lazyEventReference, eventReference, s_unsetEventReference);
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (EventReference is not null) builder.Add(EventReference);
+                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                return _lazyEventReference;
+                return _lazyChildren;
             }
         }
-        protected abstract ImmutableArray<IArgumentOperation> CreateArguments();
-        public override ImmutableArray<IArgumentOperation> Arguments
-        {
-            get
-            {
-                if (_lazyArguments.IsDefault)
-                {
-                    ImmutableArray<IArgumentOperation> arguments = CreateArguments();
-                    SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArguments, arguments);
-                }
-                return _lazyArguments;
-            }
-        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.RaiseEvent;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitRaiseEvent(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitRaiseEvent(this, argument);
     }
+    #nullable disable
     #nullable enable
     internal sealed partial class LiteralOperation : Operation, ILiteralOperation
     {
@@ -9016,6 +8985,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (EndOperation)operation;
             return new EndOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, object? argument)
+        {
+            var internalOperation = (RaiseEventOperation)operation;
+            return new RaiseEventOperation(Visit(internalOperation.EventReference), VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitLiteral(ILiteralOperation operation, object? argument)
         {
