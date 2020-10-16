@@ -623,6 +623,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
+        protected Task<ImmutableArray<FinderLocation>> FindReferencesInImplicitObjectCreationExpressionAsync(
+            ISymbol symbol,
+            Document document,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInDocumentAsync(symbol, document, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
+
+            static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
+                => syntaxTreeInfo.ContainsImplicitObjectCreation;
+
+            void CollectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
+                ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations)
+            {
+                if (!syntaxFacts.IsImplicitObjectCreation(node))
+                {
+                    // Avoid binding unrelated nodes
+                    return;
+                }
+
+                var constructor = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
+
+                if (Matches(constructor, originalUnreducedSymbolDefinition))
+                {
+                    var location = node.GetFirstToken().GetLocation();
+                    var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
+
+                    locations.Add(new FinderLocation(node, new ReferenceLocation(
+                        document, alias: null, location, isImplicit: true, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), CandidateReason.None)));
+                }
+            }
+        }
+
         protected static bool Matches(ISymbol? symbol1, ISymbol notNulloriginalUnreducedSymbol2)
         {
             return symbol1 != null && SymbolEquivalenceComparer.Instance.Equals(
