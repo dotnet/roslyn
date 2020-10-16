@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -25,7 +24,7 @@ using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     /// <summary>
     /// Defines the language server to be hooked up to an <see cref="ILanguageClient"/> using StreamJsonRpc.  This runs

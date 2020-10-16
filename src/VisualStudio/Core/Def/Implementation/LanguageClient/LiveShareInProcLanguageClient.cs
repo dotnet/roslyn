@@ -12,19 +12,20 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    // The C# and VB ILanguageClient should not activate on the host. When LiveShare mirrors the C# ILC to the guest, they will not copy the DisableUserExperience attribute,
-    // so guests will still use the C# ILC.
+    // The C# and VB ILanguageClient should not activate on the host. When LiveShare mirrors the C# ILC to the guest,
+    // they will not copy the DisableUserExperience attribute, so guests will still use the C# ILC.
     [DisableUserExperience(true)]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Export(typeof(ILanguageClient))]
-    internal class LiveShareLanguageServerClient : AbstractLanguageServerClient
+    internal class LiveShareInProcLanguageClient : AbstractInProcLanguageClient
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public LiveShareLanguageServerClient(LanguageServerProtocol languageServerProtocol,
+        public LiveShareInProcLanguageClient(
+            LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,

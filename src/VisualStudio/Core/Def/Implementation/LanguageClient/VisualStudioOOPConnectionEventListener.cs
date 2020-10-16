@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
@@ -16,33 +15,35 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     // unfortunately, we can't implement this on LanguageServerClient since this uses MEF v2 and
     // ILanguageClient requires MEF v1 and two can't be mixed exported in 1 class.
     [Export]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class LanguageServerClientEventListener : IEventListener<object>
+    internal class VisualStudioOOPConnectionEventListener : IEventListener<object>
     {
-        private readonly LanguageServerClient _languageServerClient;
+        private readonly VisualStudioOOPConnectionLanguageClient _languageClient;
         private readonly Lazy<ILanguageClientBroker> _languageClientBroker;
 
         private readonly IAsynchronousOperationListener _asynchronousOperationListener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LanguageServerClientEventListener(LanguageServerClient languageServerClient, Lazy<ILanguageClientBroker> languageClientBroker,
+        public VisualStudioOOPConnectionEventListener(
+            VisualStudioOOPConnectionLanguageClient languageClient,
+            Lazy<ILanguageClientBroker> languageClientBroker,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            this._languageServerClient = languageServerClient;
-            this._languageClientBroker = languageClientBroker;
-            this._asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
+            _languageClient = languageClient;
+            _languageClientBroker = languageClientBroker;
+            _asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
         }
 
         /// <summary>
-        /// LSP clients do not necessarily know which language servers (and when) to activate as they are language agnostic.
-        /// We know we can provide <see cref="LanguageServerClient"/> as soon as the workspace is started, so tell the
-        /// <see cref="ILanguageClientBroker"/> to start loading it.
+        /// LSP clients do not necessarily know which language servers (and when) to activate as they are language
+        /// agnostic.  We know we can provide <see cref="VisualStudioOOPConnectionLanguageClient"/> as soon as the
+        /// workspace is started, so tell the <see cref="ILanguageClientBroker"/> to start loading it.
         /// </summary>
         public void StartListening(Workspace workspace, object serviceOpt)
         {
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // This needs to be done with .Forget() as the LoadAsync (VS LSP client) synchronously stores the result task of OnLoadedAsync.
             // The synchronous execution happens under the sln load threaded wait dialog, so user actions cannot be made in between triggering LoadAsync and storing the result task from OnLoadedAsync.
             // The result task from OnLoadedAsync is waited on before invoking LSP requests to the ILanguageClient.
-            this._languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(new string[] { ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType }), this._languageServerClient)
+            this._languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(new[] { ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType }), _languageClient)
                 .CompletesAsyncOperation(token).Forget();
         }
 
