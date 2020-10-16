@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var symbolSearchService = solution.Workspace.Services.GetService<ISymbolSearchService>();
             // Since we are not currently considering NuGet packages, pass an empty array
             var packageSources = ImmutableArray<PackageSource>.Empty;
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+            var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
 
             // We only need to receive 2 results back per diagnostic to determine that the fix is ambiguous.
             var getFixesForDiagnosticsTasks = diagnostics
@@ -137,9 +139,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             var solution = document.Project.Solution;
             var progressTracker = new ProgressTracker();
-            var textDiffingService = solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
-            var packageInstallerService = solution.Workspace.Services.GetService<IPackageInstallerService>();
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+            var textDiffingService = solution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var packageInstallerService = solution.Workspace.Services.GetRequiredService<IPackageInstallerService>();
+            var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
 
             // Do not limit the results since we plan to fix all the reported issues.
             var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, packageInstallerService, maxResults: int.MaxValue);
@@ -177,11 +179,11 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // length of the text we are inserting so that we can format the span afterwards.
             var insertSpans = allTextChanges
                 .GroupBy(change => change.Span)
-                .Select(changes => new TextSpan(changes.Key.Start, changes.Sum(change => change.NewText.Length)));
+                .Select(changes => new TextSpan(changes.Key.Start, changes.Sum(change => change.NewText!.Length)));
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(orderedTextInserts);
-            var newDocument = newProject.GetDocument(document.Id).WithText(newText);
+            var newDocument = newProject.GetRequiredDocument(document.Id).WithText(newText);
 
             // When imports are added to a code file that has no previous imports, extra
             // newlines are generated between each import because the fix is expecting to
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
         private static async Task<Document> CleanUpNewLinesAsync(Document document, IEnumerable<TextSpan> insertSpans, CancellationToken cancellationToken)
         {
-            var languageFormatter = document.GetLanguageService<ISyntaxFormattingService>();
+            var languageFormatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var newDocument = document;
@@ -210,7 +212,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
         private static async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, ISyntaxFormattingService languageFormatter, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
             var shouldUseFormattingSpanCollapse = optionSet.GetOption(FormattingOptions.AllowDisjointSpanMerging);
@@ -244,9 +246,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             IDocumentTextDifferencingService textDiffingService,
             CancellationToken cancellationToken)
         {
-            var newSolution = await codeAction.GetChangedSolutionAsync(
+            var newSolution = await codeAction.GetRequiredChangedSolutionAsync(
                 progressTracker, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var newDocument = newSolution.GetDocument(document.Id);
+            var newDocument = newSolution.GetRequiredDocument(document.Id);
 
             // Use Line differencing to reduce the possibility of changes that overwrite existing code.
             var textChanges = await textDiffingService.GetTextChangesAsync(
@@ -263,7 +265,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             public CleanUpNewLinesFormatter(SourceText text)
                 => _text = text;
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // Since we know the general shape of these new import statements, we simply look for where
                 // tokens are not on the same line and force them to only be separated by a single newline.
