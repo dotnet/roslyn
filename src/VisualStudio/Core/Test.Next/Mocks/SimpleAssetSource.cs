@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                     stream.Position = 0;
                     using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
-                    results.Add((checksum, deserializerService.Deserialize<object>(data.GetWellKnownSynchronizationKind(), reader, cancellationToken)));
+                    var asset = deserializerService.Deserialize<object>(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
+                    Contract.ThrowIfTrue(asset is null);
+                    results.Add((checksum, asset));
                 }
                 else
                 {
