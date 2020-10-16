@@ -4,8 +4,9 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
+Imports Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionOperators
@@ -22,5 +23,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
             Return "TODO"
         End Function
 
+        Protected Overrides Async Function ConvertFromCastToAsAsync(document As Document, tryCastExpression As TryCastExpressionSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+            Dim cTypeExpression = SyntaxFactory.CTypeExpression(tryCastExpression.Expression, tryCastExpression.Type)
+
+            Return Await document.ReplaceNodeAsync(Of CastExpressionSyntax)(tryCastExpression, cTypeExpression, cancellationToken).ConfigureAwait(False)
+        End Function
+
+        Protected Overrides Async Function ConvertFromAsToCastAsync(document As Document, cTypeExpression As CTypeExpressionSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+            Dim tryCastExpression = SyntaxFactory.TryCastExpression(cTypeExpression.Expression, cTypeExpression.Type)
+
+            Return Await document.ReplaceNodeAsync(Of CastExpressionSyntax)(cTypeExpression, tryCastExpression, cancellationToken).ConfigureAwait(False)
+        End Function
     End Class
 End Namespace
