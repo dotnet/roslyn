@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var solution = document.Project.Solution;
             var progressTracker = new ProgressTracker();
             var textDiffingService = solution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
-            var packageInstallerService = solution.Workspace.Services.GetRequiredService<IPackageInstallerService>();
+            var packageInstallerService = solution.Workspace.Services.GetService<IPackageInstallerService>();
             var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
 
             // Do not limit the results since we plan to fix all the reported issues.
