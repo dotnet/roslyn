@@ -13574,6 +13574,35 @@ class C4 : IB1, IB2<nint> { }
         }
 
         [Fact]
+        public void DuplicateInterface_05()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1 : IA<nint> { }
+interface IB2<T> : IA<T> { }
+partial class C1 : IA<System.IntPtr> { }
+partial class C1 : IB1 { }
+partial class C2 : IB2<nint> { }
+partial class C2 : IA<System.IntPtr> { }
+partial class C3 : IB1 { }
+partial class C3 : IB2<System.IntPtr> { }
+partial class C4 : IB1 { }
+partial class C4 : IB2<nint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS8779: 'IA<nint>' is already listed in the interface list on type 'C1' as 'IA<IntPtr>'.
+                // partial class C1 : IA<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C1").WithArguments("IA<nint>", "IA<System.IntPtr>", "C1").WithLocation(4, 15),
+                // (6,15): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C2' as 'IA<nint>'.
+                // partial class C2 : IB2<nint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("IA<System.IntPtr>", "IA<nint>", "C2").WithLocation(6, 15),
+                // (8,15): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C3' as 'IA<nint>'.
+                // partial class C3 : IB1 { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("IA<System.IntPtr>", "IA<nint>", "C3").WithLocation(8, 15));
+        }
+
+        [Fact]
         public void TypeUnification_01()
         {
             var source =
@@ -13598,6 +13627,60 @@ class C4<T> : I<(T, T)>, I<(nint, nuint)> { }
 
         [Fact]
         public void TypeUnification_02()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1<T> : IA<T> { }
+interface IB2<T> : IA<T> { }
+class C1<T> : IB1<T>, IB2<nint> { }
+class C2<T> : IB1<(nint, T)>, IB2<(T, System.IntPtr)> { }
+class C3<T> : IB1<(T, T)>, IB2<(System.UIntPtr, nuint)> { }
+class C4<T> : IB1<(T, T)>, IB2<(nint, nuint)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0695: 'C1<T>' cannot implement both 'IA<T>' and 'IA<nint>' because they may unify for some type parameter substitutions
+                // class C1<T> : IB1<T>, IB2<nint> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T>", "IA<T>", "IA<nint>").WithLocation(4, 7),
+                // (5,7): error CS0695: 'C2<T>' cannot implement both 'IA<(nint, T)>' and 'IA<(T, IntPtr)>' because they may unify for some type parameter substitutions
+                // class C2<T> : IB1<(nint, T)>, IB2<(T, System.IntPtr)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T>", "IA<(nint, T)>", "IA<(T, System.IntPtr)>").WithLocation(5, 7),
+                // (6,7): error CS0695: 'C3<T>' cannot implement both 'IA<(T, T)>' and 'IA<(UIntPtr, nuint)>' because they may unify for some type parameter substitutions
+                // class C3<T> : IB1<(T, T)>, IB2<(System.UIntPtr, nuint)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T>", "IA<(T, T)>", "IA<(System.UIntPtr, nuint)>").WithLocation(6, 7));
+        }
+
+        [Fact]
+        public void TypeUnification_03()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1<T> : IA<T> { }
+interface IB2<T> : IA<T> { }
+partial class C1<T> : IB1<T> { }
+partial class C1<T> : IB2<nint> { }
+partial class C2<T> : IB1<(nint, T)> { }
+partial class C2<T> : IB2<(T, System.IntPtr)> { }
+partial class C3<T> : IB1<(T, T)> { }
+partial class C3<T> : IB2<(System.UIntPtr, nuint)> { }
+partial class C4<T> : IB1<(T, T)> { }
+partial class C4<T> : IB2<(nint, nuint)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS0695: 'C1<T>' cannot implement both 'IA<T>' and 'IA<nint>' because they may unify for some type parameter substitutions
+                // partial class C1<T> : IB1<T> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T>", "IA<T>", "IA<nint>").WithLocation(4, 15),
+                // (6,15): error CS0695: 'C2<T>' cannot implement both 'IA<(nint, T)>' and 'IA<(T, IntPtr)>' because they may unify for some type parameter substitutions
+                // partial class C2<T> : IB1<(nint, T)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T>", "IA<(nint, T)>", "IA<(T, System.IntPtr)>").WithLocation(6, 15),
+                // (8,15): error CS0695: 'C3<T>' cannot implement both 'IA<(T, T)>' and 'IA<(UIntPtr, nuint)>' because they may unify for some type parameter substitutions
+                // partial class C3<T> : IB1<(T, T)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T>", "IA<(T, T)>", "IA<(System.UIntPtr, nuint)>").WithLocation(8, 15));
+        }
+
+        [Fact]
+        public void TypeUnification_04()
         {
             var source =
 @"#nullable enable

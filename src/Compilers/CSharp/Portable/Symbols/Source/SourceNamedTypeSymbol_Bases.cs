@@ -183,16 +183,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 continue;
                             }
 
+                            // InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics populates the set with interfaces that match by CLR signature.
                             Debug.Assert(!other.Equals(@interface, TypeCompareKind.ConsiderEverything));
-
-                            if (!other.Equals(@interface, TypeCompareKind.CLRSignatureCompareOptions | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
-                            {
-                                continue;
-                            }
+                            Debug.Assert(other.Equals(@interface, TypeCompareKind.CLRSignatureCompareOptions));
 
                             if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
-                                if (!other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny | TypeCompareKind.IgnoreNativeIntegers))
+                                if (!other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny))
                                 {
                                     diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
                                 }
