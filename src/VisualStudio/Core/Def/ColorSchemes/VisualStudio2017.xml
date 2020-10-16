@@ -63,7 +63,7 @@
             </Color>
             <Color Name="label name">
             </Color>
-            <Color Name="inline parameter name hints">
+            <Color Name="inline hints">
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
                 <Foreground Type="CT_RAW" Source="FF686868" />
             </Color>
@@ -218,7 +218,7 @@
             </Color>
             <Color Name="label name">
             </Color>
-            <Color Name="inline parameter name hints">
+            <Color Name="inline hints">
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
                 <Foreground Type="CT_RAW" Source="FF686868" />
             </Color>
@@ -373,7 +373,7 @@
             </Color>
             <Color Name="label name">
             </Color>
-            <Color Name="inline parameter name hints">
+            <Color Name="inline hints">
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
                 <Foreground Type="CT_RAW" Source="FF504848" />
             </Color>
@@ -528,9 +528,9 @@
             </Color>
             <Color Name="label name">
             </Color>
-            <Color Name="inline parameter name hints">
-                <Background Type="CT_RAW" Source="FF2D2C2C" />
-                <Foreground Type="CT_RAW" Source="FF959493" />
+            <Color Name="inline hints">
+                <Background Type="CT_RAW" Source="FF3E3E3E" />
+                <Foreground Type="CT_RAW" Source="FFA9A8A7" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FFC8C8C8" />
@@ -697,7 +697,7 @@
             <Color Name="label name">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
-            <Color Name="inline parameter name hints">
+            <Color Name="inline hints">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
             <Color Name="xml doc comment - attribute name">

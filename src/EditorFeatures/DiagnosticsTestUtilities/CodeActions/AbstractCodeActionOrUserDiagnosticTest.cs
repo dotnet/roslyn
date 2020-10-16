@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -258,7 +260,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
-                Assert.True(actions.Length == 0, "An action was offered when none was expected");
+                var offeredActions = Environment.NewLine + string.Join(Environment.NewLine, actions.Select(action => action.Title));
+                Assert.True(actions.Length == 0, "An action was offered when none was expected. Offered actions:" + offeredActions);
             }
         }
 

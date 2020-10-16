@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -146,11 +148,14 @@ long _f = 0l;
                 CreateImmutableDictionary(("CS0078", ReportDiagnostic.Error)));
 
             var comp2 = CreateCompilation(tree, options: options);
-            // Per-tree options should have precedence over specific diagnostic options
+            // Specific diagnostic options have precedence over per-tree options
             comp2.VerifyDiagnostics(
                 // (1,16): warning CS0414: The field 'C._f' is assigned but its value is never used
                 //  class C { long _f = 0l; }
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 16));
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 16),
+                // (1,22): error CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 22).WithWarningAsError(true));
         }
 
         [Fact]

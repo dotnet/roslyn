@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 {
     internal partial class ExtensionManagerOptions
     {
-        public static readonly Option<bool> DisableCrashingExtensions = new Option<bool>(nameof(ExtensionManagerOptions), nameof(DisableCrashingExtensions), defaultValue: true);
+        public static readonly Option<bool> DisableCrashingExtensions = new(nameof(ExtensionManagerOptions), nameof(DisableCrashingExtensions), defaultValue: true);
     }
 
     [ExportOptionProvider, Shared]

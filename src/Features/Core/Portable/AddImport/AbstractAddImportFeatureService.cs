@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -59,26 +61,15 @@ namespace Microsoft.CodeAnalysis.AddImport
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService);
+                var callbackTarget = new RemoteAddImportServiceCallback(symbolSearchService);
 
-                var result = await client.RunRemoteAsync<IList<AddImportFixData>>(
-                    WellKnownServiceHubService.CodeAnalysis,
-                    nameof(IRemoteAddImportFeatureService.GetFixesAsync),
+                var result = await client.TryInvokeAsync<IRemoteMissingImportDiscoveryService, ImmutableArray<AddImportFixData>>(
                     document.Project.Solution,
-                    new object[]
-                    {
-                        document.Id,
-                        span,
-                        diagnosticId,
-                        maxResults,
-                        placeSystemNamespaceFirst,
-                        searchReferenceAssemblies,
-                        packageSources
-                    },
+                    (service, solutionInfo, cancellationToken) => service.GetFixesAsync(solutionInfo, document.Id, span, diagnosticId, maxResults, placeSystemNamespaceFirst, searchReferenceAssemblies, packageSources, cancellationToken),
                     callbackTarget,
                     cancellationToken).ConfigureAwait(false);
 
-                return result.ToImmutableArray();
+                return result.HasValue ? result.Value : ImmutableArray<AddImportFixData>.Empty;
             }
 
             return await GetFixesInCurrentProcessAsync(
@@ -165,7 +156,8 @@ namespace Microsoft.CodeAnalysis.AddImport
         private static bool IsHostOrRemoteWorkspace(Project project)
         {
             return project.Solution.Workspace.Kind == WorkspaceKind.Host ||
-                   project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
+                   project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace ||
+                   project.Solution.Workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace;
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(

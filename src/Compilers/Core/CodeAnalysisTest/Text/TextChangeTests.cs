@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -878,6 +880,34 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(4, 0), changes[0].Span);
             Assert.Equal("o World", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_IntegrationTestCase1()
+        {
+            var oldChanges = ImmutableArray.Create(
+                new TextChangeRange(new TextSpan(919, 10), 466),
+                new TextChangeRange(new TextSpan(936, 33), 29),
+                new TextChangeRange(new TextSpan(1098, 0), 70),
+                new TextChangeRange(new TextSpan(1125, 4), 34),
+                new TextChangeRange(new TextSpan(1138, 0), 47));
+            var newChanges = ImmutableArray.Create(
+                new TextChangeRange(new TextSpan(997, 0), 2),
+                new TextChangeRange(new TextSpan(1414, 0), 2),
+                new TextChangeRange(new TextSpan(1419, 0), 2),
+                new TextChangeRange(new TextSpan(1671, 5), 5),
+                new TextChangeRange(new TextSpan(1681, 0), 4));
+
+            var merged = ChangedText.TestAccessor.Merge(oldChanges, newChanges);
+
+            var expected = ImmutableArray.Create(
+                new TextChangeRange(new TextSpan(919, 10), 468),
+                new TextChangeRange(new TextSpan(936, 33), 33),
+                new TextChangeRange(new TextSpan(1098, 0), 70),
+                new TextChangeRange(new TextSpan(1125, 4), 34),
+                new TextChangeRange(new TextSpan(1134, 0), 4),
+                new TextChangeRange(new TextSpan(1138, 0), 47));
+            Assert.Equal<TextChangeRange>(expected, merged);
         }
 
         private SourceText GetChangesWithoutMiddle(

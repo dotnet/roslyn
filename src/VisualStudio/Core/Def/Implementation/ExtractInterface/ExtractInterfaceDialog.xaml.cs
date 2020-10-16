@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -111,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

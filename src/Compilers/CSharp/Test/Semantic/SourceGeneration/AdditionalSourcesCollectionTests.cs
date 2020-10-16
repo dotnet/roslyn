@@ -16,8 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class AdditionalSourcesCollectionTests

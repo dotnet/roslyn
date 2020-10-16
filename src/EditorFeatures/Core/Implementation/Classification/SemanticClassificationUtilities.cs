@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         /// actually transitioned to a loaded state.
         /// </summary>
         private static readonly ConditionalWeakTable<Workspace, Task> s_workspaceToFullyLoadedStateTask =
-            new ConditionalWeakTable<Workspace, Task>();
+            new();
 
         public static async Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> context,
