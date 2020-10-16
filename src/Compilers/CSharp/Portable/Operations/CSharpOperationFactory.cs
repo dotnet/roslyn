@@ -1395,15 +1395,37 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyAwaitOperation(this, awaitedValue, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IArrayElementReferenceOperation CreateBoundArrayAccessOperation(BoundArrayAccess boundArrayAccess)
         {
+            // PROTOTYPE(iop): When removing the laziness, this comment will no longer be relevant, because caching won't
+            //                 occur here
+            // The compiler will dedupe the _arrayAccess.Expression between different array references. Some example code:
+            //
+            // class C
+            // {
+            //     int[] a;
+
+            //     static void Main()
+            //     {
+            //         // Compiler dedupes the array access receiver for [0] and [1]
+            //         var a = new C { a = { [0] = 1, [1] = 2 } };
+            //     }
+            // }
+            //
+            // In order to prevent parent pointer from having an issue with this, we intentionally create a new IOperation node every time
+            // we encounter an array access. Since we create from the top down, it should be impossible for us to see the node in
+            // boundArrayAccess.Expression before seeing the boundArrayAccess itself, so this should not create any other parent pointer
+            // issues.
+            IOperation arrayReference = CreateInternal(boundArrayAccess.Expression);
+            ImmutableArray<IOperation> indices = CreateFromArray<BoundExpression, IOperation>(boundArrayAccess.Indices);
             SyntaxNode syntax = boundArrayAccess.Syntax;
-            ITypeSymbol type = boundArrayAccess.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundArrayAccess.ConstantValue;
+            ITypeSymbol? type = boundArrayAccess.GetPublicTypeSymbol();
             bool isImplicit = boundArrayAccess.WasCompilerGenerated;
 
-            return new CSharpLazyArrayElementReferenceOperation(this, boundArrayAccess, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ArrayElementReferenceOperation(arrayReference, indices, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private INameOfOperation CreateBoundNameOfOperatorOperation(BoundNameOfOperator boundNameOfOperator)
         {

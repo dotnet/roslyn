@@ -145,46 +145,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyArrayElementReferenceOperation : LazyArrayElementReferenceOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundArrayAccess _arrayAccess;
-
-        internal CSharpLazyArrayElementReferenceOperation(CSharpOperationFactory operationFactory, BoundArrayAccess arrayAccess, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _arrayAccess = arrayAccess;
-        }
-
-        protected override IOperation CreateArrayReference()
-        {
-            // The compiler will dedupe the _arrayAccess.Expression between different array references. Some example code:
-            //
-            // class C
-            // {
-            //     int[] a;
-
-            //     static void Main()
-            //     {
-            //         // Compiler dedupes the array access receiver for [0] and [1]
-            //         var a = new C { a = { [0] = 1, [1] = 2 } };
-            //     }
-            // }
-            //
-            // In order to prevent parent pointer from having an issue with this, we intentionally create a new IOperation node every time
-            // we encounter an array access. Since we create from the top down, it should be impossible for us to see the node in
-            // boundArrayAccess.Expression before seeing the boundArrayAccess itself, so this should not create any other parent pointer
-            // issues.
-            return _operationFactory.CreateInternal(_arrayAccess.Expression);
-        }
-
-        protected override ImmutableArray<IOperation> CreateIndices()
-        {
-            return _operationFactory.CreateFromArray<BoundExpression, IOperation>(_arrayAccess.Indices);
-        }
-    }
-
     internal sealed class CSharpLazyArrayInitializerOperation : LazyArrayInitializerOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

@@ -2024,6 +2024,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 syntax: operation.Syntax, type: operation.Type, constantValue: operation.GetConstantValue(), isImplicit: IsImplicit(operation)));
         }
 
+#nullable enable
         public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, int? captureIdForResult)
         {
             EvalStackFrame frame = PushStackFrame();
@@ -2032,8 +2033,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IOperation visitedArrayReference = PopOperand();
             PopStackFrame(frame);
             return new ArrayElementReferenceOperation(visitedArrayReference, visitedIndices, semanticModel: null,
-                operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                operation.Syntax, operation.Type, IsImplicit(operation));
         }
+#nullable disable
 
         private static bool IsConditional(IBinaryOperation operation)
         {
@@ -5600,7 +5602,8 @@ oneMoreTime:
             return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance));
         }
 
-        private IOperation HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation initializer, IOperation objectCreation)
+#nullable enable
+        private IOperation HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation? initializer, IOperation objectCreation)
         {
             // If the initializer is null, nothing to spill. Just return the original instance.
             if (initializer == null || initializer.Initializers.IsEmpty)
@@ -5796,7 +5799,7 @@ oneMoreTime:
 
             IOperation popTarget(IOperation originalTarget)
             {
-                IOperation instance;
+                IOperation? instance;
                 switch (originalTarget.Kind)
                 {
                     case OperationKind.FieldReference:
@@ -5819,8 +5822,7 @@ oneMoreTime:
                         var arrayElementReference = (IArrayElementReferenceOperation)originalTarget;
                         instance = PopOperand();
                         ImmutableArray<IOperation> indices = PopArray(arrayElementReference.Indices);
-                        return new ArrayElementReferenceOperation(instance, indices, semanticModel: null, originalTarget.Syntax, originalTarget.Type,
-                                                                   originalTarget.GetConstantValue(), IsImplicit(originalTarget));
+                        return new ArrayElementReferenceOperation(instance, indices, semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
                     case OperationKind.DynamicIndexerAccess:
                         var dynamicAccess = (BaseDynamicIndexerAccessOperation)originalTarget;
                         instance = dynamicAccess.Operation != null ? PopOperand() : null;
@@ -5840,6 +5842,7 @@ oneMoreTime:
                 }
             }
         }
+#nullable disable
 
         public override IOperation VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, int? captureIdForResult)
         {

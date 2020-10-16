@@ -678,7 +678,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IArrayElementReferenceOperation" Base="IOperation" ChildrenOrder="ArrayReference,Indices">
+  <Node Name="IArrayElementReferenceOperation" Base="IOperation" ChildrenOrder="ArrayReference,Indices" HasType="true">
     <Comments>
       <summary>
         Represents a reference to an array element.

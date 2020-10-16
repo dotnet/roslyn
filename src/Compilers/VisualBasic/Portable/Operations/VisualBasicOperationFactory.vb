@@ -485,11 +485,12 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundArrayAccessOperation(boundArrayAccess As BoundArrayAccess) As IArrayElementReferenceOperation
+            Dim arrayReference as IOperation = Create(boundArrayAccess.Expression)
+            Dim indices = CreateFromArray(Of BoundExpression, IOperation)(boundArrayAccess.Indices)
             Dim syntax As SyntaxNode = boundArrayAccess.Syntax
             Dim type As ITypeSymbol = boundArrayAccess.Type
-            Dim constantValue As ConstantValue = boundArrayAccess.ConstantValueOpt
             Dim isImplicit As Boolean = boundArrayAccess.WasCompilerGenerated
-            Return New VisualBasicLazyArrayElementReferenceOperation(Me, boundArrayAccess, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ArrayElementReferenceOperation(arrayReference, indices, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Friend Function CreateBoundUnaryOperatorChild(boundOperator As BoundExpression) As IOperation

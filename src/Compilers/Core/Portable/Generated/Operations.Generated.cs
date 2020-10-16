@@ -760,6 +760,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<IArgumentOperation> Arguments { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a reference to an array element.
     /// <para>
@@ -787,6 +788,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IOperation> Indices { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents a reference to a declared local variable.
@@ -4381,72 +4383,40 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInvocation(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseArrayElementReferenceOperation : OperationOld, IArrayElementReferenceOperation
+    #nullable enable
+    internal sealed partial class ArrayElementReferenceOperation : Operation, IArrayElementReferenceOperation
     {
-        internal BaseArrayElementReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.ArrayElementReference, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation ArrayReference { get; }
-        public abstract ImmutableArray<IOperation> Indices { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ArrayElementReferenceOperation(IOperation arrayReference, ImmutableArray<IOperation> indices, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            ArrayReference = SetParentOperation(arrayReference, this);
+            Indices = SetParentOperation(indices, this);
+            Type = type;
+        }
+        public IOperation ArrayReference { get; }
+        public ImmutableArray<IOperation> Indices { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (ArrayReference is object) yield return ArrayReference;
-                foreach (var child in Indices)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (ArrayReference is not null) builder.Add(ArrayReference);
+                    if (!Indices.IsEmpty) builder.AddRange(Indices);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.ArrayElementReference;
         public override void Accept(OperationVisitor visitor) => visitor.VisitArrayElementReference(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitArrayElementReference(this, argument);
     }
-    internal sealed partial class ArrayElementReferenceOperation : BaseArrayElementReferenceOperation, IArrayElementReferenceOperation
-    {
-        internal ArrayElementReferenceOperation(IOperation arrayReference, ImmutableArray<IOperation> indices, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ArrayReference = SetParentOperation(arrayReference, this);
-            Indices = SetParentOperation(indices, this);
-        }
-        public override IOperation ArrayReference { get; }
-        public override ImmutableArray<IOperation> Indices { get; }
-    }
-    internal abstract partial class LazyArrayElementReferenceOperation : BaseArrayElementReferenceOperation, IArrayElementReferenceOperation
-    {
-        private IOperation _lazyArrayReference = s_unset;
-        private ImmutableArray<IOperation> _lazyIndices;
-        internal LazyArrayElementReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateArrayReference();
-        public override IOperation ArrayReference
-        {
-            get
-            {
-                if (_lazyArrayReference == s_unset)
-                {
-                    IOperation arrayReference = CreateArrayReference();
-                    SetParentOperation(arrayReference, this);
-                    Interlocked.CompareExchange(ref _lazyArrayReference, arrayReference, s_unset);
-                }
-                return _lazyArrayReference;
-            }
-        }
-        protected abstract ImmutableArray<IOperation> CreateIndices();
-        public override ImmutableArray<IOperation> Indices
-        {
-            get
-            {
-                if (_lazyIndices.IsDefault)
-                {
-                    ImmutableArray<IOperation> indices = CreateIndices();
-                    SetParentOperation(indices, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyIndices, indices);
-                }
-                return _lazyIndices;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class LocalReferenceOperation : Operation, ILocalReferenceOperation
     {
@@ -8968,6 +8938,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (InvocationOperation)operation;
             return new InvocationOperation(internalOperation.TargetMethod, Visit(internalOperation.Instance), internalOperation.IsVirtual, VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, object? argument)
+        {
+            var internalOperation = (ArrayElementReferenceOperation)operation;
+            return new ArrayElementReferenceOperation(Visit(internalOperation.ArrayReference), VisitArray(internalOperation.Indices), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitLocalReference(ILocalReferenceOperation operation, object? argument)
         {
