@@ -3351,17 +3351,17 @@
       </trans-unit>
       <trans-unit id="WRN_NewRequired">
         <source>'{0}' hides inherited member '{1}'. Use the new keyword if hiding was intended.</source>
-        <target state="translated">'"{0}" oculta o membro herdado "{1}". Use a nova palavra-chave se foi pretendido ocultar.</target>
+        <target state="translated">'"{0}" oculta o membro herdado "{1}". Use a palavra-chave new se foi pretendido ocultar.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Title">
         <source>Member hides inherited member; missing new keyword</source>
-        <target state="translated">O membro oculta o membro herdado; nova palavra-chave ausente</target>
+        <target state="translated">O membro oculta o membro herdado; palavra-chave new ausente</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Description">
         <source>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
-        <target state="needs-review-translation">Uma variável foi declarada com o mesmo nome de uma variável na classe base. No entanto, a nova palavra-chave não foi usada. Este aviso informa que você deve usar um novo; a variável é declarada como se novo tivesse sido usada na declaração.</target>
+        <target state="needs-review-translation">Uma variável foi declarada com o mesmo nome de uma variável na classe base. No entanto, a palavra-chave new não foi usada. Este aviso informa que você deve usar um novo; a variável é declarada como se novo tivesse sido usada na declaração.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">
@@ -3371,7 +3371,7 @@
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired_Title">
         <source>Member does not hide an inherited member; new keyword is not required</source>
-        <target state="translated">O membro não oculta um membro herdado; não é necessária uma nova palavra-chave</target>
+        <target state="translated">O membro não oculta um membro herdado; não é necessária a palavra-chave new</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircConstValue">
