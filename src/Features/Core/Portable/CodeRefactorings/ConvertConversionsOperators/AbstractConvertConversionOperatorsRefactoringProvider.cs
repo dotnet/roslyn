@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
             }
 
             var (document, cancellationToken) = (context.Document, context.CancellationToken);
-            var semanticModelFactory = AsyncLazy.Create(cancellationToken
-                => document.GetRequiredSemanticModelAsync(cancellationToken), cacheResult: true);
+            var semanticModelFactory = AsyncLazy.Create<SemanticModel>(cancellationToken
+               => document.GetRequiredSemanticModelAsync(cancellationToken), cacheResult: true);
 
             castExpressions = await FilterCastExpressionCandidatesAsync(castExpressions, semanticModelFactory, cancellationToken).ConfigureAwait(false);
             asExpressions = await FilterAsExpressionCandidatesAsync(asExpressions, semanticModelFactory, cancellationToken).ConfigureAwait(false);
