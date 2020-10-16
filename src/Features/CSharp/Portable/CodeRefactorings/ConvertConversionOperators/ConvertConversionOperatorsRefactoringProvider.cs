@@ -4,9 +4,12 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.MemoryMappedFiles;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -14,6 +17,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperators
@@ -28,9 +32,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
         {
         }
 
-        protected override ImmutableArray<BinaryExpressionSyntax> FilterAsExpressionCandidates(ImmutableArray<BinaryExpressionSyntax> asExpression)
+        protected override Task<ImmutableArray<BinaryExpressionSyntax>> FilterAsExpressionCandidatesAsync(ImmutableArray<BinaryExpressionSyntax> asExpression, AsyncLazy<SemanticModel> semanticModelFactory, CancellationToken cancellationToken)
         {
-            return asExpression.WhereAsArray(binaryExpression => binaryExpression.IsKind(SyntaxKind.AsExpression));
+            var result = asExpression.WhereAsArray(binaryExpression =>
+                               binaryExpression.IsKind(SyntaxKind.AsExpression) &&
+                               binaryExpression.Right is TypeSyntax typeSyntax &&
+                               !typeSyntax.IsMissing);
+
+            return Task.FromResult(result);
+        }
+
+        protected override async Task<ImmutableArray<CastExpressionSyntax>> FilterCastExpressionCandidatesAsync(ImmutableArray<CastExpressionSyntax> castExpressions, AsyncLazy<SemanticModel> semanticModelFactory, CancellationToken cancellationToken)
+        {
+            if (castExpressions.IsEmpty)
+            {
+                return castExpressions;
+            }
+
+            var semanticModel = await semanticModelFactory.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var candidates = from node in castExpressions
+                             let type = semanticModel.GetTypeInfo(node, cancellationToken).Type
+                             where type != null && !type.IsValueType
+                             select node;
+
+            return candidates.ToImmutableArray();
         }
 
         protected override async Task<Document> ConvertFromAsToCastAsync(Document document, BinaryExpressionSyntax asExpression, CancellationToken cancellationToken)
@@ -40,11 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
             var expression = asExpression.Left;
             if (asExpression.Right is not TypeSyntax typeNode)
             {
-                return document;
+                throw new InvalidOperationException("asExpression.Right must be a TypeSyntax. This check is done before the CodeAction registration.");
             }
 
             var castExpression = CastExpression(typeNode, expression.WithoutTrailingTrivia());
             var newRoot = generator.ReplaceNode(root, asExpression, castExpression);
+
             return document.WithSyntaxRoot(newRoot);
         }
 
@@ -57,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
 
             var asExpression = BinaryExpression(SyntaxKind.AsExpression, expression, typeNode);
             var newRoot = generator.ReplaceNode(root, castExpression, asExpression);
+
             return document.WithSyntaxRoot(newRoot);
         }
 

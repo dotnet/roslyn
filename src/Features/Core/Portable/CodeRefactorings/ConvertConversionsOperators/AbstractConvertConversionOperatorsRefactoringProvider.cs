@@ -38,8 +38,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
             var castExpressions = await context.GetRelevantNodesAsync<TCastExpressionSyntax>().ConfigureAwait(false);
             var asExpressions = await context.GetRelevantNodesAsync<TAsExpressionSyntax>().ConfigureAwait(false);
 
-            castExpressions = FilterCastExpressionCandidates(castExpressions);
-            asExpressions = FilterAsExpressionCandidates(asExpressions);
+            if (castExpressions.IsEmpty && asExpressions.IsEmpty)
+            {
+                return;
+            }
+
+            var (document, cancellationToken) = (context.Document, context.CancellationToken);
+            var semanticModelFactory = AsyncLazy.Create(cancellationToken
+                => document.GetRequiredSemanticModelAsync(cancellationToken), cacheResult: true);
+
+            castExpressions = await FilterCastExpressionCandidatesAsync(castExpressions, semanticModelFactory, cancellationToken).ConfigureAwait(false);
+            asExpressions = await FilterAsExpressionCandidatesAsync(asExpressions, semanticModelFactory, cancellationToken).ConfigureAwait(false);
 
             if (castExpressions.IsEmpty && asExpressions.IsEmpty)
             {
@@ -52,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
             {
                 Func<CancellationToken, Task<Document>> createChangedDocument = node switch
                 {
-                    TCastExpressionSyntax castExpression => cancellationToken => ConvertFromCastToAsAsync(context.Document, castExpression, cancellationToken),
-                    TAsExpressionSyntax asExpression => cancellationToken => ConvertFromAsToCastAsync(context.Document, asExpression, cancellationToken),
+                    TCastExpressionSyntax castExpression => cancellationToken => ConvertFromCastToAsAsync(document, castExpression, cancellationToken),
+                    TAsExpressionSyntax asExpression => cancellationToken => ConvertFromAsToCastAsync(document, asExpression, cancellationToken),
                     _ => throw new InvalidOperationException("Unsupported node type"),
                 };
                 context.RegisterRefactoring(
@@ -64,11 +73,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
             }
         }
 
-        protected virtual ImmutableArray<TCastExpressionSyntax> FilterCastExpressionCandidates(ImmutableArray<TCastExpressionSyntax> castExpressions)
-            => castExpressions;
+        protected virtual Task<ImmutableArray<TCastExpressionSyntax>> FilterCastExpressionCandidatesAsync(
+            ImmutableArray<TCastExpressionSyntax> castExpressions,
+            AsyncLazy<SemanticModel> semanticModelFactory,
+            CancellationToken cancellationToken)
+            => Task.FromResult(castExpressions);
 
-        protected virtual ImmutableArray<TAsExpressionSyntax> FilterAsExpressionCandidates(ImmutableArray<TAsExpressionSyntax> asExpressions)
-            => asExpressions;
+        protected virtual Task<ImmutableArray<TAsExpressionSyntax>> FilterAsExpressionCandidatesAsync(
+            ImmutableArray<TAsExpressionSyntax> asExpressions,
+            AsyncLazy<SemanticModel> semanticModelFactory,
+            CancellationToken cancellationToken)
+            => Task.FromResult(asExpressions);
 
         protected abstract Task<Document> ConvertFromCastToAsAsync(
             Document document,
