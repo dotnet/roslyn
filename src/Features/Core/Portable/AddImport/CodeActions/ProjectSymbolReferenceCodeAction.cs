@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {
-                    if (!CanApply(workspace, cancellationToken))
+                    if (!CanApply(workspace))
                         return;
 
                     _applyOperation.Apply(workspace, cancellationToken);
@@ -73,26 +73,15 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
                 {
-                    if (!CanApply(workspace, cancellationToken))
+                    if (!CanApply(workspace))
                         return false;
 
                     return _applyOperation.TryApply(workspace, progressTracker, cancellationToken);
                 }
 
-                private bool CanApply(Workspace workspace, CancellationToken cancellationToken)
+                private bool CanApply(Workspace workspace)
                 {
-                    var canAddReferenceTask = workspace.CanAddProjectReferenceAsync(_referencingProject, _referencedProject, cancellationToken);
-                    if (!canAddReferenceTask.IsCompleted)
-                    {
-                        // This code action cannot handle asynchronous calls that yield when called from the main thread
-                        return false;
-                    }
-
-                    var canAddReference = canAddReferenceTask.GetAwaiter().GetResult();
-                    if (!canAddReference)
-                        return false;
-
-                    return true;
+                    return workspace.CanAddProjectReference(_referencingProject, _referencedProject);
                 }
             }
         }

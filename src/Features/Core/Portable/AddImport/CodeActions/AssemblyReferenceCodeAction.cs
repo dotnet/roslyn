@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {
-                    var operation = GetApplyChangesOperation(workspace, cancellationToken);
+                    var operation = GetApplyChangesOperation(workspace);
                     if (operation is null)
                         return;
 
@@ -81,16 +81,16 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
                 {
-                    var operation = GetApplyChangesOperation(workspace, cancellationToken);
+                    var operation = GetApplyChangesOperation(workspace);
                     if (operation is null)
                         return false;
 
                     return operation.TryApply(workspace, progressTracker, cancellationToken);
                 }
 
-                private ApplyChangesOperation? GetApplyChangesOperation(Workspace workspace, CancellationToken cancellationToken)
+                private ApplyChangesOperation? GetApplyChangesOperation(Workspace workspace)
                 {
-                    var resolvedPath = ResolvePath(workspace, cancellationToken);
+                    var resolvedPath = ResolvePath(workspace);
                     if (string.IsNullOrWhiteSpace(resolvedPath))
                         return null;
 
@@ -102,27 +102,14 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return new ApplyChangesOperation(newProject.Solution);
                 }
 
-                private string? ResolvePath(Workspace workspace, CancellationToken cancellationToken)
-                {
-                    var resolvePathTask = ResolvePathAsync(workspace, cancellationToken);
-                    if (!resolvePathTask.IsCompleted)
-                    {
-                        // This code action cannot handle asynchronous calls that yield when called from the main thread
-                        return null;
-                    }
-
-                    return resolvePathTask.GetAwaiter().GetResult();
-                }
-
-                private Task<string?> ResolvePathAsync(Workspace workspace, CancellationToken cancellationToken)
+                private string? ResolvePath(Workspace workspace)
                 {
                     var assemblyResolverService = workspace.Services.GetRequiredService<IFrameworkAssemblyPathResolver>();
 
-                    return assemblyResolverService.ResolveAssemblyPathAsync(
+                    return assemblyResolverService.ResolveAssemblyPath(
                         _newProject.Id,
                         _assemblyReferenceAssemblyName,
-                        _assemblyReferenceFullyQualifiedTypeName,
-                        cancellationToken);
+                        _assemblyReferenceFullyQualifiedTypeName);
                 }
             }
         }
