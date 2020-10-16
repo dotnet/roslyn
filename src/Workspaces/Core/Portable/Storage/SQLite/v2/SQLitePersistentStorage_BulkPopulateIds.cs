@@ -123,10 +123,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 AddIfUnknownId(project.FilePath, stringsToAdd);
                 AddIfUnknownId(project.Name, stringsToAdd);
 
-                foreach (var document in project.Documents)
+                foreach (var (_, documentState) in project.State.DocumentStates)
                 {
-                    AddIfUnknownId(document.FilePath, stringsToAdd);
-                    AddIfUnknownId(document.Name, stringsToAdd);
+                    AddIfUnknownId(documentState.FilePath, stringsToAdd);
+                    AddIfUnknownId(documentState.Name, stringsToAdd);
                 }
 
                 return AddStrings(stringsToAdd);
@@ -170,11 +170,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
                 var stringsToAdd = new HashSet<string>();
 
-                foreach (var document in project.Documents)
+                foreach (var (_, documentState) in project.State.DocumentStates)
                 {
                     // Produce the string like "projId-docPathId-docNameId" so that we can get a
                     // unique ID for it.
-                    AddIfUnknownId(GetDocumentIdString(document), stringsToAdd);
+                    AddIfUnknownId(GetDocumentIdString(documentState), stringsToAdd);
                 }
 
                 // Ensure we have unique IDs for all these document string ids.  If we fail to 
@@ -184,25 +184,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     return false;
                 }
 
-                foreach (var document in project.Documents)
+                foreach (var (documentId, documentState) in project.State.DocumentStates)
                 {
                     // Get the integral ID for this document.  It's safe to directly index into
                     // the map as we just successfully added these strings to the DB.
-                    var id = _stringToIdMap[GetDocumentIdString(document)];
-                    _documentIdToIdMap.TryAdd(document.Id, id);
+                    var id = _stringToIdMap[GetDocumentIdString(documentState)];
+                    _documentIdToIdMap.TryAdd(documentId, id);
                 }
 
                 return true;
             }
 
-            string GetDocumentIdString(Document document)
+            string GetDocumentIdString(DocumentState documentState)
             {
-                Contract.ThrowIfNull(document.FilePath);
+                Contract.ThrowIfNull(documentState.FilePath);
 
                 // We should always be able to index directly into these maps.  This function is only
                 // ever called after we called AddIndividualProjectAndDocumentComponentIds.
-                var documentPathId = _stringToIdMap[document.FilePath ?? ""];
-                var documentNameId = _stringToIdMap[document.Name];
+                var documentPathId = _stringToIdMap[documentState.FilePath ?? ""];
+                var documentNameId = _stringToIdMap[documentState.Name];
 
                 var documentIdString = SQLitePersistentStorage.GetDocumentIdString(
                     projectId.Value, documentPathId, documentNameId);
