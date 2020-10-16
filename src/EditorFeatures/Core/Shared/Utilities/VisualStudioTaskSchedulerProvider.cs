@@ -21,7 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioTaskSchedulerProvider(IThreadingContext threadingContext)
-            => CurrentContextScheduler = new JoinableTaskFactoryTaskScheduler(threadingContext.JoinableTaskFactory);
+        {
+            CurrentContextScheduler = threadingContext.HasMainThread
+                ? new JoinableTaskFactoryTaskScheduler(threadingContext.JoinableTaskFactory)
+                : TaskScheduler.Default;
+        }
 
         private sealed class JoinableTaskFactoryTaskScheduler : TaskScheduler
         {
