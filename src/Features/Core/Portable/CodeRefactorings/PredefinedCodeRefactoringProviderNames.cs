@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string AddMissingImports = "Add Missing Imports On Paste Code Action Provider";
         public const string ChangeSignature = "Change Signature Code Action Provider";
         public const string ConvertAnonymousTypeToClass = "Convert Anonymous Type to Class Code Action Provider";
+        public const string ConvertConversionOperators = "Convert Conversion Operators";
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
         public const string ConvertTupleToStruct = "Convert Tuple to Struct Code Action Provider";
         public const string EncapsulateField = "Encapsulate Field";
