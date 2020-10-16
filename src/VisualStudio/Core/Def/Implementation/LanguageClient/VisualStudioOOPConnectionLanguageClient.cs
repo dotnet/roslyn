@@ -10,7 +10,6 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
@@ -21,20 +20,21 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
+    /// <summary>
+    /// VS implementation of <see cref="ILanguageClient"/> that works by remoting the requests over to our OOP server to
+    /// actually perform the work.
+    /// </summary>
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Export(typeof(ILanguageClient))]
-    [Export(typeof(LanguageServerClient))]
-    internal sealed class LanguageServerClient : ILanguageClient
+    [Export(typeof(VisualStudioOOPConnectionLanguageClient))]
+    internal sealed class VisualStudioOOPConnectionLanguageClient : ILanguageClient
     {
-        private const string ServiceHubClientName = "ManagedLanguage.IDE.LanguageServer";
-
         private readonly IThreadingContext _threadingContext;
         private readonly HostWorkspaceServices _services;
         private readonly IEnumerable<Lazy<IOptionPersister>> _lazyOptions;
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LanguageServerClient(
+        public VisualStudioOOPConnectionLanguageClient(
             IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
             [ImportMany] IEnumerable<Lazy<IOptionPersister>> lazyOptions)
@@ -90,12 +90,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            var hubClient = new HubClient(ServiceHubClientName);
+            var hubClient = new HubClient(nameof(VisualStudioOOPConnectionLanguageClient));
 
             var stream = await ServiceHubRemoteHostClient.RequestServiceAsync(
                 _services,
                 hubClient,
-                WellKnownServiceHubService.LanguageServer,
+                WellKnownServiceHubService.RemoteLanguageClient,
                 cancellationToken).ConfigureAwait(false);
 
             return new Connection(stream, stream);

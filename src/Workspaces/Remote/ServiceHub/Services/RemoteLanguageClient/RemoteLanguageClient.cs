@@ -21,7 +21,10 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal class LanguageServer : ServiceBase
+    /// <summary>
+    /// Remote side of the VisualStudioOOPConnectionLanguageClient.  Used to implement the ILanguageClient in the OOP server.
+    /// </summary>
+    internal class RemoteLanguageClient : ServiceBase
     {
         private static readonly IImmutableSet<string> s_supportedKinds =
             ImmutableHashSet.Create(
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 NavigateToItemKind.Property,
                 NavigateToItemKind.Structure);
 
-        public LanguageServer(Stream stream, IServiceProvider serviceProvider)
+        public RemoteLanguageClient(Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
             StartService();
