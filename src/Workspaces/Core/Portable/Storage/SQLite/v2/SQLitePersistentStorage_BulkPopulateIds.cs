@@ -33,21 +33,21 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             if (bulkLoadSnapshot == null)
                 return;
 
-            foreach (var project in bulkLoadSnapshot.Projects)
-                BulkPopulateProjectIds(connection, project, fetchStringTable);
+            foreach (var (_, projectState) in bulkLoadSnapshot.State.ProjectStates)
+                BulkPopulateProjectIds(connection, bulkLoadSnapshot.State, projectState, fetchStringTable);
         }
 
-        private void BulkPopulateProjectIds(SqlConnection connection, Project? bulkLoadSnapshot, bool fetchStringTable)
+        private void BulkPopulateProjectIds(SqlConnection connection, SolutionState? bulkLoadSolution, ProjectState? bulkLoadProject, bool fetchStringTable)
         {
             // Can only bulk populate if we were given a snapshot we can walk to grab data from.
-            if (bulkLoadSnapshot == null)
+            if (bulkLoadProject == null)
                 return;
 
             // Ensure that only one caller is trying to bulk populate a project at a time.
-            var gate = _projectBulkPopulatedLock.GetOrAdd(bulkLoadSnapshot.Id, _ => new object());
+            var gate = _projectBulkPopulatedLock.GetOrAdd(bulkLoadProject.Id, _ => new object());
             lock (gate)
             {
-                if (_projectBulkPopulatedMap.Contains(bulkLoadSnapshot.Id))
+                if (_projectBulkPopulatedMap.Contains(bulkLoadProject.Id))
                 {
                     // We've already bulk processed this project.  No need to do so again.
                     return;
@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     }
                 }
 
-                if (!BulkPopulateProjectIdsWorker(connection, bulkLoadSnapshot))
+                if (!BulkPopulateProjectIdsWorker(connection, bulkLoadSolution!, bulkLoadProject))
                 {
                     // Something went wrong.  Try to bulk populate this project later.
                     return;
                 }
 
                 // Successfully bulk populated.  Mark as such so we don't bother doing this again.
-                _projectBulkPopulatedMap.Add(bulkLoadSnapshot.Id);
+                _projectBulkPopulatedMap.Add(bulkLoadProject.Id);
             }
         }
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// <summary>
         /// Returns 'true' if the bulk population succeeds, or false if it doesn't.
         /// </summary>
-        private bool BulkPopulateProjectIdsWorker(SqlConnection connection, Project project)
+        private bool BulkPopulateProjectIdsWorker(SqlConnection connection, SolutionState solutionState, ProjectState projectState)
         {
             // First, in bulk, get string-ids for all the paths and names for the project and documents.
             if (!AddIndividualProjectAndDocumentComponentIds())
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // from a compound key using the IDs for the project's FilePath and Name.
             //
             // If this fails for any reason, we can't proceed.
-            var projectId = TryGetProjectId(connection, (ProjectKey)project);
+            var projectId = TryGetProjectId(connection, ProjectKey.ToProjectKey(solutionState, projectState));
             if (projectId == null)
             {
                 return false;
@@ -120,10 +120,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             bool AddIndividualProjectAndDocumentComponentIds()
             {
                 var stringsToAdd = new HashSet<string>();
-                AddIfUnknownId(project.FilePath, stringsToAdd);
-                AddIfUnknownId(project.Name, stringsToAdd);
+                AddIfUnknownId(projectState.FilePath, stringsToAdd);
+                AddIfUnknownId(projectState.Name, stringsToAdd);
 
-                foreach (var (_, documentState) in project.State.DocumentStates)
+                foreach (var (_, documentState) in projectState.DocumentStates)
                 {
                     AddIfUnknownId(documentState.FilePath, stringsToAdd);
                     AddIfUnknownId(documentState.Name, stringsToAdd);
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
                 var stringsToAdd = new HashSet<string>();
 
-                foreach (var (_, documentState) in project.State.DocumentStates)
+                foreach (var (_, documentState) in projectState.DocumentStates)
                 {
                     // Produce the string like "projId-docPathId-docNameId" so that we can get a
                     // unique ID for it.
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     return false;
                 }
 
-                foreach (var (documentId, documentState) in project.State.DocumentStates)
+                foreach (var (documentId, documentState) in projectState.DocumentStates)
                 {
                     // Get the integral ID for this document.  It's safe to directly index into
                     // the map as we just successfully added these strings to the DB.
