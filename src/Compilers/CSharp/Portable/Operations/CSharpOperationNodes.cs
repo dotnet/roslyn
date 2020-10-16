@@ -1160,24 +1160,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyUnaryOperation : LazyUnaryOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _operand;
-
-        internal CSharpLazyUnaryOperation(CSharpOperationFactory operationFactory, BoundNode operand, UnaryOperatorKind unaryOperationKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _operand = operand;
-        }
-
-        protected override IOperation CreateOperand()
-        {
-            return _operationFactory.Create(_operand);
-        }
-    }
-
     internal sealed class CSharpLazyVariableDeclaratorOperation : LazyVariableDeclaratorOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

@@ -1280,19 +1280,21 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyNoPiaObjectCreationOperation(this, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IUnaryOperation CreateBoundUnaryOperatorOperation(BoundUnaryOperator boundUnaryOperator)
         {
             UnaryOperatorKind unaryOperatorKind = Helper.DeriveUnaryOperatorKind(boundUnaryOperator.OperatorKind);
-            BoundNode operand = boundUnaryOperator.Operand;
-            IMethodSymbol operatorMethod = boundUnaryOperator.MethodOpt.GetPublicSymbol();
+            IOperation operand = Create(boundUnaryOperator.Operand);
+            IMethodSymbol? operatorMethod = boundUnaryOperator.MethodOpt.GetPublicSymbol();
             SyntaxNode syntax = boundUnaryOperator.Syntax;
-            ITypeSymbol type = boundUnaryOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundUnaryOperator.ConstantValue;
+            ITypeSymbol? type = boundUnaryOperator.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundUnaryOperator.ConstantValue;
             bool isLifted = boundUnaryOperator.OperatorKind.IsLifted();
             bool isChecked = boundUnaryOperator.OperatorKind.IsChecked();
             bool isImplicit = boundUnaryOperator.WasCompilerGenerated;
-            return new CSharpLazyUnaryOperation(this, operand, unaryOperatorKind, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new UnaryOperation(unaryOperatorKind, operand, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
+#nullable disable
 
         private IBinaryOperation CreateBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator)
         {
@@ -2170,14 +2172,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundNode.GetPublicTypeSymbol(),
                 isImplicit: boundNode.WasCompilerGenerated);
         }
-#nullable disable
 
         private IOperation CreateFromEndIndexExpressionOperation(BoundFromEndIndexExpression boundIndex)
         {
-            return new CSharpLazyUnaryOperation(
-                operationFactory: this,
-                boundIndex.Operand,
+            return new UnaryOperation(
                 UnaryOperatorKind.Hat,
+                Create(boundIndex.Operand),
                 isLifted: boundIndex.Type.IsNullableType(),
                 isChecked: false,
                 operatorMethod: null,
@@ -2187,6 +2187,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 constantValue: null,
                 isImplicit: boundIndex.WasCompilerGenerated);
         }
+#nullable disable
 
         private IOperation CreateRangeExpressionOperation(BoundRangeExpression boundRange)
         {

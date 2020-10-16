@@ -855,7 +855,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IUnaryOperation" Base="IOperation" VisitorName="VisitUnaryOperator">
+  <Node Name="IUnaryOperation" Base="IOperation" VisitorName="VisitUnaryOperator" HasType="true" HasConstantValue="true">
     <OperationKind>
       <Entry Name="Unary" Value="0x1f" />
       <Entry Name="UnaryOperator" Value="0x1f" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;Unary&quot;/&gt; instead." />
@@ -897,7 +897,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="OperatorMethod" Type="IMethodSymbol">
+    <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>

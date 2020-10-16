@@ -979,6 +979,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IEventSymbol Event { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents an operation with one operand and a unary operator.
     /// <para>
@@ -1020,8 +1021,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
-        IMethodSymbol OperatorMethod { get; }
+        IMethodSymbol? OperatorMethod { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an operation with two operands and a binary operator that produces a result with a non-null type.
     /// <para>
@@ -4676,60 +4678,46 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseUnaryOperation : OperationOld, IUnaryOperation
+    #nullable enable
+    internal sealed partial class UnaryOperation : Operation, IUnaryOperation
     {
-        internal BaseUnaryOperation(UnaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Unary, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal UnaryOperation(UnaryOperatorKind operatorKind, IOperation operand, bool isLifted, bool isChecked, IMethodSymbol? operatorMethod, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             OperatorKind = operatorKind;
+            Operand = SetParentOperation(operand, this);
             IsLifted = isLifted;
             IsChecked = isChecked;
             OperatorMethod = operatorMethod;
+            OperationConstantValue = constantValue;
+            Type = type;
         }
         public UnaryOperatorKind OperatorKind { get; }
-        public abstract IOperation Operand { get; }
+        public IOperation Operand { get; }
         public bool IsLifted { get; }
         public bool IsChecked { get; }
-        public IMethodSymbol OperatorMethod { get; }
+        public IMethodSymbol? OperatorMethod { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Operand is object) yield return Operand;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Operand is not null) builder.Add(Operand);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.Unary;
         public override void Accept(OperationVisitor visitor) => visitor.VisitUnaryOperator(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitUnaryOperator(this, argument);
     }
-    internal sealed partial class UnaryOperation : BaseUnaryOperation, IUnaryOperation
-    {
-        internal UnaryOperation(UnaryOperatorKind operatorKind, IOperation operand, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operand = SetParentOperation(operand, this);
-        }
-        public override IOperation Operand { get; }
-    }
-    internal abstract partial class LazyUnaryOperation : BaseUnaryOperation, IUnaryOperation
-    {
-        private IOperation _lazyOperand = s_unset;
-        internal LazyUnaryOperation(UnaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateOperand();
-        public override IOperation Operand
-        {
-            get
-            {
-                if (_lazyOperand == s_unset)
-                {
-                    IOperation operand = CreateOperand();
-                    SetParentOperation(operand, this);
-                    Interlocked.CompareExchange(ref _lazyOperand, operand, s_unset);
-                }
-                return _lazyOperand;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseBinaryOperation : OperationOld, IBinaryOperation
     {
         internal BaseBinaryOperation(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8953,6 +8941,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ParameterReferenceOperation)operation;
             return new ParameterReferenceOperation(internalOperation.Parameter, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitUnaryOperator(IUnaryOperation operation, object? argument)
+        {
+            var internalOperation = (UnaryOperation)operation;
+            return new UnaryOperation(internalOperation.OperatorKind, Visit(internalOperation.Operand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.OperatorMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, object? argument)
         {

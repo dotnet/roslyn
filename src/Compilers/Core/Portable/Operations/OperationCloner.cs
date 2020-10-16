@@ -149,11 +149,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ConditionalAccessOperation(Visit(operation.WhenNotNull), Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitUnaryOperator(IUnaryOperation operation, object argument)
-        {
-            return new UnaryOperation(operation.OperatorKind, Visit(operation.Operand), operation.IsLifted, operation.IsChecked, operation.OperatorMethod, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitBinaryOperator(IBinaryOperation operation, object argument)
         {
             return new BinaryOperation(operation.OperatorKind, Visit(operation.LeftOperand), Visit(operation.RightOperand),

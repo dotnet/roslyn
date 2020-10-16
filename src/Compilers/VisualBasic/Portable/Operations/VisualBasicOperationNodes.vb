@@ -854,23 +854,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyUnaryOperation
-        Inherits LazyUnaryOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operator As BoundExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, [operator] As BoundExpression, unaryOperationKind As UnaryOperatorKind, isLifted As Boolean, isChecked As Boolean, operatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operator = [operator]
-        End Sub
-
-        Protected Overrides Function CreateOperand() As IOperation
-            Return _operationFactory.CreateBoundUnaryOperatorChild(_operator)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyVariableDeclarationGroupOperation
         Inherits LazyVariableDeclarationGroupOperation
 

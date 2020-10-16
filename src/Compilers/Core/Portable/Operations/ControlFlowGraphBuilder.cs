@@ -2104,6 +2104,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, int? captureIdForResult)
         {
             if (IsBooleanLogicalNot(operation))
@@ -2122,6 +2123,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                    ITypeSymbolHelpers.IsBooleanType(operation.Type) &&
                    ITypeSymbolHelpers.IsBooleanType(operation.Operand.Type);
         }
+#nullable disable
 
         private static bool CalculateAndOrSense(IBinaryOperation binOp, bool sense)
         {
@@ -2545,11 +2547,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return GetCaptureReference(captureId, condition);
         }
 
-        private IOperation VisitConditionalExpression(IOperation condition, bool sense, int? captureIdForResult, BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
+#nullable enable
+        private IOperation VisitConditionalExpression(IOperation condition, bool sense, int? captureIdForResult, BasicBlockBuilder? fallToTrueOpt, BasicBlockBuilder? fallToFalseOpt)
         {
             Debug.Assert(ITypeSymbolHelpers.IsBooleanType(condition.Type));
 
-            IUnaryOperation lastUnary = null;
+            IUnaryOperation? lastUnary = null;
 
             do
             {
@@ -2600,6 +2603,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                    ITypeSymbolHelpers.IsBooleanType(binOp.LeftOperand.Type) &&
                    ITypeSymbolHelpers.IsBooleanType(binOp.RightOperand.Type);
         }
+#nullable disable
 
         private void VisitConditionalBranch(IOperation condition, ref BasicBlockBuilder dest, bool jumpIfTrue)
         {

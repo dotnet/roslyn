@@ -510,6 +510,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundUnaryOperatorOperation(boundUnaryOperator As BoundUnaryOperator) As IUnaryOperation
+            Dim operand As IOperation = CreateBoundUnaryOperatorChild(boundUnaryOperator)
             Dim operatorKind As UnaryOperatorKind = Helper.DeriveUnaryOperatorKind(boundUnaryOperator.OperatorKind)
             Dim operatorMethod As IMethodSymbol = Nothing
             Dim syntax As SyntaxNode = boundUnaryOperator.Syntax
@@ -518,10 +519,11 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isLifted As Boolean = (boundUnaryOperator.OperatorKind And VisualBasic.UnaryOperatorKind.Lifted) <> 0
             Dim isChecked As Boolean = boundUnaryOperator.Checked
             Dim isImplicit As Boolean = boundUnaryOperator.WasCompilerGenerated
-            Return New VisualBasicLazyUnaryOperation(Me, boundUnaryOperator, operatorKind, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New UnaryOperation(operatorKind, operand, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundUserDefinedUnaryOperatorOperation(boundUserDefinedUnaryOperator As BoundUserDefinedUnaryOperator) As IUnaryOperation
+            Dim operand As IOperation = CreateBoundUnaryOperatorChild(boundUserDefinedUnaryOperator)
             Dim operatorKind As UnaryOperatorKind = Helper.DeriveUnaryOperatorKind(boundUserDefinedUnaryOperator.OperatorKind)
             Dim operatorMethod As IMethodSymbol = TryGetOperatorMethod(boundUserDefinedUnaryOperator)
             Dim syntax As SyntaxNode = boundUserDefinedUnaryOperator.Syntax
@@ -530,7 +532,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isLifted As Boolean = (boundUserDefinedUnaryOperator.OperatorKind And VisualBasic.UnaryOperatorKind.Lifted) <> 0
             Dim isChecked As Boolean = False
             Dim isImplicit As Boolean = boundUserDefinedUnaryOperator.WasCompilerGenerated
-            Return New VisualBasicLazyUnaryOperation(Me, boundUserDefinedUnaryOperator, operatorKind, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New UnaryOperation(operatorKind, operand, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Shared Function TryGetOperatorMethod(boundUserDefinedUnaryOperator As BoundUserDefinedUnaryOperator) As MethodSymbol
