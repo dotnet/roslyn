@@ -29,8 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
+            ILspSolutionProvider solutionProvider,
+            DefaultCapabilitiesProvider defaultCapabilitiesProvider)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, defaultCapabilitiesProvider, diagnosticsClientName: null)
         {
         }
 

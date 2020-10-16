@@ -15,22 +15,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
 {
     public class InitializeTests : AbstractLanguageServerProtocolTests
     {
-        [Fact]
-        public async Task TestInitializeAsync()
-        {
-            using var worksapce = CreateTestWorkspace(string.Empty, out var _);
-            var results = await RunInitializeAsync(worksapce.CurrentSolution, new LSP.InitializeParams());
-
-            AssertServerCapabilities(results.Capabilities);
-        }
-
-        private static async Task<LSP.InitializeResult> RunInitializeAsync(Solution solution, LSP.InitializeParams request)
-        {
-            var queue = CreateRequestQueue(solution);
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(queue, LSP.Methods.InitializeName,
-                           request, new LSP.ClientCapabilities(), null, CancellationToken.None);
-        }
-
         private static void AssertServerCapabilities(LSP.ServerCapabilities actual)
         {
             Assert.True((bool)actual.DefinitionProvider.Value);
