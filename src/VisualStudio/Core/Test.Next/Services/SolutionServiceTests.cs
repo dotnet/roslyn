@@ -435,9 +435,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/48564")]
+        [Theory, CombinatorialData]
         [WorkItem(48564, "https://github.com/dotnet/roslyn/issues/48564")]
-        public async Task TestAddingProjectsWithExplicitOptions()
+        public async Task TestAddingProjectsWithExplicitOptions(bool useDefaultOptionValue)
         {
             using var workspace = TestWorkspace.CreateCSharp(@"public class C { }");
             using var remoteWorkspace = CreateRemoteWorkspace();
@@ -460,9 +460,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var vbProjectInfo = vbProject.ToProjectInfo();
 
             solution = solution.AddProject(csharpProjectInfo).AddProject(vbProjectInfo);
+            var newOptionValue = useDefaultOptionValue
+                ? FormattingOptions2.NewLine.DefaultValue
+                : FormattingOptions2.NewLine.DefaultValue + FormattingOptions2.NewLine.DefaultValue;
             solution = solution.WithOptions(solution.Options
-                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.CSharp, FormattingOptions2.NewLine.DefaultValue)
-                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.VisualBasic, FormattingOptions2.NewLine.DefaultValue));
+                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.CSharp, newOptionValue)
+                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.VisualBasic, newOptionValue));
 
             assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
