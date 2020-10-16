@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -208,7 +206,7 @@ namespace Microsoft.CodeAnalysis
                     return IncrementallyParse(newTextAndVersion, oldTreeAndVersion, cancellationToken);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -229,7 +227,7 @@ namespace Microsoft.CodeAnalysis
                     return IncrementallyParse(newTextAndVersion, oldTreeAndVersion, cancellationToken);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -717,7 +715,7 @@ namespace Microsoft.CodeAnalysis
 
             // we time to time see (incremental) parsing bug where text <-> tree round tripping is broken.
             // send NFW for those cases
-            FatalError.ReportWithoutCrash(new Exception($"tree and text has different length {newTree.Length} vs {newText.Length}"));
+            FatalError.ReportAndCatch(new Exception($"tree and text has different length {newTree.Length} vs {newText.Length}"));
 
             // this will make sure that these variables are not thrown away in the dump
             GC.KeepAlive(newTreeContent);

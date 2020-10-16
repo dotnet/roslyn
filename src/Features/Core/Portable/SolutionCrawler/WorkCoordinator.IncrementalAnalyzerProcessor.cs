@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -339,7 +337,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // re-run just the body
                         await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, activeMember, reasons, c), cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -356,14 +354,25 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         return null;
                     }
-                    catch (AggregateException e) when (CrashUnlessCanceled(e))
+                    catch (AggregateException e) when (ReportWithoutCrashUnlessAllCanceledAndPropagate(e))
                     {
                         return null;
                     }
-                    catch (Exception e) when (FatalError.Report(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagate(e))
                     {
                         // TODO: manage bad workers like what code actions does now
                         throw ExceptionUtilities.Unreachable;
+                    }
+
+                    static bool ReportWithoutCrashUnlessAllCanceledAndPropagate(AggregateException aggregate)
+                    {
+                        var flattened = aggregate.Flatten();
+                        if (flattened.InnerExceptions.All(e => e is OperationCanceledException))
+                        {
+                            return true;
+                        }
+
+                        return FatalError.ReportAndPropagate(flattened);
                     }
                 }
 
@@ -393,18 +402,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     return $"Tick:{tick}, {documentOrProjectId}, Replaced:{replaced}";
-                }
-
-                private static bool CrashUnlessCanceled(AggregateException aggregate)
-                {
-                    var flattened = aggregate.Flatten();
-                    if (flattened.InnerExceptions.All(e => e is OperationCanceledException))
-                    {
-                        return true;
-                    }
-
-                    FatalError.Report(flattened);
-                    return false;
                 }
 
                 internal TestAccessor GetTestAccessor()

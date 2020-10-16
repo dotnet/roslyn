@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,6 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
@@ -198,9 +197,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             string GetDocumentIdString(Document document)
             {
+                Contract.ThrowIfNull(document.FilePath);
+
                 // We should always be able to index directly into these maps.  This function is only
                 // ever called after we called AddIndividualProjectAndDocumentComponentIds.
-                var documentPathId = _stringToIdMap[document.FilePath];
+                var documentPathId = _stringToIdMap[document.FilePath ?? ""];
                 var documentNameId = _stringToIdMap[document.Name];
 
                 var documentIdString = SQLitePersistentStorage.GetDocumentIdString(

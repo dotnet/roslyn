@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -18,6 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -67,6 +67,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.NuGet, LSP.CompletionItemKind.Text }
         };
 
+        // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
+        // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
+        public static Completion.CompletionTrigger LSPToRoslynCompletionTrigger(LSP.CompletionContext? context)
+        {
+            if (context == null)
+            {
+                // Some LSP clients don't support sending extra context, so all we can do is invoke
+                return Completion.CompletionTrigger.Invoke;
+            }
+            else if (context.TriggerKind == LSP.CompletionTriggerKind.Invoked)
+            {
+                return Completion.CompletionTrigger.Invoke;
+            }
+            else if (context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter)
+            {
+                Contract.ThrowIfNull(context.TriggerCharacter);
+                return Completion.CompletionTrigger.CreateInsertionTrigger(char.Parse(context.TriggerCharacter));
+            }
+            else
+            {
+                // LSP added a TriggerKind that we need to support.
+                Logger.Log(FunctionId.LSPCompletion_MissingLSPCompletionTriggerKind);
+                return Completion.CompletionTrigger.Invoke;
+            }
+        }
+
         public static Uri GetUriFromFilePath(string? filePath)
         {
             if (filePath is null)
@@ -103,6 +129,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText text)
         {
+            Contract.ThrowIfNull(textChange.NewText);
             return new LSP.TextEdit
             {
                 NewText = textChange.NewText,

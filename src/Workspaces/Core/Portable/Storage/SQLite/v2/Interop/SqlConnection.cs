@@ -31,13 +31,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         /// </summary>
         private readonly SafeSqliteHandle _handle;
 
-#pragma warning disable IDE0052 // Remove unread private members - TODO: Can this field be removed?
-        /// <summary>
-        /// For testing purposes to simulate failures during testing.
-        /// </summary>
-        private readonly IPersistentStorageFaultInjector _faultInjector;
-#pragma warning restore IDE0052 // Remove unread private members
-
         /// <summary>
         /// Our cache of prepared statements for given sql strings.
         /// </summary>
@@ -50,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         /// </summary>
         public bool IsInTransaction { get; private set; }
 
-        public static SqlConnection Create(IPersistentStorageFaultInjector faultInjector, string databasePath)
+        public static SqlConnection Create(IPersistentStorageFaultInjector? faultInjector, string databasePath)
         {
             faultInjector?.OnNewConnection();
 
@@ -82,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             try
             {
                 NativeMethods.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
-                var connection = new SqlConnection(handle, faultInjector, queryToStatement);
+                var connection = new SqlConnection(handle, queryToStatement);
 
                 // Attach (creating if necessary) a singleton in-memory write cache to this connection.
                 //
@@ -110,14 +103,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             }
         }
 
-        private SqlConnection(SafeSqliteHandle handle, IPersistentStorageFaultInjector faultInjector, Dictionary<string, SqlStatement> queryToStatement)
+        private SqlConnection(SafeSqliteHandle handle, Dictionary<string, SqlStatement> queryToStatement)
         {
             _handle = handle;
-            _faultInjector = faultInjector;
             _queryToStatement = queryToStatement;
         }
 
-        internal void Close_OnlyForUseBySqlPersistentStorage()
+        internal void Close_OnlyForUseBySQLiteConnectionPool()
         {
             // Dispose of the underlying handle at the end of cleanup
             using var _ = _handle;
@@ -174,7 +166,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 state =>
                 {
                     state.action(state.state);
-                    return (object)null;
+                    return (object?)null;
                 },
                 (action, state));
         }
@@ -237,7 +229,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             => (int)NativeMethods.sqlite3_last_insert_rowid(_handle);
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Stream ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
+        public Stream? ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
         {
             // NOTE: we do need to do the blob reading in a transaction because of the
             // following: https://www.sqlite.org/c3ref/blob_open.html

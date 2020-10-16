@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -18,6 +20,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
 {
@@ -29,6 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         private const int LocalIndex = 3;
         private const int Parameter = 4;
         private const int ParameterAndOverrides = 5;
+
+        public GenerateVariableTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpGenerateVariableCodeFixProvider());
@@ -9333,6 +9341,13 @@ namespace ConsoleApp5
     string.Format(FeaturesResources.Generate_local_0, "Error", "MyException"),
     string.Format(FeaturesResources.Generate_parameter_0, "Error", "MyException"),
 });
+        }
+
+        [WorkItem(48172, "https://github.com/dotnet/roslyn/issues/48172")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestMissingOfferParameterInTopLevel()
+        {
+            await TestMissingAsync("[|Console|].WriteLine();", new TestParameters(Options.Regular));
         }
     }
 }

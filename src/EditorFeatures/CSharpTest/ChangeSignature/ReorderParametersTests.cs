@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -204,7 +206,7 @@ class MyClass
 
         [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderConstructorParametersAndArguments_TargetTypedNew()
+        public async Task ReorderConstructorParametersAndArguments_ImplicitObjectCreation()
         {
             var markup = @"
 using System;

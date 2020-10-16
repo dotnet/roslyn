@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
             var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
             var results = await RunRenameAsync(workspace.CurrentSolution, renameLocation, renameValue);
-            AssertJsonEquals(expectedEdits, results.DocumentChanges.First().Edits);
+            AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
         [WpfFact]
@@ -67,7 +69,7 @@ $@"<Workspace>
             var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
             var results = await RunRenameAsync(workspace.CurrentSolution, renameLocation, renameValue);
-            AssertJsonEquals(expectedEdits, results.DocumentChanges.First().Edits);
+            AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
         [WpfFact]
@@ -113,7 +115,7 @@ $@"<Workspace>
             var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
             var results = await RunRenameAsync(workspace.CurrentSolution, renameLocation, renameValue);
-            AssertJsonEquals(expectedEdits, results.DocumentChanges.First().Edits);
+            AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
         private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)

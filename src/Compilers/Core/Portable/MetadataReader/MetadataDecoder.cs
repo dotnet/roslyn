@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis
         where MethodSymbol : class, Symbol, IMethodSymbolInternal
         where FieldSymbol : class, Symbol, IFieldSymbolInternal
         where Symbol : class, ISymbolInternal
-#nullable restore
+#nullable disable
     {
         public readonly PEModule Module;
 
@@ -1759,7 +1761,7 @@ tryAgain:
             attributeCtor = GetMethodSymbolForMethodDefOrMemberRef(ctor, attributeClass);
             return true;
         }
-#nullable restore
+#nullable disable
 
         internal bool GetCustomAttributeWellKnownType(CustomAttributeHandle handle, out WellKnownType wellKnownAttribute)
         {

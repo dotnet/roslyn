@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -332,6 +334,7 @@ class X
                         case ErrorCode.WRN_ParameterDisallowsNull:
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                         case ErrorCode.WRN_IsPatternAlways:
+                        case ErrorCode.WRN_AnalyzerReferencesFramework:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -411,6 +414,7 @@ class X
                     ErrorCode.WRN_ReturnTypeIsStaticClass,
                     ErrorCode.WRN_RecordNamedDisallowed,
                     ErrorCode.WRN_RecordEqualsWithoutGetHashCode,
+                    ErrorCode.WRN_AnalyzerReferencesFramework,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

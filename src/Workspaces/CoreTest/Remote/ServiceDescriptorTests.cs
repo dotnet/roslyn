@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -20,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     public class ServiceDescriptorTests
     {
+        public static IEnumerable<object[]> ServiceTypes
+            => ServiceDescriptors.Descriptors.Select(descriptor => new object[] { descriptor.Key });
+
         private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
         {
             var interfaces = new List<Type>();
@@ -98,8 +104,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                     foreach (var type in method.GetParameters().Select(p => p.ParameterType))
                     {
-                        // stream is special cased by JSON-RPC for streaming APIs
-                        if (type != typeof(Stream))
+                        // types that are special cased by JSON-RPC for streaming APIs
+                        if (type != typeof(Stream) &&
+                            type != typeof(IDuplexPipe) &&
+                            type != typeof(PipeReader) &&
+                            type != typeof(PipeWriter))
                         {
                             AddTypeRecursive(type, method);
                         }
@@ -150,13 +159,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             AssertEx.Empty(errors, "Types are not MessagePack-serializable");
         }
 
-        [Fact]
-        public void GetFeatureName()
+        [Theory]
+        [MemberData(nameof(ServiceTypes))]
+        public void GetFeatureName(Type serviceType)
         {
-            foreach (var (serviceType, _) in ServiceDescriptors.Descriptors)
-            {
-                Assert.NotEmpty(ServiceDescriptors.GetFeatureName(serviceType));
-            }
+            Assert.NotEmpty(ServiceDescriptors.GetFeatureName(serviceType));
         }
     }
 }

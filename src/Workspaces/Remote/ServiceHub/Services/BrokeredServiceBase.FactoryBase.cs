@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var serviceHubTraceSource = (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
                 var serverConnection = descriptor.WithTraceSource(serviceHubTraceSource).ConstructRpcConnection(pipe);
 
-                var args = new ServiceConstructionArguments(hostProvidedServices, serviceBroker, new CancellationTokenSource());
+                var args = new ServiceConstructionArguments(hostProvidedServices, serviceBroker);
                 var service = CreateService(args, descriptor, serverConnection, serviceActivationOptions.ClientRpcTarget);
 
                 serverConnection.AddLocalRpcTarget(service);
@@ -106,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 Contract.ThrowIfNull(descriptor.ClientInterface);
                 var callback = (TCallback)(clientRpcTarget ?? serverConnection.ConstructRpcClient(descriptor.ClientInterface));
-                return CreateService(arguments, new RemoteCallback<TCallback>(callback, arguments.ClientDisconnectedSource));
+                return CreateService(arguments, new RemoteCallback<TCallback>(callback));
             }
         }
     }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -295,6 +297,25 @@ public class C
 ",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("M") },
                 new[] { Diagnostic("Declaration", "M2") });
+        }
+
+        [Fact]
+        public async Task GlobalSuppressionOnValueTupleMemberWithDocId()
+        {
+            await VerifyCSharpAsync(@"
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
+
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Member"", Target=""~M:C.M~System.Threading.Tasks.Task{System.ValueTuple{System.Boolean,ErrorCode}}"")]
+
+enum ErrorCode {}
+
+class C
+{
+    Task<(bool status, ErrorCode errorCode)> M() => null;
+}
+",
+                new[] { new WarningOnNamePrefixDeclarationAnalyzer("M") });
         }
 
         [Fact]

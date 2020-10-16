@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -323,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Organize using directives
             addedDocument = ThreadHelper.JoinableTaskFactory.Run(() => OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken));
-            rootToFormat = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetRequiredSyntaxRootAsync(cancellationToken));
+            rootToFormat = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).AsTask());
 
             // Format document
             var unformattedText = addedDocument.GetTextSynchronously(cancellationToken);
