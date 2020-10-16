@@ -56,14 +56,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             }
 
             var descriptionBuilder = new List<TaggedText>(info.Description);
-            var description = await info.Symbol.GetDescriptionAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (description.Any())
+            if (info.Symbol != null)
             {
-                if (descriptionBuilder.Any())
+                var description = await info.Symbol.GetDescriptionAsync(document, position, cancellationToken).ConfigureAwait(false);
+                if (description.Any())
                 {
-                    descriptionBuilder.AddLineBreak();
+                    if (descriptionBuilder.Any())
+                    {
+                        descriptionBuilder.AddLineBreak();
+                    }
+                    descriptionBuilder.AddRange(description);
                 }
-                description.Concat(description);
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

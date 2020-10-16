@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         private static string GetPipeName(BuildPaths buildPaths)
         {
-            return BuildServerConnection.GetPipeNameForPathOpt(buildPaths.ClientDirectory);
+            return BuildServerConnection.GetPipeNameForPath(buildPaths.ClientDirectory);
         }
 
         private static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)

@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static void ReportNonFatalWatson(Exception exception)
         {
-            FatalError.ReportWithoutCrash(exception);
+            FatalError.ReportAndCatch(exception);
         }
 
         private SoftCrashException CreateSoftCrashException(Exception ex, CancellationToken cancellationToken)

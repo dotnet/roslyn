@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // report telemetry event:
             Logger.Log(FunctionId.FeatureNotAvailable, $"{ServiceDescriptors.GetServiceName(typeof(TService))}: {exception.GetType()}: {exception.Message}");
 
-            return FatalError.ReportWithoutCrash(exception);
+            return FatalError.ReportAndCatch(exception);
         }
 
         private bool IsHostShuttingDown

@@ -15,8 +15,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -26,7 +24,7 @@ using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     /// <summary>
     /// Defines the language server to be hooked up to an <see cref="ILanguageClient"/> using StreamJsonRpc.  This runs
@@ -41,6 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly Workspace _workspace;
         private readonly RequestExecutionQueue _queue;
+
+        /// <summary>
+        /// Work queue responsible for receiving notifications about diagnostic updates and publishing those to
+        /// interested parties.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue<DocumentId> _diagnosticsWorkQueue;
 
         private VSClientCapabilities _clientCapabilities;
         private bool _shuttingDown;
@@ -68,12 +72,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _diagnosticService = diagnosticService;
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
-            _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
 
             _clientCapabilities = new VSClientCapabilities();
 
             _queue = new RequestExecutionQueue(solutionProvider);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
+
+            // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
+            _diagnosticsWorkQueue = new AsyncBatchingWorkQueue<DocumentId>(
+                TimeSpan.FromMilliseconds(250),
+                ProcessDiagnosticUpdatedBatchAsync,
+                EqualityComparer<DocumentId>.Default,
+                _listener,
+                _queue.CancellationToken);
+            _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
         }
 
         public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed;
@@ -100,19 +112,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
-        public async Task InitializedAsync()
+        public Task InitializedAsync()
         {
             // Publish diagnostics for all open documents immediately following initialization.
             var solution = _workspace.CurrentSolution;
             var openDocuments = _workspace.GetOpenDocumentIds();
             foreach (var documentId in openDocuments)
-            {
-                var document = solution.GetDocument(documentId);
-                if (document != null)
-                {
-                    await PublishDiagnosticsAsync(document).ConfigureAwait(false);
-                }
-            }
+                DiagnosticService_DiagnosticsUpdated(solution, documentId);
+
+            return Task.CompletedTask;
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
@@ -137,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 _jsonRpc.Dispose();
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
                 // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
@@ -263,27 +271,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             => _requestHandlerProvider.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>(_queue, MSLSPMethods.OnAutoInsertName,
                 autoInsertParams, _clientCapabilities, _clientName, cancellationToken);
 
-        private void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+        private void DiagnosticService_DiagnosticsUpdated(object _, DiagnosticsUpdatedArgs e)
+            => DiagnosticService_DiagnosticsUpdated(e.Solution, e.DocumentId);
+
+        private void DiagnosticService_DiagnosticsUpdated(Solution? solution, DocumentId? documentId)
         {
             // LSP doesn't support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
-            if (e.DocumentId != null && e.Solution != null)
+            if (documentId != null && solution != null)
             {
-                var document = e.Solution.GetDocument(e.DocumentId);
+                var document = solution.GetDocument(documentId);
                 if (document == null || document.FilePath == null)
-                {
                     return;
-                }
 
                 // Only publish document diagnostics for the languages this provider supports.
                 if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
-                {
                     return;
-                }
 
-                // LSP does not currently support publishing diagnostics incrementally, so we re-publish all diagnostics.
-                var asyncToken = _listener.BeginAsyncOperation(nameof(PublishDiagnosticsAsync));
-                Task.Run(() => PublishDiagnosticsAsync(document))
-                    .CompletesAsyncOperation(asyncToken);
+                _diagnosticsWorkQueue.AddWork(document.Id);
             }
         }
 
@@ -348,10 +352,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private static readonly Comparer<Uri> s_uriComparer = Comparer<Uri>.Create((uri1, uri2)
             => Uri.Compare(uri1, uri2, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase));
 
-        internal async Task PublishDiagnosticsAsync(Document document)
+        private async Task ProcessDiagnosticUpdatedBatchAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        {
+            var solution = _workspace.CurrentSolution;
+            foreach (var documentId in documentIds)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var document = solution.GetDocument(documentId);
+                if (document != null)
+                    await PublishDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        // Internal for testing purposes.
+        internal async Task PublishDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
             // Retrieve all diagnostics for the current document grouped by their actual file uri.
-            var fileUriToDiagnostics = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
+            var fileUriToDiagnostics = await GetDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Get the list of file uris with diagnostics (for the document).
             // We need to join the uris from current diagnostics with those previously published

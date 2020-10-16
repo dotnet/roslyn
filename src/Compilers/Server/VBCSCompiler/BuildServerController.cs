@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal int Run(string[] args)
         {
-            string pipeName;
+            string? pipeName;
             bool shutdown;
             if (!ParseCommandLine(args, out pipeName, out shutdown))
             {
@@ -43,6 +41,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             pipeName = pipeName ?? GetDefaultPipeName();
+            if (pipeName is null)
+            {
+                throw new Exception("Cannot calculate pipe name");
+            }
+
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
@@ -95,28 +98,33 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
             // location of the response files.
-            var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            //
+            // BaseDirectory was mistakenly marked as potentially null in 3.1
+            // https://github.com/dotnet/runtime/pull/32486
+            var clientDirectory = AppDomain.CurrentDomain.BaseDirectory!;
             var sdkDirectory = BuildClient.GetSystemSdkDirectory();
 
             return new CompilerServerHost(clientDirectory, sdkDirectory);
         }
 
-        private async Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout)
+        private async Task<Stream?> ConnectForShutdownAsync(string pipeName, int timeout)
         {
             return await BuildServerConnection.TryConnectToServerAsync(pipeName, timeout, cancellationToken: default).ConfigureAwait(false);
         }
 
-        private static string GetDefaultPipeName()
+        private static string? GetDefaultPipeName()
         {
-            var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            return BuildServerConnection.GetPipeNameForPathOpt(clientDirectory);
+            // BaseDirectory was mistakenly marked as nullable in 3.1
+            // https://github.com/dotnet/runtime/pull/32486
+            var clientDirectory = AppDomain.CurrentDomain.BaseDirectory!;
+            return BuildServerConnection.GetPipeNameForPath(clientDirectory);
         }
 
         internal int RunServer(
             string pipeName,
-            ICompilerServerHost compilerServerHost = null,
-            IClientConnectionHost clientConnectionHost = null,
-            IDiagnosticListener listener = null,
+            ICompilerServerHost? compilerServerHost = null,
+            IClientConnectionHost? clientConnectionHost = null,
+            IDiagnosticListener? listener = null,
             TimeSpan? keepAlive = null,
             CancellationToken cancellationToken = default)
         {
@@ -149,11 +157,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal static int CreateAndRunServer(
             string pipeName,
-            ICompilerServerHost compilerServerHost = null,
-            IClientConnectionHost clientConnectionHost = null,
-            IDiagnosticListener listener = null,
+            ICompilerServerHost? compilerServerHost = null,
+            IClientConnectionHost? clientConnectionHost = null,
+            IDiagnosticListener? listener = null,
             TimeSpan? keepAlive = null,
-            NameValueCollection appSettings = null,
+            NameValueCollection? appSettings = null,
             CancellationToken cancellationToken = default)
         {
             appSettings ??= new NameValueCollection();
@@ -187,7 +195,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var realTimeout = timeout != null
                     ? (int)timeout.Value.TotalMilliseconds
                     : Timeout.Infinite;
-                using (var client = await ConnectForShutdownAsync(pipeName, realTimeout).ConfigureAwait(false))
+                using var client = await ConnectForShutdownAsync(pipeName, realTimeout).ConfigureAwait(false);
+                if (client is object)
                 {
                     var request = BuildRequest.CreateShutdown();
                     await request.WriteAsync(client, cancellationToken).ConfigureAwait(false);
@@ -225,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        internal static bool ParseCommandLine(string[] args, out string pipeName, out bool shutdown)
+        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown)
         {
             pipeName = null;
             shutdown = false;
