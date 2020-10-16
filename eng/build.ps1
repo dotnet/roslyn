@@ -51,6 +51,7 @@ param (
   [string]$officialSkipTests = "",
   [string]$officialSourceBranchName = "",
   [string]$officialIbcDrop = "",
+  [string]$officialVisualStudioDropAccessToken = "",
 
   # Test actions
   [switch]$test32,
@@ -105,12 +106,13 @@ function Print-Usage() {
   Write-Host "  -sourceBuild              Simulate building source-build"
   Write-Host ""
   Write-Host "Official build settings:"
-  Write-Host "  -officialBuildId                            An official build id, e.g. 20190102.3"
-  Write-Host "  -officialSkipTests <bool>                   Pass 'true' to not run tests"
-  Write-Host "  -officialSkipApplyOptimizationData <bool>   Pass 'true' to not apply optimization data"
-  Write-Host "  -officialSourceBranchName <string>          The source branch name"
-  Write-Host "  -officialIbcDrop <string>                   IBC data drop to use (e.g. 'ProfilingOutputs/DevDiv/VS/..')."
-  Write-Host "                                              'default' for the most recent available for the branch."
+  Write-Host "  -officialBuildId                                  An official build id, e.g. 20190102.3"
+  Write-Host "  -officialSkipTests <bool>                         Pass 'true' to not run tests"
+  Write-Host "  -officialSkipApplyOptimizationData <bool>         Pass 'true' to not apply optimization data"
+  Write-Host "  -officialSourceBranchName <string>                The source branch name"
+  Write-Host "  -officialIbcDrop <string>                         IBC data drop to use (e.g. 'ProfilingOutputs/DevDiv/VS/..')."
+  Write-Host "                                                    'default' for the most recent available for the branch."
+  Write-Host "  -officialVisualStudioDropAccessToken <string>     The access token to access OptProf data drop"
   Write-Host ""
   Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -145,6 +147,7 @@ function Process-Arguments() {
   OfficialBuildOnly "officialSkipTests"
   OfficialBuildOnly "officialSkipApplyOptimizationData"
   OfficialBuildOnly "officialSourceBranchName"
+  OfficialBuildOnly "officialVisualStudioDropAccessToken"
 
   if ($officialBuildId) {
     $script:useGlobalNuGetCache = $false
@@ -253,6 +256,7 @@ function BuildSolution() {
       /p:IbcOptimizationDataDir=$ibcDir `
       /p:RestoreUseStaticGraphEvaluation=true `
       /p:VisualStudioIbcDrop=$ibcDropName `
+      /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
@@ -294,7 +298,7 @@ function GetIbcDropName() {
     }
 
     # Don't try and get the ibc drop if we're not in an official build as it won't be used anyway
-    if (!$officialBuildId) {
+    if (!$applyOptimizationData -or !$officialBuildId) {
         return ""
     }
 
@@ -306,7 +310,8 @@ function GetIbcDropName() {
     $branch = GetIbcSourceBranchName
     Write-Host "Optimization data branch name is '$branch'."
 
-    $drop = Find-OptimizationInputsStoreForBranch -ProjectName "DevDiv" -RepositoryName "VS" -BranchName $branch
+    $pat = ConvertTo-SecureString $officialVisualStudioDropAccessToken -AsPlainText -Force
+    $drop = Find-OptimizationInputsStoreForBranch -ProjectName "DevDiv" -RepositoryName "VS" -BranchName $branch -PAT $pat
     return $drop.Name
 }
 
