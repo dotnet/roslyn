@@ -475,30 +475,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 newAnnotation = NullableAnnotation.Annotated;
             }
-            else if (IsIndexedTypeParameter(newTypeWithModifiers.Type))
+            else if (NullableAnnotation.IsNotAnnotated())
             {
-                newAnnotation = NullableAnnotation;
+                newAnnotation = NullableAnnotation.NotAnnotated;
             }
-            else if (NullableAnnotation != NullableAnnotation.Oblivious)
+            else if (newTypeWithModifiers.NullableAnnotation.IsNotAnnotated())
             {
-                if (!typeSymbol.IsTypeParameterDisallowingAnnotationInCSharp8())
-                {
-                    newAnnotation = NullableAnnotation;
-                }
-                else
-                {
-                    newAnnotation = newTypeWithModifiers.NullableAnnotation;
-                }
-            }
-            else if (newTypeWithModifiers.NullableAnnotation != NullableAnnotation.Oblivious)
-            {
-                newAnnotation = newTypeWithModifiers.NullableAnnotation;
+                newAnnotation = NullableAnnotation.NotAnnotated;
             }
             else
             {
                 Debug.Assert(NullableAnnotation.IsOblivious());
                 Debug.Assert(newTypeWithModifiers.NullableAnnotation.IsOblivious());
-                newAnnotation = NullableAnnotation;
+                newAnnotation = NullableAnnotation.Oblivious;
             }
 
             return CreateNonLazyType(
