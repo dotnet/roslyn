@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             public async ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, ISymbolSearchLogService logService, CancellationToken cancellationToken)
             {
-                // logService parameter is ignore since it's already set on the connection as a callback
+                // logService parameter is ignored since it's already set on the connection as a callback
+                _ = logService;
 
                 _ = await _connection.TryInvokeAsync(
                     (service, callbackId, cancellationToken) => service.UpdateContinuouslyAsync(callbackId, sourceName, localSettingsDirectory, cancellationToken),
