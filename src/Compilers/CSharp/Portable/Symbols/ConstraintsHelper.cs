@@ -1407,6 +1407,9 @@ hasRelatedInterfaces:
                     }
 
                     return type2;
+                case NullableAnnotation.Ignored:
+                    Debug.Assert(false);
+                    return type1;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(type2.NullableAnnotation);
             }

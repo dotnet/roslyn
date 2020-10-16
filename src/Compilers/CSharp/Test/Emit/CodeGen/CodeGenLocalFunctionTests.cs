@@ -1469,7 +1469,6 @@ class C
             CompileAndVerify(src);
         }
 
-
         [Fact]
         [WorkItem(16399, "https://github.com/dotnet/roslyn/issues/16399")]
         public void RecursiveGenericLocalFunctionIterator()

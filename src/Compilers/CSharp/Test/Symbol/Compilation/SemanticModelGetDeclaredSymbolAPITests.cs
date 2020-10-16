@@ -4125,10 +4125,9 @@ static class S
             var model = comp.GetSemanticModel(tree);
 
             var call = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
-            SymbolInfo info = new SymbolInfo();
-            info = model.GetSymbolInfo(call);
+            SymbolInfo info = model.GetSymbolInfo(call);
 
-            Assert.IsType<SourceOrdinaryMethodSymbol>(info.Symbol.GetSymbol());
+            Assert.IsType<ConstructedMethodSymbol>(info.Symbol.GetSymbol());
 
             src = @"
 static class S

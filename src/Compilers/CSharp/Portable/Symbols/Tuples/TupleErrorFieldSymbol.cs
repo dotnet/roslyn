@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             int tupleElementIndex,
             Location location,
-            TypeWithAnnotations type,
+            TypeSymbol type,
             DiagnosticInfo useSiteDiagnosticInfo,
             bool isImplicitlyDeclared,
             TupleErrorFieldSymbol correspondingDefaultFieldOpt)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(container, name, isPublic: true, isReadOnly: false, isStatic: false)
         {
             Debug.Assert(name != null);
-            _type = type;
+            _type = TypeWithAnnotations.Create(type);
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
             _useSiteDiagnosticInfo = useSiteDiagnosticInfo;
             _tupleElementIndex = (object)correspondingDefaultFieldOpt == null ? tupleElementIndex << 1 : (tupleElementIndex << 1) + 1;

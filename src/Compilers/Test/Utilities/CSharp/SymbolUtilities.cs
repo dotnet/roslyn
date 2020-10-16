@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static string[] ToTestDisplayStrings(this IEnumerable<Symbol> symbols)
         {
-            return symbols.Select(s => s.ToTestDisplayString()).ToArray();
+            return symbols.Select(s => s.ToDisplayString(SymbolDisplayFormat.TestFormat)).ToArray();
         }
 
         public static string ToTestDisplayString(this ISymbol symbol, bool includeNonNullable)

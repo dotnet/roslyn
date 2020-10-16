@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression FrameOfType(SyntaxNode syntax, NamedTypeSymbol frameType)
         {
             BoundExpression result = FramePointer(syntax, frameType.OriginalDefinition);
-            Debug.Assert(TypeSymbol.Equals(result.Type, frameType, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert(TypeSymbol.Equals(result.Type, frameType, TypeCompareKind.ObliviousNullableModifierMatchesAny));
             return result;
         }
 
@@ -961,8 +961,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)oldTypeArg.Type == newTypeArg.Type);
 
                 // The types are the same, so the last pass performed no substitutions.
-                // Therefore the annotations ought to be the same too.
-                Debug.Assert(oldTypeArg.NullableAnnotation == newTypeArg.NullableAnnotation);
+                // Therefore we have reached the final annotations.
+                Debug.Assert(oldTypeArg.NullableAnnotation == newTypeArg.NullableAnnotation ||
+                    oldTypeArg.NullableAnnotation == NullableAnnotation.Ignored ||
+                    newTypeArg.NullableAnnotation == NullableAnnotation.Ignored);
 
                 builder.Add(newTypeArg);
             }

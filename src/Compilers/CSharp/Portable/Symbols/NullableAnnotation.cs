@@ -32,5 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Type is annotated with '?' - string?, T?.
         /// </summary>
         Annotated,
+
+        /// <summary>
+        /// Whenever the compiler needs to do a substitution without affecting the nullable annotation.
+        /// Used on type arguments for definitions, and indexed/placeholder type parameters.
+        /// </summary>
+        Ignored,
     }
 }

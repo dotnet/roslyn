@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected virtual TypeWithAnnotations SubstituteTypeParameter(TypeParameterSymbol typeParameter)
         {
-            return TypeWithAnnotations.Create(typeParameter);
+            return TypeWithAnnotations.Create(typeParameter, NullableAnnotation.Ignored);
         }
 
         private ArrayTypeSymbol SubstituteArrayType(ArrayTypeSymbol t)

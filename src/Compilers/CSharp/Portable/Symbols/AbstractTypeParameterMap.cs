@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
 
-            return TypeWithAnnotations.Create(typeParameter);
+            return TypeWithAnnotations.Create(typeParameter, NullableAnnotation.Ignored);
         }
 
         private string GetDebuggerDisplay()

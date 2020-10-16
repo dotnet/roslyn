@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                         defaultName,
                                                                                         i,
                                                                                         defaultImplicitlyDeclared ? null : location,
-                                                                                        elementTypes[i],
+                                                                                        elementTypes[i].Type,
                                                                                         diagnosticInfo,
                                                                                         defaultImplicitlyDeclared,
                                                                                         correspondingDefaultFieldOpt: null);
@@ -785,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                               providedName,
                                                               i,
                                                               location,
-                                                              elementTypes[i],
+                                                              elementTypes[i].Type,
                                                               diagnosticInfo,
                                                               isImplicitlyDeclared: false,
                                                               correspondingDefaultFieldOpt: defaultTupleField));

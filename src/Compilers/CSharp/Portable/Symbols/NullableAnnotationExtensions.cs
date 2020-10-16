@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -19,31 +20,85 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsNotAnnotated(this NullableAnnotation annotation) => annotation == NullableAnnotation.NotAnnotated;
 
-        public static bool IsOblivious(this NullableAnnotation annotation) => annotation == NullableAnnotation.Oblivious;
+        public static bool IsOblivious(this NullableAnnotation annotation)
+        {
+            if (annotation == NullableAnnotation.Ignored)
+            {
+                Debug.Assert(false);
+                return true;
+            }
+            return annotation == NullableAnnotation.Oblivious;
+        }
+
+        public static bool IsObliviousOrIgnored(this NullableAnnotation annotation) => annotation is NullableAnnotation.Oblivious or NullableAnnotation.Ignored;
 
         /// <summary>
         /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
         /// This uses the covariant merging rules. (Annotated wins over Oblivious which wins over NotAnnotated)
+        /// Ignored does not participate in the algebra.
         /// </summary>
-        public static NullableAnnotation Join(this NullableAnnotation a, NullableAnnotation b) => (a < b) ? b : a;
+        public static NullableAnnotation Join(this NullableAnnotation a, NullableAnnotation b)
+        {
+            if (a == NullableAnnotation.Ignored)
+            {
+                Debug.Assert(false);
+                a = NullableAnnotation.Oblivious;
+            }
+            if (b == NullableAnnotation.Ignored)
+            {
+                Debug.Assert(false);
+                b = NullableAnnotation.Oblivious;
+            }
+
+            return (a < b) ? b : a;
+        }
 
         /// <summary>
         /// Meet two nullable annotations for computing the nullable annotation of a type parameter from upper bounds.
         /// This uses the contravariant merging rules. (NotAnnotated wins over Oblivious which wins over Annotated)
+        /// Ignored does not participate in the algebra.
         /// </summary>
-        public static NullableAnnotation Meet(this NullableAnnotation a, NullableAnnotation b) => (a < b) ? a : b;
+        public static NullableAnnotation Meet(this NullableAnnotation a, NullableAnnotation b)
+        {
+            if (a == NullableAnnotation.Ignored)
+            {
+                Debug.Assert(false);
+                a = NullableAnnotation.Oblivious;
+            }
+            if (b == NullableAnnotation.Ignored)
+            {
+                Debug.Assert(false);
+                b = NullableAnnotation.Oblivious;
+            }
+
+            return (a < b) ? a : b;
+        }
 
         /// <summary>
         /// Return the nullable annotation to use when two annotations are expected to be "compatible", which means
         /// they could be the same. These are the "invariant" merging rules. (NotAnnotated wins over Annotated which wins over Oblivious)
+        /// Ignored does not participate in the algebra.
         /// </summary>
-        public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b) =>
-            (a, b) switch
+        public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b)
+        {
+            if (a == NullableAnnotation.Ignored)
+            {
+                Debug.Assert(false);
+                a = NullableAnnotation.Oblivious;
+            }
+            if (b == NullableAnnotation.Ignored)
+            {
+                Debug.Assert(false);
+                b = NullableAnnotation.Oblivious;
+            }
+
+            return (a, b) switch
             {
                 (NullableAnnotation.Oblivious, _) => b,
                 (_, NullableAnnotation.Oblivious) => a,
                 _ => a < b ? a : b,
             };
+        }
 
         /// <summary>
         /// Merges nullability.
@@ -110,11 +165,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CSharp.NullableAnnotation.Annotated => CodeAnalysis.NullableAnnotation.Annotated,
                 CSharp.NullableAnnotation.NotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
+
                 // A value type may be oblivious or not annotated depending on whether the type reference
                 // is from source or metadata. (Binding using the #nullable context only when setting the annotation
                 // to avoid checking IsValueType early.) The annotation is normalized here in the public API.
                 CSharp.NullableAnnotation.Oblivious when type.IsValueType => CodeAnalysis.NullableAnnotation.NotAnnotated,
                 CSharp.NullableAnnotation.Oblivious => CodeAnalysis.NullableAnnotation.None,
+
+                // Type arguments on a definition carry this annotation, for example.
+                CSharp.NullableAnnotation.Ignored when !type.IsTypeParameter() => throw ExceptionUtilities.UnexpectedValue(annotation),
+                CSharp.NullableAnnotation.Ignored => CodeAnalysis.NullableAnnotation.None,
+
                 _ => throw ExceptionUtilities.UnexpectedValue(annotation)
             };
 
