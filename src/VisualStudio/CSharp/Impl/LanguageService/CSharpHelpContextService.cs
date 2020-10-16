@@ -327,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 case SyntaxKind.UsingKeyword when token.GetNextToken().IsKind(SyntaxKind.StaticKeyword):
                 case SyntaxKind.StaticKeyword when token.GetPreviousToken().IsKind(SyntaxKind.UsingKeyword):
-                    text = "usingstatic_CSharpKeyword";
+                    text = "using-static_CSharpKeyword";
                     return true;
             }
 
