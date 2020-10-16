@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
 
         private static bool EqualsSlow(object x, object y)
         {
-            if (x is ISymbolInternal sx && y is ISymbolInternal sy)
+            if ((x as Cci.IReference)?.AsSymbol is ISymbolInternal sx && (y as Cci.IReference)?.AsSymbol is ISymbolInternal sy)
             {
                 return sx.Equals(sy, TypeCompareKind.ConsiderEverything);
             }
