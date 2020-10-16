@@ -8213,10 +8213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SplitIfBooleanConstant(BoundExpression node)
         {
-            if (node.ConstantValue is { IsBoolean: true })
+            if (node.ConstantValue is { IsBoolean: true, BooleanValue: bool booleanValue })
             {
                 Split();
-                if (node.ConstantValue.BooleanValue)
+                if (booleanValue)
                 {
                     StateWhenFalse = UnreachableState();
                 }
