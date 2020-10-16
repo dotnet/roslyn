@@ -577,7 +577,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ILiteralOperation" Base="IOperation">
+  <Node Name="ILiteralOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a textual literal numeric, string, etc.
@@ -699,7 +699,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ILocalReferenceOperation" Base="IOperation">
+  <Node Name="ILocalReferenceOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a reference to a declared local variable.
@@ -724,7 +724,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IParameterReferenceOperation" Base="IOperation">
+  <Node Name="IParameterReferenceOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a reference to a parameter.
@@ -1138,7 +1138,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IInstanceReferenceOperation" Base="IOperation">
+  <Node Name="IInstanceReferenceOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an implicit/explicit reference to an instance.
@@ -1363,7 +1363,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IConditionalAccessInstanceOperation" Base="IOperation">
+  <Node Name="IConditionalAccessInstanceOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents the value of a conditionally-accessed operation within <see cref="IConditionalAccessOperation.WhenNotNull" />.
@@ -1665,7 +1665,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDefaultValueOperation" Base="IOperation">
+  <Node Name="IDefaultValueOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a default value operation.
@@ -1676,7 +1676,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="ITypeOfOperation" Base="IOperation">
+  <Node Name="ITypeOfOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an operation that gets <see cref="System.Type" /> for the given <see cref="TypeOperand" />.
@@ -1693,7 +1693,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ISizeOfOperation" Base="IOperation">
+  <Node Name="ISizeOfOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents an operation to compute the size of a given type.
@@ -1845,7 +1845,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IOmittedArgumentOperation" Base="IOperation">
+  <Node Name="IOmittedArgumentOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an argument value that has been omitted in an invocation.
@@ -2506,7 +2506,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDiscardOperation" Base="IOperation" VisitorName="VisitDiscardOperation">
+  <Node Name="IDiscardOperation" Base="IOperation" VisitorName="VisitDiscardOperation" HasType="true">
     <Comments>
       <summary>
         Represents a discard operation.
@@ -2861,7 +2861,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IPlaceholderOperation" Base="IOperation" Internal="true">
+  <Node Name="IPlaceholderOperation" Base="IOperation" Internal="true" HasType="true">
     <Comments>
       <summary>
         Represents a general placeholder when no more specific kind of placeholder is available.

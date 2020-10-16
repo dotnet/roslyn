@@ -29,7 +29,7 @@ using (var reader = XmlReader.Create(inFileName, new XmlReaderSettings { DtdProc
 
 if (tree is null)
 {
-    Console.WriteLine("Derserialize returned null.");
+    Console.WriteLine("Deserialize returned null.");
     return 1;
 }
 

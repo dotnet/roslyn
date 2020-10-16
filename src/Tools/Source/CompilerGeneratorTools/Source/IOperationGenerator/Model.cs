@@ -79,6 +79,14 @@ namespace IOperationGenerator
         public string? ChildrenOrder;
 
         public override bool IsAbstract => false;
+
+        [XmlAttribute(AttributeName = "HasType")]
+        public string HasTypeText;
+        public bool HasType => HasTypeText == "true";
+
+        [XmlAttribute(AttributeName = "HasConstantValue")]
+        public string HasConstantValueText;
+        public bool HasConstantValue => HasConstantValueText == "true";
     }
 
     public class Kind

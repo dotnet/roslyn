@@ -11,6 +11,21 @@ namespace IOperationGenerator
     {
         private static readonly HashSet<string> PortedTypes = new HashSet<string>()
         {
+            "IEmptyOperation",
+            "IBranchOperation",
+            "IEndOperation",
+            "IStopOperation",
+            "ILiteralOperation",
+            "ILocalReferenceOperation",
+            "IParameterReferenceOperation",
+            "IInstanceReferenceOperation",
+            "IConditionalAccessInstanceOperation",
+            "IDefaultValueOperation",
+            "ITypeOfOperation",
+            "ISizeOfOperation",
+            "IOmittedArgumentOperation",
+            "IDiscardOperation",
+            "IPlaceholderOperation"
         };
     }
 }

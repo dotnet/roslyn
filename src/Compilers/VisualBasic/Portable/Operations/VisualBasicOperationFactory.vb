@@ -393,27 +393,24 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim referenceKind As InstanceReferenceKind = InstanceReferenceKind.ContainingTypeInstance
             Dim syntax As SyntaxNode = boundMeReference.Syntax
             Dim type As ITypeSymbol = boundMeReference.Type
-            Dim constantValue As ConstantValue = boundMeReference.ConstantValueOpt
             Dim isImplicit As Boolean = boundMeReference.WasCompilerGenerated
-            Return New InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundMyBaseReferenceOperation(boundMyBaseReference As BoundMyBaseReference) As IInstanceReferenceOperation
             Dim referenceKind As InstanceReferenceKind = InstanceReferenceKind.ContainingTypeInstance
             Dim syntax As SyntaxNode = boundMyBaseReference.Syntax
             Dim type As ITypeSymbol = boundMyBaseReference.Type
-            Dim constantValue As ConstantValue = boundMyBaseReference.ConstantValueOpt
             Dim isImplicit As Boolean = boundMyBaseReference.WasCompilerGenerated
-            Return New InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundMyClassReferenceOperation(boundMyClassReference As BoundMyClassReference) As IInstanceReferenceOperation
             Dim referenceKind As InstanceReferenceKind = InstanceReferenceKind.ContainingTypeInstance
             Dim syntax As SyntaxNode = boundMyClassReference.Syntax
             Dim type As ITypeSymbol = boundMyClassReference.Type
-            Dim constantValue As ConstantValue = boundMyClassReference.ConstantValueOpt
             Dim isImplicit As Boolean = boundMyClassReference.WasCompilerGenerated
-            Return New InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Friend Function CreateBoundLiteralOperation(boundLiteral As BoundLiteral, Optional implicit As Boolean = False) As ILiteralOperation
@@ -471,9 +468,8 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundOmittedArgumentOperation(boundOmittedArgument As BoundOmittedArgument) As IOmittedArgumentOperation
             Dim syntax As SyntaxNode = boundOmittedArgument.Syntax
             Dim type As ITypeSymbol = boundOmittedArgument.Type
-            Dim constantValue As ConstantValue = boundOmittedArgument.ConstantValueOpt
             Dim isImplicit As Boolean = boundOmittedArgument.WasCompilerGenerated
-            Return New OmittedArgumentOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New OmittedArgumentOperation(_semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundParenthesizedOperation(boundParenthesized As BoundParenthesized) As IParenthesizedOperation
@@ -750,9 +746,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim typeOperand As ITypeSymbol = boundGetType.SourceType.Type
             Dim syntax As SyntaxNode = boundGetType.Syntax
             Dim type As ITypeSymbol = boundGetType.Type
-            Dim constantValue As ConstantValue = boundGetType.ConstantValueOpt
             Dim isImplicit As Boolean = boundGetType.WasCompilerGenerated
-            Return New TypeOfOperation(typeOperand, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New TypeOfOperation(typeOperand, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundLateInvocationOperation(boundLateInvocation As BoundLateInvocation) As IOperation
@@ -839,18 +834,16 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim referenceKind As InstanceReferenceKind = InstanceReferenceKind.ImplicitReceiver
             Dim syntax As SyntaxNode = boundWithLValueExpressionPlaceholder.Syntax
             Dim type As ITypeSymbol = boundWithLValueExpressionPlaceholder.Type
-            Dim constantValue As ConstantValue = boundWithLValueExpressionPlaceholder.ConstantValueOpt
             Dim isImplicit As Boolean = boundWithLValueExpressionPlaceholder.WasCompilerGenerated
-            Return New InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundWithRValueExpressionPlaceholder(boundWithRValueExpressionPlaceholder As BoundWithRValueExpressionPlaceholder) As IInstanceReferenceOperation
             Dim referenceKind As InstanceReferenceKind = InstanceReferenceKind.ImplicitReceiver
             Dim syntax As SyntaxNode = boundWithRValueExpressionPlaceholder.Syntax
             Dim type As ITypeSymbol = boundWithRValueExpressionPlaceholder.Type
-            Dim constantValue As ConstantValue = boundWithRValueExpressionPlaceholder.ConstantValueOpt
             Dim isImplicit As Boolean = boundWithRValueExpressionPlaceholder.WasCompilerGenerated
-            Return New InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundEventAccessOperation(boundEventAccess As BoundEventAccess) As IEventReferenceOperation
@@ -888,18 +881,16 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundConditionalAccessReceiverPlaceholderOperation(boundConditionalAccessReceiverPlaceholder As BoundConditionalAccessReceiverPlaceholder) As IConditionalAccessInstanceOperation
             Dim syntax As SyntaxNode = boundConditionalAccessReceiverPlaceholder.Syntax
             Dim type As ITypeSymbol = boundConditionalAccessReceiverPlaceholder.Type
-            Dim constantValue As ConstantValue = boundConditionalAccessReceiverPlaceholder.ConstantValueOpt
             Dim isImplicit As Boolean = boundConditionalAccessReceiverPlaceholder.WasCompilerGenerated
-            Return New ConditionalAccessInstanceOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ConditionalAccessInstanceOperation(_semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundParameterOperation(boundParameter As BoundParameter) As IParameterReferenceOperation
             Dim parameter As IParameterSymbol = boundParameter.ParameterSymbol
             Dim syntax As SyntaxNode = boundParameter.Syntax
             Dim type As ITypeSymbol = boundParameter.Type
-            Dim constantValue As ConstantValue = boundParameter.ConstantValueOpt
             Dim isImplicit As Boolean = boundParameter.WasCompilerGenerated
-            Return New ParameterReferenceOperation(parameter, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ParameterReferenceOperation(parameter, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundLocalOperation(boundLocal As BoundLocal) As IOperation
@@ -981,7 +972,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundRValuePlaceholderOperation(boundRValuePlaceholder As BoundRValuePlaceholder) As IOperation
             Dim syntax As SyntaxNode = boundRValuePlaceholder.Syntax
             Dim type As ITypeSymbol = boundRValuePlaceholder.Type
-            Dim constantValue As ConstantValue = boundRValuePlaceholder.ConstantValueOpt
             Dim isImplicit As Boolean = boundRValuePlaceholder.WasCompilerGenerated
 
             Dim knownParent As BoundNode = TryGetParent(boundRValuePlaceholder)
@@ -995,7 +985,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                         ' to get the expression being conditionally accessed, and return an IConditionalAccessInstanceOperation
                         ' instead of a PlaceholderOperation
                         syntax = If(TryCast(syntax, ConditionalAccessExpressionSyntax)?.Expression, syntax)
-                        Return New ConditionalAccessInstanceOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+                        Return New ConditionalAccessInstanceOperation(_semanticModel, syntax, type, isImplicit)
 
                     Case BoundKind.SelectStatement
                         placeholderKind = PlaceholderKind.SwitchOperationExpression
@@ -1015,7 +1005,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 End Select
             End If
 
-            Return New PlaceholderOperation(placeholderKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New PlaceholderOperation(placeholderKind, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundIfStatementOperation(boundIfStatement As BoundIfStatement) As IConditionalOperation
@@ -1350,30 +1340,24 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim target As ILabelSymbol = boundGotoStatement.Label
             Dim branchKind As BranchKind = BranchKind.GoTo
             Dim syntax As SyntaxNode = boundGotoStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundGotoStatement.WasCompilerGenerated
-            Return New BranchOperation(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New BranchOperation(target, branchKind, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundContinueStatementOperation(boundContinueStatement As BoundContinueStatement) As IBranchOperation
             Dim target As ILabelSymbol = boundContinueStatement.Label
             Dim branchKind As BranchKind = BranchKind.Continue
             Dim syntax As SyntaxNode = boundContinueStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundContinueStatement.WasCompilerGenerated
-            Return New BranchOperation(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New BranchOperation(target, branchKind, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundExitStatementOperation(boundExitStatement As BoundExitStatement) As IBranchOperation
             Dim target As ILabelSymbol = boundExitStatement.Label
             Dim branchKind As BranchKind = BranchKind.Break
             Dim syntax As SyntaxNode = boundExitStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundExitStatement.WasCompilerGenerated
-            Return New BranchOperation(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New BranchOperation(target, branchKind, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundSyncLockStatementOperation(boundSyncLockStatement As BoundSyncLockStatement) As ILockOperation
@@ -1396,23 +1380,19 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundNoOpStatement.WasCompilerGenerated
-            Return New EmptyOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New EmptyOperation(_semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundStopStatementOperation(boundStopStatement As BoundStopStatement) As IStopOperation
             Dim syntax As SyntaxNode = boundStopStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundStopStatement.WasCompilerGenerated
-            Return New StopOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New StopOperation(_semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundEndStatementOperation(boundEndStatement As BoundEndStatement) As IEndOperation
             Dim syntax As SyntaxNode = boundEndStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundEndStatement.WasCompilerGenerated
-            Return New EndOperation(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New EndOperation(_semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundWithStatementOperation(boundWithStatement As BoundWithStatement) As IWithStatementOperation
@@ -1595,7 +1575,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                 _semanticModel,
                 syntax,
                 propertySym.ContainingType,
-                constantValue:=Nothing,
                 isImplicit:=True)
         End Function
 
