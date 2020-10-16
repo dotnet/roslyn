@@ -518,12 +518,13 @@
         <summary>Local function symbol.</summary>
       </Comments>
     </Property>
-    <Property Name="Body" Type="IBlockOperation">
+    <Property Name="Body" Type="IBlockOperation?">
       <Comments>
         <summary>Body of the local function.</summary>
+        <remarks>This can be null in error scenarios, or when the method is an extern method.</remarks>
       </Comments>
     </Property>
-    <Property Name="IgnoredBody" Type="IBlockOperation">
+    <Property Name="IgnoredBody" Type="IBlockOperation?">
       <Comments>
         <summary>An extra body for the local function, if both a block body and expression body are specified in source.</summary>
         <remarks>This is only ever non-null in error situations.</remarks>

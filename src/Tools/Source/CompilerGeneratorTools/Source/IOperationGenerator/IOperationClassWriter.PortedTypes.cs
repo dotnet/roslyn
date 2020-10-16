@@ -33,7 +33,8 @@ namespace IOperationGenerator
             "ILockOperation",
             "ITryOperation",
             "IUsingOperation",
-            "IExpressionStatementOperation"
+            "IExpressionStatementOperation",
+            "ILocalFunctionOperation"
         };
     }
 }

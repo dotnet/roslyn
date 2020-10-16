@@ -1470,7 +1470,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             VisitMethodBodies(operation.BlockBody, operation.ExpressionBody);
         }
 
-        private void VisitMethodBodies(IBlockOperation blockBody, IBlockOperation expressionBody)
+#nullable enable
+        private void VisitMethodBodies(IBlockOperation? blockBody, IBlockOperation? expressionBody)
         {
             if (blockBody != null)
             {
@@ -1493,6 +1494,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 VisitStatement(expressionBody);
             }
         }
+#nullable disable
 
         public override IOperation VisitConditional(IConditionalOperation operation, int? captureIdForResult)
         {
@@ -5916,9 +5918,8 @@ oneMoreTime:
                 return captured;
             }
         }
-#nullable disable
 
-        public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
+        public override IOperation? VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -5933,12 +5934,13 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        private IOperation VisitLocalFunctionAsRoot(ILocalFunctionOperation operation)
+        private IOperation? VisitLocalFunctionAsRoot(ILocalFunctionOperation operation)
         {
             Debug.Assert(_currentStatement == null);
             VisitMethodBodies(operation.Body, operation.IgnoredBody);
             return null;
         }
+#nullable disable
 
         public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
         {

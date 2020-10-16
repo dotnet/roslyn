@@ -1343,31 +1343,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyLocalFunctionOperation : LazyLocalFunctionOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundLocalFunctionStatement _localFunctionStatement;
-
-        internal CSharpLazyLocalFunctionOperation(CSharpOperationFactory operationFactory, BoundLocalFunctionStatement localFunctionStatement, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _localFunctionStatement = localFunctionStatement;
-        }
-
-        protected override IBlockOperation CreateBody()
-        {
-            return (IBlockOperation)_operationFactory.Create(_localFunctionStatement.Body);
-        }
-
-        protected override IBlockOperation CreateIgnoredBody()
-        {
-            return _localFunctionStatement.BlockBody != null && _localFunctionStatement.ExpressionBody != null ?
-                        (IBlockOperation)_operationFactory.Create(_localFunctionStatement.ExpressionBody) :
-                        null;
-        }
-    }
-
     internal sealed class CSharpLazyConstantPatternOperation : LazyConstantPatternOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

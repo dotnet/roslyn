@@ -536,6 +536,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Operation { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a local function defined within a method.
     /// <para>
@@ -560,15 +561,19 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Body of the local function.
         /// </summary>
-        IBlockOperation Body { get; }
+        /// <remarks>
+        /// This can be null in error scenarios, or when the method is an extern method.
+        /// </remarks>
+        IBlockOperation? Body { get; }
         /// <summary>
         /// An extra body for the local function, if both a block body and expression body are specified in source.
         /// </summary>
         /// <remarks>
         /// This is only ever non-null in error situations.
         /// </remarks>
-        IBlockOperation IgnoredBody { get; }
+        IBlockOperation? IgnoredBody { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents an operation to stop or suspend execution of code.
@@ -4170,73 +4175,41 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitExpressionStatement(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseLocalFunctionOperation : OperationOld, ILocalFunctionOperation
+    #nullable enable
+    internal sealed partial class LocalFunctionOperation : Operation, ILocalFunctionOperation
     {
-        internal BaseLocalFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.LocalFunction, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal LocalFunctionOperation(IMethodSymbol symbol, IBlockOperation? body, IBlockOperation? ignoredBody, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Symbol = symbol;
+            Body = SetParentOperation(body, this);
+            IgnoredBody = SetParentOperation(ignoredBody, this);
         }
         public IMethodSymbol Symbol { get; }
-        public abstract IBlockOperation Body { get; }
-        public abstract IBlockOperation IgnoredBody { get; }
+        public IBlockOperation? Body { get; }
+        public IBlockOperation? IgnoredBody { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Body is object) yield return Body;
-                if (IgnoredBody is object) yield return IgnoredBody;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Body is not null) builder.Add(Body);
+                    if (IgnoredBody is not null) builder.Add(IgnoredBody);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.LocalFunction;
         public override void Accept(OperationVisitor visitor) => visitor.VisitLocalFunction(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLocalFunction(this, argument);
     }
-    internal sealed partial class LocalFunctionOperation : BaseLocalFunctionOperation, ILocalFunctionOperation
-    {
-        internal LocalFunctionOperation(IMethodSymbol symbol, IBlockOperation body, IBlockOperation ignoredBody, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Body = SetParentOperation(body, this);
-            IgnoredBody = SetParentOperation(ignoredBody, this);
-        }
-        public override IBlockOperation Body { get; }
-        public override IBlockOperation IgnoredBody { get; }
-    }
-    internal abstract partial class LazyLocalFunctionOperation : BaseLocalFunctionOperation, ILocalFunctionOperation
-    {
-        private IBlockOperation _lazyBody = s_unsetBlock;
-        private IBlockOperation _lazyIgnoredBody = s_unsetBlock;
-        internal LazyLocalFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(symbol, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IBlockOperation CreateBody();
-        public override IBlockOperation Body
-        {
-            get
-            {
-                if (_lazyBody == s_unsetBlock)
-                {
-                    IBlockOperation body = CreateBody();
-                    SetParentOperation(body, this);
-                    Interlocked.CompareExchange(ref _lazyBody, body, s_unsetBlock);
-                }
-                return _lazyBody;
-            }
-        }
-        protected abstract IBlockOperation CreateIgnoredBody();
-        public override IBlockOperation IgnoredBody
-        {
-            get
-            {
-                if (_lazyIgnoredBody == s_unsetBlock)
-                {
-                    IBlockOperation ignoredBody = CreateIgnoredBody();
-                    SetParentOperation(ignoredBody, this);
-                    Interlocked.CompareExchange(ref _lazyIgnoredBody, ignoredBody, s_unsetBlock);
-                }
-                return _lazyIgnoredBody;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class StopOperation : Operation, IStopOperation
     {
@@ -9028,6 +9001,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ExpressionStatementOperation)operation;
             return new ExpressionStatementOperation(Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, object? argument)
+        {
+            var internalOperation = (LocalFunctionOperation)operation;
+            return new LocalFunctionOperation(internalOperation.Symbol, Visit(internalOperation.Body), Visit(internalOperation.IgnoredBody), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitStop(IStopOperation operation, object? argument)
         {

@@ -939,15 +939,19 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyAnonymousFunctionOperation(this, body, symbol, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private ILocalFunctionOperation CreateBoundLocalFunctionStatementOperation(BoundLocalFunctionStatement boundLocalFunctionStatement)
         {
+            IBlockOperation? body = (IBlockOperation?)Create(boundLocalFunctionStatement.Body);
+            IBlockOperation? ignoredBody = boundLocalFunctionStatement is { BlockBody: not null, ExpressionBody: { } exprBody }
+                ? (IBlockOperation?)Create(exprBody)
+                : null;
             IMethodSymbol symbol = boundLocalFunctionStatement.Symbol.GetPublicSymbol();
             SyntaxNode syntax = boundLocalFunctionStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundLocalFunctionStatement.WasCompilerGenerated;
-            return new CSharpLazyLocalFunctionOperation(this, boundLocalFunctionStatement, symbol, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LocalFunctionOperation(symbol, body, ignoredBody, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
