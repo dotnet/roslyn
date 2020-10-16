@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 #pragma warning disable CA1822 // Mark members as static - Multiple 'JsonRpcMethod' attribute annotated methods.
 
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// Remote side of the VisualStudioOOPConnectionLanguageClient.  Used to implement the ILanguageClient in the OOP server.
     /// </summary>
-    internal class RemoteLanguageClient : ServiceBase
+    internal class RemoteLanguageServer : ServiceBase
     {
         private static readonly IImmutableSet<string> s_supportedKinds =
             ImmutableHashSet.Create(
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 NavigateToItemKind.Property,
                 NavigateToItemKind.Structure);
 
-        public RemoteLanguageClient(Stream stream, IServiceProvider serviceProvider)
+        public RemoteLanguageServer(Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
             StartService();

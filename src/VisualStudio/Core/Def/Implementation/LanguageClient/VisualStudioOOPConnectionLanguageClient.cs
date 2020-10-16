@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var stream = await ServiceHubRemoteHostClient.RequestServiceAsync(
                 _services,
                 hubClient,
-                WellKnownServiceHubService.RemoteLanguageClient,
+                WellKnownServiceHubService.RemoteLanguageServer,
                 cancellationToken).ConfigureAwait(false);
 
             return new Connection(stream, stream);
