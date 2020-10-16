@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
     {
         private readonly ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
-            new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
+            new();
 
         /// <summary>
         /// Don't call directly. Use <see cref="SymbolSearchUpdateEngineFactory"/> instead.
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new PatchService(),
                    new DatabaseFactoryService(),
                    // Report all exceptions we encounter, but don't crash on them.
-                   FatalError.ReportWithoutCrash)
+                   FatalError.ReportAndCatch)
         {
         }
 
@@ -66,20 +68,20 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _reportAndSwallowException = reportAndSwallowException;
         }
 
-        public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+        public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+                return new(ImmutableArray<PackageWithTypeResult>.Empty);
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+                return new(ImmutableArray<PackageWithTypeResult>.Empty);
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
@@ -102,16 +104,16 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            return Task.FromResult(result.ToImmutableAndFree());
+            return new(result.ToImmutableAndFree());
         }
 
-        public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+        public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName, CancellationToken cancellationToken)
         {
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<PackageWithAssemblyResult>();
+                return new(ImmutableArray<PackageWithAssemblyResult>.Empty);
             }
 
             var result = ArrayBuilder<PackageWithAssemblyResult>.GetInstance();
@@ -132,33 +134,35 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         // Ignore any reference assembly results.
                         if (symbol.PackageName.ToString() != MicrosoftAssemblyReferencesName)
                         {
+                            var version = database.GetPackageVersion(symbol.Index).ToString();
+
                             result.Add(new PackageWithAssemblyResult(
                                 symbol.PackageName.ToString(),
-                                database.GetPackageVersion(symbol.Index).ToString(),
-                                GetRank(symbol)));
+                                GetRank(symbol),
+                                string.IsNullOrWhiteSpace(version) ? null : version));
                         }
                     }
                 }
             }
 
-            return Task.FromResult(result.ToImmutableAndFree());
+            return new(result.ToImmutableAndFree());
         }
 
-        public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
             if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
+                return new(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
+                return new(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
@@ -186,7 +190,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            return Task.FromResult(results.ToImmutableAndFree());
+            return new(results.ToImmutableAndFree());
         }
 
         private static List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)
@@ -211,9 +215,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             return new PackageWithTypeResult(
                 packageName: packageName,
-                typeName: type.Name.ToString(),
-                version: version,
                 rank: GetRank(type),
+                typeName: type.Name.ToString(),
+                version: string.IsNullOrWhiteSpace(version) ? null : version,
                 containingNamespaceNames: nameParts.ToImmutableAndFree());
         }
 

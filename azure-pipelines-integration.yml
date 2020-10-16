@@ -20,7 +20,7 @@ jobs:
     name: NetCorePublic-Pool
     queue: buildpool.windows.10.amd64.vs2019.pre.open
   strategy:
-    maxParallel: 2
+    maxParallel: 4
     matrix:
       debug_32:
         _configuration: Debug
@@ -37,8 +37,11 @@ jobs:
   timeoutInMinutes: 135
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testVsi -oop64bit:$$(_oop64bit)
+    - task: PowerShell@2
       displayName: Build and Test
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -restore -build -pack -sign -publish -binaryLog -configuration $(_configuration) -prepareMachine -testVsi -oop64bit:$$(_oop64bit)
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
         }
 
-        public override void Before(MethodInfo methodUnderTest)
+        public override void Before(MethodInfo? methodUnderTest)
         {
             MefHostServices.TestAccessor.HookServiceCreation(CreateMefHostServices);
 
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <item>Clearing static state variables related to the use of MEF during a test.</item>
         /// </list>
         /// </remarks>
-        public override void After(MethodInfo methodUnderTest)
+        public override void After(MethodInfo? methodUnderTest)
         {
             try
             {
@@ -147,7 +145,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     try
                     {
-                        var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync();
+                        // This attribute cleans up the in-process and out-of-process export providers separately, so we
+                        // don't need to provide a workspace when waiting for operations to complete.
+                        var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync(workspace: null);
                         waiter.JoinUsingDispatcher(timeoutTokenSource.Token);
                     }
                     catch (OperationCanceledException ex) when (timeoutTokenSource.IsCancellationRequested)

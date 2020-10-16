@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -2554,11 +2556,10 @@ class B<T> : A<T>, I where T : class
         [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", "System.ValueTuple`2[System.Int32,System.Int32]", false)]
         [InlineData("nint", "nint", "nint", "System.IntPtr", true)]
         [InlineData("nint", "nint", "nint", "System.IntPtr", false)]
-        // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
-        //[InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", true)]
-        //[InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", false)]
-        //[InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", true)]
-        //[InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", false)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", true)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", false)]
+        [InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", true)]
+        [InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", false)]
         public void ExplicitImplementationInBaseType_02(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, string expectedOutput, bool useCompilationReference)
         {
             var source0 =

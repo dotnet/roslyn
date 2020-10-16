@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -99,9 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private static ExpressionSyntax FixOne(Result result, SyntaxGenerator generator)
         {
             var invocation = result.Invocation;
-            var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
-                ? memberAccess.Expression
-                : invocation.Expression;
 
             var rangeExpression = CreateRangeExpression(result, generator);
             var argument = Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation);
@@ -110,12 +109,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (result.MemberInfo.OverloadedMethodOpt == null)
             {
                 var argList = invocation.ArgumentList;
-                return ElementAccessExpression(
-                    expression,
-                    BracketedArgumentList(
+                var argumentList = BracketedArgumentList(
                         Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
                         arguments,
-                        Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken)));
+                        Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken));
+                if (invocation.Expression is MemberBindingExpressionSyntax)
+                {
+                    // x?.Substring(...) -> x?[...]
+                    return ElementBindingExpression(argumentList);
+                }
+
+                var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
+                    ? memberAccess.Expression // x.Substring(...) -> x[...]
+                    : invocation.Expression;
+                return ElementAccessExpression(expression, argumentList);
             }
             else
             {

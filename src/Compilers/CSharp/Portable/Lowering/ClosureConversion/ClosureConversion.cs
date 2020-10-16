@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if DEBUG
 //#define CHECK_LOCALS // define CHECK_LOCALS to help debug some rewriting problems that would otherwise cause code-gen failures
 
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _allCapturedVariables = allCapturedVars.ToImmutable();
         }
 
-#nullable restore
+#nullable disable
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {

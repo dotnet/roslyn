@@ -17,6 +17,11 @@
         <target state="new">The assembly containing type '{0}' references .NET Framework, which is not supported.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="new">Changes must be within bounds of SourceText</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">No se permite cambiar la versión de una referencia de ensamblado durante la depuración: "{0}" cambió la versión a "{1}".</target>
@@ -567,6 +572,16 @@
       <trans-unit id="InvalidCultureName">
         <source>Invalid culture name: '{0}'</source>
         <target state="translated">Nombre de referencia cultural no válido: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName">
+        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="new">Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</target>
+        <note>{0}: invalid section name, {1} path to global config</note>
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName_Title">
+        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
+        <target state="new">Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">

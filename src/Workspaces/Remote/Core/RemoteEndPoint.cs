@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -361,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static void ReportNonFatalWatson(Exception exception)
         {
-            FatalError.ReportWithoutCrash(exception);
+            FatalError.ReportAndCatch(exception);
         }
 
         private SoftCrashException CreateSoftCrashException(Exception ex, CancellationToken cancellationToken)

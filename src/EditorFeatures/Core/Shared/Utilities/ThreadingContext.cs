@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     [Shared]
     internal sealed class ThreadingContext : IThreadingContext, IDisposable
     {
-        private readonly CancellationTokenSource _disposalTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _disposalTokenSource = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

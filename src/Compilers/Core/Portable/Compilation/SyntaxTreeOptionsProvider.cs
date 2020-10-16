@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Roslyn.Utilities;
@@ -12,7 +10,10 @@ namespace Microsoft.CodeAnalysis
 {
     public abstract class SyntaxTreeOptionsProvider
     {
-        public abstract bool? IsGenerated(SyntaxTree tree, CancellationToken cancellationToken);
+        /// <summary>
+        /// Get whether the given tree is generated.
+        /// </summary>
+        public abstract GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get diagnostic severity setting for a given diagnostic identifier in a given tree.
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly struct Options
         {
-            public readonly bool? IsGenerated;
+            public readonly GeneratedKind IsGenerated;
             public readonly ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions;
 
             public Options(AnalyzerConfigOptionsResult? result)
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     DiagnosticOptions = SyntaxTree.EmptyDiagnosticOptions;
-                    IsGenerated = null;
+                    IsGenerated = GeneratedKind.Unknown;
                 }
             }
         }
@@ -70,8 +71,8 @@ namespace Microsoft.CodeAnalysis
             _globalOptions = globalResults;
         }
 
-        public override bool? IsGenerated(SyntaxTree tree, CancellationToken _)
-            => _options.TryGetValue(tree, out var value) ? value.IsGenerated : null;
+        public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken _)
+            => _options.TryGetValue(tree, out var value) ? value.IsGenerated : GeneratedKind.Unknown;
 
         public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
         {

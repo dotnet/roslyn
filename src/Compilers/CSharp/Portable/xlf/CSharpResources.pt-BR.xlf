@@ -147,11 +147,6 @@
         <target state="new">Records may only inherit from object or another record</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have a non-empty parameter list</source>
-        <target state="needs-review-translation">Um registro posicional precisa ter um modificador 'data' e uma lista de parâmetros não vazios</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
         <target state="new">Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</target>
@@ -417,6 +412,11 @@
         <target state="new">Ref mismatch between '{0}' and function pointer '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
+        <source>A function pointer cannot be called with named arguments.</source>
+        <target state="new">A function pointer cannot be called with named arguments.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">Um goto não pode saltar para um local antes de uma declaração using no mesmo bloco.</target>
@@ -437,6 +437,21 @@
         <target state="translated">A invocação do Indexador de Índice implícito não pode nomear o argumento.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="new">There is no target type for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="new">Use of new() is not valid in this context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">A invocação do Indexador de Intervalo implícito não pode nomear o argumento.</target>
@@ -445,6 +460,11 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Os argumentos com o modificador 'in' não podem ser usados em expressões vinculadas dinamicamente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitCannotBeReadonly">
+        <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
+        <target state="new">'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -912,6 +932,41 @@
         <target state="new">discards</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="new">target-typed object creation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull">
+        <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
+        <target state="new">Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull_Title">
+        <source>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</source>
+        <target state="new">Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
+        <source>'{0}' defines 'Equals' but not 'GetHashCode'</source>
+        <target state="new">'{0}' defines 'Equals' but not 'GetHashCode'</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode_Title">
+        <source>Record defines 'Equals' but not 'GetHashCode'.</source>
+        <target state="new">Record defines 'Equals' but not 'GetHashCode'.</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
@@ -920,6 +975,16 @@
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull">
+        <source>Return value must be non-null because parameter '{0}' is non-null.</source>
+        <target state="new">Return value must be non-null because parameter '{0}' is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
+        <source>Return value must be non-null because parameter is non-null.</source>
+        <target state="new">Return value must be non-null because parameter is non-null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
@@ -942,29 +1007,19 @@
         <target state="new">Type '{0}' is not defined.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewIllegalTargetType">
-        <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="new">The type '{0}' may not be used as the target type of new()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for '{0}'</source>
-        <target state="new">There is no target type for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNotValid">
-        <source>Use of new() is not valid in this context</source>
-        <target state="new">Use of new() is not valid in this context</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
         <source>Unexpected argument list.</source>
         <target state="new">Unexpected argument list.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameters must have 'this' constructor initializer.</source>
-        <target state="new">A constructor declared in a record with parameters must have 'this' constructor initializer.</target>
+        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
+        <target state="new">A constructor declared in a record with parameter list must have 'this' constructor initializer.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnexpectedVarianceStaticMember">
+        <source>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</source>
+        <target state="new">Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
@@ -1099,7 +1154,7 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
@@ -1186,6 +1241,8 @@
 -moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
 </source>
         <target state="needs-review-translation">
                              Opções do Compilador do Visual C#
@@ -1205,7 +1262,7 @@
 -target:winmdobj              Criar um arquivo intermediário do Windows Runtime que
                               seja consumido por WinMDExp (Forma abreviada: -t:winmdobj)
 -doc:&lt;file&gt;                   Arquivo de documentação XML a ser gerado
--refout:&lt;file&gt;                Saída do assembly de referência a ser gerada 
+-refout:&lt;file&gt;                Saída do assembly de referência a ser gerada
 -platform:&lt;string&gt;            Limitar em quais plataformas esse código pode ser executado: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred ou
                               anycpu. O padrão é anycpu.
@@ -1231,7 +1288,7 @@
 
                        - RECURSOS -
 -win32res:&lt;file&gt;              Especificar um arquivo de recurso Win32 (.res)
--win32icon:&lt;file&gt;             Usar esse ícone para a saída 
+-win32icon:&lt;file&gt;             Usar esse ícone para a saída
 -win32manifest:&lt;file&gt;         Especificar um arquivo de manifesto Win32 (.xml)
 -nowin32manifest              Não incluir o manifesto Win32 padrão
 -resource:&lt;resinfo&gt;           Inserir o recurso especificado (Forma abreviada: -res)
@@ -1240,7 +1297,7 @@
                               é &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - GERAÇÃO DE CÓDIGO -
--debug[+|-]                   Emitir informações de depuração 
+-debug[+|-]                   Emitir informações de depuração
 -debug:{full|pdbonly|portable|embedded}
                               Especificar o tipo de depuração ('full' é o padrão,
                                'portable' é um formato de plataforma cruzada,
@@ -1268,7 +1325,7 @@
                               tempo de execução.
 
                        - LINGUAGEM -
--checked[+|-]                 Gerar verificações de estouro 
+-checked[+|-]                 Gerar verificações de estouro
 -unsafe[+|-]                  Permitir código 'unsafe'
 -define:&lt;symbol list&gt;         Definir símbolos de compilação condicionais (Forma
                               abreviada: -d)
@@ -1287,13 +1344,13 @@
 -delaysign[+|-]               Assinar com atraso o assembly usando apenas a parte
                               pública da chave de nome forte
 -publicsign[+|-]              Assinar de modo público o assembly usando apenas a parte pública
-                              da chave de nome forte 
+                              da chave de nome forte
 -keyfile:&lt;file&gt;               Especificar um arquivo de chave de nome forte
 -keycontainer:&lt;string&gt;        Especificar um contêiner de chave de nome forte
 -highentropyva[+|-]           Habilitar ASLR de alta entropia
 
                        - DIVERSOS -
-@&lt;file&gt;                       Ler o arquivo de resposta para obter mais opções 
+@&lt;file&gt;                       Ler o arquivo de resposta para obter mais opções
 -help                         Exibir esta mensagem de uso (Forma abreviada: -?)
 -nologo                       Suprimir a mensagem de direitos autorais do compilador
 -noconfig                     Não incluir automaticamente o arquivo CSC.RSP
@@ -1583,11 +1640,6 @@
         <target state="new">target-typed conditional expression</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="new">target-typed object creation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">igualdade de tupla</target>
@@ -1616,6 +1668,11 @@
       <trans-unit id="IDS_FeatureUsingDeclarations">
         <source>using declarations</source>
         <target state="translated">declarações using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureVarianceSafetyForStaticInterfaceMembers">
+        <source>variance safety for static interface members</source>
+        <target state="new">variance safety for static interface members</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -4058,7 +4115,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
         <target state="needs-review-translation">O modificador 'partial' só pode aparecer imediatamente antes de 'class', 'struct', 'interface' ou 'void'</target>
         <note />
       </trans-unit>

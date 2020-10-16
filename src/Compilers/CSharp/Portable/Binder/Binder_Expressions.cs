@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -367,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (reportNoTargetType && !expr.HasAnyErrors)
                         {
-                            diagnostics.Add(ErrorCode.ERR_TypelessNewNoTargetType, expr.Syntax.GetLocation(), expr.Display);
+                            diagnostics.Add(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, expr.Syntax.GetLocation(), expr.Display);
                         }
 
                         result = BindObjectCreationForErrorRecovery(expr, diagnostics);
@@ -1341,7 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
         }
-#nullable restore
+#nullable disable
 
         internal static ConstantValue GetConstantSizeOf(TypeSymbol type)
         {
@@ -3165,6 +3167,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                 }
+                else
+                {
+                    size = BindToTypeForErrorRecovery(size);
+                }
 
                 return size;
             }
@@ -4327,7 +4333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!conv.IsExtensionMethod);
                         Debug.Assert(conv.IsValid); // i.e. if it exists, then it is valid.
 
-                        if (!this.MethodGroupConversionHasErrors(argument.Syntax, conv, argument, conv.IsExtensionMethod, type, diagnostics))
+                        if (!this.MethodGroupConversionHasErrors(argument.Syntax, conv, argument, conv.IsExtensionMethod, isAddressOf: false, type, diagnostics))
                         {
                             // we do not place the "Invoke" method in the node, indicating that it did not appear in source.
                             return new BoundDelegateCreationExpression(node, argument, methodOpt: null, isExtensionMethod: false, type: type);
@@ -4728,7 +4734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 resultKind,
                 implicitReceiver.Type,
-                binderOpt: this,
+                binder: this,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
         }
@@ -8061,12 +8067,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConventionInfo = default)
         {
             return ResolveMethodGroup(
                 node, node.Syntax, node.Name, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
                 inferWithDynamic: inferWithDynamic, returnRefKind: returnRefKind, returnType: returnType,
-                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConvention);
+                isFunctionPointerResolution: isFunctionPointerResolution, callingConventionInfo: callingConventionInfo);
         }
 
         internal MethodGroupResolution ResolveMethodGroup(
@@ -8081,13 +8087,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConventionInfo = default)
         {
             var methodResolution = ResolveMethodGroupInternal(
                 node, expression, methodName, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
                 inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm,
                 returnRefKind: returnRefKind, returnType: returnType,
-                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConvention);
+                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConventionInfo);
             if (methodResolution.IsEmpty && !methodResolution.HasAnyErrors)
             {
                 Debug.Assert(node.LookupError == null);
@@ -8107,7 +8113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             TypeSymbol returnType,
             RefKind returnRefKind,
-            Cci.CallingConvention callingConvention,
+            in CallingConventionInfo callingConventionInfo,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             return ResolveDefaultMethodGroup(
@@ -8120,7 +8126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnRefKind,
                 returnType,
                 isFunctionPointerResolution: true,
-                callingConvention);
+                callingConventionInfo);
         }
 
         private MethodGroupResolution ResolveMethodGroupInternal(
@@ -8135,7 +8141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConvention = default)
         {
             var methodResolution = ResolveDefaultMethodGroup(
                 methodGroup, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
@@ -8207,7 +8213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConvention = default)
         {
             var methods = node.Methods;
             if (methods.Length == 0)

@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -16,6 +13,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.ServiceHub.Framework;
@@ -37,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IServiceBroker _serviceBroker;
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly IErrorReportingService? _errorReportingService;
+        private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
 
         private readonly ConnectionPools? _connectionPools;
 
@@ -67,12 +66,13 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             _serializer = services.GetRequiredService<ISerializerService>();
             _errorReportingService = services.GetService<IErrorReportingService>();
+            _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
             => _errorReportingService?.ShowRemoteHostCrashedErrorInfo(unexpectedException);
 
-        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, IServiceBroker serviceBroker, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, AsynchronousOperationListenerProvider listenerProvider, IServiceBroker serviceBroker, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
             {
@@ -98,8 +98,28 @@ namespace Microsoft.CodeAnalysis.Remote
                     new object?[] { uiCultureLCID, cultureLCID },
                     cancellationToken).ConfigureAwait(false);
 
+                if (AsynchronousOperationListenerProvider.IsEnabled && !IsRpsMachine())
+                {
+                    await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
+                        (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+                }
+
                 client.Started();
                 return client;
+            }
+
+            static bool IsRpsMachine()
+            {
+                try
+                {
+                    return Environment.MachineName.StartsWith("dtl-");
+                }
+                catch
+                {
+                    return false;
+                }
             }
         }
 
@@ -141,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // even if our cancellation token is signaled. Do not report Watson in such cases to reduce noice.
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    FatalError.ReportWithoutCrash(e);
+                    FatalError.ReportAndCatch(e);
                 }
 
                 return true;
@@ -161,15 +181,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), RemoteHostOptions.IsServiceHubProcess64Bit(_services));
 
+                // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
+                await TaskScheduler.Default;
+
 #pragma warning disable ISB001 // Dispose of proxies - BrokeredServiceConnection takes care of disposal
                 var proxy = await _serviceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
 #pragma warning restore
 
                 Contract.ThrowIfNull(proxy, $"Brokered service not found: {descriptor.Moniker.Name}");
 
-                return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService);
+                return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService, _shutdownCancellationService);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -232,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -249,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     ? SpecializedTasks.True
                     : SpecializedTasks.False;
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

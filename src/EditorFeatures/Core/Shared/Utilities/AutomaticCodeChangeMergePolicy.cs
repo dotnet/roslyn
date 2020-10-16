@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     /// </summary>
     internal class AutomaticCodeChangeMergePolicy : IMergeTextUndoTransactionPolicy
     {
-        public static readonly AutomaticCodeChangeMergePolicy Instance = new AutomaticCodeChangeMergePolicy();
+        public static readonly AutomaticCodeChangeMergePolicy Instance = new();
 
         public bool CanMerge(ITextUndoTransaction newerTransaction, ITextUndoTransaction olderTransaction)
         {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -624,7 +622,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
                             symbol.GetSymbolType().IsErrorType() ||
                             (symbol.IsStatic && symbol.Kind == SymbolKind.Local) ||
-                            IsSymbolWithSpecialDiscardName(symbol))
+                            symbol.IsSymbolWithSpecialDiscardName())
                         {
                             return false;
                         }

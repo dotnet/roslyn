@@ -147,11 +147,6 @@
         <target state="new">Records may only inherit from object or another record</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have a non-empty parameter list</source>
-        <target state="needs-review-translation">위치 레코드에는 'data' 한정자와 비어 있지 않은 매개 변수 목록이 둘 다 있어야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
         <target state="new">Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</target>
@@ -417,6 +412,11 @@
         <target state="new">Ref mismatch between '{0}' and function pointer '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
+        <source>A function pointer cannot be called with named arguments.</source>
+        <target state="new">A function pointer cannot be called with named arguments.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">goto는 동일한 블록 내의 using 선언 앞 위치로 이동할 수 없습니다.</target>
@@ -437,6 +437,21 @@
         <target state="translated">암시적 인덱스 인덱서 호출로 인수 이름을 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="new">There is no target type for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="new">Use of new() is not valid in this context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">암시적 범위 인덱서 호출로 인수 이름을 지정할 수 없습니다.</target>
@@ -445,6 +460,11 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">동적으로 디스패치된 식에서 'in' 한정자가 있는 인수를 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitCannotBeReadonly">
+        <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
+        <target state="new">'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -912,6 +932,41 @@
         <target state="new">discards</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="new">target-typed object creation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull">
+        <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
+        <target state="new">Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull_Title">
+        <source>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</source>
+        <target state="new">Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
+        <source>'{0}' defines 'Equals' but not 'GetHashCode'</source>
+        <target state="new">'{0}' defines 'Equals' but not 'GetHashCode'</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode_Title">
+        <source>Record defines 'Equals' but not 'GetHashCode'.</source>
+        <target state="new">Record defines 'Equals' but not 'GetHashCode'.</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
@@ -920,6 +975,16 @@
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull">
+        <source>Return value must be non-null because parameter '{0}' is non-null.</source>
+        <target state="new">Return value must be non-null because parameter '{0}' is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
+        <source>Return value must be non-null because parameter is non-null.</source>
+        <target state="new">Return value must be non-null because parameter is non-null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
@@ -942,29 +1007,19 @@
         <target state="new">Type '{0}' is not defined.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewIllegalTargetType">
-        <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="new">The type '{0}' may not be used as the target type of new()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for '{0}'</source>
-        <target state="new">There is no target type for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNotValid">
-        <source>Use of new() is not valid in this context</source>
-        <target state="new">Use of new() is not valid in this context</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
         <source>Unexpected argument list.</source>
         <target state="new">Unexpected argument list.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameters must have 'this' constructor initializer.</source>
-        <target state="new">A constructor declared in a record with parameters must have 'this' constructor initializer.</target>
+        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
+        <target state="new">A constructor declared in a record with parameter list must have 'this' constructor initializer.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnexpectedVarianceStaticMember">
+        <source>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</source>
+        <target state="new">Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
@@ -1099,7 +1154,7 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
@@ -1186,6 +1241,8 @@
 -moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
 </source>
         <target state="needs-review-translation">
                              Visual C# 컴파일러 옵션
@@ -1193,7 +1250,7 @@
                        - 출력 파일 -
 -out:&lt;파일&gt;                   출력 파일 이름을 지정합니다(기본값: 주 클래스가
                              있는 파일 또는 첫 번째 파일의 기본 이름).
--target:exe                  콘솔 실행 파일을 빌드합니다(기본값). 
+-target:exe                  콘솔 실행 파일을 빌드합니다(기본값).
                              (약식: -t:exe)
 -target:winexe               Windows 실행 파일을 빌드합니다.
                              (약식: -t:winexe)
@@ -1272,7 +1329,7 @@
                        - 언어 -
 -checked[+|-]                 오버플로 검사를 생성합니다.
 -unsafe[+|-]                  'unsafe' 코드를 허용합니다.
--define:&lt;기호 목록&gt;             조건부 컴파일 기호를 정의합니다. 
+-define:&lt;기호 목록&gt;             조건부 컴파일 기호를 정의합니다.
                               (약식: -d)
 -langversion:?                언어 버전에 허용되는 값을 표시합니다.
 -langversion:&lt;문자열&gt;           언어 버전을
@@ -1311,7 +1368,7 @@
                               지정합니다.
 -utf8output                   컴파일러 메시지를 UTF-8 인코딩으로 출력합니다.
 -main:&lt;형식&gt;                   진입점이 포함된 형식을 지정합니다(다른
-                              모든 가능한 진입점 무시). 
+                              모든 가능한 진입점 무시).
                               (약식: -m)
 -fullpaths                    컴파일러가 정규화된 경로를 생성합니다.
 -filealign:&lt;n&gt;                출력 파일 섹션에 사용되는 맞춤을
@@ -1585,11 +1642,6 @@
         <target state="new">target-typed conditional expression</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="new">target-typed object creation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">튜플 같음</target>
@@ -1618,6 +1670,11 @@
       <trans-unit id="IDS_FeatureUsingDeclarations">
         <source>using declarations</source>
         <target state="translated">using 선언</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureVarianceSafetyForStaticInterfaceMembers">
+        <source>variance safety for static interface members</source>
+        <target state="new">variance safety for static interface members</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -4060,7 +4117,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
         <target state="needs-review-translation">partial' 한정자는 'class', 'struct', 'interface' 또는 'void' 바로 앞에만 올 수 있습니다.</target>
         <note />
       </trans-unit>

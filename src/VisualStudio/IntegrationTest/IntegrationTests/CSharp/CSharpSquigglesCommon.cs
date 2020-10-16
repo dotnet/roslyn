@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -34,14 +35,15 @@ namespace ConsoleApplication1
             Console.WriteLine(""Hello World"")
         }
 
-        private void Sub()
+        private static void Sub()
         {
     }
 }");
+
             VisualStudio.Editor.Verify.ErrorTags(
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\r\nusing System.Text;'[15-68]",
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[286-287]",
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[347-348]");
+              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\\r\\nusing System.Text;'[15-68]",
+              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\\r'[286-287]",
+              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[354-355]");
         }
 
         public virtual void VerifySemanticErrorSquiggles()

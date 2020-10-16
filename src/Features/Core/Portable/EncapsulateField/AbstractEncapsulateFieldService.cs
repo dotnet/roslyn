@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -104,21 +106,21 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var result = await client.RunRemoteAsync<(DocumentId, TextChange[])[]>(
-                        WellKnownServiceHubService.CodeAnalysis,
-                        nameof(IRemoteEncapsulateFieldService.EncapsulateFieldsAsync),
+                    var fieldSymbolKeys = fields.SelectAsArray(f => SymbolKey.CreateString(f, cancellationToken));
+
+                    var result = await client.TryInvokeAsync<IRemoteEncapsulateFieldService, ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>>(
                         solution,
-                        new object[]
-                        {
-                            document.Id,
-                            fields.Select(f => SymbolKey.CreateString(f, cancellationToken)).ToArray(),
-                            updateReferences,
-                        },
+                        (service, solutionInfo, cancellationToken) => service.EncapsulateFieldsAsync(solutionInfo, document.Id, fieldSymbolKeys, updateReferences, cancellationToken),
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
+                    if (!result.HasValue)
+                    {
+                        return solution;
+                    }
+
                     return await RemoteUtilities.UpdateSolutionAsync(
-                        solution, result, cancellationToken).ConfigureAwait(false);
+                        solution, result.Value, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -431,7 +433,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return firstCharacter.ToString() + baseName.Substring(1);
         }
 
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
