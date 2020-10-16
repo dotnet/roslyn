@@ -241,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             var message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");
             var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
-            infoBarService.ShowInfoBarInGlobalView(
+            infoBarService.ShowInfoBar(
                 string.Format(message, ReSharperExtensionName),
                 new InfoBarUI(title: ServicesVSResources.Reset_Visual_Studio_default_keymapping,
                               kind: InfoBarUI.UIKind.Button,
