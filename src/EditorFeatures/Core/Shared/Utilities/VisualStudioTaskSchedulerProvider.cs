@@ -2,20 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
-    [ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Host), Shared]
+    [ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Editor), Shared]
     internal sealed class VisualStudioTaskSchedulerProvider : ITaskSchedulerProvider
     {
         public TaskScheduler CurrentContextScheduler { get; }
@@ -34,7 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public override int MaximumConcurrencyLevel => 1;
 
-            protected override IEnumerable<Task> GetScheduledTasks() => null;
+            protected override IEnumerable<Task> GetScheduledTasks()
+                => SpecializedCollections.EmptyEnumerable<Task>();
 
             protected override void QueueTask(Task task)
             {
