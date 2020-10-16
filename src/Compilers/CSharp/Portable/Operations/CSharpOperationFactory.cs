@@ -1709,15 +1709,19 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyFixedOperation(this, boundFixedStatement, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IUsingOperation CreateBoundUsingStatementOperation(BoundUsingStatement boundUsingStatement)
         {
+            Debug.Assert((boundUsingStatement.DeclarationsOpt == null) != (boundUsingStatement.ExpressionOpt == null));
+            IOperation resources = Create(boundUsingStatement.DeclarationsOpt ?? (BoundNode)boundUsingStatement.ExpressionOpt!);
+            IOperation body = Create(boundUsingStatement.Body);
             ImmutableArray<ILocalSymbol> locals = boundUsingStatement.Locals.GetPublicSymbols();
+            bool isAsynchronous = boundUsingStatement.AwaitOpt != null;
             SyntaxNode syntax = boundUsingStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
-            return new CSharpLazyUsingOperation(this, boundUsingStatement, locals, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new UsingOperation(resources, body, locals, isAsynchronous, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private IThrowOperation CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
         {

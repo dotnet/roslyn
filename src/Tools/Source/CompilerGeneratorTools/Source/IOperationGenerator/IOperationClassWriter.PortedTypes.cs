@@ -31,7 +31,8 @@ namespace IOperationGenerator
             "ILabeledOperation",
             "IReturnOperation",
             "ILockOperation",
-            "ITryOperation"
+            "ITryOperation",
+            "IUsingOperation"
         };
     }
 }

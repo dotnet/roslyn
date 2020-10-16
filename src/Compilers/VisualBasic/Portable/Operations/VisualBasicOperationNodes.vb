@@ -972,27 +972,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyUsingOperation
-        Inherits LazyUsingOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _boundUsingStatement As BoundUsingStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundUsingStatement As BoundUsingStatement, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(locals, isAsynchronous:=False, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _boundUsingStatement = boundUsingStatement
-        End Sub
-
-        Protected Overrides Function CreateResources() As IOperation
-            Return _operationFactory.CreateBoundUsingStatementResources(_boundUsingStatement)
-        End Function
-
-        Protected Overrides Function CreateBody() As IOperation
-            Return _operationFactory.Create(_boundUsingStatement.Body)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyVariableDeclarationGroupOperation
         Inherits LazyVariableDeclarationGroupOperation
 

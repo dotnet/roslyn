@@ -473,6 +473,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ILabelSymbol? ExitLabel { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a <see cref="Body" /> of operations that are executed while using disposable <see cref="Resources" />.
     /// <para>
@@ -509,6 +510,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         bool IsAsynchronous { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an operation that drops the resulting value and the type of the underlying wrapped <see cref="Operation" />.
     /// <para>
@@ -4099,75 +4101,43 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTry(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseUsingOperation : OperationOld, IUsingOperation
+    #nullable enable
+    internal sealed partial class UsingOperation : Operation, IUsingOperation
     {
-        internal BaseUsingOperation(ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Using, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal UsingOperation(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            Resources = SetParentOperation(resources, this);
+            Body = SetParentOperation(body, this);
             Locals = locals;
             IsAsynchronous = isAsynchronous;
         }
-        public abstract IOperation Resources { get; }
-        public abstract IOperation Body { get; }
+        public IOperation Resources { get; }
+        public IOperation Body { get; }
         public ImmutableArray<ILocalSymbol> Locals { get; }
         public bool IsAsynchronous { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Resources is object) yield return Resources;
-                if (Body is object) yield return Body;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Resources is not null) builder.Add(Resources);
+                    if (Body is not null) builder.Add(Body);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Using;
         public override void Accept(OperationVisitor visitor) => visitor.VisitUsing(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitUsing(this, argument);
     }
-    internal sealed partial class UsingOperation : BaseUsingOperation, IUsingOperation
-    {
-        internal UsingOperation(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, isAsynchronous, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Resources = SetParentOperation(resources, this);
-            Body = SetParentOperation(body, this);
-        }
-        public override IOperation Resources { get; }
-        public override IOperation Body { get; }
-    }
-    internal abstract partial class LazyUsingOperation : BaseUsingOperation, IUsingOperation
-    {
-        private IOperation _lazyResources = s_unset;
-        private IOperation _lazyBody = s_unset;
-        internal LazyUsingOperation(ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, isAsynchronous, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateResources();
-        public override IOperation Resources
-        {
-            get
-            {
-                if (_lazyResources == s_unset)
-                {
-                    IOperation resources = CreateResources();
-                    SetParentOperation(resources, this);
-                    Interlocked.CompareExchange(ref _lazyResources, resources, s_unset);
-                }
-                return _lazyResources;
-            }
-        }
-        protected abstract IOperation CreateBody();
-        public override IOperation Body
-        {
-            get
-            {
-                if (_lazyBody == s_unset)
-                {
-                    IOperation body = CreateBody();
-                    SetParentOperation(body, this);
-                    Interlocked.CompareExchange(ref _lazyBody, body, s_unset);
-                }
-                return _lazyBody;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseExpressionStatementOperation : OperationOld, IExpressionStatementOperation
     {
         internal BaseExpressionStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9060,6 +9030,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (TryOperation)operation;
             return new TryOperation(Visit(internalOperation.Body), VisitArray(internalOperation.Catches), Visit(internalOperation.Finally), internalOperation.ExitLabel, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitUsing(IUsingOperation operation, object? argument)
+        {
+            var internalOperation = (UsingOperation)operation;
+            return new UsingOperation(Visit(internalOperation.Resources), Visit(internalOperation.Body), internalOperation.Locals, internalOperation.IsAsynchronous, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitStop(IStopOperation operation, object? argument)
         {

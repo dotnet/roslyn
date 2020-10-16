@@ -5,9 +5,9 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1337,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
 #nullable enable
-        public override IOperation VisitBlock(IBlockOperation operation, int? captureIdForResult)
+        public override IOperation? VisitBlock(IBlockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -1347,7 +1347,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             return FinishVisitingStatement(operation);
         }
-#nullable disable
 
         private void StartVisitingStatement(IOperation operation)
         {
@@ -1356,7 +1355,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             SpillEvalStack();
         }
 
-        private IOperation FinishVisitingStatement(IOperation originalOperation, IOperation result = null)
+        [return: NotNullIfNotNull("result")]
+        private IOperation? FinishVisitingStatement(IOperation originalOperation, IOperation? result = null)
         {
             Debug.Assert(((Operation)originalOperation).OwningSemanticModel != null, "Not an original node.");
             Debug.Assert(_currentStatement == originalOperation);
@@ -1369,6 +1369,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             return result ?? MakeInvalidOperation(originalOperation.Syntax, originalOperation.Type, ImmutableArray<IOperation>.Empty);
         }
+#nullable disable
 
         private void VisitStatements(ImmutableArray<IOperation> statements)
         {
@@ -3390,7 +3391,7 @@ oneMoreTime:
         }
 
 #nullable enable
-        public override IOperation VisitTry(ITryOperation operation, int? captureIdForResult)
+        public override IOperation? VisitTry(ITryOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -3568,7 +3569,7 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitReturn(IReturnOperation operation, int? captureIdForResult)
+        public override IOperation? VisitReturn(IReturnOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
             IOperation returnedValue = Visit(operation.ReturnedValue);
@@ -3596,7 +3597,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitLabeled(ILabeledOperation operation, int? captureIdForResult)
+        public override IOperation? VisitLabeled(ILabeledOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
             VisitLabel(operation.Label);
@@ -3689,14 +3690,14 @@ oneMoreTime:
             current.FallThrough.Kind = exception == null ? ControlFlowBranchSemantics.Rethrow : ControlFlowBranchSemantics.Throw;
         }
 
-        public override IOperation VisitUsing(IUsingOperation operation, int? captureIdForResult)
+#nullable enable
+        public override IOperation? VisitUsing(IUsingOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
             HandleUsingOperationParts(operation.Resources, operation.Body, operation.Locals, operation.IsAsynchronous);
             return FinishVisitingStatement(operation);
         }
 
-#nullable enable
         private void HandleUsingOperationParts(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous)
         {
             var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
@@ -3916,7 +3917,7 @@ oneMoreTime:
         }
 
 #nullable enable
-        public override IOperation VisitLock(ILockOperation operation, int? captureIdForResult)
+        public override IOperation? VisitLock(ILockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -4100,7 +4101,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitForEachLoop(IForEachLoopOperation operation, int? captureIdForResult)
+        public override IOperation? VisitForEachLoop(IForEachLoopOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -4345,7 +4346,7 @@ oneMoreTime:
             }
         }
 
-        public override IOperation VisitForToLoop(IForToLoopOperation operation, int? captureIdForResult)
+        public override IOperation? VisitForToLoop(IForToLoopOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -5064,7 +5065,7 @@ oneMoreTime:
         }
 
 #nullable enable
-        public override IOperation VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
+        public override IOperation? VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -6400,7 +6401,7 @@ oneMoreTime:
         }
 
 #nullable enable
-        public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
+        public override IOperation? VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -6410,7 +6411,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
+        public override IOperation? VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -6428,7 +6429,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, int? captureIdForResult)
+        public override IOperation? VisitPropertyInitializer(IPropertyInitializerOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 

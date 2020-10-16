@@ -1282,29 +1282,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyUsingOperation : LazyUsingOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundUsingStatement _usingStatement;
-
-        internal CSharpLazyUsingOperation(CSharpOperationFactory operationFactory, BoundUsingStatement usingStatement, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(locals, usingStatement.AwaitOpt != null, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _usingStatement = usingStatement;
-        }
-
-        protected override IOperation CreateResources()
-        {
-            return _operationFactory.Create((BoundNode)_usingStatement.DeclarationsOpt ?? _usingStatement.ExpressionOpt);
-        }
-
-        protected override IOperation CreateBody()
-        {
-            return _operationFactory.Create(_usingStatement.Body);
-        }
-    }
-
     internal sealed class CSharpLazyVariableDeclaratorOperation : LazyVariableDeclaratorOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

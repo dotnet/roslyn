@@ -1406,12 +1406,12 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundUsingStatementOperation(boundUsingStatement As BoundUsingStatement) As IUsingOperation
+            Dim resources As IOperation = CreateBoundUsingStatementResources(boundUsingStatement)
+            Dim body As IOperation = Create(boundUsingStatement.Body)
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).CastUp(boundUsingStatement.Locals)
             Dim syntax As SyntaxNode = boundUsingStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundUsingStatement.WasCompilerGenerated
-            Return New VisualBasicLazyUsingOperation(Me, boundUsingStatement, locals, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New UsingOperation(resources, body, locals, isAsynchronous:=False, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundExpressionStatementOperation(boundExpressionStatement As BoundExpressionStatement) As IExpressionStatementOperation
