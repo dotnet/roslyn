@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ConvertConversionOperators
 {
     [Trait(Traits.Feature, Traits.Features.ConvertConversionOperators)]
-    public class AddAwaitTests : AbstractCSharpCodeActionTest
+    public class ConvertConversionOperatorsTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertConversionOperatorsRefactoringProvider();
