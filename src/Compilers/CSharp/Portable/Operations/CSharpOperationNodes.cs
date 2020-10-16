@@ -264,29 +264,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyBinaryOperation : LazyBinaryOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundBinaryOperatorBase _binaryOperator;
-
-        internal CSharpLazyBinaryOperation(CSharpOperationFactory operationFactory, BoundBinaryOperatorBase binaryOperator, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _binaryOperator = binaryOperator;
-        }
-
-        protected override IOperation CreateLeftOperand()
-        {
-            return _operationFactory.Create(_binaryOperator.Left);
-        }
-
-        protected override IOperation CreateRightOperand()
-        {
-            return _operationFactory.Create(_binaryOperator.Right);
-        }
-    }
-
     internal sealed class CSharpLazyTupleBinaryOperation : LazyTupleBinaryOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

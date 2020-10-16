@@ -903,7 +903,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IBinaryOperation" Base="IOperation" VisitorName="VisitBinaryOperator" ChildrenOrder="LeftOperand,RightOperand">
+  <Node Name="IBinaryOperation" Base="IOperation" VisitorName="VisitBinaryOperator" ChildrenOrder="LeftOperand,RightOperand" HasType="true" HasConstantValue="true">
     <OperationKind>
       <Entry Name="Binary" Value="0x20" />
       <Entry Name="BinaryOperator" Value="0x20" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;Binary&quot;/&gt; instead." />
@@ -957,12 +957,12 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="OperatorMethod" Type="IMethodSymbol">
+    <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>
     </Property>
-    <Property Name="UnaryOperatorMethod" Type="IMethodSymbol" Internal="true">
+    <Property Name="UnaryOperatorMethod" Type="IMethodSymbol?" Internal="true">
       <Comments>
         <summary>
           True/False operator method used for short circuiting.

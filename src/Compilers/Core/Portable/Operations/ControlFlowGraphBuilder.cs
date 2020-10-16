@@ -2035,7 +2035,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return new ArrayElementReferenceOperation(visitedArrayReference, visitedIndices, semanticModel: null,
                 operation.Syntax, operation.Type, IsImplicit(operation));
         }
-#nullable disable
 
         private static bool IsConditional(IBinaryOperation operation)
         {
@@ -2093,9 +2092,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             PushOperand(Visit(operation.LeftOperand));
             IOperation rightOperand = Visit(operation.RightOperand);
             return PopStackFrame(frame, new BinaryOperation(operation.OperatorKind, PopOperand(), rightOperand, operation.IsLifted, operation.IsChecked, operation.IsCompareText,
-                                                                     operation.OperatorMethod, ((BaseBinaryOperation)operation).UnaryOperatorMethod, semanticModel: null,
-                                                                     operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
+                                                            operation.OperatorMethod, ((BinaryOperation)operation).UnaryOperatorMethod, semanticModel: null,
+                                                            operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
         }
+#nullable disable
 
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, int? captureIdForResult)
         {
@@ -2123,7 +2123,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                    ITypeSymbolHelpers.IsBooleanType(operation.Type) &&
                    ITypeSymbolHelpers.IsBooleanType(operation.Operand.Type);
         }
-#nullable disable
 
         private static bool CalculateAndOrSense(IBinaryOperation binOp, bool sense)
         {
@@ -2142,7 +2141,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         private IOperation VisitBinaryConditionalOperator(IBinaryOperation binOp, bool sense, int? captureIdForResult,
-                                                          BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
+                                                          BasicBlockBuilder? fallToTrueOpt, BasicBlockBuilder? fallToFalseOpt)
         {
             // ~(a && b) is equivalent to (~a || ~b)
             if (!CalculateAndOrSense(binOp, sense))
@@ -2306,26 +2305,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             AppendNewBlock(done);
 
             condition = new FlowCaptureReferenceOperation(resultId, binOp.Syntax, booleanType, constantValue: null);
+            Debug.Assert(binOp.Type is not null);
             return new ConversionOperation(condition, _compilation.ClassifyConvertibleConversion(condition, binOp.Type, out _), isTryCast: false, isChecked: false,
                                            semanticModel: null, binOp.Syntax, binOp.Type, binOp.GetConstantValue(), isImplicit: true);
         }
 
         private IOperation CreateConversion(IOperation operand, ITypeSymbol type)
         {
-            return new ConversionOperation(operand, _compilation.ClassifyConvertibleConversion(operand, type, out ConstantValue constantValue), isTryCast: false, isChecked: false,
+            return new ConversionOperation(operand, _compilation.ClassifyConvertibleConversion(operand, type, out ConstantValue? constantValue), isTryCast: false, isChecked: false,
                                            semanticModel: null, operand.Syntax, type, constantValue, isImplicit: true);
         }
 
         private IOperation VisitDynamicBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
         {
             SpillEvalStack();
+            Debug.Assert(binOp.Type is not null);
 
             var resultCaptureRegion = _currentRegion;
 
             INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             IOperation left = binOp.LeftOperand;
             IOperation right = binOp.RightOperand;
-            IMethodSymbol unaryOperatorMethod = ((BaseBinaryOperation)binOp).UnaryOperatorMethod;
+            IMethodSymbol? unaryOperatorMethod = ((BinaryOperation)binOp).UnaryOperatorMethod;
             bool isAndAlso = CalculateAndOrSense(binOp, true);
             bool jumpIfTrue;
             IOperation condition;
@@ -2422,7 +2423,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             bool isLifted = binOp.IsLifted;
             IOperation left = binOp.LeftOperand;
             IOperation right = binOp.RightOperand;
-            IMethodSymbol unaryOperatorMethod = ((BaseBinaryOperation)binOp).UnaryOperatorMethod;
+            IMethodSymbol? unaryOperatorMethod = ((BinaryOperation)binOp).UnaryOperatorMethod;
             bool isAndAlso = CalculateAndOrSense(binOp, true);
             IOperation condition;
 
@@ -2497,7 +2498,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         private IOperation VisitShortCircuitingOperator(IBinaryOperation condition, bool sense, bool stopSense, bool stopValue,
-                                                        int? captureIdForResult, BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
+                                                        int? captureIdForResult, BasicBlockBuilder? fallToTrueOpt, BasicBlockBuilder? fallToFalseOpt)
         {
             Debug.Assert(IsBooleanConditionalOperator(condition));
 
@@ -2516,7 +2517,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             SpillEvalStack();
 
-            ref BasicBlockBuilder lazyFallThrough = ref stopValue ? ref fallToTrueOpt : ref fallToFalseOpt;
+            ref BasicBlockBuilder? lazyFallThrough = ref stopValue ? ref fallToTrueOpt : ref fallToFalseOpt;
             bool newFallThroughBlock = (lazyFallThrough == null);
 
             VisitConditionalBranch(condition.LeftOperand, ref lazyFallThrough, stopSense);
@@ -2538,7 +2539,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 AppendNewBlock(lazyFallThrough);
 
                 var constantValue = ConstantValue.Create(stopValue);
-                SyntaxNode leftSyntax = (lazyFallThrough.GetSingletonPredecessorOrDefault() != null ? condition.LeftOperand : condition).Syntax;
+                SyntaxNode leftSyntax = (lazyFallThrough!.GetSingletonPredecessorOrDefault() != null ? condition.LeftOperand : condition).Syntax;
                 AddStatement(new FlowCaptureOperation(captureId, leftSyntax, new LiteralOperation(semanticModel: null, leftSyntax, condition.Type, constantValue, isImplicit: true)));
 
                 AppendNewBlock(labEnd);
@@ -2547,7 +2548,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return GetCaptureReference(captureId, condition);
         }
 
-#nullable enable
         private IOperation VisitConditionalExpression(IOperation condition, bool sense, int? captureIdForResult, BasicBlockBuilder? fallToTrueOpt, BasicBlockBuilder? fallToFalseOpt)
         {
             Debug.Assert(ITypeSymbolHelpers.IsBooleanType(condition.Type));
@@ -2603,9 +2603,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                    ITypeSymbolHelpers.IsBooleanType(binOp.LeftOperand.Type) &&
                    ITypeSymbolHelpers.IsBooleanType(binOp.RightOperand.Type);
         }
-#nullable disable
 
-        private void VisitConditionalBranch(IOperation condition, ref BasicBlockBuilder dest, bool jumpIfTrue)
+        private void VisitConditionalBranch(IOperation condition, ref BasicBlockBuilder? dest, bool jumpIfTrue)
         {
             SpillEvalStack();
 #if DEBUG
@@ -2620,7 +2619,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// This function does not change the current region. The stack should be spilled before calling it.
         /// </summary>
-        private void VisitConditionalBranchCore(IOperation condition, ref BasicBlockBuilder dest, bool jumpIfTrue)
+        private void VisitConditionalBranchCore(IOperation condition, ref BasicBlockBuilder? dest, bool jumpIfTrue)
         {
 oneMoreTime:
             Debug.Assert(_startSpillingAt == _evalStack.Count);
@@ -2643,7 +2642,7 @@ oneMoreTime:
                             // gotoif(RightOperand == sense) dest
                             // fallThrough:
 
-                            BasicBlockBuilder fallThrough = null;
+                            BasicBlockBuilder? fallThrough = null;
 
                             VisitConditionalBranchCore(binOp.LeftOperand, ref fallThrough, !jumpIfTrue);
                             VisitConditionalBranchCore(binOp.RightOperand, ref dest, jumpIfTrue);
@@ -2684,7 +2683,7 @@ oneMoreTime:
                         if (ITypeSymbolHelpers.IsBooleanType(conditional.WhenTrue.Type) &&
                             ITypeSymbolHelpers.IsBooleanType(conditional.WhenFalse.Type))
                         {
-                            BasicBlockBuilder whenFalse = null;
+                            BasicBlockBuilder? whenFalse = null;
                             VisitConditionalBranchCore(conditional.Condition, ref whenFalse, jumpIfTrue: false);
                             VisitConditionalBranchCore(conditional.WhenTrue, ref dest, jumpIfTrue);
 
@@ -2773,6 +2772,7 @@ oneMoreTime:
             previous.ConditionKind = jumpIfTrue ? ControlFlowConditionKind.WhenTrue : ControlFlowConditionKind.WhenFalse;
             previous.Conditional = branch;
         }
+#nullable disable
 
         /// <summary>
         /// Returns converted test expression.
@@ -3457,7 +3457,7 @@ oneMoreTime:
 
                         AddExceptionStore(catchClause.ExceptionType, exceptionDeclarationOrExpression);
 
-                        VisitConditionalBranch(filter, ref catchBlock, jumpIfTrue: true);
+                        VisitConditionalBranch(filter!, ref catchBlock, jumpIfTrue: true);
                         var continueDispatchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
                         AppendNewBlock(continueDispatchBlock);
                         continueDispatchBlock.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
@@ -4366,7 +4366,7 @@ oneMoreTime:
 
             ITypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             BasicBlockBuilder @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
-            BasicBlockBuilder @break = GetLabeledOrNewBlock(operation.ExitLabel);
+            BasicBlockBuilder? @break = GetLabeledOrNewBlock(operation.ExitLabel);
             BasicBlockBuilder checkConditionBlock = new BasicBlockBuilder(BasicBlockKind.Block);
             BasicBlockBuilder bodyBlock = new BasicBlockBuilder(BasicBlockKind.Block);
 
@@ -4668,6 +4668,7 @@ oneMoreTime:
                     IOperation controlVariableReferenceForCondition = PopOperand();
 
                     var notPositive = new BasicBlockBuilder(BasicBlockKind.Block);
+                    Debug.Assert(positiveFlag is not null);
                     ConditionalBranch(positiveFlag, jumpIfTrue: false, notPositive);
                     _currentBasicBlock = null;
 
@@ -5149,7 +5150,7 @@ oneMoreTime:
                 AppendNewBlock(nextSection);
             }
 
-            void handleCase(ICaseClauseOperation caseClause, BasicBlockBuilder body, BasicBlockBuilder nextCase)
+            void handleCase(ICaseClauseOperation caseClause, BasicBlockBuilder body, [DisallowNull] BasicBlockBuilder? nextCase)
             {
                 IOperation condition;
                 BasicBlockBuilder labeled = GetLabeledOrNewBlock(caseClause.Label);

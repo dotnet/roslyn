@@ -160,9 +160,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.UnaryOperator:
                     return CreateBoundUnaryOperatorOperation((BoundUnaryOperator)boundNode);
                 case BoundKind.BinaryOperator:
-                    return CreateBoundBinaryOperatorOperation((BoundBinaryOperator)boundNode);
                 case BoundKind.UserDefinedConditionalLogicalOperator:
-                    return CreateBoundUserDefinedConditionalLogicalOperator((BoundUserDefinedConditionalLogicalOperator)boundNode);
+                    return CreateBoundBinaryOperatorBase((BoundBinaryOperatorBase)boundNode);
                 case BoundKind.TupleBinaryOperator:
                     return CreateBoundTupleBinaryOperatorOperation((BoundTupleBinaryOperator)boundNode);
                 case BoundKind.ConditionalOperator:
@@ -1294,51 +1293,84 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundUnaryOperator.WasCompilerGenerated;
             return new UnaryOperation(unaryOperatorKind, operand, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
-#nullable disable
 
-        private IBinaryOperation CreateBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator)
+        private IOperation CreateBoundBinaryOperatorBase(BoundBinaryOperatorBase boundBinaryOperatorBase)
         {
-            BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
-            IMethodSymbol operatorMethod = boundBinaryOperator.MethodOpt.GetPublicSymbol();
-            IMethodSymbol unaryOperatorMethod = null;
+            // Binary operators can be nested _many_ levels deep, and cause a stack overflow if we manually recurse.
+            // To solve this, we use a manual stack for the left side.
+            var stack = ArrayBuilder<BoundBinaryOperatorBase>.GetInstance();
+            BoundBinaryOperatorBase? currentBinary = boundBinaryOperatorBase;
 
-            // For dynamic logical operator MethodOpt is actually the unary true/false operator
-            if (boundBinaryOperator.Type.IsDynamic() &&
-                (operatorKind == BinaryOperatorKind.ConditionalAnd || operatorKind == BinaryOperatorKind.ConditionalOr) &&
-                operatorMethod?.Parameters.Length == 1)
+            do
             {
-                unaryOperatorMethod = operatorMethod;
-                operatorMethod = null;
+                stack.Push(currentBinary);
+                currentBinary = currentBinary.Left as BoundBinaryOperatorBase;
+            } while (currentBinary is not null);
+
+            Debug.Assert(stack.Count > 0);
+            IOperation? left = null;
+
+            while (stack.TryPop(out currentBinary))
+            {
+                left = left ?? Create(currentBinary.Left);
+                IOperation right = Create(currentBinary.Right);
+                left = currentBinary switch
+                {
+                    BoundBinaryOperator binaryOp => CreateBoundBinaryOperatorOperation(binaryOp, left, right),
+                    BoundUserDefinedConditionalLogicalOperator logicalOp => CreateBoundUserDefinedConditionalLogicalOperator(logicalOp, left, right),
+                    { Kind: var kind } => throw ExceptionUtilities.UnexpectedValue(kind)
+                };
             }
 
-            SyntaxNode syntax = boundBinaryOperator.Syntax;
-            ITypeSymbol type = boundBinaryOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundBinaryOperator.ConstantValue;
-            bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
-            bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
-            bool isCompareText = false;
-            bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
-            return new CSharpLazyBinaryOperation(this, boundBinaryOperator, operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod,
-                                                 _semanticModel, syntax, type, constantValue, isImplicit);
-        }
+            Debug.Assert(left is not null && stack.Count == 0);
+            stack.Free();
+            return left;
 
-        private IBinaryOperation CreateBoundUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator boundBinaryOperator)
-        {
-            BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
-            IMethodSymbol operatorMethod = boundBinaryOperator.LogicalOperator.GetPublicSymbol();
-            IMethodSymbol unaryOperatorMethod = boundBinaryOperator.OperatorKind.Operator() == CSharp.BinaryOperatorKind.And ?
-                                                    boundBinaryOperator.FalseOperator.GetPublicSymbol() :
-                                                    boundBinaryOperator.TrueOperator.GetPublicSymbol();
-            SyntaxNode syntax = boundBinaryOperator.Syntax;
-            ITypeSymbol type = boundBinaryOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundBinaryOperator.ConstantValue;
-            bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
-            bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
-            bool isCompareText = false;
-            bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
-            return new CSharpLazyBinaryOperation(this, boundBinaryOperator, operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod,
-                                                 _semanticModel, syntax, type, constantValue, isImplicit);
+            IBinaryOperation CreateBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator, IOperation left, IOperation right)
+            {
+                BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
+                IMethodSymbol? operatorMethod = boundBinaryOperator.MethodOpt.GetPublicSymbol();
+                IMethodSymbol? unaryOperatorMethod = null;
+
+                // For dynamic logical operator MethodOpt is actually the unary true/false operator
+                if (boundBinaryOperator.Type.IsDynamic() &&
+                    (operatorKind == BinaryOperatorKind.ConditionalAnd || operatorKind == BinaryOperatorKind.ConditionalOr) &&
+                    operatorMethod?.Parameters.Length == 1)
+                {
+                    unaryOperatorMethod = operatorMethod;
+                    operatorMethod = null;
+                }
+
+                SyntaxNode syntax = boundBinaryOperator.Syntax;
+                ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
+                ConstantValue? constantValue = boundBinaryOperator.ConstantValue;
+                bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
+                bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
+                bool isCompareText = false;
+                bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
+                return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod,
+                                           _semanticModel, syntax, type, constantValue, isImplicit);
+            }
+
+            IBinaryOperation CreateBoundUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator boundBinaryOperator, IOperation left, IOperation right)
+            {
+                BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
+                IMethodSymbol operatorMethod = boundBinaryOperator.LogicalOperator.GetPublicSymbol();
+                IMethodSymbol unaryOperatorMethod = boundBinaryOperator.OperatorKind.Operator() == CSharp.BinaryOperatorKind.And ?
+                                                        boundBinaryOperator.FalseOperator.GetPublicSymbol() :
+                                                        boundBinaryOperator.TrueOperator.GetPublicSymbol();
+                SyntaxNode syntax = boundBinaryOperator.Syntax;
+                ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
+                ConstantValue? constantValue = boundBinaryOperator.ConstantValue;
+                bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
+                bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
+                bool isCompareText = false;
+                bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
+                return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod,
+                                           _semanticModel, syntax, type, constantValue, isImplicit);
+            }
         }
+#nullable disable
 
         private ITupleBinaryOperation CreateBoundTupleBinaryOperatorOperation(BoundTupleBinaryOperator boundTupleBinaryOperator)
         {

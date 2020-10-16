@@ -565,25 +565,29 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundBinaryOperatorOperation(boundBinaryOperator As BoundBinaryOperator) As IBinaryOperation
+            Dim left As IOperation = CreateBoundBinaryOperatorChild(boundBinaryOperator, isLeft:=True)
+            Dim right As IOperation = CreateBoundBinaryOperatorChild(boundBinaryOperator, isLeft:=False)
             Dim binaryOperatorInfo = GetBinaryOperatorInfo(boundBinaryOperator)
             Dim syntax As SyntaxNode = boundBinaryOperator.Syntax
             Dim type As ITypeSymbol = boundBinaryOperator.Type
             Dim constantValue As ConstantValue = boundBinaryOperator.ConstantValueOpt
             Dim isImplicit As Boolean = boundBinaryOperator.WasCompilerGenerated
-            Return New VisualBasicLazyBinaryOperation(Me, boundBinaryOperator, binaryOperatorInfo.OperatorKind, binaryOperatorInfo.IsLifted,
-                                                      binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
-                                                      unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New BinaryOperation(binaryOperatorInfo.OperatorKind, left, right, binaryOperatorInfo.IsLifted,
+                                       binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
+                                       unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundUserDefinedBinaryOperatorOperation(boundUserDefinedBinaryOperator As BoundUserDefinedBinaryOperator) As IBinaryOperation
+            Dim left As IOperation = CreateBoundBinaryOperatorChild(boundUserDefinedBinaryOperator, isLeft:=True)
+            Dim right As IOperation = CreateBoundBinaryOperatorChild(boundUserDefinedBinaryOperator, isLeft:=False)
             Dim binaryOperatorInfo = GetUserDefinedBinaryOperatorInfo(boundUserDefinedBinaryOperator)
             Dim syntax As SyntaxNode = boundUserDefinedBinaryOperator.Syntax
             Dim type As ITypeSymbol = boundUserDefinedBinaryOperator.Type
             Dim constantValue As ConstantValue = boundUserDefinedBinaryOperator.ConstantValueOpt
             Dim isImplicit As Boolean = boundUserDefinedBinaryOperator.WasCompilerGenerated
-            Return New VisualBasicLazyBinaryOperation(Me, boundUserDefinedBinaryOperator, binaryOperatorInfo.OperatorKind, binaryOperatorInfo.IsLifted,
-                                                      binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
-                                                      unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New BinaryOperation(binaryOperatorInfo.OperatorKind, left, right, binaryOperatorInfo.IsLifted,
+                                       binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
+                                       unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundBinaryConditionalExpressionOperation(boundBinaryConditionalExpression As BoundBinaryConditionalExpression) As ICoalesceOperation
@@ -610,6 +614,8 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundUserDefinedShortCircuitingOperatorOperation(boundUserDefinedShortCircuitingOperator As BoundUserDefinedShortCircuitingOperator) As IBinaryOperation
+            Dim left As IOperation = CreateBoundBinaryOperatorChild(boundUserDefinedShortCircuitingOperator, isLeft:=True)
+            Dim right As IOperation = CreateBoundBinaryOperatorChild(boundUserDefinedShortCircuitingOperator, isLeft:=False)
             Dim bitwiseOperator As BoundUserDefinedBinaryOperator = boundUserDefinedShortCircuitingOperator.BitwiseOperator
             Dim binaryOperatorInfo As BinaryOperatorInfo = GetUserDefinedBinaryOperatorInfo(bitwiseOperator)
             Dim operatorKind As BinaryOperatorKind = If(binaryOperatorInfo.OperatorKind = BinaryOperatorKind.And, BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr)
@@ -630,8 +636,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                       BoundUserDefinedUnaryOperator))
             End If
 
-            Return New VisualBasicLazyBinaryOperation(Me, boundUserDefinedShortCircuitingOperator, operatorKind, binaryOperatorInfo.IsLifted, isChecked, isCompareText,
-                                                      binaryOperatorInfo.OperatorMethod, unaryOperatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New BinaryOperation(operatorKind, left, right, binaryOperatorInfo.IsLifted, isChecked, isCompareText,
+                                       binaryOperatorInfo.OperatorMethod, unaryOperatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidOperation

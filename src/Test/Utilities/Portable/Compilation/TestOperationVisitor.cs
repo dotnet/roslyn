@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.BinaryOperator, operation.Kind);
             Assert.Equal(OperationKind.Binary, operation.Kind);
             var operatorMethod = operation.OperatorMethod;
-            var unaryOperatorMethod = ((BaseBinaryOperation)operation).UnaryOperatorMethod;
+            var unaryOperatorMethod = ((BinaryOperation)operation).UnaryOperatorMethod;
             var binaryOperationKind = operation.OperatorKind;
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;

@@ -38,7 +38,8 @@ namespace IOperationGenerator
             "IRaiseEventOperation",
             "IInvocationOperation",
             "IArrayElementReferenceOperation",
-            "IUnaryOperation"
+            "IUnaryOperation",
+            "IBinaryOperation"
         };
     }
 }

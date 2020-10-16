@@ -1114,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
-            var unaryOperatorMethod = ((BaseBinaryOperation)operation).UnaryOperatorMethod;
+            var unaryOperatorMethod = ((BinaryOperation)operation).UnaryOperatorMethod;
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.LeftOperand, "Left");

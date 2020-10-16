@@ -1024,6 +1024,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IMethodSymbol? OperatorMethod { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an operation with two operands and a binary operator that produces a result with a non-null type.
     /// <para>
@@ -1073,8 +1074,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
-        IMethodSymbol OperatorMethod { get; }
+        IMethodSymbol? OperatorMethod { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a conditional operation with:
     /// (1) <see cref="Condition" /> to be tested,
@@ -4718,83 +4720,53 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitUnaryOperator(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseBinaryOperation : OperationOld, IBinaryOperation
+    #nullable enable
+    internal sealed partial class BinaryOperation : Operation, IBinaryOperation
     {
-        internal BaseBinaryOperation(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Binary, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal BinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol? operatorMethod, IMethodSymbol? unaryOperatorMethod, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             OperatorKind = operatorKind;
+            LeftOperand = SetParentOperation(leftOperand, this);
+            RightOperand = SetParentOperation(rightOperand, this);
             IsLifted = isLifted;
             IsChecked = isChecked;
             IsCompareText = isCompareText;
             OperatorMethod = operatorMethod;
             UnaryOperatorMethod = unaryOperatorMethod;
+            OperationConstantValue = constantValue;
+            Type = type;
         }
         public BinaryOperatorKind OperatorKind { get; }
-        public abstract IOperation LeftOperand { get; }
-        public abstract IOperation RightOperand { get; }
+        public IOperation LeftOperand { get; }
+        public IOperation RightOperand { get; }
         public bool IsLifted { get; }
         public bool IsChecked { get; }
         public bool IsCompareText { get; }
-        public IMethodSymbol OperatorMethod { get; }
-        public IMethodSymbol UnaryOperatorMethod { get; }
+        public IMethodSymbol? OperatorMethod { get; }
+        public IMethodSymbol? UnaryOperatorMethod { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (LeftOperand is object) yield return LeftOperand;
-                if (RightOperand is object) yield return RightOperand;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (LeftOperand is not null) builder.Add(LeftOperand);
+                    if (RightOperand is not null) builder.Add(RightOperand);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.Binary;
         public override void Accept(OperationVisitor visitor) => visitor.VisitBinaryOperator(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitBinaryOperator(this, argument);
     }
-    internal sealed partial class BinaryOperation : BaseBinaryOperation, IBinaryOperation
-    {
-        internal BinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            LeftOperand = SetParentOperation(leftOperand, this);
-            RightOperand = SetParentOperation(rightOperand, this);
-        }
-        public override IOperation LeftOperand { get; }
-        public override IOperation RightOperand { get; }
-    }
-    internal abstract partial class LazyBinaryOperation : BaseBinaryOperation, IBinaryOperation
-    {
-        private IOperation _lazyLeftOperand = s_unset;
-        private IOperation _lazyRightOperand = s_unset;
-        internal LazyBinaryOperation(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateLeftOperand();
-        public override IOperation LeftOperand
-        {
-            get
-            {
-                if (_lazyLeftOperand == s_unset)
-                {
-                    IOperation leftOperand = CreateLeftOperand();
-                    SetParentOperation(leftOperand, this);
-                    Interlocked.CompareExchange(ref _lazyLeftOperand, leftOperand, s_unset);
-                }
-                return _lazyLeftOperand;
-            }
-        }
-        protected abstract IOperation CreateRightOperand();
-        public override IOperation RightOperand
-        {
-            get
-            {
-                if (_lazyRightOperand == s_unset)
-                {
-                    IOperation rightOperand = CreateRightOperand();
-                    SetParentOperation(rightOperand, this);
-                    Interlocked.CompareExchange(ref _lazyRightOperand, rightOperand, s_unset);
-                }
-                return _lazyRightOperand;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseConditionalOperation : OperationOld, IConditionalOperation
     {
         internal BaseConditionalOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8946,6 +8918,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (UnaryOperation)operation;
             return new UnaryOperation(internalOperation.OperatorKind, Visit(internalOperation.Operand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.OperatorMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitBinaryOperator(IBinaryOperation operation, object? argument)
+        {
+            var internalOperation = (BinaryOperation)operation;
+            return new BinaryOperation(internalOperation.OperatorKind, Visit(internalOperation.LeftOperand), Visit(internalOperation.RightOperand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.IsCompareText, internalOperation.OperatorMethod, internalOperation.UnaryOperatorMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, object? argument)
         {

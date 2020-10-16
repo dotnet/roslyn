@@ -151,27 +151,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyBinaryOperation
-        Inherits LazyBinaryOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operator As BoundExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, [operator] As BoundExpression, operatorKind As BinaryOperatorKind, isLifted As Boolean, isChecked As Boolean, isCompareText As Boolean, operatorMethod As IMethodSymbol, unaryOperatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operator = [operator]
-        End Sub
-
-        Protected Overrides Function CreateLeftOperand() As IOperation
-            Return _operationFactory.CreateBoundBinaryOperatorChild(_operator, isLeft:=True)
-        End Function
-
-        Protected Overrides Function CreateRightOperand() As IOperation
-            Return _operationFactory.CreateBoundBinaryOperatorChild(_operator, isLeft:=False)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyCatchClauseOperation
         Inherits LazyCatchClauseOperation
 

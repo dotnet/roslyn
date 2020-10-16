@@ -243,7 +243,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return DeriveArguments(containingExpression);
             }
         }
-#nullable disable
 
         internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression)
         {
@@ -252,6 +251,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.IndexerAccess:
                     {
                         var boundIndexer = (BoundIndexerAccess)containingExpression;
+                        Debug.Assert(boundIndexer.BinderOpt is not null);
                         return DeriveArguments(boundIndexer,
                                                boundIndexer.BinderOpt,
                                                boundIndexer.Indexer,
@@ -268,6 +268,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.ObjectCreationExpression:
                     {
                         var objectCreation = (BoundObjectCreationExpression)containingExpression;
+                        Debug.Assert(objectCreation.BinderOpt is not null);
                         return DeriveArguments(objectCreation,
                                                objectCreation.BinderOpt,
                                                objectCreation.Constructor,
@@ -283,6 +284,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.Call:
                     {
                         var boundCall = (BoundCall)containingExpression;
+                        Debug.Assert(boundCall.BinderOpt is not null);
                         return DeriveArguments(boundCall,
                                                boundCall.BinderOpt,
                                                boundCall.Method,
@@ -299,6 +301,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.CollectionElementInitializer:
                     {
                         var boundCollectionElementInitializer = (BoundCollectionElementInitializer)containingExpression;
+                        Debug.Assert(boundCollectionElementInitializer.BinderOpt is not null);
                         return DeriveArguments(boundCollectionElementInitializer,
                                                boundCollectionElementInitializer.BinderOpt,
                                                boundCollectionElementInitializer.AddMethod,
@@ -318,7 +321,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-#nullable enable
         private ImmutableArray<IArgumentOperation> DeriveArguments(
             BoundNode boundNode,
             Binder binder,
