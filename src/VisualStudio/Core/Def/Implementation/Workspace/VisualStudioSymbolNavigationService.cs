@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor;
@@ -180,6 +181,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             return true;
+        }
+
+        public async Task<MetadataAsSourceFile?> GetAndOpenGeneratedFileAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        {
+            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(
+                project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
+
+            var openDocumentService = IServiceProviderExtensions.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(_serviceProvider);
+            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out _, out _, out _, out _);
+
+            return result;
         }
 
         public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)

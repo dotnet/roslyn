@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 // If we have no source span, our location may be in metadata.
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (symbol == null || symbol.Locations == null || symbol.Locations.IsEmpty || !symbol.Locations.First().IsInMetadata)
+                if (symbol == null || symbol.Locations == null || symbol.Locations.IsEmpty)
                 {
                     // We couldn't find the location in metadata and it's not in any of our known documents.
                     return null;

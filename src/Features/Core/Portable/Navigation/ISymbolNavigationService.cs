@@ -5,8 +5,10 @@
 #nullable disable
 
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Navigation
@@ -32,5 +34,10 @@ namespace Microsoft.CodeAnalysis.Navigation
         bool WouldNavigateToSymbol(
             DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken,
             out string filePath, out int lineNumber, out int charOffset);
+
+        /// <summary>
+        /// Gets and opens the generated file for the given symbol.
+        /// </summary>
+        Task<MetadataAsSourceFile> GetAndOpenGeneratedFileAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
     }
 }

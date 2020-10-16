@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
 
@@ -74,6 +75,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 charOffset = Me.NavigationCharOffsetReturnValue
 
                 Return WouldNavigateToSymbolReturnValue
+            End Function
+
+            Public Function GetAndOpenGeneratedFileAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of MetadataAsSourceFile) Implements ISymbolNavigationService.GetAndOpenGeneratedFileAsync
+                Return Task.FromResult(Of MetadataAsSourceFile)(Nothing)
             End Function
         End Class
     End Class

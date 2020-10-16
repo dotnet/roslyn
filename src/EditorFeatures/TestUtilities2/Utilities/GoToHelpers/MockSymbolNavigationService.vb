@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
 
@@ -28,6 +29,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public Function WouldNavigateToSymbol(definitionItem As DefinitionItem, solution As Solution, cancellationToken As CancellationToken, ByRef filePath As String, ByRef lineNumber As Integer, ByRef charOffset As Integer) As Boolean Implements ISymbolNavigationService.WouldNavigateToSymbol
             _wouldNavigateToSymbol = True
             Return True
+        End Function
+
+        Public Function GetAndOpenGeneratedFileAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of MetadataAsSourceFile) Implements ISymbolNavigationService.GetAndOpenGeneratedFileAsync
+            Return Task.FromResult(Of MetadataAsSourceFile)(Nothing)
         End Function
     End Class
 End Namespace

@@ -62,7 +62,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
                     {
-                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, false, cancellationToken).ConfigureAwait(false);
+                        var navigationService = document.Project.Solution.Workspace.Services.GetService<ISymbolNavigationService>();
+                        Contract.ThrowIfNull(navigationService);
+
+                        // Opens the metadata file on the server
+                        var declarationFile = await navigationService.GetAndOpenGeneratedFileAsync(symbol, document.Project, cancellationToken).ConfigureAwait(false);
 
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location

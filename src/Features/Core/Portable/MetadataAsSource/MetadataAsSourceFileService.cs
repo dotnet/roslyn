@@ -419,6 +419,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return false;
         }
 
+        public MetadataAsSourceWorkspace? GetWorkspace() => _workspace;
+
         private class UniqueDocumentKey : IEquatable<UniqueDocumentKey>
         {
             private static readonly IEqualityComparer<SymbolKey> s_symbolIdComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
