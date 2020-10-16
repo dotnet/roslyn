@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Options
             var currentValue = this.GetOption(optionKey);
 
             // Check if the new value is the same as the current value.
-            if (value == currentValue)
+            if (Equals(value, currentValue))
             {
                 // Return a cloned option set as the public API 'WithChangedOption' guarantees a new option set is returned.
                 return new SerializableOptionSet(_languages, _workspaceOptionSet, _serializableOptions,
