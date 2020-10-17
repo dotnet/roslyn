@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
 {
     /// <inheritdoc/>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertConversionOperators), Shared]
-    internal partial class CSharpConvertConversionOperatorsRefactoringProvider : AbstractConvertConversionOperatorsRefactoringProvider<CastExpressionSyntax, BinaryExpressionSyntax>
+    internal partial class CSharpConvertConversionOperatorsRefactoringProvider
+        : AbstractConvertConversionOperatorsRefactoringProvider<CastExpressionSyntax, BinaryExpressionSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -33,10 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
 
         protected override Task<ImmutableArray<BinaryExpressionSyntax>> FilterAsExpressionCandidatesAsync(ImmutableArray<BinaryExpressionSyntax> asExpression, AsyncLazy<SemanticModel> semanticModelFactory, CancellationToken cancellationToken)
         {
-            var result = asExpression.WhereAsArray(binaryExpression =>
-                               binaryExpression.IsKind(SyntaxKind.AsExpression) &&
-                               binaryExpression.Right is TypeSyntax typeSyntax &&
-                               !typeSyntax.IsMissing);
+            var result = asExpression.WhereAsArray(
+                binaryExpression => binaryExpression is { RawKind: (int)SyntaxKind.AsExpression, Right: TypeSyntax { IsMissing: false } });
 
             return Task.FromResult(result);
         }
