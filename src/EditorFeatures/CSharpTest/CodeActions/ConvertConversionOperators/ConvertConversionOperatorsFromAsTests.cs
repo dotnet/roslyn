@@ -126,5 +126,39 @@ class Program
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
+
+        [Theory]
+        [InlineData("(1 + 1) as $$object",
+                    "(object)(1 + 1)")]
+        [InlineData("(1 $$+ 1) as object",
+                    "(object)(1 + 1)")]
+        public async Task ConvertFromAsToExplicit_OtherBinaryExpressions(string asExpression, string cast)
+        {
+            var initialMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = { asExpression };
+    }}
+}}
+";
+            var expectedMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = { cast };
+    }}
+}}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                OffersEmptyRefactoring = false,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
     }
 }
