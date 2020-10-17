@@ -38,7 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
         {
         }
 
-        protected override async Task<ImmutableArray<CastExpressionSyntax>> FilterFromExpressionCandidatesAsync(ImmutableArray<CastExpressionSyntax> castExpressions, Document document, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<CastExpressionSyntax>> FilterFromExpressionCandidatesAsync(
+            ImmutableArray<CastExpressionSyntax> castExpressions,
+            Document document,
+            CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
