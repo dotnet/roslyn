@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +23,7 @@ namespace Roslyn.Utilities
         internal const char AltDirectorySeparatorChar = '/';
         internal const string ParentRelativeDirectory = "..";
         internal const string ThisDirectory = ".";
-        internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
+        internal static readonly string DirectorySeparatorStr = new(DirectorySeparatorChar, 1);
         internal const char VolumeSeparatorChar = ':';
         internal static bool IsUnixLikePlatform => PlatformInformation.IsUnix;
 

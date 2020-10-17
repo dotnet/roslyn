@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -130,10 +132,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private static readonly CodeStyleOption2<UnusedValuePreference> s_preferNoneUnusedValuePreference =
-            new CodeStyleOption2<UnusedValuePreference>(default, NotificationOption2.None);
+            new(default, NotificationOption2.None);
 
         private static readonly BidirectionalMap<string, UnusedValuePreference> s_unusedExpressionAssignmentPreferenceMap =
-            new BidirectionalMap<string, UnusedValuePreference>(new[]
+            new(new[]
             {
                 KeyValuePairUtil.Create("discard_variable", UnusedValuePreference.DiscardVariable),
                 KeyValuePairUtil.Create("unused_local_variable", UnusedValuePreference.UnusedLocalVariable),

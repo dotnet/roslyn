@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     internal class LinkedEditsTracker
     {
-        private static readonly object s_propagateSpansEditTag = new object();
+        private static readonly object s_propagateSpansEditTag = new();
 
         private readonly ITextBuffer _subjectBuffer;
 

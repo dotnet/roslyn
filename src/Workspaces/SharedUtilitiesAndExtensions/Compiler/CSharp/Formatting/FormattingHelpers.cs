@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -495,40 +493,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // there are attributes, get first token after the tokens belong to attributes
             return (firstTokenAfterAttribute, lastToken);
-        }
-
-        public static bool IsBlockBody(this SyntaxNode node)
-        {
-            Contract.ThrowIfNull(node);
-
-            if (!(node is BlockSyntax blockNode) || blockNode.Parent == null)
-            {
-                return false;
-            }
-
-            switch (blockNode.Parent.Kind())
-            {
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.CheckedStatement:
-                case SyntaxKind.UncheckedStatement:
-                case SyntaxKind.UnsafeStatement:
-                case SyntaxKind.TryStatement:
-                case SyntaxKind.CatchClause:
-                case SyntaxKind.FinallyClause:
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.UnknownAccessorDeclaration:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         public static bool IsPlusOrMinusExpression(this SyntaxToken token)

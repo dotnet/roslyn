@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1454,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return _uncommonFields?._lazyUnmanagedCallersOnlyAttributeData;
         }
-#nullable restore
+#nullable disable
 
         internal override bool GenerateDebugInfo => false;
 

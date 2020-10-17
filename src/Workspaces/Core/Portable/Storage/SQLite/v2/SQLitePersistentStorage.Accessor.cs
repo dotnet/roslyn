@@ -63,14 +63,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            public Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
+            public Task<Checksum?> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(
                     static t => t.self.ReadChecksum(t.key, t.cancellationToken),
                     (self: this, key, cancellationToken), cancellationToken);
 
-            private Checksum ReadChecksum(TKey key, CancellationToken cancellationToken)
+            private Checksum? ReadChecksum(TKey key, CancellationToken cancellationToken)
             {
-                using (var stream = ReadBlobColumn(key, ChecksumColumnName, checksumOpt: null, cancellationToken))
+                using (var stream = ReadBlobColumn(key, ChecksumColumnName, checksum: null, cancellationToken))
                 using (var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken))
                 {
                     if (reader != null)
@@ -83,31 +83,31 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            public Task<Stream> ReadStreamAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(TKey key, Checksum? checksum, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(
                     static t => t.self.ReadStream(t.key, t.checksum, t.cancellationToken),
                     (self: this, key, checksum, cancellationToken), cancellationToken);
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            private Stream ReadStream(TKey key, Checksum checksum, CancellationToken cancellationToken)
+            private Stream? ReadStream(TKey key, Checksum? checksum, CancellationToken cancellationToken)
                 => ReadBlobColumn(key, DataColumnName, checksum, cancellationToken);
 
-            private Stream ReadBlobColumn(
-                TKey key, string columnName, Checksum checksumOpt, CancellationToken cancellationToken)
+            private Stream? ReadBlobColumn(
+                TKey key, string columnName, Checksum? checksum, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    using var _ = Storage.GetPooledConnection(out var connection);
+                    using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
                     if (TryGetDatabaseId(connection, key, out var dataId))
                     {
                         try
                         {
                             // First, try to see if there was a write to this key in our in-memory db.
                             // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
-                            return ReadBlob(connection, Database.WriteCache, dataId, columnName, checksumOpt, cancellationToken) ??
-                                   ReadBlob(connection, Database.Main, dataId, columnName, checksumOpt, cancellationToken);
+                            return ReadBlob(connection, Database.WriteCache, dataId, columnName, checksum, cancellationToken) ??
+                                   ReadBlob(connection, Database.Main, dataId, columnName, checksum, cancellationToken);
                         }
                         catch (Exception ex)
                         {
@@ -119,23 +119,23 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return null;
             }
 
-            public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => Storage.PerformWriteAsync(
-                    static t => t.self.WriteStream(t.key, t.stream, t.checksumOpt, t.cancellationToken),
-                    (self: this, key, stream, checksumOpt, cancellationToken), cancellationToken);
+                    static t => t.self.WriteStream(t.key, t.stream, t.checksum, t.cancellationToken),
+                    (self: this, key, stream, checksum, cancellationToken), cancellationToken);
 
-            private bool WriteStream(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
+            private bool WriteStream(TKey key, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    using var _ = Storage.GetPooledConnection(out var connection);
+                    using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
 
                     // Determine the appropriate data-id to store this stream at.
                     if (TryGetDatabaseId(connection, key, out var dataId))
                     {
-                        var (checksumBytes, checksumLength, checksumPooled) = GetBytes(checksumOpt, cancellationToken);
+                        var (checksumBytes, checksumLength, checksumPooled) = GetBytes(checksum, cancellationToken);
                         var (dataBytes, dataLength, dataPooled) = GetBytes(stream);
 
                         // Write the information into the in-memory write-cache.  Later on a background task
@@ -160,10 +160,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return false;
             }
 
-            private Stream ReadBlob(
+            private Stream? ReadBlob(
                 SqlConnection connection, Database database,
                 TDatabaseId dataId, string columnName,
-                Checksum checksumOpt, CancellationToken cancellationToken)
+                Checksum? checksum, CancellationToken cancellationToken)
             {
                 // Note: it's possible that someone may write to this row between when we
                 // get the row ID above and now.  That's fine.  We'll just read the new
@@ -189,15 +189,15 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         // If we were passed a checksum, make sure it matches what we have
                         // stored in the table already.  If they don't match, don't read
                         // out the data value at all.
-                        if (t.checksumOpt != null &&
-                            !t.self.ChecksumsMatch_MustRunInTransaction(t.connection, t.database, t.rowId, t.checksumOpt, t.cancellationToken))
+                        if (t.checksum != null &&
+                            !t.self.ChecksumsMatch_MustRunInTransaction(t.connection, t.database, t.rowId, t.checksum, t.cancellationToken))
                         {
                             return null;
                         }
 
                         return t.connection.ReadBlob_MustRunInTransaction(t.database, t.self.DataTableName, t.columnName, t.rowId);
                     },
-                    (self: this, connection, database, columnName, checksumOpt, rowId, cancellationToken));
+                    (self: this, connection, database, columnName, checksum, rowId, cancellationToken));
             }
 
             private bool ChecksumsMatch_MustRunInTransaction(
@@ -273,6 +273,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 byte[] checksumBytes, int checksumLength,
                 byte[] dataBytes, int dataLength)
             {
+                // We're writing.  This better always be under the exclusive scheduler.
+                Contract.ThrowIfFalse(TaskScheduler.Current == Storage._connectionPoolService.Scheduler.ExclusiveScheduler);
+
                 using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_writecache_table_values_0_1_2))
                 {
                     var statement = resettableStatement.Statement;

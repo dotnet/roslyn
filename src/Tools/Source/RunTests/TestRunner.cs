@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -175,7 +177,7 @@ namespace RunTests
             }
 
             // If the results are html, use Process.Start to open in the browser.
-            if (_options.UseHtml && !string.IsNullOrEmpty(testResult.ResultsFilePath))
+            if (_options.IncludeHtml && !string.IsNullOrEmpty(testResult.ResultsFilePath))
             {
                 Process.Start(testResult.ResultsFilePath);
             }

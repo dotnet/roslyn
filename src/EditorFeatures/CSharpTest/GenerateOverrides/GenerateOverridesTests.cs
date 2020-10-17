@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
@@ -56,6 +58,33 @@ class C
 class C[||]",
 @"
 class C
+{
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public override string ToString()
+    {
+        return base.ToString();
+    }
+}
+", new[] { "Equals", "GetHashCode", "ToString" });
+        }
+
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        public async Task TestOnRecordWithSemiColon()
+        {
+            await TestWithPickMembersDialogAsync(@"
+record C[||];
+", @"
+record C
 {
     public override bool Equals(object obj)
     {
