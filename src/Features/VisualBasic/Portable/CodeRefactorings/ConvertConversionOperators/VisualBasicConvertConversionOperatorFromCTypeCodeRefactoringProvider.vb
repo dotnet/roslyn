@@ -11,8 +11,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionOperators
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertConversionOperators), [Shared]>
-    Friend Class VisualBasicConvertConversionOperatorsCodeRefactoringProvider
-        Inherits AbstractConvertConversionOperatorsRefactoringProvider(Of TryCastExpressionSyntax, CTypeExpressionSyntax)
+    Friend Class VisualBasicConvertConversionOperatorFromCTypeCodeRefactoringProvider
+        Inherits AbstractConvertConversionOperatorsRefactoringProvider(Of CTypeExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -23,13 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
             Return "TODO"
         End Function
 
-        Protected Overrides Async Function ConvertFromCastToAsAsync(document As Document, tryCastExpression As TryCastExpressionSyntax, cancellationToken As CancellationToken) As Task(Of Document)
-            Dim cTypeExpression = SyntaxFactory.CTypeExpression(tryCastExpression.Expression, tryCastExpression.Type)
-
-            Return Await document.ReplaceNodeAsync(Of CastExpressionSyntax)(tryCastExpression, cTypeExpression, cancellationToken).ConfigureAwait(False)
-        End Function
-
-        Protected Overrides Async Function ConvertFromAsToCastAsync(document As Document, cTypeExpression As CTypeExpressionSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+        Protected Overrides Async Function ConvertAsync(document As Document, cTypeExpression As CTypeExpressionSyntax, cancellationToken As CancellationToken) As Task(Of Document)
             Dim tryCastExpression = SyntaxFactory.TryCastExpression(cTypeExpression.Expression, cTypeExpression.Type)
 
             Return Await document.ReplaceNodeAsync(Of CastExpressionSyntax)(cTypeExpression, tryCastExpression, cancellationToken).ConfigureAwait(False)

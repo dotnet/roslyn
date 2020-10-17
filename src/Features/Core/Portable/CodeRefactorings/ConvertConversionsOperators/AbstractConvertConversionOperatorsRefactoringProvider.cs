@@ -27,72 +27,43 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
     /// Or:
     ///     visa versa
     /// </summary>
-    internal abstract class AbstractConvertConversionOperatorsRefactoringProvider<TCastExpressionSyntax, TAsExpressionSyntax> : CodeRefactoringProvider
-        where TCastExpressionSyntax : SyntaxNode
-        where TAsExpressionSyntax : SyntaxNode
+    internal abstract class AbstractConvertConversionOperatorsRefactoringProvider<TFromExpression> : CodeRefactoringProvider
+        where TFromExpression : SyntaxNode
     {
         protected abstract string GetTitle();
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var castExpressions = await context.GetRelevantNodesAsync<TCastExpressionSyntax>().ConfigureAwait(false);
-            var asExpressions = await context.GetRelevantNodesAsync<TAsExpressionSyntax>().ConfigureAwait(false);
+            var fromExpressions = await context.GetRelevantNodesAsync<TFromExpression>().ConfigureAwait(false);
 
-            if (castExpressions.IsEmpty && asExpressions.IsEmpty)
+            if (fromExpressions.IsEmpty)
             {
                 return;
             }
 
             var (document, cancellationToken) = (context.Document, context.CancellationToken);
-            var semanticModelFactory = AsyncLazy.Create(async cancellationToken
-                => await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false), cacheResult: true);
 
-            castExpressions = await FilterCastExpressionCandidatesAsync(castExpressions, semanticModelFactory, cancellationToken).ConfigureAwait(false);
-            asExpressions = await FilterAsExpressionCandidatesAsync(asExpressions, semanticModelFactory, cancellationToken).ConfigureAwait(false);
+            fromExpressions = await FilterFromExpressionCandidatesAsync(fromExpressions, document, cancellationToken).ConfigureAwait(false);
 
-            if (castExpressions.IsEmpty && asExpressions.IsEmpty)
+            foreach (var node in fromExpressions.Distinct())
             {
-                return;
-            }
-
-            var nodesToRegister = castExpressions.Cast<SyntaxNode>().Union(asExpressions).ToImmutableArray();
-
-            foreach (var node in nodesToRegister)
-            {
-                Func<CancellationToken, Task<Document>> createChangedDocument = node switch
-                {
-                    TCastExpressionSyntax castExpression => cancellationToken => ConvertFromCastToAsAsync(document, castExpression, cancellationToken),
-                    TAsExpressionSyntax asExpression => cancellationToken => ConvertFromAsToCastAsync(document, asExpression, cancellationToken),
-                    _ => throw new InvalidOperationException("Unsupported node type"),
-                };
                 context.RegisterRefactoring(
                     new MyCodeAction(
                         GetTitle(),
-                        createChangedDocument
+                        c => ConvertAsync(document, node, cancellationToken)
                     ), node.Span);
             }
         }
 
-        protected virtual Task<ImmutableArray<TCastExpressionSyntax>> FilterCastExpressionCandidatesAsync(
-            ImmutableArray<TCastExpressionSyntax> castExpressions,
-            AsyncLazy<SemanticModel> semanticModelFactory,
-            CancellationToken cancellationToken)
-            => Task.FromResult(castExpressions);
-
-        protected virtual Task<ImmutableArray<TAsExpressionSyntax>> FilterAsExpressionCandidatesAsync(
-            ImmutableArray<TAsExpressionSyntax> asExpressions,
-            AsyncLazy<SemanticModel> semanticModelFactory,
-            CancellationToken cancellationToken)
-            => Task.FromResult(asExpressions);
-
-        protected abstract Task<Document> ConvertFromCastToAsAsync(
+        protected virtual Task<ImmutableArray<TFromExpression>> FilterFromExpressionCandidatesAsync(
+            ImmutableArray<TFromExpression> fromExpressions,
             Document document,
-            TCastExpressionSyntax castExpression,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken)
+            => Task.FromResult(fromExpressions);
 
-        protected abstract Task<Document> ConvertFromAsToCastAsync(
+        protected abstract Task<Document> ConvertAsync(
             Document document,
-            TAsExpressionSyntax asExpression,
+            TFromExpression fromExpression,
             CancellationToken cancellationToken);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
