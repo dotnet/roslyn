@@ -54,7 +54,8 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
-                OffersEmptyRefactoring = true, //This flag does nothing. How do I test for "Refactoring missing"?
+                FixedCode = InitialMarkup,
+                OffersEmptyRefactoring = false,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -75,7 +76,46 @@ public class C
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
-                OffersEmptyRefactoring = true, //This flag does nothing. How do I test for "Refactoring missing"?
+                FixedCode = InitialMarkup,
+                OffersEmptyRefactoring = false,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("(C$$)((object)1)",
+                    "((object)1) as C")]
+        [InlineData("(C)((object$$)1)",
+                    "(C)(1 as object)")]
+        public async Task ConvertFromExplicitToAs_Nested(string cast, string asExpression)
+        {
+            var initialMarkup = @$"
+class C {{ }}
+
+class Program
+{{
+    public static void Main()
+    {{
+        var x = { cast };
+    }}
+}}
+";
+            var expectedMarkup = @$"
+class C {{ }}
+
+class Program
+{{
+    public static void Main()
+    {{
+        var x = { asExpression };
+    }}
+}}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                OffersEmptyRefactoring = false,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
