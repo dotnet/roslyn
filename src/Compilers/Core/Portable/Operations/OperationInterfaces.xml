@@ -971,7 +971,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IConditionalOperation" Base="IOperation" ChildrenOrder="Condition,WhenTrue,WhenFalse">
+  <Node Name="IConditionalOperation" Base="IOperation" ChildrenOrder="Condition,WhenTrue,WhenFalse" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a conditional operation with:
@@ -997,7 +997,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="WhenFalse" Type="IOperation">
+    <Property Name="WhenFalse" Type="IOperation?">
       <Comments>
         <summary>
           Operation to be executed if the <see cref="Condition" /> is false.

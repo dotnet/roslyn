@@ -1077,6 +1077,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IMethodSymbol? OperatorMethod { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a conditional operation with:
     /// (1) <see cref="Condition" /> to be tested,
@@ -1109,12 +1110,13 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Operation to be executed if the <see cref="Condition" /> is false.
         /// </summary>
-        IOperation WhenFalse { get; }
+        IOperation? WhenFalse { get; }
         /// <summary>
         /// Is result a managed reference
         /// </summary>
         bool IsRef { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a coalesce operation with two operands:
     /// (1) <see cref="Value" />, which is the first operand that is unconditionally evaluated and is the result of the operation if non null.
@@ -4767,92 +4769,46 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitBinaryOperator(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseConditionalOperation : OperationOld, IConditionalOperation
+    #nullable enable
+    internal sealed partial class ConditionalOperation : Operation, IConditionalOperation
     {
-        internal BaseConditionalOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Conditional, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ConditionalOperation(IOperation condition, IOperation whenTrue, IOperation? whenFalse, bool isRef, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            Condition = SetParentOperation(condition, this);
+            WhenTrue = SetParentOperation(whenTrue, this);
+            WhenFalse = SetParentOperation(whenFalse, this);
             IsRef = isRef;
+            OperationConstantValue = constantValue;
+            Type = type;
         }
-        public abstract IOperation Condition { get; }
-        public abstract IOperation WhenTrue { get; }
-        public abstract IOperation WhenFalse { get; }
+        public IOperation Condition { get; }
+        public IOperation WhenTrue { get; }
+        public IOperation? WhenFalse { get; }
         public bool IsRef { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Condition is object) yield return Condition;
-                if (WhenTrue is object) yield return WhenTrue;
-                if (WhenFalse is object) yield return WhenFalse;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
+                    if (Condition is not null) builder.Add(Condition);
+                    if (WhenTrue is not null) builder.Add(WhenTrue);
+                    if (WhenFalse is not null) builder.Add(WhenFalse);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.Conditional;
         public override void Accept(OperationVisitor visitor) => visitor.VisitConditional(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitConditional(this, argument);
     }
-    internal sealed partial class ConditionalOperation : BaseConditionalOperation, IConditionalOperation
-    {
-        internal ConditionalOperation(IOperation condition, IOperation whenTrue, IOperation whenFalse, bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Condition = SetParentOperation(condition, this);
-            WhenTrue = SetParentOperation(whenTrue, this);
-            WhenFalse = SetParentOperation(whenFalse, this);
-        }
-        public override IOperation Condition { get; }
-        public override IOperation WhenTrue { get; }
-        public override IOperation WhenFalse { get; }
-    }
-    internal abstract partial class LazyConditionalOperation : BaseConditionalOperation, IConditionalOperation
-    {
-        private IOperation _lazyCondition = s_unset;
-        private IOperation _lazyWhenTrue = s_unset;
-        private IOperation _lazyWhenFalse = s_unset;
-        internal LazyConditionalOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(isRef, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateCondition();
-        public override IOperation Condition
-        {
-            get
-            {
-                if (_lazyCondition == s_unset)
-                {
-                    IOperation condition = CreateCondition();
-                    SetParentOperation(condition, this);
-                    Interlocked.CompareExchange(ref _lazyCondition, condition, s_unset);
-                }
-                return _lazyCondition;
-            }
-        }
-        protected abstract IOperation CreateWhenTrue();
-        public override IOperation WhenTrue
-        {
-            get
-            {
-                if (_lazyWhenTrue == s_unset)
-                {
-                    IOperation whenTrue = CreateWhenTrue();
-                    SetParentOperation(whenTrue, this);
-                    Interlocked.CompareExchange(ref _lazyWhenTrue, whenTrue, s_unset);
-                }
-                return _lazyWhenTrue;
-            }
-        }
-        protected abstract IOperation CreateWhenFalse();
-        public override IOperation WhenFalse
-        {
-            get
-            {
-                if (_lazyWhenFalse == s_unset)
-                {
-                    IOperation whenFalse = CreateWhenFalse();
-                    SetParentOperation(whenFalse, this);
-                    Interlocked.CompareExchange(ref _lazyWhenFalse, whenFalse, s_unset);
-                }
-                return _lazyWhenFalse;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseCoalesceOperation : OperationOld, ICoalesceOperation
     {
         internal BaseCoalesceOperation(IConvertibleConversion valueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8923,6 +8879,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (BinaryOperation)operation;
             return new BinaryOperation(internalOperation.OperatorKind, Visit(internalOperation.LeftOperand), Visit(internalOperation.RightOperand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.IsCompareText, internalOperation.OperatorMethod, internalOperation.UnaryOperatorMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitConditional(IConditionalOperation operation, object? argument)
+        {
+            var internalOperation = (ConditionalOperation)operation;
+            return new ConditionalOperation(Visit(internalOperation.Condition), Visit(internalOperation.WhenTrue), Visit(internalOperation.WhenFalse), internalOperation.IsRef, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, object? argument)
         {

@@ -2680,6 +2680,7 @@ oneMoreTime:
                     {
                         var conditional = (IConditionalOperation)condition;
 
+                        Debug.Assert(conditional.WhenFalse is not null);
                         if (ITypeSymbolHelpers.IsBooleanType(conditional.WhenTrue.Type) &&
                             ITypeSymbolHelpers.IsBooleanType(conditional.WhenFalse.Type))
                         {

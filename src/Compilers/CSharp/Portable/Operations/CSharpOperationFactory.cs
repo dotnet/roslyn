@@ -1382,15 +1382,20 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyTupleBinaryOperation(this, boundTupleBinaryOperator, operatorKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IConditionalOperation CreateBoundConditionalOperatorOperation(BoundConditionalOperator boundConditionalOperator)
         {
+            IOperation condition = Create(boundConditionalOperator.Condition);
+            IOperation whenTrue = Create(boundConditionalOperator.Consequence);
+            IOperation whenFalse = Create(boundConditionalOperator.Alternative);
             bool isRef = boundConditionalOperator.IsRef;
             SyntaxNode syntax = boundConditionalOperator.Syntax;
-            ITypeSymbol type = boundConditionalOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundConditionalOperator.ConstantValue;
+            ITypeSymbol? type = boundConditionalOperator.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundConditionalOperator.ConstantValue;
             bool isImplicit = boundConditionalOperator.WasCompilerGenerated;
-            return new CSharpLazyConditionalOperation(this, boundConditionalOperator, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
         }
+#nullable disable
 
         private ICoalesceOperation CreateBoundNullCoalescingOperatorOperation(BoundNullCoalescingOperator boundNullCoalescingOperator)
         {
@@ -1608,17 +1613,20 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundNoOpStatement.WasCompilerGenerated;
             return new EmptyOperation(_semanticModel, syntax, isImplicit);
         }
-#nullable disable
 
         private IConditionalOperation CreateBoundIfStatementOperation(BoundIfStatement boundIfStatement)
         {
+            IOperation condition = Create(boundIfStatement.Condition);
+            IOperation whenTrue = Create(boundIfStatement.Consequence);
+            IOperation? whenFalse = Create(boundIfStatement.AlternativeOpt);
             bool isRef = false;
             SyntaxNode syntax = boundIfStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
+            ITypeSymbol? type = null;
+            ConstantValue? constantValue = null;
             bool isImplicit = boundIfStatement.WasCompilerGenerated;
-            return new CSharpLazyConditionalOperation(this, boundIfStatement, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
         }
+#nullable disable
 
         private IWhileLoopOperation CreateBoundWhileStatementOperation(BoundWhileStatement boundWhileStatement)
         {

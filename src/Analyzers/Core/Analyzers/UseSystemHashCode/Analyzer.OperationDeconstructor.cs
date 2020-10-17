@@ -1,9 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -108,7 +109,9 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                             if (binary.OperatorKind == BinaryOperatorKind.Equals)
                             {
                                 // (StringProperty == null ? 0 : StringProperty.GetHashCode())
-                                return TryAddHashedSymbol(conditional.WhenFalse, seenHash: true);
+                                Debug.Assert(conditional.WhenFalse is not null);
+                                // Need the suppression for codestyle, which doesn't respect the above assertion
+                                return TryAddHashedSymbol(conditional.WhenFalse!, seenHash: true);
                             }
                             else if (binary.OperatorKind == BinaryOperatorKind.NotEquals)
                             {

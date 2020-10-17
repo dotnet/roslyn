@@ -363,34 +363,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyConditionalOperation : LazyConditionalOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly IBoundConditional _boundConditional;
-
-        internal CSharpLazyConditionalOperation(CSharpOperationFactory operationFactory, IBoundConditional boundConditional, bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _boundConditional = boundConditional;
-        }
-
-        protected override IOperation CreateCondition()
-        {
-            return _operationFactory.Create(_boundConditional.Condition);
-        }
-
-        protected override IOperation CreateWhenTrue()
-        {
-            return _operationFactory.Create(_boundConditional.Consequence);
-        }
-
-        protected override IOperation CreateWhenFalse()
-        {
-            return _operationFactory.Create(_boundConditional.AlternativeOpt);
-        }
-    }
-
     internal sealed class CSharpLazyConversionOperation : LazyConversionOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
