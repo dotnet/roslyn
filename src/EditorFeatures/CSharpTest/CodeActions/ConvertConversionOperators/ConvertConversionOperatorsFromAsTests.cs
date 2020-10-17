@@ -82,8 +82,9 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
+                FixedCode = InitialMarkup,
                 CompilerDiagnostics = CompilerDiagnostics.None,
-                OffersEmptyRefactoring = true, //This flag does nothing. How do I test for "Refactoring missing"?
+                OffersEmptyRefactoring = false,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
