@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// doesn't need to be kept around further.
         /// </summary>
         private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable =
-            new ConditionalWeakTable<Project, StringTable>();
+            new();
 
         private static async Task<SyntaxTreeIndex> CreateIndexAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)

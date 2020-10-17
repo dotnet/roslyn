@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 // TODO (https://github.com/dotnet/testimpact/issues/84): delete this
 
 using System;

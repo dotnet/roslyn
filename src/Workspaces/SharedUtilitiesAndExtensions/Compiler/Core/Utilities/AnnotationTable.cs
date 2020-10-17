@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -28,8 +30,8 @@ namespace Roslyn.Utilities
     {
         private int _globalId;
 
-        private readonly Dictionary<TAnnotation, SyntaxAnnotation> _realAnnotationMap = new Dictionary<TAnnotation, SyntaxAnnotation>();
-        private readonly Dictionary<string, TAnnotation> _annotationMap = new Dictionary<string, TAnnotation>();
+        private readonly Dictionary<TAnnotation, SyntaxAnnotation> _realAnnotationMap = new();
+        private readonly Dictionary<string, TAnnotation> _annotationMap = new();
 
         private readonly string _annotationKind;
 

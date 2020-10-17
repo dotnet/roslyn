@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal class FindReferencesSearchOptions
+    [DataContract]
+    internal sealed class FindReferencesSearchOptions
     {
         public static readonly FindReferencesSearchOptions Default =
-            new FindReferencesSearchOptions(
+            new(
                 associatePropertyReferencesWithSpecificAccessor: false,
                 cascade: true);
 
@@ -25,12 +29,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// The default for this is false.  With that default, all of the above references
         /// are associated with the property P and not the accessors.
         /// </summary>
+        [DataMember(Order = 0)]
         public bool AssociatePropertyReferencesWithSpecificAccessor { get; }
 
         /// <summary>
         /// Whether or not we should cascade from the original search symbol to new symbols as we're
         /// doing the find-references search.
         /// </summary>
+        [DataMember(Order = 1)]
         public bool Cascade { get; }
 
         public FindReferencesSearchOptions(
@@ -42,10 +48,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public FindReferencesSearchOptions WithAssociatePropertyReferencesWithSpecificAccessor(bool associatePropertyReferencesWithSpecificAccessor)
-            => new FindReferencesSearchOptions(associatePropertyReferencesWithSpecificAccessor, Cascade);
+            => new(associatePropertyReferencesWithSpecificAccessor, Cascade);
 
         public FindReferencesSearchOptions WithCascade(bool cascade)
-            => new FindReferencesSearchOptions(AssociatePropertyReferencesWithSpecificAccessor, cascade);
+            => new(AssociatePropertyReferencesWithSpecificAccessor, cascade);
 
         /// <summary>
         /// For IDE features, if the user starts searching on an accessor, then we want to give

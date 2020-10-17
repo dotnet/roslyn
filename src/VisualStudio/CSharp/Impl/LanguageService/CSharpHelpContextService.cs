@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -284,7 +286,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                             text = "partialmethod_CSharpKeyword";
                             return true;
                         }
-                        else if (token.Parent.GetAncestorOrThis<ClassDeclarationSyntax>() != null)
+                        else if (token.Parent.GetAncestorOrThis<TypeDeclarationSyntax>() != null)
                         {
                             text = "partialtype_CSharpKeyword";
                             return true;

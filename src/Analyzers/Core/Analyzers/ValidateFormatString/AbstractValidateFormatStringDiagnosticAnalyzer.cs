@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             AnalyzersResources.ResourceManager,
             typeof(AnalyzersResources));
 
-        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor Rule = new(
             DiagnosticID,
             Title,
             MessageFormat,
@@ -49,13 +47,13 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         /// this regex is used to remove escaped brackets from
         /// the format string before looking for valid {} pairs
         /// </summary>
-        private static readonly Regex s_removeEscapedBracketsRegex = new Regex("{{");
+        private static readonly Regex s_removeEscapedBracketsRegex = new("{{");
 
         /// <summary>
         /// this regex is used to extract the text between the
         /// brackets and save the contents in a MatchCollection
         /// </summary>
-        private static readonly Regex s_extractPlaceholdersRegex = new Regex("{(.*?)}");
+        private static readonly Regex s_extractPlaceholdersRegex = new("{(.*?)}");
 
         private const string NameOfArgsParameter = "args";
         private const string NameOfFormatStringParameter = "format";

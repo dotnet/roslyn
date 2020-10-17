@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class CSharpSemanticFactsService : AbstractSemanticFactsService, ISemanticFactsService
     {
-        internal static readonly CSharpSemanticFactsService Instance = new CSharpSemanticFactsService();
+        internal static readonly CSharpSemanticFactsService Instance = new();
 
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
         protected override ISemanticFacts SemanticFacts => CSharpSemanticFacts.Instance;

@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Razor</RootNamespace>
-    <Nullable>enable</Nullable>
     <TargetFramework>netstandard2.0</TargetFramework>
 
     <!-- NuGet -->

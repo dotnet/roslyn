@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -28,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private static readonly IImmutableSet<string> s_supportedKinds =
             ImmutableHashSet.Create(
                 NavigateToItemKind.Class,
+                NavigateToItemKind.Record,
                 NavigateToItemKind.Constant,
                 NavigateToItemKind.Delegate,
                 NavigateToItemKind.Enum,
@@ -127,6 +126,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private static async Task SearchDocumentAndReportSymbolsAsync(Document document, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(args.PartialResultToken);
+
             var convertedResults = await SearchDocumentAsync(document, args.Query, cancellationToken).ConfigureAwait(false);
             args.PartialResultToken.Report(convertedResults.ToArray());
         }
@@ -138,12 +139,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var result in results)
             {
+                var location = await ProtocolConversions.TextSpanToLocationAsync(result.NavigableItem.Document, result.NavigableItem.SourceSpan, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(location);
                 symbols.Add(new VSSymbolInformation()
                 {
                     Name = result.Name,
                     ContainerName = result.AdditionalInformation,
                     Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
-                    Location = await ProtocolConversions.TextSpanToLocationAsync(result.NavigableItem.Document, result.NavigableItem.SourceSpan, cancellationToken).ConfigureAwait(false),
+                    Location = location,
                     Icon = new VisualStudio.Text.Adornments.ImageElement(result.NavigableItem.Glyph.GetImageId())
                 });
             }

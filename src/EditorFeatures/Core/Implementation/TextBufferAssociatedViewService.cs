@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -24,12 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor
     internal class TextBufferAssociatedViewService : ITextViewConnectionListener, ITextBufferAssociatedViewService
     {
 #if DEBUG
-        private static readonly HashSet<ITextView> s_registeredViews = new HashSet<ITextView>();
+        private static readonly HashSet<ITextView> s_registeredViews = new();
 #endif
 
-        private static readonly object s_gate = new object();
+        private static readonly object s_gate = new();
         private static readonly ConditionalWeakTable<ITextBuffer, HashSet<ITextView>> s_map =
-            new ConditionalWeakTable<ITextBuffer, HashSet<ITextView>>();
+            new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

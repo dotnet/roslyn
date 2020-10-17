@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,10 +12,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
-        protected override Task<Checksum> ReadChecksumAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, CancellationToken cancellationToken)
+        protected override Task<Checksum?> ReadChecksumAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, CancellationToken cancellationToken)
             => _projectAccessor.ReadChecksumAsync((projectKey, bulkLoadSnapshot, name), cancellationToken);
 
-        protected override Task<Stream> ReadStreamAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken)
+        protected override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken)
             => _projectAccessor.ReadStreamAsync((projectKey, bulkLoadSnapshot, name), checksum, cancellationToken);
 
         public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
