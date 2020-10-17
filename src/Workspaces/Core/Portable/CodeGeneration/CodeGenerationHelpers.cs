@@ -151,40 +151,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return true;
         }
 
-        public static bool TypesMatch(ITypeSymbol type, object value)
-        {
-            // No context type, have to assume that they don't match.
-            if (type != null)
+        public static bool TypesMatch(ITypeSymbol? type, object value)
+            => type?.SpecialType switch
             {
-                switch (type.SpecialType)
-                {
-                    case SpecialType.System_SByte:
-                        return value is sbyte;
-                    case SpecialType.System_Byte:
-                        return value is byte;
-                    case SpecialType.System_Int16:
-                        return value is short;
-                    case SpecialType.System_UInt16:
-                        return value is ushort;
-                    case SpecialType.System_Int32:
-                        return value is int;
-                    case SpecialType.System_UInt32:
-                        return value is uint;
-                    case SpecialType.System_Int64:
-                        return value is long;
-                    case SpecialType.System_UInt64:
-                        return value is ulong;
-                    case SpecialType.System_Decimal:
-                        return value is decimal;
-                    case SpecialType.System_Single:
-                        return value is float;
-                    case SpecialType.System_Double:
-                        return value is double;
-                }
-            }
-
-            return false;
-        }
+                SpecialType.System_SByte => value is sbyte,
+                SpecialType.System_Byte => value is byte,
+                SpecialType.System_Int16 => value is short,
+                SpecialType.System_UInt16 => value is ushort,
+                SpecialType.System_Int32 => value is int,
+                SpecialType.System_UInt32 => value is uint,
+                SpecialType.System_Int64 => value is long,
+                SpecialType.System_UInt64 => value is ulong,
+                SpecialType.System_Decimal => value is decimal,
+                SpecialType.System_Single => value is float,
+                SpecialType.System_Double => value is double,
+                _ => false,
+            };
 
         public static IEnumerable<ISymbol> GetMembers(INamedTypeSymbol namedType)
         {
