@@ -38,13 +38,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         [return: NotNullIfNotNull("syntax")]
-        public static TSyntaxNode? AddAnnotationsTo<TSyntaxNode>(ISymbol symbol, TSyntaxNode? syntax)
-            where TSyntaxNode : SyntaxNode
-        {
-            return syntax != null && symbol is CodeGenerationSymbol codeGenerationSymbol
-                ? syntax.WithAdditionalAnnotations(codeGenerationSymbol.GetAnnotations())
+        public static TSyntaxNode? AddAnnotationsTo<TSyntaxNode>(ISymbol symbol, TSyntaxNode? syntax) where TSyntaxNode : SyntaxNode
+            => symbol is CodeGenerationSymbol codeGenerationSymbol
+                ? syntax?.WithAdditionalAnnotations(codeGenerationSymbol.GetAnnotations())
                 : syntax;
-        }
 
         public static TSyntaxNode AddFormatterAndCodeGeneratorAnnotationsTo<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
             => node.WithAdditionalAnnotations(Formatter.Annotation, CodeGenerator.Annotation);
