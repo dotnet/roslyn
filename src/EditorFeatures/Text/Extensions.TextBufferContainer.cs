@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -22,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Text
         {
             private readonly WeakReference<ITextBuffer> _weakEditorBuffer;
             private readonly object _gate = new object();
-            private readonly ITextBufferCloneService _textBufferCloneServiceOpt;
+            private readonly ITextBufferCloneService? _textBufferCloneServiceOpt;
 
-            private event EventHandler<TextChangeEventArgs> EtextChanged;
+            private event EventHandler<TextChangeEventArgs>? EtextChanged;
             private SourceText _currentText;
 
             private TextBufferContainer(ITextBuffer editorBuffer)
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Text
             private static TextBufferContainer CreateContainer(ITextBuffer editorBuffer)
                 => new TextBufferContainer(editorBuffer);
 
-            public ITextBuffer TryFindEditorTextBuffer()
+            public ITextBuffer? TryFindEditorTextBuffer()
                 => _weakEditorBuffer.GetTarget();
 
             public override SourceText CurrentText
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            private void OnTextContentChanged(object sender, TextContentChangedEventArgs args)
+            private void OnTextContentChanged(object? sender, TextContentChangedEventArgs args)
             {
                 var changed = this.EtextChanged;
                 if (changed == null)
@@ -125,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             // These are the event args that were last sent from this text container when the text
             // content may have changed.
-            public TextChangeEventArgs LastEventArgs { get; private set; }
+            public TextChangeEventArgs? LastEventArgs { get; private set; }
         }
     }
 }
