@@ -61,10 +61,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
             CancellationToken cancellationToken)
             => Task.FromResult(fromExpressions);
 
-        protected abstract Task<Document> ConvertAsync(
+        protected async Task<Document> ConvertAsync(
             Document document,
             TFromExpression fromExpression,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken)
+        {
+            var converted = ConvertExpression(fromExpression);
+            return await document.ReplaceNodeAsync(fromExpression, converted, cancellationToken).ConfigureAwait(false);
+        }
+
+        protected abstract SyntaxNode ConvertExpression(TFromExpression fromExpression);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

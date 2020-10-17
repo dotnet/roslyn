@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
@@ -23,10 +24,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
             Return "TODO"
         End Function
 
-        Protected Overrides Async Function ConvertAsync(document As Document, tryCastExpression As TryCastExpressionSyntax, cancellationToken As CancellationToken) As Task(Of Document)
-            Dim cTypeExpression = SyntaxFactory.CTypeExpression(tryCastExpression.Expression, tryCastExpression.Type)
+        Protected Overrides Function ConvertExpression(fromExpression As TryCastExpressionSyntax) As CodeAnalysis.SyntaxNode
+            Dim cTypeExpression = SyntaxFactory.CTypeExpression(fromExpression.Expression, fromExpression.Type)
 
-            Return Await document.ReplaceNodeAsync(Of CastExpressionSyntax)(tryCastExpression, cTypeExpression, cancellationToken).ConfigureAwait(False)
+            Return cTypeExpression
         End Function
     End Class
 

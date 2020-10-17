@@ -23,10 +23,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
             Return "TODO"
         End Function
 
-        Protected Overrides Async Function ConvertAsync(document As Document, cTypeExpression As CTypeExpressionSyntax, cancellationToken As CancellationToken) As Task(Of Document)
-            Dim tryCastExpression = SyntaxFactory.TryCastExpression(cTypeExpression.Expression, cTypeExpression.Type)
+        Protected Overrides Function ConvertExpression(fromExpression As CTypeExpressionSyntax) As CodeAnalysis.SyntaxNode
+            Dim tryCastExpression = SyntaxFactory.TryCastExpression(fromExpression.Expression, fromExpression.Type)
 
-            Return Await document.ReplaceNodeAsync(Of CastExpressionSyntax)(cTypeExpression, tryCastExpression, cancellationToken).ConfigureAwait(False)
+            Return tryCastExpression
         End Function
     End Class
 End Namespace
