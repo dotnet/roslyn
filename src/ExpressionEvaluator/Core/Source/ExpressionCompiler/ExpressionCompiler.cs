@@ -34,11 +34,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly IDkmLanguageInstructionDecoder _languageInstructionDecoder;
         private readonly bool _useReferencedAssembliesOnly;
 
-        static ExpressionCompiler()
-        {
-            FatalError.Handler = FailFast.OnFatalException;
-        }
-
         public ExpressionCompiler(IDkmLanguageFrameDecoder languageFrameDecoder, IDkmLanguageInstructionDecoder languageInstructionDecoder)
         {
             _languageFrameDecoder = languageFrameDecoder;

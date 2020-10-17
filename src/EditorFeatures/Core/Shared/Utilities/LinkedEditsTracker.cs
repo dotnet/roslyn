@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         public static bool MyOwnChanges(TextContentChangedEventArgs args)
             => args.EditTag == s_propagateSpansEditTag;
 
-        public bool TryGetTextChanged(TextContentChangedEventArgs args, out string replacementText)
+        public bool TryGetTextChanged(TextContentChangedEventArgs args, [NotNullWhen(true)] out string? replacementText)
         {
             // make sure I am not called with my own changes
             Contract.ThrowIfTrue(MyOwnChanges(args));

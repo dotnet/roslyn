@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
             WriteParseOptionsTo(options, writer, cancellationToken)
 
             Dim vbOptions = DirectCast(options, VisualBasicParseOptions)
-            writer.WriteInt32(vbOptions.LanguageVersion)
+            writer.WriteInt32(vbOptions.SpecifiedLanguageVersion)
 
             writer.WriteInt32(vbOptions.PreprocessorSymbols.Length)
             For Each kv In vbOptions.PreprocessorSymbols

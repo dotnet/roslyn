@@ -1747,9 +1747,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InternalError = 8751,
 
-        ERR_TypelessNewIllegalTargetType = 8752,
-        ERR_TypelessNewNotValid = 8753,
-        ERR_TypelessNewNoTargetType = 8754,
+        ERR_ImplicitObjectCreationIllegalTargetType = 8752,
+        ERR_ImplicitObjectCreationNotValid = 8753,
+        ERR_ImplicitObjectCreationNoTargetType = 8754,
 
         ERR_BadFuncPointerParamModifier = 8755,
         ERR_BadFuncPointerArgCount = 8756,
@@ -1847,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_PrecedenceInversion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
 
-        // Available = 8850,
+        WRN_AnalyzerReferencesFramework = 8850,
 
         // WRN_EqualsWithoutGetHashCode is for object.Equals and works for classes.
         // WRN_RecordEqualsWithoutGetHashCode is for IEquatable<T>.Equals and works for records.
@@ -1918,11 +1918,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InitCannotBeReadonly = 8903,
 
-        ERR_FunctionPointersCannotBeCalledWithNamedArguments = 8904,
+        ERR_UnexpectedVarianceStaticMember = 8904,
+        ERR_FunctionPointersCannotBeCalledWithNamedArguments = 8905,
 
         #endregion diagnostics introduced for C# 9.0
-
-        ERR_UnexpectedVarianceStaticMember = 9100,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

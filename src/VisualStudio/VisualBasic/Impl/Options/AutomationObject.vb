@@ -7,6 +7,7 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -26,10 +27,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property AutoComment As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration)
+                Return GetBooleanOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, value)
+                SetBooleanOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration, value)
             End Set
         End Property
 

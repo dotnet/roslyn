@@ -10,7 +10,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
@@ -36,7 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private readonly IBreakpointResolutionService _breakpointService;
             private readonly IProximityExpressionsService _proximityExpressionsService;
             private readonly IWaitIndicator _waitIndicator;
-            private readonly CachedProximityExpressionsGetter _cachedProximityExpressionsGetter;
 
             public VsLanguageDebugInfo(
                 Guid languageId,
@@ -52,12 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _languageDebugInfo = languageServiceProvider.GetService<ILanguageDebugInfoService>();
                 _breakpointService = languageServiceProvider.GetService<IBreakpointResolutionService>();
                 _proximityExpressionsService = languageServiceProvider.GetService<IProximityExpressionsService>();
-                _cachedProximityExpressionsGetter = new CachedProximityExpressionsGetter(_proximityExpressionsService);
                 _waitIndicator = waitIndicator;
             }
-
-            internal void OnDebugModeChanged(DebugMode debugMode)
-                => _cachedProximityExpressionsGetter.OnDebugModeChanged(debugMode);
 
             public int GetLanguageID(IVsTextBuffer pBuffer, int iLine, int iCol, out Guid pguidLanguageID)
             {

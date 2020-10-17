@@ -13,9 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -33,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const string WRN_NoAnalyzerInAssemblyIdVB = "BC42377";
         internal const string WRN_UnableToLoadAnalyzerIdCS = "CS8034";
         internal const string WRN_UnableToLoadAnalyzerIdVB = "BC42378";
+        internal const string WRN_AnalyzerReferencesNetFrameworkIdCS = "CS8850";
 
         // Shared with Compiler
         internal const string AnalyzerExceptionDiagnosticId = "AD0001";
@@ -42,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const string WRN_AnalyzerCannotBeCreatedId = "AD1000";
         internal const string WRN_NoAnalyzerInAssemblyId = "AD1001";
         internal const string WRN_UnableToLoadAnalyzerId = "AD1002";
+        internal const string WRN_AnalyzerReferencesNetFrameworkId = "AD1003";
 
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
 
@@ -201,6 +201,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     message = string.Format(FeaturesResources.The_assembly_0_does_not_contain_any_analyzers, fullPath);
                     break;
 
+                case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
+                    id = GetLanguageSpecificId(language, WRN_AnalyzerReferencesNetFrameworkId, WRN_AnalyzerReferencesNetFrameworkIdCS, WRN_AnalyzerReferencesNetFrameworkId /*Not supported by VB*/);
+                    messageFormat = FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework;
+                    message = string.Format(FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework, fullPath, e.TypeName);
+                    break;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(e.ErrorCode);
             }
@@ -278,10 +284,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return ex =>
                 {
-                    if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
+                    if (ex is not OperationCanceledException && project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
                     {
-                        // if option is on, crash the host to get crash dump.
-                        FatalError.ReportUnlessCanceled(ex);
+                        // report telemetry
+                        FatalError.ReportAndPropagate(ex);
+
+                        // force fail fast (the host might not crash when reporting telemetry):
+                        FailFast.OnFatalException(ex);
                     }
 
                     return true;

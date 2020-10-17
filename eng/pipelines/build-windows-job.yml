@@ -18,14 +18,23 @@ jobs:
   timeoutInMinutes: 40
 
   steps:
-    - script: eng/build.cmd -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog
+    - task: PowerShell@2
       displayName: Restore
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog
 
-    - script: eng/build.cmd -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -pack -sign -publish -binaryLog 
+    - task: PowerShell@2 
       displayName: Build
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog 
 
-    - script: eng/prepare-tests.cmd -configuration ${{ parameters.configuration }}
+    - task: PowerShell@2 
       displayName: Prepare Unit Tests
+      inputs:
+        filePath: eng/prepare-tests.ps1
+        arguments: -configuration ${{ parameters.configuration }}
 
     - task: PublishPipelineArtifact@1
       displayName: Publish Test Payload
