@@ -134,5 +134,26 @@ class Program
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task ConvertFromExplicitToAs_ValueTypeConstraint()
+        {
+            const string InitialMarkup = @"
+public class C
+{
+    public void M<T>() where T: struct
+    {
+        var o = new object();
+        var t = (T[||])o;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                OffersEmptyRefactoring = true, //This flag does nothing. How do I test for "Refactoring missing"?
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
     }
 }
