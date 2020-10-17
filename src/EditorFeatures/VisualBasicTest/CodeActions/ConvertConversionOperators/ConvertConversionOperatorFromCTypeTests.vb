@@ -6,12 +6,12 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionOperators
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.ConvertConversionOperators
-    <Trait(Traits.Feature, Traits.Features.AddAwait)>
-    Public Class ConvertConversionOperatorsTests
+    <Trait(Traits.Feature, Traits.Features.ConvertConversionOperators)>
+    Public Class ConvertConversionOperatorFromCTypeTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicConvertConversionOperatorsCodeRefactoringProvider()
+            Return New VisualBasicConvertConversionOperatorFromCTypeCodeRefactoringProvider()
         End Function
 
         <Fact>
@@ -30,29 +30,6 @@ End Module
 Module Program
     Sub M()
         Dim x = TryCast(1, Object)
-    End Sub
-End Module
-</File>
-
-            Await TestAsync(markup, expected)
-        End Function
-
-        <Fact>
-        Public Async Function ConvertFromTryCastToCType() As Task
-            Dim markup =
-<File>
-Module Program
-    Sub M()
-        Dim x = TryCast(1[||], Object)
-    End Sub
-End Module
-</File>
-
-            Dim expected =
-<File>
-Module Program
-    Sub M()
-        Dim x = CType(1, Object)
     End Sub
 End Module
 </File>
