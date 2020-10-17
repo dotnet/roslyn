@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Conver
     [Trait(Traits.Feature, Traits.Features.ConvertConversionOperators)]
     public class ConvertConversionOperatorsFromCastTests
     {
-
-
         [Fact]
         public async Task ConvertFromExplicitToAs()
         {

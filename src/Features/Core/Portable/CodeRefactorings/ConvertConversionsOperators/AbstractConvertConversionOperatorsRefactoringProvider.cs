@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
     {
         protected abstract string GetTitle();
 
+        protected abstract SyntaxNode ConvertExpression(TFromExpression fromExpression);
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var fromExpressions = await context.GetRelevantNodesAsync<TFromExpression>().ConfigureAwait(false);
@@ -69,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
             var converted = ConvertExpression(fromExpression);
             return await document.ReplaceNodeAsync(fromExpression, converted, cancellationToken).ConfigureAwait(false);
         }
-
-        protected abstract SyntaxNode ConvertExpression(TFromExpression fromExpression);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
