@@ -88,5 +88,43 @@ class Program
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
+
+        [Theory]
+        [InlineData("(1 as object) as $$C",
+                    "(C)(1 as object)")]
+        [InlineData("(1 as$$ object) as C",
+                    "((object)1) as C")]
+        public async Task ConvertFromAsToExplicit_Nested(string asExpression, string cast)
+        {
+            var initialMarkup = @$"
+class C {{ }}
+
+class Program
+{{
+    public static void Main()
+    {{
+        var x = { asExpression };
+    }}
+}}
+";
+            var expectedMarkup = @$"
+class C {{ }}
+
+class Program
+{{
+    public static void Main()
+    {{
+        var x = { cast };
+    }}
+}}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                OffersEmptyRefactoring = false,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
     }
 }
