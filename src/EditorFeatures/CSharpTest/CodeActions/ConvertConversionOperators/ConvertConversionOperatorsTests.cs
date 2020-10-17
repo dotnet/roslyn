@@ -8,101 +8,136 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperators;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperators.CSharpConvertConversionOperatorsRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ConvertConversionOperators
 {
     [Trait(Traits.Feature, Traits.Features.ConvertConversionOperators)]
-    public class ConvertConversionOperatorsTests : AbstractCSharpCodeActionTest
+    public class ConvertConversionOperatorsTests
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpConvertConversionOperatorsRefactoringProvider();
 
         [Fact]
         public async Task ConvertFromAsToExplicit()
         {
-            await TestInRegularAndScriptAsync(@"
+            const string InitialMarkup = @"
 class Program
 {
     public static void Main()
     {
         var x = 1 as[||] object;
     }
-}", @"
+}";
+            const string ExpectedMarkup = @"
 class Program
 {
     public static void Main()
     {
         var x = (object)1;
     }
-}");
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                FixedCode = ExpectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task ConvertFromAsToExplicit_ValueType()
         {
-            await TestInRegularAndScriptAsync(@"
+            const string InitialMarkup = @"
 class Program
 {
     public static void Main()
     {
         var x = 1 as[||] byte;
     }
-}", @"
+}";
+            const string ExpectedMarkup = @"
 class Program
 {
     public static void Main()
     {
         var x = (byte)1;
     }
-}");
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                FixedCode = ExpectedMarkup,
+                CompilerDiagnostics = CompilerDiagnostics.None, // CS0077 is present, but we present the refactoring anyway (this may overlap with a diagnostic fixer)
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task ConvertFromAsToExplicit_NoTypeSyntaxRightOfAs()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            const string InitialMarkup = @"
 class Program
 {
     public static void Main()
     {
         var x = 1 as[||] 1;
     }
-}");
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                CompilerDiagnostics = CompilerDiagnostics.None,
+                OffersEmptyRefactoring = true, //This flag does nothing. How do I test for "Refactoring missing"?
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task ConvertFromExplicitToAs()
         {
-            await TestInRegularAndScriptAsync(@"
+            const string InitialMarkup = @"
 class Program
 {
     public static void Main()
     {
         var x = ([||]object)1;
     }
-}", @"
+}";
+            const string ExpectedMarkup = @"
 class Program
 {
     public static void Main()
     {
         var x = 1 as object;
     }
-}");
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                FixedCode = ExpectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task ConvertFromExplicitToAs_ValueType()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            const string InitialMarkup = @"
 class Program
 {
     public static void Main()
     {
         var x = ([||]byte)1;
     }
-}");
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                CompilerDiagnostics = CompilerDiagnostics.None,
+                OffersEmptyRefactoring = true, //This flag does nothing. How do I test for "Refactoring missing"?
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
         }
     }
 }
