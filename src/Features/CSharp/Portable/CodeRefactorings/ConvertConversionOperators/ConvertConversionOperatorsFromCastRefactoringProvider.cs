@@ -13,6 +13,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators;
+using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertConversionOperators), Shared]
     internal partial class CSharpConvertConversionOperatorsFromCastRefactoringProvider
-        : CodeRefactoringProvider
+        : AbstractConvertConversionOperatorsRefactoringProvider<CastExpressionSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -39,16 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
         {
         }
 
-        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        protected override async Task<ImmutableArray<CastExpressionSyntax>> FilterFromExpressionCandidatesAsync(ImmutableArray<CastExpressionSyntax> castExpressions, Document document, CancellationToken cancellationToken)
         {
-            var castExpressions = await context.GetRelevantNodesAsync<CastExpressionSyntax>().ConfigureAwait(false);
-
-            if (castExpressions.IsEmpty)
-            {
-                return;
-            }
-
-            var (document, cancellationToken) = (context.Document, context.CancellationToken);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             castExpressions = (from node in castExpressions
@@ -58,40 +52,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
                                .Distinct()
                                .ToImmutableArray();
 
-            if (castExpressions.IsEmpty)
-            {
-                return;
-            }
-
-            foreach (var node in castExpressions)
-            {
-                context.RegisterRefactoring(
-                    new MyCodeAction(
-                        GetTitle(),
-                        c => ConvertAsync(document, node, c)
-                    ), node.Span);
-            }
+            return castExpressions;
         }
 
-        private static async Task<Document> ConvertAsync(Document document, CastExpressionSyntax castExpression, CancellationToken cancellationToken)
+        protected override string GetTitle()
+            => "TODO";
+
+        protected override SyntaxNode ConvertExpression(CastExpressionSyntax castExpression)
         {
             var typeNode = castExpression.Type;
             var expression = castExpression.Expression;
 
             var asExpression = BinaryExpression(SyntaxKind.AsExpression, expression, typeNode);
 
-            return await document.ReplaceNodeAsync<SyntaxNode>(castExpression, asExpression, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static string GetTitle()
-            => "TODO";
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
+            return asExpression;
         }
     }
 }
