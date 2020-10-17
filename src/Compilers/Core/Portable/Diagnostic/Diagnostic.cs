@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         /// The warning level used for hidden and info diagnostics. Because these diagnostics interact with other editor features, we want them to always be produced unless /warn:0 is set.
         /// </summary>
         internal const int InfoAndHiddenWarningLevel = 1;
-        
+
         /// <summary>
         /// The maximum warning level represented by a large value of 9999.
         /// </summary>
