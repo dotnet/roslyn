@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
         where TAsExpressionSyntax : SyntaxNode
     {
         protected abstract string GetTitle();
-        
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var castExpressions = await context.GetRelevantNodesAsync<TCastExpressionSyntax>().ConfigureAwait(false);
