@@ -35,7 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
         protected override Task<ImmutableArray<BinaryExpressionSyntax>> FilterAsExpressionCandidatesAsync(ImmutableArray<BinaryExpressionSyntax> asExpression, AsyncLazy<SemanticModel> semanticModelFactory, CancellationToken cancellationToken)
         {
             var result = asExpression.WhereAsArray(
-                binaryExpression => binaryExpression is { RawKind: (int)SyntaxKind.AsExpression, Right: TypeSyntax { IsMissing: false } });
+                binaryExpression => binaryExpression is
+                {
+                    RawKind: (int)SyntaxKind.AsExpression,
+                    Right: TypeSyntax { IsMissing: false },
+                });
 
             return Task.FromResult(result);
         }
