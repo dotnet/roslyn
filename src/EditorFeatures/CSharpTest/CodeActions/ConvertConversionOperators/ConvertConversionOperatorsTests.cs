@@ -5,8 +5,6 @@
 #nullable enable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperators;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
@@ -41,7 +39,7 @@ class Program
             {
                 TestCode = InitialMarkup,
                 FixedCode = ExpectedMarkup,
-                CodeActionValidationMode = CodeActionValidationMode.None,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
             }.RunAsync();
         }
 
@@ -69,7 +67,7 @@ class Program
                 TestCode = InitialMarkup,
                 FixedCode = ExpectedMarkup,
                 CompilerDiagnostics = CompilerDiagnostics.None, // CS0077 is present, but we present the refactoring anyway (this may overlap with a diagnostic fixer)
-                CodeActionValidationMode = CodeActionValidationMode.None,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
             }.RunAsync();
         }
 
@@ -116,7 +114,7 @@ class Program
             {
                 TestCode = InitialMarkup,
                 FixedCode = ExpectedMarkup,
-                CodeActionValidationMode = CodeActionValidationMode.None,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
             }.RunAsync();
         }
 
@@ -134,7 +132,6 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
-                CompilerDiagnostics = CompilerDiagnostics.None,
                 OffersEmptyRefactoring = true, //This flag does nothing. How do I test for "Refactoring missing"?
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
