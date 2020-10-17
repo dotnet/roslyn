@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly Workspace _workspace;
         private readonly ILspSolutionProvider _solutionProvider;
-        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
@@ -70,7 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             string? diagnosticsClientName)
         {
             _requestHandlerProvider = requestHandlerProvider;
@@ -79,8 +77,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listenerProvider = listenerProvider;
             _solutionProvider = solutionProvider;
             _diagnosticsClientName = diagnosticsClientName;
-            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
+
+        /// <summary>
+        /// Can be overridden by subclasses to control what capabilities this language client has.
+        /// </summary>
+        protected internal abstract VSServerCapabilities GetCapabilities();
 
         public Task<Connection> ActivateAsync(CancellationToken token)
         {
@@ -129,11 +131,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // We don't need to provide additional exception handling here, liveshare already handles failure cases for this server.
             return Task.CompletedTask;
         }
-
-        /// <summary>
-        /// Can be overridden by subclasses to control what capabilities this language client has.
-        /// </summary>
-        protected internal virtual VSServerCapabilities GetCapabilities()
-            => _defaultCapabilitiesProvider.GetCapabilities();
     }
 }

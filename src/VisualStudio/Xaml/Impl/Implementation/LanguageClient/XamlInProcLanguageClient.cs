@@ -29,9 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            XamlSolutionProvider solutionProvider,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, defaultCapabilitiesProvider, diagnosticsClientName: null)
+            XamlSolutionProvider solutionProvider)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
         }
 
