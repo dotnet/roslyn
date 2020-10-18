@@ -79,5 +79,38 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
+        <Theory>
+        <InlineData("CType(CType(1, [||]object), C)",
+                    "CType(TryCast(1, object), C)")>
+        <InlineData("CType(CType(1, object), [||]C)",
+                    "TryCast(CType(1, object), C)")>
+        Public Async Function ConvertFromCTypeNested(cTypeExpression As String, converted As String) As Task
+            Dim markup =
+<File>
+Public Class C
+End Class
+
+Module Program
+    Sub M()
+        Dim x = <%= cTypeExpression %>
+    End Sub
+End Module
+</File>
+
+            Dim fixed =
+<File>
+Public Class C
+End Class
+
+Module Program
+    Sub M()
+        Dim x = <%= converted %>
+    End Sub
+End Module
+</File>
+
+            Await TestAsync(markup, fixed)
+        End Function
+
     End Class
 End Namespace
