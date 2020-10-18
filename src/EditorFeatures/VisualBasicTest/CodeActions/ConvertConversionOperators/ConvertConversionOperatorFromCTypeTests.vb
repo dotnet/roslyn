@@ -37,5 +37,33 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
+        <Fact>
+        Public Async Function ConvertFromCTypeNoConverionIfTypeIsValueType() As Task
+            Dim markup =
+<File>
+Module Program
+    Sub M()
+        Dim x = CType(1[||], Byte)
+    End Sub
+End Module
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
+        <Fact>
+        Public Async Function ConvertFromCTypeNoConverionIfTypeIsValueType_GenericTypeConstraint() As Task
+            Dim markup =
+<File>
+Module Program
+    Sub M(Of T As Structure)()
+        Dim x = CType([||]1, T)
+    End Sub
+End Module
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
     End Class
 End Namespace
