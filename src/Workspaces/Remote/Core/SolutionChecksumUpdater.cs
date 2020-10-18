@@ -137,11 +137,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.RemoteHost,
-                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+                await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                     solution,
-                    new object[] { checksum, solution.WorkspaceVersion },
+                    (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, checksum, solution.WorkspaceVersion, cancellationToken),
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
@@ -207,14 +205,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var state = await oldDocument.State.GetStateChecksumsAsync(CancellationToken).ConfigureAwait(false);
 
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.RemoteHost,
-                    nameof(IRemoteHostService.SynchronizeTextAsync),
-                    solution: null,
-                    new object[] { oldDocument.Id, state.Text, textChanges },
+                await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                    (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, state.Text, textChanges, cancellationToken),
                     callbackTarget: null,
                     CancellationToken).ConfigureAwait(false);
-
             }, CancellationToken);
         }
     }

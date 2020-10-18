@@ -10,8 +10,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
@@ -26,9 +27,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ClientName(ClientName)]
     [Export(typeof(ILanguageClient))]
-    internal class RazorLanguageClient : AbstractLanguageServerClient
+    internal class RazorInProcLanguageClient : AbstractInProcLanguageClient
     {
         public const string ClientName = "RazorCSharp";
+
+        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -37,12 +40,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RazorLanguageClient(LanguageServerProtocol languageServerProtocol,
+        public RazorInProcLanguageClient(
+            LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider)
+            ILspSolutionProvider solutionProvider,
+            DefaultCapabilitiesProvider defaultCapabilitiesProvider)
             : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, ClientName)
         {
+            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
+
+        protected internal override VSServerCapabilities GetCapabilities()
+            => _defaultCapabilitiesProvider.GetCapabilities();
     }
 }

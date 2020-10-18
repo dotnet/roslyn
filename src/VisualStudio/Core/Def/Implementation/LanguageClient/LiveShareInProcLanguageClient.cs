@@ -10,28 +10,37 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    // The C# and VB ILanguageClient should not activate on the host. When LiveShare mirrors the C# ILC to the guest, they will not copy the DisableUserExperience attribute,
-    // so guests will still use the C# ILC.
+    // The C# and VB ILanguageClient should not activate on the host. When LiveShare mirrors the C# ILC to the guest,
+    // they will not copy the DisableUserExperience attribute, so guests will still use the C# ILC.
     [DisableUserExperience(true)]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Export(typeof(ILanguageClient))]
-    internal class LiveShareLanguageServerClient : AbstractLanguageServerClient
+    internal class LiveShareInProcLanguageClient : AbstractInProcLanguageClient
     {
+        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public LiveShareLanguageServerClient(LanguageServerProtocol languageServerProtocol,
+        public LiveShareInProcLanguageClient(
+            LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider)
+            ILspSolutionProvider solutionProvider,
+            DefaultCapabilitiesProvider defaultCapabilitiesProvider)
             : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
+            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         public override string Name => ServicesVSResources.Live_Share_CSharp_Visual_Basic_Language_Server_Client;
+
+        protected internal override VSServerCapabilities GetCapabilities()
+            => _defaultCapabilitiesProvider.GetCapabilities();
     }
 }

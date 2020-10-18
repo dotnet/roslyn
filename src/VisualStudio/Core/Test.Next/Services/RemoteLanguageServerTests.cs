@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-    public class LanguageServiceTests
+    public class RemoteLanguageServerTests
     {
         private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
@@ -100,7 +100,7 @@ End Class";
             workspaceSymbolParams.PartialResultToken = awaitableProgress;
 
             var result = await client.RunRemoteAsync<JObject>(
-                WellKnownServiceHubService.LanguageServer,
+                WellKnownServiceHubService.RemoteLanguageServer,
                 Methods.InitializeName,
                 solution: null,
                 new object[] { new InitializeParams() },
@@ -110,7 +110,7 @@ End Class";
             Assert.True(result["capabilities"]["workspaceSymbolProvider"].ToObject<bool>());
 
             _ = await client.RunRemoteAsync<SymbolInformation[]>(
-                WellKnownServiceHubService.LanguageServer,
+                WellKnownServiceHubService.RemoteLanguageServer,
                 Methods.WorkspaceSymbolName,
                 solution: null,
                 new object[] { workspaceSymbolParams },
@@ -127,11 +127,10 @@ End Class";
 
         private async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
         {
-            await client.RunRemoteAsync(
-                WellKnownServiceHubService.RemoteHost,
-                nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+            var checksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                 solution,
-                new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
+                async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, checksum, _solutionVersion++, cancellationToken),
                 callbackTarget: null,
                 CancellationToken.None);
         }

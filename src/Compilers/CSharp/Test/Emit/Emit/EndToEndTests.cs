@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var options = new CSharpCompilationOptions(outputKind: OutputKind.DynamicallyLinkedLibrary, concurrentBuild: false);
+                    var options = TestOptions.DebugDll.WithConcurrentBuild(false);
                     var compilation = CreateCompilation(source, options: options);
                     compilation.VerifyDiagnostics();
                     compilation.EmitToArray();

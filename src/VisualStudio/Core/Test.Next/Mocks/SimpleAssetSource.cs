@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
@@ -16,15 +17,17 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
     /// </summary>
     internal sealed class SimpleAssetSource : IAssetSource
     {
+        private readonly ISerializerService _serializerService;
         private readonly IReadOnlyDictionary<Checksum, object> _map;
 
-        public SimpleAssetSource(IReadOnlyDictionary<Checksum, object> map)
+        public SimpleAssetSource(ISerializerService serializerService, IReadOnlyDictionary<Checksum, object> map)
         {
+            _serializerService = serializerService;
             _map = map;
         }
 
         public ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(
-            int serviceId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+            int serviceId, ISet<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
         {
             var results = new List<(Checksum, object)>();
 
@@ -32,7 +35,17 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             {
                 if (_map.TryGetValue(checksum, out var data))
                 {
-                    results.Add((checksum, data));
+                    using var stream = new MemoryStream();
+                    using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                    {
+                        _serializerService.Serialize(data, writer, cancellationToken);
+                    }
+
+                    stream.Position = 0;
+                    using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
+                    var asset = deserializerService.Deserialize<object>(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
+                    Contract.ThrowIfTrue(asset is null);
+                    results.Add((checksum, asset));
                 }
                 else
                 {

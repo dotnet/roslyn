@@ -248,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 FxCopAnalyzersInstallLogger.Log("InfoBarShown");
 
                 var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
-                infoBarService.ShowInfoBarInGlobalView(
+                infoBarService.ShowInfoBar(
                     ServicesVSResources.Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues,
                     GetInfoBarUIItems().ToArray());
             }

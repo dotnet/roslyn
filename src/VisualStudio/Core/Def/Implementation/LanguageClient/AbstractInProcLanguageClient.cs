@@ -11,19 +11,24 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    internal abstract class AbstractLanguageServerClient : ILanguageClient
+    internal abstract class AbstractInProcLanguageClient : ILanguageClient
     {
         private readonly string? _diagnosticsClientName;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly Workspace _workspace;
         private readonly ILspSolutionProvider _solutionProvider;
+
+        /// <summary>
+        /// Created when <see cref="ActivateAsync"/> is called.
+        /// </summary>
         private InProcLanguageServer? _languageServer;
 
         /// <summary>
@@ -35,20 +40,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// Unused, implementing <see cref="ILanguageClient"/>
         /// No additional settings are provided for this server, so we do not need any configuration section names.
         /// </summary>
-        public IEnumerable<string>? ConfigurationSections { get; } = null;
+        public IEnumerable<string>? ConfigurationSections { get; }
 
         /// <summary>
         /// Gets the initialization options object the client wants to send when 'initialize' message is sent.
         /// See https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#initialize
         /// We do not provide any additional initialization options.
         /// </summary>
-        public object? InitializationOptions { get; } = null;
+        public object? InitializationOptions { get; }
 
         /// <summary>
         /// Unused, implementing <see cref="ILanguageClient"/>
         /// Files that we care about are already provided and watched by the workspace.
         /// </summary>
-        public IEnumerable<string>? FilesToWatch { get; } = null;
+        public IEnumerable<string>? FilesToWatch { get; }
 
         public event AsyncEventHandler<EventArgs>? StartAsync;
 
@@ -57,7 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
-        public AbstractLanguageServerClient(AbstractRequestHandlerProvider requestHandlerProvider,
+        public AbstractInProcLanguageClient(
+            AbstractRequestHandlerProvider requestHandlerProvider,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider,
@@ -66,17 +72,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _requestHandlerProvider = requestHandlerProvider;
             _workspace = workspace;
             _listenerProvider = listenerProvider;
-            _diagnosticsClientName = diagnosticsClientName;
             _solutionProvider = solutionProvider;
+            _diagnosticsClientName = diagnosticsClientName;
         }
+
+        /// <summary>
+        /// Can be overridden by subclasses to control what capabilities this language client has.
+        /// </summary>
+        protected internal abstract VSServerCapabilities GetCapabilities();
 
         public Task<Connection> ActivateAsync(CancellationToken token)
         {
             Contract.ThrowIfTrue(_languageServer?.Running == true, "The language server has not yet shutdown.");
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = new InProcLanguageServer(serverStream, serverStream, _requestHandlerProvider, _workspace,
-                _listenerProvider, _solutionProvider, clientName: _diagnosticsClientName);
+            _languageServer = new InProcLanguageServer(
+                this,
+                serverStream,
+                serverStream,
+                _requestHandlerProvider,
+                _workspace,
+                _listenerProvider,
+                _solutionProvider,
+                clientName: _diagnosticsClientName);
+
             return Task.FromResult(new Connection(clientStream, clientStream));
         }
 
