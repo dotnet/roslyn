@@ -406,7 +406,10 @@ function TestUsingOptimizedRunner() {
   }
 
   if ($test64) {
-    $args += " --test64"
+    $args += " --platform x64"
+  }
+  else {
+    $args += " --platform x86"
   }
 
   if ($sequential) {
