@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -59,10 +60,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
 
         protected override SyntaxNode ConvertExpression(CastExpressionSyntax castExpression)
         {
-            var typeNode = castExpression.Type;
+            var typeNode = castExpression.Type.WithLeadingTrivia(castExpression.OpenParenToken.TrailingTrivia);
             var expression = castExpression.Expression;
 
-            var asExpression = BinaryExpression(SyntaxKind.AsExpression, expression, typeNode);
+            // Trivia handling
+            var middleTrivia = castExpression.CloseParenToken.TrailingTrivia.SkipInitialWhitespace();
+            var newLeadingTrivia = castExpression.GetLeadingTrivia().AddRange(middleTrivia);
+            var newTrailingTrivia = typeNode.GetTrailingTrivia().WithoutLeadingBlankLines().AddRange(expression.GetTrailingTrivia().WithoutLeadingBlankLines());
+            expression = expression.WithoutTrailingTrivia();
+            typeNode = typeNode.WithoutTrailingTrivia();
+
+            var asExpression = BinaryExpression(SyntaxKind.AsExpression, expression, typeNode)
+                .WithLeadingTrivia(newLeadingTrivia)
+                .WithTrailingTrivia(newTrailingTrivia);
 
             return asExpression;
         }
