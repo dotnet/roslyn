@@ -464,11 +464,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override bool AreEquivalent(SyntaxNode left, SyntaxNode right)
             => SyntaxFactory.AreEquivalent(left, right);
 
-        private bool AreEquivalentModifiersIgnoringUnsafe(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers)
+        private bool AreEquivalentModifiersIgnoringGivenModifier(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers, params SyntaxKind[] ignoredModiferKinds)
         {
-            var oldNodeModifiersWithoutUnsafe = oldModifiers.Where(m => !m.IsKind(SyntaxKind.UnsafeKeyword)).ToSyntaxTokenList();
-            var newNodeModifiersWithoutUnsafe = newModifiers.Where(m => !m.IsKind(SyntaxKind.UnsafeKeyword)).ToSyntaxTokenList();
-            return SyntaxFactory.AreEquivalent(oldNodeModifiersWithoutUnsafe, newNodeModifiersWithoutUnsafe)
+            foreach (var modifierKind in ignoredmodifierKinds)
+            {
+                var oldIndex = oldModifiers.IndexOf(modifierKind);
+                var newIndex = newModifiers.IndexOf(modifierKind);
+
+                if (oldIndex >= 0)
+                {
+                    oldModifiers = oldModifiers.RemoveAt(oldIndex);
+                }
+
+                if (newIndex >= 0)
+                {
+                    newModifiers = newModifiers.RemoveAt(newIndex);
+                }
+            }
+
+            return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
         }
 
         private static bool AreEquivalentIgnoringLambdaBodies(SyntaxNode left, SyntaxNode right)
@@ -2447,7 +2461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 // Adding or removing unsafe modifier while debugging shouldn't be an issue.
-                if (!AreEquivalentModifiersIgnoringUnsafe(oldName.Modifiers, newNode.Modifiers))
+                if (!AreEquivalentModifiersIgnoringGivenModifier(oldName.Modifiers, newNode.Modifiers, SyntaxKind.UnsafeKeyword))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
@@ -2492,7 +2506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(DelegateDeclarationSyntax oldNode, DelegateDeclarationSyntax newNode)
             {
-                if (!AreEquivalentModifiersIgnoringUnsafe(oldNode.Modifiers, newNode.Modifiers))
+                if (!AreEquivalentModifiersIgnoringGivenModifier(oldNode.Modifiers, newNode.Modifiers, SyntaxKind.UnsafeKeyword))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
@@ -2516,7 +2530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                if (!AreEquivalentModifiersIgnoringUnsafe(oldNode.Modifiers, newNode.Modifiers))
+                if (!AreEquivalentModifiersIgnoringGivenModifier(oldNode.Modifiers, newNode.Modifiers, SyntaxKind.UnsafeKeyword))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
@@ -2609,20 +2623,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // Ignore async keyword when matching modifiers.
                 // async checks are done in ComputeBodyMatch.
 
-                var oldAsyncIndex = oldModifiers.IndexOf(SyntaxKind.AsyncKeyword);
-                var newAsyncIndex = newModifiers.IndexOf(SyntaxKind.AsyncKeyword);
-
-                if (oldAsyncIndex >= 0)
-                {
-                    oldModifiers = oldModifiers.RemoveAt(oldAsyncIndex);
-                }
-
-                if (newAsyncIndex >= 0)
-                {
-                    newModifiers = newModifiers.RemoveAt(newAsyncIndex);
-                }
-
-                return AreEquivalentModifiersIgnoringUnsafe(oldModifiers, newModifiers);
+                // Ignore async and unsafe.
+                return AreEquivalentModifiersIgnoringGivenModifier(oldModifiers, newModifiers, SyntaxKind.AsyncKeyword, SyntaxKind.UnsafeKeyword);
             }
 
             private void ClassifyUpdate(ConversionOperatorDeclarationSyntax oldNode, ConversionOperatorDeclarationSyntax newNode)
@@ -2717,7 +2719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(ConstructorDeclarationSyntax oldNode, ConstructorDeclarationSyntax newNode)
             {
-                if (!AreEquivalentModifiersIgnoringUnsafe(oldNode.Modifiers, newNode.Modifiers))
+                if (!AreEquivalentModifiersIgnoringGivenModifier(oldNode.Modifiers, newNode.Modifiers, SyntaxKind.UnsafeKeyword))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
