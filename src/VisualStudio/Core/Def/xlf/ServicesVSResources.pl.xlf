@@ -107,6 +107,11 @@
         <target state="translated">Kompilacja i analiza na żywo (pakiet NuGet)</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
+        <source>C#/Visual Basic Diagnostics Language Client</source>
+        <target state="new">C#/Visual Basic Diagnostics Language Client</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
         <source>C#/Visual Basic Language Server Client</source>
         <target state="translated">Klient serwera języka Visual Basic/C#</target>

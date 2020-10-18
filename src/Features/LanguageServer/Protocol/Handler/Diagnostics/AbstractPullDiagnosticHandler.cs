@@ -107,10 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Create a mapping from documents to the previous results the client says it has for them.  That way as we
             // process documents we know if we should tell the client it should stay the same, or we can tell it what
             // the updated diagnostics are.
-            var documentToPreviousDiagnosticParams =
-                previousResults.Select(r => new { DiagnosticParams = r, Document = _solutionProvider.GetDocument(r.TextDocument) })
-                               .Where(a => a.Document != null)
-                               .ToDictionary(a => a.Document, a => a.DiagnosticParams);
+            var documentToPreviousDiagnosticParams = GetDocumentToPreviousDiagnosticParams(previousResults);
 
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
@@ -133,6 +130,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
             return progress.GetValues();
+        }
+
+        private Dictionary<Document, DiagnosticParams> GetDocumentToPreviousDiagnosticParams(DiagnosticParams[] previousResults)
+        {
+            var result = new Dictionary<Document, DiagnosticParams>();
+            foreach (var diagnosticParams in previousResults)
+            {
+                if (diagnosticParams.TextDocument != null)
+                {
+                    var document = _solutionProvider.GetDocument(diagnosticParams.TextDocument);
+                    if (document != null)
+                        result[document] = diagnosticParams;
+                }
+            }
+
+            return result;
         }
 
         private async Task ComputeAndReportCurrentDiagnosticsAsync(

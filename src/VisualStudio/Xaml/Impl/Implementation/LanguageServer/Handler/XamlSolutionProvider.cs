@@ -32,12 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             return _solutionProvider.GetCurrentSolutionForMainWorkspace();
         }
 
-        public ImmutableArray<Document> GetDocuments(Uri? documentUri)
+        public ImmutableArray<Document> GetDocuments(Uri documentUri)
         {
-            if (documentUri?.IsAbsoluteUri == true)
-            {
+            if (documentUri.IsAbsoluteUri == true)
                 _projectService.TrackOpenDocument(documentUri.LocalPath);
-            }
 
             return _solutionProvider.GetDocuments(documentUri);
         }

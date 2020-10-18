@@ -19,16 +19,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal static class Extensions
     {
         public static Uri GetURI(this TextDocument document)
-        {
-            return ProtocolConversions.GetUriFromFilePath(document.FilePath);
-        }
+            => ProtocolConversions.GetUriFromFilePath(document.FilePath);
 
-        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri? documentUri)
-        {
-            return GetDocuments(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
-        }
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
+            => GetDocuments(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
 
-        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri? documentUri, Func<Solution, DocumentId, T> getDocument) where T : TextDocument
+        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri documentUri, Func<Solution, DocumentId, T> getDocument) where T : TextDocument
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
@@ -57,23 +53,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return (null, solution);
         }
 
-        public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri? uri, string? clientName)
-        {
-            return GetDocuments(solutionProvider, uri, (s, u, c) => s.GetDocuments(u), clientName);
-        }
+        public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
+            => GetDocuments(solutionProvider, uri, (s, u, c) => s.GetDocuments(u), clientName);
 
         private static ImmutableArray<T> GetDocuments<T>(
             this ILspSolutionProvider solutionProvider,
-            Uri? uri,
-            Func<ILspSolutionProvider, Uri?, string?, ImmutableArray<T>> getDocuments, string? clientName) where T : TextDocument
+            Uri uri,
+            Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments, string? clientName) where T : TextDocument
         {
             var documents = getDocuments(solutionProvider, uri, clientName);
 
             // If we don't have a client name, then we're done filtering
             if (clientName == null)
-            {
                 return documents;
-            }
 
             // We have a client name, so we need to filter to only documents that match that name
             return documents.WhereAsArray(document =>
@@ -88,23 +80,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             });
         }
 
-        public static Document? GetDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier? documentIdentifier, string? clientName = null)
-        {
-            return GetDocument(solutionProvider, documentIdentifier, (s, d, c) => s.GetDocuments(d, c), clientName);
-        }
+        public static Document? GetDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
+            => GetDocument(solutionProvider, documentIdentifier, (s, d, c) => s.GetDocuments(d, c), clientName);
 
         private static T? GetDocument<T>(
             this ILspSolutionProvider solutionProvider,
-            TextDocumentIdentifier? documentIdentifier,
-            Func<ILspSolutionProvider, Uri?, string?, ImmutableArray<T>> getDocuments,
+            TextDocumentIdentifier documentIdentifier,
+            Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments,
             string? clientName = null) where T : TextDocument
         {
-            var documents = getDocuments(solutionProvider, documentIdentifier?.Uri, clientName);
-
+            var documents = getDocuments(solutionProvider, documentIdentifier.Uri, clientName);
             if (documents.Length == 0)
-            {
                 return null;
-            }
 
             if (documents.Length > 1)
             {
@@ -147,21 +134,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static string GetMarkdownLanguageName(this Document document)
-        {
-            switch (document.Project.Language)
+            => document.Project.Language switch
             {
-                case LanguageNames.CSharp:
-                    return "csharp";
-                case LanguageNames.VisualBasic:
-                    return "vb";
-                case LanguageNames.FSharp:
-                    return "fsharp";
-                case "TypeScript":
-                    return "typescript";
-                default:
-                    throw new ArgumentException(string.Format("Document project language {0} is not valid", document.Project.Language));
-            }
-        }
+                LanguageNames.CSharp => "csharp",
+                LanguageNames.VisualBasic => "vb",
+                LanguageNames.FSharp => "fsharp",
+                "TypeScript" => "typescript",
+                _ => throw new ArgumentException(string.Format("Document project language {0} is not valid", document.Project.Language)),
+            };
 
         public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
             => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
