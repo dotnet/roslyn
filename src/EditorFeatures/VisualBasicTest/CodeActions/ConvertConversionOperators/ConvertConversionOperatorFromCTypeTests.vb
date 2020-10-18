@@ -65,5 +65,19 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
+        <Fact>
+        Public Async Function ConvertFromCBoolIsNotOffered() As Task
+            Dim markup =
+<File>
+Module Program
+    Sub M()
+        Dim x = CBool([||]1)
+    End Sub
+End Module
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
     End Class
 End Namespace
