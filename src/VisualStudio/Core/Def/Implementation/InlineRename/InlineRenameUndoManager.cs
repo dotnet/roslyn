@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio;
@@ -117,7 +118,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
                 // Replace the StartRenameSession undo entry with an identically named entry that also includes
                 // the conflict resolution edits.
                 var undoManager = this.UndoManagers[subjectBuffer].UndoManager;
-                undoManager.UndoTo(this.UndoManagers[subjectBuffer].StartRenameSessionUndoPrimitive);
+
+                try
+                {
+                    // Replace the StartRenameSession undo entry with an identically named entry that also includes
+                    // the conflict resolution edits.
+                    undoManager.UndoTo(this.UndoManagers[subjectBuffer].StartRenameSessionUndoPrimitive);
+                }
+                catch (COMException ex) when (ex.ErrorCode == VSConstants.E_UNEXPECTED && FatalError.ReportAndCatch(ex))
+                {
+                    // According to the documentation, E_UNEXPECTED (0x8000FFFF) is raised when the UndoManager is disabled.
+                    // https://docs.microsoft.com/en-us/windows/win32/api/ocidl/nf-ocidl-ioleundomanager-undoto#return-value
+                    // Report a non-fatal error so we can learn more about this scenario.
+                }
 
                 var adapter = _editorAdaptersFactoryService.GetBufferAdapter(this.UndoManagers[subjectBuffer].UndoHistoryBuffer);
                 var compoundAction = adapter as IVsCompoundAction;

@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Nerdbank.Streams;
@@ -367,7 +367,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // Triggers language server to send notifications.
             foreach (var document in documentsToPublish)
             {
-                await languageServer.PublishDiagnosticsAsync(document).ConfigureAwait(false);
+                await languageServer.PublishDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
             }
 
             // Waits for all notifications to be recieved.

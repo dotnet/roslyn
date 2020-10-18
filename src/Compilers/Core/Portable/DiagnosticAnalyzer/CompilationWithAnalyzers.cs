@@ -947,7 +947,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         driver.Initialize(_compilation, _analysisOptions, _compilationData, categorizeDiagnostics: true, cancellationToken: cancellationToken);
                     }
 
-                    // Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
                     // Wait for driver initialization to complete: this executes the Initialize and CompilationStartActions to compute all registered actions per-analyzer.
                     await driver.WhenInitializedTask.ConfigureAwait(false);
 
@@ -1078,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var task in executingTasks)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    await WaitForExecutingTaskAsync(task.Item1).ConfigureAwait(false);
+                    await WaitForExecutingTaskAsync(task.Item1, alwaysYield: false).ConfigureAwait(false);
                 }
 
                 executingTasks.Clear();
@@ -1134,7 +1133,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    await WaitForExecutingTaskAsync(executingTreeTask.Item1).ConfigureAwait(false);
+                    // Wait for the higher-priority operation to complete, and make sure to yield so its continuations
+                    // (which remove the operation from the collections) have a chance to execute.
+                    await WaitForExecutingTaskAsync(executingTreeTask.Item1, alwaysYield: true).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
@@ -1143,8 +1144,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task WaitForExecutingTaskAsync(Task executingTask)
+        private static async Task WaitForExecutingTaskAsync(Task executingTask, bool alwaysYield)
         {
+            if (executingTask.IsCompleted)
+            {
+                if (alwaysYield)
+                {
+                    // Make sure to yield so continuations of 'executingTask' can make progress.
+                    await Task.Yield().ConfigureAwait(false);
+                }
+
+                return;
+            }
+
             try
             {
                 await executingTask.ConfigureAwait(false);

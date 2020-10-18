@@ -19,6 +19,22 @@ variables:
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
 
+  # To retrieve OptProf data we need to authenticate to the VS drop storage.
+  # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
+  - ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+    - name: _DevDivDropAccessToken
+      value: $(System.AccessToken)
+  # If the pipeline is running in dnceng:
+  # Get access token with $dn-bot-devdiv-drop-rw-code-rw from DotNet-VSTS-Infra-Access
+  # Get $dotnetfeed-storage-access-key-1 from DotNet-Blob-Feed
+  # Get $microsoft-symbol-server-pat and $symweb-symbol-server-pat from DotNet-Symbol-Server-Pats
+  - ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+    - group: DotNet-Blob-Feed
+    - group: DotNet-Symbol-Server-Pats
+    - group: DotNet-VSTS-Infra-Access
+    - name: _DevDivDropAccessToken
+      value: $(dn-bot-devdiv-drop-rw-code-rw)
+
 stages:
 - stage: build
   displayName: Build and Test
@@ -26,17 +42,34 @@ stages:
   jobs:
   - job: OfficialBuild
     displayName: Official Build
-    pool:
-      name: VSEng-MicroBuildVS2017
-      demands: 
-      - msbuild
-      - visualstudio
-      - DotNetFramework
     timeoutInMinutes: 360
+    # Conditionally set build pool so we can share this YAML when building with different pipeline (devdiv vs dnceng) 
+    pool:      
+      ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+        name: VSEng-MicroBuildVS2017
+        demands: 
+        - msbuild
+        - visualstudio
+        - DotNetFramework
+      ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+        name: NetCoreInternal-Pool
+        queue: BuildPool.Windows.10.Amd64.VS2019.Pre
 
-    steps:
+    steps:        
+    # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
+    # i.e. DevDiv builds will have even rev# whereas dnceng builds will be odd.
+    - task: PowerShell@2
+      displayName: Update BuildNumber
+      inputs:
+        filePath: 'eng\update-build-number.ps1'
+        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+          arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven even'
+        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+          arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven odd'
+
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
+      condition: succeeded()
 
     - task: tagBuildOrRelease@0
       displayName: Tag official build
@@ -71,7 +104,10 @@ stages:
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
     - task: NuGetAuthenticate@0
       inputs:
-        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
+        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+          nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
+        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+          nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
 
     - task: NuGetCommand@2
       displayName: Restore internal tools
@@ -86,6 +122,9 @@ stages:
       inputs:
         signType: $(SignType)
         zipSources: false
+        # If running in dnceng, we need to use a feed different from default
+        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+          feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
       condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
     - task: PowerShell@2
@@ -105,8 +144,8 @@ stages:
                    -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
                    -officialSourceBranchName $(SourceBranchName)
                    -officialIbcDrop $(IbcDrop)
+                   -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                    /p:RepositoryName=$(Build.Repository.Name)
-                   /p:VisualStudioDropAccessToken=$(System.AccessToken)
                    /p:VisualStudioDropName=$(VisualStudio.DropName)
                    /p:DotNetSignType=$(SignType)
                    /p:DotNetPublishToBlobFeed=true
@@ -123,7 +162,7 @@ stages:
       displayName: Publish Assets
       inputs:
         filePath: 'eng\publish-assets.ps1'
-        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
       condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
     # Publish OptProf configuration files

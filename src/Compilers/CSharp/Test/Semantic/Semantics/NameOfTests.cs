@@ -1211,7 +1211,7 @@ class Other {
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
             CompileAndVerify(compilation, expectedOutput:
                 "MessageType x MessageType").VerifyDiagnostics();
         }
@@ -1250,7 +1250,7 @@ unsafe struct Struct1
   }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, null,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true)).VerifyDiagnostics(
+                TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (14,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //     return nameof(MessageType);
                 Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "MessageType").WithLocation(14, 19),
@@ -1294,7 +1294,7 @@ class EntryPoint
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField fixedField").VerifyDiagnostics();
         }
 
@@ -1326,7 +1326,7 @@ class EntryPoint
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField").VerifyDiagnostics();
         }
 
