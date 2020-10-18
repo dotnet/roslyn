@@ -25,9 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
     ///
     /// Into:
     ///     var o = 1 as object;
-    ///
-    /// Or:
-    ///     visa versa
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertConversionOperators), Shared]
     internal partial class CSharpConvertConversionOperatorsFromCastRefactoringProvider
