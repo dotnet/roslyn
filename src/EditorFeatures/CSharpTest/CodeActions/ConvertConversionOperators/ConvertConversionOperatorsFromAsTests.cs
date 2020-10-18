@@ -122,7 +122,6 @@ class Program
             {
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
-                OffersEmptyRefactoring = false,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -156,8 +155,46 @@ class Program
             {
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
-                OffersEmptyRefactoring = false,
-                CodeActionValidationMode = CodeActionValidationMode.None,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("/* Leading */ 1 as $$object",
+                    "/* Leading */ (object)1")]
+        [InlineData("1 as $$object /* Trailing */",
+                    "(object)1 /* Trailing */")]
+        [InlineData("1 /* Middle1 */ as $$object",
+                    "(object)1/* Middle1 */ ")]
+        [InlineData("1 as /* Middle2 */ $$object",
+                    "/* Middle2 */ (object)1")]
+        [InlineData("/* Leading */ 1 /* Middle1 */ as /* Middle2 */ $$object /* Trailing */",
+                    "/* Leading */ /* Middle2 */ (object)1/* Middle1 */  /* Trailing */")]
+        public async Task ConvertFromAsToExplicit_TriviaHandling(string asExpression, string cast)
+        {
+            var initialMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = { asExpression };
+    }}
+}}
+";
+            var expectedMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = { cast };
+    }}
+}}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
     }

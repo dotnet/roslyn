@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -56,9 +57,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
             {
                 throw new InvalidOperationException("asExpression.Right must be a TypeSyntax. This check is done before the CodeAction registration.");
             }
-            var openParen = Token(SyntaxKind.OpenParenToken).WithoutTrivia();
-            var closeParen = Token(SyntaxKind.CloseParenToken).WithoutTrivia();
-            var castExpression = CastExpression(openParen, typeNode, closeParen, expression.WithoutTrailingTrivia()).WithTriviaFrom(asExpression);
+
+            // Trivia handling:
+            // #0 exp #1 as #2 Type #3
+            // #0 #2 (Type)exp #1 #3
+            // Some trivia in the middle (#1 and #2) is moved to the front or behind  the expression
+            // #1 and #2 change their position in the expression (#2 goes in front to stay near the type and #1 to the end to stay near the expression)
+            // Some whitespace around the as operator is removed to follow the formatting rules of (Type)expr 
+            var openParen = Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty);
+            var closeParen = Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty);
+            var newTrailingTrivia = asExpression.Left.GetTrailingTrivia().SkipInitialWhitespace().ToSyntaxTriviaList().AddRange(asExpression.GetTrailingTrivia());
+            var newLeadingTrivia = asExpression.GetLeadingTrivia().AddRange(asExpression.OperatorToken.TrailingTrivia.SkipInitialWhitespace());
+            typeNode = typeNode.WithoutTrailingTrivia();
+
+            var castExpression = CastExpression(openParen, typeNode, closeParen, expression.WithoutTrailingTrivia())
+                .WithLeadingTrivia(newLeadingTrivia)
+                .WithTrailingTrivia(newTrailingTrivia);
 
             return castExpression;
         }
