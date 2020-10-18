@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.Utilities;
@@ -32,6 +33,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     {
         public const string ClientName = "RazorCSharp";
 
+        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
@@ -44,9 +47,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider)
+            ILspSolutionProvider solutionProvider,
+            DefaultCapabilitiesProvider defaultCapabilitiesProvider)
             : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, ClientName)
         {
+            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
+
+        protected internal override VSServerCapabilities GetCapabilities()
+            => _defaultCapabilitiesProvider.GetCapabilities();
     }
 }

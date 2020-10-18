@@ -227,7 +227,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // 3.  doc1 with empty.
             //
             // We expect three publish diagnostics ->
-            // 1.  from m1 with with doc1Diagnostic (triggered by 1 above to add doc1Diagnostic).
+            // 1.  from m1 with doc1Diagnostic (triggered by 1 above to add doc1Diagnostic).
             // 2.  from m1 with doc1Diagnostic and doc2Diagnostic (triggered by 2 above to add doc2Diagnostic).
             // 3.  from m1 with just doc2Diagnostic (triggered by 3 above to remove doc1Diagnostic).
             var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 3, documents[0], documents[1], documents[0]).ConfigureAwait(false);
@@ -348,13 +348,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Empty(testAccessor.GetFileUrisInPublishDiagnostics());
         }
 
-        private async Task<(InProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(TestWorkspace workspace, IDiagnosticService diagnosticService,
-            int expectedNumberOfCallbacks, params Document[] documentsToPublish)
+        private async Task<(InProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(
+            TestWorkspace workspace,
+            IDiagnosticService diagnosticService,
+            int expectedNumberOfCallbacks,
+            params Document[] documentsToPublish)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
             var languageServer = CreateLanguageServer(serverStream, serverStream, workspace, diagnosticService);
 
-            // Notification target for tests to recieve the notification details
+            // Notification target for tests to receive the notification details
             var callback = new Callback(expectedNumberOfCallbacks);
             using var jsonRpc = new JsonRpc(clientStream, clientStream, callback);
 
@@ -366,11 +369,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             // Triggers language server to send notifications.
             foreach (var document in documentsToPublish)
-            {
                 await languageServer.PublishDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
-            }
 
-            // Waits for all notifications to be recieved.
+            // Waits for all notifications to be received.
             await callback.CallbackCompletedTask.Task.ConfigureAwait(false);
 
             return (languageServer.GetTestAccessor(), callback.Results);
@@ -381,7 +382,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
 
-                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, listenerProvider, solutionProvider, clientName: null);
+                var languageServer = new InProcLanguageServer(
+                    languageClient: null!,
+                    inputStream,
+                    outputStream,
+                    protocol,
+                    workspace,
+                    mockDiagnosticService,
+                    listenerProvider,
+                    solutionProvider,
+                    clientName: null);
                 return languageServer;
             }
         }
@@ -476,7 +486,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             public void Dispose() => this._queue.Complete();
 
             /// <summary>
-            /// Executes queued work on the threadpool, one at a time.
+            /// Executes queued work on the thread-pool, one at a time.
             /// Don't catch exceptions - let them bubble up to fail the test.
             /// </summary>
             private async Task ProcessQueueAsync()
@@ -497,7 +507,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             public TaskCompletionSource<object> CallbackCompletedTask { get; }
 
             /// <summary>
-            /// Serialized results of all publish diagnostic notifications recieved by this callback.
+            /// Serialized results of all publish diagnostic notifications received by this callback.
             /// </summary>
             public List<LSP.PublishDiagnosticParams> Results { get; }
 
