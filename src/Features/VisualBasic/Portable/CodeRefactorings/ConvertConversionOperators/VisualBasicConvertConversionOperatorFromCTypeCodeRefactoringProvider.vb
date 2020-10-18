@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
             If cTypeExpressions.IsEmpty Then
                 Return cTypeExpressions
             End If
-            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken)
+            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim tryCastConversions = From node In cTypeExpressions
                                      Let type = semanticModel.GetTypeInfo(node.Type, cancellationToken).Type
