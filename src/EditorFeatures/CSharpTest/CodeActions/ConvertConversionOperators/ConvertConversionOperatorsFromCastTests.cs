@@ -135,6 +135,14 @@ class Program
                     "/* Middle3 */ 1 as object")]
         [InlineData("/* Leading */ (/* Middle1 */ obj$$ect /* Middle2 */ ) /* Middle3 */ 1 /* Trailing */",
                     "/* Leading */ /* Middle3 */ 1 as\r\n/* Middle1 */ object /* Middle2 */  /* Trailing */")]
+        [InlineData(@"
+($$
+object
+)
+1", @"
+
+1 as
+object")]
         public async Task ConvertFromExplicitToAs_Trivia(string cast, string asExpression)
         {
             var initialMarkup = @$"
