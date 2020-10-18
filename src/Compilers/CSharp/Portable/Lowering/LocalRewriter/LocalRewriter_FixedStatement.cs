@@ -5,11 +5,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -477,8 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// fixed(int* ptr = arr){ ... }    == becomes ===>
         /// 
         /// pinned int[] pinnedTemp = arr;         // pinning managed ref
-        /// int* ptr = pinnedTemp != null && pinnedTemp.Length != 0
-        ///                (int*)&pinnedTemp[0]:   // unsafe cast to unmanaged ptr
+        /// int* ptr = pinnedTemp != null && pinnedTemp.Length != 0 ?
+        ///                (int*)&pinnedTemp[0] :   // unsafe cast to unmanaged ptr
         ///                0;
         ///   . . . 
         ///   ]]>

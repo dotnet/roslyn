@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal static readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64)> Descriptors = ImmutableDictionary.CreateRange(new[]
         {
+            CreateDescriptors(typeof(IRemoteAssetSynchronizationService)),
             CreateDescriptors(typeof(IRemoteAsynchronousOperationListenerService)),
             CreateDescriptors(typeof(IRemoteTodoCommentsDiscoveryService), callbackInterface: typeof(ITodoCommentsListener)),
             CreateDescriptors(typeof(IRemoteDesignerAttributeDiscoveryService), callbackInterface: typeof(IDesignerAttributeListener)),

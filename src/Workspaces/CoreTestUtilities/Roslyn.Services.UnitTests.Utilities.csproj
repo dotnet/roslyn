@@ -55,7 +55,4 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\ProjectSystem\VisualStudioMefHostServices.cs" Link="MEF\VisualStudioMefHostServices.cs" />
-  </ItemGroup>
 </Project>

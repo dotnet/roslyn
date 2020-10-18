@@ -300,6 +300,25 @@ public class C
         }
 
         [Fact]
+        public async Task GlobalSuppressionOnValueTupleMemberWithDocId()
+        {
+            await VerifyCSharpAsync(@"
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
+
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Member"", Target=""~M:C.M~System.Threading.Tasks.Task{System.ValueTuple{System.Boolean,ErrorCode}}"")]
+
+enum ErrorCode {}
+
+class C
+{
+    Task<(bool status, ErrorCode errorCode)> M() => null;
+}
+",
+                new[] { new WarningOnNamePrefixDeclarationAnalyzer("M") });
+        }
+
+        [Fact]
         public async Task MultipleGlobalSuppressionsOnSingleSymbol()
         {
             await VerifyCSharpAsync(@"

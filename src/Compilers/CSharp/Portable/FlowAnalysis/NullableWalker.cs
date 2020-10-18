@@ -4916,6 +4916,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+            else
+            {
+                // Normally we delay visiting the lambda until we can visit it along with its conversion.
+                // Since we can't visit its conversion here, or it doesn't have one, we dig back in and
+                // visit the lambda here to ensure all nodes have nullability info for public API
+                for (int i = 0; i < results.Length; i++)
+                {
+                    if (argumentsNoConversions[i] is BoundLambda lambda)
+                    {
+                        VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda);
+                    }
+                }
+            }
 
             if (node is BoundCall { Method: { OriginalDefinition: LocalFunctionSymbol localFunction } })
             {
@@ -7331,23 +7344,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLambda(BoundLambda node)
         {
-            // It's possible to reach VisitLambda without having analyzed the lambda body in error scenarios,
-            // so we analyze for the purposes of determining top-level nullability. We don't want to report
-            // any diagnostics from this analysis, as scenarios we want to have diagnostics for will have had
-            // them reported through other analysis steps.
-
-            // https://github.com/dotnet/roslyn/issues/35041: Can we make this conditional on whether or not we've already seen the node
-            // or will that have no effect because this is always called first? It is for at least one lambda
-            // conversion case, need to investigate others
-            if (!_disableNullabilityAnalysis)
-            {
-                VisitLambda(node, delegateTypeOpt: null, disableDiagnostics: true);
-            }
+            // Note: actual lambda analysis happens after this call (primarily in VisitConversion).
+            // Here we just indicate that a lambda expression produces a non-null value.
             SetNotNullResult(node);
             return null;
         }
 
-        private void VisitLambda(BoundLambda node, NamedTypeSymbol? delegateTypeOpt, Optional<LocalState> initialState = default, bool disableDiagnostics = false)
+        private void VisitLambda(BoundLambda node, NamedTypeSymbol? delegateTypeOpt, Optional<LocalState> initialState = default)
         {
             Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
 
@@ -7358,17 +7361,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUpdatedSymbol(node, node.Symbol, delegateTypeOpt!);
             }
 
-            var oldDisableDiagnostics = _disableDiagnostics;
-            _disableDiagnostics |= disableDiagnostics;
-
             AnalyzeLocalFunctionOrLambda(
                 node,
                 node.Symbol,
                 initialState.HasValue ? initialState.Value : State.Clone(),
                 delegateInvokeMethod,
                 useDelegateInvokeParameterTypes);
-
-            _disableDiagnostics = oldDisableDiagnostics;
         }
 
         private static bool UseDelegateInvokeParameterTypes(BoundLambda lambda, MethodSymbol? delegateInvokeMethod)
