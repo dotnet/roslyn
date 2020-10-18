@@ -4,6 +4,7 @@
 
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 Imports Microsoft.CodeAnalysis.Editor.Options
@@ -56,16 +57,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.VisualBasic)
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.VisualBasic)
 
-            BindToOption(GenerateXmlDocCommentsForTripleApostrophes, FeatureOnOffOptions.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
+            BindToOption(GenerateXmlDocCommentsForTripleApostrophes, DocumentationCommentOptions.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
             BindToOption(InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments, SplitCommentOptions.Enabled, LanguageNames.VisualBasic)
-
-            BindToOption(DisplayAllHintsWhilePressingCtrlAlt, InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt)
-            BindToOption(DisplayInlineParameterNameHints, InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic)
-            BindToOption(ShowHintsForLiterals, InlineHintsOptions.ForLiteralParameters, LanguageNames.VisualBasic)
-            BindToOption(ShowHintsForNewExpressions, InlineHintsOptions.ForObjectCreationParameters, LanguageNames.VisualBasic)
-            BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.VisualBasic)
-            BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
-            BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
 
             BindToOption(EnableEndConstruct, FeatureOnOffOptions.EndConstruct, LanguageNames.VisualBasic)
             BindToOption(EnableLineCommit, FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)
@@ -93,6 +86,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Show_completion_list, RegularExpressionsOptions.ProvideRegexCompletions, LanguageNames.VisualBasic)
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme)
+
+            BindToOption(DisplayAllHintsWhilePressingCtrlAlt, InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt)
+            BindToOption(ColorHints, InlineHintsOptions.ColorHints, LanguageNames.VisualBasic)
+
+            BindToOption(DisplayInlineParameterNameHints, InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForLiterals, InlineHintsOptions.ForLiteralParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForNewExpressions, InlineHintsOptions.ForObjectCreationParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.VisualBasic)
+            BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
+            BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,

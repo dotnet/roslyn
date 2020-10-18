@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // okay now we have work to do
                             await ProcessDocumentAsync(solution, Analyzers, workItem, documentCancellation).ConfigureAwait(false);
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }

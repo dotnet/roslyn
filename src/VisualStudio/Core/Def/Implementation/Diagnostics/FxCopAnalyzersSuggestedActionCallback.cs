@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var hr = vsShell.IsPackageInstalled(FxCopAnalyzersPackageGuid, out var installed);
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
 
                     // We set installed to ensure we don't go through this again next time a
                     // suggested action is called, and we don't want to continue if the shell
@@ -248,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 FxCopAnalyzersInstallLogger.Log("InfoBarShown");
 
                 var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
-                infoBarService.ShowInfoBarInGlobalView(
+                infoBarService.ShowInfoBar(
                     ServicesVSResources.Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues,
                     GetInfoBarUIItems().ToArray());
             }

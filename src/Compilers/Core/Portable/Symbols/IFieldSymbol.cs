@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns false if the field wasn't declared as "const", or constant value was omitted or erroneous.
         /// True otherwise.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(ConstantValue))]
         bool HasConstantValue { get; }
 
         /// <summary>

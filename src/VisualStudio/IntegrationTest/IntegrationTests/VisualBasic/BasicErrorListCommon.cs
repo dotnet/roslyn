@@ -4,11 +4,12 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -54,13 +55,18 @@ End Module
                     column: 9)
             };
             var actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
+
             VisualStudio.ErrorList.NavigateToErrorListItem(0);
             VisualStudio.Editor.Verify.CaretPosition(43);
             VisualStudio.SolutionExplorer.BuildSolution();
             VisualStudio.ErrorList.ShowErrorList();
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
         }
 
         public virtual void ErrorsDuringMethodBodyEditing()
@@ -80,7 +86,9 @@ End Namespace
             VisualStudio.ErrorList.ShowErrorList();
             var expectedContents = new ErrorListItem[] { };
             var actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
 
             VisualStudio.Editor.Activate();
             VisualStudio.Editor.PlaceCaret("F = 0 ' Comment", charsOffset: -1);
@@ -96,7 +104,9 @@ End Namespace
                     column: 13)
             };
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
 
             VisualStudio.Editor.Activate();
             VisualStudio.Editor.PlaceCaret("FF = 0 ' Comment", charsOffset: -1);
@@ -104,7 +114,9 @@ End Namespace
             VisualStudio.ErrorList.ShowErrorList();
             expectedContents = new ErrorListItem[] { };
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
         }
     }
 }

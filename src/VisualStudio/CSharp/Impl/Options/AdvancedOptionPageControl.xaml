@@ -94,7 +94,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
-            
+
             <GroupBox x:Uid="CommentsGuidesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
                 <StackPanel>
@@ -193,6 +193,9 @@
                     <CheckBox x:Name="DisplayAllHintsWhilePressingCtrlAlt"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_all_hints_while_pressing_Ctrl_Alt}" />
 
+                    <CheckBox x:Name="ColorHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_hints}" />
+
                     <CheckBox x:Name="DisplayInlineParameterNameHints"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}"
                               Checked="DisplayInlineParameterNameHints_Checked"
@@ -218,6 +221,19 @@
                         <CheckBox x:Uid="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   x:Name="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_names_differ_only_by_suffix}" />
+                    </StackPanel>
+                    
+                    <CheckBox x:Name="DisplayInlineTypeHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_type_hints}"
+                              Checked="DisplayInlineTypeHints_Checked"
+                              Unchecked="DisplayInlineTypeHints_Unchecked"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Uid="ShowHintsForVariablesWithInferredTypes"
+                                  x:Name="ShowHintsForVariablesWithInferredTypes"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_variables_with_inferred_types}" />
+                        <CheckBox x:Uid="ShowHintsForLambdaParameterTypes"
+                                  x:Name="ShowHintsForLambdaParameterTypes"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_lambda_parameter_types}" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>

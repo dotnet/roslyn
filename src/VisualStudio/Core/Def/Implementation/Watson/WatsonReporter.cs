@@ -25,19 +25,21 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         public static void InitializeFatalErrorHandlers()
         {
-            var fatalReporter = new Action<Exception>(ReportFatal);
-            var nonFatalReporter = new Action<Exception>(ReportNonFatal);
+            // Set both handlers to non-fatal Watson. Never fail-fast the ServiceHub process.
+            // Any exception that is not recovered from shall be propagated and communicated to the client.
+            var nonFatalHandler = new Action<Exception>(ReportNonFatal);
+            var fatalHandler = nonFatalHandler;
 
-            FatalError.Handler = fatalReporter;
-            FatalError.NonFatalHandler = nonFatalReporter;
+            FatalError.Handler = fatalHandler;
+            FatalError.NonFatalHandler = nonFatalHandler;
 
-            // We also must set the FailFast handler for the compiler layer as well
+            // We also must set the handlers for the compiler layer as well.
             var compilerAssembly = typeof(Compilation).Assembly;
             var compilerFatalErrorType = compilerAssembly.GetType("Microsoft.CodeAnalysis.FatalError", throwOnError: true)!;
             var compilerFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public)!;
             var compilerNonFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.NonFatalHandler), BindingFlags.Static | BindingFlags.Public)!;
-            compilerFatalErrorHandlerProperty.SetValue(null, fatalReporter);
-            compilerNonFatalErrorHandlerProperty.SetValue(null, nonFatalReporter);
+            compilerFatalErrorHandlerProperty.SetValue(null, fatalHandler);
+            compilerNonFatalErrorHandlerProperty.SetValue(null, nonFatalHandler);
         }
 
         public static void RegisterTelemetrySesssion(TelemetrySession session)
@@ -70,20 +72,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             {
                 s_loggers = s_loggers.Remove(logger);
             }
-        }
-
-        public static void ReportFatal(Exception exception)
-        {
-            try
-            {
-                CaptureFilesInMemory(CollectServiceHubLogFilePaths());
-            }
-            catch
-            {
-                // ignore any exceptions (e.g. OOM)
-            }
-
-            FailFast.OnFatalException(exception);
         }
 
         /// <summary>

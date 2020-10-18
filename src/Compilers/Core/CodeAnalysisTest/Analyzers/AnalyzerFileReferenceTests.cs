@@ -248,7 +248,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, errors.First().ErrorCode);
         }
 
-        [Fact]
+        // can't load a framework targeting generator, which these are in desktop
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestLoadGenerators()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
@@ -286,7 +287,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // framework
             errors = buildAndLoadGeneratorAndReturnAnyErrors(".NETFramework,Version=v4.7.2");
-            Assert.Equal(1, errors.Count);
+            Assert.Equal(2, errors.Count);
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework, errors.First().ErrorCode);
 
             List<AnalyzerLoadFailureEventArgs> buildAndLoadGeneratorAndReturnAnyErrors(string? targetFramework)
@@ -325,9 +326,16 @@ public class Generator : ISourceGenerator
                 reference.AnalyzerLoadFailed += errorHandler;
                 var builder = ImmutableArray.CreateBuilder<ISourceGenerator>();
                 reference.AddGenerators(builder, LanguageNames.CSharp);
-                Assert.Single(builder);
                 reference.AnalyzerLoadFailed -= errorHandler;
 
+                if (errors.Count > 0)
+                {
+                    Assert.Empty(builder);
+                }
+                else
+                {
+                    Assert.Single(builder);
+                }
                 return errors;
             }
         }

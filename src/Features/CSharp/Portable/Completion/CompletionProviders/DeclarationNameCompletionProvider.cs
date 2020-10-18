@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 completionContext.SuggestionModeItem = CommonCompletionItem.Create(
                     CSharpFeaturesResources.Name, displayTextSuffix: "", CompletionItemRules.Default);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }

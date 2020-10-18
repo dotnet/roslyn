@@ -1572,6 +1572,18 @@ I agree to all of the foregoing:</value>
   <data name="Suppress_hints_when_parameter_names_differ_only_by_suffix" xml:space="preserve">
     <value>Suppress hints when parameter names differ only by suffix</value>
   </data>
+  <data name="Display_inline_type_hints" xml:space="preserve">
+    <value>Display inline type hints</value>
+  </data>
+  <data name="Show_hints_for_lambda_parameter_types" xml:space="preserve">
+    <value>Show hints for lambda parameter types</value>
+  </data>
+  <data name="Show_hints_for_variables_with_inferred_types" xml:space="preserve">
+    <value>Show hints for variables with inferred types</value>
+  </data>
+  <data name="Color_hints" xml:space="preserve">
+    <value>Color hints</value>
+  </data>
   <data name="Display_all_hints_while_pressing_Ctrl_Alt" xml:space="preserve">
     <value>Display all hints while pressing Ctrl+Alt</value>
   </data>

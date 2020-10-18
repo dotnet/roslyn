@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis
         internal const int DefaultWarningLevel = 4;
 
         /// <summary>
+        /// The maximum warning level represented by a large value of 9999.
+        /// </summary>
+        internal const int MaxWarningLevel = 9999;
+
+        /// <summary>
         /// Creates a <see cref="Diagnostic"/> instance.
         /// </summary>
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic</param>
