@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             castExpressions = (from node in castExpressions
-                               let type = semanticModel.GetTypeInfo(node, cancellationToken).Type
+                               let type = semanticModel.GetTypeInfo(node.Type, cancellationToken).Type
                                where type != null && !type.IsValueType
                                select node)
                                .ToImmutableArray();
