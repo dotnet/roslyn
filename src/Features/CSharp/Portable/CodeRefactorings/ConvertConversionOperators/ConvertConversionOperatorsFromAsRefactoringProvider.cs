@@ -38,7 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
         {
         }
 
-        protected override Task<ImmutableArray<BinaryExpressionSyntax>> FilterFromExpressionCandidatesAsync(ImmutableArray<BinaryExpressionSyntax> asExpressions, Document document, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<BinaryExpressionSyntax>> FilterFromExpressionCandidatesAsync(
+            ImmutableArray<BinaryExpressionSyntax> asExpressions,
+            Document document,
+            CancellationToken cancellationToken)
         {
             asExpressions = asExpressions.WhereAsArray(
                 binaryExpression => binaryExpression is

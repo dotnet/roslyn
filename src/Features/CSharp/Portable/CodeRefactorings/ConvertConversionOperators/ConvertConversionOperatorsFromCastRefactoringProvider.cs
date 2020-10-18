@@ -60,10 +60,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
 
         protected override SyntaxNode ConvertExpression(CastExpressionSyntax castExpression)
         {
-            var typeNode = castExpression.Type.WithLeadingTrivia(castExpression.OpenParenToken.TrailingTrivia);
+            var typeNode = castExpression.Type;
             var expression = castExpression.Expression;
 
             // Trivia handling
+            // #0 ( #1 Type #2 ) #3 expr #4
+            // #0 #3 expr as #1 Type #2 #4
+            // If #1 is present a new line is added after "as" because of elastic trivia on "as"
+            // #3 is kept with the expression and moves
+            typeNode = typeNode.WithLeadingTrivia(castExpression.OpenParenToken.TrailingTrivia);
             var middleTrivia = castExpression.CloseParenToken.TrailingTrivia.SkipInitialWhitespace();
             var newLeadingTrivia = castExpression.GetLeadingTrivia().AddRange(middleTrivia);
             var newTrailingTrivia = typeNode.GetTrailingTrivia().WithoutLeadingBlankLines().AddRange(expression.GetTrailingTrivia().WithoutLeadingBlankLines());
