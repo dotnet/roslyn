@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
                         (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
                 }
 
