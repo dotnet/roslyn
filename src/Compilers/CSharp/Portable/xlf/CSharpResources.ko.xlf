@@ -437,6 +437,21 @@
         <target state="translated">암시적 인덱스 인덱서 호출로 인수 이름을 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="new">There is no target type for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="new">Use of new() is not valid in this context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">암시적 범위 인덱서 호출로 인수 이름을 지정할 수 없습니다.</target>
@@ -917,6 +932,21 @@
         <target state="new">discards</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="new">target-typed object creation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="new">Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</target>
@@ -975,21 +1005,6 @@
       <trans-unit id="ERR_TypeNotFound">
         <source>Type '{0}' is not defined.</source>
         <target state="new">Type '{0}' is not defined.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewIllegalTargetType">
-        <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="new">The type '{0}' may not be used as the target type of new()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for '{0}'</source>
-        <target state="new">There is no target type for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNotValid">
-        <source>Use of new() is not valid in this context</source>
-        <target state="new">Use of new() is not valid in this context</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
@@ -1139,7 +1154,7 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
@@ -1235,7 +1250,7 @@
                        - 출력 파일 -
 -out:&lt;파일&gt;                   출력 파일 이름을 지정합니다(기본값: 주 클래스가
                              있는 파일 또는 첫 번째 파일의 기본 이름).
--target:exe                  콘솔 실행 파일을 빌드합니다(기본값). 
+-target:exe                  콘솔 실행 파일을 빌드합니다(기본값).
                              (약식: -t:exe)
 -target:winexe               Windows 실행 파일을 빌드합니다.
                              (약식: -t:winexe)
@@ -1314,7 +1329,7 @@
                        - 언어 -
 -checked[+|-]                 오버플로 검사를 생성합니다.
 -unsafe[+|-]                  'unsafe' 코드를 허용합니다.
--define:&lt;기호 목록&gt;             조건부 컴파일 기호를 정의합니다. 
+-define:&lt;기호 목록&gt;             조건부 컴파일 기호를 정의합니다.
                               (약식: -d)
 -langversion:?                언어 버전에 허용되는 값을 표시합니다.
 -langversion:&lt;문자열&gt;           언어 버전을
@@ -1353,7 +1368,7 @@
                               지정합니다.
 -utf8output                   컴파일러 메시지를 UTF-8 인코딩으로 출력합니다.
 -main:&lt;형식&gt;                   진입점이 포함된 형식을 지정합니다(다른
-                              모든 가능한 진입점 무시). 
+                              모든 가능한 진입점 무시).
                               (약식: -m)
 -fullpaths                    컴파일러가 정규화된 경로를 생성합니다.
 -filealign:&lt;n&gt;                출력 파일 섹션에 사용되는 맞춤을
@@ -1625,11 +1640,6 @@
       <trans-unit id="IDS_FeatureTargetTypedConditional">
         <source>target-typed conditional expression</source>
         <target state="new">target-typed conditional expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="new">target-typed object creation</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -4107,7 +4117,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
         <target state="needs-review-translation">partial' 한정자는 'class', 'struct', 'interface' 또는 'void' 바로 앞에만 올 수 있습니다.</target>
         <note />
       </trans-unit>

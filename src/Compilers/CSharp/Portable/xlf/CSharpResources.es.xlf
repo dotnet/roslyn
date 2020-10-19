@@ -437,6 +437,21 @@
         <target state="translated">La invocación del indizador de índices implícito no puede nombrar el argumento.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="new">There is no target type for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="new">Use of new() is not valid in this context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">La invocación del indizador de rangos implícito no puede nombrar el argumento.</target>
@@ -917,6 +932,21 @@
         <target state="new">discards</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="new">target-typed object creation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="new">Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</target>
@@ -975,21 +1005,6 @@
       <trans-unit id="ERR_TypeNotFound">
         <source>Type '{0}' is not defined.</source>
         <target state="new">Type '{0}' is not defined.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewIllegalTargetType">
-        <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="new">The type '{0}' may not be used as the target type of new()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for '{0}'</source>
-        <target state="new">There is no target type for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNotValid">
-        <source>Use of new() is not valid in this context</source>
-        <target state="new">Use of new() is not valid in this context</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
@@ -1139,7 +1154,7 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
@@ -1233,35 +1248,35 @@
                              Opciones del compilador de Visual C#
 
                         - ARCHIVOS DE SALIDA -
- -out:&lt;archivo&gt;                   Especifica el nombre del archivo de salida (el valor predeterminado: nombre base del archivo 
+ -out:&lt;archivo&gt;                   Especifica el nombre del archivo de salida (el valor predeterminado: nombre base del archivo
                                con la clase principal o el primer archivo)
- -target:exe                   Compila un archivo ejecutable de consola (predeterminado) (forma 
+ -target:exe                   Compila un archivo ejecutable de consola (predeterminado) (forma
                                corta: -t:exe)
- -target:winexe                Compila un archivo ejecutable de Windows (forma corta: 
+ -target:winexe                Compila un archivo ejecutable de Windows (forma corta:
                                -t:winexe)
  -target:library               Compila una biblioteca (forma corta: -t:library)
- -target:module                Compila un módulo que se puede agregar a otro 
+ -target:module                Compila un módulo que se puede agregar a otro
                                ensamblado (forma corta: -t:module)
- -target:appcontainerexe       Compila un archivo ejecutable Appcontainer (forma corta: 
+ -target:appcontainerexe       Compila un archivo ejecutable Appcontainer (forma corta:
                                -t:appcontainerexe)
- -target:winmdobj              Compila un archivo intermedio de Windows Runtime 
+ -target:winmdobj              Compila un archivo intermedio de Windows Runtime
                                para que consuma WinMDExp (forma corta: -t:winmdobj)
  -doc:&lt;archivo&gt;                   Archivo de documentación XML que se va a generar
 -refout:&lt;archivo&gt;                Salida de ensamblado de referencia para generar
  -platform:&lt;cadena&gt;            Limita en qué plataformas se puede ejecutar este código: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred o 
+                               Itanium, x64, arm, anycpu32bitpreferred o
                                anycpu. La predeterminada es anycpu.
 
                         - ARCHIVOS DE ENTRADA -
- -recurse:&lt;comodín&gt;           Incluye todos los archivos del directorio actual y los 
-                               subdirectorios de acuerdo con las especificaciones del 
+ -recurse:&lt;comodín&gt;           Incluye todos los archivos del directorio actual y los
+                               subdirectorios de acuerdo con las especificaciones del
                                comodín
- -reference:&lt;alias&gt;=&lt;archivo&gt;     Metadatos de referencia del archivo de 
+ -reference:&lt;alias&gt;=&lt;archivo&gt;     Metadatos de referencia del archivo de
                                ensamblado especificado mediante el alias dado (forma corta: -r)
- -reference:&lt;lista de archivos&gt;        Metadatos de referencia de los archivos de 
+ -reference:&lt;lista de archivos&gt;        Metadatos de referencia de los archivos de
                                ensamblado especificados (forma corta: -r)
  -addmodule:&lt;lista de archivos&gt;        Vincula los módulos especificados en este ensamblado
- -link:&lt;lista de archivos&gt;             Inserta metadatos de los archivos de ensamblado de 
+ -link:&lt;lista de archivos&gt;             Inserta metadatos de los archivos de ensamblado de
                                interoperabilidad especificados (forma corta: -l)
  -analyzer:&lt;lista de archivos&gt;         Ejecuta los analizadores de este ensamblado
                                (forma corta: -a)
@@ -1277,16 +1292,16 @@
  -win32manifest:&lt;archivo&gt;         Especifica un archivo de manifiesto Win32 (.xml)
  -nowin32manifest              No incluye el manifiesto Win32 predeterminado
  -resource:&lt;resinfo&gt;           Insertar el recurso especificado (forma corta: -res)
- -linkresource:&lt;info recurso&gt;       Vincula el recurso especificado con este ensamblado 
-                               (forma corta: -linkres) Donde el formato de resinfo 
+ -linkresource:&lt;info recurso&gt;       Vincula el recurso especificado con este ensamblado
+                               (forma corta: -linkres) Donde el formato de resinfo
                                es &lt;archivo&gt;[,&lt;nombre de cadena&gt;[,public|private]]
 
                         - GENERACIÓN DE CÓDIGO -
  -debug[+|-]                   Emite información de depuración
  -debug:{full|pdbonly|portable|embedded}
-                               Especifica el tipo de depuración ("full"' es el valor predeterminado, 
+                               Especifica el tipo de depuración ("full"' es el valor predeterminado,
                                "portable" es un formato multiplataforma,
-                               "embedded" es un formato multiplataforma insertado en 
+                               "embedded" es un formato multiplataforma insertado en
                                el archivo .dll o .exe de destino)
  -optimize[+|-]                Permite optimizaciones (forma corta: -o)
  -deterministic                Produce un ensamblado determinista
@@ -1310,11 +1325,11 @@
                               significa SARIF versión 2.1.0.
 -reportanalyzer               Notifica información adicional del analizador, como el
                                tiempo de ejecución.
- 
+
                         - LENGUAJE -
  -checked[+|-]                 Genera comprobaciones de desbordamiento
  -unsafe[+|-]                  Permite código "no seguro"
- -define:&lt;lista de símbolos&gt;         Define símbolos de compilación condicional (forma 
+ -define:&lt;lista de símbolos&gt;         Define símbolos de compilación condicional (forma
                                corta: -d)
 -langversion:?                Muestra los valores permitidos para la versión de lenguaje\ r
 -langversion:&lt;cadena&gt;         Especifica la versión de lenguaje como
@@ -1322,13 +1337,13 @@
                               “default” (igual que “latest”),
                               “latestmajor” (última versión, excluidas las secundarias),
                               “preview” (última versión, incluidas las características en la versión preliminar no admitida)
-                              o versiones específicas como “6” o “7.1” 
+                              o versiones específicas como “6” o “7.1”
 -nullable[+|-]                Especifique la opción de contexto anulable enable|disable.
 -nullable:{enable|disable|warnings|annotations}
                               Especifique la opción de contexto anulable enable|disable|warnings|annotations.
 
                        - SEGURIDAD -
- -delaysign[+|-]               Retrasa la firma del ensamblado usando solo la parte pública 
+ -delaysign[+|-]               Retrasa la firma del ensamblado usando solo la parte pública
                                de la clave de nombre seguro
  -publicsign[+|-]              Publica la firma del ensamblado usando solo la parte pública
                                de la clave de nombre seguro
@@ -1346,37 +1361,37 @@
 
                        - AVANZADO -
  -baseaddress:&lt;dirección&gt;        Dirección base de la biblioteca que se compilará
- -checksumalgorithm:&lt;alg&gt;      Especifica el algoritmo para calcular la suma de comprobación 
+ -checksumalgorithm:&lt;alg&gt;      Especifica el algoritmo para calcular la suma de comprobación
                                del archivo de origen almacenado en PDB. Los valores admitidos son:
                                SHA1 o SHA256 (predeterminado).
- -codepage:&lt;n&gt;                 Especifica la página de código que se usará al abrir los archivos de 
+ -codepage:&lt;n&gt;                 Especifica la página de código que se usará al abrir los archivos de
                                origen
  -utf8output                   Mensajes de compilador de salida en codificación UTF-8
- -main:&lt;tipo&gt;                  Especifica el tipo que contiene el punto de entrada 
-                               (ignora todos los demás puntos de entrada posibles) (Forma 
+ -main:&lt;tipo&gt;                  Especifica el tipo que contiene el punto de entrada
+                               (ignora todos los demás puntos de entrada posibles) (Forma
                                corta: -m)
  -fullpaths                    El compilador genera rutas de acceso completas
- -filealign:&lt;n&gt;                Especifica la alineación usada para las secciones del 
+ -filealign:&lt;n&gt;                Especifica la alineación usada para las secciones del
                                archivo de salida
  -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                Especifica una asignación para los nombres de rutas de acceso de origen emitidos por
                                el compilador.
- -pdb:&lt;archivo&gt;                   Especifica el nombre de archivo de información de depuración (valor predeterminado: 
+ -pdb:&lt;archivo&gt;                   Especifica el nombre de archivo de información de depuración (valor predeterminado:
                                nombre de archivo de salida con la extensión .pdb)
- -errorendlocation             Línea y columna de salida de la ubicación final de 
+ -errorendlocation             Línea y columna de salida de la ubicación final de
                                cada error
  -preferreduilang              Especifica el nombre del lenguaje de salida preferido.
 -nosdkpath                    Deshabilita la búsqueda de la ruta del SDK predeterminada para los ensamblados de biblioteca estándar.
  -nostdlib[+|-]                No hace referencia a la biblioteca estándar (mscorlib.dll)
  -subsystemversion:&lt;cadena&gt;    Especifica la versión del subsistema de este ensamblado
- -lib:&lt;lista de archivos&gt;              Especifica directorios adicionales en los que buscar 
+ -lib:&lt;lista de archivos&gt;              Especifica directorios adicionales en los que buscar
                                referencias
- -errorreport:&lt;cadena&gt;         Especifica cómo tratar los errores internos del compilador: 
-                               avisar, enviar, poner en cola o ninguno. El valor predeterminado es 
+ -errorreport:&lt;cadena&gt;         Especifica cómo tratar los errores internos del compilador:
+                               avisar, enviar, poner en cola o ninguno. El valor predeterminado es
                                poner en cola.
- -appconfig:&lt;archivo&gt;             Especifica un archivo de configuración de aplicación 
+ -appconfig:&lt;archivo&gt;             Especifica un archivo de configuración de aplicación
                                que contenga opciones de enlace de ensamblado
- -moduleassemblyname:&lt;cadena&gt;  Nombre del ensamblado del que esté módulo 
+ -moduleassemblyname:&lt;cadena&gt;  Nombre del ensamblado del que esté módulo
                                formará parte
  -modulename:&lt;cadena&gt;          Especifica el nombre del módulo de origen
 </target>
@@ -1625,11 +1640,6 @@
       <trans-unit id="IDS_FeatureTargetTypedConditional">
         <source>target-typed conditional expression</source>
         <target state="new">target-typed conditional expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="new">target-typed object creation</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -4107,7 +4117,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
         <target state="needs-review-translation">El modificador 'partial' solo puede aparecer inmediatamente antes de 'class', 'struct', 'interface' o 'void'</target>
         <note />
       </trans-unit>

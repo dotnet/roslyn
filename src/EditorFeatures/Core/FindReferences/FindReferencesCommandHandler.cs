@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             catch (OperationCanceledException)
             {
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
         }
