@@ -101,7 +101,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // sync
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                 (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText), cancellationToken),
-                callbackTarget: null,
                 CancellationToken.None);
 
             // apply change to solution
@@ -136,10 +135,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsDiscoveryService>(callback, cancellationTokenSource.Token);
+            using var connection = client.CreateConnection<IRemoteTodoCommentsDiscoveryService>(callback);
 
             var invokeTask = connection.TryInvokeAsync(
-                (service, cancellationToken) => service.ComputeTodoCommentsAsync(cancellationToken),
+                (service, callbackId, cancellationToken) => service.ComputeTodoCommentsAsync(callbackId, cancellationToken),
                 cancellationTokenSource.Token);
 
             var data = await callback.Data;
@@ -212,10 +211,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var callback = new DesignerAttributeListener();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeDiscoveryService>(callback, cancellationTokenSource.Token);
+            using var connection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callback);
 
             var invokeTask = connection.TryInvokeAsync(
-                (service, cancellationToken) => service.StartScanningForDesignerAttributesAsync(cancellationToken),
+                (service, callbackId, cancellationToken) => service.StartScanningForDesignerAttributesAsync(callbackId, cancellationToken),
                 cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
@@ -458,7 +457,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                 solution,
                 async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, checksum, _solutionVersion++, cancellationToken),
-                callbackTarget: null,
                 CancellationToken.None);
         }
 

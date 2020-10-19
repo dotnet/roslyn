@@ -131,7 +131,6 @@ End Class";
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                 solution,
                 async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, checksum, _solutionVersion++, cancellationToken),
-                callbackTarget: null,
                 CancellationToken.None);
         }
     }
