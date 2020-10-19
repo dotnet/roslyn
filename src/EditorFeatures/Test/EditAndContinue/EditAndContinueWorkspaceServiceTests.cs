@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Assert.Equal(project.Id, eventArgs.ProjectId);
 
                 var diagnostics1 = eventArgs.GetDiagnostics(workspace, forPullDiagnostics: false);
-                AssertEx.Equal(new[] { "ENC1001" }, diagnostics.Select(d => d.Id));
+                AssertEx.Equal(new[] { "ENC1001" }, diagnostics1.Select(d => d.Id));
                 _emitDiagnosticsUpdated.Clear();
                 _emitDiagnosticsClearedCount = 0;
 
