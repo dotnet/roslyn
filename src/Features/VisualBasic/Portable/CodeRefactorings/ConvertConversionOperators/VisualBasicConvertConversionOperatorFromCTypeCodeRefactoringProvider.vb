@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
         End Sub
 
         Protected Overrides Function GetTitle() As String
-            Return "TODO"
+            Return VBFeaturesResources.Change_to_TryCast
         End Function
 
         Protected Overrides Async Function FilterFromExpressionCandidatesAsync(cTypeExpressions As ImmutableArray(Of CTypeExpressionSyntax), document As Document, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CTypeExpressionSyntax))

@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
         End Sub
 
         Protected Overrides Function GetTitle() As String
-            Return "TODO"
+            Return VBFeaturesResources.Change_to_CType
         End Function
 
         Protected Overrides Function ConvertExpression(fromExpression As TryCastExpressionSyntax) As CodeAnalysis.SyntaxNode
