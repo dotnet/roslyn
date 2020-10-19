@@ -276,7 +276,7 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
             {
-                var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
+                using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
                 var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, null, true);
             });
         }
@@ -286,7 +286,7 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
+                using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
                 var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, "Test", true, SymbolFilter.All, new CancellationToken(true));
             });
         }
