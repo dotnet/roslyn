@@ -4,18 +4,18 @@
 
 Imports Microsoft.CodeAnalysis.Testing
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
-    Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionOperators.VisualBasicConvertConversionOperatorFromCTypeCodeRefactoringProvider)
+    Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionOperators.VisualBasicConvertConversionOperatorFromDirectCastCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.ConvertConversionOperators
     <Trait(Traits.Feature, Traits.Features.ConvertConversionOperators)>
-    Public Class ConvertConversionOperatorFromCTypeTests
+    Public Class ConvertConversionOperatorFromDirectCastTests
 
         <Fact>
-        Public Async Function ConvertFromCTypeToTryCast() As Task
+        Public Async Function ConvertFromDirectCastToTryCast() As Task
             Dim markup = "
 Module Program
     Sub M()
-        Dim x = CType(1[||], Object)
+        Dim x = DirectCast(1[||], Object)
     End Sub
 End Module
 "
@@ -35,11 +35,12 @@ End Module
         End Function
 
         <Fact>
-        Public Async Function ConvertFromCTypeNoConversionIfTypeIsValueType() As Task
+        Public Async Function ConvertFromDirectCastNoConversionIfTypeIsValueType() As Task
             Dim markup = "
 Module Program
     Sub M()
-        Dim x = CType(1[||], Byte)
+        Dim o = new Object()
+        Dim x = DirectCast(o[||], Byte)
     End Sub
 End Module
 "
@@ -53,12 +54,12 @@ End Module
         End Function
 
         <Fact>
-        Public Async Function ConvertFromCTypeNoConversionIfTypeIsValueType_GenericTypeConstraint() As Task
+        Public Async Function ConvertFromDirectCastNoConversionIfTypeIsValueType_GeneriDirectCastConstraint() As Task
             Dim markup = "
 Module Program
     Sub M(Of T As Structure)()
         Dim o = new Object()
-        Dim x = CType([||]o, T)
+        Dim x = DirectCast([||]o, T)
     End Sub
 End Module
 "
@@ -72,12 +73,12 @@ End Module
         End Function
 
         <Fact>
-        Public Async Function ConvertFromCTypeConversionIfTypeIsRefernceType_Constraint() As Task
+        Public Async Function ConvertFromDirectCastConversionIfTypeIsRefernceType_Constraint() As Task
             Dim markup = "
 Module Program
     Sub M(Of T As Class)()
         Dim o = new Object()
-        Dim x = CType([||]o, T)
+        Dim x = DirectCast([||]o, T)
     End Sub
 End Module
 "
@@ -98,11 +99,11 @@ End Module
         End Function
 
         <Fact>
-        Public Async Function ConvertFromCTypeNoConversionIfTypeIsMissing() As Task
+        Public Async Function ConvertFromDirectCastNoConversionIfTypeIsMissing() As Task
             Dim markup = "
 Module Program
     Sub M()
-        Dim x = CType([||]1, {|#0:MissingType|})
+        Dim x = DirectCast([||]1, {|#0:MissingType|})
     End Sub
 End Module
 "
@@ -119,12 +120,12 @@ End Module
         End Function
 
         <Fact>
-        Public Async Function ConvertFromCTypeNoConversionIfTypeIsValueType_GenericUnconstraint() As Task
+        Public Async Function ConvertFromDirectCastNoConversionIfTypeIsValueType_GenericUnconstraint() As Task
             Dim markup = "
 Module Program
     Sub M(Of T)()
         Dim o = new Object()
-        Dim x = CType([||]o, T)
+        Dim x = DirectCast([||]o, T)
     End Sub
 End Module
 "
@@ -156,18 +157,18 @@ End Module
         End Function
 
         <Theory>
-        <InlineData("CType(CType(1, [||]object), C)",
-                    "CType(TryCast(1, object), C)")>
-        <InlineData("CType(CType(1, object), [||]C)",
-                    "TryCast(CType(1, object), C)")>
-        Public Async Function ConvertFromCTypeNested(cTypeExpression As String, converted As String) As Task
+        <InlineData("DirectCast(DirectCast(1, [||]object), C)",
+                    "DirectCast(TryCast(1, object), C)")>
+        <InlineData("DirectCast(DirectCast(1, object), [||]C)",
+                    "TryCast(DirectCast(1, object), C)")>
+        Public Async Function ConvertFromDirectCastNested(DirectCastExpression As String, converted As String) As Task
             Dim markup = "
 Public Class C
 End Class
 
 Module Program
     Sub M()
-        Dim x = " + cTypeExpression + "
+        Dim x = " + DirectCastExpression + "
     End Sub
 End Module
 "

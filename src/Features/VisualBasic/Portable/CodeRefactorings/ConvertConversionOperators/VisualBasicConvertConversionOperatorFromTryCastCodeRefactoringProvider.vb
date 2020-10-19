@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
         End Sub
 
         Protected Overrides Function GetTitle() As String
-            Return VBFeaturesResources.Change_to_CType
+            Return VBFeaturesResources.Change_to_DirectCast
         End Function
 
         Protected Overrides Function FilterFromExpressionCandidatesAsync(
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
         End Function
 
         Protected Overrides Function ConvertExpression(fromExpression As TryCastExpressionSyntax) As CodeAnalysis.SyntaxNode
-            Return SyntaxFactory.CTypeExpression(fromExpression.Expression, fromExpression.Type)
+            Return SyntaxFactory.DirectCastExpression(fromExpression.Expression, fromExpression.Type)
         End Function
     End Class
 End Namespace

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.C
     Public Class ConvertConversionOperatorFromTryCastTests
 
         <Fact>
-        Public Async Function ConvertFromTryCastToCType() As Task
+        Public Async Function ConvertFromTryCastToDirectCast() As Task
             Dim markup ="
 Module Program
     Sub M()
@@ -22,7 +22,7 @@ End Module
             Dim expected ="
 Module Program
     Sub M()
-        Dim x = CType(1, Object)
+        Dim x = DirectCast(1, Object)
     End Sub
 End Module
 "
@@ -36,17 +36,17 @@ End Module
 
         <Theory>
         <InlineData("TryCast(TryCast(1, [||]object), C)",
-                    "TryCast(CType(1, object), C)")>
+                    "TryCast(DirectCast(1, object), C)")>
         <InlineData("TryCast(TryCast(1, object), [||]C)",
-                    "CType(TryCast(1, object), C)")>
-        Public Async Function ConvertFromTryCastNested(cTypeExpression As String, converted As String) As Task
+                    "DirectCast(TryCast(1, object), C)")>
+        Public Async Function ConvertFromTryCastNested(DirectCastExpression As String, converted As String) As Task
             Dim markup ="
 Public Class C
 End Class
 
 Module Program
     Sub M()
-        Dim x = " + cTypeExpression + "
+        Dim x = " + DirectCastExpression + "
     End Sub
 End Module
 "
