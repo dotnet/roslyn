@@ -166,20 +166,16 @@ class A
                 PartialResultToken = progress
             };
 
-        private static async Task<LSP.VSReferenceItem[]> RunFindAllReferencesAsync(Solution solution, LSP.Location caret)
+        private static async Task<LSP.VSReferenceItem[]> RunFindAllReferencesAsync(Solution solution, LSP.Location caret, IProgress<object> progress = null)
         {
             var vsClientCapabilities = new LSP.VSClientCapabilities
             {
                 SupportsVisualStudioExtensions = true
             };
 
-            var progress = new ProgressCollector<LSP.VSReferenceItem>();
-
             var queue = CreateRequestQueue(solution);
-            await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(queue, LSP.Methods.TextDocumentReferencesName,
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(queue, LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), vsClientCapabilities, null, CancellationToken.None);
-
-            return progress.GetItems();
         }
 
         private static void AssertValidDefinitionProperties(LSP.VSReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)
@@ -201,18 +197,6 @@ class A
                 Assert.Equal(0, referenceItems[i].DefinitionIcon.ImageId.Id);
                 Assert.Equal(definitionId, referenceItems[i].DefinitionId);
                 Assert.NotEqual(definitionId, referenceItems[i].Id);
-            }
-        }
-
-        private sealed class ProgressCollector<T> : IProgress<object>
-        {
-            private readonly List<T> _items = new List<T>();
-
-            public T[] GetItems() => _items.ToArray();
-
-            public void Report(object value)
-            {
-                _items.AddRange((T[])value);
             }
         }
     }
