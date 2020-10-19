@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -37,13 +35,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var fromExpressions = await context.GetRelevantNodesAsync<TFromExpression>().ConfigureAwait(false);
-
             if (fromExpressions.IsEmpty)
             {
                 return;
             }
 
-            var (document, cancellationToken) = (context.Document, context.CancellationToken);
+            var (document, _, cancellationToken) = context;
 
             fromExpressions = await FilterFromExpressionCandidatesAsync(fromExpressions, document, cancellationToken).ConfigureAwait(false);
 
@@ -63,13 +60,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
             CancellationToken cancellationToken)
             => Task.FromResult(fromExpressions);
 
-        protected async Task<Document> ConvertAsync(
+        protected Task<Document> ConvertAsync(
             Document document,
             TFromExpression fromExpression,
             CancellationToken cancellationToken)
         {
             var converted = ConvertExpression(fromExpression);
-            return await document.ReplaceNodeAsync(fromExpression, converted, cancellationToken).ConfigureAwait(false);
+            return document.ReplaceNodeAsync(fromExpression, converted, cancellationToken);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

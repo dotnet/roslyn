@@ -33,16 +33,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
 
             Dim tryCastConversions = From node In cTypeExpressions
                                      Let type = semanticModel.GetTypeInfo(node.Type, cancellationToken).Type
-                                     Where type IsNot Nothing AndAlso Not type.IsValueType
+                                     Where type?.IsValueType <> true
                                      Select node
 
             Return tryCastConversions.ToImmutableArray()
         End Function
 
         Protected Overrides Function ConvertExpression(fromExpression As CTypeExpressionSyntax) As CodeAnalysis.SyntaxNode
-            Dim tryCastExpression = SyntaxFactory.TryCastExpression(fromExpression.Expression, fromExpression.Type)
-
-            Return tryCastExpression
+            return SyntaxFactory.TryCastExpression(fromExpression.Expression, fromExpression.Type)
         End Function
     End Class
 End Namespace

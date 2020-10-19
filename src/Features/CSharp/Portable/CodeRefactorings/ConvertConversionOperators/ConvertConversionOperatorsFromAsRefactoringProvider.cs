@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -53,10 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
         protected override SyntaxNode ConvertExpression(BinaryExpressionSyntax asExpression)
         {
             var expression = asExpression.Left;
-            if (asExpression.Right is not TypeSyntax typeNode)
-            {
-                throw new InvalidOperationException("asExpression.Right must be a TypeSyntax. This check is done before the CodeAction registration.");
-            }
+            var typeNode = (TypeSyntax)asExpression.Right;
 
             // Trivia handling:
             // #0 exp #1 as #2 Type #3

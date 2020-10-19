@@ -25,10 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
         End Function
 
         Protected Overrides Function ConvertExpression(fromExpression As TryCastExpressionSyntax) As CodeAnalysis.SyntaxNode
-            Dim cTypeExpression = SyntaxFactory.CTypeExpression(fromExpression.Expression, fromExpression.Type)
-
-            Return cTypeExpression
+            return SyntaxFactory.CTypeExpression(fromExpression.Expression, fromExpression.Type)
         End Function
     End Class
-
 End Namespace

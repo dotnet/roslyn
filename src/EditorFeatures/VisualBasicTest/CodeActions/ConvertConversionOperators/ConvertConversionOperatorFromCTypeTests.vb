@@ -111,6 +111,5 @@ End Module
 
             Await TestAsync(markup, fixed)
         End Function
-
     End Class
 End Namespace
