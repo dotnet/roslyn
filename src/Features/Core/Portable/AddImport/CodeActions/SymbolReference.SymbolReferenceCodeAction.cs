@@ -54,8 +54,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var updatedDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-                // Defer to subtype to add any p2p or metadata refs as appropriate.
-                return await UpdateProjectAsync(updatedDocument.Project, isPreview, cancellationToken).ConfigureAwait(false);
+                // Defer to subtype to add any p2p or metadata refs as appropriate. If no changes to project references
+                // are necessary, the call to 'UpdateProjectAsync' will return null, in which case we fall back to just
+                // returning the updated document with its text changes.
+                var updatedProject = await UpdateProjectAsync(updatedDocument.Project, isPreview, cancellationToken).ConfigureAwait(false);
+                return updatedProject ?? new ApplyChangesOperation(updatedDocument.Project.Solution);
             }
 
             protected abstract Task<CodeActionOperation?> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken);
