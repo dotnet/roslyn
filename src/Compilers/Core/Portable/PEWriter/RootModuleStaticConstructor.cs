@@ -103,6 +103,8 @@ namespace Microsoft.Cci
 
         public IDefinition AsDefinition(EmitContext context) => this;
 
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.AsSymbol => null;
+
         public void Dispatch(MetadataVisitor visitor) => visitor.Visit((IMethodDefinition)this);
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context) => SpecializedCollections.EmptyEnumerable<ICustomAttribute>();

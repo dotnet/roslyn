@@ -204,6 +204,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return null;
             }
 
+            CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.AsSymbol => null;
+
             string Cci.INamedEntity.Name
             {
                 get { return Name; }

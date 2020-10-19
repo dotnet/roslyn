@@ -134,5 +134,10 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// Returns an <see cref="ISymbol"/> instance associated with this symbol.
         /// </summary>
         ISymbol GetISymbol();
+
+        /// <summary>
+        /// Returns an <see cref="Cci.IReference"/> instance associated with this symbol.
+        /// </summary>
+        Cci.IReference GetAdapter();
     }
 }

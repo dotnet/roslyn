@@ -31,11 +31,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return SpecializedCollections.EmptyEnumerable<Cci.IGenericMethodParameter>(); }
         }
 
-        bool Cci.IMethodDefinition.IsImplicitlyDeclared
-        {
-            get { return true; }
-        }
-
         bool Cci.IMethodDefinition.HasDeclarativeSecurity
         {
             get { return false; }
@@ -179,6 +174,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         {
             visitor.Visit((Cci.IMethodDefinition)this);
         }
+
+        Symbols.ISymbolInternal Cci.IReference.AsSymbol => null;
 
         Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {

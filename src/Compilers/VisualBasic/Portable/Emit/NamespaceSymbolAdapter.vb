@@ -19,5 +19,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.ContainingNamespace
             End Get
         End Property
+
+        Private ReadOnly Property INamespaceSymbol As CodeAnalysis.Symbols.INamespaceSymbolInternal Implements Cci.INamespace.AsSymbol
+            Get
+                Return Me
+            End Get
+        End Property
     End Class
 End Namespace

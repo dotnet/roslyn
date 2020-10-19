@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
+#if false
     /// <summary>
     /// Interface implemented by internal components that are not symbols, but contain symbols that should
     /// respect a passed compare kind when comparing for equality.
@@ -21,4 +22,5 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </remarks>
         bool Equals(ISymbolCompareKindComparableInternal? other, TypeCompareKind compareKind);
     }
+#endif
 }

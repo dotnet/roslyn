@@ -10,6 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+#if false
     internal partial class DynamicTypeSymbol :
         Cci.ITypeReference,
         Cci.INamedTypeReference,
@@ -127,4 +128,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return "System"; }
         }
     }
+#endif 
 }

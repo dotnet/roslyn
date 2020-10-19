@@ -67,8 +67,8 @@ namespace Microsoft.Cci
         {
             return AliasOpt == other.AliasOpt
                 && object.Equals(TargetAssemblyOpt, other.TargetAssemblyOpt)
-                && object.Equals(TargetNamespaceOpt, other.TargetNamespaceOpt)
-                && object.Equals(TargetTypeOpt, other.TargetTypeOpt)
+                && SymbolEquivalentEqualityComparer.Instance.Equals(TargetNamespaceOpt, other.TargetNamespaceOpt)
+                && SymbolEquivalentEqualityComparer.Instance.Equals(TargetTypeOpt, other.TargetTypeOpt)
                 && TargetXmlNamespaceOpt == other.TargetXmlNamespaceOpt;
         }
 
@@ -76,8 +76,8 @@ namespace Microsoft.Cci
         {
             return Hash.Combine(AliasOpt,
                    Hash.Combine((object?)TargetAssemblyOpt,
-                   Hash.Combine((object?)TargetNamespaceOpt,
-                   Hash.Combine((object?)TargetTypeOpt,
+                   Hash.Combine(SymbolEquivalentEqualityComparer.Instance.GetHashCode(TargetNamespaceOpt),
+                   Hash.Combine(SymbolEquivalentEqualityComparer.Instance.GetHashCode(TargetTypeOpt),
                    Hash.Combine(TargetXmlNamespaceOpt, 0)))));
         }
     }

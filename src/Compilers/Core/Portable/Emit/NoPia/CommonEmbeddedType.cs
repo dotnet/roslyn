@@ -557,6 +557,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return this;
             }
 
+            CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.AsSymbol => null;
+
             bool Cci.ITypeReference.IsEnum
             {
                 get
@@ -699,7 +701,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbolInternal)UnderlyingNamedType).GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return UnderlyingNamedType.AsSymbol.GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
             }
         }
     }

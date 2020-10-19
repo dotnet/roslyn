@@ -190,6 +190,8 @@ namespace Microsoft.Cci
 
         #region IReference Members
 
+        CodeAnalysis.Symbols.ISymbolInternal? Cci.IReference.AsSymbol => null;
+
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
             return _parentParameter.GetAttributes(context);

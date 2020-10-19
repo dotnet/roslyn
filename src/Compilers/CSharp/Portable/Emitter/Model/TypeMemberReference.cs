@@ -47,5 +47,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             return null;
         }
+
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.AsSymbol => UnderlyingSymbol;
+
+        public sealed override bool Equals(object obj)
+        {
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
     }
 }
