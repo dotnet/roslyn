@@ -647,24 +647,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyIsTypeOperation : LazyIsTypeOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _valueOperand;
-
-        internal CSharpLazyIsTypeOperation(CSharpOperationFactory operationFactory, BoundNode valueOperand, ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _valueOperand = valueOperand;
-        }
-
-        protected override IOperation CreateValueOperand()
-        {
-            return _operationFactory.Create(_valueOperand);
-        }
-    }
-
     internal sealed class CSharpLazyDelegateCreationOperation : LazyDelegateCreationOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

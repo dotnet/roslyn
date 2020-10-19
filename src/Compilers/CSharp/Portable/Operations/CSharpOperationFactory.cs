@@ -1092,19 +1092,19 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyMethodReferenceOperation(this, instance, methodSymbol.GetPublicSymbol(), isVirtual, _semanticModel, bindingSyntax, bindingType, bindingConstantValue, boundMethodGroup.WasCompilerGenerated);
         }
 
+#nullable enable
         private IIsTypeOperation CreateBoundIsOperatorOperation(BoundIsOperator boundIsOperator)
         {
-            BoundNode valueOperand = boundIsOperator.Operand;
-            ITypeSymbol typeOperand = boundIsOperator.TargetType.GetPublicTypeSymbol();
+            IOperation value = Create(boundIsOperator.Operand);
+            ITypeSymbol? typeOperand = boundIsOperator.TargetType.GetPublicTypeSymbol();
+            Debug.Assert(typeOperand is not null);
             SyntaxNode syntax = boundIsOperator.Syntax;
-            ITypeSymbol type = boundIsOperator.GetPublicTypeSymbol();
+            ITypeSymbol? type = boundIsOperator.GetPublicTypeSymbol();
             bool isNegated = false;
-            ConstantValue constantValue = boundIsOperator.ConstantValue;
             bool isImplicit = boundIsOperator.WasCompilerGenerated;
-            return new CSharpLazyIsTypeOperation(this, valueOperand, typeOperand, isNegated, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new IsTypeOperation(value, typeOperand, isNegated, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private ISizeOfOperation CreateBoundSizeOfOperatorOperation(BoundSizeOfOperator boundSizeOfOperator)
         {
             ITypeSymbol? typeOperand = boundSizeOfOperator.SourceType.GetPublicTypeSymbol();

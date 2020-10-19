@@ -1162,7 +1162,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IIsTypeOperation" Base="IOperation">
+  <Node Name="IIsTypeOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an operation that tests if a value is of a specific type.

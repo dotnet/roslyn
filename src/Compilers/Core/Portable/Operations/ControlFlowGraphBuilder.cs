@@ -6410,14 +6410,12 @@ oneMoreTime:
         {
             return new StopOperation(semanticModel: null, operation.Syntax, IsImplicit(operation));
         }
-#nullable disable
 
         public override IOperation VisitIsType(IIsTypeOperation operation, int? captureIdForResult)
         {
-            return new IsTypeOperation(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            return new IsTypeOperation(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
-#nullable enable
         public override IOperation? VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);

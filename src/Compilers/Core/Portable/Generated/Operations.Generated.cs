@@ -1302,6 +1302,7 @@ namespace Microsoft.CodeAnalysis.Operations
         InstanceReferenceKind ReferenceKind { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an operation that tests if a value is of a specific type.
     /// <para>
@@ -1335,6 +1336,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         bool IsNegated { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an await operation.
     /// <para>
@@ -5009,56 +5011,41 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInstanceReference(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseIsTypeOperation : OperationOld, IIsTypeOperation
+    #nullable enable
+    internal sealed partial class IsTypeOperation : Operation, IIsTypeOperation
     {
-        internal BaseIsTypeOperation(ITypeSymbol typeOperand, bool isNegated, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.IsType, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal IsTypeOperation(IOperation valueOperand, ITypeSymbol typeOperand, bool isNegated, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            ValueOperand = SetParentOperation(valueOperand, this);
             TypeOperand = typeOperand;
             IsNegated = isNegated;
+            Type = type;
         }
-        public abstract IOperation ValueOperand { get; }
+        public IOperation ValueOperand { get; }
         public ITypeSymbol TypeOperand { get; }
         public bool IsNegated { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (ValueOperand is object) yield return ValueOperand;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (ValueOperand is not null) builder.Add(ValueOperand);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.IsType;
         public override void Accept(OperationVisitor visitor) => visitor.VisitIsType(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitIsType(this, argument);
     }
-    internal sealed partial class IsTypeOperation : BaseIsTypeOperation, IIsTypeOperation
-    {
-        internal IsTypeOperation(IOperation valueOperand, ITypeSymbol typeOperand, bool isNegated, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(typeOperand, isNegated, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ValueOperand = SetParentOperation(valueOperand, this);
-        }
-        public override IOperation ValueOperand { get; }
-    }
-    internal abstract partial class LazyIsTypeOperation : BaseIsTypeOperation, IIsTypeOperation
-    {
-        private IOperation _lazyValueOperand = s_unset;
-        internal LazyIsTypeOperation(ITypeSymbol typeOperand, bool isNegated, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(typeOperand, isNegated, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValueOperand();
-        public override IOperation ValueOperand
-        {
-            get
-            {
-                if (_lazyValueOperand == s_unset)
-                {
-                    IOperation valueOperand = CreateValueOperand();
-                    SetParentOperation(valueOperand, this);
-                    Interlocked.CompareExchange(ref _lazyValueOperand, valueOperand, s_unset);
-                }
-                return _lazyValueOperand;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseAwaitOperation : OperationOld, IAwaitOperation
     {
         internal BaseAwaitOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8800,6 +8787,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (InstanceReferenceOperation)operation;
             return new InstanceReferenceOperation(internalOperation.ReferenceKind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitIsType(IIsTypeOperation operation, object? argument)
+        {
+            var internalOperation = (IsTypeOperation)operation;
+            return new IsTypeOperation(Visit(internalOperation.ValueOperand), internalOperation.TypeOperand, internalOperation.IsNegated, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, object? argument)
         {

@@ -747,14 +747,13 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundTypeOfOperation(boundTypeOf As BoundTypeOf) As IIsTypeOperation
-            Dim valueOperand = boundTypeOf.Operand
+            Dim valueOperand = Create(boundTypeOf.Operand)
             Dim typeOperand As ITypeSymbol = boundTypeOf.TargetType
             Dim isNegated As Boolean = boundTypeOf.IsTypeOfIsNotExpression
             Dim syntax As SyntaxNode = boundTypeOf.Syntax
             Dim type As ITypeSymbol = boundTypeOf.Type
-            Dim constantValue As ConstantValue = boundTypeOf.ConstantValueOpt
             Dim isImplicit As Boolean = boundTypeOf.WasCompilerGenerated
-            Return New VisualBasicLazyIsTypeOperation(Me, valueOperand, typeOperand, isNegated, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New IsTypeOperation(valueOperand, typeOperand, isNegated, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundGetTypeOperation(boundGetType As BoundGetType) As ITypeOfOperation
