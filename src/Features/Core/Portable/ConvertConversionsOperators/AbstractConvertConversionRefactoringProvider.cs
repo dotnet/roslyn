@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.ConvertConversionOperators
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var from = await context.TryGetRelevantNodeAsync<TFromExpression>().ConfigureAwait(false);
-            if (from?.RawKind != FromKind)
+            var fromNodes = await context.GetRelevantNodesAsync<TFromExpression>().ConfigureAwait(false);
+            var from = fromNodes.FirstOrDefault(n => n.RawKind == FromKind);
+            if (from == null)
                 return;
 
             if (from.GetDiagnostics().Any(d => d.DefaultSeverity == DiagnosticSeverity.Error))

@@ -3,15 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.ConvertConversionOperators;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperators.CSharpConvertConversionOperatorsFromAsRefactoringProvider>;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ConvertConversionOperators
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertConversionOperators
 {
+    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertTryCastToCastRefactoringProvider>;
+
     [Trait(Traits.Feature, Traits.Features.ConvertConversionOperators)]
-    public class ConvertConversionOperatorsFromAsTests
+    public class ConvertTryCastToCastTests
     {
         [Fact]
         public async Task ConvertFromAsToExplicit()
@@ -62,7 +65,6 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
-                FixedCode = ExpectedMarkup,
                 CompilerDiagnostics = CompilerDiagnostics.None, // CS0077 is present, but we present the refactoring anyway (this may overlap with a diagnostic fixer)
                 CodeActionValidationMode = CodeActionValidationMode.Full,
             }.RunAsync();
