@@ -4,9 +4,11 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,15 +25,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     [Export(typeof(ILanguageClient))]
     internal class PullDiagnosticsInProcLanguageClient : AbstractInProcLanguageClient
     {
+        private readonly IGlobalOptionService _globalOptionService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public PullDiagnosticsInProcLanguageClient(
+            IGlobalOptionService globalOptionService,
             LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider)
             : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
+            _globalOptionService = globalOptionService;
         }
 
         public override string Name
@@ -40,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         protected internal override VSServerCapabilities GetCapabilities()
             => new VSServerCapabilities
             {
-                SupportsDiagnosticRequests = true,
+                SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.LspPullDiagnostics),
             };
     }
 }
