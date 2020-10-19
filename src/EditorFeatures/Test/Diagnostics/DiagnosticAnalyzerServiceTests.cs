@@ -817,8 +817,10 @@ class A
             var diagnostics = ArrayBuilder<DiagnosticData>.GetInstance();
             service.DiagnosticsUpdated += (s, e) =>
             {
-                var diagnostics = e.GetDiagnostics(workspace, forPullDiagnostics: false);
-                diagnostics.AddRange(diagnostics.Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId).OrderBy(d => d.GetTextSpan()));
+                diagnostics.AddRange(
+                    e.GetDiagnostics(workspace, forPullDiagnostics: false)
+                     .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
+                     .OrderBy(d => d.GetTextSpan()));
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
