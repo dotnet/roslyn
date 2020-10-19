@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// expected to be.  Namely, multiple client can be calling <see cref="IProgress{T}.Report(T)"/> on it at the same
     /// time.  This is safe, though the order that the items are reported in when called concurrently is not specified.
     /// </summary>
-    internal struct BufferedProgress<T> : IProgress<T>, IDisposable
+    internal struct BufferedProgress<T> : IProgress<T[]>, IDisposable
     {
         /// <summary>
         /// The progress stream to report results to.  May be <see langword="null"/> for clients that do not support streaming.
@@ -49,6 +49,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lock (_buffer)
                 {
                     _buffer.Add(value);
+                }
+            }
+        }
+
+        public void Report(T[] values)
+        {
+            // Don't need to lock _underlyingProgress.  It is inherently thread-safe itself being an IProgress implementation.
+            _underlyingProgress?.Report(values);
+
+            if (_buffer != null)
+            {
+                lock (_buffer)
+                {
+                    _buffer.AddRange(values);
                 }
             }
         }
