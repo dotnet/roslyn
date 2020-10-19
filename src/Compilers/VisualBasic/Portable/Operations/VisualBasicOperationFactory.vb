@@ -591,6 +591,8 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundBinaryConditionalExpressionOperation(boundBinaryConditionalExpression As BoundBinaryConditionalExpression) As ICoalesceOperation
+            Dim value As IOperation = Create(boundBinaryConditionalExpression.TestExpression)
+            Dim whenFalse As IOperation = Create(boundBinaryConditionalExpression.ElseExpression)
             Dim syntax As SyntaxNode = boundBinaryConditionalExpression.Syntax
             Dim type As ITypeSymbol = boundBinaryConditionalExpression.Type
             Dim constantValue As ConstantValue = boundBinaryConditionalExpression.ConstantValueOpt
@@ -610,7 +612,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 End If
             End If
 
-            Return New VisualBasicLazyCoalesceOperation(Me, boundBinaryConditionalExpression, valueConversion, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New CoalesceOperation(value, whenFalse, valueConversion, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundUserDefinedShortCircuitingOperatorOperation(boundUserDefinedShortCircuitingOperator As BoundUserDefinedShortCircuitingOperator) As IBinaryOperation

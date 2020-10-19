@@ -1395,13 +1395,14 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundConditionalOperator.WasCompilerGenerated;
             return new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
         }
-#nullable disable
 
         private ICoalesceOperation CreateBoundNullCoalescingOperatorOperation(BoundNullCoalescingOperator boundNullCoalescingOperator)
         {
+            IOperation value = Create(boundNullCoalescingOperator.LeftOperand);
+            IOperation whenNull = Create(boundNullCoalescingOperator.RightOperand);
             SyntaxNode syntax = boundNullCoalescingOperator.Syntax;
-            ITypeSymbol type = boundNullCoalescingOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundNullCoalescingOperator.ConstantValue;
+            ITypeSymbol? type = boundNullCoalescingOperator.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundNullCoalescingOperator.ConstantValue;
             bool isImplicit = boundNullCoalescingOperator.WasCompilerGenerated;
             Conversion valueConversion = boundNullCoalescingOperator.LeftConversion;
 
@@ -1411,8 +1412,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 valueConversion = Conversion.Identity;
             }
 
-            return new CSharpLazyCoalesceOperation(this, boundNullCoalescingOperator, valueConversion, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CoalesceOperation(value, whenNull, valueConversion, _semanticModel, syntax, type, constantValue, isImplicit);
         }
+#nullable disable
 
         private IOperation CreateBoundNullCoalescingAssignmentOperatorOperation(BoundNullCoalescingAssignmentOperator boundNode)
         {

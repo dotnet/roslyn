@@ -760,29 +760,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyCoalesceOperation : LazyCoalesceOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNullCoalescingOperator _nullCoalescingOperator;
-
-        internal CSharpLazyCoalesceOperation(CSharpOperationFactory operationFactory, BoundNullCoalescingOperator nullCoalescingOperator, IConvertibleConversion convertibleValueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _nullCoalescingOperator = nullCoalescingOperator;
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_nullCoalescingOperator.LeftOperand);
-        }
-
-        protected override IOperation CreateWhenNull()
-        {
-            return _operationFactory.Create(_nullCoalescingOperator.RightOperand);
-        }
-    }
-
     internal sealed class CSharpLazyCoalesceAssignmentOperation : LazyCoalesceAssignmentOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

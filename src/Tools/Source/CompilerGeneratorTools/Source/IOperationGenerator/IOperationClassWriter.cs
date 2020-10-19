@@ -1037,6 +1037,10 @@ namespace IOperationGenerator
                         Write(IsImmutableArray(prop.Type, out _) ? "VisitArray" : "Visit");
                         Write($"({internalName}.{prop.Name}), ");
                     }
+                    else if (prop.Type == "CommonConversion")
+                    {
+                        Write($"{internalName}.{prop.Name}Convertible, ");
+                    }
                     else
                     {
                         Write($"{internalName}.{prop.Name}, ");

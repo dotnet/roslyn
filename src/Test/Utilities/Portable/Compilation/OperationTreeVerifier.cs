@@ -1195,7 +1195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogConversion(operation.ValueConversion, "ValueConversion");
             LogNewLine();
             Indent();
-            LogString($"({((BaseCoalesceOperation)operation).ValueConversionConvertible})");
+            LogString($"({((CoalesceOperation)operation).ValueConversionConvertible})");
             Unindent();
             LogNewLine();
             Unindent();

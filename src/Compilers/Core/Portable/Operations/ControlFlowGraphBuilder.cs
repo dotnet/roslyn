@@ -2773,7 +2773,6 @@ oneMoreTime:
             previous.ConditionKind = jumpIfTrue ? ControlFlowConditionKind.WhenTrue : ControlFlowConditionKind.WhenFalse;
             previous.Conditional = branch;
         }
-#nullable disable
 
         /// <summary>
         /// Returns converted test expression.
@@ -2786,7 +2785,7 @@ oneMoreTime:
 
             IOperation operationValue = operation.Value;
             SyntaxNode valueSyntax = operationValue.Syntax;
-            ITypeSymbol valueTypeOpt = operationValue.Type;
+            ITypeSymbol? valueTypeOpt = operationValue.Type;
 
             PushOperand(Visit(operationValue));
             SpillEvalStack();
@@ -2799,11 +2798,11 @@ oneMoreTime:
 
             CommonConversion testConversion = operation.ValueConversion;
             IOperation capturedValue = OperationCloner.CloneOperation(testExpression);
-            IOperation convertedTestExpression = null;
+            IOperation? convertedTestExpression = null;
 
             if (testConversion.Exists)
             {
-                IOperation possiblyUnwrappedValue;
+                IOperation? possiblyUnwrappedValue;
 
                 if (ITypeSymbolHelpers.IsNullableType(valueTypeOpt) &&
                     (!testConversion.IsIdentity || !ITypeSymbolHelpers.IsNullableType(operation.Type)))
@@ -2823,7 +2822,7 @@ oneMoreTime:
                     }
                     else
                     {
-                        convertedTestExpression = new ConversionOperation(possiblyUnwrappedValue, ((BaseCoalesceOperation)operation).ValueConversionConvertible,
+                        convertedTestExpression = new ConversionOperation(possiblyUnwrappedValue, ((CoalesceOperation)operation).ValueConversionConvertible,
                                                                           isTryCast: false, isChecked: false, semanticModel: null, valueSyntax, operation.Type,
                                                                           constantValue: null, isImplicit: true);
                     }
@@ -2866,6 +2865,7 @@ oneMoreTime:
 
                 AppendNewBlock(whenNull);
 
+                Debug.Assert(conversion is not null);
                 IOperation rewrittenThrow = base.Visit(conversion.Operand, null);
                 Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
                 Debug.Assert(rewrittenThrow.Children.IsEmpty());
@@ -2892,6 +2892,7 @@ oneMoreTime:
 
             return result;
         }
+#nullable disable
 
         public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, int? captureIdForResult)
         {

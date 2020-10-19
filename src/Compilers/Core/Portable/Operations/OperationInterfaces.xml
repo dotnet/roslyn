@@ -1010,7 +1010,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICoalesceOperation" Base="IOperation" ChildrenOrder="Value,WhenNull">
+  <Node Name="ICoalesceOperation" Base="IOperation" ChildrenOrder="Value,WhenNull" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a coalesce operation with two operands:

@@ -160,13 +160,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CompoundAssignmentOperation(compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible, operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, Visit(operation.Target), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitCoalesce(ICoalesceOperation operation, object argument)
-        {
-            var coalesceOperation = (BaseCoalesceOperation)operation;
-            return new CoalesceOperation(Visit(operation.Value), Visit(operation.WhenNull), coalesceOperation.ValueConversionConvertible, coalesceOperation.OwningSemanticModel,
-                                          operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, object argument)
         {
             return new CoalesceAssignmentOperation(Visit(operation.Target), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

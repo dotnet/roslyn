@@ -540,27 +540,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyCoalesceOperation
-        Inherits LazyCoalesceOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _conditionalExpression As BoundBinaryConditionalExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalExpression As BoundBinaryConditionalExpression, convertibleValueConversion As IConvertibleConversion, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _conditionalExpression = conditionalExpression
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_conditionalExpression.TestExpression)
-        End Function
-
-        Protected Overrides Function CreateWhenNull() As IOperation
-            Return _operationFactory.Create(_conditionalExpression.ElseExpression)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyObjectCreationOperation
         Inherits LazyObjectCreationOperation
 

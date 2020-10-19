@@ -1117,6 +1117,7 @@ namespace Microsoft.CodeAnalysis.Operations
         bool IsRef { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a coalesce operation with two operands:
     /// (1) <see cref="Value" />, which is the first operand that is unconditionally evaluated and is the result of the operation if non null.
@@ -1153,6 +1154,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         CommonConversion ValueConversion { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an anonymous function operation.
     /// <para>
@@ -4809,74 +4811,44 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitConditional(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseCoalesceOperation : OperationOld, ICoalesceOperation
+    #nullable enable
+    internal sealed partial class CoalesceOperation : Operation, ICoalesceOperation
     {
-        internal BaseCoalesceOperation(IConvertibleConversion valueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Coalesce, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal CoalesceOperation(IOperation value, IOperation whenNull, IConvertibleConversion valueConversion, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            Value = SetParentOperation(value, this);
+            WhenNull = SetParentOperation(whenNull, this);
             ValueConversionConvertible = valueConversion;
+            OperationConstantValue = constantValue;
+            Type = type;
         }
-        public abstract IOperation Value { get; }
-        public abstract IOperation WhenNull { get; }
+        public IOperation Value { get; }
+        public IOperation WhenNull { get; }
         internal IConvertibleConversion ValueConversionConvertible { get; }
         public CommonConversion ValueConversion => ValueConversionConvertible.ToCommonConversion();
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Value is object) yield return Value;
-                if (WhenNull is object) yield return WhenNull;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Value is not null) builder.Add(Value);
+                    if (WhenNull is not null) builder.Add(WhenNull);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.Coalesce;
         public override void Accept(OperationVisitor visitor) => visitor.VisitCoalesce(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitCoalesce(this, argument);
     }
-    internal sealed partial class CoalesceOperation : BaseCoalesceOperation, ICoalesceOperation
-    {
-        internal CoalesceOperation(IOperation value, IOperation whenNull, IConvertibleConversion valueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(valueConversion, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-            WhenNull = SetParentOperation(whenNull, this);
-        }
-        public override IOperation Value { get; }
-        public override IOperation WhenNull { get; }
-    }
-    internal abstract partial class LazyCoalesceOperation : BaseCoalesceOperation, ICoalesceOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        private IOperation _lazyWhenNull = s_unset;
-        internal LazyCoalesceOperation(IConvertibleConversion valueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(valueConversion, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-        protected abstract IOperation CreateWhenNull();
-        public override IOperation WhenNull
-        {
-            get
-            {
-                if (_lazyWhenNull == s_unset)
-                {
-                    IOperation whenNull = CreateWhenNull();
-                    SetParentOperation(whenNull, this);
-                    Interlocked.CompareExchange(ref _lazyWhenNull, whenNull, s_unset);
-                }
-                return _lazyWhenNull;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseAnonymousFunctionOperation : OperationOld, IAnonymousFunctionOperation
     {
         internal BaseAnonymousFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8884,6 +8856,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ConditionalOperation)operation;
             return new ConditionalOperation(Visit(internalOperation.Condition), Visit(internalOperation.WhenTrue), Visit(internalOperation.WhenFalse), internalOperation.IsRef, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitCoalesce(ICoalesceOperation operation, object? argument)
+        {
+            var internalOperation = (CoalesceOperation)operation;
+            return new CoalesceOperation(Visit(internalOperation.Value), Visit(internalOperation.WhenNull), internalOperation.ValueConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, object? argument)
         {
