@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
         {
         }
 
+        protected override string GetTitle()
+            => CSharpFeaturesResources.Change_to_cast;
+
         protected override Task<ImmutableArray<BinaryExpressionSyntax>> FilterFromExpressionCandidatesAsync(
             ImmutableArray<BinaryExpressionSyntax> asExpressions,
             Document document,
@@ -71,8 +74,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
 
             return castExpression;
         }
-
-        protected override string GetTitle()
-            => "TODO";
     }
 }

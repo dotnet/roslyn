@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
         {
         }
 
+        protected override string GetTitle()
+            => CSharpFeaturesResources.Change_to_as_expression;
+
         protected override async Task<ImmutableArray<CastExpressionSyntax>> FilterFromExpressionCandidatesAsync(
             ImmutableArray<CastExpressionSyntax> castExpressions,
             Document document,
@@ -47,9 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
                     select node)
                     .ToImmutableArray();
         }
-
-        protected override string GetTitle()
-            => "TODO";
 
         protected override SyntaxNode ConvertExpression(CastExpressionSyntax castExpression)
         {
