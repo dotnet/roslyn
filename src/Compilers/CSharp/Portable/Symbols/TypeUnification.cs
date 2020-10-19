@@ -259,11 +259,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             substitution.Add(tp1, t2);
         }
 
-        private static bool AreTypesAndCustomModifiersEqual(TypeWithAnnotations t1, TypeWithAnnotations t2)
-        {
-            return TypeSymbol.Equals(t1.Type, t2.Type, TypeCompareKind.CLRSignatureCompareOptions) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers);
-        }
-
         /// <summary>
         /// Return true if the given type contains the specified type parameter.
         /// </summary>
