@@ -9465,7 +9465,7 @@ public partial interface I1
                 // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
                 //         new System.Action(M2).Invoke();
                 Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27),
-                // (13,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (13,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static void M4();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(13, 5)
                 );
@@ -38726,10 +38726,10 @@ interface I19
                 // (62,20): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I13() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I13").WithArguments("virtual").WithLocation(62, 20),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
                 // (70,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
@@ -38741,10 +38741,10 @@ interface I19
                 // (70,20): error CS0542: 'I15': member names cannot be the same as their enclosing type
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I15").WithArguments("I15").WithLocation(70, 20),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
                 // (78,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
@@ -59277,10 +59277,10 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.Regular8,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics(
-                // (15,12): error CS9100: Invalid variance: The type parameter 'T1' must be invariantly valid on 'I2<T1, T2>.P1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                // (15,12): error CS8904: Invalid variance: The type parameter 'T1' must be invariantly valid on 'I2<T1, T2>.P1' unless language version 'preview' or greater is used. 'T1' is covariant.
                 //     static T1 P1 { get; set; }
                 Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.P1", "T1", "covariant", "invariantly", "preview").WithLocation(15, 12),
-                // (16,12): error CS9100: Invalid variance: The type parameter 'T2' must be invariantly valid on 'I2<T1, T2>.P2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                // (16,12): error CS8904: Invalid variance: The type parameter 'T2' must be invariantly valid on 'I2<T1, T2>.P2' unless language version 'preview' or greater is used. 'T2' is contravariant.
                 //     static T2 P2 { get; set; }
                 Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.P2", "T2", "contravariant", "invariantly", "preview").WithLocation(16, 12)
                 );
@@ -59323,10 +59323,10 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.Regular8,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics(
-                // (13,18): error CS9100: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version 'preview' or greater is used. 'T1' is covariant.
+                // (13,18): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version 'preview' or greater is used. 'T1' is covariant.
                 //     static T1 M1(T1 x) => x;
                 Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.M1(T1)", "T1", "covariant", "contravariantly", "preview").WithLocation(13, 18),
-                // (14,12): error CS9100: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.M2(T2)' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                // (14,12): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.M2(T2)' unless language version 'preview' or greater is used. 'T2' is contravariant.
                 //     static T2 M2(T2 x) => x;
                 Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.M2(T2)", "T2", "contravariant", "covariantly", "preview").WithLocation(14, 12)
                 );
@@ -59391,10 +59391,10 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.Regular8,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics(
-                // (24,53): error CS9100: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.E1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                // (24,53): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.E1' unless language version 'preview' or greater is used. 'T1' is covariant.
                 //     static event System.Action<System.Func<T1, T1>> E1;
                 Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E1").WithArguments("I2<T1, T2>.E1", "T1", "covariant", "contravariantly", "preview").WithLocation(24, 53),
-                // (25,53): error CS9100: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.E2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                // (25,53): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.E2' unless language version 'preview' or greater is used. 'T2' is contravariant.
                 //     static event System.Action<System.Func<T2, T2>> E2;
                 Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E2").WithArguments("I2<T1, T2>.E2", "T2", "contravariant", "covariantly", "preview").WithLocation(25, 53)
                 );

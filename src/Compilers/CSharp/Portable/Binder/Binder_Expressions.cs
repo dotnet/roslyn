@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (reportNoTargetType && !expr.HasAnyErrors)
                         {
-                            diagnostics.Add(ErrorCode.ERR_TypelessNewNoTargetType, expr.Syntax.GetLocation(), expr.Display);
+                            diagnostics.Add(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, expr.Syntax.GetLocation(), expr.Display);
                         }
 
                         result = BindObjectCreationForErrorRecovery(expr, diagnostics);
@@ -3167,6 +3167,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                 }
+                else
+                {
+                    size = BindToTypeForErrorRecovery(size);
+                }
 
                 return size;
             }
@@ -4730,7 +4734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 resultKind,
                 implicitReceiver.Type,
-                binderOpt: this,
+                binder: this,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
         }

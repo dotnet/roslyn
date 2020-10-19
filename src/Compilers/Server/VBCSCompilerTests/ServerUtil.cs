@@ -40,9 +40,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             utf8output: false,
             output: string.Empty);
 
-        internal static BuildRequest CreateEmptyCSharpWithKeepAlive(TimeSpan keepAlive) => BuildRequest.Create(
+        internal static BuildRequest CreateEmptyCSharpWithKeepAlive(TimeSpan keepAlive, string workingDirectory, string tempDirectory = null) => BuildRequest.Create(
             RequestLanguage.CSharpCompile,
             Array.Empty<string>(),
+            workingDirectory,
+            tempDirectory ?? Path.GetTempPath(),
             compilerHash: BuildProtocolConstants.GetCommitHash(),
             keepAlive: keepAlive.TotalSeconds.ToString());
 

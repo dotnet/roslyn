@@ -5,14 +5,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
@@ -23,6 +20,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
     public class CompilationWithAnalyzersTests : TestBase
     {
+        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel);
+
         [Fact]
         public void GetEffectiveDiagnostics_Errors()
         {
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         [Fact]
         public void GetEffectiveDiagnostics()
         {
-            var c = CSharpCompilation.Create("c", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+            var c = CSharpCompilation.Create("c", options: s_dllWithMaxWarningLevel.
                 WithSpecificDiagnosticOptions(
                     new[] { KeyValuePairUtil.Create($"CS{(int)ErrorCode.WRN_AlwaysNull:D4}", ReportDiagnostic.Suppress) }));
 
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         [Fact]
         public void GetAnalyzerTelemetry()
         {
-            var compilation = CSharpCompilation.Create("c", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compilation = CSharpCompilation.Create("c", options: s_dllWithMaxWarningLevel);
             DiagnosticAnalyzer analyzer = new AnalyzerWithDisabledRules();
             var analyzers = ImmutableArray.Create(analyzer);
             var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
@@ -75,8 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.
             var analyzer = new AnalyzerThatThrowsInSupportedDiagnostics();
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            _ = CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException: null);
+            _ = CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, s_dllWithMaxWarningLevel, onAnalyzerException: null);
         }
     }
 }

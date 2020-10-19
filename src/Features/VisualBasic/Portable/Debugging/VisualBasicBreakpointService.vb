@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                 End If
 
                 Return BreakpointResolutionResult.CreateSpanResult(document, span)
-            Catch e As Exception When FatalError.ReportWithoutCrashUnlessCanceled(e)
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e)
                 Return Nothing
             End Try
         End Function

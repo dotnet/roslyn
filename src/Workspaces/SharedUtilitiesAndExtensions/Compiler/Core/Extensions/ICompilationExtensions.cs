@@ -83,6 +83,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? HideModuleNameAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.HideModuleNameAttribute");
 
+        public static INamedTypeSymbol? ThreadStaticAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName!);
+
         public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);
 

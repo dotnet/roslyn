@@ -19,7 +19,7 @@ namespace Roslyn.Utilities
             => Debug.Assert(b, message);
 
         [Conditional("DEBUG")]
-        public static void AssertNotNull<T>([NotNull] T value) where T : class?
+        public static void AssertNotNull<T>([NotNull] T value)
         {
             Assert(value is object, "Unexpected null reference");
         }

@@ -156,7 +156,8 @@ namespace Microsoft.CodeAnalysis.AddImport
         private static bool IsHostOrRemoteWorkspace(Project project)
         {
             return project.Solution.Workspace.Kind == WorkspaceKind.Host ||
-                   project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
+                   project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace ||
+                   project.Solution.Workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace;
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(

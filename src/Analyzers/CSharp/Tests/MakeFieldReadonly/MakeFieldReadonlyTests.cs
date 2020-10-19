@@ -1732,5 +1732,19 @@ public class Repro
     }
 }");
         }
+
+        [WorkItem(42760, "https://github.com/dotnet/roslyn/issues/42760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task WithThreadStaticAttribute_NoDiagnostic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    [ThreadStatic]
+    private static object [|t_obj|];
+}");
+        }
     }
 }
