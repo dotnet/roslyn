@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly IAsynchronousOperationListener _listener;
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
+        private readonly AbstractInProcLanguageClient _languageClient;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly Workspace _workspace;
         private readonly RequestExecutionQueue _queue;
@@ -49,7 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private VSClientCapabilities _clientCapabilities;
         private bool _shuttingDown;
 
-        public InProcLanguageServer(Stream inputStream,
+        public InProcLanguageServer(
+            AbstractInProcLanguageClient languageClient,
+            Stream inputStream,
             Stream outputStream,
             AbstractRequestHandlerProvider requestHandlerProvider,
             Workspace workspace,
@@ -58,6 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             ILspSolutionProvider solutionProvider,
             string? clientName)
         {
+            _languageClient = languageClient;
             _requestHandlerProvider = requestHandlerProvider;
             _workspace = workspace;
 
@@ -91,24 +95,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed;
 
         /// <summary>
-        /// Handle the LSP initialize request by storing the client capabilities
-        /// and responding with the server capabilities.
-        /// The specification assures that the initialize request is sent only once.
+        /// Handle the LSP initialize request by storing the client capabilities and responding with the server
+        /// capabilities.  The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
-        public async Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
+        public Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
             _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
-
-            var serverCapabilities = await _requestHandlerProvider.ExecuteRequestAsync<InitializeParams, InitializeResult>(_queue, Methods.InitializeName,
-                initializeParams, _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
-
-            // Always support hover - if any LSP client for a content type advertises support,
-            // then the liveshare provider is disabled.  So we must provide for both C# and razor
-            // until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/ is fixed
-            // or we have different content types.
-            serverCapabilities.Capabilities.HoverProvider = true;
-            return serverCapabilities;
+            return Task.FromResult(new InitializeResult
+            {
+                Capabilities = _languageClient.GetCapabilities(),
+            });
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
