@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -42,6 +43,51 @@ class B
             using var workspace = CreateTestWorkspace(markup, out var locations);
 
             var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
+            AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
+
+            Assert.Equal("A", results[0].ContainingType);
+            Assert.Equal("B", results[2].ContainingType);
+            Assert.Equal("M", results[1].ContainingMember);
+            Assert.Equal("M2", results[3].ContainingMember);
+
+            AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/43063")]
+        public async Task TestFindAllReferencesAsync_Streaming()
+        {
+            var markup =
+@"class A
+{
+    public int {|reference:someInt|} = 1;
+    void M()
+    {
+        var i = {|reference:someInt|} + 1;
+    }
+}
+class B
+{
+    int someInt = A.{|reference:someInt|} + 1;
+    void M2()
+    {
+        var j = someInt + A.{|caret:|}{|reference:someInt|};
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+
+            var progress = BufferedProgress.Create<object>(null);
+
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First(), progress);
+
+            Assert.Null(results);
+
+            // BufferedProgress wraps individual elements in an array, so when they are nested them like this,
+            // with the test creating one, and the handler another, we have to unwrap.
+            results = progress.GetValues().Cast<LSP.VSReferenceItem[]>().SelectMany(s => s).ToArray();
+
+            Assert.NotNull(results);
+            Assert.NotEmpty(results);
+
             AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
 
             Assert.Equal("A", results[0].ContainingType);
