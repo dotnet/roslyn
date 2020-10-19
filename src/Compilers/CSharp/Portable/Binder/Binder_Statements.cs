@@ -2356,7 +2356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The expression could not be bound. Insert a fake conversion
                 // around it to bool and keep on going.
                 // NOTE: no user-defined conversion candidates.
-                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
+                return BoundConversion.Synthesized(node, BindToTypeForErrorRecovery(expr), Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
 
             // Oddly enough, "if(dyn)" is bound not as a dynamic conversion to bool, but as a dynamic

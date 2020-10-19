@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     context.AddItem(item);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
@@ -123,6 +124,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void AddIfNeeded(HashSet<Checksum> checksums, Checksum checksum)
         {
+            Debug.Assert(checksum != Checksum.Null);
+
             if (!_assetProvider.EnsureCacheEntryIfExists(checksum))
             {
                 checksums.Add(checksum);

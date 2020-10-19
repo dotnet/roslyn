@@ -33,6 +33,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string PartialLoadMode = "Roslyn.PartialLoadMode";
         public const string TargetTypedCompletionFilter = "Roslyn.TargetTypedCompletionFilter";
         public const string TriggerCompletionInArgumentLists = "Roslyn.TriggerCompletionInArgumentLists";
-        public const string SQLiteInMemoryWriteCache = "Roslyn.SQLiteInMemoryWriteCache";
+        public const string SQLiteInMemoryWriteCache2 = "Roslyn.SQLiteInMemoryWriteCache2";
     }
 }

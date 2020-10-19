@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1004,6 +1005,95 @@ Block[B12] - Exit
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(45692, "https://github.com/dotnet/roslyn/issues/45692")]
+        public void NestedObjectInitializerMissingGet()
+        {
+            var comp = CreateCompilation(@"
+_ = new C { Prop1 = /*<bind>*/new C { [0] = 1 }/*</bind>*/ };
+
+class C
+{
+    public object Prop1 { get; set; }
+    public object this[int i] { set { } }
+
+}
+", options: TestOptions.ReleaseExe);
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(comp, @"
+IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C { [0] = 1 }')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ [0] = 1 }')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: '[0] = 1')
+            Left: 
+              IPropertyReferenceOperation: System.Object C.this[System.Int32 i] { set; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: '[0]')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '[0]')
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '0')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Right: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            ", DiagnosticDescription.None);
+        }
+
+        [Fact, WorkItem(45692, "https://github.com/dotnet/roslyn/issues/45692")]
+        public void NestedObjectInitializerMissingGet_NestedInitializer()
+        {
+            var comp = CreateCompilation(@"
+_ = new C { Prop1 = /*<bind>*/new C { [0] = new C { Prop1 = 1 } }/*</bind>*/ };
+
+class C
+{
+    public object Prop1 { get; set; }
+    public object this[int i] { set { } }
+}
+", options: TestOptions.ReleaseExe);
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(comp, @"
+IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C { [0] ... op1 = 1 } }')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ [0] = new ... op1 = 1 } }')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: '[0] = new C ... Prop1 = 1 }')
+            Left: 
+              IPropertyReferenceOperation: System.Object C.this[System.Int32 i] { set; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: '[0]')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '[0]')
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '0')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Right: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new C { Prop1 = 1 }')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C { Prop1 = 1 }')
+                    Arguments(0)
+                    Initializer: 
+                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ Prop1 = 1 }')
+                        Initializers(1):
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'Prop1 = 1')
+                              Left: 
+                                IPropertyReferenceOperation: System.Object C.Prop1 { get; set; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'Prop1')
+                                  Instance Receiver: 
+                                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop1')
+                              Right: 
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Operand: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            ", DiagnosticDescription.None);
         }
     }
 }

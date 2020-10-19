@@ -592,7 +592,7 @@ $$");
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction()
         {
@@ -609,7 +609,7 @@ class C
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction2()
         {
@@ -625,7 +625,7 @@ class C
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction3()
         {
@@ -641,7 +641,7 @@ class C
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction4()
         {
@@ -657,7 +657,7 @@ class C
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction5()
         {
@@ -674,7 +674,7 @@ class C
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction6()
         {
@@ -690,7 +690,7 @@ class C
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction7()
         {

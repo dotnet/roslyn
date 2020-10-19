@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(Methods.TextDocumentCompletionName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
-    internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionItem[]>
+    internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionList?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -34,24 +34,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
 
-        public async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
             {
-                return CreateErrorItem($"Cannot find document in solution!", request.TextDocument.Uri.ToString());
+                return null;
             }
 
             var completionService = document.Project.LanguageServices.GetRequiredService<IXamlCompletionService>();
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
-            var completionResult = await completionService.GetCompletionsAsync(new XamlCompletionContext(document, offset, request.Context.TriggerCharacter?.FirstOrDefault() ?? '\0'), cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionResult = await completionService.GetCompletionsAsync(new XamlCompletionContext(document, offset, request.Context?.TriggerCharacter?.FirstOrDefault() ?? '\0'), cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completionResult?.Completions == null)
             {
-                return Array.Empty<CompletionItem>();
+                return null;
             }
 
-            return completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position)).ToArray();
+            return new VSCompletionList
+            {
+                Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position)).ToArray(),
+                SuggestionMode = false,
+            };
         }
 
         private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position)
@@ -62,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 CommitCharacters = xamlCompletion.CommitCharacters,
                 Detail = xamlCompletion.Detail,
                 InsertText = xamlCompletion.InsertText,
-                Preselect = xamlCompletion.Preselect,
+                Preselect = xamlCompletion.Preselect.GetValueOrDefault(),
                 SortText = xamlCompletion.SortText,
                 FilterText = xamlCompletion.FilterText,
                 Kind = GetItemKind(xamlCompletion.Kind),
@@ -81,19 +85,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             }
 
             return item;
-        }
-
-        private static CompletionItem[] CreateErrorItem(string message, string details = "")
-        {
-            var item = new CompletionItem
-            {
-                Label = message,
-                Documentation = details,
-                InsertText = string.Empty,
-                Kind = CompletionItemKind.Text,
-            };
-
-            return new[] { item };
         }
 
         private static CompletionItemKind GetItemKind(XamlCompletionKind kind)

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
                 await ProvideCompletionsAsync(context, pathThroughLastSlash).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }

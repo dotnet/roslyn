@@ -68,17 +68,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ShowLightBulb()
         {
-            InvokeOnUIThread(cancellationToken =>
-            {
-                var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
-                var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
-                var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
+            InvokeSmartTasks();
 
-                const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
-                var cmdID = ECMD_SMARTTASKS;
-                object obj = null;
-                shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
-            });
+            // The editor has an asynchronous background operation that dismisses the light bulb if it was shown within
+            // 500ms of the operation starting. Wait 600ms and make sure the menu is still present.
+            // https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform/pullrequest/268277
+            Thread.Sleep(600);
+
+            if (!IsLightBulbSessionExpanded())
+            {
+                InvokeSmartTasks();
+            }
+
+            void InvokeSmartTasks()
+            {
+                InvokeOnUIThread(cancellationToken =>
+                {
+                    var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
+                    var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
+                    var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
+
+                    const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
+                    var cmdID = ECMD_SMARTTASKS;
+                    object obj = null;
+                    shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
+                });
+            }
         }
 
         public void WaitForLightBulbSession()
