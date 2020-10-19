@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
             {
                 // ignore all, this is fire and forget method
             }

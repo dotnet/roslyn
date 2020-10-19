@@ -248,6 +248,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
+                RegisterRemoteBrokeredService(new RemoteAssetSynchronizationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteAsynchronousOperationListenerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDesignerAttributeDiscoveryService.Factory());
@@ -268,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
                 RegisterRemoteBrokeredService(new RemoteGlobalNotificationDeliveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
-                RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteLanguageServer, (s, p, o) => new RemoteLanguageServer(s, p));
             }
 
             public RemoteHostTestData TestData => ServiceProvider.TestData;

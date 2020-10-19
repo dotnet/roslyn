@@ -87,6 +87,11 @@
         <target state="translated">&lt;Несколько типов&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_shared_keyword_from_module_member">
+        <source>Remove 'Shared' keyword from Module member</source>
+        <target state="new">Remove 'Shared' keyword from Module member</target>
+        <note>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">Введите здесь имя для объявления нового поля.</target>

@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     }
                 }
             }
-            catch (ArgumentOutOfRangeException ex) when (FatalError.ReportWithoutCrash(ex))
+            catch (ArgumentOutOfRangeException ex) when (FatalError.ReportAndCatch(ex))
             {
                 // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=428328&_a=edit&triage=false
                 // explicitly report NFW to find out what is causing us for out of range.

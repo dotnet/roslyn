@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
+            Debug.Assert(checksum != Checksum.Null);
+
             if (_assetCache.TryGetAsset(checksum, out T asset))
             {
                 return asset;
@@ -112,6 +115,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
+            Debug.Assert(!checksums.Contains(Checksum.Null));
+
             using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
                 var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
@@ -125,6 +130,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
+            Debug.Assert(checksum != Checksum.Null);
+
             using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
             checksums.Add(checksum);
 
@@ -134,6 +141,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<ImmutableArray<(Checksum checksum, object value)>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
+            Debug.Assert(!checksums.Contains(Checksum.Null));
+
             if (checksums.Count == 0)
             {
                 return ImmutableArray<(Checksum, object)>.Empty;

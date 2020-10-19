@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
                 {
                     body(i);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

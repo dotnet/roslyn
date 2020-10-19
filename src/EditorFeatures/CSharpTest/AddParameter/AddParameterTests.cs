@@ -2795,7 +2795,7 @@ void outer()
 
         [WorkItem(42559, "https://github.com/dotnet/roslyn/issues/42559")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestAddParameter_TargetTypedNew()
+        public async Task TestAddParameter_ImplicitObjectCreation()
         {
             await TestInRegularAndScriptAsync(@"
 class C
