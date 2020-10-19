@@ -55,13 +55,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
             }
         }
 
-        protected virtual Task<ImmutableArray<TFromExpression>> FilterFromExpressionCandidatesAsync(
+        protected abstract Task<ImmutableArray<TFromExpression>> FilterFromExpressionCandidatesAsync(
             ImmutableArray<TFromExpression> fromExpressions,
             Document document,
-            CancellationToken cancellationToken)
-            => Task.FromResult(fromExpressions);
+            CancellationToken cancellationToken);
 
-        protected async Task<ImmutableArray<TFromExpression>> FilterCastExpressionsOfReferenceTypesAsync(
+        protected static async Task<ImmutableArray<TFromExpression>> FilterCastExpressionsOfReferenceTypesAsync(
             ImmutableArray<TFromExpression> fromExpressions,
             Document document,
             CancellationToken cancellationToken)

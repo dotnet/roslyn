@@ -24,8 +24,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
             Return VBFeaturesResources.Change_to_CType
         End Function
 
+        Protected Overrides Function FilterFromExpressionCandidatesAsync(
+                fromExpressions As ImmutableArray(Of TryCastExpressionSyntax),
+                document As CodeAnalysis.Document,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of TryCastExpressionSyntax))
+            Return Task.FromResult(fromExpressions)
+        End Function
+
         Protected Overrides Function ConvertExpression(fromExpression As TryCastExpressionSyntax) As CodeAnalysis.SyntaxNode
-            return SyntaxFactory.CTypeExpression(fromExpression.Expression, fromExpression.Type)
+            Return SyntaxFactory.CTypeExpression(fromExpression.Expression, fromExpression.Type)
         End Function
     End Class
 End Namespace
