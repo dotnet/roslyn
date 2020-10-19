@@ -1476,6 +1476,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Operand { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a binding of an event.
     /// <para>
@@ -1507,6 +1508,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         bool Adds { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a conditionally accessed operation. Note that <see cref="IConditionalAccessInstanceOperation" /> is used to refer to the value
     /// of <see cref="Operation" /> within <see cref="WhenNotNull" />.
@@ -5262,73 +5264,42 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitParenthesized(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseEventAssignmentOperation : OperationOld, IEventAssignmentOperation
+    #nullable enable
+    internal sealed partial class EventAssignmentOperation : Operation, IEventAssignmentOperation
     {
-        internal BaseEventAssignmentOperation(bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.EventAssignment, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal EventAssignmentOperation(IOperation eventReference, IOperation handlerValue, bool adds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            EventReference = SetParentOperation(eventReference, this);
+            HandlerValue = SetParentOperation(handlerValue, this);
             Adds = adds;
+            Type = type;
         }
-        public abstract IOperation EventReference { get; }
-        public abstract IOperation HandlerValue { get; }
+        public IOperation EventReference { get; }
+        public IOperation HandlerValue { get; }
         public bool Adds { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (EventReference is object) yield return EventReference;
-                if (HandlerValue is object) yield return HandlerValue;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (EventReference is not null) builder.Add(EventReference);
+                    if (HandlerValue is not null) builder.Add(HandlerValue);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.EventAssignment;
         public override void Accept(OperationVisitor visitor) => visitor.VisitEventAssignment(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitEventAssignment(this, argument);
     }
-    internal sealed partial class EventAssignmentOperation : BaseEventAssignmentOperation, IEventAssignmentOperation
-    {
-        internal EventAssignmentOperation(IOperation eventReference, IOperation handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(adds, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            EventReference = SetParentOperation(eventReference, this);
-            HandlerValue = SetParentOperation(handlerValue, this);
-        }
-        public override IOperation EventReference { get; }
-        public override IOperation HandlerValue { get; }
-    }
-    internal abstract partial class LazyEventAssignmentOperation : BaseEventAssignmentOperation, IEventAssignmentOperation
-    {
-        private IOperation _lazyEventReference = s_unset;
-        private IOperation _lazyHandlerValue = s_unset;
-        internal LazyEventAssignmentOperation(bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(adds, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateEventReference();
-        public override IOperation EventReference
-        {
-            get
-            {
-                if (_lazyEventReference == s_unset)
-                {
-                    IOperation eventReference = CreateEventReference();
-                    SetParentOperation(eventReference, this);
-                    Interlocked.CompareExchange(ref _lazyEventReference, eventReference, s_unset);
-                }
-                return _lazyEventReference;
-            }
-        }
-        protected abstract IOperation CreateHandlerValue();
-        public override IOperation HandlerValue
-        {
-            get
-            {
-                if (_lazyHandlerValue == s_unset)
-                {
-                    IOperation handlerValue = CreateHandlerValue();
-                    SetParentOperation(handlerValue, this);
-                    Interlocked.CompareExchange(ref _lazyHandlerValue, handlerValue, s_unset);
-                }
-                return _lazyHandlerValue;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseConditionalAccessOperation : OperationOld, IConditionalAccessOperation
     {
         internal BaseConditionalAccessOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8781,6 +8752,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ParenthesizedOperation)operation;
             return new ParenthesizedOperation(Visit(internalOperation.Operand), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, object? argument)
+        {
+            var internalOperation = (EventAssignmentOperation)operation;
+            return new EventAssignmentOperation(Visit(internalOperation.EventReference), Visit(internalOperation.HandlerValue), internalOperation.Adds, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, object? argument)
         {

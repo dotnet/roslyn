@@ -48,7 +48,8 @@ namespace IOperationGenerator
             "IArrayCreationOperation",
             "IIsTypeOperation",
             "IAwaitOperation",
-            "IParenthesizedOperation"
+            "IParenthesizedOperation",
+            "IEventAssignmentOperation"
         };
     }
 }

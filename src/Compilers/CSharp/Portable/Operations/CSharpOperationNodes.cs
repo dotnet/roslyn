@@ -340,29 +340,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyEventAssignmentOperation : LazyEventAssignmentOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundEventAssignmentOperator _eventAssignmentOperator;
-
-        internal CSharpLazyEventAssignmentOperation(CSharpOperationFactory operationFactory, BoundEventAssignmentOperator eventAssignmentOperator, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(adds, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _eventAssignmentOperator = eventAssignmentOperator;
-        }
-
-        protected override IOperation CreateEventReference()
-        {
-            return _operationFactory.CreateBoundEventAccessOperation(_eventAssignmentOperator);
-        }
-
-        protected override IOperation CreateHandlerValue()
-        {
-            return _operationFactory.Create(_eventAssignmentOperator.Argument);
-        }
-    }
-
     internal sealed class CSharpLazyEventReferenceOperation : LazyEventReferenceOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

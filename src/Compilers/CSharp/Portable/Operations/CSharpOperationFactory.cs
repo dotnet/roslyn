@@ -618,28 +618,29 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyPropertyReferenceOperation(this, boundIndexerAccess, isObjectOrCollectionInitializer, property.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAccess boundEventAccess)
         {
             IEventSymbol @event = boundEventAccess.EventSymbol.GetPublicSymbol();
-            BoundNode instance = boundEventAccess.ReceiverOpt;
+            BoundNode? instance = boundEventAccess.ReceiverOpt;
             SyntaxNode syntax = boundEventAccess.Syntax;
-            ITypeSymbol type = boundEventAccess.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundEventAccess.ConstantValue;
+            ITypeSymbol? type = boundEventAccess.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundEventAccess.ConstantValue;
             bool isImplicit = boundEventAccess.WasCompilerGenerated;
             return new CSharpLazyEventReferenceOperation(this, instance, @event, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IEventAssignmentOperation CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
+            IOperation eventReference = CreateBoundEventAccessOperation(boundEventAssignmentOperator);
+            IOperation handlerValue = Create(boundEventAssignmentOperator.Argument);
             SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
             bool adds = boundEventAssignmentOperator.IsAddition;
-            ITypeSymbol type = boundEventAssignmentOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundEventAssignmentOperator.ConstantValue;
+            ITypeSymbol? type = boundEventAssignmentOperator.GetPublicTypeSymbol();
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
-            return new CSharpLazyEventAssignmentOperation(this, boundEventAssignmentOperator, adds, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new EventAssignmentOperation(eventReference, handlerValue, adds, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IParameterReferenceOperation CreateBoundParameterOperation(BoundParameter boundParameter)
         {
             IParameterSymbol parameter = boundParameter.ParameterSymbol.GetPublicSymbol();

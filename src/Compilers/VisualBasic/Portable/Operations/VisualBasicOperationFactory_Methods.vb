@@ -494,9 +494,10 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Friend Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
+            Dim eventReference As IOperation = Create(statement.EventAccess)
+            Dim handlerValue As IOperation = Create(statement.Handler)
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
-            Return New VisualBasicLazyEventAssignmentOperation(
-                Me, statement, adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+            Return New EventAssignmentOperation(eventReference, handlerValue, adds, _semanticModel, statement.Syntax, type:=Nothing, isImplicit:=True)
         End Function
 
 #Region "Conversions"

@@ -180,27 +180,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyEventAssignmentOperation
-        Inherits LazyEventAssignmentOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _addRemoveHandlerStatement As BoundAddRemoveHandlerStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, addRemoveHandlerStatement As BoundAddRemoveHandlerStatement, adds As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(adds, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _addRemoveHandlerStatement = addRemoveHandlerStatement
-        End Sub
-
-        Protected Overrides Function CreateEventReference() As IOperation
-            Return _operationFactory.Create(_addRemoveHandlerStatement.EventAccess)
-        End Function
-
-        Protected Overrides Function CreateHandlerValue() As IOperation
-            Return _operationFactory.Create(_addRemoveHandlerStatement.Handler)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyEventReferenceOperation
         Inherits LazyEventReferenceOperation
 

@@ -6497,6 +6497,7 @@ oneMoreTime:
             LeaveRegion();
         }
 
+#nullable enable
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
         {
             EvalStackFrame frame = PushStackFrame();
@@ -6504,7 +6505,7 @@ oneMoreTime:
 
             // Get the IEventReferenceOperation, digging through IParenthesizedOperation.
             // Note that for error cases, the event reference might be an IInvalidOperation.
-            IEventReferenceOperation eventReference = getEventReference();
+            IEventReferenceOperation? eventReference = getEventReference();
             if (eventReference != null)
             {
                 // Preserve the IEventReferenceOperation.
@@ -6516,7 +6517,7 @@ oneMoreTime:
 
                 visitedHandler = Visit(operation.HandlerValue);
 
-                IOperation visitedInstance = eventReferenceInstance == null ? null : PopOperand();
+                IOperation? visitedInstance = eventReferenceInstance == null ? null : PopOperand();
                 visitedEventReference = new EventReferenceOperation(eventReference.Event, visitedInstance,
                     semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.GetConstantValue(), IsImplicit(operation.EventReference));
             }
@@ -6531,9 +6532,9 @@ oneMoreTime:
 
             PopStackFrame(frame);
             return new EventAssignmentOperation(visitedEventReference, visitedHandler, operation.Adds, semanticModel: null,
-                operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                operation.Syntax, operation.Type, IsImplicit(operation));
 
-            IEventReferenceOperation getEventReference()
+            IEventReferenceOperation? getEventReference()
             {
                 IOperation current = operation.EventReference;
 
@@ -6555,7 +6556,6 @@ oneMoreTime:
             }
         }
 
-#nullable enable
         public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);

@@ -139,11 +139,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new EventReferenceOperation(operation.Event, Visit(operation.Instance), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, object argument)
-        {
-            return new EventAssignmentOperation(Visit(operation.EventReference), Visit(operation.HandlerValue), operation.Adds, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitConditionalAccess(IConditionalAccessOperation operation, object argument)
         {
             return new ConditionalAccessOperation(Visit(operation.WhenNotNull), Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

@@ -1316,7 +1316,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IEventAssignmentOperation" Base="IOperation" ChildrenOrder="EventReference,HandlerValue">
+  <Node Name="IEventAssignmentOperation" Base="IOperation" ChildrenOrder="EventReference,HandlerValue" HasType="true">
     <Comments>
       <summary>
         Represents a binding of an event.
