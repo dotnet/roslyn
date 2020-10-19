@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
     internal class FindUsagesLSPContext : FindUsagesContext
     {
-        private readonly IProgress<VSReferenceItem> _progress;
+        private readonly IProgress<VSReferenceItem[]> _progress;
         private readonly Document _document;
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         public override CancellationToken CancellationToken { get; }
 
         public FindUsagesLSPContext(
-            IProgress<VSReferenceItem> progress,
+            IProgress<VSReferenceItem[]> progress,
             Document document,
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
@@ -275,10 +275,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         private Task ReportReferencesAsync(ImmutableArray<VSReferenceItem> referencesToReport, CancellationToken cancellationToken)
         {
             // We can report outside of the lock here since _progress is thread-safe.
-            foreach (var reference in referencesToReport)
-            {
-                _progress.Report(reference);
-            }
+            _progress.Report(referencesToReport.ToArray());
             return Task.CompletedTask;
         }
     }

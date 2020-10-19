@@ -127,13 +127,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Search the document and report the results back using <see cref="IProgress{T}"/>
         /// <see cref="IProgress{T}.Report(T)"/> implementation for symbol search is threadsafe.
         /// </summary>
-        private static async Task SearchDocumentAndReportSymbolsAsync(Document document, string query, IProgress<SymbolInformation> progress, CancellationToken cancellationToken)
+        private static async Task SearchDocumentAndReportSymbolsAsync(Document document, string query, IProgress<SymbolInformation[]> progress, CancellationToken cancellationToken)
         {
             var convertedResults = await SearchDocumentAsync(document, query, cancellationToken).ConfigureAwait(false);
-            foreach (var result in convertedResults)
-            {
-                progress.Report(result);
-            }
+            progress.Report(convertedResults.ToArray());
         }
 
         private static async Task<ImmutableArray<SymbolInformation>> ConvertAsync(

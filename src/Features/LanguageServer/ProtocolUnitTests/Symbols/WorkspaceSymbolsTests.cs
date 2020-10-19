@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].Single())
             };
 
-            using var progress = BufferedProgress.Create<LSP.SymbolInformation[]>(null);
+            using var progress = BufferedProgress.Create<LSP.SymbolInformation>(null);
 
             var results = await RunGetWorkspaceSymbolsAsync(workspace.CurrentSolution, "A", progress).ConfigureAwait(false);
 
             Assert.Empty(results);
 
-            results = progress.GetValues().SelectMany(s => s).ToArray();
+            results = progress.GetValues().ToArray();
 
             AssertJsonEquals(expected, results);
         }

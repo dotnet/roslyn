@@ -47,13 +47,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             using var workspace = TestWorkspace.CreateCSharp(code, composition: s_composition);
 
-            using var progress = BufferedProgress.Create<SymbolInformation[]>(null);
+            using var progress = BufferedProgress.Create<SymbolInformation>(null);
 
             var results = await GetVsSearchResultsAsync(workspace, "met", progress);
 
             Assert.Null(results);
 
-            results = progress.GetValues().SelectMany(s => s).ToArray();
+            results = progress.GetValues().ToArray();
 
             Assert.Equal("Method", Assert.Single(results).Name);
         }
