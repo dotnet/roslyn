@@ -24139,7 +24139,7 @@ record R : I, Base;
         }
 
         [Fact]
-        public void RecordLoadedInVisualBasicDisplaysAsRecord()
+        public void RecordLoadedInVisualBasicDisplaysAsClass()
         {
             var src = @"
 public record A;
@@ -24147,7 +24147,7 @@ public record A;
             var compRef = CreateCompilation(src).EmitToImageReference();
             var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: new[] { compRef });
             var symbol = vbComp.GlobalNamespace.GetTypeMember("A");
-            Assert.Equal("record A",
+            Assert.Equal("class A",
                 SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
