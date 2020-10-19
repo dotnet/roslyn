@@ -765,29 +765,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyObjectCreationOperation : LazyObjectCreationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundObjectCreationExpression _objectCreation;
-
-        internal CSharpLazyObjectCreationOperation(CSharpOperationFactory operationFactory, BoundObjectCreationExpression objectCreation, IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _objectCreation = objectCreation;
-        }
-
-        protected override IObjectOrCollectionInitializerOperation CreateInitializer()
-        {
-            return (IObjectOrCollectionInitializerOperation)_operationFactory.Create(_objectCreation.InitializerExpressionOpt);
-        }
-
-        protected override ImmutableArray<IArgumentOperation> CreateArguments()
-        {
-            return _operationFactory.DeriveArguments(_objectCreation);
-        }
-    }
-
     internal sealed class CSharpLazyWithExpressionOperation : LazyWithOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

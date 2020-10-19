@@ -42,7 +42,8 @@ namespace IOperationGenerator
             "IBinaryOperation",
             "IConditionalOperation",
             "ICoalesceOperation",
-            "IAnonymousFunctionOperation"
+            "IAnonymousFunctionOperation",
+            "IObjectCreationOperation"
         };
     }
 }

@@ -778,12 +778,14 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundObjectCreationExpressionOperation(boundObjectCreationExpression As BoundObjectCreationExpression) As IObjectCreationOperation
             Debug.Assert(boundObjectCreationExpression.ConstructorOpt IsNot Nothing OrElse boundObjectCreationExpression.Arguments.IsEmpty())
             Dim constructor As IMethodSymbol = boundObjectCreationExpression.ConstructorOpt
+            Dim initializer As IObjectOrCollectionInitializerOperation = DirectCast(Create(boundObjectCreationExpression.InitializerOpt), IObjectOrCollectionInitializerOperation)
+            Dim arguments as ImmutableArray(Of IArgumentOperation) = DeriveArguments(boundObjectCreationExpression)
 
             Dim syntax As SyntaxNode = boundObjectCreationExpression.Syntax
             Dim type As ITypeSymbol = boundObjectCreationExpression.Type
             Dim constantValue As ConstantValue = boundObjectCreationExpression.ConstantValueOpt
             Dim isImplicit As Boolean = boundObjectCreationExpression.WasCompilerGenerated
-            Return New VisualBasicLazyObjectCreationOperation(Me, boundObjectCreationExpression, constructor, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ObjectCreationOperation(constructor, initializer, arguments, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundObjectInitializerExpressionOperation(boundObjectInitializerExpression As BoundObjectInitializerExpression) As IObjectOrCollectionInitializerOperation

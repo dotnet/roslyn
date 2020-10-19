@@ -449,7 +449,7 @@ namespace IOperationGenerator
 
             if (node != null)
             {
-                if (publicIOperationProps.Count > 0)
+                if (publicIOperationProps.Count > 0 && !node.SkipChildrenGeneration)
                 {
                     WriteLine("public override IEnumerable<IOperation> Children");
                     Brace();
@@ -459,7 +459,26 @@ namespace IOperationGenerator
                     WriteLine($"if ({lazyChildren} is null)");
                     Brace();
                     WriteLine($"var builder = ArrayBuilder<IOperation>.GetInstance({publicIOperationProps.Count});");
-                    foreach (var prop in publicIOperationProps)
+
+                    var orderedProperties = new List<Property>();
+
+                    if (publicIOperationProps.Count == 1)
+                    {
+                        orderedProperties.Add(publicIOperationProps.Single());
+                    }
+                    else
+                    {
+                        Debug.Assert(node.ChildrenOrder != null, $"Encountered null children order for {type.Name}, should have been caught in verifier!");
+                        var childrenOrdered = GetPropertyOrder(node);
+
+                        foreach (var childName in childrenOrdered)
+                        {
+                            orderedProperties.Add(publicIOperationProps.Find(p => p.Name == childName) ??
+                                throw new InvalidOperationException($"Cannot find property for {childName}"));
+                        }
+                    }
+
+                    foreach (var prop in orderedProperties)
                     {
                         if (IsImmutableArray(prop.Type, out _))
                         {

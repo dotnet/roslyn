@@ -1969,7 +1969,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> originalArray, Func<T, IOperation> unwrapper = null, Func<IOperation, int, ImmutableArray<T>, T> wrapper = null) where T : IOperation
+#nullable enable
+        private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> originalArray, Func<T, IOperation>? unwrapper = null, Func<IOperation, int, ImmutableArray<T>, T>? wrapper = null) where T : IOperation
         {
 #if DEBUG
             int stackSizeBefore = _evalStack.Count;
@@ -1989,6 +1990,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             return VisitArray(arguments, UnwrapArgument, RewriteArgumentFromArray);
         }
+#nullable disable
 
         private static IOperation UnwrapArgument(IArgumentOperation argument)
         {
@@ -5574,6 +5576,7 @@ oneMoreTime:
             return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance));
         }
 
+#nullable enable
         public override IOperation VisitObjectCreation(IObjectCreationOperation operation, int? captureIdForResult)
         {
             EvalStackFrame frame = PushStackFrame();
@@ -5586,6 +5589,7 @@ oneMoreTime:
 
             return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance));
         }
+#nullable disable
 
         public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
         {

@@ -201,11 +201,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new AddressOfOperation(Visit(operation.Reference), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitObjectCreation(IObjectCreationOperation operation, object argument)
-        {
-            return new ObjectCreationOperation(operation.Constructor, Visit(operation.Initializer), VisitArray(operation.Arguments), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, object argument)
         {
             return new AnonymousObjectCreationOperation(VisitArray(operation.Initializers), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

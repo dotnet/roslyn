@@ -523,27 +523,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyObjectCreationOperation
-        Inherits LazyObjectCreationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _objectCreation As BoundObjectCreationExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, objectCreation As BoundObjectCreationExpression, constructor As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(constructor, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _objectCreation = objectCreation
-        End Sub
-
-        Protected Overrides Function CreateInitializer() As IObjectOrCollectionInitializerOperation
-            Return DirectCast(_operationFactory.Create(_objectCreation.InitializerOpt), IObjectOrCollectionInitializerOperation)
-        End Function
-
-        Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            Return _operationFactory.DeriveArguments(_objectCreation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyAnonymousObjectCreationOperation
         Inherits LazyAnonymousObjectCreationOperation
 

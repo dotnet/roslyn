@@ -1073,7 +1073,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IObjectCreationOperation" Base="IOperation" ChildrenOrder="Arguments,Initializer">
+  <Node Name="IObjectCreationOperation" Base="IOperation" ChildrenOrder="Arguments,Initializer" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents creation of an object instance.
@@ -1084,12 +1084,12 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Constructor" Type="IMethodSymbol">
+    <Property Name="Constructor" Type="IMethodSymbol?">
       <Comments>
         <summary>Constructor to be invoked on the created instance.</summary>
       </Comments>
     </Property>
-    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">
+    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation?">
       <Comments>
         <summary>Object or collection initializer, if any.</summary>
       </Comments>

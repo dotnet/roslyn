@@ -668,12 +668,13 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyAnonymousObjectCreationOperation(this, boundAnonymousObjectCreationExpression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IOperation CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
         {
             MethodSymbol constructor = boundObjectCreationExpression.Constructor;
             SyntaxNode syntax = boundObjectCreationExpression.Syntax;
-            ITypeSymbol type = boundObjectCreationExpression.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundObjectCreationExpression.ConstantValue;
+            ITypeSymbol? type = boundObjectCreationExpression.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundObjectCreationExpression.ConstantValue;
             bool isImplicit = boundObjectCreationExpression.WasCompilerGenerated;
 
             if (boundObjectCreationExpression.ResultKind == LookupResultKind.OverloadResolutionFailure || constructor == null || constructor.OriginalDefinition is ErrorMethodSymbol)
@@ -687,8 +688,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 return new CSharpLazyAnonymousObjectCreationOperation(this, boundObjectCreationExpression, _semanticModel, syntax, type, constantValue, isImplicit);
             }
 
-            return new CSharpLazyObjectCreationOperation(this, boundObjectCreationExpression, constructor.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
+            ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundObjectCreationExpression);
+            IObjectOrCollectionInitializerOperation? initializer = (IObjectOrCollectionInitializerOperation?)Create(boundObjectCreationExpression.InitializerExpressionOpt);
+
+            return new ObjectCreationOperation(constructor.GetPublicSymbol(), initializer, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
+#nullable disable
 
         private IOperation CreateBoundWithExpressionOperation(BoundWithExpression boundWithExpression)
         {
