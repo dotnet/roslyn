@@ -33,12 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly Workspace _workspace;
         private readonly RequestExecutionQueue _queue;
 
-        /// <summary>
-        /// Work queue responsible for receiving notifications about diagnostic updates and publishing those to
-        /// interested parties.
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue<DocumentId> _diagnosticsWorkQueue;
-
         private VSClientCapabilities? _clientCapabilities;
         private bool _shuttingDown;
 
