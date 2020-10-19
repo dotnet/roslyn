@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertCast
     /// Into:
     ///     var o = (object)1;
     /// </summary>
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertConversionOperatorsFromTryCastToThrowingCast), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertTryCastToDirectCast), Shared]
     internal partial class CSharpConvertTryCastToDirectCastCodeRefactoringProvider
         : AbstractConvertCastCodeRefactoringProvider<TypeSyntax, BinaryExpressionSyntax, CastExpressionSyntax>
     {

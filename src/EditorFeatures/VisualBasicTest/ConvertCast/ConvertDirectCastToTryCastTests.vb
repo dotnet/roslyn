@@ -7,7 +7,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.ConvertCast.VisualBasicConvertDirectCastToTryCastCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertCast
-    <Trait(Traits.Feature, Traits.Features.ConvertConversionOperators)>
+    <Trait(Traits.Feature, Traits.Features.ConvertCast)>
     Public Class ConvertDirectCastToTryCastTests
 
         <Fact>
