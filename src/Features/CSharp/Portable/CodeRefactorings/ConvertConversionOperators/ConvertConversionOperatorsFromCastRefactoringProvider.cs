@@ -41,13 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            castExpressions = (from node in castExpressions
-                               let type = semanticModel.GetTypeInfo(node.Type, cancellationToken).Type
-                               where type?.IsValueType != true
-                               select node)
-                               .ToImmutableArray();
-
-            return castExpressions;
+            return (from node in castExpressions
+                    let type = semanticModel.GetTypeInfo(node.Type, cancellationToken).Type
+                    where type?.IsValueType != true
+                    select node)
+                    .ToImmutableArray();
         }
 
         protected override string GetTitle()
