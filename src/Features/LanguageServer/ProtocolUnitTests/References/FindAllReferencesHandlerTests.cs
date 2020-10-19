@@ -75,7 +75,7 @@ class B
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var progress = BufferedProgress.Create<object>(null);
+            using var progress = BufferedProgress.Create<object>(null);
 
             var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First(), progress);
 

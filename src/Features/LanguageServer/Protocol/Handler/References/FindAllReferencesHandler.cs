@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<LSP.VSReferenceItem>();
             }
 
-            var progress = BufferedProgress.Create<VSReferenceItem>(referenceParams.PartialResultToken);
+            using var progress = BufferedProgress.Create<VSReferenceItem>(referenceParams.PartialResultToken);
 
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(
