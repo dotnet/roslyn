@@ -1193,7 +1193,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IAwaitOperation" Base="IOperation">
+  <Node Name="IAwaitOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an await operation.

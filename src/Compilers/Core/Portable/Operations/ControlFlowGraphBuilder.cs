@@ -3903,7 +3903,7 @@ oneMoreTime:
 
                     if (isAsynchronous)
                     {
-                        return new AwaitOperation(invocation, semanticModel: null, value.Syntax, _compilation.GetSpecialType(SpecialType.System_Void), constantValue: null, isImplicit: true);
+                        return new AwaitOperation(invocation, semanticModel: null, value.Syntax, _compilation.GetSpecialType(SpecialType.System_Void), isImplicit: true);
                     }
 
                     return invocation;
@@ -4261,7 +4261,7 @@ oneMoreTime:
                     var moveNext = makeInvocationDroppingInstanceForStaticMethods(info.MoveNextMethod, enumeratorRef, info.MoveNextArguments);
                     if (operation.IsAsynchronous)
                     {
-                        return new AwaitOperation(moveNext, semanticModel: null, operation.Syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), constantValue: null, isImplicit: true);
+                        return new AwaitOperation(moveNext, semanticModel: null, operation.Syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), isImplicit: true);
                     }
                     return moveNext;
                 }
@@ -6395,12 +6395,12 @@ oneMoreTime:
             return new ParenthesizedOperation(Visit(operation.Operand), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitAwait(IAwaitOperation operation, int? captureIdForResult)
         {
-            return new AwaitOperation(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            return new AwaitOperation(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
-#nullable enable
         public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
         {
             return new SizeOfOperation(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));

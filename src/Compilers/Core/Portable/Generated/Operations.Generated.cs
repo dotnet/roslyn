@@ -1337,6 +1337,7 @@ namespace Microsoft.CodeAnalysis.Operations
         bool IsNegated { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an await operation.
     /// <para>
@@ -1360,6 +1361,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Operation { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a base interface for assignments.
     /// <para>
@@ -5046,50 +5048,37 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitIsType(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseAwaitOperation : OperationOld, IAwaitOperation
+    #nullable enable
+    internal sealed partial class AwaitOperation : Operation, IAwaitOperation
     {
-        internal BaseAwaitOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Await, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Operation { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal AwaitOperation(IOperation operation, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Operation = SetParentOperation(operation, this);
+            Type = type;
+        }
+        public IOperation Operation { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Operation is object) yield return Operation;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Operation is not null) builder.Add(Operation);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Await;
         public override void Accept(OperationVisitor visitor) => visitor.VisitAwait(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitAwait(this, argument);
     }
-    internal sealed partial class AwaitOperation : BaseAwaitOperation, IAwaitOperation
-    {
-        internal AwaitOperation(IOperation operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operation = SetParentOperation(operation, this);
-        }
-        public override IOperation Operation { get; }
-    }
-    internal abstract partial class LazyAwaitOperation : BaseAwaitOperation, IAwaitOperation
-    {
-        private IOperation _lazyOperation = s_unset;
-        internal LazyAwaitOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateOperation();
-        public override IOperation Operation
-        {
-            get
-            {
-                if (_lazyOperation == s_unset)
-                {
-                    IOperation operation = CreateOperation();
-                    SetParentOperation(operation, this);
-                    Interlocked.CompareExchange(ref _lazyOperation, operation, s_unset);
-                }
-                return _lazyOperation;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseAssignmentOperation : OperationOld, IAssignmentOperation
     {
         protected BaseAssignmentOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8792,6 +8781,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (IsTypeOperation)operation;
             return new IsTypeOperation(Visit(internalOperation.ValueOperand), internalOperation.TypeOperand, internalOperation.IsNegated, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitAwait(IAwaitOperation operation, object? argument)
+        {
+            var internalOperation = (AwaitOperation)operation;
+            return new AwaitOperation(Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, object? argument)
         {

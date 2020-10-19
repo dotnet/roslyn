@@ -422,12 +422,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundAwaitOperatorOperation(boundAwaitOperator As BoundAwaitOperator) As IAwaitOperation
-            Dim awaitedValue As BoundNode = boundAwaitOperator.Operand
+            Dim awaitedValue As IOperation = Create(boundAwaitOperator.Operand)
             Dim syntax As SyntaxNode = boundAwaitOperator.Syntax
             Dim type As ITypeSymbol = boundAwaitOperator.Type
-            Dim constantValue As ConstantValue = boundAwaitOperator.ConstantValueOpt
             Dim isImplicit As Boolean = boundAwaitOperator.WasCompilerGenerated
-            Return New VisualBasicLazyAwaitOperation(Me, awaitedValue, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New AwaitOperation(awaitedValue, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundNameOfOperatorOperation(boundNameOfOperator As BoundNameOfOperator) As INameOfOperation

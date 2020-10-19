@@ -176,11 +176,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DelegateCreationOperation(Visit(operation.Target), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitAwait(IAwaitOperation operation, object argument)
-        {
-            return new AwaitOperation(Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitNameOf(INameOfOperation operation, object argument)
         {
             return new NameOfOperation(Visit(operation.Argument), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

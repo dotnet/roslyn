@@ -1427,17 +1427,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyCoalesceAssignmentOperation(this, boundNode, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IAwaitOperation CreateBoundAwaitExpressionOperation(BoundAwaitExpression boundAwaitExpression)
         {
-            BoundNode awaitedValue = boundAwaitExpression.Expression;
+            IOperation awaitedValue = Create(boundAwaitExpression.Expression);
             SyntaxNode syntax = boundAwaitExpression.Syntax;
-            ITypeSymbol type = boundAwaitExpression.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundAwaitExpression.ConstantValue;
+            ITypeSymbol? type = boundAwaitExpression.GetPublicTypeSymbol();
             bool isImplicit = boundAwaitExpression.WasCompilerGenerated;
-            return new CSharpLazyAwaitOperation(this, awaitedValue, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new AwaitOperation(awaitedValue, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IArrayElementReferenceOperation CreateBoundArrayAccessOperation(BoundArrayAccess boundArrayAccess)
         {
             // PROTOTYPE(iop): When removing the laziness, this comment will no longer be relevant, because caching won't
