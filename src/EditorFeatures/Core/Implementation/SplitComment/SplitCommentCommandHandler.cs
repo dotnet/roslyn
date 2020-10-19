@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             if (spans.Count != 1)
                 return false;
 
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var snapshot = subjectBuffer.CurrentSnapshot;
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
                 return false;
 
@@ -76,13 +77,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             // Quick check.  If the line doesn't contain a comment in it before the caret,
             // then no point in doing any more expensive synchronous work.
             var splitCommentService = document.GetRequiredLanguageService<ISplitCommentService>();
-            if (!LineProbablyContainsComment(splitCommentService, line, position))
+            if (!LineProbablyContainsComment(splitCommentService, new SnapshotPoint(snapshot, position)))
                 return false;
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Split_comment))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
-                var result = SplitCommentAsync(textView, subjectBuffer, document, selectionSpan, cancellationToken).WaitAndGetResult(cancellationToken);
+                var result = SplitCommentAsync(textView, document, new SnapshotSpan(snapshot, selectionSpan), cancellationToken).WaitAndGetResult(cancellationToken);
                 if (result == null)
                     return false;
 
@@ -91,34 +92,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 
                 subjectBuffer.Replace(result.Value.replacementSpan, result.Value.replacementText);
 
-                transaction.Complete();
+                transaction?.Complete();
                 return true;
             }
         }
 
-        private static bool LineProbablyContainsComment(ISplitCommentService service, ITextSnapshotLine line, int caretPosition)
+        private static bool LineProbablyContainsComment(ISplitCommentService service, SnapshotPoint position)
         {
             var commentStart = service.CommentStart;
+            var line = position.GetContainingLine();
 
-            var end = Math.Max(caretPosition, line.Length);
-            for (var i = 0; i < end; i++)
+            for (var p = line.Start.Position; p < position; p++)
             {
-                if (MatchesCommentStart(line, commentStart, i))
+                if (MatchesCommentStart(commentStart, line, p))
                     return true;
             }
 
             return false;
         }
 
-        private static bool MatchesCommentStart(ITextSnapshotLine line, string commentStart, int index)
+        private static bool MatchesCommentStart(string commentStart, SnapshotPoint point)
+            => MatchesCommentStart(commentStart, point.GetContainingLine(), point.Position);
+
+        private static bool MatchesCommentStart(string commentStart, ITextSnapshotLine line, int position)
         {
-            var lineStart = line.Start;
+            if (position + commentStart.Length > line.End)
+                return false;
+
+            var snapshot = line.Snapshot;
             for (var c = 0; c < commentStart.Length; c++)
             {
-                if (lineStart.Position + index >= line.Snapshot.Length)
-                    return false;
-
-                if (line.Snapshot[lineStart + index] != commentStart[c])
+                if (snapshot[position + c] != commentStart[c])
                     return false;
             }
 
@@ -127,9 +131,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 
         private static async Task<(Span replacementSpan, string replacementText)?> SplitCommentAsync(
             ITextView textView,
-            ITextBuffer subjectBuffer,
             Document document,
-            Span selectionSpan,
+            SnapshotSpan selectionSpan,
             CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -152,12 +155,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             if (!splitCommentService.IsAllowed(root, trivia))
                 return null;
 
-            var textSnapshot = subjectBuffer.CurrentSnapshot;
+            // If the user hits enter at:    // goo $$ // bar
+            //
+            // we don't want to consider this a comment continuation.  They likely were doing some text manipulations
+            // that put two comments on the same line, and really just want this to act like a normal enter.
+            if (IsFollowedByComment(selectionSpan.End, splitCommentService))
+                return null;
+
+            var textSnapshot = selectionSpan.Snapshot;
             var triviaLine = textSnapshot.GetLineFromPosition(trivia.SpanStart);
 
             var replacementSpan = GetReplacementSpan(triviaLine, selectionSpan);
             var replacementText = GetReplacementText(textView, options, triviaLine, trivia, selectionSpan.Start);
             return (replacementSpan, replacementText);
+        }
+
+        private static bool IsFollowedByComment(SnapshotPoint point, ISplitCommentService splitCommentService)
+        {
+            var line = point.GetContainingLine();
+
+            // skip past following whitespace.
+            while (point < line.End && char.IsWhiteSpace(point.GetChar()))
+                point += 1;
+
+            return MatchesCommentStart(splitCommentService.CommentStart, point);
         }
 
         private static string GetReplacementText(

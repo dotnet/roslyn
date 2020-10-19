@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new PatchService(),
                    new DatabaseFactoryService(),
                    // Report all exceptions we encounter, but don't crash on them.
-                   FatalError.ReportWithoutCrash)
+                   FatalError.ReportAndCatch)
         {
         }
 
@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return new(ImmutableArray<PackageWithTypeResult>.Empty);
+                return ValueTaskFactory.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                return new(ImmutableArray<PackageWithTypeResult>.Empty);
+                return ValueTaskFactory.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            return new(result.ToImmutableAndFree());
+            return ValueTaskFactory.FromResult(result.ToImmutableAndFree());
         }
 
         public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return new(ImmutableArray<PackageWithAssemblyResult>.Empty);
+                return ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
             }
 
             var result = ArrayBuilder<PackageWithAssemblyResult>.GetInstance();
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            return new(result.ToImmutableAndFree());
+            return ValueTaskFactory.FromResult(result.ToImmutableAndFree());
         }
 
         public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
@@ -155,14 +155,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return new(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
+                return ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                return new(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
+                return ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            return new(results.ToImmutableAndFree());
+            return ValueTaskFactory.FromResult(results.ToImmutableAndFree());
         }
 
         private static List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)

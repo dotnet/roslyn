@@ -495,10 +495,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// <summary>
         /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.
         /// </summary>
-        private delegate void CollectMatchingReferences(ISymbol symbol, SyntaxNode node,
+        protected delegate void CollectMatchingReferences(ISymbol symbol, SyntaxNode node,
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations);
 
-        private static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol,
             Document document,
             Func<SyntaxTreeIndex, bool> isRelevantDocument,
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var locations = ArrayBuilder<FinderLocation>.GetInstance();
+                using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
 
                 var originalUnreducedSymbolDefinition = symbol.GetOriginalUnreducedDefinition();
 
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     collectMatchingReferences(originalUnreducedSymbolDefinition, node, syntaxFacts, semanticFacts, locations);
                 }
 
-                return locations.ToImmutableAndFree();
+                return locations.ToImmutable();
             }
 
             return ImmutableArray<FinderLocation>.Empty;
@@ -637,6 +637,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             void CollectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
                 ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations)
             {
+                if (!syntaxFacts.IsImplicitObjectCreation(node))
+                {
+                    // Avoid binding unrelated nodes
+                    return;
+                }
+
                 var constructor = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
 
                 if (Matches(constructor, originalUnreducedSymbolDefinition))
@@ -650,7 +656,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        private static bool Matches(ISymbol? symbol1, ISymbol notNulloriginalUnreducedSymbol2)
+        protected static bool Matches(ISymbol? symbol1, ISymbol notNulloriginalUnreducedSymbol2)
         {
             return symbol1 != null && SymbolEquivalenceComparer.Instance.Equals(
                 symbol1.GetOriginalUnreducedDefinition(),

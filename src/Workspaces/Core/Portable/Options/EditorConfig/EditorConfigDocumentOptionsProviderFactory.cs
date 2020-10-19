@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
                     {
                         return editorConfigPersistence.TryGetOption(_options.AsNullable(), option.Option.Type, out value);
                     }
-                    catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                    catch (Exception e) when (FatalError.ReportAndCatch(e))
                     {
                         value = null;
                         return false;

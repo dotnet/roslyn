@@ -3473,16 +3473,58 @@ interface I
         {
             var source =
 @"using nint = System.Int16;
-interface I
+using nuint = System.Object;
+class Program
 {
-    nint Add(nint x, nuint y);
+    static @nint F(nint x, nuint y)
+    {
+        System.Console.WriteLine(x.GetType().FullName);
+        System.Console.WriteLine(y.GetType().FullName);
+        return x;
+    }
+    static void Main()
+    {
+        F(new nint(), new nuint());
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseExe);
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.Int16
+System.Object");
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, System.Object y)", method.ToTestDisplayString());
+                var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
+                var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
+                Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
+                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.Equal(SpecialType.System_Object, underlyingType1.SpecialType);
+                Assert.False(underlyingType1.IsNativeIntegerType);
+            }
+        }
+
+        [Fact]
+        public void AliasName_02()
+        {
+            var source =
+@"using nint = System.Int16;
+class Program
+{
+    static @nint F(nint x, nuint y) => x;
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,22): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 22));
+                // (4,28): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     static @nint F(nint x, nuint y) => x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 28));
             verify(comp);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -3491,8 +3533,42 @@ interface I
 
             static void verify(CSharpCompilation comp)
             {
-                var method = comp.GetMember<MethodSymbol>("I.Add");
-                Assert.Equal("System.Int16 I.Add(System.Int16 x, nuint y)", method.ToTestDisplayString());
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToTestDisplayString());
+                var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
+                var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
+                Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
+                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
+                Assert.True(underlyingType1.IsNativeIntegerType);
+            }
+        }
+
+        [Fact]
+        public void AliasName_03()
+        {
+            var source =
+@"using @nint = System.Int16;
+class Program
+{
+    static @nint F(nint x, nuint y) => x;
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,28): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     static @nint F(nint x, nuint y) => x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 28));
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToTestDisplayString());
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
@@ -3504,23 +3580,231 @@ interface I
 
         [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
-        public void AliasName_02()
+        public void AliasName_04()
         {
             var source =
-@"using N = nint;
+@"using A1 = nint;
+using A2 = nuint;
 class Program
 {
-    N F() => default;
+    A1 F1() => default;
+    A2 F2() => default;
 }";
+            var expectedDiagnostics = new[]
+            {
+                // (1,12): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // using A1 = nint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 12),
+                // (2,12): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // using A2 = nuint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 12)
+            };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (1,11): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // using N = nint;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(1, 11));
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AliasName_05()
+        {
+            var source1 =
+@"using A1 = nint;
+using A2 = nuint;
+class Program
+{
+    A1 F1() => default;
+    A2.B F2() => default;
+}";
+            var source2 =
+@"class nint { }
+namespace nuint
+{
+    class B { }
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void Using_01()
+        {
+            var source =
+@"using nint;
+using nuint;
+class Program
+{
+}";
+            var expectedDiagnostics = new[]
+            {
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using nint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using nint;").WithLocation(1, 1),
+                // (1,7): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // using nint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using nuint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using nuint;").WithLocation(2, 1),
+                // (2,7): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // using nuint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 7)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void Using_02()
+        {
+            var source1 =
+@"using nint;
+using nuint;
+class Program
+{
+    static void Main()
+    {
+        _ = new A();
+        _ = new B();
+    }
+}";
+            var source2 =
+@"namespace nint
+{
+    class A { }
+}
+namespace nuint
+{
+    class B { }
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_01()
+        {
+            var source =
+@"[nint]
+[A, nuint()]
+class Program
+{
+}
+class AAttribute : System.Attribute
+{
+}";
+            var expectedDiagnostics = new[]
+            {
+                // (1,2): error CS0246: The type or namespace name 'nintAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [nint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nintAttribute").WithLocation(1, 2),
+                // (1,2): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // [nint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 2),
+                // (2,5): error CS0246: The type or namespace name 'nuintAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [A, nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuintAttribute").WithLocation(2, 5),
+                // (2,5): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // [A, nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 5)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_02()
+        {
+            var source1 =
+@"[nint]
+[nuint()]
+class Program
+{
+}";
+            var source2 =
+@"using System;
+class nint : Attribute { }
+class nuintAttribute : Attribute { }";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_03()
+        {
+            var source1 =
+@"[A(nint: 0)]
+[B(nuint = 2)]
+class Program
+{
+}";
+            var source2 =
+@"using System;
+class AAttribute : Attribute
+{
+    public AAttribute(int nint) { }
+}
+class BAttribute : Attribute
+{
+    public int nuint;
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void GetSpeculativeTypeInfo()
+        {
+            var source =
+@"#pragma warning disable 219
+class Program
+{
+    static void Main()
+    {
+        nint i = 0;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var typeSyntax = SyntaxFactory.ParseTypeName("nuint");
+            int spanStart = source.IndexOf("nint i = 0;");
+            var type = model.GetSpeculativeTypeInfo(spanStart, typeSyntax, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+            Assert.True(type.IsNativeIntegerType);
         }
 
         [Fact]

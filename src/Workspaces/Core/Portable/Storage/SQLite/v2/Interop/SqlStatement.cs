@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.SQLite.Interop;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
     /// then be used in the future with new bound parameters.
     /// 
     /// Finalization/destruction of the underlying raw sqlite statement is handled
-    /// by <see cref="SqlConnection.Close_OnlyForUseBySqlPersistentStorage"/>.
+    /// by <see cref="SqlConnection.Close_OnlyForUseBySQLiteConnectionPool"/>.
     /// </summary>
     internal struct SqlStatement
     {

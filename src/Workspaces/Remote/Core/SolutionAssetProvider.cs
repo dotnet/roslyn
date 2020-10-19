@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
                     RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, scopeId, checksums, cancellationToken);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     // no-op
                 }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (Exception e)
                 {
-                    FatalError.ReportWithoutCrashUnlessCanceled(e, cancellationToken);
+                    FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken);
                     exception = e;
                 }
                 finally
@@ -104,6 +104,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => new ValueTask<bool>(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+            => ValueTaskFactory.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
     }
 }
