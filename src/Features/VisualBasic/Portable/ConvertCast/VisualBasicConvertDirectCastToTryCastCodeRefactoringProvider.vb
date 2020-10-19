@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.ConvertCast
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertCast
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertConversionOperatorsFromThrowingCastToTryCast), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertDirectCastToTryCast), [Shared]>
     Friend Class VisualBasicConvertDirectCastToTryCastCodeRefactoringProvider
         Inherits AbstractConvertCastCodeRefactoringProvider(Of TypeSyntax, DirectCastExpressionSyntax, TryCastExpressionSyntax)
 
