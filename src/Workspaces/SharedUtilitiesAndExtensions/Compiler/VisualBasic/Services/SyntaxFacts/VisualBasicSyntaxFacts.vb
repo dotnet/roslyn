@@ -1845,7 +1845,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Sub GetPartsOfCastExpression(node As SyntaxNode, ByRef type As SyntaxNode, ByRef expression As SyntaxNode) Implements ISyntaxFacts.GetPartsOfCastExpression
-            Dim cast = DirectCast(node, CastExpressionSyntax)
+            Dim cast = DirectCast(node, DirectCastExpressionSyntax)
             type = cast.Type
             expression = cast.Expression
         End Sub
