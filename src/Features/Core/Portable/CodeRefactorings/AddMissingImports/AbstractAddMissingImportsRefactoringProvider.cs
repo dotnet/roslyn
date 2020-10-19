@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 CodeActionTitle,
                 async cancellationToken =>
                 {
-                    var modifiedProject = await addMissingImportsService.AddMissingImportsAsync(analysis, cancellationToken).ConfigureAwait(false);
-                    RoslynDebug.AssertNotNull(modifiedProject);
-                    return modifiedProject.Solution;
+                    var modifiedDocument = await addMissingImportsService.AddMissingImportsAsync(analysis, cancellationToken).ConfigureAwait(false);
+                    RoslynDebug.AssertNotNull(modifiedDocument);
+                    return modifiedDocument.Project.Solution;
                 });
 
             context.RegisterRefactoring(addImportsCodeAction, textSpan);
