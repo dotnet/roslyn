@@ -1508,5 +1508,88 @@ public class C
             var option = TestOptions.ReleaseDll;
             CreateCompilation(source, options: option).VerifyDiagnostics();
         }
+
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceInstanceMembersFromStaticMemberInNameof()
+        {
+            var source = @"
+public class C
+{
+    public string S { get; }
+    public static string M() => nameof(S.Length);
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceInstanceMembersFromFieldInitializerInNameof()
+        {
+            var source = @"
+public class C
+{
+    public string S { get; } = nameof(S.Length);
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceInstanceMembersFromAttributeInNameof()
+        {
+            var source = @"
+public class C
+{
+    [System.Obsolete(nameof(S.Length))]
+    public int P { get; }
+    public string S { get; }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceInstanceMembersFromConstructorInitializersInNameof()
+        {
+            var source = @"
+public class C
+{
+    public C(string s){}
+    public C() : this(nameof(S.Length)){}
+    public string S { get; }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanAccessStructInstancePropertyInLambdaInNameof()
+        {
+            var source = @"
+using System;
+
+public struct S
+{
+    public string P { get; }
+    public void M(ref string x)
+    {
+        Func<string> func = () => nameof(P.Length);
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestCanAccessRefParameterInLambdaInNameof()
+        {
+            var source = @"
+using System;
+
+public struct S
+{
+    public void M(ref string x)
+    {
+        Func<string> func = () => nameof(x.Length);
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }

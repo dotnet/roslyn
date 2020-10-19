@@ -1891,7 +1891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (currentType.IsInterface && (declaringType.IsObjectType() || currentType.AllInterfacesNoUseSiteDiagnostics.Contains(declaringType))))
             {
                 bool hasErrors = false;
-                if (EnclosingNameofArgument != node)
+                if (!IsInsideNameof)
                 {
                     if (InFieldInitializer && !currentType.IsScriptClass)
                     {
