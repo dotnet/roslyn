@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 
-namespace Microsoft.CodeAnalysis.ConvertConversionOperators
+namespace Microsoft.CodeAnalysis.ConvertCast
 {
     /// <summary>
     /// Refactor:
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ConvertConversionOperators
     ///
     /// Or vice versa.
     /// </summary>
-    internal abstract class AbstractConvertConversionRefactoringProvider<TTypeNode, TFromExpression, TToExpression> : CodeRefactoringProvider
+    internal abstract class AbstractConvertCastCodeRefactoringProvider<TTypeNode, TFromExpression, TToExpression> : CodeRefactoringProvider
         where TTypeNode : SyntaxNode
         where TFromExpression : SyntaxNode
         where TToExpression : SyntaxNode

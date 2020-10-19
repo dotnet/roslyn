@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.ConvertConversionOperators;
+using Microsoft.CodeAnalysis.CSharp.ConvertCast;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertConversionOperators
 {
-    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertCastToTryCastRefactoringProvider>;
+    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertDirectCastToTryCastCodeRefactoringProvider>;
 
     [Trait(Traits.Feature, Traits.Features.ConvertConversionOperators)]
-    public class ConvertCastToTryCastTests
+    public class ConvertDirectCastToTryCastTests
     {
         [Fact]
         public async Task ConvertFromExplicitToAs()

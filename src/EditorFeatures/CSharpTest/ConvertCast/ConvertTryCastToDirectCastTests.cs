@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.ConvertConversionOperators;
+using Microsoft.CodeAnalysis.CSharp.ConvertCast;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertConversionOperators
 {
-    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertTryCastToCastRefactoringProvider>;
+    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertTryCastToDirectCastCodeRefactoringProvider>;
 
     [Trait(Traits.Feature, Traits.Features.ConvertConversionOperators)]
-    public class ConvertTryCastToCastTests
+    public class ConvertTryCastToDirectCastTests
     {
         [Fact]
         public async Task ConvertFromAsToExplicit()
@@ -52,14 +52,6 @@ class Program
     public static void Main()
     {
         var x = 1 as[||] byte;
-    }
-}";
-            const string ExpectedMarkup = @"
-class Program
-{
-    public static void Main()
-    {
-        var x = (byte)1;
     }
 }";
             await new VerifyCS.Test

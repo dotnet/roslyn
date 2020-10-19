@@ -5,12 +5,12 @@
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.ConvertConversionOperators;
+using Microsoft.CodeAnalysis.ConvertCast;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertConversionOperators
+namespace Microsoft.CodeAnalysis.CSharp.ConvertCast
 {
     /// <summary>
     /// Refactor:
@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertConversionOperators
     ///     var o = (object)1;
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertConversionOperatorsFromTryCastToThrowingCast), Shared]
-    internal partial class CSharpConvertTryCastToCastRefactoringProvider
-        : AbstractConvertConversionRefactoringProvider<TypeSyntax, BinaryExpressionSyntax, CastExpressionSyntax>
+    internal partial class CSharpConvertTryCastToDirectCastCodeRefactoringProvider
+        : AbstractConvertCastCodeRefactoringProvider<TypeSyntax, BinaryExpressionSyntax, CastExpressionSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpConvertTryCastToCastRefactoringProvider()
+        public CSharpConvertTryCastToDirectCastCodeRefactoringProvider()
         {
         }
 

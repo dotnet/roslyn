@@ -2,18 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.ConvertConversionOperators
+Imports Microsoft.CodeAnalysis.ConvertCast
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertConversionOperators
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertConversionOperatorsFromTryCastToThrowingCast), [Shared]>
     Friend Class VisualBasicConvertTryCastToDirectCastCodeRefactoringProvider
-        Inherits AbstractConvertConversionRefactoringProvider(Of TypeSyntax, TryCastExpressionSyntax, DirectCastExpressionSyntax)
+        Inherits AbstractConvertCastCodeRefactoringProvider(Of TypeSyntax, TryCastExpressionSyntax, DirectCastExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>

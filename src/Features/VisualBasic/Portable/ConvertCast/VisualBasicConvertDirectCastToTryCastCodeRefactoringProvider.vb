@@ -5,13 +5,13 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.ConvertConversionOperators
+Imports Microsoft.CodeAnalysis.ConvertCast
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertConversionOperators
+Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertCast
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertConversionOperatorsFromThrowingCastToTryCast), [Shared]>
     Friend Class VisualBasicConvertDirectCastToTryCastCodeRefactoringProvider
-        Inherits AbstractConvertConversionRefactoringProvider(Of TypeSyntax, DirectCastExpressionSyntax, TryCastExpressionSyntax)
+        Inherits AbstractConvertCastCodeRefactoringProvider(Of TypeSyntax, DirectCastExpressionSyntax, TryCastExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
