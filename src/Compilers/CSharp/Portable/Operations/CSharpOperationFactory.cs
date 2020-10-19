@@ -1258,15 +1258,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyInvalidOperation(this, boundBadExpression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private ITypeParameterObjectCreationOperation CreateBoundNewTOperation(BoundNewT boundNewT)
         {
-            BoundNode initializer = boundNewT.InitializerExpressionOpt;
+            IObjectOrCollectionInitializerOperation? initializer = (IObjectOrCollectionInitializerOperation?)Create(boundNewT.InitializerExpressionOpt);
             SyntaxNode syntax = boundNewT.Syntax;
-            ITypeSymbol type = boundNewT.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundNewT.ConstantValue;
+            ITypeSymbol? type = boundNewT.GetPublicTypeSymbol();
             bool isImplicit = boundNewT.WasCompilerGenerated;
-            return new CSharpLazyTypeParameterObjectCreationOperation(this, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new TypeParameterObjectCreationOperation(initializer, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private INoPiaObjectCreationOperation CreateNoPiaObjectCreationExpressionOperation(BoundNoPiaObjectCreationExpression creation)
         {

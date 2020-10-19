@@ -1221,6 +1221,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<IArgumentOperation> Arguments { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a creation of a type parameter object, i.e. new T(), where T is a type parameter with new constraint.
     /// <para>
@@ -1242,8 +1243,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Object or collection initializer, if any.
         /// </summary>
-        IObjectOrCollectionInitializerOperation Initializer { get; }
+        IObjectOrCollectionInitializerOperation? Initializer { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents the creation of an array instance.
     /// <para>
@@ -4922,50 +4924,37 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitObjectCreation(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseTypeParameterObjectCreationOperation : OperationOld, ITypeParameterObjectCreationOperation
+    #nullable enable
+    internal sealed partial class TypeParameterObjectCreationOperation : Operation, ITypeParameterObjectCreationOperation
     {
-        internal BaseTypeParameterObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.TypeParameterObjectCreation, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IObjectOrCollectionInitializerOperation Initializer { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal TypeParameterObjectCreationOperation(IObjectOrCollectionInitializerOperation? initializer, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Initializer = SetParentOperation(initializer, this);
+            Type = type;
+        }
+        public IObjectOrCollectionInitializerOperation? Initializer { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Initializer is object) yield return Initializer;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Initializer is not null) builder.Add(Initializer);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.TypeParameterObjectCreation;
         public override void Accept(OperationVisitor visitor) => visitor.VisitTypeParameterObjectCreation(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTypeParameterObjectCreation(this, argument);
     }
-    internal sealed partial class TypeParameterObjectCreationOperation : BaseTypeParameterObjectCreationOperation, ITypeParameterObjectCreationOperation
-    {
-        internal TypeParameterObjectCreationOperation(IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Initializer = SetParentOperation(initializer, this);
-        }
-        public override IObjectOrCollectionInitializerOperation Initializer { get; }
-    }
-    internal abstract partial class LazyTypeParameterObjectCreationOperation : BaseTypeParameterObjectCreationOperation, ITypeParameterObjectCreationOperation
-    {
-        private IObjectOrCollectionInitializerOperation _lazyInitializer = s_unsetObjectOrCollectionInitializer;
-        internal LazyTypeParameterObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
-        public override IObjectOrCollectionInitializerOperation Initializer
-        {
-            get
-            {
-                if (_lazyInitializer == s_unsetObjectOrCollectionInitializer)
-                {
-                    IObjectOrCollectionInitializerOperation initializer = CreateInitializer();
-                    SetParentOperation(initializer, this);
-                    Interlocked.CompareExchange(ref _lazyInitializer, initializer, s_unsetObjectOrCollectionInitializer);
-                }
-                return _lazyInitializer;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseArrayCreationOperation : OperationOld, IArrayCreationOperation
     {
         internal BaseArrayCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8826,6 +8815,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ObjectCreationOperation)operation;
             return new ObjectCreationOperation(internalOperation.Constructor, Visit(internalOperation.Initializer), VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, object? argument)
+        {
+            var internalOperation = (TypeParameterObjectCreationOperation)operation;
+            return new TypeParameterObjectCreationOperation(Visit(internalOperation.Initializer), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, object? argument)
         {

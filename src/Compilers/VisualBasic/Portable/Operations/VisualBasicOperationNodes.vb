@@ -711,23 +711,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyTypeParameterObjectCreationOperation
-        Inherits LazyTypeParameterObjectCreationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _initializer As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, initializer As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _initializer = initializer
-        End Sub
-
-        Protected Overrides Function CreateInitializer() As IObjectOrCollectionInitializerOperation
-            Return DirectCast(_operationFactory.Create(_initializer), IObjectOrCollectionInitializerOperation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyDynamicInvocationOperation
         Inherits LazyDynamicInvocationOperation
 

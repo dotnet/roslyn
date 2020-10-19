@@ -805,12 +805,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundNewTOperation(boundNewT As BoundNewT) As ITypeParameterObjectCreationOperation
-            Dim initializer As BoundNode = boundNewT.InitializerOpt
+            Dim initializer As IObjectOrCollectionInitializerOperation = DirectCast(Create(boundNewT.InitializerOpt), IObjectOrCollectionInitializerOperation)
             Dim syntax As SyntaxNode = boundNewT.Syntax
             Dim type As ITypeSymbol = boundNewT.Type
-            Dim constantValue As ConstantValue = boundNewT.ConstantValueOpt
             Dim isImplicit As Boolean = boundNewT.WasCompilerGenerated
-            Return New VisualBasicLazyTypeParameterObjectCreationOperation(Me, initializer, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New TypeParameterObjectCreationOperation(initializer, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateNoPiaObjectCreationExpressionOperation(creation As BoundNoPiaObjectCreationExpression) As INoPiaObjectCreationOperation

@@ -43,7 +43,8 @@ namespace IOperationGenerator
             "IConditionalOperation",
             "ICoalesceOperation",
             "IAnonymousFunctionOperation",
-            "IObjectCreationOperation"
+            "IObjectCreationOperation",
+            "ITypeParameterObjectCreationOperation"
         };
     }
 }

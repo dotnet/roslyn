@@ -1104,7 +1104,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ITypeParameterObjectCreationOperation" Base="IOperation">
+  <Node Name="ITypeParameterObjectCreationOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a creation of a type parameter object, i.e. new T(), where T is a type parameter with new constraint.
@@ -1115,7 +1115,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">
+    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation?">
       <Comments>
         <summary>Object or collection initializer, if any.</summary>
       </Comments>

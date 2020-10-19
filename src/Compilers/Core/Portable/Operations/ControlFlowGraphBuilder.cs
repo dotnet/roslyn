@@ -5589,14 +5589,14 @@ oneMoreTime:
 
             return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance));
         }
-#nullable disable
 
         public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
         {
             EvalStackFrame frame = PushStackFrame();
-            var initializedInstance = new TypeParameterObjectCreationOperation(initializer: null, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            var initializedInstance = new TypeParameterObjectCreationOperation(initializer: null, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
             return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance));
         }
+#nullable disable
 
         public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)
         {
