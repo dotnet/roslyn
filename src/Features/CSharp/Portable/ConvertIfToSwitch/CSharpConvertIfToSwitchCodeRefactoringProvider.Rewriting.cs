@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         private static ExpressionSyntax AsExpressionSyntax(IOperation operation)
             => operation switch
             {
-                IReturnOperation op => (ExpressionSyntax)op.ReturnedValue.Syntax,
+                IReturnOperation { ReturnedValue: { } value } => (ExpressionSyntax)value.Syntax,
                 IThrowOperation op => ThrowExpression((ExpressionSyntax)op.Exception.Syntax),
                 IBlockOperation op => AsExpressionSyntax(op.Operations.Single()),
                 var v => throw ExceptionUtilities.UnexpectedValue(v.Kind)
