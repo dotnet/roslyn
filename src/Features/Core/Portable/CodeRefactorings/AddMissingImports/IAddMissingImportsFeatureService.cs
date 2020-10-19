@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         /// if there are ambiguous imports, no known resolutions to import, or if no imports that would be provided
         /// would be added without adding a reference for the project. 
         /// </summary>
-        Task<Project?> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+        Task<Document?> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Analyzes the document inside the texstpan to determine if imports can be added.
@@ -30,6 +28,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         /// Performs the same action as <see cref="AddMissingImportsAsync(Document, TextSpan, CancellationToken)"/> but
         /// with a predetermined analysis of the input instead of recalculating it
         /// </summary>
-        Task<Project?> AddMissingImportsAsync(AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken);
+        Task<Document?> AddMissingImportsAsync(AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken);
     }
 }

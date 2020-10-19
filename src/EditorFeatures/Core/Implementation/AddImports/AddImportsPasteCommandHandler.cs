@@ -91,9 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
-            var documentId = workspace.GetDocumentIdInCurrentContext(sourceTextContainer);
-            var document = workspace.CurrentSolution.GetDocument(documentId);
-
+            var document = sourceTextContainer.GetOpenDocumentInCurrentContext();
             if (document is null)
             {
                 return;
@@ -102,16 +100,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
             using var _ = executionContext.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Adding_missing_import_directives);
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
 
-            var updatedProject = _threadingContext.JoinableTaskFactory.Run(() => AddMissingImportsAsync(document, textSpan, cancellationToken));
-            if (updatedProject is null)
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
+            var updatedDocument = _threadingContext.JoinableTaskFactory.Run(() => AddMissingImportsAsync(document, textSpan, cancellationToken));
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
+            if (updatedDocument is null)
             {
                 return;
             }
 
-            updatedProject.Solution.Workspace.TryApplyChanges(updatedProject.Solution);
+            updatedDocument.Project.Solution.Workspace.TryApplyChanges(updatedDocument.Project.Solution);
         }
 
-        private static async Task<Project?> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<Document?> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
             return await addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                 return option.DefaultValue;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

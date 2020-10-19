@@ -29,20 +29,20 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         protected abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 
         /// <inheritdoc/>
-        public async Task<Project?> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<Document?> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var analysisResult = await AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             return await AddMissingImportsAsync(analysisResult, cancellationToken).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<Project?> AddMissingImportsAsync(AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken)
+        public async Task<Document?> AddMissingImportsAsync(AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken)
         {
             if (analysisResult.CanAddMissingImports)
             {
                 // Apply those fixes to the document.
                 var newDocument = await ApplyFixesAsync(analysisResult.Document, analysisResult.AddImportFixData, cancellationToken).ConfigureAwait(false);
-                return newDocument.Project;
+                return newDocument;
             }
 
             return null;
@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
 
             return new AddMissingImportsAnalysisResult(
-                    usableFixes,
-                    document,
-                    textSpan,
-                    canAddMissingImports: !usableFixes.IsEmpty);
+                usableFixes,
+                document,
+                textSpan,
+                canAddMissingImports: !usableFixes.IsEmpty);
         }
 
         private static bool DoesNotAddReference(AddImportFixData fixData, ProjectId currentProjectId)
