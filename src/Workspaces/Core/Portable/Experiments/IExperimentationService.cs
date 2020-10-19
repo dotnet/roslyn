@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -36,6 +34,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string TypeImportCompletion = "Roslyn.TypeImportCompletion";
         public const string TargetTypedCompletionFilter = "Roslyn.TargetTypedCompletionFilter";
         public const string TriggerCompletionInArgumentLists = "Roslyn.TriggerCompletionInArgumentLists";
-        public const string SQLiteInMemoryWriteCache = "Roslyn.SQLiteInMemoryWriteCache";
+        public const string SQLiteInMemoryWriteCache2 = "Roslyn.SQLiteInMemoryWriteCache2";
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
 
@@ -98,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// </summary>
         private class NullReporter : ISolutionCrawlerProgressReporter
         {
-            public static readonly NullReporter Instance = new NullReporter();
+            public static readonly NullReporter Instance = new();
 
             public bool InProgress => false;
 

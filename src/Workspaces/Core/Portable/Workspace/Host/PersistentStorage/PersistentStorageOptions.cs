@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -10,6 +12,6 @@ namespace Microsoft.CodeAnalysis.Host
     {
         public const string OptionName = "FeatureManager/Persistence";
 
-        public static readonly Option<bool> Enabled = new Option<bool>(OptionName, "Enabled", defaultValue: true);
+        public static readonly Option<bool> Enabled = new(OptionName, "Enabled", defaultValue: true);
     }
 }

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -1244,6 +1243,36 @@ class Caller
 }}");
         }
 
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [InlineData("", "")]
+        [InlineData("[Cdecl]", "typeof(System.Runtime.CompilerServices.CallConvCdecl)")]
+        [InlineData("[Stdcall]", "typeof(System.Runtime.CompilerServices.CallConvStdcall)")]
+        public void UnmanagedCallingConventions_UnmanagedCallersOnlyAttribute(string delegateConventionString, string attributeArgumentString)
+        {
+            var verifier = CompileAndVerifyFunctionPointers(new[] { $@"
+using System;
+using System.Runtime.InteropServices;
+unsafe
+{{
+    delegate* unmanaged{delegateConventionString}<void> ptr = &M;
+    ptr();
+
+    [UnmanagedCallersOnly(CallConvs = new Type[] {{ {attributeArgumentString} }})]
+    static void M() => Console.Write(1);
+}}
+", UnmanagedCallersOnlyAttribute }, expectedOutput: "1", overrideUnmanagedSupport: true);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", $@"
+{{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldftn      ""void <Program>$.<<Main>$>g__M|0_0()""
+  IL_0006:  calli      ""delegate* unmanaged{delegateConventionString}<void>""
+  IL_000b:  ret
+}}
+");
+        }
+
         [Fact]
         public void FastCall()
         {
@@ -1304,199 +1333,45 @@ class Caller
         [Fact]
         public void ThiscallSimpleReturn()
         {
-            var ilSource = @"
-.class private auto ansi '<Module>'
-{
-} // end of class <Module>
-
-.class public sequential ansi sealed beforefieldinit S
-    extends [mscorlib]System.ValueType
-{
-    // Fields
-    .field public int32 i
-
-    // Methods
-    .method public hidebysig static 
-        int32 GetInt (
-            valuetype S* s
-        ) cil managed 
-    {
-        // Method begins at RVA 0x2050
-        // Code size 12 (0xc)
-        .maxstack 1
-        .locals init (
-            [0] int32
-        )
-
-        nop
-        ldarg.0
-        ldfld int32 S::i
-        ret
-    } // end of method S::GetInt
-
-    .method public hidebysig static 
-        int32 GetReturn (
-            valuetype S* s,
-            int32 i
-        ) cil managed 
-    {
-        // Method begins at RVA 0x2068
-        // Code size 14 (0xe)
-        .maxstack 2
-        .locals init (
-            [0] int32
-        )
-
-        nop
-        ldarg.0
-        ldfld int32 S::i
-        ldarg.1
-        add
-        ret
-    } // end of method S::GetReturn
-
-} // end of class S
-
-.class public auto ansi beforefieldinit UnmanagedFunctionPointer
-    extends [mscorlib]System.Object
-{
-    // Nested Types
-    .class nested private auto ansi sealed SingleParam
-        extends [mscorlib]System.MulticastDelegate
-    {
-        .custom instance void [mscorlib]System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.CallingConvention) = (
-            01 00 04 00 00 00 00 00
-        )
-        // Methods
-        .method public hidebysig specialname rtspecialname 
-            instance void .ctor (
-                object 'object',
-                native int 'method'
-            ) runtime managed 
-        {
-        } // end of method SingleParam::.ctor
-
-        .method public hidebysig newslot virtual 
-            instance int32 Invoke (
-                valuetype S* s
-            ) runtime managed 
-        {
-        } // end of method SingleParam::Invoke
-
-        .method public hidebysig newslot virtual 
-            instance class [mscorlib]System.IAsyncResult BeginInvoke (
-                valuetype S* s,
-                class [mscorlib]System.AsyncCallback callback,
-                object 'object'
-            ) runtime managed 
-        {
-        } // end of method SingleParam::BeginInvoke
-
-        .method public hidebysig newslot virtual 
-            instance int32 EndInvoke (
-                class [mscorlib]System.IAsyncResult result
-            ) runtime managed 
-        {
-        } // end of method SingleParam::EndInvoke
-
-    } // end of class SingleParam
-
-    .class nested private auto ansi sealed MultipleParams
-        extends [mscorlib]System.MulticastDelegate
-    {
-        .custom instance void [mscorlib]System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.CallingConvention) = (
-            01 00 04 00 00 00 00 00
-        )
-        // Methods
-        .method public hidebysig specialname rtspecialname 
-            instance void .ctor (
-                object 'object',
-                native int 'method'
-            ) runtime managed 
-        {
-        } // end of method MultipleParams::.ctor
-
-        .method public hidebysig newslot virtual 
-            instance int32 Invoke (
-                valuetype S* s,
-                int32 i
-            ) runtime managed 
-        {
-        } // end of method MultipleParams::Invoke
-
-        .method public hidebysig newslot virtual 
-            instance class [mscorlib]System.IAsyncResult BeginInvoke (
-                valuetype S* s,
-                int32 i,
-                class [mscorlib]System.AsyncCallback callback,
-                object 'object'
-            ) runtime managed 
-        {
-        } // end of method MultipleParams::BeginInvoke
-
-        .method public hidebysig newslot virtual 
-            instance int32 EndInvoke (
-                class [mscorlib]System.IAsyncResult result
-            ) runtime managed 
-        {
-        } // end of method MultipleParams::EndInvoke
-
-    } // end of class MultipleParams
-
-
-    // Methods
-    .method public hidebysig static 
-        method unmanaged thiscall int32 *(valuetype S*) GetFuncPtrSingleParam () cil managed 
-    {
-        // Method begins at RVA 0x2084
-        // Code size 37 (0x25)
-        .maxstack 2
-        .locals init (
-            [0] native int,
-            [1] native int
-        )
-
-        nop
-        ldnull
-        ldftn int32 S::GetInt(valuetype S*)
-        newobj instance void UnmanagedFunctionPointer/SingleParam::.ctor(object, native int)
-        call native int [mscorlib]System.Runtime.InteropServices.Marshal::GetFunctionPointerForDelegate<class UnmanagedFunctionPointer/SingleParam>(!!0)
-        stloc.0
-        ldloc.0
-        box [mscorlib]System.IntPtr
-        call void [mscorlib]System.GC::KeepAlive(object)
-        ldloc.0
-        ret
-    } // end of method UnmanagedFunctionPointer::GetFuncPtrSingleParam
-
-    .method public hidebysig static 
-        method unmanaged thiscall int32 *(valuetype S*, int32) GetFuncPtrMultipleParams () cil managed 
-    {
-        // Method begins at RVA 0x20b8
-        // Code size 37 (0x25)
-        .maxstack 2
-        .locals init (
-            [0] native int,
-            [1] native int
-        )
-
-        nop
-        ldnull
-        ldftn int32 S::GetReturn(valuetype S*, int32)
-        newobj instance void UnmanagedFunctionPointer/MultipleParams::.ctor(object, native int)
-        call native int [mscorlib]System.Runtime.InteropServices.Marshal::GetFunctionPointerForDelegate<class UnmanagedFunctionPointer/MultipleParams>(!!0)
-        stloc.0
-        ldloc.0
-        box [mscorlib]System.IntPtr
-        call void [mscorlib]System.GC::KeepAlive(object)
-        ldloc.0
-        ret
-    } // end of method UnmanagedFunctionPointer::GetFuncPtrMultipleParams
-} // end of class UnmanagedFunctionPointer
-";
-
-            var verifier = CompileAndVerifyFunctionPointersWithIl(@"
+            var verifier = CompileAndVerifyFunctionPointers(@"
 using System;
+using System.Runtime.InteropServices;
+
+unsafe struct S
+{
+    public int i;
+    public static int GetInt(S* s)
+    {
+        return s->i;
+    }
+    
+    public static int GetReturn(S* s, int i)
+    {
+        return s->i + i;
+    }
+}
+
+unsafe class UnmanagedFunctionPointer
+{
+    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+    delegate int SingleParam(S* s);
+    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+    delegate int MultipleParams(S* s, int i);
+    
+    public static delegate* unmanaged[Thiscall]<S*, int> GetFuncPtrSingleParam()
+    {
+        var ptr = Marshal.GetFunctionPointerForDelegate(new SingleParam(S.GetInt));
+        GC.KeepAlive(ptr);
+        return (delegate* unmanaged[Thiscall]<S*, int>)ptr;
+    }
+    public static delegate* unmanaged[Thiscall]<S*, int, int> GetFuncPtrMultipleParams()
+    {
+        var ptr = Marshal.GetFunctionPointerForDelegate(new MultipleParams(S.GetReturn));
+        GC.KeepAlive(ptr);
+        return (delegate* unmanaged[Thiscall]<S*, int, int>)ptr;
+    }
+}
+
 unsafe class C
 {
     public static void Main()
@@ -1520,7 +1395,7 @@ unsafe class C
         var i = UnmanagedFunctionPointer.GetFuncPtrMultipleParams()(&s, 3);
         Console.Write(i);
     }
-}", ilSource, expectedOutput: @"15");
+}", expectedOutput: @"15");
 
             verifier.VerifyIL("C.TestSingle()", @"
 {
@@ -1568,255 +1443,162 @@ unsafe class C
 ");
         }
 
-        // Fails on .net core due to https://github.com/dotnet/runtime/issues/33129
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Thiscall_UnmanagedCallersOnly()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(new[] { @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+unsafe
+{
+    TestSingle();
+    TestMultiple();
+
+    static void TestSingle()
+    {
+        S s = new S();
+        s.i = 1;
+        delegate* unmanaged[Thiscall]<S*, int> ptr = &S.GetInt;
+        Console.Write(ptr(&s));
+    }
+
+    static void TestMultiple()
+    {
+        S s = new S();
+        s.i = 2;
+        delegate* unmanaged[Thiscall]<S*, int, int> ptr = &S.GetReturn;
+        Console.Write(ptr(&s, 3));
+    }
+}
+
+unsafe struct S
+{
+    public int i;
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvThiscall) })]
+    public static int GetInt(S* s)
+    {
+        return s->i;
+    }
+    
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvThiscall) })]
+    public static int GetReturn(S* s, int i)
+    {
+        return s->i + i;
+    }
+}
+", UnmanagedCallersOnlyAttribute }, expectedOutput: "15", overrideUnmanagedSupport: true);
+
+            verifier.VerifyIL(@"<Program>$.<<Main>$>g__TestSingle|0_0()", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (S V_0, //s
+                delegate* unmanaged[Thiscall]<S*, int> V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.1
+  IL_000b:  stfld      ""int S.i""
+  IL_0010:  ldftn      ""int S.GetInt(S*)""
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  conv.u
+  IL_001a:  ldloc.1
+  IL_001b:  calli      ""delegate* unmanaged[Thiscall]<S*, int>""
+  IL_0020:  call       ""void System.Console.Write(int)""
+  IL_0025:  ret
+}
+");
+
+            verifier.VerifyIL(@"<Program>$.<<Main>$>g__TestMultiple|0_1()", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (S V_0, //s
+                delegate* unmanaged[Thiscall]<S*, int, int> V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.2
+  IL_000b:  stfld      ""int S.i""
+  IL_0010:  ldftn      ""int S.GetReturn(S*, int)""
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  conv.u
+  IL_001a:  ldc.i4.3
+  IL_001b:  ldloc.1
+  IL_001c:  calli      ""delegate* unmanaged[Thiscall]<S*, int, int>""
+  IL_0021:  call       ""void System.Console.Write(int)""
+  IL_0026:  ret
+}
+");
+        }
+
+        [Fact]
         public void ThiscallBlittable()
         {
-            var ilSource = @"
-.class public sequential ansi sealed beforefieldinit IntWrapper
-    extends [mscorlib]System.ValueType
-{
-    // Fields
-    .field public int32 i
-
-    // Methods
-    .method public hidebysig specialname rtspecialname 
-        instance void .ctor (
-            int32 i
-        ) cil managed 
-    {
-        // Method begins at RVA 0x2050
-        // Code size 9 (0x9)
-        .maxstack 8
-
-        nop
-        ldarg.0
-        ldarg.1
-        stfld int32 IntWrapper::i
-        ret
-    } // end of method IntWrapper::.ctor
-
-} // end of class IntWrapper
-
-.class public sequential ansi sealed beforefieldinit ReturnWrapper
-    extends [mscorlib]System.ValueType
-{
-    // Fields
-    .field public int32 i1
-    .field public float32 f2
-
-    // Methods
-    .method public hidebysig specialname rtspecialname 
-        instance void .ctor (
-            int32 i1,
-            float32 f2
-        ) cil managed 
-    {
-        // Method begins at RVA 0x205a
-        // Code size 16 (0x10)
-        .maxstack 8
-
-        nop
-        ldarg.0
-        ldarg.1
-        stfld int32 ReturnWrapper::i1
-        ldarg.0
-        ldarg.2
-        stfld float32 ReturnWrapper::f2
-        ret
-    } // end of method ReturnWrapper::.ctor
-
-} // end of class ReturnWrapper
-
-.class public sequential ansi sealed beforefieldinit S
-    extends [mscorlib]System.ValueType
-{
-    // Fields
-    .field public int32 i
-
-    // Methods
-    .method public hidebysig static 
-        valuetype IntWrapper GetInt (
-            valuetype S* s
-        ) cil managed 
-    {
-        // Method begins at RVA 0x206c
-        // Code size 17 (0x11)
-        .maxstack 1
-        .locals init (
-            [0] valuetype IntWrapper
-        )
-
-        nop
-        ldarg.0
-        ldfld int32 S::i
-        newobj instance void IntWrapper::.ctor(int32)
-        ret
-    } // end of method S::GetInt
-
-    .method public hidebysig static 
-        valuetype ReturnWrapper GetReturn (
-            valuetype S* s,
-            float32 f
-        ) cil managed 
-    {
-        // Method begins at RVA 0x208c
-        // Code size 18 (0x12)
-        .maxstack 2
-        .locals init (
-            [0] valuetype ReturnWrapper
-        )
-
-        nop
-        ldarg.0
-        ldfld int32 S::i
-        ldarg.1
-        newobj instance void ReturnWrapper::.ctor(int32, float32)
-        ret
-    } // end of method S::GetReturn
-
-} // end of class S
-
-.class public auto ansi beforefieldinit UnmanagedFunctionPointer
-    extends [mscorlib]System.Object
-{
-    // Nested Types
-    .class nested private auto ansi sealed SingleParam
-        extends [mscorlib]System.MulticastDelegate
-    {
-        .custom instance void [mscorlib]System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.CallingConvention) = (
-            01 00 04 00 00 00 00 00
-        )
-        // Methods
-        .method public hidebysig specialname rtspecialname 
-            instance void .ctor (
-                object 'object',
-                native int 'method'
-            ) runtime managed 
-        {
-        } // end of method SingleParam::.ctor
-
-        .method public hidebysig newslot virtual 
-            instance valuetype IntWrapper Invoke (
-                valuetype S* s
-            ) runtime managed 
-        {
-        } // end of method SingleParam::Invoke
-
-        .method public hidebysig newslot virtual 
-            instance class [mscorlib]System.IAsyncResult BeginInvoke (
-                valuetype S* s,
-                class [mscorlib]System.AsyncCallback callback,
-                object 'object'
-            ) runtime managed 
-        {
-        } // end of method SingleParam::BeginInvoke
-
-        .method public hidebysig newslot virtual 
-            instance valuetype IntWrapper EndInvoke (
-                class [mscorlib]System.IAsyncResult result
-            ) runtime managed 
-        {
-        } // end of method SingleParam::EndInvoke
-
-    } // end of class SingleParam
-
-    .class nested private auto ansi sealed MultipleParams
-        extends [mscorlib]System.MulticastDelegate
-    {
-        .custom instance void [mscorlib]System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.CallingConvention) = (
-            01 00 04 00 00 00 00 00
-        )
-        // Methods
-        .method public hidebysig specialname rtspecialname 
-            instance void .ctor (
-                object 'object',
-                native int 'method'
-            ) runtime managed 
-        {
-        } // end of method MultipleParams::.ctor
-
-        .method public hidebysig newslot virtual 
-            instance valuetype ReturnWrapper Invoke (
-                valuetype S* s,
-                float32 f
-            ) runtime managed 
-        {
-        } // end of method MultipleParams::Invoke
-
-        .method public hidebysig newslot virtual 
-            instance class [mscorlib]System.IAsyncResult BeginInvoke (
-                valuetype S* s,
-                float32 f,
-                class [mscorlib]System.AsyncCallback callback,
-                object 'object'
-            ) runtime managed 
-        {
-        } // end of method MultipleParams::BeginInvoke
-
-        .method public hidebysig newslot virtual 
-            instance valuetype ReturnWrapper EndInvoke (
-                class [mscorlib]System.IAsyncResult result
-            ) runtime managed 
-        {
-        } // end of method MultipleParams::EndInvoke
-
-    } // end of class MultipleParams
-
-
-    // Methods
-    .method public hidebysig static 
-        method unmanaged thiscall valuetype IntWrapper *(valuetype S*) GetFuncPtrSingleParam () cil managed 
-    {
-        // Method begins at RVA 0x20ac
-        // Code size 37 (0x25)
-        .maxstack 2
-        .locals init (
-            [0] native int,
-            [1] native int
-        )
-
-        nop
-        ldnull
-        ldftn valuetype IntWrapper S::GetInt(valuetype S*)
-        newobj instance void UnmanagedFunctionPointer/SingleParam::.ctor(object, native int)
-        call native int [mscorlib]System.Runtime.InteropServices.Marshal::GetFunctionPointerForDelegate<class UnmanagedFunctionPointer/SingleParam>(!!0)
-        stloc.0
-        ldloc.0
-        box [mscorlib]System.IntPtr
-        call void [mscorlib]System.GC::KeepAlive(object)
-        ldloc.0
-        ret
-    } // end of method UnmanagedFunctionPointer::GetFuncPtrSingleParam
-
-    .method public hidebysig static 
-        method unmanaged thiscall valuetype ReturnWrapper *(valuetype S*, float32) GetFuncPtrMultipleParams () cil managed 
-    {
-        // Method begins at RVA 0x20e0
-        // Code size 37 (0x25)
-        .maxstack 2
-        .locals init (
-            [0] native int,
-            [1] native int
-        )
-
-        nop
-        ldnull
-        ldftn valuetype ReturnWrapper S::GetReturn(valuetype S*, float32)
-        newobj instance void UnmanagedFunctionPointer/MultipleParams::.ctor(object, native int)
-        call native int [mscorlib]System.Runtime.InteropServices.Marshal::GetFunctionPointerForDelegate<class UnmanagedFunctionPointer/MultipleParams>(!!0)
-        stloc.0
-        ldloc.0
-        box [mscorlib]System.IntPtr
-        call void [mscorlib]System.GC::KeepAlive(object)
-        ldloc.0
-        ret
-    } // end of method UnmanagedFunctionPointer::GetFuncPtrMultipleParams
-} // end of class UnmanagedFunctionPointer
-";
-
-            var verifier = CompileAndVerifyFunctionPointersWithIl(@"
+            var verifier = CompileAndVerifyFunctionPointers(@"
 using System;
+using System.Runtime.InteropServices;
+
+struct IntWrapper
+{
+    public int i;
+    public IntWrapper(int i)
+    {
+        this.i = i;
+    }
+}
+
+struct ReturnWrapper
+{
+    public int i1;
+    public float f2;
+    
+    public ReturnWrapper(int i1, float f2)
+    {
+        this.i1 = i1;
+        this.f2 = f2;
+    }
+}
+
+unsafe struct S
+{
+    public int i;
+    public static IntWrapper GetInt(S* s)
+    {
+        return new IntWrapper(s->i);
+    }
+    
+    public static ReturnWrapper GetReturn(S* s, float f)
+    {
+        return new ReturnWrapper(s->i, f);
+    }
+}
+
+unsafe class UnmanagedFunctionPointer
+{
+    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+    delegate IntWrapper SingleParam(S* s);
+    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+    delegate ReturnWrapper MultipleParams(S* s, float f);
+    
+    public static delegate* unmanaged[Thiscall]<S*, IntWrapper> GetFuncPtrSingleParam()
+    {
+        var ptr = Marshal.GetFunctionPointerForDelegate(new SingleParam(S.GetInt));
+        GC.KeepAlive(ptr);
+        return (delegate* unmanaged[Thiscall]<S*, IntWrapper>)ptr;
+    }
+    public static delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> GetFuncPtrMultipleParams()
+    {
+        var ptr = Marshal.GetFunctionPointerForDelegate(new MultipleParams(S.GetReturn));
+        GC.KeepAlive(ptr);
+        return (delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper>)ptr;
+    }
+}
+
 unsafe class C
 {
     public static void Main()
@@ -1841,7 +1623,7 @@ unsafe class C
         Console.Write(returnWrapper.i1);
         Console.Write(returnWrapper.f2);
     }
-}", ilSource, expectedOutput: @"
+}", expectedOutput: @"
 1
 23.5
 ");

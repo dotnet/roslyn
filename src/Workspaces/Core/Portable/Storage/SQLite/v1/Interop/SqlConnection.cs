@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,13 +32,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         /// The raw handle to the underlying DB.
         /// </summary>
         private readonly SafeSqliteHandle _handle;
-
-#pragma warning disable IDE0052 // Remove unread private members - TODO: Can this field be removed?
-        /// <summary>
-        /// For testing purposes to simulate failures during testing.
-        /// </summary>
-        private readonly IPersistentStorageFaultInjector _faultInjector;
-#pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
         /// Our cache of prepared statements for given sql strings.
@@ -73,7 +68,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             try
             {
                 NativeMethods.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
-                return new SqlConnection(handle, faultInjector, queryToStatement);
+                return new SqlConnection(handle, queryToStatement);
             }
             catch
             {
@@ -84,10 +79,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             }
         }
 
-        private SqlConnection(SafeSqliteHandle handle, IPersistentStorageFaultInjector faultInjector, Dictionary<string, SqlStatement> queryToStatement)
+        private SqlConnection(SafeSqliteHandle handle, Dictionary<string, SqlStatement> queryToStatement)
         {
             _handle = handle;
-            _faultInjector = faultInjector;
             _queryToStatement = queryToStatement;
         }
 

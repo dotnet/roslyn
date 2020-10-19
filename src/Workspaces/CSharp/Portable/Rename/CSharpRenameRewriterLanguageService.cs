@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -69,8 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private readonly bool _replacementTextValid;
             private readonly ISimplificationService _simplificationService;
             private readonly ISemanticFactsService _semanticFactsService;
-            private readonly HashSet<SyntaxToken> _annotatedIdentifierTokens = new HashSet<SyntaxToken>();
-            private readonly HashSet<InvocationExpressionSyntax> _invocationExpressionsNeedingConflictChecks = new HashSet<InvocationExpressionSyntax>();
+            private readonly HashSet<SyntaxToken> _annotatedIdentifierTokens = new();
+            private readonly HashSet<InvocationExpressionSyntax> _invocationExpressionsNeedingConflictChecks = new();
 
             private readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
 
@@ -259,7 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private bool IsPropertyAccessorNameConflict(SyntaxToken token)
                 => IsGetPropertyAccessorNameConflict(token)
-                || IsSetPropertyAccessorNameConflict(token);
+                || IsSetPropertyAccessorNameConflict(token)
+                || IsInitPropertyAccessorNameConflict(token);
 
             private bool IsGetPropertyAccessorNameConflict(SyntaxToken token)
                 => token.IsKind(SyntaxKind.GetKeyword)
@@ -267,6 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private bool IsSetPropertyAccessorNameConflict(SyntaxToken token)
                 => token.IsKind(SyntaxKind.SetKeyword)
+                && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax);
+
+            private bool IsInitPropertyAccessorNameConflict(SyntaxToken token)
+                => token.IsKind(SyntaxKind.InitKeyword)
+                // using "set" here is intentional. The compiler generates set_PropName for both set and init accessors.
                 && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax);
 
             private bool IsNameConflictWithProperty(string prefix, AccessorDeclarationSyntax? accessor)

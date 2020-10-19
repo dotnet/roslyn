@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         public char this[int index] => _underlyingString[_span.Start + index];
 
         public Enumerator GetEnumerator()
-            => new Enumerator(this);
+            => new(this);
 
         public override bool Equals(object obj) => Equals((StringSlice)obj);
 
