@@ -44,11 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            return (from node in castExpressions
-                    let type = semanticModel.GetTypeInfo(node.Type, cancellationToken).Type
-                    where type?.IsValueType != true
-                    select node)
-                    .ToImmutableArray();
+            return castExpressions.WhereAsArray(node => semanticModel.GetTypeInfo(node.Type, cancellationToken)
+                .Type.IsReferenceTypeOrNullable_TypeOrTypeParameter());
         }
 
         protected override SyntaxNode ConvertExpression(CastExpressionSyntax castExpression)
