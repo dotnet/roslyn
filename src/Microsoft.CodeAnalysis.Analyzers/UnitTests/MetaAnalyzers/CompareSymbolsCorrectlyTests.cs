@@ -610,7 +610,7 @@ End Class
 using Microsoft.CodeAnalysis;
 class TestClass
 {
-    void Method1(ISymbol x , ISymbol y)
+    void Method1(ISymbol x, ISymbol y)
     {
         if (x?[|.Equals(y)|] == true) return;
     }
@@ -621,9 +621,89 @@ class TestClass
 using Microsoft.CodeAnalysis;
 class TestClass
 {
-    void Method1(ISymbol x , ISymbol y)
+    void Method1(ISymbol x, ISymbol y)
     {
         if (SymbolEqualityComparer.Default.Equals(x, y) == true) return;
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithChainConditionalAccess_VisualBasic()
+        {
+            var source = @"
+Imports Microsoft.CodeAnalysis
+
+Class A
+    Public b As B
+End Class
+
+Class B
+    Public s As ISymbol
+End Class
+
+Class TestClass
+    Sub Method1(a As ISymbol, s As ISymbol)
+        If a?.b?.s?[|.Equals(s)|] Then Exit Sub
+    End Sub
+End Class
+";
+
+            var fixedSource = @"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Sub Method1(a As A, s As ISymbol)
+        If SymbolEqualityComparer.Default.Equals(a?.b?.s, s) Then Exit Sub
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubVisualBasic } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubVisualBasic } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithChainNullConditionalAccess_CSharp()
+        {
+            var source = @"
+using Microsoft.CodeAnalysis;
+
+class A
+{
+    public B b;
+}
+
+class B
+{
+    public ISymbol s;
+}
+
+class TestClass
+{
+    void Method1(A a, ISymbol s)
+    {
+        if (a?.b?.s?[|.Equals(s)|] == true) return;
+    }
+}
+";
+
+            var fixedSource = @"
+using Microsoft.CodeAnalysis;
+class TestClass
+{
+    void Method1(A a, ISymbol s)
+    {
+        if (SymbolEqualityComparer.Default.Equals(a?.b?.s, s) == true) return;
     }
 }
 ";
