@@ -201,7 +201,7 @@ class C {
 
         [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterNumericLiteral()
+        public async Task TestMissingAfterNumericLiteral()
         {
             await VerifyAbsenceAsync(
 @"
@@ -210,6 +210,36 @@ class C
     void M()
     {
         var x = 1$$
+    }
+}");
+        }
+
+        [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterNumericLiteralAndDot()
+        {
+            await VerifyAbsenceAsync(
+@"
+class C
+{
+    void M()
+    {
+        var x = 1.$$
+    }
+}");
+        }
+
+        [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterNumericLiteralDotAndSpace()
+        {
+            await VerifyAbsenceAsync(
+@"
+class C
+{
+    void M()
+    {
+        var x = 1. $$
     }
 }");
         }
