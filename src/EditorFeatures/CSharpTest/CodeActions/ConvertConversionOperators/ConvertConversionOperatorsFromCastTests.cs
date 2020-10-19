@@ -82,6 +82,84 @@ public class C
             }.RunAsync();
         }
 
+        [Fact]
+        public async Task ConvertFromExplicitToAs_Unconstraint()
+        {
+            const string InitialMarkup = @"
+public class C
+{
+    public void M<T>()
+    {
+        var o = new object();
+        var t = (T[||])o;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                FixedCode = InitialMarkup,
+                OffersEmptyRefactoring = false,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task ConvertFromExplicitToAs_ClassConstraint()
+        {
+            const string InitialMarkup = @"
+public class C
+{
+    public void M<T>() where T: class
+    {
+        var o = new object();
+        var t = (T[||])o;
+    }
+}
+";
+            const string FixedCode = @"
+public class C
+{
+    public void M<T>() where T: class
+    {
+        var o = new object();
+        var t = o as T;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                FixedCode = FixedCode,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task ConvertFromExplicitToAs_MissingType()
+        {
+            const string InitialMarkup = @"
+public class C
+{
+    public void M()
+    {
+        var o = new object();
+        var t = ({|#0:MissingType|})$$o;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestState = {
+                    Sources = { InitialMarkup },
+                    // /0/Test0.cs(7,18): error CS0246: Type or namespace "MissingType" not found.
+                    ExpectedDiagnostics = { DiagnosticResult.CompilerError("CS0246").WithLocation(0).WithArguments("MissingType") }
+                },
+                FixedCode = InitialMarkup,
+                OffersEmptyRefactoring = false,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
         [Theory]
         [InlineData("(C$$)((object)1)",
                     "((object)1) as C")]
