@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -11,9 +9,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
     /// Helper type to allow command handlers to report data either in a streaming fashion (if a client supports that),
-    /// or as an array of results.
+    /// or as an array of results.  This type is thread-safe in the same manner that <see cref="IProgress{T}"/> is
+    /// expected to be.  Namely, multiple client can be calling <see cref="IProgress{T}.Report(T)"/> on it at the same
+    /// time.  This is safe, though the order that the items are reported in when called concurrently is not specified.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     internal struct BufferedProgress<T> : IProgress<T>, IDisposable
     {
         /// <summary>
@@ -42,12 +41,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public void Report(T value)
         {
+            // Don't need to lock _underlyingProgress.  It is inherently thread-safe itself being an IProgress implementation.
             _underlyingProgress?.Report(new[] { value });
-            _buffer?.Add(value);
+
+            if (_buffer != null)
+            {
+                lock (_buffer)
+                {
+                    _buffer.Add(value);
+                }
+            }
         }
 
         /// <summary>
-        /// Gets the set of buffered values.  Will return null if the client supports streaming.
+        /// Gets the set of buffered values.  Will return null if the client supports streaming.  Must be called after
+        /// all calls to <see cref="Report(T)"/> have been made.  Not safe to call concurrently with any call to <see
+        /// cref="Report(T)"/>.
         /// </summary>
         public T[]? GetValues()
             => _buffer?.ToArray();
