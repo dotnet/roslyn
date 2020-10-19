@@ -28,10 +28,12 @@ variables:
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw from DotNet-VSTS-Infra-Access
   # Get $dotnetfeed-storage-access-key-1 from DotNet-Blob-Feed
   # Get $microsoft-symbol-server-pat and $symweb-symbol-server-pat from DotNet-Symbol-Server-Pats
+  # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
   - ${{ if eq(variables['System.TeamProject'], 'internal') }}:
     - group: DotNet-Blob-Feed
     - group: DotNet-Symbol-Server-Pats
     - group: DotNet-VSTS-Infra-Access
+    - group: DotNet-Versions-Publish
     - name: _DevDivDropAccessToken
       value: $(dn-bot-devdiv-drop-rw-code-rw)
 
@@ -156,7 +158,7 @@ stages:
       displayName: Publish Assets
       inputs:
         filePath: 'eng\publish-assets.ps1'
-        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(AccessToken-dotnet-build-bot-public-repo) -gitHubEmail $(Roslyn.GitHubEmail)'
       condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
     # Publish OptProf configuration files
