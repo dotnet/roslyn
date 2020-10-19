@@ -87,8 +87,8 @@ namespace BuildValidator
                         continue;
                     }
 
-                    _logger.LogTrace($"Caching [{mvid.Value}, {file.FullName}]");
-                    _cache[mvid.Value] = file.FullName;
+                    _logger.LogTrace($"Caching [{mvid}, {file.FullName}]");
+                    _cache[mvid] = file.FullName;
                 }
             }
 
