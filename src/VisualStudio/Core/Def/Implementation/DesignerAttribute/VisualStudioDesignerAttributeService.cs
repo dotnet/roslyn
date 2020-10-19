@@ -336,13 +336,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(data);
-            return new ValueTask();
+            return ValueTaskFactory.CompletedTask;
         }
 
         public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             _cpsProjects.TryRemove(projectId, out _);
-            return new ValueTask();
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }
