@@ -435,8 +435,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private async Task SetLiveErrorsForProjectAsync(ProjectId projectId, InProgressState state, CancellationToken cancellationToken)
         {
-            var diagnostics = state.GetLiveErrorsForProject(projectId, cancellationToken);
-            await SetLiveErrorsForProjectAsync(projectId, diagnostics).ConfigureAwait(false);
+            var diagnostics = state.GetLiveErrorsForProject(projectId);
+            await SetLiveErrorsForProjectAsync(projectId, diagnostics, cancellationToken).ConfigureAwait(false);
             state.MarkLiveErrorsReported(projectId);
         }
 
@@ -702,7 +702,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
             }
 
-            public ImmutableArray<DiagnosticData> GetLiveErrorsForProject(ProjectId projectId, CancellationToken cancellationToken)
+            public ImmutableArray<DiagnosticData> GetLiveErrorsForProject(ProjectId projectId)
             {
                 var project = Solution.GetRequiredProject(projectId);
 
@@ -711,7 +711,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 foreach (var (diagnostic, _) in diagnostics)
                 {
-                    if (IsLive(project, diagnostic, cancellationToken))
+                    if (IsLive(project, diagnostic))
                     {
                         builder.Add(diagnostic);
                     }
@@ -732,7 +732,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             public void AddError(ProjectId key, DiagnosticData diagnostic)
                 => AddError(_projectMap, key, diagnostic);
 
-            private bool IsLive(Project project, DiagnosticData diagnosticData, CancellationToken cancellationToken)
+            private bool IsLive(Project project, DiagnosticData diagnosticData)
             {
                 // REVIEW: current design is that we special case compiler analyzer case and we accept only document level
                 //         diagnostic as live. otherwise, we let them be build errors. we changed compiler analyzer accordingly as well
@@ -744,7 +744,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return false;
                 }
 
-                if (IsSupportedLiveDiagnosticId(project, diagnosticData.Id, cancellationToken))
+                if (IsSupportedLiveDiagnosticId(project, diagnosticData.Id))
                 {
                     return true;
                 }
@@ -804,8 +804,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     foreach (var analyzersPerReference in project.Solution.State.Analyzers.CreateDiagnosticAnalyzersPerReference(project))
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
                         foreach (var analyzer in analyzersPerReference.Value)
                         {
                             var diagnosticIds = infoCache.GetNonCompilationEndDiagnosticDescriptors(analyzer).Select(d => d.Id);
