@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
 
         [Fact]
-        internal void CallbackDispatchers()
+        public void CallbackDispatchers()
         {
             var hostServices = FeaturesTestCompositions.Features.WithTestHostParts(Testing.TestHost.OutOfProcess).GetHostServices();
             var callbackDispatchers = ((IMefHostExportProvider)hostServices).GetExports<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatchers.ExportMetadata>();
