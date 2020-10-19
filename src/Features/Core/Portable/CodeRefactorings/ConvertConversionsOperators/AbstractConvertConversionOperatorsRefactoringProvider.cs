@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
         private static bool IsReferenceTypeOrTypeParameter(ITypeSymbol? type)
             => type switch
             {
-                null => false,
                 { Kind: SymbolKind.ErrorType } => false,
                 { IsReferenceType: true } => true,
                 _ => false,
