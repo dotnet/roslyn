@@ -650,7 +650,7 @@ Class B
 End Class
 
 Class TestClass
-    Sub Method1(a As ISymbol, s As ISymbol)
+    Sub Method1(a As A, s As ISymbol)
         If a?.b?.s?[|.Equals(s)|] Then Exit Sub
     End Sub
 End Class
@@ -699,6 +699,17 @@ class TestClass
 
             var fixedSource = @"
 using Microsoft.CodeAnalysis;
+
+class A
+{
+    public B b;
+}
+
+class B
+{
+    public ISymbol s;
+}
+
 class TestClass
 {
     void Method1(A a, ISymbol s)
