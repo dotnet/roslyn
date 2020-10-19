@@ -38,7 +38,7 @@ End Module
         End Function
 
         <Fact>
-        Public Async Function ConvertFromCTypeNoConverionIfTypeIsValueType() As Task
+        Public Async Function ConvertFromCTypeNoConversionIfTypeIsValueType() As Task
             Dim markup =
 <File>
 Module Program
@@ -52,11 +52,61 @@ End Module
         End Function
 
         <Fact>
-        Public Async Function ConvertFromCTypeNoConverionIfTypeIsValueType_GenericTypeConstraint() As Task
+        Public Async Function ConvertFromCTypeNoConversionIfTypeIsValueType_GenericTypeConstraint() As Task
             Dim markup =
 <File>
 Module Program
     Sub M(Of T As Structure)()
+        Dim x = CType([||]1, T)
+    End Sub
+End Module
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
+        <Fact>
+        Public Async Function ConvertFromCTypeConversionIfTypeIsRefernceType_Constraint() As Task
+            Dim markup =
+<File>
+Module Program
+    Sub M(Of T As Class)()
+        Dim x = CType([||]1, T)
+    End Sub
+End Module
+</File>
+            Dim expected =
+<File>
+Module Program
+    Sub M(Of T As Class)()
+        Dim x = TryCast(1, T)
+    End Sub
+End Module
+</File>
+
+            Await TestAsync(markup, expected)
+        End Function
+
+        <Fact>
+        Public Async Function ConvertFromCTypeNoConversionIfTypeIsMissing() As Task
+            Dim markup =
+<File>
+Module Program
+    Sub M()
+        Dim x = CType([||]1, MissingType)
+    End Sub
+End Module
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
+        <Fact>
+        Public Async Function ConvertFromCTypeNoConversionIfTypeIsValueType_GenericUnconstraint() As Task
+            Dim markup =
+<File>
+Module Program
+    Sub M(Of T)()
         Dim x = CType([||]1, T)
     End Sub
 End Module

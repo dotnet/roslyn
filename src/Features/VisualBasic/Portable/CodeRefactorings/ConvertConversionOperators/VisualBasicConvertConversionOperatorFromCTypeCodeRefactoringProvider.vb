@@ -24,19 +24,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
             Return VBFeaturesResources.Change_to_TryCast
         End Function
 
-        Protected Overrides Async Function FilterFromExpressionCandidatesAsync(cTypeExpressions As ImmutableArray(Of CTypeExpressionSyntax), document As Document, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CTypeExpressionSyntax))
+        Protected Overrides Async Function FilterFromExpressionCandidatesAsync(
+                cTypeExpressions As ImmutableArray(Of CTypeExpressionSyntax),
+                document As Document,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CTypeExpressionSyntax))
             If cTypeExpressions.IsEmpty Then
                 Return cTypeExpressions
             End If
 
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
-            Dim tryCastConversions = From node In cTypeExpressions
-                                     Let type = semanticModel.GetTypeInfo(node.Type, cancellationToken).Type
-                                     Where type?.IsValueType <> true
-                                     Select node
-
-            Return tryCastConversions.ToImmutableArray()
+            Return cTypeExpressions.WhereAsArray(Function(node)
+                                                     Return semanticModel.GetTypeInfo(node.Type, cancellationToken).Type.IsReferenceTypeOrTypeParameter()
+                                                 End Function)
         End Function
 
         Protected Overrides Function ConvertExpression(fromExpression As CTypeExpressionSyntax) As CodeAnalysis.SyntaxNode
