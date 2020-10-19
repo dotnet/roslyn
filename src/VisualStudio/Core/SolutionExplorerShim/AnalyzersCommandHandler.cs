@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -279,18 +281,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     continue;
                 }
 
-                var analyzerConfigSpecificDiagnosticOptions = project.GetAnalyzerConfigSpecialDiagnosticOptions();
+                var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
                 foreach (var diagnosticItem in group)
                 {
-                    var severity = ReportDiagnostic.Default;
-                    if (project.CompilationOptions.SpecificDiagnosticOptions.ContainsKey(diagnosticItem.Descriptor.Id) ||
-                        analyzerConfigSpecificDiagnosticOptions.ContainsKey(diagnosticItem.Descriptor.Id))
-                    {
-                        // Severity is overridden by end user.
-                        severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigSpecificDiagnosticOptions);
-                    }
-
+                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions);
                     selectedItemSeverities.Add(severity);
                 }
             }

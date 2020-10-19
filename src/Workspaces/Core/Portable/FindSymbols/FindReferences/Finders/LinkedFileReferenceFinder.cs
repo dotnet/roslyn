@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken);
+            return options.Cascade
+                ? SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken)
+                : SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
         public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
@@ -25,14 +27,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        public Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project>? projects = null, CancellationToken cancellationToken = default)
             => SpecializedTasks.EmptyImmutableArray<Project>();
 
-        public Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        public ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
+            return new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
     }
 }

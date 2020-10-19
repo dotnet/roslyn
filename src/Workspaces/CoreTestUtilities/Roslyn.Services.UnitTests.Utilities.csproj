@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
-    <TargetFrameworks>net5.0;netcoreapp3.1;net472</TargetFrameworks>
+    <TargetFrameworks>net5.0-windows;netcoreapp3.1;net472</TargetFrameworks>
     <UseWpf>true</UseWpf>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
@@ -32,9 +32,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit" Version="$(MicrosoftCodeAnalysisVisualBasicCodeRefactoringTestingXUnitVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
     <PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />
-    <PackageReference Include="Nerdbank.FullDuplexStream" Version="$(NerdbankFullDuplexStreamVersion)" />
     <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
     <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
@@ -45,6 +45,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests" />
@@ -54,8 +55,5 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\ProjectSystem\VisualStudioMefHostServices.cs" Link="MEF\VisualStudioMefHostServices.cs" />
   </ItemGroup>
 </Project>

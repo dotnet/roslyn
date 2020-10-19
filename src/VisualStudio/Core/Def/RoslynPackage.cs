@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
@@ -21,6 +19,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -40,6 +39,7 @@ using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -326,7 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                     // so guarding us from them
                     if (localRegistration != null)
                     {
-                        FatalError.ReportWithoutCrash(new InvalidOperationException("BulkFileOperation already exist"));
+                        FatalError.ReportAndCatch(new InvalidOperationException("BulkFileOperation already exist"));
                         return;
                     }
 

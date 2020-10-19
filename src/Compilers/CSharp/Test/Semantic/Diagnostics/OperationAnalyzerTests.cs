@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.IOperation)]
     public class OperationAnalyzerTests : CompilingTestBase
     {
-        private readonly static CSharpParseOptions patternParseOptions = TestOptions.Regular;
+        private static readonly CSharpParseOptions patternParseOptions = TestOptions.Regular;
 
         [Fact]
         public void EmptyArrayCSharp()

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -325,15 +323,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override string ToString()
             => _containingType.ToString() + "." + this.Name;
 
-        override public ushort Alignment => 1;
+        public override ushort Alignment => 1;
 
-        override public Cci.ITypeReference GetBaseClass(EmitContext context) => _sysValueType;
+        public override Cci.ITypeReference GetBaseClass(EmitContext context) => _sysValueType;
 
-        override public LayoutKind Layout => LayoutKind.Explicit;
+        public override LayoutKind Layout => LayoutKind.Explicit;
 
-        override public uint SizeOf => _size;
+        public override uint SizeOf => _size;
 
-        override public void Dispatch(Cci.MetadataVisitor visitor)
+        public override void Dispatch(Cci.MetadataVisitor visitor)
         {
             visitor.Visit(this);
         }
@@ -485,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public IEnumerable<Cci.MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
             => SpecializedCollections.EmptyEnumerable<Cci.MethodImplementation>();
 
-        virtual public IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)
+        public virtual IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)
             => SpecializedCollections.EmptyEnumerable<Cci.IFieldDefinition>();
 
         public IEnumerable<Cci.IGenericTypeParameter> GenericParameters

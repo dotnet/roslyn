@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -293,10 +295,10 @@ struct S
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-// (4,20): error CS8034: Auto-implemented properties must have get accessors.
+// (4,20): error CS8051: Auto-implemented properties must have get accessors.
 //     public int Q { set; } = 0;
 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.Q.set").WithLocation(4, 20),
-// (5,20): error CS8034: Auto-implemented properties must have get accessors.
+// (5,20): error CS8051: Auto-implemented properties must have get accessors.
 //     public int R { set; }
 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.R.set").WithLocation(5, 20));
         }
@@ -2598,7 +2600,7 @@ public interface IA
     string M2();
 }";
             var refComp = CSharpCompilation.Create("DLL",
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(refSrc) },
                 references: new MetadataReference[] { MscorlibRef });
 
@@ -2690,7 +2692,7 @@ public interface IA
 }";
 
             refComp = CSharpCompilation.Create("DLL",
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(refSrc) },
                 references: new[] { MscorlibRef });
 
@@ -2889,7 +2891,7 @@ unsafe class Test
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (4,30): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //     int* property { get; } = stackalloc int[256];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[256]").WithArguments("int", "int*").WithLocation(4, 30)

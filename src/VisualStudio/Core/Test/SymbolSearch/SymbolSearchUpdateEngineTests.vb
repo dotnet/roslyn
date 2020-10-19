@@ -744,12 +744,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Private Sub New()
             End Sub
 
-            Public Function LogExceptionAsync(exception As String, text As String) As Task Implements ISymbolSearchLogService.LogExceptionAsync
-                Return Task.CompletedTask
+            Public Function LogExceptionAsync(exception As String, text As String, cancellationToken As CancellationToken) As ValueTask Implements ISymbolSearchLogService.LogExceptionAsync
+                Return Nothing
             End Function
 
-            Public Function LogInfoAsync(text As String) As Task Implements ISymbolSearchLogService.LogInfoAsync
-                Return Task.CompletedTask
+            Public Function LogInfoAsync(text As String, cancellationToken As CancellationToken) As ValueTask Implements ISymbolSearchLogService.LogInfoAsync
+                Return Nothing
             End Function
         End Class
     End Class

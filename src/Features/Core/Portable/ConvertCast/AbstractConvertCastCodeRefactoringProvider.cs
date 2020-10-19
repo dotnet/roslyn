@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ConvertCast
 {
@@ -20,7 +21,8 @@ namespace Microsoft.CodeAnalysis.ConvertCast
     ///
     /// Or vice versa.
     /// </summary>
-    internal abstract class AbstractConvertCastCodeRefactoringProvider<TTypeNode, TFromExpression, TToExpression> : CodeRefactoringProvider
+    internal abstract class AbstractConvertCastCodeRefactoringProvider<TTypeNode, TFromExpression, TToExpression>
+        : CodeRefactoringProvider
         where TTypeNode : SyntaxNode
         where TFromExpression : SyntaxNode
         where TToExpression : SyntaxNode
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ConvertCast
             var (document, _, cancellationToken) = context;
 
             var typeNode = GetTypeNode(from);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var type = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
             if (type is { TypeKind: not TypeKind.Error, IsReferenceType: true })
             {
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ConvertCast
             TFromExpression from,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(from, ConvertExpression(from));
             return document.WithSyntaxRoot(newRoot);
         }

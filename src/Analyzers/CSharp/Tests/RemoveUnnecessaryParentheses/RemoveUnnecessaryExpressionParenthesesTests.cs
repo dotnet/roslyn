@@ -1,6 +1,8 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -13,11 +15,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses
 {
     public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider());
 
@@ -91,6 +99,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     void M()
     {
         var span = $$(stackalloc byte[8]);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(47365, "https://github.com/dotnet/roslyn/issues/47365")]
+        public async Task TestDynamic()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        dynamic i = 1;
+        dynamic s = ""s"";
+        Console.WriteLine(s + $$(1 + i));
     }
 }");
         }

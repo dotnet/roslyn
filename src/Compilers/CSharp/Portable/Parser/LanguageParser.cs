@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1647,7 +1649,7 @@ tryAgain:
             }
         }
 
-#nullable restore
+#nullable disable
 
         private void SkipBadMemberListTokens(ref SyntaxToken openBrace, SyntaxListBuilder members)
         {
@@ -5559,6 +5561,10 @@ tryAgain:
                     // This is useful for parsing expressions in isolation
                     return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
+                case SyntaxKind.EqualsGreaterThanToken:  // e.g. `e switch { A<B> => 1 }`
+                    // This token was added to 7.5.4.2 Grammar Ambiguities in C# 9.0
+                    return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+
                 default:
                     return ScanTypeArgumentListKind.PossibleTypeArgumentList;
             }
@@ -6527,7 +6533,7 @@ done:
                                                      expected: SyntaxKind.CommaToken, trailingTrivia: out _);
             }
         }
-#nullable restore
+#nullable disable
 
         private static bool IsPredefinedType(SyntaxKind keyword)
         {
@@ -7107,7 +7113,7 @@ done:;
             // We consider both ( and < to be possible starts, in order to make error recovery more graceful
             // in the scenario where a user accidentally surrounds their function pointer type list with parens.
             => token.Kind == SyntaxKind.LessThanToken || token.Kind == SyntaxKind.OpenParenToken;
-#nullable restore
+#nullable disable
 
         private TypeSyntax ParsePointerTypeMods(TypeSyntax type)
         {
@@ -10576,6 +10582,18 @@ tryAgain:
             while (true)
             {
                 tk = this.CurrentToken.Kind;
+                // Nullable suppression operators should only be consumed by a conditional access
+                // if there are further conditional operations performed after the suppression
+                if (isOptionalExclamationsFollowedByConditionalOperation())
+                {
+                    while (tk == SyntaxKind.ExclamationToken)
+                    {
+                        expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, EatToken());
+                        expr = CheckFeatureAvailability(expr, MessageID.IDS_FeatureNullableReferenceTypes);
+                        tk = this.CurrentToken.Kind;
+                    }
+                }
+
                 switch (tk)
                 {
                     case SyntaxKind.OpenParenToken:
@@ -10602,6 +10620,20 @@ tryAgain:
                     default:
                         return expr;
                 }
+            }
+
+            bool isOptionalExclamationsFollowedByConditionalOperation()
+            {
+                var tk = this.CurrentToken.Kind;
+                for (int i = 1; tk == SyntaxKind.ExclamationToken; i++)
+                {
+                    tk = this.PeekToken(i).Kind;
+                }
+                return tk
+                    is SyntaxKind.OpenParenToken
+                    or SyntaxKind.OpenBracketToken
+                    or SyntaxKind.DotToken
+                    or SyntaxKind.QuestionToken;
             }
         }
 
@@ -11554,9 +11586,9 @@ tryAgain:
             TypeSyntax type = null;
             InitializerExpressionSyntax initializer = null;
 
-            if (IsTargetTypedObjectCreation())
+            if (IsImplicitObjectCreation())
             {
-                @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureTargetTypedObjectCreation);
+                @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureImplicitObjectCreation);
             }
             else
             {
@@ -11598,7 +11630,7 @@ tryAgain:
                 : (ExpressionSyntax)_syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
         }
 
-        private bool IsTargetTypedObjectCreation()
+        private bool IsImplicitObjectCreation()
         {
             // The caller is expected to have consumed the new keyword.
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
@@ -11699,7 +11731,7 @@ tryAgain:
             return result;
         }
 
-#nullable restore
+#nullable disable
 
         private InitializerExpressionSyntax ParseObjectOrCollectionInitializer()
         {

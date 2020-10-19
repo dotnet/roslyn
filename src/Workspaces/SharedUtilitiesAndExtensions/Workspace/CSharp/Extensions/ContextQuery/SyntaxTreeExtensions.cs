@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -3015,6 +3017,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
+        }
+
+        public static bool IsFunctionPointerCallingConventionContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
+        {
+            return targetToken.IsKind(SyntaxKind.AsteriskToken) &&
+                   targetToken.Parent is FunctionPointerTypeSyntax functionPointerType &&
+                   targetToken == functionPointerType.AsteriskToken;
         }
     }
 }

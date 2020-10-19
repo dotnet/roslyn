@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -157,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     // nop
                 }
@@ -225,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     // nop
                 }
@@ -290,10 +288,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                 lock (_trackingSpans)
                 {
-                    if (_trackingSpans.TryGetValue(document.Id, out var documentSpans) && documentSpans != null)
+                    if (_trackingSpans.TryGetValue(document.Id, out var documentSpans) && !documentSpans.IsDefaultOrEmpty)
                     {
-                        Debug.Assert(!documentSpans.IsEmpty);
-
                         var snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
                         if (snapshot != null && snapshot.TextBuffer == documentSpans.First().Span.TextBuffer)
                         {
@@ -337,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     // nop
                 }

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -184,19 +183,20 @@ namespace Microsoft.CodeAnalysis
                 return operations;
             }
 
-            // race is okay. penalty is going through a loop one more time or
-            // .Parent going through slower path of SearchParentOperation()
-            // explicit cast is not allowed, so using "as" instead
-            // invalid expression can have null element in the array
-            if ((operations[0] as Operation)?._parentDoNotAccessDirectly != s_unset)
-            {
-                // most likely already initialized. if not, due to a race or invalid expression,
-                // operation.Parent will take slower path but still return correct Parent.
-                return operations;
-            }
-
             foreach (var operation in operations)
             {
+                // Due to lazy construction of nodes, it's very possible that two threads might see lists where
+                // the first operation in an array is reference equal between the arrays, but the second operation
+                // is not reference equal. This difference is generally not observable from a user perspective (unless
+                // they're doing their own reference equality), and fixing it by removing laziness from IOperation
+                // entirely is tracked by https://github.com/dotnet/roslyn/issues/35818. Until then, however, we've
+                // seen real world examples where bailing out of the entire set operation causes infinite loops when
+                // searching for a parent operation, so we only skip setting the parent for a single node at a time.
+                if ((operation as Operation)?._parentDoNotAccessDirectly != s_unset)
+                {
+                    continue;
+                }
+
                 // go through slowest path
                 SetParentOperation(operation, parent);
             }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(newLocals, newLocalFunctions, newStatements);
         }
 
-        public override abstract BoundNode VisitScope(BoundScope node);
+        public abstract override BoundNode VisitScope(BoundScope node);
 
         public override BoundNode VisitSequence(BoundSequence node)
         {
@@ -617,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, receiverType, node.BinderOpt, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, receiverType, node.Binder, type);
         }
 
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)

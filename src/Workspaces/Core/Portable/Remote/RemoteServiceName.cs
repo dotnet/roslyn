@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Roslyn.Utilities;
 
@@ -19,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
     internal readonly struct RemoteServiceName : IEquatable<RemoteServiceName>
     {
         internal const string Prefix = "roslyn";
+        internal const string Suffix64 = "64";
         internal const string IntelliCodeServiceName = "pythia";
         internal const string RazorServiceName = "razorLanguageService";
         internal const string UnitTestingAnalysisServiceName = "UnitTestingAnalysis";
@@ -45,24 +44,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public string ToString(bool isRemoteHost64Bit)
         {
-            const string Suffix64 = "64";
-
             return CustomServiceName ?? (WellKnownService, isRemoteHost64Bit) switch
             {
                 (WellKnownServiceHubService.RemoteHost, false) => Prefix + nameof(WellKnownServiceHubService.RemoteHost),
                 (WellKnownServiceHubService.RemoteHost, true) => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + Suffix64,
-                (WellKnownServiceHubService.CodeAnalysis, false) => Prefix + nameof(WellKnownServiceHubService.CodeAnalysis),
-                (WellKnownServiceHubService.CodeAnalysis, true) => Prefix + nameof(WellKnownServiceHubService.CodeAnalysis) + Suffix64,
-                (WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, false) => Prefix + nameof(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine),
-                (WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, true) => Prefix + nameof(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine) + Suffix64,
-                (WellKnownServiceHubService.RemoteDesignerAttributeService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteDesignerAttributeService),
-                (WellKnownServiceHubService.RemoteDesignerAttributeService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteDesignerAttributeService) + Suffix64,
-                (WellKnownServiceHubService.RemoteProjectTelemetryService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteProjectTelemetryService),
-                (WellKnownServiceHubService.RemoteProjectTelemetryService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteProjectTelemetryService) + Suffix64,
-                (WellKnownServiceHubService.RemoteTodoCommentsService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteTodoCommentsService),
-                (WellKnownServiceHubService.RemoteTodoCommentsService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteTodoCommentsService) + Suffix64,
-                (WellKnownServiceHubService.LanguageServer, false) => Prefix + nameof(WellKnownServiceHubService.LanguageServer),
-                (WellKnownServiceHubService.LanguageServer, true) => Prefix + nameof(WellKnownServiceHubService.LanguageServer) + Suffix64,
+                (WellKnownServiceHubService.RemoteLanguageServer, false) => Prefix + nameof(WellKnownServiceHubService.RemoteLanguageServer),
+                (WellKnownServiceHubService.RemoteLanguageServer, true) => Prefix + nameof(WellKnownServiceHubService.RemoteLanguageServer) + Suffix64,
 
                 (WellKnownServiceHubService.IntelliCode, false) => IntelliCodeServiceName,
                 (WellKnownServiceHubService.IntelliCode, true) => IntelliCodeServiceName + Suffix64,
@@ -95,6 +82,6 @@ namespace Microsoft.CodeAnalysis.Remote
             => !(left == right);
 
         public static implicit operator RemoteServiceName(WellKnownServiceHubService wellKnownService)
-            => new RemoteServiceName(wellKnownService);
+            => new(wellKnownService);
     }
 }

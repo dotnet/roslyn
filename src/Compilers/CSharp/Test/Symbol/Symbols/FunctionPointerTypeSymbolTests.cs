@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -1660,15 +1659,6 @@ unsafe class C
             ptr = comp.CreateFunctionPointerTypeSymbol(@string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, SignatureCallingConvention.Unmanaged, ImmutableArray.Create(cdeclType)!);
             AssertEx.Equal("delegate* unmanaged[Cdecl]<System.String modopt(System.Runtime.CompilerServices.CallConvCdecl)>", ptr.ToTestDisplayString());
             Assert.Equal(SignatureCallingConvention.Unmanaged, ptr.Signature.CallingConvention);
-        }
-
-        [Fact]
-        public void PublicApi_ExplicitManagedFormatOption()
-        {
-            var comp = (Compilation)CreateCompilation("");
-            var @string = comp.GetSpecialType(SpecialType.System_String);
-            var ptr = comp.CreateFunctionPointerTypeSymbol(@string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty);
-            AssertEx.Equal("delegate* managed<System.String>", ptr.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseExplicitManagedCallingConventionSpecifier)));
         }
 
         [Fact]

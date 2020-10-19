@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -117,6 +119,32 @@ namespace NS
     {
         partial void M() { }
         partial void M();
+    }
+}
+";
+
+            var comp = (Compilation)CreateCompilation(src, assemblyName: "Test");
+
+            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
+            var type = ns.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
+            var definition = type.GetMembers("M").First() as IMethodSymbol;
+            var implementation = definition.PartialImplementationPart;
+
+            // Assert that both the definition and implementation resolve back to themselves
+            Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+            Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+        }
+
+        [Fact]
+        public void ExtendedPartialDefinitionAndImplementationResolveCorrectly()
+        {
+            var src = @"using System;
+namespace NS
+{
+    public partial class C1
+    {
+        public partial void M() { }
+        public partial void M();
     }
 }
 ";

@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class EventSymbol
+    Partial Friend Class EventSymbol
         Implements Cci.IEventDefinition
 
         Private Iterator Function IEventDefinitionAccessors(context As EmitContext) As IEnumerable(Of Cci.IMethodReference) Implements Cci.IEventDefinition.GetAccessors

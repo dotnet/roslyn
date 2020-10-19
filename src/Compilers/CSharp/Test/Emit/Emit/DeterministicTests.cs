@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -261,7 +263,7 @@ namespace N
             var compilation = CSharpCompilation.Create("Program",
                                                        new[] { tree },
                                                        new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
-                                                       new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterministic(true));
+                                                       TestOptions.DebugExe.WithDeterministic(true));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
         }

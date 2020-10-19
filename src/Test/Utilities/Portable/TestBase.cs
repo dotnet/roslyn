@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -329,7 +331,8 @@ namespace Roslyn.Test.Utilities
             object[] arguments = null,
             LinePosition? startLocation = null,
             Func<SyntaxNode, bool> syntaxNodePredicate = null,
-            bool argumentOrderDoesNotMatter = false)
+            bool argumentOrderDoesNotMatter = false,
+            bool isSuppressed = false)
         {
             return TestHelpers.Diagnostic(
                 code,
@@ -337,7 +340,8 @@ namespace Roslyn.Test.Utilities
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
-                argumentOrderDoesNotMatter);
+                argumentOrderDoesNotMatter,
+                isSuppressed: isSuppressed);
         }
 
         internal static DiagnosticDescription Diagnostic(
@@ -346,7 +350,8 @@ namespace Roslyn.Test.Utilities
            object[] arguments = null,
            LinePosition? startLocation = null,
            Func<SyntaxNode, bool> syntaxNodePredicate = null,
-           bool argumentOrderDoesNotMatter = false)
+           bool argumentOrderDoesNotMatter = false,
+           bool isSuppressed = false)
         {
             return TestHelpers.Diagnostic(
                 code,
@@ -354,7 +359,8 @@ namespace Roslyn.Test.Utilities
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
-                argumentOrderDoesNotMatter);
+                argumentOrderDoesNotMatter,
+                isSuppressed: isSuppressed);
         }
 
         #endregion

@@ -1245,4 +1245,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Change_to_TryCast" xml:space="preserve">
     <value>Change to 'TryCast'</value>
   </data>
+  <data name="Remove_shared_keyword_from_module_member" xml:space="preserve">
+    <value>Remove 'Shared' keyword from Module member</value>
+    <comment>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</comment>
+  </data>
 </root>

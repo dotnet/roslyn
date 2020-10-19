@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         filterText: escapedName));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }
@@ -153,14 +155,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SyntaxNode invocableNode,
             CancellationToken cancellationToken)
         {
-            switch (invocableNode)
+            return invocableNode switch
             {
-                case InvocationExpressionSyntax invocationExpression: return GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken);
-                case ConstructorInitializerSyntax constructorInitializer: return GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken);
-                case ElementAccessExpressionSyntax elementAccessExpression: return GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken);
-                case BaseObjectCreationExpressionSyntax objectCreationExpression: return GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken);
-                default: return null;
-            }
+                InvocationExpressionSyntax invocationExpression => GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken),
+                ConstructorInitializerSyntax constructorInitializer => GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken),
+                ElementAccessExpressionSyntax elementAccessExpression => GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken),
+                BaseObjectCreationExpressionSyntax objectCreationExpression => GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken),
+                PrimaryConstructorBaseTypeSyntax recordBaseType => GetRecordBaseTypeParameterLists(semanticModel, position, recordBaseType, cancellationToken),
+                _ => null,
+            };
         }
 
         private static IEnumerable<ImmutableArray<IParameterSymbol>> GetObjectCreationExpressionParameterLists(
@@ -221,6 +224,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return type.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
                                                     .Select(c => c.Parameters);
                 }
+            }
+
+            return null;
+        }
+
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetRecordBaseTypeParameterLists(
+            SemanticModel semanticModel,
+            int position,
+            PrimaryConstructorBaseTypeSyntax recordBaseType,
+            CancellationToken cancellationToken)
+        {
+            var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
+            if (within != null)
+            {
+                var type = semanticModel.GetTypeInfo(recordBaseType.Type, cancellationToken).Type as INamedTypeSymbol;
+
+                return type?.InstanceConstructors
+                    .Where(m => m.IsAccessibleWithin(within))
+                    .Select(m => m.Parameters);
             }
 
             return null;

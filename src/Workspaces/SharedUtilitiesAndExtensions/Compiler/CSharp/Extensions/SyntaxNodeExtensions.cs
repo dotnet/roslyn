@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -211,6 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return (property.OpenBraceToken, property.CloseBraceToken);
                 case WithExpressionSyntax withExpr:
                     return (withExpr.Initializer.OpenBraceToken, withExpr.Initializer.CloseBraceToken);
+                case ImplicitObjectCreationExpressionSyntax { Initializer: { } initializer }:
+                    return (initializer.OpenBraceToken, initializer.CloseBraceToken);
             }
 
             return default;
@@ -593,6 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:

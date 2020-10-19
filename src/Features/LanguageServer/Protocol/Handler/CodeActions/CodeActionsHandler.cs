@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -22,8 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// of the returned VSCodeActions blank, as these properties should be populated by the
     /// CodeActionsResolveHandler only when the user requests them.
     /// </summary>
-    [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName), Shared]
-    internal class CodeActionsHandler : AbstractRequestHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>
+    [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName, mutatesSolutionState: false), Shared]
+    internal class CodeActionsHandler : IRequestHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
@@ -36,18 +34,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public CodeActionsHandler(
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService,
-            ILspSolutionProvider solutionProvider)
-            : base(solutionProvider)
+            ICodeRefactoringService codeRefactoringService)
         {
             _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
         }
 
-        public override async Task<LSP.VSCodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(CodeActionParams request) => request.TextDocument;
+
+        public async Task<LSP.VSCodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return Array.Empty<VSCodeAction>();

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 name,
                 new[] { SyntaxFactory.ParseSyntaxTree(@"class C {}") },
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(TestMetadata.ResourcesNetStandard20.netstandard) },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel));
             var compFile = directory.CreateFile(name);
             comp.Emit(compFile.Path);
 

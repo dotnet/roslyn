@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1180,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
             VisitArgumentsBeforeCall(node.Arguments, node.ArgumentRefKindsOpt);
 
-            if (!callsAreOmitted && node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
+            if (node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
             {
                 VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
             }
@@ -1870,7 +1872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override sealed BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
+        public sealed override BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             // OutDeconstructVarPendingInference nodes are only used within initial binding, but don't survive past that stage
             throw ExceptionUtilities.Unreachable;
@@ -3018,7 +3020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override sealed BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
+        public sealed override BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
         {
             throw ExceptionUtilities.Unreachable;
         }

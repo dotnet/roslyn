@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -742,5 +740,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             result = (TSymbol)symbol;
             return true;
         }
+
+        /// <summary>
+        /// Returns true for symbols whose name starts with an underscore and
+        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// These are treated as special discard symbol names.
+        /// </summary>
+        public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
+            => symbol.Name.StartsWith("_") &&
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
     }
 }

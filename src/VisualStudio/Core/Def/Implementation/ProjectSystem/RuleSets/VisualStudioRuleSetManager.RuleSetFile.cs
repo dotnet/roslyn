@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private sealed class RuleSetFile : IRuleSetFile, IDisposable
         {
             private readonly VisualStudioRuleSetManager _ruleSetManager;
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             private FileChangeWatcher.IContext _fileChangeContext;
 

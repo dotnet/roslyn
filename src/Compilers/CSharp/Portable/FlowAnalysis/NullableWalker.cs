@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 #if DEBUG
 // See comment in DefiniteAssignment.
 #define REFERENCE_STATE
@@ -446,7 +444,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             this.Diagnostics.Clear();
             this.regionPlace = RegionPlace.Before;
-            makeNotNullMembersMaybeNull();
             if (!_isSpeculative)
             {
                 ParameterSymbol methodThisParameter = MethodThisParameter;
@@ -456,24 +453,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
                 }
 
+                makeNotNullMembersMaybeNull();
                 // We need to create a snapshot even of the first node, because we want to have the state of the initial parameters.
                 _snapshotBuilderOpt?.TakeIncrementalSnapshot(methodMainNode, State);
             }
 
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
-            EnforceDoesNotReturn(syntaxOpt: null);
-            enforceMemberNotNull(syntaxOpt: null, this.State);
-            enforceNotNull(null, this.State);
-
-            foreach (var pendingReturn in pendingReturns)
+            if ((_symbol as MethodSymbol)?.IsConstructor() != true || _useConstructorExitWarnings)
             {
-                enforceMemberNotNull(syntaxOpt: pendingReturn.Branch.Syntax, pendingReturn.State);
+                EnforceDoesNotReturn(syntaxOpt: null);
+                enforceMemberNotNull(syntaxOpt: null, this.State);
+                enforceNotNull(null, this.State);
 
-                if (pendingReturn.Branch is BoundReturnStatement { ExpressionOpt: BoundExpression expr } returnStatement)
+                foreach (var pendingReturn in pendingReturns)
                 {
-                    enforceNotNull(returnStatement.Syntax, pendingReturn.State);
-                    enforceNotNullWhenForPendingReturn(pendingReturn, expr, returnStatement);
-                    enforceMemberNotNullWhenForPendingReturn(pendingReturn, returnStatement);
+                    enforceMemberNotNull(syntaxOpt: pendingReturn.Branch.Syntax, pendingReturn.State);
+
+                    if (pendingReturn.Branch is BoundReturnStatement returnStatement)
+                    {
+                        enforceNotNull(returnStatement.Syntax, pendingReturn.State);
+                        enforceNotNullWhenForPendingReturn(pendingReturn, returnStatement);
+                        enforceMemberNotNullWhenForPendingReturn(pendingReturn, returnStatement);
+                    }
                 }
             }
 
@@ -489,8 +490,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = _symbol as MethodSymbol;
                 if (method is object)
                 {
-                    if (method.IsConstructor() && _useConstructorExitWarnings)
+                    if (method.IsConstructor())
                     {
+                        Debug.Assert(_useConstructorExitWarnings);
                         var thisSlot = 0;
                         if (method.RequiresInstanceReceiver)
                         {
@@ -757,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void enforceNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundExpression expr, BoundReturnStatement returnStatement)
+            void enforceNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
             {
                 var parameters = this.MethodParameters;
 
@@ -780,10 +782,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var parameter in this.MethodParameters)
                 {
-                    if (parameterHasBadState(parameter, state))
+                    var slot = GetOrCreateSlot(parameter);
+                    if (slot <= 0)
+                    {
+                        continue;
+                    }
+
+                    var annotations = parameter.FlowAnalysisAnnotations;
+                    var hasNotNull = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
+                    var parameterState = state[slot];
+                    if (hasNotNull && parameterState.MayBeNull())
                     {
                         // Parameter '{name}' must have a non-null value when exiting.
                         Diagnostics.Add(ErrorCode.WRN_ParameterDisallowsNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), parameter.Name);
+                    }
+                    else
+                    {
+                        EnforceNotNullIfNotNull(syntaxOpt, state, this.MethodParameters, parameter.NotNullIfParameterNotNull, parameterState, parameter);
                     }
                 }
             }
@@ -803,19 +818,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Diagnostics.Add(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
                     }
                 }
-            }
-
-            bool parameterHasBadState(ParameterSymbol parameter, LocalState state)
-            {
-                var slot = GetOrCreateSlot(parameter);
-                if (slot > 0)
-                {
-                    var annotations = parameter.FlowAnalysisAnnotations;
-                    bool hasNotNull = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
-                    return hasNotNull && state[slot].MayBeNull();
-                }
-
-                return false;
             }
 
             bool parameterHasBadConditionalState(ParameterSymbol parameter, bool sense, LocalState stateWhen)
@@ -880,6 +882,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return GetOrCreateSlot(member, containingSlot);
+            }
+        }
+
+        private void EnforceNotNullIfNotNull(SyntaxNode? syntaxOpt, LocalState state, ImmutableArray<ParameterSymbol> parameters, ImmutableHashSet<string> inputParamNames, NullableFlowState outputState, ParameterSymbol? outputParam)
+        {
+            if (inputParamNames.IsEmpty || outputState.IsNotNull())
+            {
+                return;
+            }
+
+            foreach (var inputParam in parameters)
+            {
+                if (inputParamNames.Contains(inputParam.Name)
+                    && GetOrCreateSlot(inputParam) is > 0 and int inputSlot
+                    && state[inputSlot].IsNotNull())
+                {
+                    var location = syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation();
+                    if (outputParam is object)
+                    {
+                        // Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.
+                        Diagnostics.Add(ErrorCode.WRN_ParameterNotNullIfNotNull, location, outputParam.Name, inputParam.Name);
+                    }
+                    else
+                    {
+                        // Return value must be non-null because parameter '{0}' is non-null.
+                        Diagnostics.Add(ErrorCode.WRN_ReturnNotNullIfNotNull, location, inputParam.Name);
+                    }
+                    break;
+                }
             }
         }
 
@@ -2309,6 +2340,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Unsplit();
+            if (CurrentSymbol is MethodSymbol method)
+            {
+                EnforceNotNullIfNotNull(node.Syntax, this.State, method.Parameters, method.ReturnNotNullIfParameterNotNull, ResultType.State, outputParam: null);
+            }
+
             SetUnreachable();
 
             return null;
@@ -2842,11 +2878,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
-            var discardedDiagnostics = new DiagnosticBag();
-            var expr = _binder!.BindObjectCreationForErrorRecovery(node, discardedDiagnostics);
-            discardedDiagnostics.Free();
-            Visit(expr);
-            SetResultType(node, TypeWithState.Create(expr.Type, NullableFlowState.NotNull));
+            // This method is only involved in method inference with unbound lambdas.
+            // The diagnostics on arguments are reported by VisitObjectCreationExpression.
+            SetResultType(node, TypeWithState.Create(null, NullableFlowState.NotNull));
             return null;
         }
 
@@ -2869,7 +2903,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 slot = GetOrCreatePlaceholderSlot(node);
                 if (slot > 0)
                 {
-                    var constructor = (node as BoundObjectCreationExpression)?.Constructor;
+                    var boundObjectCreationExpression = node as BoundObjectCreationExpression;
+                    var constructor = boundObjectCreationExpression?.Constructor;
                     bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
 
                     if (EmptyStructTypeCache.IsTrackableStructType(type))
@@ -2878,7 +2913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (containingType?.IsTupleType == true && !isDefaultValueTypeConstructor)
                         {
                             // new System.ValueTuple<T1, ..., TN>(e1, ..., eN)
-                            TrackNullableStateOfTupleElements(slot, containingType, arguments, argumentTypes, useRestField: true);
+                            TrackNullableStateOfTupleElements(slot, containingType, arguments, argumentTypes, boundObjectCreationExpression!.ArgsToParamsOpt, useRestField: true);
                         }
                         else
                         {
@@ -3399,9 +3434,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (methodOpt?.ParameterCount == 2)
                 {
-                    return operatorKind.IsLifted() && !operatorKind.IsComparison()
-                        ? GetLiftedReturnType(methodOpt.ReturnTypeWithAnnotations, leftType.State.Join(rightType.State))
-                        : GetReturnTypeWithState(methodOpt);
+                    if (operatorKind.IsLifted() && !operatorKind.IsComparison())
+                    {
+                        return GetLiftedReturnType(methodOpt.ReturnTypeWithAnnotations, leftType.State.Join(rightType.State));
+                    }
+
+                    var resultTypeWithState = GetReturnTypeWithState(methodOpt);
+                    if ((leftType.IsNotNull && methodOpt.ReturnNotNullIfParameterNotNull.Contains(methodOpt.Parameters[0].Name)) ||
+                        (rightType.IsNotNull && methodOpt.ReturnNotNullIfParameterNotNull.Contains(methodOpt.Parameters[1].Name)))
+                    {
+                        resultTypeWithState = resultTypeWithState.WithNotNullState();
+                    }
+
+                    return resultTypeWithState;
                 }
             }
             else if (!operatorKind.IsDynamic() && !resultType.IsValueType)
@@ -4108,8 +4153,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression originalConsequence,
             BoundExpression originalAlternative)
         {
-            Debug.Assert(node.Type is object);
-
             VisitCondition(condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
@@ -4127,7 +4170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, originalAlternative);
                 Join(ref this.State, ref consequenceState);
 
-                TypeSymbol refResultType = node.Type.SetUnknownNullabilityForReferenceTypes();
+                TypeSymbol? refResultType = node.Type?.SetUnknownNullabilityForReferenceTypes();
                 if (IsNullabilityMismatch(consequenceLValue, alternativeLValue))
                 {
                     // l-value types must match
@@ -4204,8 +4247,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableFlowState resultState;
             if (resultType is null)
             {
-                resultType = node.Type.SetUnknownNullabilityForReferenceTypes();
-                resultState = NullableFlowState.NotNull;
+                resultType = node.Type?.SetUnknownNullabilityForReferenceTypes();
+                resultState = consequenceRValue.State.Join(alternativeRValue.State);
 
                 var resultTypeWithState = TypeWithState.Create(resultType, resultState);
 
@@ -4229,6 +4272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     consequenceConversion,
                     resultTypeWithAnnotations,
                     consequenceRValue,
+                    consequenceState,
                     consequenceEndReachable);
 
                 TypeWithState convertedAlternativeResult = convertResult(
@@ -4237,6 +4281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     alternativeConversion,
                     resultTypeWithAnnotations,
                     alternativeRValue,
+                    alternativeState,
                     alternativeEndReachable);
 
                 resultState = convertedConsequenceResult.State.Join(convertedAlternativeResult.State);
@@ -4272,8 +4317,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion conversion,
                 TypeWithAnnotations targetType,
                 TypeWithState operandType,
+                LocalState state,
                 bool isReachable)
             {
+                var savedState = this.State;
+                this.State = state;
+
                 bool previousDisabledDiagnostics = _disableDiagnostics;
                 // If the node is not reachable, then we're only visiting to get
                 // nullability information for the public API, and not to produce diagnostics.
@@ -4301,6 +4350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = default;
                     _disableDiagnostics = previousDisabledDiagnostics;
                 }
+                this.State = savedState;
 
                 return resultType;
             }
@@ -4549,11 +4599,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly ImmutableArray<BoundExpression> Arguments;
             public readonly ImmutableArray<VisitArgumentResult> Results;
+            public readonly ImmutableArray<int> ArgsToParamsOpt;
 
-            public CompareExchangeInfo(ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitArgumentResult> results)
+            public CompareExchangeInfo(ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitArgumentResult> results, ImmutableArray<int> argsToParamsOpt)
             {
                 Arguments = arguments;
                 Results = results;
+                ArgsToParamsOpt = argsToParamsOpt;
             }
 
             public bool IsDefault => Arguments.IsDefault || Results.IsDefault;
@@ -4574,15 +4626,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     location = value;
             // }
 
-            var comparand = compareExchangeInfo.Arguments[2];
-            var valueFlowState = compareExchangeInfo.Results[1].RValueType.State;
+            if (compareExchangeInfo.Arguments.Length != 3)
+            {
+                // This can occur if CompareExchange has optional arguments.
+                // Since none of the main runtimes have optional arguments, 
+                // we bail to avoid an exception but don't bother actually calculating the FlowState.
+                return NullableFlowState.NotNull;
+            }
+
+            var argsToParamsOpt = compareExchangeInfo.ArgsToParamsOpt;
+            Debug.Assert(argsToParamsOpt is { IsDefault: true } or { Length: 3 });
+            var (comparandIndex, valueIndex, locationIndex) = argsToParamsOpt.IsDefault
+                ? (2, 1, 0)
+                : (argsToParamsOpt.IndexOf(2), argsToParamsOpt.IndexOf(1), argsToParamsOpt.IndexOf(0));
+
+            var comparand = compareExchangeInfo.Arguments[comparandIndex];
+            var valueFlowState = compareExchangeInfo.Results[valueIndex].RValueType.State;
             if (comparand.ConstantValue?.IsNull == true)
             {
                 // If location contained a null, then the write `location = value` definitely occurred
             }
             else
             {
-                var locationFlowState = compareExchangeInfo.Results[0].RValueType.State;
+                var locationFlowState = compareExchangeInfo.Results[locationIndex].RValueType.State;
                 // A write may have occurred
                 valueFlowState = valueFlowState.Join(locationFlowState);
             }
@@ -4860,6 +4926,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+            else
+            {
+                // Normally we delay visiting the lambda until we can visit it along with its conversion.
+                // Since we can't visit its conversion here, or it doesn't have one, we dig back in and
+                // visit the lambda here to ensure all nodes have nullability info for public API
+                for (int i = 0; i < results.Length; i++)
+                {
+                    if (argumentsNoConversions[i] is BoundLambda lambda)
+                    {
+                        VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda);
+                    }
+                }
+            }
 
             if (node is BoundCall { Method: { OriginalDefinition: LocalFunctionSymbol localFunction } })
             {
@@ -4869,7 +4948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.HasErrors && !parametersOpt.IsDefault)
             {
                 // For CompareExchange method we need more context to determine the state of outbound assignment
-                CompareExchangeInfo compareExchangeInfo = IsCompareExchangeMethod(method) ? new CompareExchangeInfo(arguments, results) : default;
+                CompareExchangeInfo compareExchangeInfo = IsCompareExchangeMethod(method) ? new CompareExchangeInfo(arguments, results, argsToParamsOpt) : default;
 
                 // Visit outbound assignments and post-conditions
                 // Note: the state may get split in this step
@@ -4890,7 +4969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterAnnotations,
                         results[i],
                         notNullParametersBuilder,
-                        (!compareExchangeInfo.IsDefault && i == 0) ? compareExchangeInfo : default);
+                        (!compareExchangeInfo.IsDefault && parameter.Ordinal == 0) ? compareExchangeInfo : default);
                 }
             }
             else
@@ -5739,9 +5818,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var visitArgumentResult = argumentResults[i];
                 var lambdaState = visitArgumentResult.StateForLambda;
-                var argumentResult = visitArgumentResult.LValueType;
-                if (!argumentResult.HasType)
-                    argumentResult = visitArgumentResult.RValueType.ToTypeWithAnnotations(compilation);
+                // Note: for `out` arguments, the argument result contains the declaration type (see `VisitArgumentEvaluate`)
+                var argumentResult = visitArgumentResult.RValueType.ToTypeWithAnnotations(compilation);
                 builder.Add(getArgumentForMethodTypeInference(arguments[i], argumentResult, lambdaState));
             }
             return builder.ToImmutableAndFree();
@@ -6143,7 +6221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0)
                 {
                     this.State[slot] = NullableFlowState.NotNull;
-                    TrackNullableStateOfTupleElements(slot, tupleOpt, arguments, elementTypes, useRestField: false);
+                    TrackNullableStateOfTupleElements(slot, tupleOpt, arguments, elementTypes, argsToParamsOpt: default, useRestField: false);
                 }
 
                 tupleOpt = tupleOpt.WithElementTypes(elementTypesWithAnnotations);
@@ -6167,6 +6245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol tupleType,
             ImmutableArray<BoundExpression> values,
             ImmutableArray<TypeWithState> types,
+            ImmutableArray<int> argsToParamsOpt,
             bool useRestField)
         {
             Debug.Assert(tupleType.IsTupleType);
@@ -6183,13 +6262,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 for (int i = 0; i < n; i++)
                 {
-                    trackState(values[i], tupleElements[i], types[i]);
+                    var argOrdinal = GetArgumentOrdinalFromParameterOrdinal(i);
+                    trackState(values[argOrdinal], tupleElements[i], types[argOrdinal]);
                 }
                 if (useRestField &&
                     values.Length == NamedTypeSymbol.ValueTupleRestPosition &&
                     tupleType.GetMembers(NamedTypeSymbol.ValueTupleRestFieldName).FirstOrDefault() is FieldSymbol restField)
                 {
-                    trackState(values.Last(), restField, types.Last());
+                    var argOrdinal = GetArgumentOrdinalFromParameterOrdinal(NamedTypeSymbol.ValueTupleRestPosition - 1);
+                    trackState(values[argOrdinal], restField, types[argOrdinal]);
                 }
             }
 
@@ -6197,6 +6278,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 int targetSlot = GetOrCreateSlot(field, slot);
                 TrackNullableStateForAssignment(value, field.TypeWithAnnotations, targetSlot, valueType, MakeSlot(value));
+            }
+
+            int GetArgumentOrdinalFromParameterOrdinal(int parameterOrdinal)
+            {
+                var index = argsToParamsOpt.IsDefault ? parameterOrdinal : argsToParamsOpt.IndexOf(parameterOrdinal);
+                Debug.Assert(index != -1);
+                return index;
             }
         }
 
@@ -6477,7 +6565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportRemainingWarnings = false;
                 isSuppressed = true;
             }
-#nullable restore
+#nullable disable
 
             TypeSymbol targetType = targetTypeWithNullability.Type;
             switch (conversion.Kind)
@@ -6534,9 +6622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
-                    // These are not represented as a separate conversion in the bound tree.
-                    // Instead they are folded into the operand.
-                    throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
+                    return operandType;
 
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
@@ -6913,13 +6999,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
             // (see NullableReferenceTypesTests.ImplicitConversions_07).
-            var methodOpt = conversion.Method;
-            Debug.Assert(methodOpt is object);
-            Debug.Assert(methodOpt.ParameterCount == 1);
+            var method = conversion.Method;
+            Debug.Assert(method is object);
+            Debug.Assert(method.ParameterCount == 1);
             Debug.Assert(operandType.Type is object);
 
-            var parameter = methodOpt.Parameters[0];
-            var parameterType = parameter.TypeWithAnnotations;
+            var parameter = method.Parameters[0];
+            var parameterAnnotations = GetParameterAnnotations(parameter);
+            var parameterType = ApplyLValueAnnotations(parameter.TypeWithAnnotations, parameterAnnotations);
             TypeWithState underlyingOperandType = default;
             bool isLiftedConversion = false;
 
@@ -6944,12 +7031,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fromExplicitCast: false,
                 diagnosticLocation: operandLocation);
 
-            // method parameter type -> method return type
-            var methodReturnType = methodOpt.ReturnTypeWithAnnotations;
-            operandType = GetLiftedReturnTypeIfNecessary(isLiftedConversion, methodReturnType, operandState);
+            // in the case of a lifted conversion, we assume that the call to the operator occurs only if the argument is not-null
             if (!isLiftedConversion)
             {
-                // Analyze operator call return value (honoring [Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
+                CheckDisallowedNullAssignment(operandType, parameterAnnotations, conversionOperand.Syntax.Location);
+            }
+
+            // method parameter type -> method return type
+            var methodReturnType = method.ReturnTypeWithAnnotations;
+            operandType = GetLiftedReturnTypeIfNecessary(isLiftedConversion, methodReturnType, operandState);
+            if (!isLiftedConversion || operandState.IsNotNull())
+            {
+                var returnNotNull = operandState.IsNotNull() && method.ReturnNotNullIfParameterNotNull.Contains(parameter.Name);
+                if (returnNotNull)
+                {
+                    operandType = operandType.WithNotNullState();
+                }
+                else
+                {
+                    operandType = ApplyUnconditionalAnnotations(operandType, GetRValueAnnotations(method));
+                }
             }
 
             // method return type -> conversion "to" type
@@ -7253,23 +7354,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLambda(BoundLambda node)
         {
-            // It's possible to reach VisitLambda without having analyzed the lambda body in error scenarios,
-            // so we analyze for the purposes of determining top-level nullability. We don't want to report
-            // any diagnostics from this analysis, as scenarios we want to have diagnostics for will have had
-            // them reported through other analysis steps.
-
-            // https://github.com/dotnet/roslyn/issues/35041: Can we make this conditional on whether or not we've already seen the node
-            // or will that have no effect because this is always called first? It is for at least one lambda
-            // conversion case, need to investigate others
-            if (!_disableNullabilityAnalysis)
-            {
-                VisitLambda(node, delegateTypeOpt: null, disableDiagnostics: true);
-            }
+            // Note: actual lambda analysis happens after this call (primarily in VisitConversion).
+            // Here we just indicate that a lambda expression produces a non-null value.
             SetNotNullResult(node);
             return null;
         }
 
-        private void VisitLambda(BoundLambda node, NamedTypeSymbol? delegateTypeOpt, Optional<LocalState> initialState = default, bool disableDiagnostics = false)
+        private void VisitLambda(BoundLambda node, NamedTypeSymbol? delegateTypeOpt, Optional<LocalState> initialState = default)
         {
             Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
 
@@ -7280,17 +7371,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUpdatedSymbol(node, node.Symbol, delegateTypeOpt!);
             }
 
-            var oldDisableDiagnostics = _disableDiagnostics;
-            _disableDiagnostics |= disableDiagnostics;
-
             AnalyzeLocalFunctionOrLambda(
                 node,
                 node.Symbol,
                 initialState.HasValue ? initialState.Value : State.Clone(),
                 delegateInvokeMethod,
                 useDelegateInvokeParameterTypes);
-
-            _disableDiagnostics = oldDisableDiagnostics;
         }
 
         private static bool UseDelegateInvokeParameterTypes(BoundLambda lambda, MethodSymbol? delegateInvokeMethod)
@@ -8773,9 +8859,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node)
         {
-            // Can occur in error scenarios
+            // Can occur in error scenarios and lambda scenarios
             var result = base.VisitDefaultLiteral(node);
-            SetUnknownResultNullability(node);
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.MaybeDefault));
             return result;
         }
 

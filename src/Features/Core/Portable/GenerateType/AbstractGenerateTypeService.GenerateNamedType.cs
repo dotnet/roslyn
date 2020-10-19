@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -242,7 +244,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         parameterToNewFieldMap.ToImmutable(),
                         addNullChecks: false,
                         preferThrowExpression: false,
-                        generateProperties: false));
+                        generateProperties: false,
+                        isContainedInUnsafeType: false)); // Since we generated the type, we know its not unsafe
                 }
             }
 

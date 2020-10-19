@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -35,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly DiagnosticAnalyzerTelemetry _telemetry;
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
+        private readonly IDocumentTrackingService? _documentTrackingService;
         private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers;
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
@@ -53,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             AnalyzerService = analyzerService;
             Workspace = workspace;
             PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
+            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
 
             _correlationId = correlationId;
 
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
-        public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
-            => DiagnosticAnalyzerInfoCache.IsCompilationEndAnalyzer(diagnosticAnalyzer, project, compilation) == true;
+        public async Task<bool> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer diagnosticAnalyzer, Project project, CancellationToken cancellationToken)
+            => await DiagnosticAnalyzerInfoCache.IsCompilationEndAnalyzerAsync(diagnosticAnalyzer, project, cancellationToken).ConfigureAwait(false) == true;
 
         public bool ContainsDiagnostics(ProjectId projectId)
         {

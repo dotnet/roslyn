@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -1127,7 +1129,7 @@ namespace Roslyn.Test.PdbUtilities
         {
         }
 
-        private static XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
+        private static readonly XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
         {
             Encoding = Encoding.UTF8,
             Indent = true,

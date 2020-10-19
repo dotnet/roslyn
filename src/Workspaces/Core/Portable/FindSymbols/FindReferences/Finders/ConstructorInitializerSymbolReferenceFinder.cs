@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var typeName = methodSymbol.ContainingType.Name;
 
             var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);

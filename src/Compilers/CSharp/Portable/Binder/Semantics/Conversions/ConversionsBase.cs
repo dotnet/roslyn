@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1218,6 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetExplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
         }
 
+#nullable enable
         private static bool HasImplicitEnumerationConversion(BoundExpression source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
@@ -1239,9 +1242,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sourceConstantValue = source.ConstantValue;
             return sourceConstantValue != null &&
-                IsNumericType(source.Type.GetSpecialTypeSafe()) &&
+                source.Type is object &&
+                IsNumericType(source.Type) &&
                 IsConstantNumericZero(sourceConstantValue);
         }
+#nullable disable
 
         private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type)
         {
@@ -1785,6 +1790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private static bool HasImplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
@@ -1827,7 +1833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return s_explicitNumericConversions[sourceIndex, destinationIndex];
         }
 
-        public static bool IsConstantNumericZero(ConstantValue value)
+        private static bool IsConstantNumericZero(ConstantValue value)
         {
             switch (value.Discriminator)
             {
@@ -1838,12 +1844,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConstantValueTypeDiscriminator.Int16:
                     return value.Int16Value == 0;
                 case ConstantValueTypeDiscriminator.Int32:
+                case ConstantValueTypeDiscriminator.NInt:
                     return value.Int32Value == 0;
                 case ConstantValueTypeDiscriminator.Int64:
                     return value.Int64Value == 0;
                 case ConstantValueTypeDiscriminator.UInt16:
                     return value.UInt16Value == 0;
                 case ConstantValueTypeDiscriminator.UInt32:
+                case ConstantValueTypeDiscriminator.NUInt:
                     return value.UInt32Value == 0;
                 case ConstantValueTypeDiscriminator.UInt64:
                     return value.UInt64Value == 0;
@@ -1856,9 +1864,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public static bool IsNumericType(SpecialType specialType)
+        private static bool IsNumericType(TypeSymbol type)
         {
-            switch (specialType)
+            switch (type.SpecialType)
             {
                 case SpecialType.System_Char:
                 case SpecialType.System_SByte:
@@ -1872,6 +1880,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Single:
                 case SpecialType.System_Double:
                 case SpecialType.System_Decimal:
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType:
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
                     return true;
                 default:
                     return false;
@@ -1917,15 +1927,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var s0 = source.StrippedType();
             var t0 = target.StrippedType();
 
-            if (s0.SpecialType != SpecialType.System_UIntPtr &&
-                s0.SpecialType != SpecialType.System_IntPtr &&
-                t0.SpecialType != SpecialType.System_UIntPtr &&
-                t0.SpecialType != SpecialType.System_IntPtr)
+            TypeSymbol otherType;
+            if (isIntPtrOrUIntPtr(s0))
+            {
+                otherType = t0;
+            }
+            else if (isIntPtrOrUIntPtr(t0))
+            {
+                otherType = s0;
+            }
+            else
             {
                 return false;
             }
-
-            TypeSymbol otherType = (s0.SpecialType == SpecialType.System_UIntPtr || s0.SpecialType == SpecialType.System_IntPtr) ? t0 : s0;
 
             if (otherType.IsPointerOrFunctionPointer())
             {
@@ -1955,6 +1969,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+
+            static bool isIntPtrOrUIntPtr(TypeSymbol type) =>
+                (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr) && !type.IsNativeIntegerType;
         }
 
         private static bool HasExplicitEnumerationConversion(TypeSymbol source, TypeSymbol destination)
@@ -1963,16 +1980,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)destination != null);
 
             // SPEC: The explicit enumeration conversions are:
-            // SPEC: From sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal to any enum-type.
-            // SPEC: From any enum-type to sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal.
+            // SPEC: From sbyte, byte, short, ushort, int, uint, long, ulong, nint, nuint, char, float, double, or decimal to any enum-type.
+            // SPEC: From any enum-type to sbyte, byte, short, ushort, int, uint, long, ulong, nint, nuint, char, float, double, or decimal.
             // SPEC: From any enum-type to any other enum-type.
 
-            if (IsNumericType(source.SpecialType) && destination.IsEnumType())
+            if (IsNumericType(source) && destination.IsEnumType())
             {
                 return true;
             }
 
-            if (IsNumericType(destination.SpecialType) && source.IsEnumType())
+            if (IsNumericType(destination) && source.IsEnumType())
             {
                 return true;
             }
@@ -1984,6 +2001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+#nullable disable
 
         private Conversion ClassifyImplicitNullableConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -3030,7 +3048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-#nullable restore
+#nullable disable
 
         private bool HasIdentityOrReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -3494,20 +3512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The spec should state that any pointer type is convertible to
             // sbyte, byte, ... etc, or any corresponding nullable type.
 
-            switch (destination.StrippedType().SpecialType)
-            {
-                case SpecialType.System_SByte:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_UInt64:
-                    return true;
-            }
-
-            return false;
+            return IsIntegerTypeSupportingPointerConversions(destination.StrippedType());
         }
 
         private static bool HasIntegerToPointerConversion(TypeSymbol source, TypeSymbol destination)
@@ -3521,8 +3526,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Note that void* is convertible to int?, but int? is not convertible to void*.
+            return IsIntegerTypeSupportingPointerConversions(source);
+        }
 
-            switch (source.SpecialType)
+        private static bool IsIntegerTypeSupportingPointerConversions(TypeSymbol type)
+        {
+            switch (type.SpecialType)
             {
                 case SpecialType.System_SByte:
                 case SpecialType.System_Byte:
@@ -3533,6 +3542,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Int64:
                 case SpecialType.System_UInt64:
                     return true;
+                case SpecialType.System_IntPtr:
+                case SpecialType.System_UIntPtr:
+                    return type.IsNativeIntegerType;
             }
 
             return false;

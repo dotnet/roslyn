@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -134,8 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     InitializeDisplayAndId();
                 }
 
-                // Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
-                return _lazyDisplay!;
+                return _lazyDisplay;
             }
         }
 
@@ -148,11 +146,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     InitializeDisplayAndId();
                 }
 
-                // Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
-                return _lazyIdentity!;
+                return _lazyIdentity;
             }
         }
 
+        [MemberNotNull(nameof(_lazyIdentity), nameof(_lazyDisplay))]
         private void InitializeDisplayAndId()
         {
             try
@@ -509,6 +507,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework,
                                 string.Format(CodeAnalysisResources.AssemblyReferencesNetFramework, typeName),
                                 typeNameOpt: typeName));
+                            continue;
                         }
                     }
 

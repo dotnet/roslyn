@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ObsoleteAttributeData ObsoleteAttributeData { get { throw ExceptionUtilities.Unreachable; } }
 
-        internal sealed override UnmanagedCallersOnlyAttributeData UnmanagedCallersOnlyAttributeData => throw ExceptionUtilities.Unreachable;
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable;
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() { throw ExceptionUtilities.Unreachable; }
 

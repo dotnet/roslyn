@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,10 +12,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -24,10 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
     [UseExportProvider]
     public partial class SymbolCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public SymbolCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(SymbolCompletionProvider);
 
@@ -7490,6 +7486,17 @@ struct C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RecordDestructor()
+        {
+            var markup = @"
+record C
+{
+   ~$$
+}";
+            await VerifyItemExistsAsync(markup, "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldAvailableInBothLinkedFiles()
         {
             var markup = @"<Workspace>
@@ -9583,7 +9590,7 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task NoCompletionInLocalFuncGenericParamList()
         {
@@ -9599,7 +9606,7 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task CompletionForAwaitWithoutAsync()
         {
@@ -9701,7 +9708,7 @@ class C
         [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription()
         {
             await VerifyItemExistsAsync(@"
@@ -9719,7 +9726,7 @@ class C
         [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription2()
         {
             await VerifyItemExistsAsync(@"
@@ -10719,7 +10726,7 @@ public class C
         [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionInStaticMethod()
         {
             await VerifyItemExistsAsync(@"
@@ -10732,6 +10739,24 @@ class C
         $$
     }
 }", "Local");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1152109, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1152109")]
+        public async Task NoItemWithEmptyDisplayName()
+        {
+            var markup = @"
+class C
+{
+    static void M()
+    {
+        int$$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(
+                markup, "",
+                matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Reflection;
@@ -5511,7 +5513,7 @@ class C
         }
 
         [Fact]
-        public void StaticLocalFunction_ConditionalAttribute_Unreferenced()
+        public void StaticLocalFunction_ConditionalAttribute_NoUnreferencedWarning()
         {
             var source = @"
 using System.Diagnostics;
@@ -5531,10 +5533,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (12,21): warning CS8321: The local function 'local1' is declared but never used
-                //         static void local1()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(12, 21));
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics();
 
             CreateCompilation(source, parseOptions: TestOptions.Regular9.WithPreprocessorSymbols("DEBUG")).VerifyDiagnostics();
         }
