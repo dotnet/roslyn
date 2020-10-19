@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionOperators
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertConversionOperators), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertConversionOperatorsFromThrowingCastToTryCast), [Shared]>
     Friend Class VisualBasicConvertConversionOperatorFromCTypeCodeRefactoringProvider
         Inherits AbstractConvertConversionOperatorsRefactoringProvider(Of CTypeExpressionSyntax)
 
