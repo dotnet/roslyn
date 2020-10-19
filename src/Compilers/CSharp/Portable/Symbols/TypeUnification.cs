@@ -83,21 +83,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return t1.IsSameAs(t2);
             }
 
-            if (AreTypesAndCustomModifiersEqual(t1, t2))
-            {
-                return true;
-            }
-
             if (substitution != null)
             {
                 t1 = t1.SubstituteType(substitution);
                 t2 = t2.SubstituteType(substitution);
+            }
 
-                // If one of the types is a type parameter, then the substitution could make them equal.
-                if (AreTypesAndCustomModifiersEqual(t1, t2))
-                {
-                    return true;
-                }
+            if (TypeSymbol.Equals(t1.Type, t2.Type, TypeCompareKind.CLRSignatureCompareOptions) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
+            {
+                return true;
             }
 
             // We can avoid a lot of redundant checks if we ensure that we only have to check
@@ -155,8 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NamedTypeSymbol nt2 = (NamedTypeSymbol)t2.Type;
                         if (!nt1.IsGenericType || !nt2.IsGenericType)
                         {
-                            // AreTypesAndCustomModifiersEqual() returned false above, and custom modifiers
-                            // compared equal in this case block, so the types must be distinct.
+                            // Initial TypeSymbol.Equals(...) && CustomModifiers.SequenceEqual(...) failed above,
+                            // and custom modifiers compared equal in this case block, so the types must be distinct.
                             Debug.Assert(!nt1.Equals(nt2, TypeCompareKind.CLRSignatureCompareOptions));
                             return false;
                         }
