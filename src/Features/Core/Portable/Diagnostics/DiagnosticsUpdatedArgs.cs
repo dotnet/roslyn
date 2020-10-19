@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Gets all the diagnostics for this even, regardless if this is for pull or push diagnostics.  Most clients
+        /// Gets all the diagnostics for this event, regardless if this is for pull or push diagnostics.  Most clients
         /// should not use this.  The only clients that should are ones that are aggregating the values transparently
         /// and then forwarding on later on to other clients that will make this decision.
         /// </summary>
