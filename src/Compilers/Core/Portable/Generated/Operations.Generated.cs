@@ -1155,6 +1155,7 @@ namespace Microsoft.CodeAnalysis.Operations
         CommonConversion ValueConversion { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an anonymous function operation.
     /// <para>
@@ -1182,6 +1183,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IBlockOperation Body { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents creation of an object instance.
     /// <para>
@@ -4849,54 +4851,38 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitCoalesce(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseAnonymousFunctionOperation : OperationOld, IAnonymousFunctionOperation
+    #nullable enable
+    internal sealed partial class AnonymousFunctionOperation : Operation, IAnonymousFunctionOperation
     {
-        internal BaseAnonymousFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.AnonymousFunction, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal AnonymousFunctionOperation(IMethodSymbol symbol, IBlockOperation body, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Symbol = symbol;
+            Body = SetParentOperation(body, this);
         }
         public IMethodSymbol Symbol { get; }
-        public abstract IBlockOperation Body { get; }
+        public IBlockOperation Body { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Body is object) yield return Body;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Body is not null) builder.Add(Body);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.AnonymousFunction;
         public override void Accept(OperationVisitor visitor) => visitor.VisitAnonymousFunction(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitAnonymousFunction(this, argument);
     }
-    internal sealed partial class AnonymousFunctionOperation : BaseAnonymousFunctionOperation, IAnonymousFunctionOperation
-    {
-        internal AnonymousFunctionOperation(IMethodSymbol symbol, IBlockOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Body = SetParentOperation(body, this);
-        }
-        public override IBlockOperation Body { get; }
-    }
-    internal abstract partial class LazyAnonymousFunctionOperation : BaseAnonymousFunctionOperation, IAnonymousFunctionOperation
-    {
-        private IBlockOperation _lazyBody = s_unsetBlock;
-        internal LazyAnonymousFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(symbol, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IBlockOperation CreateBody();
-        public override IBlockOperation Body
-        {
-            get
-            {
-                if (_lazyBody == s_unsetBlock)
-                {
-                    IBlockOperation body = CreateBody();
-                    SetParentOperation(body, this);
-                    Interlocked.CompareExchange(ref _lazyBody, body, s_unsetBlock);
-                }
-                return _lazyBody;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseObjectCreationOperation : OperationOld, IObjectCreationOperation
     {
         internal BaseObjectCreationOperation(IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8861,6 +8847,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (CoalesceOperation)operation;
             return new CoalesceOperation(Visit(internalOperation.Value), Visit(internalOperation.WhenNull), internalOperation.ValueConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, object? argument)
+        {
+            var internalOperation = (AnonymousFunctionOperation)operation;
+            return new AnonymousFunctionOperation(internalOperation.Symbol, Visit(internalOperation.Body), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, object? argument)
         {

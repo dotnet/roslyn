@@ -5952,13 +5952,13 @@ oneMoreTime:
             VisitMethodBodies(operation.Body, operation.IgnoredBody);
             return null;
         }
-#nullable disable
 
         public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
         {
             _haveAnonymousFunction = true;
             return new FlowAnonymousFunctionOperation(GetCurrentContext(), operation, IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, int? captureIdForResult)
         {

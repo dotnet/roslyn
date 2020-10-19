@@ -472,23 +472,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyAnonymousFunctionOperation
-        Inherits LazyAnonymousFunctionOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _body As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, body As BoundNode, symbol As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(symbol, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _body = body
-        End Sub
-
-        Protected Overrides Function CreateBody() As IBlockOperation
-            Return DirectCast(_operationFactory.Create(_body), IBlockOperation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyDelegateCreationOperation
         Inherits LazyDelegateCreationOperation
 

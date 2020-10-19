@@ -1048,6 +1048,10 @@
     </Property>
   </Node>
   <Node Name="IAnonymousFunctionOperation" Base="IOperation">
+    <!--
+      IAnonymousFunctionOperations do not have a type, users must look at the IConversionOperation
+      on top of this node to get the type of lambda, matching SemanticModel.GetType behavior.
+    -->
     <Comments>
       <summary>
         Represents an anonymous function operation.

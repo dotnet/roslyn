@@ -921,6 +921,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyDynamicInvocationOperation(this, boundCollectionElementInitializer, argumentNames: ImmutableArray<string>.Empty, argumentRefKinds: ImmutableArray<RefKind>.Empty, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IOperation CreateUnboundLambdaOperation(UnboundLambda unboundLambda)
         {
             // We want to ensure that we never see the UnboundLambda node, and that we don't end up having two different IOperation
@@ -934,19 +935,12 @@ namespace Microsoft.CodeAnalysis.Operations
         private IAnonymousFunctionOperation CreateBoundLambdaOperation(BoundLambda boundLambda)
         {
             IMethodSymbol symbol = boundLambda.Symbol.GetPublicSymbol();
-            BoundNode body = boundLambda.Body;
+            IBlockOperation body = (IBlockOperation)Create(boundLambda.Body);
             SyntaxNode syntax = boundLambda.Syntax;
-            // This matches the SemanticModel implementation. This is because in VB, lambdas by themselves
-            // do not have a type. To get the type of a lambda expression in the SemanticModel, you need to look at
-            // TypeInfo.ConvertedType, rather than TypeInfo.Type. We replicate that behavior here. To get the type of
-            // an IAnonymousFunctionExpression, you need to look at the parent IConversionExpression.
-            ITypeSymbol type = null;
-            ConstantValue constantValue = boundLambda.ConstantValue;
             bool isImplicit = boundLambda.WasCompilerGenerated;
-            return new CSharpLazyAnonymousFunctionOperation(this, body, symbol, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new AnonymousFunctionOperation(symbol, body, _semanticModel, syntax, isImplicit);
         }
 
-#nullable enable
         private ILocalFunctionOperation CreateBoundLocalFunctionStatementOperation(BoundLocalFunctionStatement boundLocalFunctionStatement)
         {
             IBlockOperation? body = (IBlockOperation?)Create(boundLocalFunctionStatement.Body);

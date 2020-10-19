@@ -441,12 +441,10 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundLambdaOperation(boundLambda As BoundLambda) As IAnonymousFunctionOperation
             Dim symbol As IMethodSymbol = boundLambda.LambdaSymbol
-            Dim body As BoundNode = boundLambda.Body
+            Dim body As IBlockOperation = DirectCast(Create(boundLambda.Body), IBlockOperation)
             Dim syntax As SyntaxNode = boundLambda.Syntax
-            Dim type As ITypeSymbol = boundLambda.Type
-            Dim constantValue As ConstantValue = boundLambda.ConstantValueOpt
             Dim isImplicit As Boolean = boundLambda.WasCompilerGenerated
-            Return New VisualBasicLazyAnonymousFunctionOperation(Me, body, symbol, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New AnonymousFunctionOperation(symbol, body, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundCallOperation(boundCall As BoundCall) As IInvocationOperation
