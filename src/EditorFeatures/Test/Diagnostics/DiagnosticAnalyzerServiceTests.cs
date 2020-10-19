@@ -620,8 +620,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var diagnostics = new ConcurrentSet<DiagnosticData>();
             service.DiagnosticsUpdated += (s, e) =>
             {
-                var diagnostics = e.GetDiagnostics(workspace, forPullDiagnostics: false);
-                diagnostics.AddRange(diagnostics);
+                diagnostics.AddRange(e.GetDiagnostics(workspace, forPullDiagnostics: false));
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
