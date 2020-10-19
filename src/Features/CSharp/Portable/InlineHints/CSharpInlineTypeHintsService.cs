@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         {
             if (forImplicitVariableTypes || displayAllOverride)
             {
-                if (node is VariableDeclarationSyntax variableDeclaration &&
-                    variableDeclaration.Type.IsVar &&
+                if (node is VariableDeclarationSyntax { Type: { IsVar: true } } variableDeclaration &&
                     variableDeclaration.Variables.Count == 1 &&
                     !variableDeclaration.Variables[0].Identifier.IsMissing)
                 {
@@ -42,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     if (IsValidType(type))
                         return (type, GetSpan(displayAllOverride, forImplicitVariableTypes, variableDeclaration.Type, variableDeclaration.Variables[0].Identifier));
                 }
-                if (node is DeclarationExpressionSyntax declarationExpression &&
-                    declarationExpression.Type.IsVar)
+                if (node is DeclarationExpressionSyntax { Type: { IsVar: true } } declarationExpression)
                 {
                     var type = semanticModel.GetTypeInfo(declarationExpression.Type, cancellationToken).Type;
                     if (IsValidType(type))
@@ -60,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                             : (type, new TextSpan(variableDesignation.Identifier.SpanStart, 0));
                     }
                 }
-                else if (node is ForEachStatementSyntax forEachStatement &&
-                         forEachStatement.Type.IsVar)
+                else if (node is ForEachStatementSyntax { Type: { IsVar: true } } forEachStatement)
                 {
                     var info = semanticModel.GetForEachStatementInfo(forEachStatement);
                     var type = info.ElementType;

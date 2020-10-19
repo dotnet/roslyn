@@ -123,7 +123,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input, ephemeral:=true)
+            Await VerifyTypeHints(input, ephemeral:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
