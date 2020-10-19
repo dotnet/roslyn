@@ -198,12 +198,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // Calling GetTextBuffer will effectively open the file.
             workspace.Documents.Single().GetTextBuffer();
 
-            var progress = BufferedProgress.Create<DiagnosticReport[]>(null);
+            var progress = BufferedProgress.Create<DiagnosticReport>(null);
             var results = await RunGetDocumentPullDiagnosticsAsync(
                 workspace, workspace.CurrentSolution.Projects.Single().Documents.Single(), progress: progress);
 
             Assert.Null(results);
-            Assert.Equal("CS1513", progress.GetValues()!.Single().Single().Diagnostics.Single().Code);
+            Assert.Equal("CS1513", progress.GetValues()!.Single().Diagnostics.Single().Code);
         }
 
         #endregion
@@ -388,11 +388,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
 
-            var progress = BufferedProgress.Create<DiagnosticReport[]>(null);
+            var progress = BufferedProgress.Create<DiagnosticReport>(null);
             results = await RunGetWorkspacePullDiagnosticsAsync(workspace, progress: progress);
 
             Assert.Null(results);
-            Assert.Equal("CS1513", progress.GetValues()![0][0].Diagnostics![0].Code);
+            Assert.Equal("CS1513", progress.GetValues()![0].Diagnostics![0].Code);
         }
 
         #endregion
