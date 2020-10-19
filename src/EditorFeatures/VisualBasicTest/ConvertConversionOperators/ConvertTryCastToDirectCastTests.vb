@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
-    Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionOperators.VisualBasicConvertConversionOperatorFromTryCastCodeRefactoringProvider)
+    Microsoft.CodeAnalysis.VisualBasic.ConvertConversionOperators.VisualBasicConvertTryCastToDirectCastCodeRefactoringProvider)
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.ConvertConversionOperators
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertConversionOperators
     <Trait(Traits.Feature, Traits.Features.ConvertConversionOperators)>
-    Public Class ConvertConversionOperatorFromTryCastTests
+    Public Class ConvertTryCastToDirectCastTests
 
         <Fact>
         Public Async Function ConvertFromTryCastToDirectCast() As Task
-            Dim markup ="
+            Dim markup =
+"
 Module Program
     Sub M()
         Dim x = TryCast(1[||], Object)
@@ -19,7 +20,8 @@ Module Program
 End Module
 "
 
-            Dim expected ="
+            Dim expected =
+"
 Module Program
     Sub M()
         Dim x = DirectCast(1, Object)
@@ -40,7 +42,8 @@ End Module
         <InlineData("TryCast(TryCast(1, object), [||]C)",
                     "DirectCast(TryCast(1, object), C)")>
         Public Async Function ConvertFromTryCastNested(DirectCastExpression As String, converted As String) As Task
-            Dim markup ="
+            Dim markup =
+"
 Public Class C
 End Class
 
@@ -51,7 +54,8 @@ Module Program
 End Module
 "
 
-            Dim fixed ="
+            Dim fixed =
+"
 Public Class C
 End Class
 

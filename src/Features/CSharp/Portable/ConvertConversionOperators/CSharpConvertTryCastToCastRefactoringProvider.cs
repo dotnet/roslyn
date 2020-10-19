@@ -2,19 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators;
+using Microsoft.CodeAnalysis.ConvertConversionOperators;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperators
+namespace Microsoft.CodeAnalysis.CSharp.ConvertConversionOperators
 {
     /// <summary>
     /// Refactor:
@@ -24,37 +20,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
     ///     var o = (object)1;
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertConversionOperatorsFromTryCastToThrowingCast), Shared]
-    internal partial class CSharpConvertConversionOperatorsFromAsRefactoringProvider
-        : AbstractConvertConversionOperatorsRefactoringProvider<BinaryExpressionSyntax>
+    internal partial class CSharpConvertTryCastToCastRefactoringProvider
+        : AbstractConvertConversionRefactoringProvider<TypeSyntax, BinaryExpressionSyntax, CastExpressionSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpConvertConversionOperatorsFromAsRefactoringProvider()
+        public CSharpConvertTryCastToCastRefactoringProvider()
         {
         }
 
         protected override string GetTitle()
             => CSharpFeaturesResources.Change_to_cast;
 
-        protected override Task<ImmutableArray<BinaryExpressionSyntax>> FilterFromExpressionCandidatesAsync(
-            ImmutableArray<BinaryExpressionSyntax> asExpressions,
-            Document document,
-            CancellationToken cancellationToken)
-        {
-            asExpressions = asExpressions.WhereAsArray(
-                binaryExpression => binaryExpression is
-                {
-                    RawKind: (int)SyntaxKind.AsExpression,
-                    Right: TypeSyntax { IsMissing: false },
-                });
+        protected override int FromKind => (int)SyntaxKind.AsExpression;
 
-            return Task.FromResult(asExpressions);
-        }
+        protected override TypeSyntax GetTypeNode(BinaryExpressionSyntax expression)
+            => (TypeSyntax)expression.Right;
 
-        protected override SyntaxNode ConvertExpression(BinaryExpressionSyntax asExpression)
+        protected override CastExpressionSyntax ConvertExpression(BinaryExpressionSyntax asExpression)
         {
             var expression = asExpression.Left;
-            var typeNode = (TypeSyntax)asExpression.Right;
+            var typeNode = GetTypeNode(asExpression);
 
             // Trivia handling:
             // #0 exp #1 as #2 Type #3

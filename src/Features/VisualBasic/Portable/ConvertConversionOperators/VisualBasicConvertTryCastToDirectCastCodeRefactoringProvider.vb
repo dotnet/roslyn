@@ -7,13 +7,13 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
+Imports Microsoft.CodeAnalysis.ConvertConversionOperators
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionOperators
+Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertConversionOperators
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertConversionOperatorsFromTryCastToThrowingCast), [Shared]>
-    Friend Class VisualBasicConvertConversionOperatorFromTryCastCodeRefactoringProvider
-        Inherits AbstractConvertConversionOperatorsRefactoringProvider(Of TryCastExpressionSyntax)
+    Friend Class VisualBasicConvertTryCastToDirectCastCodeRefactoringProvider
+        Inherits AbstractConvertConversionRefactoringProvider(Of TypeSyntax, TryCastExpressionSyntax, DirectCastExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -24,15 +24,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
             Return VBFeaturesResources.Change_to_DirectCast
         End Function
 
-        Protected Overrides Function FilterFromExpressionCandidatesAsync(
-                fromExpressions As ImmutableArray(Of TryCastExpressionSyntax),
-                document As CodeAnalysis.Document,
-                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of TryCastExpressionSyntax))
-            Return Task.FromResult(fromExpressions)
+        Protected Overrides ReadOnly Property FromKind As Integer = SyntaxKind.TryCastExpression
+
+        Protected Overrides Function GetTypeNode(from As TryCastExpressionSyntax) As TypeSyntax
+            Return from.Type
         End Function
 
-        Protected Overrides Function ConvertExpression(fromExpression As TryCastExpressionSyntax) As CodeAnalysis.SyntaxNode
-            Return SyntaxFactory.DirectCastExpression(fromExpression.Expression, fromExpression.Type)
+        Protected Overrides Function ConvertExpression(fromExpression As TryCastExpressionSyntax) As DirectCastExpressionSyntax
+            Return SyntaxFactory.DirectCastExpression(
+                SyntaxFactory.Token(SyntaxKind.DirectCastKeyword),
+                fromExpression.OpenParenToken,
+                fromExpression.Expression,
+                fromExpression.CommaToken,
+                fromExpression.Type,
+                fromExpression.CloseParenToken)
         End Function
     End Class
 End Namespace
