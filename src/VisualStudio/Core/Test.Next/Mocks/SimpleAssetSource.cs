@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 }
             }
 
-            return new ValueTask<ImmutableArray<(Checksum, object)>>(results.ToImmutableArray());
+            return ValueTaskFactory.FromResult(results.ToImmutableArray());
         }
 
         public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => new ValueTask<bool>(false);
+            => ValueTaskFactory.FromResult(false);
     }
 }
