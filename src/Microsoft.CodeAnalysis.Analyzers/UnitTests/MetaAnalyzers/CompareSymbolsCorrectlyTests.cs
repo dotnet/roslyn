@@ -658,6 +658,15 @@ End Class
 
             var fixedSource = @"
 Imports Microsoft.CodeAnalysis
+
+Class A
+    Public b As B
+End Class
+
+Class B
+    Public s As ISymbol
+End Class
+
 Class TestClass
     Sub Method1(a As A, s As ISymbol)
         If SymbolEqualityComparer.Default.Equals(a?.b?.s, s) Then Exit Sub
