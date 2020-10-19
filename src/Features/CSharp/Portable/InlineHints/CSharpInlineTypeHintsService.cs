@@ -42,7 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     if (IsValidType(type))
                         return (type, GetSpan(displayAllOverride, forImplicitVariableTypes, variableDeclaration.Type, variableDeclaration.Variables[0].Identifier));
                 }
-                else if (node is SingleVariableDesignationSyntax { Parent: not DeclarationPatternSyntax } variableDesignation)
+                if (node is DeclarationExpressionSyntax declarationExpression &&
+                    declarationExpression.Type.IsVar)
+                {
+                    var type = semanticModel.GetTypeInfo(declarationExpression.Type, cancellationToken).Type;
+                    if (IsValidType(type))
+                        return (type, GetSpan(displayAllOverride, forImplicitVariableTypes, declarationExpression.Type, declarationExpression.Designation));
+                }
+                else if (node is SingleVariableDesignationSyntax { Parent: not DeclarationPatternSyntax and not DeclarationExpressionSyntax } variableDesignation)
                 {
                     var local = semanticModel.GetDeclaredSymbol(variableDesignation, cancellationToken) as ILocalSymbol;
                     var type = local?.Type;

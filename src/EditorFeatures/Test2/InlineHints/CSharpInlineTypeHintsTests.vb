@@ -47,6 +47,26 @@ class A
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestOnLocalVariableWithVarType_Ephemeral() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main() 
+    {
+        {|int:var|} i = 0;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, ephemeral:=True)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
         Public Async Function TestOnDeconstruction() As Task
             Dim input =
             <Workspace>
@@ -87,6 +107,26 @@ class A
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestWithForeachVar_Ephemeral() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        foreach ({|string:var|} j in args) {}
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, ephemeral:=true)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
         Public Async Function TestNotWithForeachType() As Task
             Dim input =
             <Workspace>
@@ -124,6 +164,26 @@ class A
             </Workspace>
 
             Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestWithPatternVar_Ephemeral() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        if (args is { Length: {|int:var|} goo }) { }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, ephemeral:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -207,6 +267,50 @@ class A
             </Workspace>
 
             Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestWithDeclarationExpression() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        if (int.TryParse("", out var {|int:|}x))
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestWithDeclarationExpression_Ephemeral() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        if (int.TryParse("", out {|int:var|} x))
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, ephemeral:=True)
         End Function
     End Class
 End Namespace
