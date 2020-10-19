@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertConversionOperators
 {
     internal static class ITypeSymbolExtensions
     {
-        public static bool IsReferenceTypeOrNullable_TypeOrTypeParameter(this ITypeSymbol? type)
+        public static bool IsReferenceTypeOrTypeParameter(this ITypeSymbol? type)
             => type != null &&
                 !type.IsErrorType() &&
                 !type.IsValueType &&
