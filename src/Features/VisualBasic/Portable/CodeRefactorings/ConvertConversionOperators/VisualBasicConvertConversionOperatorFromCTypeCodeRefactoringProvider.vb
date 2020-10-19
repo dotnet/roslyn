@@ -28,15 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertConversionO
                 cTypeExpressions As ImmutableArray(Of CTypeExpressionSyntax),
                 document As Document,
                 cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CTypeExpressionSyntax))
-            If cTypeExpressions.IsEmpty Then
-                Return cTypeExpressions
-            End If
-
-            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-
-            Return cTypeExpressions.WhereAsArray(Function(node)
-                                                     Return semanticModel.GetTypeInfo(node.Type, cancellationToken).Type.IsReferenceTypeOrTypeParameter()
-                                                 End Function)
+            Return Await FilterCastExpressionsOfReferenceTypesAsync(cTypeExpressions, document, cancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Function ConvertExpression(fromExpression As CTypeExpressionSyntax) As CodeAnalysis.SyntaxNode

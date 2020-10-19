@@ -41,12 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertConversionOperat
             ImmutableArray<CastExpressionSyntax> castExpressions,
             Document document,
             CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            return castExpressions.WhereAsArray(node => semanticModel.GetTypeInfo(node.Type, cancellationToken)
-                .Type.IsReferenceTypeOrTypeParameter());
-        }
+            => await FilterCastExpressionsOfReferenceTypesAsync(castExpressions, document, cancellationToken).ConfigureAwait(false);
 
         protected override SyntaxNode ConvertExpression(CastExpressionSyntax castExpression)
         {
