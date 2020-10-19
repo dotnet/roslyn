@@ -1239,7 +1239,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_0_inheritable" xml:space="preserve">
     <value>Make '{0}' inheritable</value>
   </data>
-  <data name="Change_to_CType" xml:space="preserve">
+  <data name="Change_to_DirectCast" xml:space="preserve">
     <value>Change to 'DirectCast'</value>
   </data>
   <data name="Change_to_TryCast" xml:space="preserve">
