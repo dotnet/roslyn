@@ -40,6 +40,47 @@ class Program
             }.RunAsync();
         }
 
+        [Theory]
+        [InlineData("dynamic")]
+        [InlineData("IComparable")]
+        [InlineData("Action")]
+        [InlineData("int[]")]
+        [InlineData("List<int>")]
+        public async Task ConvertFromExplicitToAsSpecialTypes(string targetType)
+        {
+            var initialMarkup = @$"
+using System;
+using System.Collections.Generic;
+
+class Program
+{{
+    public static void Main()
+    {{
+        var o = new object();
+        var x = ([||]{targetType})o;
+    }}
+}}";
+            var expectedMarkup = @$"
+using System;
+using System.Collections.Generic;
+
+class Program
+{{
+    public static void Main()
+    {{
+        var o = new object();
+        var x = o as {targetType};
+    }}
+}}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            }.RunAsync();
+        }
+
         [Fact]
         public async Task ConvertFromExplicitToAs_ValueType()
         {
@@ -131,6 +172,84 @@ public class C
             {
                 TestCode = InitialMarkup,
                 FixedCode = FixedCode,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("class", true)]
+        [InlineData("interface", false)]
+        public async Task ConvertFromExplicitToAs_ConcreteClassOrInterfaceConstraint(string targetTypeKind, bool shouldBeFixed)
+        {
+            var initialMarkup = @$"
+public {targetTypeKind} Target {{ }}
+
+public class C
+{{
+    public void M<T>() where T: Target
+    {{
+        var o = new object();
+        var t = (T[||])o;
+    }}
+}}
+";
+            var fixedCode = @$"
+public {targetTypeKind} Target {{ }}
+
+public class C
+{{
+    public void M<T>() where T: Target
+    {{
+        var o = new object();
+        var t = o as T;
+    }}
+}}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = shouldBeFixed ? fixedCode : initialMarkup,
+                OffersEmptyRefactoring = false,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task ConvertFromExplicitToAs_NestedTypeParameters()
+        {
+            var initialMarkup = @"
+public class Target { }
+
+public class C
+{
+    public void M<T, U>()
+        where T: Target
+        where U: T
+    {
+        var o = new object();
+        var u = (U[||])o;
+    }
+}
+";
+            var fixedCode = @"
+public class Target { }
+
+public class C
+{
+    public void M<T, U>()
+        where T: Target
+        where U: T
+    {
+        var o = new object();
+        var u = o as U;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = fixedCode,
+                OffersEmptyRefactoring = false,
                 CodeActionValidationMode = CodeActionValidationMode.Full,
             }.RunAsync();
         }
