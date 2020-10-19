@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
+        private readonly static SyntaxKind[] s_ignoredMemberModifiers = { SyntaxKind.UnsafeKeyword, SyntaxKind.AsyncKeyword };
+
         // Public for testing purposes
         public CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null)
             : base(testFaultInjector)
@@ -464,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override bool AreEquivalent(SyntaxNode left, SyntaxNode right)
             => SyntaxFactory.AreEquivalent(left, right);
 
-        private bool AreEquivalentModifiersIgnoringGivenModifier(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers, params SyntaxKind[] ignoredModiferKinds)
+        private bool AreEquivalentModifiersIgnoringGivenModifier(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers, SyntaxKind[] ignoredModiferKinds)
         {
             foreach (var modifierKind in ignoredmodifierKinds)
             {
@@ -482,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
             }
 
-            return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
+            return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers);
         }
 
         private static bool AreEquivalentIgnoringLambdaBodies(SyntaxNode left, SyntaxNode right)
@@ -2461,7 +2463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 // Adding or removing unsafe modifier while debugging shouldn't be an issue.
-                if (!AreEquivalentModifiersIgnoringGivenModifier(oldName.Modifiers, newNode.Modifiers, SyntaxKind.UnsafeKeyword))
+                if (!AreEquivalentModifiersIgnoringGivenModifier(oldName.Modifiers, newNode.Modifiers, s_ignoredMemberModifiers))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
@@ -2506,7 +2508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(DelegateDeclarationSyntax oldNode, DelegateDeclarationSyntax newNode)
             {
-                if (!AreEquivalentModifiersIgnoringGivenModifier(oldNode.Modifiers, newNode.Modifiers, SyntaxKind.UnsafeKeyword))
+                if (!AreEquivalentModifiersIgnoringGivenModifier(oldNode.Modifiers, newNode.Modifiers, s_ignoredMemberModifiers))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
@@ -2530,7 +2532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                if (!AreEquivalentModifiersIgnoringGivenModifier(oldNode.Modifiers, newNode.Modifiers, SyntaxKind.UnsafeKeyword))
+                if (!AreEquivalentModifiersIgnoringGivenModifier(oldNode.Modifiers, newNode.Modifiers, s_ignoredMemberModifiers))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
@@ -2624,7 +2626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // async checks are done in ComputeBodyMatch.
 
                 // Ignore async and unsafe.
-                return AreEquivalentModifiersIgnoringGivenModifier(oldModifiers, newModifiers, SyntaxKind.AsyncKeyword, SyntaxKind.UnsafeKeyword);
+                return AreEquivalentModifiersIgnoringGivenModifier(oldModifiers, newModifiers, s_ignoredMemberModifiers);
             }
 
             private void ClassifyUpdate(ConversionOperatorDeclarationSyntax oldNode, ConversionOperatorDeclarationSyntax newNode)
@@ -2719,7 +2721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(ConstructorDeclarationSyntax oldNode, ConstructorDeclarationSyntax newNode)
             {
-                if (!AreEquivalentModifiersIgnoringGivenModifier(oldNode.Modifiers, newNode.Modifiers, SyntaxKind.UnsafeKeyword))
+                if (!AreEquivalentModifiersIgnoringGivenModifier(oldNode.Modifiers, newNode.Modifiers, s_ignoredMemberModifiers))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
