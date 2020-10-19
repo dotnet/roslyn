@@ -473,12 +473,12 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundParenthesizedOperation(boundParenthesized As BoundParenthesized) As IParenthesizedOperation
-            Dim operand As BoundNode = boundParenthesized.Expression
+            Dim operand As IOperation = Create(boundParenthesized.Expression)
             Dim syntax As SyntaxNode = boundParenthesized.Syntax
             Dim type As ITypeSymbol = boundParenthesized.Type
             Dim constantValue As ConstantValue = boundParenthesized.ConstantValueOpt
             Dim isImplicit As Boolean = boundParenthesized.WasCompilerGenerated
-            Return New VisualBasicLazyParenthesizedOperation(Me, operand, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ParenthesizedOperation(operand, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundArrayAccessOperation(boundArrayAccess As BoundArrayAccess) As IArrayElementReferenceOperation

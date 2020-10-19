@@ -1300,7 +1300,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IParenthesizedOperation" Base="IOperation">
+  <Node Name="IParenthesizedOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a parenthesized operation.

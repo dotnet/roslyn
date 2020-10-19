@@ -47,7 +47,8 @@ namespace IOperationGenerator
             "ITypeParameterObjectCreationOperation",
             "IArrayCreationOperation",
             "IIsTypeOperation",
-            "IAwaitOperation"
+            "IAwaitOperation",
+            "IParenthesizedOperation"
         };
     }
 }

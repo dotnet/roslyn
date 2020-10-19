@@ -1452,6 +1452,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IMethodSymbol OperatorMethod { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents a parenthesized operation.
     /// <para>
@@ -1474,6 +1475,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Operand { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a binding of an event.
     /// <para>
@@ -5228,50 +5230,38 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseParenthesizedOperation : OperationOld, IParenthesizedOperation
+    #nullable enable
+    internal sealed partial class ParenthesizedOperation : Operation, IParenthesizedOperation
     {
-        internal BaseParenthesizedOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Parenthesized, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Operand { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ParenthesizedOperation(IOperation operand, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Operand = SetParentOperation(operand, this);
+            OperationConstantValue = constantValue;
+            Type = type;
+        }
+        public IOperation Operand { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Operand is object) yield return Operand;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Operand is not null) builder.Add(Operand);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.Parenthesized;
         public override void Accept(OperationVisitor visitor) => visitor.VisitParenthesized(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitParenthesized(this, argument);
     }
-    internal sealed partial class ParenthesizedOperation : BaseParenthesizedOperation, IParenthesizedOperation
-    {
-        internal ParenthesizedOperation(IOperation operand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operand = SetParentOperation(operand, this);
-        }
-        public override IOperation Operand { get; }
-    }
-    internal abstract partial class LazyParenthesizedOperation : BaseParenthesizedOperation, IParenthesizedOperation
-    {
-        private IOperation _lazyOperand = s_unset;
-        internal LazyParenthesizedOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateOperand();
-        public override IOperation Operand
-        {
-            get
-            {
-                if (_lazyOperand == s_unset)
-                {
-                    IOperation operand = CreateOperand();
-                    SetParentOperation(operand, this);
-                    Interlocked.CompareExchange(ref _lazyOperand, operand, s_unset);
-                }
-                return _lazyOperand;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseEventAssignmentOperation : OperationOld, IEventAssignmentOperation
     {
         internal BaseEventAssignmentOperation(bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8786,6 +8776,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (AwaitOperation)operation;
             return new AwaitOperation(Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitParenthesized(IParenthesizedOperation operation, object? argument)
+        {
+            var internalOperation = (ParenthesizedOperation)operation;
+            return new ParenthesizedOperation(Visit(internalOperation.Operand), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, object? argument)
         {

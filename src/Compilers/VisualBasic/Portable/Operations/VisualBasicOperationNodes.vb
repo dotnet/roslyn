@@ -502,23 +502,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyParenthesizedOperation
-        Inherits LazyParenthesizedOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operand As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operand As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operand = operand
-        End Sub
-
-        Protected Overrides Function CreateOperand() As IOperation
-            Return _operationFactory.Create(_operand)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyPropertyInitializerOperation
         Inherits LazyPropertyInitializerOperation
 

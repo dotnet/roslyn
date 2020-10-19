@@ -6388,7 +6388,6 @@ oneMoreTime:
         {
             return new TypeOfOperation(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
-#nullable disable
 
         public override IOperation VisitParenthesized(IParenthesizedOperation operation, int? captureIdForResult)
         {
