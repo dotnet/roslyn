@@ -170,18 +170,15 @@ using Roslyn.Utilities;
 
 public class MyClass
 {
-    static class Demo
+    [PerformanceSensitive(""uri"")]
+    void Fun1()
     {
-        [PerformanceSensitive(""uri"")]
-        static void Fun1()
-        {
-            Fun2();
-            {|#0:Fun2(args: """", i: 5)|};
-        }
+        Fun2();
+        {|#0:Fun2(args: """", i: 5)|};
+    }
 
-        static void Fun2(int i = 0, params object[] args)
-        {
-        }
+    void Fun2(int i = 0, params object[] args)
+    {
     }
 }";
 
