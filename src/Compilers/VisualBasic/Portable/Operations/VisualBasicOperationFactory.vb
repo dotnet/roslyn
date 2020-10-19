@@ -822,11 +822,12 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundArrayCreationOperation(boundArrayCreation As BoundArrayCreation) As IArrayCreationOperation
+            Dim dimensionSizes As ImmutableArray(Of IOperation) = CreateFromArray(Of BoundExpression, IOperation)(boundArrayCreation.Bounds)
+            Dim initializer As IArrayInitializerOperation = DirectCast(Create(boundArrayCreation.InitializerOpt), IArrayInitializerOperation)
             Dim syntax As SyntaxNode = boundArrayCreation.Syntax
             Dim type As ITypeSymbol = boundArrayCreation.Type
-            Dim constantValue As ConstantValue = boundArrayCreation.ConstantValueOpt
             Dim isImplicit As Boolean = boundArrayCreation.WasCompilerGenerated
-            Return New VisualBasicLazyArrayCreationOperation(Me, boundArrayCreation, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ArrayCreationOperation(dimensionSizes, initializer, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundArrayInitializationOperation(boundArrayInitialization As BoundArrayInitialization) As IArrayInitializerOperation

@@ -5962,7 +5962,6 @@ oneMoreTime:
             _haveAnonymousFunction = true;
             return new FlowAnonymousFunctionOperation(GetCurrentContext(), operation, IsImplicit(operation));
         }
-#nullable disable
 
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, int? captureIdForResult)
         {
@@ -5991,8 +5990,9 @@ oneMoreTime:
             ImmutableArray<IOperation> visitedDimensions = PopArray(operation.DimensionSizes);
             PopStackFrame(frame);
             return new ArrayCreationOperation(visitedDimensions, visitedInitializer, semanticModel: null,
-                                               operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                                               operation.Syntax, operation.Type, IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
         {

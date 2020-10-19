@@ -236,11 +236,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ParameterInitializerOperation(operation.Parameter, operation.Locals, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitArrayCreation(IArrayCreationOperation operation, object argument)
-        {
-            return new ArrayCreationOperation(VisitArray(operation.DimensionSizes), Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, object argument)
         {
             return new ArrayInitializerOperation(VisitArray(operation.ElementValues), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.GetConstantValue(), operation.IsImplicit);

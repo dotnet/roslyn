@@ -122,29 +122,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyArrayCreationOperation : LazyArrayCreationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundArrayCreation _arrayCreation;
-
-        internal CSharpLazyArrayCreationOperation(CSharpOperationFactory operationFactory, BoundArrayCreation arrayCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _arrayCreation = arrayCreation;
-        }
-
-        protected override ImmutableArray<IOperation> CreateDimensionSizes()
-        {
-            return _operationFactory.CreateFromArray<BoundExpression, IOperation>(_arrayCreation.Bounds);
-        }
-
-        protected override IArrayInitializerOperation CreateInitializer()
-        {
-            return (IArrayInitializerOperation)_operationFactory.Create(_arrayCreation.InitializerOpt);
-        }
-    }
-
     internal sealed class CSharpLazyArrayInitializerOperation : LazyArrayInitializerOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

@@ -1125,17 +1125,18 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundTypeOfOperator.WasCompilerGenerated;
             return new TypeOfOperation(typeOperand, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IArrayCreationOperation CreateBoundArrayCreationOperation(BoundArrayCreation boundArrayCreation)
         {
+            ImmutableArray<IOperation> dimensionSizes = CreateFromArray<BoundExpression, IOperation>(boundArrayCreation.Bounds);
+            IArrayInitializerOperation? arrayInitializer = (IArrayInitializerOperation?)Create(boundArrayCreation.InitializerOpt);
             SyntaxNode syntax = boundArrayCreation.Syntax;
-            ITypeSymbol type = boundArrayCreation.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundArrayCreation.ConstantValue;
+            ITypeSymbol? type = boundArrayCreation.GetPublicTypeSymbol();
             bool isImplicit = boundArrayCreation.WasCompilerGenerated ||
                               (boundArrayCreation.InitializerOpt?.Syntax == syntax && !boundArrayCreation.InitializerOpt.WasCompilerGenerated);
-            return new CSharpLazyArrayCreationOperation(this, boundArrayCreation, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ArrayCreationOperation(dimensionSizes, arrayInitializer, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private IArrayInitializerOperation CreateBoundArrayInitializationOperation(BoundArrayInitialization boundArrayInitialization)
         {

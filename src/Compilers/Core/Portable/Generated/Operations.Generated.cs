@@ -1246,6 +1246,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IObjectOrCollectionInitializerOperation? Initializer { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents the creation of an array instance.
     /// <para>
@@ -1271,8 +1272,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Values of elements of the created array instance.
         /// </summary>
-        IArrayInitializerOperation Initializer { get; }
+        IArrayInitializerOperation? Initializer { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents an implicit/explicit reference to an instance.
@@ -4955,72 +4957,40 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTypeParameterObjectCreation(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseArrayCreationOperation : OperationOld, IArrayCreationOperation
+    #nullable enable
+    internal sealed partial class ArrayCreationOperation : Operation, IArrayCreationOperation
     {
-        internal BaseArrayCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.ArrayCreation, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract ImmutableArray<IOperation> DimensionSizes { get; }
-        public abstract IArrayInitializerOperation Initializer { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ArrayCreationOperation(ImmutableArray<IOperation> dimensionSizes, IArrayInitializerOperation? initializer, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            DimensionSizes = SetParentOperation(dimensionSizes, this);
+            Initializer = SetParentOperation(initializer, this);
+            Type = type;
+        }
+        public ImmutableArray<IOperation> DimensionSizes { get; }
+        public IArrayInitializerOperation? Initializer { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                foreach (var child in DimensionSizes)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (!DimensionSizes.IsEmpty) builder.AddRange(DimensionSizes);
+                    if (Initializer is not null) builder.Add(Initializer);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                if (Initializer is object) yield return Initializer;
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.ArrayCreation;
         public override void Accept(OperationVisitor visitor) => visitor.VisitArrayCreation(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitArrayCreation(this, argument);
     }
-    internal sealed partial class ArrayCreationOperation : BaseArrayCreationOperation, IArrayCreationOperation
-    {
-        internal ArrayCreationOperation(ImmutableArray<IOperation> dimensionSizes, IArrayInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            DimensionSizes = SetParentOperation(dimensionSizes, this);
-            Initializer = SetParentOperation(initializer, this);
-        }
-        public override ImmutableArray<IOperation> DimensionSizes { get; }
-        public override IArrayInitializerOperation Initializer { get; }
-    }
-    internal abstract partial class LazyArrayCreationOperation : BaseArrayCreationOperation, IArrayCreationOperation
-    {
-        private ImmutableArray<IOperation> _lazyDimensionSizes;
-        private IArrayInitializerOperation _lazyInitializer = s_unsetArrayInitializer;
-        internal LazyArrayCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract ImmutableArray<IOperation> CreateDimensionSizes();
-        public override ImmutableArray<IOperation> DimensionSizes
-        {
-            get
-            {
-                if (_lazyDimensionSizes.IsDefault)
-                {
-                    ImmutableArray<IOperation> dimensionSizes = CreateDimensionSizes();
-                    SetParentOperation(dimensionSizes, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDimensionSizes, dimensionSizes);
-                }
-                return _lazyDimensionSizes;
-            }
-        }
-        protected abstract IArrayInitializerOperation CreateInitializer();
-        public override IArrayInitializerOperation Initializer
-        {
-            get
-            {
-                if (_lazyInitializer == s_unsetArrayInitializer)
-                {
-                    IArrayInitializerOperation initializer = CreateInitializer();
-                    SetParentOperation(initializer, this);
-                    Interlocked.CompareExchange(ref _lazyInitializer, initializer, s_unsetArrayInitializer);
-                }
-                return _lazyInitializer;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class InstanceReferenceOperation : Operation, IInstanceReferenceOperation
     {
@@ -8820,6 +8790,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (TypeParameterObjectCreationOperation)operation;
             return new TypeParameterObjectCreationOperation(Visit(internalOperation.Initializer), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitArrayCreation(IArrayCreationOperation operation, object? argument)
+        {
+            var internalOperation = (ArrayCreationOperation)operation;
+            return new ArrayCreationOperation(VisitArray(internalOperation.DimensionSizes), Visit(internalOperation.Initializer), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, object? argument)
         {

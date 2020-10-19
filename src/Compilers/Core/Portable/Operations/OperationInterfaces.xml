@@ -1121,7 +1121,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IArrayCreationOperation" Base="IOperation" ChildrenOrder="DimensionSizes,Initializer">
+  <Node Name="IArrayCreationOperation" Base="IOperation" ChildrenOrder="DimensionSizes,Initializer" HasType="true">
     <Comments>
       <summary>
         Represents the creation of an array instance.
@@ -1137,7 +1137,7 @@
         <summary>Sizes of the dimensions of the created array instance.</summary>
       </Comments>
     </Property>
-    <Property Name="Initializer" Type="IArrayInitializerOperation">
+    <Property Name="Initializer" Type="IArrayInitializerOperation?">
       <Comments>
         <summary>Values of elements of the created array instance.</summary>
       </Comments>
