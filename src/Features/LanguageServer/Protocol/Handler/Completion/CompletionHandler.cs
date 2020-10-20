@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache);
                 if (commitCharacters != null)
                 {
-                    completionItem.CommitCharacters = commitCharacters;
+                    //completionItem.CommitCharacters = commitCharacters;
                 }
 
                 return completionItem;
