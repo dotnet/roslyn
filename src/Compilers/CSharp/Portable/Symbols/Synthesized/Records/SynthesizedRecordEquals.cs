@@ -56,6 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             try
             {
+                if (_equalityContract.GetMethod is null)
+                {
+                    // There the equality contract isn't usable, an error was reported elsewhere
+                    F.CloseMethod(F.ThrowNull());
+                    return;
+                }
+
                 var other = F.Parameter(Parameters[0]);
                 BoundExpression? retExpr;
 

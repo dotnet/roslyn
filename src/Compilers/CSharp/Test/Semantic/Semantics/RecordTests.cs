@@ -18549,6 +18549,25 @@ record B : A;
         }
 
         [Fact]
+        [WorkItem(48723, "https://github.com/dotnet/roslyn/issues/48723")]
+        public void EqualityContract_24_SetterOnlyProperty()
+        {
+            var src = @"
+record R
+{
+    protected virtual System.Type EqualityContract { set { } }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,35): error CS9101: Record equality contract property 'R.EqualityContract' must have a get accessor.
+                //     protected virtual System.Type EqualityContract { set { } }
+                Diagnostic(ErrorCode.ERR_EqualityContractRequiresGetter, "EqualityContract").WithArguments("R.EqualityContract").WithLocation(4, 35)
+                );
+        }
+
+        [Fact]
         public void EqualityOperators_01()
         {
             var source =

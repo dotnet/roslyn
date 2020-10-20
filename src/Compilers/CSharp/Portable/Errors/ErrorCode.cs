@@ -1921,6 +1921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 9.0
 
         ERR_UnexpectedVarianceStaticMember = 9100,
+        ERR_EqualityContractRequiresGetter = 9101,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
