@@ -903,14 +903,21 @@ namespace Microsoft.CodeAnalysis
 
         public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
-
-        public static GreenNode? CreateList<TFrom>(IEnumerable<TFrom>? list, Func<TFrom, GreenNode> select)
-            => list switch
+        
+        /*
+         * There are 3 overloads of this, because most callers already know what they have is a List<T> and only transform it.
+         * In those cases List<TFrom> performs much better.
+         * In other cases, the type is unknown / is IEnumerable<T>, where we try to find the best match.
+         * There is another overload for IROList, since most collections already implement this, so checking for it will
+         * perform better then copying to a List<T>, though not as good as List<T> directly.
+         */
+        public static GreenNode? CreateList<TFrom>(IEnumerable<TFrom>? enumerable, Func<TFrom, GreenNode> select)
+            => enumerable switch
             {
                 null => null,
                 List<TFrom> l => CreateList(l, select),
                 IReadOnlyList<TFrom> l => CreateList(l, select),
-                _ => CreateList(list.ToList(), select)
+                _ => CreateList(enumerable.ToList(), select)
             };
 
         public static GreenNode? CreateList<TFrom>(List<TFrom> list, Func<TFrom, GreenNode> select)
