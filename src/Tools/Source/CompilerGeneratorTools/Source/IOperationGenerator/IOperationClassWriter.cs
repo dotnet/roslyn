@@ -456,6 +456,7 @@ namespace IOperationGenerator
                     WriteLine("get");
                     Brace();
 
+                    // PROTOTYPE(iop): Look at making this a better generated impl
                     WriteLine($"if ({lazyChildren} is null)");
                     Brace();
                     WriteLine($"var builder = ArrayBuilder<IOperation>.GetInstance({publicIOperationProps.Count});");
