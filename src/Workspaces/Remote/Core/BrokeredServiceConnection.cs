@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Threading;
@@ -46,9 +47,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ServiceDescriptor _serviceDescriptor;
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly RemoteServiceCallbackDispatcher.Handle _callbackHandle;
+        private readonly IRemoteServiceCallbackDispatcher? _callbackDispatcher;
 
         public BrokeredServiceConnection(
             object? callbackTarget,
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
             ServiceBrokerClient serviceBrokerClient,
             SolutionAssetStorage solutionAssetStorage,
             IErrorReportingService? errorReportingService,
@@ -61,7 +64,12 @@ namespace Microsoft.CodeAnalysis.Remote
             _shutdownCancellationService = shutdownCancellationService;
 
             _serviceDescriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit);
-            _callbackHandle = _serviceDescriptor.CallbackDispatcher?.CreateHandle(callbackTarget) ?? default;
+
+            if (_serviceDescriptor.ClientInterface != null)
+            {
+                _callbackDispatcher = callbackDispatchers.GetDispatcher(typeof(TService));
+                _callbackHandle = _callbackDispatcher.CreateHandle(callbackTarget);
+            }
         }
 
         public override void Dispose()
@@ -76,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var options = new ServiceActivationOptions
             {
-                ClientRpcTarget = _serviceDescriptor.CallbackDispatcher
+                ClientRpcTarget = _callbackDispatcher
             };
 
             var proxyRental = await _serviceBrokerClient.GetProxyAsync<TService>(_serviceDescriptor, options, cancellationToken).ConfigureAwait(false);
@@ -137,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override async ValueTask<bool> TryInvokeAsync(Func<TService, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(_serviceDescriptor.CallbackDispatcher is not null);
+            Contract.ThrowIfFalse(_callbackDispatcher is not null);
 
             try
             {
@@ -154,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<TService, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(_serviceDescriptor.CallbackDispatcher is not null);
+            Contract.ThrowIfFalse(_callbackDispatcher is not null);
 
             try
             {
@@ -228,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override async ValueTask<bool> TryInvokeAsync(Solution solution, Func<TService, PinnedSolutionInfo, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(_serviceDescriptor.CallbackDispatcher is not null);
+            Contract.ThrowIfFalse(_callbackDispatcher is not null);
 
             try
             {
@@ -247,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Solution solution, Func<TService, PinnedSolutionInfo, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(_serviceDescriptor.CallbackDispatcher is not null);
+            Contract.ThrowIfFalse(_callbackDispatcher is not null);
 
             try
             {

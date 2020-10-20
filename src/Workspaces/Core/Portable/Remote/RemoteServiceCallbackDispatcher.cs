@@ -4,38 +4,17 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Runtime.Serialization;
 using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    [DataContract]
-    internal readonly struct RemoteServiceCallbackId : IEquatable<RemoteServiceCallbackId>
+    internal interface IRemoteServiceCallbackDispatcher
     {
-        [DataMember(Order = 0)]
-        public readonly int Id;
-
-        public RemoteServiceCallbackId(int id)
-            => Id = id;
-
-        public override bool Equals(object? obj)
-            => obj is RemoteServiceCallbackId id && Equals(id);
-
-        public bool Equals(RemoteServiceCallbackId other)
-            => Id == other.Id;
-
-        public override int GetHashCode()
-            => Id;
-
-        public static bool operator ==(RemoteServiceCallbackId left, RemoteServiceCallbackId right)
-            => left.Equals(right);
-
-        public static bool operator !=(RemoteServiceCallbackId left, RemoteServiceCallbackId right)
-            => !(left == right);
+        RemoteServiceCallbackDispatcher.Handle CreateHandle(object? instance);
     }
 
-    internal abstract class RemoteServiceCallbackDispatcher
+    internal abstract class RemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
     {
         internal readonly struct Handle : IDisposable
         {
