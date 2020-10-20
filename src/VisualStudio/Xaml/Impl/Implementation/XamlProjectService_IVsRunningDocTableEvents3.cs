@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
-    internal partial class XamlTextViewCreationListener : IVsRunningDocTableEvents3
+    internal partial class XamlProjectService : IVsRunningDocTableEvents3
     {
         public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
         {

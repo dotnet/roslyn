@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal const string ResponseFileName = "csc.rsp";
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
-        private readonly string _tempDirectory;
+        private readonly string? _tempDirectory;
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
             : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader)
         {
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Compilation? CreateCompilation(
             TextWriter consoleOutput,
-            TouchedFileLogger touchedFilesLogger,
-            ErrorLogger errorLogger,
+            TouchedFileLogger? touchedFilesLogger,
+            ErrorLogger? errorLogger,
             ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions,
             AnalyzerConfigOptionsResult globalConfigOptions)
         {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sourceFiles = Arguments.SourceFiles;
             var trees = new SyntaxTree?[sourceFiles.Length];
-            var normalizedFilePaths = new string[sourceFiles.Length];
+            var normalizedFilePaths = new string?[sourceFiles.Length];
             var diagnosticBag = DiagnosticBag.GetInstance();
 
             if (Arguments.CompilationOptions.ConcurrentBuild)
@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Arguments.TouchedFilesPath != null)
             {
+                Debug.Assert(touchedFilesLogger is object);
                 foreach (var path in uniqueFilePaths)
                 {
                     touchedFilesLogger.AddRead(path);
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool addedDiagnostics,
             CommandLineSourceFile file,
             DiagnosticBag diagnostics,
-            out string normalizedFilePath)
+            out string? normalizedFilePath)
         {
             var fileDiagnostics = new List<DiagnosticInfo>();
             var content = TryReadFileContent(file, fileDiagnostics, out normalizedFilePath);
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// entrypoint, then csc will produce "b.exe" and "b.pdb" in the output directory,
         /// with assembly name "b" and module name "b.exe" embedded in the file.
         /// </summary>
-        protected override string GetOutputFileName(Compilation compilation, CancellationToken cancellationToken)
+        protected override string? GetOutputFileName(Compilation compilation, CancellationToken cancellationToken)
         {
             if (Arguments.OutputFileName == null)
             {

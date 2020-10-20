@@ -287,6 +287,11 @@
         <target state="translated">'{0}' 已明確實作多次。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
+        <target state="new">'{0}' is already listed in the interface list on type '{2}' as '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
         <target state="translated">重複 Null 隱藏運算子 ('!')</target>
@@ -937,6 +942,16 @@
         <target state="new">target-typed object creation</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="new">Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</target>
@@ -1144,7 +1159,7 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
@@ -1271,7 +1286,7 @@
 -analyzer:&lt;檔案清單&gt;         執行此組件中的分析器
                               (簡短形式: -a)
 -additionalfile:&lt;檔案清單&gt;   不會直接影響程式碼產生，但可能為分析器所用，
-                             以產生錯誤或警告的 
+                             以產生錯誤或警告的
                               額外檔案。
 -embed                        將所有來源檔案嵌入 PDB。
 -embed:&lt;檔案清單&gt;            將特定檔案嵌入 PDB。
@@ -1290,7 +1305,7 @@
 -debug[+|-]                   發出偵錯資訊
 -debug:{full|pdbonly|portable|embedded}
                               指定偵錯類型 ('full' 為預設值;
-                              'portable' 為跨平台格式; 
+                              'portable' 為跨平台格式;
                               'embedded' 為跨平台格式，會嵌入
                               目標 .dll 或 .exe)
 -optimize[+|-]                啟用最佳化 (簡短形式: -o)

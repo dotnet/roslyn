@@ -10,18 +10,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 #pragma warning disable CA1822 // Mark members as static - Multiple 'JsonRpcMethod' attribute annotated methods.
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal class LanguageServer : ServiceBase
+    /// <summary>
+    /// Remote side of the VisualStudioOOPConnectionLanguageClient.  Used to implement the ILanguageClient in the OOP server.
+    /// </summary>
+    internal class RemoteLanguageServer : ServiceBase
     {
         private static readonly IImmutableSet<string> s_supportedKinds =
             ImmutableHashSet.Create(
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 NavigateToItemKind.Property,
                 NavigateToItemKind.Structure);
 
-        public LanguageServer(Stream stream, IServiceProvider serviceProvider)
+        public RemoteLanguageServer(Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
             StartService();
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.WorkspaceSymbolName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SymbolInformation[]> WorkspaceSymbolAsync(WorkspaceSymbolParams args, CancellationToken cancellationToken)
+        public Task<SymbolInformation[]?> WorkspaceSymbolAsync(WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -92,19 +95,19 @@ namespace Microsoft.CodeAnalysis.Remote
                     // for now, we use whatever solution we have currently. in future, we will add an ability to sync VS's current solution
                     // on demand from OOP side
                     // https://github.com/dotnet/roslyn/issues/37424
-                    var results = await SearchAsync(GetWorkspace().CurrentSolution, args, cancellationToken).ConfigureAwait(false);
-                    return results.ToArray();
+                    return await SearchAsync(GetWorkspace().CurrentSolution, args, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
 
-        private async Task<ImmutableArray<SymbolInformation>> SearchAsync(Solution solution, WorkspaceSymbolParams args, CancellationToken cancellationToken)
+        private async Task<SymbolInformation[]?> SearchAsync(Solution solution, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(args.PartialResultToken);
+            using var progress = BufferedProgress.Create(args.PartialResultToken);
 
-            var tasks = solution.Projects.SelectMany(p => p.Documents).Select(d => SearchDocumentAndReportSymbolsAsync(d, args, cancellationToken));
+            var tasks = solution.Projects.SelectMany(p => p.Documents).Select(d => SearchDocumentAndReportSymbolsAsync(d, args.Query, progress, cancellationToken));
             await Task.WhenAll(tasks).ConfigureAwait(false);
-            return ImmutableArray<SymbolInformation>.Empty;
+
+            return progress.GetValues();
         }
 
         private static async Task<ImmutableArray<SymbolInformation>> SearchDocumentAsync(Document document, string query, CancellationToken cancellationToken)
@@ -124,12 +127,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Search the document and report the results back using <see cref="IProgress{T}"/>
         /// <see cref="IProgress{T}.Report(T)"/> implementation for symbol search is threadsafe.
         /// </summary>
-        private static async Task SearchDocumentAndReportSymbolsAsync(Document document, WorkspaceSymbolParams args, CancellationToken cancellationToken)
+        private static async Task SearchDocumentAndReportSymbolsAsync(Document document, string query, IProgress<SymbolInformation[]> progress, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(args.PartialResultToken);
-
-            var convertedResults = await SearchDocumentAsync(document, args.Query, cancellationToken).ConfigureAwait(false);
-            args.PartialResultToken.Report(convertedResults.ToArray());
+            var convertedResults = await SearchDocumentAsync(document, query, cancellationToken).ConfigureAwait(false);
+            progress.Report(convertedResults.ToArray());
         }
 
         private static async Task<ImmutableArray<SymbolInformation>> ConvertAsync(

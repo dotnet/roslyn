@@ -142,23 +142,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
     }
 
-    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.InitializeName)]
-    internal class TypeScriptInitializeHandlerShim : InitializeHandler, ILspRequestHandler<InitializeParams, InitializeResult, Solution>
-    {
-        private readonly ILspSolutionProvider _solutionProvider;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptInitializeHandlerShim([ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
-            ILspSolutionProvider solutionProvider) : base(completionProviders)
-        {
-            _solutionProvider = solutionProvider;
-        }
-
-        public Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(param, this.CreateRequestContext(param, _solutionProvider, requestContext.GetClientCapabilities()), cancellationToken);
-    }
-
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentSignatureHelpName)]
     internal class TypeScriptSignatureHelpHandlerShim : SignatureHelpHandler, ILspRequestHandler<TextDocumentPositionParams, SignatureHelp, Solution>
     {

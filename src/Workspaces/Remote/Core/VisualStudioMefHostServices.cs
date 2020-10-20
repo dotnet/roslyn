@@ -6,13 +6,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices
+namespace Microsoft.CodeAnalysis.Host.Mef
 {
     /// <summary>
     /// Provides host services imported via VS MEF.

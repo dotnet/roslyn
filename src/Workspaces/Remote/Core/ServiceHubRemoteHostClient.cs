@@ -98,13 +98,27 @@ namespace Microsoft.CodeAnalysis.Remote
                     new object?[] { uiCultureLCID, cultureLCID },
                     cancellationToken).ConfigureAwait(false);
 
-                await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
-                    (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
-                    callbackTarget: null,
-                    cancellationToken).ConfigureAwait(false);
+                if (AsynchronousOperationListenerProvider.IsEnabled && !IsRpsMachine())
+                {
+                    await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
+                        (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
 
                 client.Started();
                 return client;
+            }
+
+            static bool IsRpsMachine()
+            {
+                try
+                {
+                    return Environment.MachineName.StartsWith("dtl-");
+                }
+                catch
+                {
+                    return false;
+                }
             }
         }
 
@@ -153,35 +167,14 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var options = default(ServiceActivationOptions);
-
-                if (callbackTarget is not null)
-                {
-                    options.ClientRpcTarget = callbackTarget;
-                }
-
-                var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), RemoteHostOptions.IsServiceHubProcess64Bit(_services));
-
-                // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-                await TaskScheduler.Default;
-
-#pragma warning disable ISB001 // Dispose of proxies - BrokeredServiceConnection takes care of disposal
-                var proxy = await _serviceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
-#pragma warning restore
-
-                Contract.ThrowIfNull(proxy, $"Brokered service not found: {descriptor.Moniker.Name}");
-
-                return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService, _shutdownCancellationService);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
+        public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
+            => new BrokeredServiceConnection<T>(
+                callbackTarget,
+                _serviceBrokerClient,
+                _assetStorage,
+                _errorReportingService,
+                _shutdownCancellationService,
+                isRemoteHost64Bit: RemoteHostOptions.IsServiceHubProcess64Bit(_services));
 
         public override Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {

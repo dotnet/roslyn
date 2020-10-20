@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                var workingDir = CurrentDirectoryToUse();
+                string workingDir = CurrentDirectoryToUse();
                 string? tempDir = BuildServerConnection.GetTempPath(workingDir);
 
                 if (!UseSharedCompilation ||
@@ -505,9 +505,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     var buildPaths = new BuildPathsAlt(
                         clientDir: clientDir,
+                        workingDir: workingDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
-                        workingDir: workingDir,
                         tempDir: tempDir);
 
                     // Note: using ToolArguments here (the property) since

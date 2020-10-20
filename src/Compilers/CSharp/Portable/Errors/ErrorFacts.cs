@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInfo(code) || IsHidden(code))
             {
-                // Info and hidden diagnostics have default warning level.
-                return Diagnostic.DefaultWarningLevel;
+                // Info and hidden diagnostics should always be produced because some analyzers depend on them.
+                return Diagnostic.InfoAndHiddenWarningLevel;
             }
 
             switch (code)
@@ -469,6 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RecordNamedDisallowed:
                 case ErrorCode.WRN_ParameterNotNullIfNotNull:
                 case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                case ErrorCode.WRN_AnalyzerReferencesFramework:
                     return 1;
                 default:
                     return 0;
