@@ -213,19 +213,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var path = "new path";
 
             var newSolution1 = solution.WithDocumentFilePath(documentId, path);
-            Assert.Equal(path, newSolution1.GetDocument(documentId)!.FilePath);
+            Assert.Equal(path, newSolution1.GetRequiredDocument(documentId).FilePath);
             AssertEx.Equal(new[] { documentId }, newSolution1.GetDocumentIdsWithFilePath(path));
 
             var newSolution2 = newSolution1.WithDocumentFilePath(documentId, path);
             Assert.Same(newSolution1, newSolution2);
 
-            // empty path (TODO https://github.com/dotnet/roslyn/issues/37125):
             var newSolution3 = solution.WithDocumentFilePath(documentId, "");
-            Assert.Equal("", newSolution3.GetDocument(documentId)!.FilePath);
+            Assert.Equal("", newSolution3.GetRequiredDocument(documentId).FilePath);
             Assert.Empty(newSolution3.GetDocumentIdsWithFilePath(""));
 
-            // TODO: https://github.com/dotnet/roslyn/issues/37125
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(documentId, filePath: null!));
+            var newSolution4 = solution.WithDocumentFilePath(documentId, null);
+            Assert.Null(newSolution4.GetRequiredDocument(documentId).FilePath);
+            Assert.Empty(newSolution4.GetDocumentIdsWithFilePath(null));
 
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(null!, path));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFilePath(s_unrelatedDocumentId, path));

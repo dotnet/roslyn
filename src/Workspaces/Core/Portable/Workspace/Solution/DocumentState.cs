@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis
             {
                 Contract.ThrowIfNull(options);
                 _treeSource = CreateLazyFullyParsedTree(
-                    base.TextAndVersionSource,
+                    TextAndVersionSource,
                     info.Id.ProjectId,
-                    GetSyntaxTreeFilePath(info.Attributes),
+                    info.Attributes.FilePath,
                     options,
                     languageServices);
             }
@@ -91,20 +91,6 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsGenerated
             => Attributes.IsGenerated;
-
-        // This is the string used to represent the FilePath property on a SyntaxTree object.
-        // if the document does not yet have a file path, use the document's name instead in regular code
-        // or an empty string in script code.
-        private static string GetSyntaxTreeFilePath(DocumentInfo.DocumentAttributes info)
-        {
-            if (info.FilePath != null)
-            {
-                return info.FilePath;
-            }
-            return info.SourceCodeKind == SourceCodeKind.Regular
-                ? info.Name
-                : "";
-        }
 
         private static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
             ValueSource<TextAndVersion> newTextSource,
@@ -330,7 +316,7 @@ namespace Microsoft.CodeAnalysis
             var newTreeSource = CreateLazyFullyParsedTree(
                 TextAndVersionSource,
                 Id.ProjectId,
-                GetSyntaxTreeFilePath(Attributes),
+                Attributes.FilePath,
                 options,
                 _languageServices);
 
@@ -355,8 +341,6 @@ namespace Microsoft.CodeAnalysis
             return this.SetParseOptions(this.ParseOptions.WithKind(kind));
         }
 
-        // TODO: https://github.com/dotnet/roslyn/issues/37125
-        // if FilePath is null, then this will change the name of the underlying tree, but we aren't producing a new tree in that case.
         public DocumentState UpdateName(string name)
             => UpdateAttributes(Attributes.With(name: name));
 
@@ -389,7 +373,7 @@ namespace Microsoft.CodeAnalysis
                 CreateLazyFullyParsedTree(
                     TextAndVersionSource,
                     Id.ProjectId,
-                    GetSyntaxTreeFilePath(newAttributes),
+                    newAttributes.FilePath,
                     _options!,
                     _languageServices) : null;
 
@@ -427,7 +411,7 @@ namespace Microsoft.CodeAnalysis
                 newTreeSource = CreateLazyFullyParsedTree(
                     newTextSource,
                     Id.ProjectId,
-                    GetSyntaxTreeFilePath(Attributes),
+                    Attributes.FilePath,
                     _options!,
                     _languageServices,
                     mode); // TODO: understand why the mode is given here. If we're preserving text by identity, why also preserve the tree?
@@ -498,10 +482,8 @@ namespace Microsoft.CodeAnalysis
 
             var syntaxTreeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
-            var filePath = GetSyntaxTreeFilePath(Attributes);
-
             Contract.ThrowIfNull(_options);
-            var (text, tree) = CreateRecoverableTextAndTree(newRoot, filePath, newTextVersion, newTreeVersion, encoding, Attributes, _options, syntaxTreeFactory, mode);
+            var (text, tree) = CreateRecoverableTextAndTree(newRoot, Attributes.FilePath, newTextVersion, newTreeVersion, encoding, Attributes, _options, syntaxTreeFactory, mode);
 
             return new DocumentState(
                 LanguageServices,
@@ -534,7 +516,7 @@ namespace Microsoft.CodeAnalysis
         // use static method so we don't capture references to this
         private static (ValueSource<TextAndVersion>, TreeAndVersion) CreateRecoverableTextAndTree(
             SyntaxNode newRoot,
-            string filePath,
+            string? filePath,
             VersionStamp textVersion,
             VersionStamp treeVersion,
             Encoding? encoding,

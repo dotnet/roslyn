@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -206,7 +207,33 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, new[] { "test" }));
+            using var workspace = TestWorkspace.CreateCSharp(code);
+
+            static Solution SetDocumentProperties(Solution solution, int version)
+            {
+                var documentId = solution.Projects.Single().DocumentIds.Single();
+                return solution
+                    .WithDocumentName(documentId, "Name" + version)
+                    .WithDocumentFilePath(documentId, "FilePath" + version)
+                    .WithDocumentFolders(documentId, new[] { "Folder" + version })
+                    .WithDocumentSourceCodeKind(documentId, (version % 2) != 0 ? SourceCodeKind.Regular : SourceCodeKind.Script);
+            }
+
+            static void ValidateProperties(Solution solution, int version)
+            {
+                var document = solution.Projects.Single().Documents.Single();
+                Assert.Equal("Name" + version, document.Name);
+                Assert.Equal("FilePath" + version, document.FilePath);
+                AssertEx.Equal(new[] { "Folder" + version }, document.Folders);
+                Assert.Equal((version % 2) != 0 ? SourceCodeKind.Regular : SourceCodeKind.Script, document.SourceCodeKind);
+            }
+
+            Assert.True(workspace.SetCurrentSolution(s => SetDocumentProperties(s, version: 0), WorkspaceChangeKind.SolutionChanged));
+
+            await VerifySolutionUpdate(workspace,
+                newSolutionGetter: s => SetDocumentProperties(s, version: 1),
+                oldSolutionValidator: s => ValidateProperties(s, version: 0),
+                newSolutionValidator: s => ValidateProperties(s, version: 1)).ConfigureAwait(false);
         }
 
         [Fact]
