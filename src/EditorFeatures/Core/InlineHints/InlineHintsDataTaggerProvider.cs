@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -100,6 +101,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             foreach (var hint in hints)
             {
+                // If we don't have any text to actually show the user, then don't make a tag.
+                if (hint.DisplayParts.Sum(p => p.ToString().Length) == 0)
+                    continue;
+
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     hint.Span.ToSnapshotSpan(snapshotSpan.Snapshot),
                     new InlineHintDataTag(hint)));

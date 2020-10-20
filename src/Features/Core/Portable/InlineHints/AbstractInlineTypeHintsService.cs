@@ -66,11 +66,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 var parts = type.ToDisplayParts(s_minimalTypeStyle);
 
                 AddParts(anonymousTypeService, finalParts, parts, semanticModel, span.Start);
-
-                // If we don't have any text to actually show the user, then don't make a tag.
-                if (parts.Sum(p => p.ToString().Length) == 0)
-                    continue;
-
                 result.Add(new InlineHint(
                     span, finalParts.ToTaggedText(),
                     InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey())));
