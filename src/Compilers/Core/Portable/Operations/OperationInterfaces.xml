@@ -1343,7 +1343,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IConditionalAccessOperation" Base="IOperation" ChildrenOrder="Operation,WhenNotNull">
+  <Node Name="IConditionalAccessOperation" Base="IOperation" ChildrenOrder="Operation,WhenNotNull" HasType="true">
     <Comments>
       <summary>
         Represents a conditionally accessed operation. Note that <see cref="IConditionalAccessInstanceOperation" /> is used to refer to the value

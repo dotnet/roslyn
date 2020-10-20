@@ -1508,19 +1508,18 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundImplicitReceiver.WasCompilerGenerated;
             return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IConditionalAccessOperation CreateBoundConditionalAccessOperation(BoundConditionalAccess boundConditionalAccess)
         {
+            IOperation operation = Create(boundConditionalAccess.Receiver);
+            IOperation whenNotNull = Create(boundConditionalAccess.AccessExpression);
             SyntaxNode syntax = boundConditionalAccess.Syntax;
-            ITypeSymbol type = boundConditionalAccess.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundConditionalAccess.ConstantValue;
+            ITypeSymbol? type = boundConditionalAccess.GetPublicTypeSymbol();
             bool isImplicit = boundConditionalAccess.WasCompilerGenerated;
 
-            return new CSharpLazyConditionalAccessOperation(this, boundConditionalAccess, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ConditionalAccessOperation(operation, whenNotNull, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IConditionalAccessInstanceOperation CreateBoundConditionalReceiverOperation(BoundConditionalReceiver boundConditionalReceiver)
         {
             SyntaxNode syntax = boundConditionalReceiver.Syntax;

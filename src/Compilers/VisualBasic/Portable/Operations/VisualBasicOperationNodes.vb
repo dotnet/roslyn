@@ -159,27 +159,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyConditionalAccessOperation
-        Inherits LazyConditionalAccessOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _conditionalAccess As BoundConditionalAccess
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalAccess As BoundConditionalAccess, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _conditionalAccess = conditionalAccess
-        End Sub
-
-        Protected Overrides Function CreateOperation() As IOperation
-            Return _operationFactory.Create(_conditionalAccess.Receiver)
-        End Function
-
-        Protected Overrides Function CreateWhenNotNull() As IOperation
-            Return _operationFactory.Create(_conditionalAccess.AccessExpression)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyEventReferenceOperation
         Inherits LazyEventReferenceOperation
 

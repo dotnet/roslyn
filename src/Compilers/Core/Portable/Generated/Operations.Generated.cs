@@ -1509,6 +1509,7 @@ namespace Microsoft.CodeAnalysis.Operations
         bool Adds { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a conditionally accessed operation. Note that <see cref="IConditionalAccessInstanceOperation" /> is used to refer to the value
     /// of <see cref="Operation" /> within <see cref="WhenNotNull" />.
@@ -1537,6 +1538,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation WhenNotNull { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents the value of a conditionally-accessed operation within <see cref="IConditionalAccessOperation.WhenNotNull" />.
@@ -5300,69 +5302,40 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitEventAssignment(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseConditionalAccessOperation : OperationOld, IConditionalAccessOperation
+    #nullable enable
+    internal sealed partial class ConditionalAccessOperation : Operation, IConditionalAccessOperation
     {
-        internal BaseConditionalAccessOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.ConditionalAccess, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Operation { get; }
-        public abstract IOperation WhenNotNull { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ConditionalAccessOperation(IOperation operation, IOperation whenNotNull, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Operation = SetParentOperation(operation, this);
+            WhenNotNull = SetParentOperation(whenNotNull, this);
+            Type = type;
+        }
+        public IOperation Operation { get; }
+        public IOperation WhenNotNull { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Operation is object) yield return Operation;
-                if (WhenNotNull is object) yield return WhenNotNull;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Operation is not null) builder.Add(Operation);
+                    if (WhenNotNull is not null) builder.Add(WhenNotNull);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.ConditionalAccess;
         public override void Accept(OperationVisitor visitor) => visitor.VisitConditionalAccess(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitConditionalAccess(this, argument);
     }
-    internal sealed partial class ConditionalAccessOperation : BaseConditionalAccessOperation, IConditionalAccessOperation
-    {
-        internal ConditionalAccessOperation(IOperation operation, IOperation whenNotNull, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operation = SetParentOperation(operation, this);
-            WhenNotNull = SetParentOperation(whenNotNull, this);
-        }
-        public override IOperation Operation { get; }
-        public override IOperation WhenNotNull { get; }
-    }
-    internal abstract partial class LazyConditionalAccessOperation : BaseConditionalAccessOperation, IConditionalAccessOperation
-    {
-        private IOperation _lazyOperation = s_unset;
-        private IOperation _lazyWhenNotNull = s_unset;
-        internal LazyConditionalAccessOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateOperation();
-        public override IOperation Operation
-        {
-            get
-            {
-                if (_lazyOperation == s_unset)
-                {
-                    IOperation operation = CreateOperation();
-                    SetParentOperation(operation, this);
-                    Interlocked.CompareExchange(ref _lazyOperation, operation, s_unset);
-                }
-                return _lazyOperation;
-            }
-        }
-        protected abstract IOperation CreateWhenNotNull();
-        public override IOperation WhenNotNull
-        {
-            get
-            {
-                if (_lazyWhenNotNull == s_unset)
-                {
-                    IOperation whenNotNull = CreateWhenNotNull();
-                    SetParentOperation(whenNotNull, this);
-                    Interlocked.CompareExchange(ref _lazyWhenNotNull, whenNotNull, s_unset);
-                }
-                return _lazyWhenNotNull;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class ConditionalAccessInstanceOperation : Operation, IConditionalAccessInstanceOperation
     {
@@ -8757,6 +8730,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (EventAssignmentOperation)operation;
             return new EventAssignmentOperation(Visit(internalOperation.EventReference), Visit(internalOperation.HandlerValue), internalOperation.Adds, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitConditionalAccess(IConditionalAccessOperation operation, object? argument)
+        {
+            var internalOperation = (ConditionalAccessOperation)operation;
+            return new ConditionalAccessOperation(Visit(internalOperation.Operation), Visit(internalOperation.WhenNotNull), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, object? argument)
         {

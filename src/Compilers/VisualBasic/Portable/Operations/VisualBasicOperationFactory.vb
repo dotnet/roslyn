@@ -886,11 +886,12 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundConditionalAccessOperation(boundConditionalAccess As BoundConditionalAccess) As IConditionalAccessOperation
             RecordParent(boundConditionalAccess.Placeholder, boundConditionalAccess)
+            Dim operation As IOperation = Create(boundConditionalAccess.Receiver)
+            Dim whenNotNull As IOperation = Create(boundConditionalAccess.AccessExpression)
             Dim syntax As SyntaxNode = boundConditionalAccess.Syntax
             Dim type As ITypeSymbol = boundConditionalAccess.Type
-            Dim constantValue As ConstantValue = boundConditionalAccess.ConstantValueOpt
             Dim isImplicit As Boolean = boundConditionalAccess.WasCompilerGenerated
-            Return New VisualBasicLazyConditionalAccessOperation(Me, boundConditionalAccess, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ConditionalAccessOperation(operation, whenNotNull, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundConditionalAccessReceiverPlaceholderOperation(boundConditionalAccessReceiverPlaceholder As BoundConditionalAccessReceiverPlaceholder) As IConditionalAccessInstanceOperation

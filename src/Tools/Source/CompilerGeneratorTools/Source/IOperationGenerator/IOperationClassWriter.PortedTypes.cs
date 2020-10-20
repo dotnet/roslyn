@@ -49,7 +49,8 @@ namespace IOperationGenerator
             "IIsTypeOperation",
             "IAwaitOperation",
             "IParenthesizedOperation",
-            "IEventAssignmentOperation"
+            "IEventAssignmentOperation",
+            "IConditionalAccessOperation"
         };
     }
 }
