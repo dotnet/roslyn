@@ -21,7 +21,9 @@ variables:
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
+  # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-GitHub-Versions-Repo-Write
   - ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+    - group: DotNet-GitHub-Versions-Repo-Write
     - name: _DevDivDropAccessToken
       value: $(System.AccessToken)
   # If the pipeline is running in dnceng:
@@ -32,8 +34,8 @@ variables:
   - ${{ if eq(variables['System.TeamProject'], 'internal') }}:
     - group: DotNet-Blob-Feed
     - group: DotNet-Symbol-Server-Pats
-    - group: DotNet-VSTS-Infra-Access
     - group: DotNet-Versions-Publish
+    - group: DotNet-VSTS-Infra-Access
     - name: _DevDivDropAccessToken
       value: $(dn-bot-devdiv-drop-rw-code-rw)
 
@@ -79,7 +81,7 @@ stages:
 
     - powershell: |
         Write-Host "##vso[build.addbuildtag]PRValidationBuild"
-        Write-Host "##vso[build.addbuildtag]PRNumber:$(PRNumber)"
+        Write-Host "##vso[build.addbuildtag]$('PRNumber:$(PRNumber)'.Replace(':', '`:'))"
       displayName: Tag PR validation build
       condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
 
