@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -15,32 +16,37 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    // The C# and VB ILanguageClient should not activate on the host. When LiveShare mirrors the C# ILC to the guest,
-    // they will not copy the DisableUserExperience attribute, so guests will still use the C# ILC.
-    [DisableUserExperience(true)]
+    /// <summary>
+    /// Language client responsible for exposing pull diagnostics.  Expected to run in all scenarios where the host
+    /// supports pull diagnostics (including VS and liveshare).
+    /// </summary>
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Export(typeof(ILanguageClient))]
-    internal class LiveShareInProcLanguageClient : AbstractInProcLanguageClient
+    internal class PullDiagnosticsInProcLanguageClient : AbstractInProcLanguageClient
     {
-        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+        private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public LiveShareInProcLanguageClient(
+        public PullDiagnosticsInProcLanguageClient(
+            IGlobalOptionService globalOptionService,
             LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider)
+            ILspSolutionProvider solutionProvider)
             : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
-            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
+            _globalOptionService = globalOptionService;
         }
 
-        public override string Name => ServicesVSResources.Live_Share_CSharp_Visual_Basic_Language_Server_Client;
+        public override string Name
+            => ServicesVSResources.CSharp_Visual_Basic_Diagnostics_Language_Client;
 
         protected internal override VSServerCapabilities GetCapabilities()
-            => _defaultCapabilitiesProvider.GetCapabilities();
+            => new VSServerCapabilities
+            {
+                SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.LspPullDiagnostics),
+            };
     }
 }
