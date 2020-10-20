@@ -1477,17 +1477,17 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return new ArrayElementReferenceOperation(arrayReference, indices, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private INameOfOperation CreateBoundNameOfOperatorOperation(BoundNameOfOperator boundNameOfOperator)
         {
-            BoundExpression argument = boundNameOfOperator.Argument;
+            IOperation argument = Create(boundNameOfOperator.Argument);
             SyntaxNode syntax = boundNameOfOperator.Syntax;
-            ITypeSymbol type = boundNameOfOperator.GetPublicTypeSymbol();
+            ITypeSymbol? type = boundNameOfOperator.GetPublicTypeSymbol();
             ConstantValue constantValue = boundNameOfOperator.ConstantValue;
             bool isImplicit = boundNameOfOperator.WasCompilerGenerated;
-            return new CSharpLazyNameOfOperation(this, argument, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new NameOfOperation(argument, _semanticModel, syntax, type, constantValue, isImplicit);
         }
+#nullable disable
 
         private IThrowOperation CreateBoundThrowExpressionOperation(BoundThrowExpression boundThrowExpression)
         {

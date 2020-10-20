@@ -430,12 +430,12 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundNameOfOperatorOperation(boundNameOfOperator As BoundNameOfOperator) As INameOfOperation
-            Dim argument As BoundNode = boundNameOfOperator.Argument
+            Dim argument As IOperation = Create(boundNameOfOperator.Argument)
             Dim syntax As SyntaxNode = boundNameOfOperator.Syntax
             Dim type As ITypeSymbol = boundNameOfOperator.Type
             Dim constantValue As ConstantValue = boundNameOfOperator.ConstantValueOpt
             Dim isImplicit As Boolean = boundNameOfOperator.WasCompilerGenerated
-            Return New VisualBasicLazyNameOfOperation(Me, argument, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New NameOfOperation(argument, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundLambdaOperation(boundLambda As BoundLambda) As IAnonymousFunctionOperation

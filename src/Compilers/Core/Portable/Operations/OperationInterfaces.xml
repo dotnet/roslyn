@@ -1482,7 +1482,7 @@
     <Property Name="Arguments" Type="ImmutableArray&lt;IOperation&gt;" />
     <Property Name="IsDynamic" Type="bool" />
   </Node>
-  <Node Name="INameOfOperation" Base="IOperation">
+  <Node Name="INameOfOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents an operation that gets a string value for the <see cref="Argument" /> name.

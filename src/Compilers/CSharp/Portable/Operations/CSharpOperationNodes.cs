@@ -68,24 +68,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyNameOfOperation : LazyNameOfOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _argument;
-
-        internal CSharpLazyNameOfOperation(CSharpOperationFactory operationFactory, BoundNode argument, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _argument = argument;
-        }
-
-        protected override IOperation CreateArgument()
-        {
-            return _operationFactory.Create(_argument);
-        }
-    }
-
     internal sealed class CSharpLazyThrowOperation : LazyThrowOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

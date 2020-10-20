@@ -1696,6 +1696,7 @@ namespace Microsoft.CodeAnalysis.Operations
         bool IsDynamic { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an operation that gets a string value for the <see cref="Argument" /> name.
     /// <para>
@@ -1719,6 +1720,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Argument { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a tuple with one or more elements.
     /// <para>
@@ -5490,50 +5492,38 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitMemberInitializer(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseNameOfOperation : OperationOld, INameOfOperation
+    #nullable enable
+    internal sealed partial class NameOfOperation : Operation, INameOfOperation
     {
-        internal BaseNameOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.NameOf, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Argument { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal NameOfOperation(IOperation argument, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Argument = SetParentOperation(argument, this);
+            OperationConstantValue = constantValue;
+            Type = type;
+        }
+        public IOperation Argument { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Argument is object) yield return Argument;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Argument is not null) builder.Add(Argument);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.NameOf;
         public override void Accept(OperationVisitor visitor) => visitor.VisitNameOf(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitNameOf(this, argument);
     }
-    internal sealed partial class NameOfOperation : BaseNameOfOperation, INameOfOperation
-    {
-        internal NameOfOperation(IOperation argument, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Argument = SetParentOperation(argument, this);
-        }
-        public override IOperation Argument { get; }
-    }
-    internal abstract partial class LazyNameOfOperation : BaseNameOfOperation, INameOfOperation
-    {
-        private IOperation _lazyArgument = s_unset;
-        internal LazyNameOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateArgument();
-        public override IOperation Argument
-        {
-            get
-            {
-                if (_lazyArgument == s_unset)
-                {
-                    IOperation argument = CreateArgument();
-                    SetParentOperation(argument, this);
-                    Interlocked.CompareExchange(ref _lazyArgument, argument, s_unset);
-                }
-                return _lazyArgument;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseTupleOperation : OperationOld, ITupleOperation
     {
         internal BaseTupleOperation(ITypeSymbol naturalType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8694,6 +8684,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (MemberInitializerOperation)operation;
             return new MemberInitializerOperation(Visit(internalOperation.InitializedMember), Visit(internalOperation.Initializer), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitNameOf(INameOfOperation operation, object? argument)
+        {
+            var internalOperation = (NameOfOperation)operation;
+            return new NameOfOperation(Visit(internalOperation.Argument), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, object? argument)
         {

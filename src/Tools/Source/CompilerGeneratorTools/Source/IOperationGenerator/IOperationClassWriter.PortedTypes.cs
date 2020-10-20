@@ -56,6 +56,7 @@ namespace IOperationGenerator
             "IObjectOrCollectionInitializerOperation",
             "IMemberInitializerOperation",
             "ICollectionElementInitializerOperation",
+            "INameOfOperation",
         };
     }
 }
