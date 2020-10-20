@@ -904,13 +904,39 @@ namespace Microsoft.CodeAnalysis
         public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
 
-        public static GreenNode? CreateList<TFrom>(List<TFrom>? list, Func<TFrom, GreenNode> select)
-        {
-            if (list == null)
+        public static GreenNode? CreateList<TFrom>(IEnumerable<TFrom>? list, Func<TFrom, GreenNode> select)
+            => list switch
             {
-                return null;
-            }
+                null => null,
+                List<TFrom> l => CreateList(l, select),
+                IReadOnlyList<TFrom> l => CreateList(l, select),
+                _ => CreateList(list.ToList(), select)
+            };
 
+        public static GreenNode? CreateList<TFrom>(List<TFrom> list, Func<TFrom, GreenNode> select)
+        {
+            switch (list.Count)
+            {
+                case 0:
+                    return null;
+                case 1:
+                    return select(list[0]);
+                case 2:
+                    return SyntaxList.List(select(list[0]), select(list[1]));
+                case 3:
+                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
+                default:
+                {
+                    var array = new ArrayElement<GreenNode>[list.Count];
+                    for (int i = 0; i < array.Length; i++)
+                        array[i].Value = select(list[i]);
+                    return SyntaxList.List(array);
+                }
+            }
+        }
+        
+        public static GreenNode? CreateList<TFrom>(IReadOnlyList<TFrom> list, Func<TFrom, GreenNode> select)
+        {
             switch (list.Count)
             {
                 case 0:
