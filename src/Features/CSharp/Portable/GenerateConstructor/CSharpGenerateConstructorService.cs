@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         protected override bool IsConstructorInitializerGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             => node is ConstructorInitializerSyntax;
 
+        protected override bool IsImplicitObjectCreation(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
+            => node is ImplicitObjectCreationExpressionSyntax;
+
         protected override bool TryInitializeConstructorInitializerGeneration(
             SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,
             out SyntaxToken token, out ImmutableArray<ArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn)
@@ -142,6 +145,33 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             return false;
         }
 
+        protected override bool TryInitializeImplicitObjectCreation(SemanticDocument document,
+            SyntaxNode node,
+            CancellationToken cancellationToken,
+            out SyntaxToken token,
+            out ImmutableArray<ArgumentSyntax> arguments,
+            out INamedTypeSymbol typeToGenerateIn)
+        {
+            var implicitObjectCreation = (ImplicitObjectCreationExpressionSyntax)node;
+            if (implicitObjectCreation.ArgumentList != null &&
+                !implicitObjectCreation.ArgumentList.CloseParenToken.IsMissing)
+            {
+                var typeInfo = document.SemanticModel.GetTypeInfo(implicitObjectCreation, cancellationToken);
+                if (typeInfo.Type is INamedTypeSymbol typeSymbol)
+                {
+                    token = implicitObjectCreation.NewKeyword;
+                    arguments = implicitObjectCreation.ArgumentList.Arguments.ToImmutableArray();
+                    typeToGenerateIn = typeSymbol;
+                    return true;
+                }
+            }
+
+            token = default;
+            arguments = default;
+            typeToGenerateIn = null;
+            return false;
+        }
+
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
             SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken)
             => semanticModel.GenerateParameterNames(arguments, reservedNames, parameterNamingRule, cancellationToken);
@@ -221,6 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
                     return CanDelegeteThisConstructor(state, document, delegatingConstructor, cancellationToken) ? delegatingConstructor : null;
                 }
+            }
+            else if (oldToken.Parent is ImplicitObjectCreationExpressionSyntax)
+            {
             }
             else
             {
