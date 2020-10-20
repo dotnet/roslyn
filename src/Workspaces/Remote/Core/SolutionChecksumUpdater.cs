@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                     solution,
                     (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, checksum, solution.WorkspaceVersion, cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
         }
@@ -207,7 +206,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                     (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, state.Text, textChanges, cancellationToken),
-                    callbackTarget: null,
                     CancellationToken).ConfigureAwait(false);
             }, CancellationToken);
         }

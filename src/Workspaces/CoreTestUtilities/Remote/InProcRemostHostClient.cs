@@ -103,28 +103,14 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public void RegisterService(RemoteServiceName serviceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceCreator)
             => _inprocServices.RegisterService(serviceName, serviceCreator);
 
-        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
-        {
-            var options = new ServiceActivationOptions();
-
-            if (callbackTarget is not null)
-            {
-                options.ClientRpcTarget = callbackTarget;
-            }
-
-            var assetStorage = _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8);
-
-            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-            await TaskScheduler.Default;
-
-#pragma warning disable ISB001 // Dispose of proxies - caller disposes
-            var proxy = await _inprocServices.ServiceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
-#pragma warning restore
-
-            Contract.ThrowIfNull(proxy);
-            return new BrokeredServiceConnection<T>(proxy, assetStorage, _workspaceServices.GetRequiredService<IErrorReportingService>(), shutdownCancellationService: null);
-        }
+        public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget) where T : class
+            => new BrokeredServiceConnection<T>(
+                callbackTarget,
+                _inprocServices.ServiceBrokerClient,
+                _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
+                _workspaceServices.GetRequiredService<IErrorReportingService>(),
+                shutdownCancellationService: null,
+                isRemoteHost64Bit: IntPtr.Size == 8);
 
         public override async Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
@@ -140,6 +126,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             // we are asked to disconnect. unsubscribe and dispose to disconnect
             _endPoint.Disconnected -= OnDisconnected;
             _endPoint.Dispose();
+
+            _inprocServices.Dispose();
 
             base.Dispose();
         }
@@ -220,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             }
         }
 
-        private sealed class InProcRemoteServices
+        private sealed class InProcRemoteServices : IDisposable
         {
             public readonly ServiceProvider ServiceProvider;
             private readonly Dictionary<ServiceMoniker, Func<object>> _inProcBrokeredServicesMap = new();
@@ -229,6 +217,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             private readonly Dictionary<string, WellKnownServiceHubService> _serviceNameMap = new();
 
             public readonly IServiceBroker ServiceBroker;
+            public readonly ServiceBrokerClient ServiceBrokerClient;
 
             public InProcRemoteServices(HostWorkspaceServices workspaceServices, TraceListener? traceListener, RemoteHostTestData testData)
             {
@@ -245,6 +234,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 ServiceProvider = new ServiceProvider(remoteLogger, testData);
 
                 ServiceBroker = new InProcServiceBroker(this);
+#pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
+                ServiceBrokerClient = new ServiceBrokerClient(ServiceBroker);
+#pragma warning restore
 
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
@@ -271,6 +263,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
                 RegisterService(WellKnownServiceHubService.RemoteLanguageServer, (s, p, o) => new RemoteLanguageServer(s, p));
             }
+
+            public void Dispose()
+                => ServiceBrokerClient.Dispose();
 
             public RemoteHostTestData TestData => ServiceProvider.TestData;
 
