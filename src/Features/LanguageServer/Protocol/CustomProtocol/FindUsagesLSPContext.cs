@@ -208,13 +208,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 IMetadataAsSourceFileService metadataAsSourceFileService,
                 CancellationToken cancellationToken)
             {
+                // If we have no document span, our location may be in metadata.
                 if (documentSpan != default)
                 {
-                    // We do have a source span, so compute location normally.
+                    // We do have a document span, so compute location normally.
                     return await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
                 }
 
-                // If we have no source span, our location may be in metadata.
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (symbol == null || symbol.Locations == null || symbol.Locations.IsEmpty)
                 {

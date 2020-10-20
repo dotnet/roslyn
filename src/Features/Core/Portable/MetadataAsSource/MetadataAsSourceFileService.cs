@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return false;
         }
 
-        public MetadataAsSourceWorkspace? GetWorkspace() => _workspace;
+        public Workspace? TryGetWorkspace() => _workspace;
 
         private class UniqueDocumentKey : IEquatable<UniqueDocumentKey>
         {

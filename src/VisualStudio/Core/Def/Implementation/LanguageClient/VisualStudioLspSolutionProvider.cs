@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             }
 
             // If there's none in the misc files workspace, then check the metadata files workspace.
-            var metadataWorkspace = _metadataAsSourceFileService.GetWorkspace();
+            var metadataWorkspace = _metadataAsSourceFileService.TryGetWorkspace();
             if (metadataWorkspace != null)
             {
                 documents = metadataWorkspace.CurrentSolution.GetDocuments(documentUri);
