@@ -1560,11 +1560,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundAnonymousTypeCreationExpressionOperation(boundAnonymousTypeCreationExpression As BoundAnonymousTypeCreationExpression) As IAnonymousObjectCreationOperation
+            Dim initializers As ImmutableArray(Of IOperation) = GetAnonymousTypeCreationInitializers(boundAnonymousTypeCreationExpression)
             Dim syntax As SyntaxNode = boundAnonymousTypeCreationExpression.Syntax
             Dim type As ITypeSymbol = boundAnonymousTypeCreationExpression.Type
-            Dim constantValue As ConstantValue = boundAnonymousTypeCreationExpression.ConstantValueOpt
             Dim isImplicit As Boolean = boundAnonymousTypeCreationExpression.WasCompilerGenerated
-            Return New VisualBasicLazyAnonymousObjectCreationOperation(Me, boundAnonymousTypeCreationExpression, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New AnonymousObjectCreationOperation(initializers, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess As BoundAnonymousTypePropertyAccess) As IPropertyReferenceOperation

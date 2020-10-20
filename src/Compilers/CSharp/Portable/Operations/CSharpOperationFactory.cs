@@ -658,18 +658,17 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundLiteral.WasCompilerGenerated || @implicit;
             return new LiteralOperation(_semanticModel, syntax, type, constantValue, isImplicit);
         }
-#nullable disable
 
         private IAnonymousObjectCreationOperation CreateBoundAnonymousObjectCreationExpressionOperation(BoundAnonymousObjectCreationExpression boundAnonymousObjectCreationExpression)
         {
             SyntaxNode syntax = boundAnonymousObjectCreationExpression.Syntax;
-            ITypeSymbol type = boundAnonymousObjectCreationExpression.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundAnonymousObjectCreationExpression.ConstantValue;
+            ITypeSymbol? type = boundAnonymousObjectCreationExpression.GetPublicTypeSymbol();
+            Debug.Assert(type is not null);
             bool isImplicit = boundAnonymousObjectCreationExpression.WasCompilerGenerated;
-            return new CSharpLazyAnonymousObjectCreationOperation(this, boundAnonymousObjectCreationExpression, _semanticModel, syntax, type, constantValue, isImplicit);
+            ImmutableArray<IOperation> initializers = GetAnonymousObjectCreationInitializers(boundAnonymousObjectCreationExpression.Arguments, boundAnonymousObjectCreationExpression.Declarations, syntax, type, isImplicit);
+            return new AnonymousObjectCreationOperation(initializers, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IOperation CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
         {
             MethodSymbol constructor = boundObjectCreationExpression.Constructor;
@@ -686,7 +685,14 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 // Workaround for https://github.com/dotnet/roslyn/issues/28157
                 Debug.Assert(isImplicit);
-                return new CSharpLazyAnonymousObjectCreationOperation(this, boundObjectCreationExpression, _semanticModel, syntax, type, constantValue, isImplicit);
+                Debug.Assert(type is not null);
+                ImmutableArray<IOperation> initializers = GetAnonymousObjectCreationInitializers(
+                    boundObjectCreationExpression.Arguments,
+                    declarations: ImmutableArray<BoundAnonymousPropertyDeclaration>.Empty,
+                    syntax,
+                    type,
+                    isImplicit);
+                return new AnonymousObjectCreationOperation(initializers, _semanticModel, syntax, type, isImplicit);
             }
 
             ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundObjectCreationExpression);

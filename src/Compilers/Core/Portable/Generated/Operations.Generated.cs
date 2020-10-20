@@ -1587,6 +1587,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<IInterpolatedStringContentOperation> Parts { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a creation of anonymous object.
     /// <para>
@@ -1612,6 +1613,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IOperation> Initializers { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an initialization for an object or collection creation.
     /// <para>
@@ -5386,53 +5388,37 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInterpolatedString(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseAnonymousObjectCreationOperation : OperationOld, IAnonymousObjectCreationOperation
+    #nullable enable
+    internal sealed partial class AnonymousObjectCreationOperation : Operation, IAnonymousObjectCreationOperation
     {
-        internal BaseAnonymousObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.AnonymousObjectCreation, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract ImmutableArray<IOperation> Initializers { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal AnonymousObjectCreationOperation(ImmutableArray<IOperation> initializers, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Initializers = SetParentOperation(initializers, this);
+            Type = type;
+        }
+        public ImmutableArray<IOperation> Initializers { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                foreach (var child in Initializers)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (!Initializers.IsEmpty) builder.AddRange(Initializers);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.AnonymousObjectCreation;
         public override void Accept(OperationVisitor visitor) => visitor.VisitAnonymousObjectCreation(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitAnonymousObjectCreation(this, argument);
     }
-    internal sealed partial class AnonymousObjectCreationOperation : BaseAnonymousObjectCreationOperation, IAnonymousObjectCreationOperation
-    {
-        internal AnonymousObjectCreationOperation(ImmutableArray<IOperation> initializers, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Initializers = SetParentOperation(initializers, this);
-        }
-        public override ImmutableArray<IOperation> Initializers { get; }
-    }
-    internal abstract partial class LazyAnonymousObjectCreationOperation : BaseAnonymousObjectCreationOperation, IAnonymousObjectCreationOperation
-    {
-        private ImmutableArray<IOperation> _lazyInitializers;
-        internal LazyAnonymousObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract ImmutableArray<IOperation> CreateInitializers();
-        public override ImmutableArray<IOperation> Initializers
-        {
-            get
-            {
-                if (_lazyInitializers.IsDefault)
-                {
-                    ImmutableArray<IOperation> initializers = CreateInitializers();
-                    SetParentOperation(initializers, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyInitializers, initializers);
-                }
-                return _lazyInitializers;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseObjectOrCollectionInitializerOperation : OperationOld, IObjectOrCollectionInitializerOperation
     {
         internal BaseObjectOrCollectionInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8732,6 +8718,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (InterpolatedStringOperation)operation;
             return new InterpolatedStringOperation(VisitArray(internalOperation.Parts), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, object? argument)
+        {
+            var internalOperation = (AnonymousObjectCreationOperation)operation;
+            return new AnonymousObjectCreationOperation(VisitArray(internalOperation.Initializers), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, object? argument)
         {

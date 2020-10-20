@@ -665,51 +665,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyAnonymousObjectCreationOperation : LazyAnonymousObjectCreationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundExpression _anonymousObjectCreation;
-
-        internal CSharpLazyAnonymousObjectCreationOperation(CSharpOperationFactory operationFactory, BoundAnonymousObjectCreationExpression anonymousObjectCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(operationFactory, (BoundExpression)anonymousObjectCreation, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        internal CSharpLazyAnonymousObjectCreationOperation(CSharpOperationFactory operationFactory, BoundObjectCreationExpression anonymousObjectCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(operationFactory, (BoundExpression)anonymousObjectCreation, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        private CSharpLazyAnonymousObjectCreationOperation(CSharpOperationFactory operationFactory, BoundExpression anonymousObjectCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _anonymousObjectCreation = anonymousObjectCreation;
-        }
-
-        protected override ImmutableArray<IOperation> CreateInitializers()
-        {
-            ImmutableArray<BoundExpression> arguments;
-            ImmutableArray<BoundAnonymousPropertyDeclaration> declarations;
-
-            switch (_anonymousObjectCreation)
-            {
-                case BoundAnonymousObjectCreationExpression anonymousObjectCreationExpression:
-                    arguments = anonymousObjectCreationExpression.Arguments;
-                    declarations = anonymousObjectCreationExpression.Declarations;
-                    break;
-                case BoundObjectCreationExpression objectCreationExpression:
-                    arguments = objectCreationExpression.Arguments;
-                    declarations = ImmutableArray<BoundAnonymousPropertyDeclaration>.Empty;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(_anonymousObjectCreation.Kind);
-            }
-
-            return _operationFactory.GetAnonymousObjectCreationInitializers(arguments, declarations, Syntax, Type, IsImplicit);
-        }
-    }
-
     internal sealed class CSharpLazyParameterInitializerOperation : LazyParameterInitializerOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

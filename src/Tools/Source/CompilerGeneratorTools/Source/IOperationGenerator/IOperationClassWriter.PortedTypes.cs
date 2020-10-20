@@ -51,7 +51,8 @@ namespace IOperationGenerator
             "IParenthesizedOperation",
             "IEventAssignmentOperation",
             "IConditionalAccessOperation",
-            "IInterpolatedStringOperation"
+            "IInterpolatedStringOperation",
+            "IAnonymousObjectCreationOperation"
         };
     }
 }

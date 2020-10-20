@@ -1401,7 +1401,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IAnonymousObjectCreationOperation" Base="IOperation">
+  <Node Name="IAnonymousObjectCreationOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a creation of anonymous object.

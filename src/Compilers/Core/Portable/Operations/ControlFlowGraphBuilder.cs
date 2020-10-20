@@ -5873,7 +5873,7 @@ oneMoreTime:
             if (operation.Initializers.IsEmpty)
             {
                 return new AnonymousObjectCreationOperation(initializers: ImmutableArray<IOperation>.Empty, semanticModel: null,
-                    operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                    operation.Syntax, operation.Type, IsImplicit(operation));
             }
 
             ImplicitInstanceInfo savedCurrentImplicitInstance = _currentImplicitInstance;
@@ -5917,7 +5917,7 @@ oneMoreTime:
 
             PopStackFrame(frame);
             return new AnonymousObjectCreationOperation(initializerBuilder.ToImmutableAndFree(), semanticModel: null,
-                operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                operation.Syntax, operation.Type, IsImplicit(operation));
 
             IOperation visitAndCaptureInitializer(IPropertySymbol initializedProperty, IOperation initializer)
             {

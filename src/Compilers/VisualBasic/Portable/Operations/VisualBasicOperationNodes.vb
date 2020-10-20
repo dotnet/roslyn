@@ -409,23 +409,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyAnonymousObjectCreationOperation
-        Inherits LazyAnonymousObjectCreationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _anonymousTypeCreation As BoundAnonymousTypeCreationExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, anonymousTypeCreation As BoundAnonymousTypeCreationExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _anonymousTypeCreation = anonymousTypeCreation
-        End Sub
-
-        Protected Overrides Function CreateInitializers() As ImmutableArray(Of IOperation)
-            Return _operationFactory.GetAnonymousTypeCreationInitializers(_anonymousTypeCreation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyParameterInitializerOperation
         Inherits LazyParameterInitializerOperation
 
