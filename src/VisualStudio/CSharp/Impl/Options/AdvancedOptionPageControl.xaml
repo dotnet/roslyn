@@ -48,9 +48,9 @@
                     <CheckBox x:Name="SuggestForTypesInNuGetPackages"
                               x:Uid="AddImport_SuggestForTypesInNuGetPackages"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Suggest_usings_for_types_in_NuGet_packages}" />
-                    <CheckBox x:Name="AddImportsOnPaste"
-                              x:Uid="AddImport_OnPaste"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_Usings_On_Paste}" />
+                    <CheckBox x:Name="AddUsingsOnPaste"
+                              x:Uid="AddUsings_OnPaste"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_usings_on_paste}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"
