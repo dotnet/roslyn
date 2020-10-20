@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 try
                 {
-                    return Task.Run(() => TrackActiveSpansAsync(_cancellationSource.Token), _cancellationSource.Token);
+                    return Task.Run(() => TrackActiveSpansAsync(_cancellationSource.Token), _cancellationSource.Token).ReportNonFatalErrorAsync();
                 }
                 catch (TaskCanceledException)
                 {
