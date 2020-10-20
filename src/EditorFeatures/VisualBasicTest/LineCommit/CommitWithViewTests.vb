@@ -821,7 +821,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        
+
     End Sub
 End Module|]</Document>
                     </Project>
@@ -1133,5 +1133,194 @@ End Class
                 Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
+
+        ' Remove Skip to debug issue and when fixed
+        <WorkItem(9999, "https://github.com/dotnet/roslyn/issues/48745")>
+        <WpfFact(Skip:="This test will fail"), Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub TestCaseChangeInDoLoop()
+            Using testData = CommitTestData.Create(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Sub S()
+        Dim Test = 1
+        Do
+            ' While fixed but Test not
+        Loop while test = 1$$
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>)
+
+                testData.EditorOperations.InsertNewLine()
+                testData.EditorOperations.MoveLineDown(False)
+                Dim expected = <Code>
+Class C
+    Sub S()
+        Dim Test = 1
+        Do
+            ' While fixed but Test not
+        Loop While Test = 1
+
+    End Sub
+End Class
+</Code>
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
+            End Using
+        End Sub
+
+        ' Remove Skip to debug issue and when fixed
+        <WorkItem(9999, "https://github.com/dotnet/roslyn/issues/48745")>
+        <WpfFact(Skip:="This test will fail"), Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub TestCaseChangeInElseIf()
+            Using testData = CommitTestData.Create(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Sub S()
+        Dim Test = 1
+        If Test = 1 Then
+
+        ElseIf test = 2 Then$$
+        End If
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>)
+
+                testData.EditorOperations.InsertNewLine()
+                testData.EditorOperations.MoveLineDown(False)
+                Dim expected = <Code>
+Class C
+    Sub S()
+        Dim Test = 1
+        If Test = 1 Then
+
+        ElseIf Test = 2 Then
+
+        End If
+    End Sub
+End Class
+</Code>
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
+            End Using
+        End Sub
+
+        ' Remove Skip to debug issue and when fixed
+        <WorkItem(9999, "https://github.com/dotnet/roslyn/issues/48745")>
+        <WpfFact(Skip:="This test will fail"), Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub TestCaseChangeInFor()
+            Using testData = CommitTestData.Create(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Sub S()
+        Dim Test = 1
+        For Test = 0 To 10
+        Next test$$
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>)
+
+                testData.EditorOperations.InsertNewLine()
+                testData.EditorOperations.MoveLineDown(False)
+                Dim expected = <Code>
+Class C
+    Sub S()
+        Dim Test = 1
+        For Test = 0 To 10
+        Next Test
+
+    End Sub
+End Class
+</Code>
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
+            End Using
+        End Sub
+
+        <WorkItem(9999, "https://github.com/dotnet/roslyn/issues/48745")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub TestCaseChangeInIfAndElseIf()
+            Using testData = CommitTestData.Create(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Sub S()
+        Dim Test = 1
+        If test = 1 Then$$
+        ElseIf test = 2 Then
+
+        End If
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>)
+
+                testData.EditorOperations.InsertNewLine()
+                testData.EditorOperations.MoveLineDown(False)
+                Dim expected = <Code>
+Class C
+    Sub S()
+        Dim Test = 1
+        If Test = 1 Then
+
+        ElseIf Test = 2 Then
+
+        End If
+    End Sub
+End Class
+</Code>
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
+            End Using
+        End Sub
+
+        <WorkItem(9999, "https://github.com/dotnet/roslyn/issues/48745")>
+        <WpfFact(Skip:="This test will fail"), Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub TestCaseChangeInTry()
+            Using testData = CommitTestData.Create(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Sub S()
+        Dim Test = 1
+        Try
+            ' When fixed but Test not
+        Catch ex As Exception when test = 1$$
+        End Try
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>)
+
+                testData.EditorOperations.InsertNewLine()
+                testData.EditorOperations.MoveLineDown(False)
+                Dim expected = <Code>
+Class C
+    Sub S()
+        Dim Test = 1
+        Try
+            ' When fixed but Test not
+        Catch ex As Exception When Test = 1
+
+        End Try
+    End Sub
+End Class
+</Code>
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
+            End Using
+        End Sub
+
     End Class
 End Namespace
+
