@@ -1562,6 +1562,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an interpolated string.
     /// <para>
@@ -1585,6 +1586,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IInterpolatedStringContentOperation> Parts { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a creation of anonymous object.
     /// <para>
@@ -5352,53 +5354,38 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitConditionalAccessInstance(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseInterpolatedStringOperation : OperationOld, IInterpolatedStringOperation
+    #nullable enable
+    internal sealed partial class InterpolatedStringOperation : Operation, IInterpolatedStringOperation
     {
-        internal BaseInterpolatedStringOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.InterpolatedString, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract ImmutableArray<IInterpolatedStringContentOperation> Parts { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal InterpolatedStringOperation(ImmutableArray<IInterpolatedStringContentOperation> parts, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Parts = SetParentOperation(parts, this);
+            OperationConstantValue = constantValue;
+            Type = type;
+        }
+        public ImmutableArray<IInterpolatedStringContentOperation> Parts { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                foreach (var child in Parts)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (!Parts.IsEmpty) builder.AddRange(Parts);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.InterpolatedString;
         public override void Accept(OperationVisitor visitor) => visitor.VisitInterpolatedString(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInterpolatedString(this, argument);
     }
-    internal sealed partial class InterpolatedStringOperation : BaseInterpolatedStringOperation, IInterpolatedStringOperation
-    {
-        internal InterpolatedStringOperation(ImmutableArray<IInterpolatedStringContentOperation> parts, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Parts = SetParentOperation(parts, this);
-        }
-        public override ImmutableArray<IInterpolatedStringContentOperation> Parts { get; }
-    }
-    internal abstract partial class LazyInterpolatedStringOperation : BaseInterpolatedStringOperation, IInterpolatedStringOperation
-    {
-        private ImmutableArray<IInterpolatedStringContentOperation> _lazyParts;
-        internal LazyInterpolatedStringOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract ImmutableArray<IInterpolatedStringContentOperation> CreateParts();
-        public override ImmutableArray<IInterpolatedStringContentOperation> Parts
-        {
-            get
-            {
-                if (_lazyParts.IsDefault)
-                {
-                    ImmutableArray<IInterpolatedStringContentOperation> parts = CreateParts();
-                    SetParentOperation(parts, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyParts, parts);
-                }
-                return _lazyParts;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseAnonymousObjectCreationOperation : OperationOld, IAnonymousObjectCreationOperation
     {
         internal BaseAnonymousObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8740,6 +8727,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ConditionalAccessInstanceOperation)operation;
             return new ConditionalAccessInstanceOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, object? argument)
+        {
+            var internalOperation = (InterpolatedStringOperation)operation;
+            return new InterpolatedStringOperation(VisitArray(internalOperation.Parts), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, object? argument)
         {

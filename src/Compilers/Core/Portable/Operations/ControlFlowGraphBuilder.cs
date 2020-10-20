@@ -6238,6 +6238,7 @@ oneMoreTime:
                                  new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.GetConstantValue(), IsImplicit(operation), operation.Type));
         }
 
+#nullable enable
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
         {
             // We visit and rewrite the interpolation parts in two phases:
@@ -6267,7 +6268,7 @@ oneMoreTime:
                 {
                     var interpolation = (IInterpolationOperation)element;
 
-                    IOperation rewrittenFormatString;
+                    IOperation? rewrittenFormatString;
                     if (interpolation.FormatString != null)
                     {
                         Debug.Assert(interpolation.FormatString.Kind == OperationKind.Literal);
@@ -6298,6 +6299,7 @@ oneMoreTime:
             PopStackFrame(frame);
             return new InterpolatedStringOperation(partsBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, int? captureIdForResult)
         {

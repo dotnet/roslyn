@@ -1382,7 +1382,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IInterpolatedStringOperation" Base="IOperation">
+  <Node Name="IInterpolatedStringOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents an interpolated string.

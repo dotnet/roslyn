@@ -271,11 +271,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, object argument)
-        {
-            return new InterpolatedStringOperation(VisitArray(operation.Parts), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, object argument)
         {
             return new InterpolatedStringTextOperation(Visit(operation.Text), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

@@ -501,24 +501,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyInterpolatedStringOperation : LazyInterpolatedStringOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundInterpolatedString _interpolatedString;
-
-        internal CSharpLazyInterpolatedStringOperation(CSharpOperationFactory operationFactory, BoundInterpolatedString interpolatedString, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _interpolatedString = interpolatedString;
-        }
-
-        protected override ImmutableArray<IInterpolatedStringContentOperation> CreateParts()
-        {
-            return _operationFactory.CreateBoundInterpolatedStringContentOperation(_interpolatedString.Parts);
-        }
-    }
-
     internal sealed class CSharpLazyInterpolatedStringTextOperation : LazyInterpolatedStringTextOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

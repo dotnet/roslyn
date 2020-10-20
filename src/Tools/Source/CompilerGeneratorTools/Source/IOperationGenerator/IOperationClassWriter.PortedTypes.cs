@@ -50,7 +50,8 @@ namespace IOperationGenerator
             "IAwaitOperation",
             "IParenthesizedOperation",
             "IEventAssignmentOperation",
-            "IConditionalAccessOperation"
+            "IConditionalAccessOperation",
+            "IInterpolatedStringOperation"
         };
     }
 }

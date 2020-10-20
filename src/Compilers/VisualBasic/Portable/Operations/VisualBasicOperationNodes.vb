@@ -299,23 +299,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyInterpolatedStringOperation
-        Inherits LazyInterpolatedStringOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _interpolatedStringExpression As BoundInterpolatedStringExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, interpolatedStringExpression As BoundInterpolatedStringExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _interpolatedStringExpression = interpolatedStringExpression
-        End Sub
-
-        Protected Overrides Function CreateParts() As ImmutableArray(Of IInterpolatedStringContentOperation)
-            Return _operationFactory.CreateBoundInterpolatedStringContentOperation(_interpolatedStringExpression.Contents)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyInterpolatedStringTextOperation
         Inherits LazyInterpolatedStringTextOperation
 

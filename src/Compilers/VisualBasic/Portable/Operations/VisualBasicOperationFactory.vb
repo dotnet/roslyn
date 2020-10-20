@@ -1523,11 +1523,12 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundInterpolatedStringExpressionOperation(boundInterpolatedString As BoundInterpolatedStringExpression) As IInterpolatedStringOperation
+            Dim parts As ImmutableArray(Of IInterpolatedStringContentOperation) = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Contents)
             Dim syntax As SyntaxNode = boundInterpolatedString.Syntax
             Dim type As ITypeSymbol = boundInterpolatedString.Type
             Dim constantValue As ConstantValue = boundInterpolatedString.ConstantValueOpt
             Dim isImplicit As Boolean = boundInterpolatedString.WasCompilerGenerated
-            Return New VisualBasicLazyInterpolatedStringOperation(Me, boundInterpolatedString, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InterpolatedStringOperation(parts, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Friend Function CreateBoundInterpolatedStringContentOperation(parts As ImmutableArray(Of BoundNode)) As ImmutableArray(Of IInterpolatedStringContentOperation)
