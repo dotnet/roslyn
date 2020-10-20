@@ -63,6 +63,7 @@ namespace IOperationGenerator
             "IAddressOfOperation",
             "IIsPatternOperation",
             "IIncrementOrDecrementOperation",
+            "IThrowOperation",
         };
     }
 }

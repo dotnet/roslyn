@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                            UnwrapImplicitConversion(throwOperation.Exception) is IObjectCreationOperation objectCreation &&
                            notImplementedExceptionType.Equals(objectCreation.Type);
 
-                    static IOperation UnwrapImplicitConversion(IOperation value)
+                    static IOperation? UnwrapImplicitConversion(IOperation? value)
                         => value is IConversionOperation conversion && conversion.IsImplicit
                             ? conversion.Operand
                             : value;

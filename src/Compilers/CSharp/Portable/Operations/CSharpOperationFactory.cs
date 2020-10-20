@@ -1490,19 +1490,16 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundNameOfOperator.WasCompilerGenerated;
             return new NameOfOperation(argument, _semanticModel, syntax, type, constantValue, isImplicit);
         }
-#nullable disable
 
         private IThrowOperation CreateBoundThrowExpressionOperation(BoundThrowExpression boundThrowExpression)
         {
-            BoundNode expression = boundThrowExpression.Expression;
+            IOperation expression = Create(boundThrowExpression.Expression);
             SyntaxNode syntax = boundThrowExpression.Syntax;
-            ITypeSymbol type = boundThrowExpression.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundThrowExpression.ConstantValue;
+            ITypeSymbol? type = boundThrowExpression.GetPublicTypeSymbol();
             bool isImplicit = boundThrowExpression.WasCompilerGenerated;
-            return new CSharpLazyThrowOperation(this, expression, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ThrowOperation(expression, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IAddressOfOperation CreateBoundAddressOfOperatorOperation(BoundAddressOfOperator boundAddressOfOperator)
         {
             IOperation reference = Create(boundAddressOfOperator.Operand);
@@ -1811,19 +1808,16 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
             return new UsingOperation(resources, body, locals, isAsynchronous, _semanticModel, syntax, isImplicit);
         }
-#nullable disable
 
         private IThrowOperation CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
         {
-            BoundNode thrownObject = boundThrowStatement.ExpressionOpt;
+            IOperation? thrownObject = Create(boundThrowStatement.ExpressionOpt);
             SyntaxNode syntax = boundThrowStatement.Syntax;
-            ITypeSymbol statementType = null;
-            ConstantValue constantValue = null;
+            ITypeSymbol? statementType = null;
             bool isImplicit = boundThrowStatement.WasCompilerGenerated;
-            return new CSharpLazyThrowOperation(this, thrownObject, _semanticModel, syntax, statementType, constantValue, isImplicit);
+            return new ThrowOperation(thrownObject, _semanticModel, syntax, statementType, isImplicit);
         }
 
-#nullable enable
         private IReturnOperation CreateBoundReturnStatementOperation(BoundReturnStatement boundReturnStatement)
         {
             IOperation? returnedValue = Create(boundReturnStatement.ExpressionOpt);

@@ -1802,7 +1802,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IThrowOperation" Base="IOperation">
+  <Node Name="IThrowOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an operation to throw an exception.
@@ -1814,7 +1814,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Exception" Type="IOperation">
+    <Property Name="Exception" Type="IOperation?">
       <Comments>
         <summary>Instance of an exception being thrown.</summary>
       </Comments>

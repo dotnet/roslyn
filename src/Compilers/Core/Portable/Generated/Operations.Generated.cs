@@ -2096,6 +2096,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IMethodSymbol? OperatorMethod { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an operation to throw an exception.
     /// <para>
@@ -2118,8 +2119,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Instance of an exception being thrown.
         /// </summary>
-        IOperation Exception { get; }
+        IOperation? Exception { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a assignment with a deconstruction.
     /// <para>
@@ -5842,50 +5844,37 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitIncrementOrDecrement(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseThrowOperation : OperationOld, IThrowOperation
+    #nullable enable
+    internal sealed partial class ThrowOperation : Operation, IThrowOperation
     {
-        internal BaseThrowOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Throw, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Exception { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ThrowOperation(IOperation? exception, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Exception = SetParentOperation(exception, this);
+            Type = type;
+        }
+        public IOperation? Exception { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Exception is object) yield return Exception;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Exception is not null) builder.Add(Exception);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Throw;
         public override void Accept(OperationVisitor visitor) => visitor.VisitThrow(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitThrow(this, argument);
     }
-    internal sealed partial class ThrowOperation : BaseThrowOperation, IThrowOperation
-    {
-        internal ThrowOperation(IOperation exception, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Exception = SetParentOperation(exception, this);
-        }
-        public override IOperation Exception { get; }
-    }
-    internal abstract partial class LazyThrowOperation : BaseThrowOperation, IThrowOperation
-    {
-        private IOperation _lazyException = s_unset;
-        internal LazyThrowOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateException();
-        public override IOperation Exception
-        {
-            get
-            {
-                if (_lazyException == s_unset)
-                {
-                    IOperation exception = CreateException();
-                    SetParentOperation(exception, this);
-                    Interlocked.CompareExchange(ref _lazyException, exception, s_unset);
-                }
-                return _lazyException;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseDeconstructionAssignmentOperation : BaseAssignmentOperation, IDeconstructionAssignmentOperation
     {
         internal BaseDeconstructionAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8646,6 +8635,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (IncrementOrDecrementOperation)operation;
             return new IncrementOrDecrementOperation(internalOperation.IsPostfix, internalOperation.IsLifted, internalOperation.IsChecked, Visit(internalOperation.Target), internalOperation.OperatorMethod, internalOperation.Kind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitThrow(IThrowOperation operation, object? argument)
+        {
+            var internalOperation = (ThrowOperation)operation;
+            return new ThrowOperation(Visit(internalOperation.Exception), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, object? argument)
         {

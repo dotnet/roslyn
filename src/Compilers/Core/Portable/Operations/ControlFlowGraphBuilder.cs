@@ -3666,7 +3666,8 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitThrow(IThrowOperation operation, int? captureIdForResult)
+#nullable enable
+        public override IOperation? VisitThrow(IThrowOperation operation, int? captureIdForResult)
         {
             bool isStatement = (_currentStatement == operation);
 
@@ -3689,6 +3690,7 @@ oneMoreTime:
                 return new NoneOperation(children: ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, constantValue: null, isImplicit: true, type: null);
             }
         }
+#nullable disable
 
         private void LinkThrowStatement(IOperation exception)
         {

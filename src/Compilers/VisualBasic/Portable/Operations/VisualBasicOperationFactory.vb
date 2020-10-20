@@ -1313,12 +1313,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundThrowStatementOperation(boundThrowStatement As BoundThrowStatement) As IThrowOperation
-            Dim thrownObject As BoundNode = boundThrowStatement.ExpressionOpt
+            Dim thrownObject As IOperation = Create(boundThrowStatement.ExpressionOpt)
             Dim syntax As SyntaxNode = boundThrowStatement.Syntax
             Dim expressionType As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundThrowStatement.WasCompilerGenerated
-            Return New VisualBasicLazyThrowOperation(Me, thrownObject, _semanticModel, syntax, expressionType, constantValue, isImplicit)
+            Return New ThrowOperation(thrownObject, _semanticModel, syntax, expressionType, isImplicit)
         End Function
 
         Private Function CreateBoundWhileStatementOperation(boundWhileStatement As BoundWhileStatement) As IWhileLoopOperation

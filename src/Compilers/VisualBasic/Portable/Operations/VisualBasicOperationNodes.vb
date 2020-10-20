@@ -24,23 +24,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyThrowOperation
-        Inherits LazyThrowOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _exception As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, exception As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _exception = exception
-        End Sub
-
-        Protected Overrides Function CreateException() As IOperation
-            Return _operationFactory.Create(_exception)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyArgumentOperation
         Inherits LazyArgumentOperation
 

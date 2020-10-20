@@ -161,11 +161,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new FlowAnonymousFunctionOperation(in anonymous.Context, anonymous.Original, operation.IsImplicit);
         }
 
-        public override IOperation VisitThrow(IThrowOperation operation, object argument)
-        {
-            return new ThrowOperation(Visit(operation.Exception), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, object argument)
         {
             return new FieldInitializerOperation(operation.InitializedFields, operation.Locals, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
