@@ -787,19 +787,19 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundObjectInitializerExpressionOperation(boundObjectInitializerExpression As BoundObjectInitializerExpression) As IObjectOrCollectionInitializerOperation
+            Dim initializers As ImmutableArray(Of IOperation) = CreateFromArray(Of BoundExpression, IOperation)(boundObjectInitializerExpression.Initializers)
             Dim syntax As SyntaxNode = boundObjectInitializerExpression.Syntax
             Dim type As ITypeSymbol = boundObjectInitializerExpression.Type
-            Dim constantValue As ConstantValue = boundObjectInitializerExpression.ConstantValueOpt
             Dim isImplicit As Boolean = boundObjectInitializerExpression.WasCompilerGenerated
-            Return New VisualBasicLazyObjectOrCollectionInitializerOperation(Me, boundObjectInitializerExpression, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ObjectOrCollectionInitializerOperation(initializers, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundCollectionInitializerExpressionOperation(boundCollectionInitializerExpression As BoundCollectionInitializerExpression) As IObjectOrCollectionInitializerOperation
+            Dim initializers As ImmutableArray(Of IOperation) = CreateFromArray(Of BoundExpression, IOperation)(boundCollectionInitializerExpression.Initializers)
             Dim syntax As SyntaxNode = boundCollectionInitializerExpression.Syntax
             Dim type As ITypeSymbol = boundCollectionInitializerExpression.Type
-            Dim constantValue As ConstantValue = boundCollectionInitializerExpression.ConstantValueOpt
             Dim isImplicit As Boolean = boundCollectionInitializerExpression.WasCompilerGenerated
-            Return New VisualBasicLazyObjectOrCollectionInitializerOperation(Me, boundCollectionInitializerExpression, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ObjectOrCollectionInitializerOperation(initializers, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundNewTOperation(boundNewT As BoundNewT) As ITypeParameterObjectCreationOperation

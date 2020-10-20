@@ -647,23 +647,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyObjectOrCollectionInitializerOperation
-        Inherits LazyObjectOrCollectionInitializerOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _objectOrCollectionInitializer As BoundObjectInitializerExpressionBase
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, objectOrCollectionInitializer As BoundObjectInitializerExpressionBase, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _objectOrCollectionInitializer = objectOrCollectionInitializer
-        End Sub
-
-        Protected Overrides Function CreateInitializers() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_objectOrCollectionInitializer.Initializers)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyTranslatedQueryOperation
         Inherits LazyTranslatedQueryOperation
 
