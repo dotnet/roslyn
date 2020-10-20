@@ -1721,6 +1721,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Argument { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a tuple with one or more elements.
     /// <para>
@@ -1748,8 +1749,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Natural type can be different from <see cref="IOperation.Type" /> depending on the
         /// conversion context, in which the tuple is used.
         /// </summary>
-        ITypeSymbol NaturalType { get; }
+        ITypeSymbol? NaturalType { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an object creation with a dynamically bound constructor.
     /// <para>
@@ -5524,57 +5526,39 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitNameOf(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseTupleOperation : OperationOld, ITupleOperation
+    #nullable enable
+    internal sealed partial class TupleOperation : Operation, ITupleOperation
     {
-        internal BaseTupleOperation(ITypeSymbol naturalType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Tuple, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal TupleOperation(ImmutableArray<IOperation> elements, ITypeSymbol? naturalType, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            Elements = SetParentOperation(elements, this);
             NaturalType = naturalType;
+            Type = type;
         }
-        public abstract ImmutableArray<IOperation> Elements { get; }
-        public ITypeSymbol NaturalType { get; }
+        public ImmutableArray<IOperation> Elements { get; }
+        public ITypeSymbol? NaturalType { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                foreach (var child in Elements)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (!Elements.IsEmpty) builder.AddRange(Elements);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Tuple;
         public override void Accept(OperationVisitor visitor) => visitor.VisitTuple(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTuple(this, argument);
     }
-    internal sealed partial class TupleOperation : BaseTupleOperation, ITupleOperation
-    {
-        internal TupleOperation(ImmutableArray<IOperation> elements, ITypeSymbol naturalType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(naturalType, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Elements = SetParentOperation(elements, this);
-        }
-        public override ImmutableArray<IOperation> Elements { get; }
-    }
-    internal abstract partial class LazyTupleOperation : BaseTupleOperation, ITupleOperation
-    {
-        private ImmutableArray<IOperation> _lazyElements;
-        internal LazyTupleOperation(ITypeSymbol naturalType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(naturalType, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract ImmutableArray<IOperation> CreateElements();
-        public override ImmutableArray<IOperation> Elements
-        {
-            get
-            {
-                if (_lazyElements.IsDefault)
-                {
-                    ImmutableArray<IOperation> elements = CreateElements();
-                    SetParentOperation(elements, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyElements, elements);
-                }
-                return _lazyElements;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseDynamicMemberReferenceOperation : OperationOld, IDynamicMemberReferenceOperation
     {
         internal BaseDynamicMemberReferenceOperation(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8689,6 +8673,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (NameOfOperation)operation;
             return new NameOfOperation(Visit(internalOperation.Argument), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitTuple(ITupleOperation operation, object? argument)
+        {
+            var internalOperation = (TupleOperation)operation;
+            return new TupleOperation(VisitArray(internalOperation.Elements), internalOperation.NaturalType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, object? argument)
         {

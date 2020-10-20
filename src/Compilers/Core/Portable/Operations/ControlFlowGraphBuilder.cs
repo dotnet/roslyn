@@ -6154,6 +6154,7 @@ oneMoreTime:
             }
         }
 
+#nullable enable
         /// <summary>
         /// Recursively pop nested tuple values off the stack after visiting
         /// </summary>
@@ -6169,19 +6170,21 @@ oneMoreTime:
                     elementBuilder.Add(PopTargetAndWrapTupleIfNecessary(tuple.Elements[i]));
                 }
                 elementBuilder.ReverseContents();
-                return new TupleOperation(elementBuilder.ToImmutableAndFree(), tuple.NaturalType, semanticModel: null, tuple.Syntax, tuple.Type, tuple.GetConstantValue(), IsImplicit(tuple));
+                return new TupleOperation(elementBuilder.ToImmutableAndFree(), tuple.NaturalType, semanticModel: null, tuple.Syntax, tuple.Type, IsImplicit(tuple));
             }
             else
             {
                 return PopOperand();
             }
         }
+#nullable disable
 
         public override IOperation VisitDeclarationExpression(IDeclarationExpressionOperation operation, int? captureIdForResult)
         {
             return new DeclarationExpressionOperation(VisitPreservingTupleOperations(operation.Expression), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
+#nullable enable
         private IOperation VisitPreservingTupleOperations(IOperation operation)
         {
             EvalStackFrame frame = PushStackFrame();
@@ -6210,6 +6213,7 @@ oneMoreTime:
         {
             return VisitPreservingTupleOperations(operation);
         }
+#nullable disable
 
         internal override IOperation VisitNoneOperation(IOperation operation, int? captureIdForResult)
         {

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1982,7 +1982,6 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundExpressionStatement.WasCompilerGenerated || boundExpressionStatement.Syntax == boundExpressionStatement.Expression.Syntax;
             return new ExpressionStatementOperation(expression, _semanticModel, syntax, isImplicit);
         }
-#nullable disable
 
         internal IOperation CreateBoundTupleLiteralOperation(BoundTupleLiteral boundTupleLiteral, bool createDeclaration = true)
         {
@@ -1991,15 +1990,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal IOperation CreateBoundConvertedTupleLiteralOperation(BoundConvertedTupleLiteral boundConvertedTupleLiteral, bool createDeclaration = true)
         {
-            return CreateTupleOperation(boundConvertedTupleLiteral, boundConvertedTupleLiteral.SourceTuple.Type, createDeclaration);
+            return CreateTupleOperation(boundConvertedTupleLiteral, boundConvertedTupleLiteral.SourceTuple?.Type, createDeclaration);
         }
 
-        internal IOperation CreateTupleOperation(BoundTupleExpression boundTupleExpression, TypeSymbol naturalType, bool createDeclaration)
+        internal IOperation CreateTupleOperation(BoundTupleExpression boundTupleExpression, TypeSymbol? naturalType, bool createDeclaration)
         {
             SyntaxNode syntax = boundTupleExpression.Syntax;
             bool isImplicit = boundTupleExpression.WasCompilerGenerated;
-            ITypeSymbol type = boundTupleExpression.GetPublicTypeSymbol();
-            ConstantValue constantValue = null;
+            ITypeSymbol? type = boundTupleExpression.GetPublicTypeSymbol();
             if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
                 syntax = declarationExpressionSyntax.Designation;
@@ -2009,10 +2007,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
-            return new CSharpLazyTupleOperation(this, boundTupleExpression, _semanticModel, syntax, type, naturalType.GetPublicSymbol(), constantValue, isImplicit);
+            ImmutableArray<IOperation> elements = CreateFromArray<BoundExpression, IOperation>(boundTupleExpression.Arguments);
+            return new TupleOperation(elements, naturalType.GetPublicSymbol(), _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IInterpolatedStringOperation CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)
         {
             ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts);

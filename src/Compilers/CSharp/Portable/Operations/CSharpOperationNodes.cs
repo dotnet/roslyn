@@ -754,24 +754,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyTupleOperation : LazyTupleOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundTupleExpression _tupleExpression;
-
-        internal CSharpLazyTupleOperation(CSharpOperationFactory operationFactory, BoundTupleExpression tupleExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ITypeSymbol naturalType, ConstantValue constantValue, bool isImplicit) :
-            base(naturalType, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _tupleExpression = tupleExpression;
-        }
-
-        protected override ImmutableArray<IOperation> CreateElements()
-        {
-            return _operationFactory.CreateFromArray<BoundExpression, IOperation>(_tupleExpression.Arguments);
-        }
-    }
-
     internal sealed class CSharpLazyDynamicObjectCreationOperation : LazyDynamicObjectCreationOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

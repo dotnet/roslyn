@@ -1499,7 +1499,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ITupleOperation" Base="IOperation">
+  <Node Name="ITupleOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a tuple with one or more elements.
@@ -1515,7 +1515,7 @@
         <summary>Tuple elements.</summary>
       </Comments>
     </Property>
-    <Property Name="NaturalType" Type="ITypeSymbol">
+    <Property Name="NaturalType" Type="ITypeSymbol?">
       <Comments>
         <summary>
           Natural type of the tuple, or null if tuple doesn't have a natural type.

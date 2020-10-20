@@ -1515,11 +1515,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateTupleOperation(boundTupleExpression As BoundTupleExpression, naturalType As ITypeSymbol) As ITupleOperation
+            Dim elements As ImmutableArray(Of IOperation) = CreateFromArray(Of BoundExpression, IOperation)(boundTupleExpression.Arguments)
             Dim syntax As SyntaxNode = boundTupleExpression.Syntax
             Dim type As ITypeSymbol = boundTupleExpression.Type
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundTupleExpression.WasCompilerGenerated
-            Return New VisualBasicLazyTupleOperation(Me, boundTupleExpression, _semanticModel, syntax, type, naturalType, constantValue, isImplicit)
+            Return New TupleOperation(elements, naturalType, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundInterpolatedStringExpressionOperation(boundInterpolatedString As BoundInterpolatedStringExpression) As IInterpolatedStringOperation

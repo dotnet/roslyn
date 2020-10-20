@@ -529,23 +529,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyTupleOperation
-        Inherits LazyTupleOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _tupleExpression As BoundTupleExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, tupleExpression As BoundTupleExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, naturalType As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(naturalType, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _tupleExpression = tupleExpression
-        End Sub
-
-        Protected Overrides Function CreateElements() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_tupleExpression.Arguments)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyDynamicInvocationOperation
         Inherits LazyDynamicInvocationOperation
 
