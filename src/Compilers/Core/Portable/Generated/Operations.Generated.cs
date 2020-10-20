@@ -2050,6 +2050,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IPatternOperation Pattern { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an <see cref="OperationKind.Increment" /> or <see cref="OperationKind.Decrement" /> operation.
     /// Note that this operation is different from an <see cref="IUnaryOperation" /> as it mutates the <see cref="Target" />,
@@ -2092,8 +2093,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
-        IMethodSymbol OperatorMethod { get; }
+        IMethodSymbol? OperatorMethod { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an operation to throw an exception.
     /// <para>
@@ -5800,60 +5802,46 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitIsPattern(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseIncrementOrDecrementOperation : OperationOld, IIncrementOrDecrementOperation
+    #nullable enable
+    internal sealed partial class IncrementOrDecrementOperation : Operation, IIncrementOrDecrementOperation
     {
-        internal BaseIncrementOrDecrementOperation(bool isPostfix, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal IncrementOrDecrementOperation(bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol? operatorMethod, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             IsPostfix = isPostfix;
             IsLifted = isLifted;
             IsChecked = isChecked;
+            Target = SetParentOperation(target, this);
             OperatorMethod = operatorMethod;
+            Type = type;
+            Kind = kind;
         }
         public bool IsPostfix { get; }
         public bool IsLifted { get; }
         public bool IsChecked { get; }
-        public abstract IOperation Target { get; }
-        public IMethodSymbol OperatorMethod { get; }
+        public IOperation Target { get; }
+        public IMethodSymbol? OperatorMethod { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Target is object) yield return Target;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Target is not null) builder.Add(Target);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind { get; }
         public override void Accept(OperationVisitor visitor) => visitor.VisitIncrementOrDecrement(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitIncrementOrDecrement(this, argument);
     }
-    internal sealed partial class IncrementOrDecrementOperation : BaseIncrementOrDecrementOperation, IIncrementOrDecrementOperation
-    {
-        internal IncrementOrDecrementOperation(bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol operatorMethod, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(isPostfix, isLifted, isChecked, operatorMethod, kind, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Target = SetParentOperation(target, this);
-        }
-        public override IOperation Target { get; }
-    }
-    internal abstract partial class LazyIncrementOrDecrementOperation : BaseIncrementOrDecrementOperation, IIncrementOrDecrementOperation
-    {
-        private IOperation _lazyTarget = s_unset;
-        internal LazyIncrementOrDecrementOperation(bool isPostfix, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(isPostfix, isLifted, isChecked, operatorMethod, kind, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateTarget();
-        public override IOperation Target
-        {
-            get
-            {
-                if (_lazyTarget == s_unset)
-                {
-                    IOperation target = CreateTarget();
-                    SetParentOperation(target, this);
-                    Interlocked.CompareExchange(ref _lazyTarget, target, s_unset);
-                }
-                return _lazyTarget;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseThrowOperation : OperationOld, IThrowOperation
     {
         internal BaseThrowOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8653,6 +8641,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (IsPatternOperation)operation;
             return new IsPatternOperation(Visit(internalOperation.Value), Visit(internalOperation.Pattern), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, object? argument)
+        {
+            var internalOperation = (IncrementOrDecrementOperation)operation;
+            return new IncrementOrDecrementOperation(internalOperation.IsPostfix, internalOperation.IsLifted, internalOperation.IsChecked, Visit(internalOperation.Target), internalOperation.OperatorMethod, internalOperation.Kind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, object? argument)
         {

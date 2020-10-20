@@ -1245,20 +1245,21 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyCompoundAssignmentOperation(this, boundCompoundAssignmentOperator, inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IIncrementOrDecrementOperation CreateBoundIncrementOperatorOperation(BoundIncrementOperator boundIncrementOperator)
         {
-            bool isDecrement = Helper.IsDecrement(boundIncrementOperator.OperatorKind);
+            OperationKind operationKind = Helper.IsDecrement(boundIncrementOperator.OperatorKind) ? OperationKind.Decrement : OperationKind.Increment;
             bool isPostfix = Helper.IsPostfixIncrementOrDecrement(boundIncrementOperator.OperatorKind);
             bool isLifted = boundIncrementOperator.OperatorKind.IsLifted();
             bool isChecked = boundIncrementOperator.OperatorKind.IsChecked();
-            BoundNode target = boundIncrementOperator.Operand;
-            IMethodSymbol operatorMethod = boundIncrementOperator.MethodOpt.GetPublicSymbol();
+            IOperation target = Create(boundIncrementOperator.Operand);
+            IMethodSymbol? operatorMethod = boundIncrementOperator.MethodOpt.GetPublicSymbol();
             SyntaxNode syntax = boundIncrementOperator.Syntax;
-            ITypeSymbol type = boundIncrementOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundIncrementOperator.ConstantValue;
+            ITypeSymbol? type = boundIncrementOperator.GetPublicTypeSymbol();
             bool isImplicit = boundIncrementOperator.WasCompilerGenerated;
-            return new CSharpLazyIncrementOrDecrementOperation(this, target, isDecrement, isPostfix, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new IncrementOrDecrementOperation(isPostfix, isLifted, isChecked, target, operatorMethod, operationKind, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private IInvalidOperation CreateBoundBadExpressionOperation(BoundBadExpression boundBadExpression)
         {

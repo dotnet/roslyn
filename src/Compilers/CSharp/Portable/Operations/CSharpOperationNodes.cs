@@ -446,24 +446,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyIncrementOrDecrementOperation : LazyIncrementOrDecrementOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _target;
-
-        internal CSharpLazyIncrementOrDecrementOperation(CSharpOperationFactory operationFactory, BoundNode target, bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(isPostfix, isLifted, isChecked, operatorMethod, isDecrement ? OperationKind.Decrement : OperationKind.Increment, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _target = target;
-        }
-
-        protected override IOperation CreateTarget()
-        {
-            return _operationFactory.Create(_target);
-        }
-    }
-
     internal sealed class CSharpLazyInterpolatedStringTextOperation : LazyInterpolatedStringTextOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

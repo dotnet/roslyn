@@ -1751,7 +1751,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IIncrementOrDecrementOperation" Base="IOperation">
+  <Node Name="IIncrementOrDecrementOperation" Base="IOperation" HasType="true">
     <OperationKind>
       <Entry Name="Increment" Value="0x42" ExtraDescription="This is used as an increment operator"/>
       <Entry Name="Decrement" Value="0x44" ExtraDescription="This is used as a decrement operator"/>
@@ -1796,7 +1796,7 @@
         <summary>Target of the assignment.</summary>
       </Comments>
     </Property>
-    <Property Name="OperatorMethod" Type="IMethodSymbol">
+    <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>

@@ -6585,15 +6585,13 @@ oneMoreTime:
         {
             return new AddressOfOperation(Visit(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
-#nullable disable
 
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, int? captureIdForResult)
         {
             return new IncrementOrDecrementOperation(operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod,
-                                                     operation.Kind, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                                                     operation.Kind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
-#nullable enable
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, int? captureIdForResult)
         {
             return new DiscardOperation(operation.DiscardSymbol, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
