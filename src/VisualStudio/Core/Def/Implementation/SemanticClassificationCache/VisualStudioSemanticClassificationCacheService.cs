@@ -52,7 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
 
             var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService, SerializableClassifiedSpans?>(
                 (service, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey.Dehydrate(), textSpan, checksum, cancellationToken),
-                callbackTarget: null,
                 cancellationToken).ConfigureAwait(false);
 
             if (!classifiedSpans.HasValue || classifiedSpans.Value == null)

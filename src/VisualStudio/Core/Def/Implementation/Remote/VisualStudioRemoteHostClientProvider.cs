@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var client = await ServiceHubRemoteHostClient.CreateAsync(_services, _listenerProvider, serviceBroker, cancellationToken).ConfigureAwait(false);
 
                 // proffer in-proc brokered services:
-                _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => new ValueTask<object?>(new SolutionAssetProvider(_services)));
+                _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(_services)));
 
                 return client;
             }
