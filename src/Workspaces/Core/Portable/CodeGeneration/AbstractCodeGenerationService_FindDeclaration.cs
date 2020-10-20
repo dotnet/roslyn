@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,8 +54,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken)
             => CanAddTo(destination, solution, cancellationToken, out _);
 
-        private bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken,
-            out IList<bool> availableIndices, bool checkGeneratedCode = false)
+        private bool CanAddTo(SyntaxNode? destination, Solution solution, CancellationToken cancellationToken,
+            out IList<bool>? availableIndices, bool checkGeneratedCode = false)
         {
             availableIndices = null;
             if (destination == null)
@@ -115,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// then the declaration in the same file, then non auto-generated file,
         /// then all the potential location. Return null if no declaration.
         /// </summary>
-        public async Task<SyntaxNode> FindMostRelevantNameSpaceOrTypeDeclarationAsync(
+        public async Task<SyntaxNode?> FindMostRelevantNameSpaceOrTypeDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,
             CodeGenerationOptions options,
@@ -126,21 +124,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return declaration;
         }
 
-        private async Task<(SyntaxNode declaration, IList<bool> availableIndices)> FindMostRelevantDeclarationAsync(
+        private async Task<(SyntaxNode? declaration, IList<bool>? availableIndices)> FindMostRelevantDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var declaration = (SyntaxNode)null;
-            IList<bool> availableIndices = null;
+            var declaration = (SyntaxNode?)null;
+            IList<bool>? availableIndices = null;
 
             var symbol = namespaceOrType;
             var locationOpt = options.BestLocation;
 
             var declarations = _symbolDeclarationService.GetDeclarations(symbol);
 
-            var fallbackDeclaration = (SyntaxNode)null;
+            var fallbackDeclaration = (SyntaxNode?)null;
             if (locationOpt != null && locationOpt.IsInSource)
             {
                 var token = locationOpt.FindToken(cancellationToken);
@@ -171,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 // container isn't really used by the user to place code, but is instead just
                 // used to separate out the nested type.  It would be nice to detect this and do the
                 // right thing.
-                declaration = await SelectFirstOrDefaultAsync(declarations, token.Parent.AncestorsAndSelf().Contains, cancellationToken).ConfigureAwait(false);
+                declaration = await SelectFirstOrDefaultAsync(declarations, token.GetRequiredParent().AncestorsAndSelf().Contains, cancellationToken).ConfigureAwait(false);
                 fallbackDeclaration = declaration;
                 if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
                 {
@@ -204,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return (declaration, availableIndices);
         }
 
-        private static async Task<SyntaxNode> SelectFirstOrDefaultAsync(IEnumerable<SyntaxReference> references, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
+        private static async Task<SyntaxNode?> SelectFirstOrDefaultAsync(IEnumerable<SyntaxReference> references, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
         {
             foreach (var r in references)
             {
