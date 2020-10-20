@@ -76,7 +76,7 @@ namespace BuildValidator
                         continue;
                     }
 
-                    if (!(GetMvidForFile(file) is {} mvid) || !_cache.ContainsKey(mvid))
+                    if (!(GetMvidForFile(file) is { } mvid) || !_cache.ContainsKey(mvid))
                     {
                         continue;
                     }
