@@ -49,25 +49,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IOperation> GetChildren() => _operationFactory.GetIOperationChildren(_boundNode);
     }
 
-
-    internal sealed class CSharpLazyAddressOfOperation : LazyAddressOfOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _reference;
-
-        internal CSharpLazyAddressOfOperation(CSharpOperationFactory operationFactory, BoundNode reference, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _reference = reference;
-        }
-
-        protected override IOperation CreateReference()
-        {
-            return _operationFactory.Create(_reference);
-        }
-    }
-
     internal sealed class CSharpLazyThrowOperation : LazyThrowOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

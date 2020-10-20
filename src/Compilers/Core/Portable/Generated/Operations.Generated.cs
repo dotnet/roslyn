@@ -1998,6 +1998,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ITypeSymbol TypeOperand { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an operation that creates a pointer value by taking the address of a reference.
     /// <para>
@@ -2020,6 +2021,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Reference { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an operation that tests if a value matches a specific pattern.
     /// <para>
@@ -5731,50 +5733,37 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitSizeOf(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseAddressOfOperation : OperationOld, IAddressOfOperation
+    #nullable enable
+    internal sealed partial class AddressOfOperation : Operation, IAddressOfOperation
     {
-        internal BaseAddressOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.AddressOf, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Reference { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal AddressOfOperation(IOperation reference, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Reference = SetParentOperation(reference, this);
+            Type = type;
+        }
+        public IOperation Reference { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Reference is object) yield return Reference;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Reference is not null) builder.Add(Reference);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.AddressOf;
         public override void Accept(OperationVisitor visitor) => visitor.VisitAddressOf(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitAddressOf(this, argument);
     }
-    internal sealed partial class AddressOfOperation : BaseAddressOfOperation, IAddressOfOperation
-    {
-        internal AddressOfOperation(IOperation reference, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Reference = SetParentOperation(reference, this);
-        }
-        public override IOperation Reference { get; }
-    }
-    internal abstract partial class LazyAddressOfOperation : BaseAddressOfOperation, IAddressOfOperation
-    {
-        private IOperation _lazyReference = s_unset;
-        internal LazyAddressOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateReference();
-        public override IOperation Reference
-        {
-            get
-            {
-                if (_lazyReference == s_unset)
-                {
-                    IOperation reference = CreateReference();
-                    SetParentOperation(reference, this);
-                    Interlocked.CompareExchange(ref _lazyReference, reference, s_unset);
-                }
-                return _lazyReference;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseIsPatternOperation : OperationOld, IIsPatternOperation
     {
         internal BaseIsPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8681,6 +8670,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (SizeOfOperation)operation;
             return new SizeOfOperation(internalOperation.TypeOperand, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitAddressOf(IAddressOfOperation operation, object? argument)
+        {
+            var internalOperation = (AddressOfOperation)operation;
+            return new AddressOfOperation(Visit(internalOperation.Reference), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, object? argument)
         {

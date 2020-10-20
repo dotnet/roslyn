@@ -1714,7 +1714,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IAddressOfOperation" Base="IOperation">
+  <Node Name="IAddressOfOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an operation that creates a pointer value by taking the address of a reference.

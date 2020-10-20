@@ -470,13 +470,11 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)
         {
-            return new CSharpLazyAddressOfOperation(
-                this,
-                boundUnconvertedAddressOf.Operand,
+            return new AddressOfOperation(
+                Create(boundUnconvertedAddressOf.Operand),
                 _semanticModel,
                 boundUnconvertedAddressOf.Syntax,
                 boundUnconvertedAddressOf.GetPublicTypeSymbol(),
-                boundUnconvertedAddressOf.ConstantValue,
                 boundUnconvertedAddressOf.WasCompilerGenerated);
         }
 
@@ -982,7 +980,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     Debug.Assert(boundConversion.Conversion.MethodSymbol is object);
                     return new AddressOfOperation(
                         CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand, boundConversion.SymbolOpt, suppressVirtualCalls: false),
-                        _semanticModel, syntax, type, constantValue, boundConversion.WasCompilerGenerated);
+                        _semanticModel, syntax, type, boundConversion.WasCompilerGenerated);
                 }
 
                 // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
@@ -1503,17 +1501,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyThrowOperation(this, expression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IAddressOfOperation CreateBoundAddressOfOperatorOperation(BoundAddressOfOperator boundAddressOfOperator)
         {
-            BoundExpression reference = boundAddressOfOperator.Operand;
+            IOperation reference = Create(boundAddressOfOperator.Operand);
             SyntaxNode syntax = boundAddressOfOperator.Syntax;
-            ITypeSymbol type = boundAddressOfOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundAddressOfOperator.ConstantValue;
+            ITypeSymbol? type = boundAddressOfOperator.GetPublicTypeSymbol();
             bool isImplicit = boundAddressOfOperator.WasCompilerGenerated;
-            return new CSharpLazyAddressOfOperation(this, reference, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new AddressOfOperation(reference, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IInstanceReferenceOperation CreateBoundImplicitReceiverOperation(BoundImplicitReceiver boundImplicitReceiver)
         {
             InstanceReferenceKind referenceKind = InstanceReferenceKind.ImplicitReceiver;
