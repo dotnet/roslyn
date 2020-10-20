@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -3211,7 +3214,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X86));
+                options: TestOptions.DebugDll.WithPlatform(Platform.X86));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -3245,7 +3248,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64));
+                options: TestOptions.DebugDll.WithPlatform(Platform.X64));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -3295,7 +3298,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm));
+                options: TestOptions.DebugDll.WithPlatform(Platform.Arm));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -3426,7 +3429,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilation(source, options: new CSharpCompilationOptions(OutputKind.WindowsRuntimeApplication));
+            var compilation = CreateCompilation(source, options: TestOptions.CreateTestOptions(OutputKind.WindowsRuntimeApplication, OptimizationLevel.Debug));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
             //interesting COFF bits
@@ -5244,7 +5247,7 @@ public class DerivingClass<T> : BaseClass<T>
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorDoesNotEmit_GeneralDiagnosticOption()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
             TestWarnAsErrorDoesNotEmitCore(options);
         }
 
@@ -5252,7 +5255,7 @@ public class DerivingClass<T> : BaseClass<T>
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorDoesNotEmit_SpecificDiagnosticOption()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0169", ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithSpecificDiagnosticOptions("CS0169", ReportDiagnostic.Error);
             TestWarnAsErrorDoesNotEmitCore(options);
         }
 
@@ -5289,7 +5292,7 @@ class X
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorWithMetadataOnlyImageDoesEmit_GeneralDiagnosticOption()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
             TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
         }
 
@@ -5297,7 +5300,7 @@ class X
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorWithMetadataOnlyImageDoesEmit_SpecificDiagnosticOptions()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0612", ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithSpecificDiagnosticOptions("CS0612", ReportDiagnostic.Error);
             TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
         }
 

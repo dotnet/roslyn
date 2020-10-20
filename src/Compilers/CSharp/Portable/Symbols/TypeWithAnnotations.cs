@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -216,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations makeNullableT()
                 => Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol)));
         }
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// If this is a lazy nullable type pending resolution, forces this to be resolved.
@@ -468,9 +470,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NullableAnnotation newAnnotation;
 
-            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
+            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.DefaultType) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
 
-            if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
+            if (newTypeWithModifiers.NullableAnnotation.IsAnnotated())
+            {
+                if (newTypeWithModifiers._extensions is LazyNullableTypeParameter)
+                {
+                    Debug.Assert(newCustomModifiers.IsEmpty);
+                    return newTypeWithModifiers;
+                }
+                newAnnotation = NullableAnnotation.Annotated;
+            }
+            else if (NullableAnnotation.IsAnnotated())
             {
                 newAnnotation = NullableAnnotation.Annotated;
             }

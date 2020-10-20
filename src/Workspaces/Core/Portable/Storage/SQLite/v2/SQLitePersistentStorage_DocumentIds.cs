@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Kept locally so we don't have to hit the DB for the common case of trying to determine the 
         /// DB id for a document.
         /// </summary>
-        private readonly ConcurrentDictionary<DocumentId, int> _documentIdToIdMap = new ConcurrentDictionary<DocumentId, int>();
+        private readonly ConcurrentDictionary<DocumentId, int> _documentIdToIdMap = new();
 
         /// <summary>
         /// Given a document, and the name of a stream to read/write, gets the integral DB ID to 
@@ -31,7 +29,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // This will only be expensive the first time we do this.  But will save
             // us from tons of back-and-forth as any BG analyzer processes all the
             // documents in a solution.
-            BulkPopulateProjectIds(connection, bulkLoadSnapshot?.Project, fetchStringTable: true);
+            if (bulkLoadSnapshot != null)
+                BulkPopulateProjectIds(connection, bulkLoadSnapshot.Project.Solution.State, bulkLoadSnapshot.Project.State, fetchStringTable: true);
 
             var documentId = TryGetDocumentId(connection, documentKey);
             var nameId = TryGetStringId(connection, name);

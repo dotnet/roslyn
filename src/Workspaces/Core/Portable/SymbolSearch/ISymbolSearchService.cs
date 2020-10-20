@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -166,12 +164,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
-            => new(ImmutableArray<PackageWithTypeResult>.Empty);
+            => ValueTaskFactory.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
 
         public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
-            => new(ImmutableArray<PackageWithAssemblyResult>.Empty);
+            => ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
 
         public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
-            => new(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
+            => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
     }
 }

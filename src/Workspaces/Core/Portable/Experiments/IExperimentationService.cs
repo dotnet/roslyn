@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -19,15 +17,13 @@ namespace Microsoft.CodeAnalysis.Experiments
     [ExportWorkspaceService(typeof(IExperimentationService)), Shared]
     internal class DefaultExperimentationService : IExperimentationService
     {
-        public bool ReturnValue = false;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultExperimentationService()
         {
         }
 
-        public bool IsExperimentEnabled(string experimentName) => ReturnValue;
+        public bool IsExperimentEnabled(string experimentName) => false;
     }
 
     internal static class WellKnownExperimentNames

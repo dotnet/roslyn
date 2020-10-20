@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
@@ -11,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract partial class AbstractAnonymousTypeDisplayService : IAnonymousTypeDisplayService
     {
-        public abstract IEnumerable<SymbolDisplayPart> GetAnonymousTypeParts(
+        public abstract ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
             INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
 
         public AnonymousTypeDisplayInfo GetNormalAnonymousTypeDisplayInfo(
@@ -154,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => Part(kind, null, text);
 
         private static SymbolDisplayPart Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
-            => new SymbolDisplayPart(kind, symbol, text);
+            => new(kind, symbol, text);
 
         protected static IEnumerable<SymbolDisplayPart> Space(int count = 1)
         {

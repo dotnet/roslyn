@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public const string OptionName = "FeatureManager/Storage";
 
-        public static readonly Option<StorageDatabase> Database = new Option<StorageDatabase>(
+        public static readonly Option<StorageDatabase> Database = new(
             OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite);
     }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
+            PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var service = document.GetLanguageService<IAddImportFeatureService>();
 
-                    var symbolSearchService = new SymbolSearchService(_callback);
+                    var symbolSearchService = new SymbolSearchService(_callback, callbackId);
 
                     var result = await service.GetFixesAsync(
                         document, span, diagnosticId, maxResults, placeSystemNamespaceFirst,
@@ -67,20 +69,22 @@ namespace Microsoft.CodeAnalysis.Remote
         private sealed class SymbolSearchService : ISymbolSearchService
         {
             private readonly RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> _callback;
+            private readonly RemoteServiceCallbackId _callbackId;
 
-            public SymbolSearchService(RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> callback)
+            public SymbolSearchService(RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> callback, RemoteServiceCallbackId callbackId)
             {
                 _callback = callback;
+                _callbackId = callbackId;
             }
 
             public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.FindPackagesWithTypeAsync(source, name, arity, cancellationToken), cancellationToken);
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.FindPackagesWithTypeAsync(_callbackId, source, name, arity, cancellationToken), cancellationToken);
 
             public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.FindPackagesWithAssemblyAsync(source, assemblyName, cancellationToken), cancellationToken);
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.FindPackagesWithAssemblyAsync(_callbackId, source, assemblyName, cancellationToken), cancellationToken);
 
             public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.FindReferenceAssembliesWithTypeAsync(name, arity, cancellationToken), cancellationToken);
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.FindReferenceAssembliesWithTypeAsync(_callbackId, name, arity, cancellationToken), cancellationToken);
         }
     }
 }

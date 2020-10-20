@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,32 +22,62 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         internal interface ICallback
         {
-            ValueTask AddItemsAsync(int count);
-            ValueTask ItemCompletedAsync();
-            ValueTask ReportMessageAsync(string message);
-            ValueTask ReportProgressAsync(int current, int maximum);
-            ValueTask SetSearchTitleAsync(string title);
-            ValueTask OnDefinitionFoundAsync(SerializableDefinitionItem definition);
-            ValueTask OnReferenceFoundAsync(SerializableSourceReferenceItem reference);
+            ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count);
+            ValueTask ItemCompletedAsync(RemoteServiceCallbackId callbackId);
+            ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message);
+            ValueTask ReportProgressAsync(RemoteServiceCallbackId callbackId, int current, int maximum);
+            ValueTask SetSearchTitleAsync(RemoteServiceCallbackId callbackId, string title);
+            ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableDefinitionItem definition);
+            ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSourceReferenceItem reference);
         }
 
         ValueTask FindReferencesAsync(
             PinnedSolutionInfo solutionInfo,
+            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken);
 
         ValueTask FindImplementationsAsync(
             PinnedSolutionInfo solutionInfo,
+            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             CancellationToken cancellationToken);
     }
 
-    internal sealed class FindUsagesServerCallback : IRemoteFindUsagesService.ICallback
+    internal sealed class FindUsagesServerCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteFindUsagesService.ICallback
+    {
+        private new FindUsagesServerCallback GetCallback(RemoteServiceCallbackId callbackId)
+            => (FindUsagesServerCallback)base.GetCallback(callbackId);
+
+        public ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count)
+            => GetCallback(callbackId).AddItemsAsync(count);
+
+        public ValueTask ItemCompletedAsync(RemoteServiceCallbackId callbackId)
+            => GetCallback(callbackId).ItemCompletedAsync();
+
+        public ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableDefinitionItem definition)
+            => GetCallback(callbackId).OnDefinitionFoundAsync(definition);
+
+        public ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSourceReferenceItem reference)
+            => GetCallback(callbackId).OnReferenceFoundAsync(reference);
+
+        public ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message)
+            => GetCallback(callbackId).ReportMessageAsync(message);
+
+        [Obsolete]
+        public ValueTask ReportProgressAsync(RemoteServiceCallbackId callbackId, int current, int maximum)
+            => GetCallback(callbackId).ReportProgressAsync(current, maximum);
+
+        public ValueTask SetSearchTitleAsync(RemoteServiceCallbackId callbackId, string title)
+            => GetCallback(callbackId).SetSearchTitleAsync(title);
+    }
+
+    internal sealed class FindUsagesServerCallback
     {
         private readonly Solution _solution;
         private readonly IFindUsagesContext _context;
-        private readonly Dictionary<int, DefinitionItem> _idToDefinition = new Dictionary<int, DefinitionItem>();
+        private readonly Dictionary<int, DefinitionItem> _idToDefinition = new();
 
         public FindUsagesServerCallback(Solution solution, IFindUsagesContext context)
         {

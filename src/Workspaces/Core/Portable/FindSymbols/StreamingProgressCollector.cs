@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -20,11 +22,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal class StreamingProgressCollector : IStreamingFindReferencesProgress
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly IStreamingFindReferencesProgress _underlyingProgress;
 
         private readonly Dictionary<ISymbol, List<ReferenceLocation>> _symbolToLocations =
-            new Dictionary<ISymbol, List<ReferenceLocation>>();
+            new();
 
         public IStreamingProgressTracker ProgressTracker => _underlyingProgress.ProgressTracker;
 
@@ -43,13 +45,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             lock (_gate)
             {
-                var result = ArrayBuilder<ReferencedSymbol>.GetInstance();
+                using var _ = ArrayBuilder<ReferencedSymbol>.GetInstance(out var result);
                 foreach (var kvp in _symbolToLocations)
-                {
-                    result.Add(new ReferencedSymbol(kvp.Key, kvp.Value.ToList()));
-                }
+                    result.Add(new ReferencedSymbol(kvp.Key, kvp.Value.ToImmutableArray()));
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
         }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,6 +18,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     {
         public IImmutableSet<string> KindsProvided { get; } = ImmutableHashSet.Create(
             NavigateToItemKind.Class,
+            NavigateToItemKind.Record,
             NavigateToItemKind.Constant,
             NavigateToItemKind.Delegate,
             NavigateToItemKind.Enum,
@@ -41,7 +44,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var result = await client.TryInvokeAsync<IRemoteNavigateToSearchService, ImmutableArray<SerializableNavigateToSearchResult>>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 return result.HasValue ? result.Value.SelectAsArray(r => r.Rehydrate(solution)) : ImmutableArray<INavigateToSearchResult>.Empty;
@@ -62,7 +64,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var result = await client.TryInvokeAsync<IRemoteNavigateToSearchService, ImmutableArray<SerializableNavigateToSearchResult>>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 return result.HasValue ? result.Value.SelectAsArray(r => r.Rehydrate(solution)) : ImmutableArray<INavigateToSearchResult>.Empty;

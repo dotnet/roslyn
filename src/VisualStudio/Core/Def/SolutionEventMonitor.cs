@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Notification;
@@ -19,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const string SolutionOpening = "Solution Opening";
 
         private IGlobalOperationNotificationService _notificationService;
-        private readonly Dictionary<string, GlobalOperationRegistration> _operations = new Dictionary<string, GlobalOperationRegistration>();
+        private readonly Dictionary<string, GlobalOperationRegistration> _operations = new();
 
         public SolutionEventMonitor(VisualStudioWorkspace workspace)
         {

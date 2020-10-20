@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,9 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             /// all future callbacks.
             /// </summary>
             private readonly Dictionary<ISymbol, DefinitionItem> _definitionToItem =
-                new Dictionary<ISymbol, DefinitionItem>(MetadataUnifyingEquivalenceComparer.Instance);
+                new(MetadataUnifyingEquivalenceComparer.Instance);
 
-            private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+            private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
             public IStreamingProgressTracker ProgressTracker
                 => _context.ProgressTracker;

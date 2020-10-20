@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
@@ -750,7 +752,7 @@ class Program : Exception
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), CompilerTrait(CompilerFeature.Tuples)]
         public async Task Tuple()
         {
             await TestInRegularAndScriptAsync(
@@ -779,7 +781,7 @@ class B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -925,6 +927,76 @@ abstract class B
 }",
 @"class C : B
 {
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedConstructorCursorAtTypeOpening()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : B
+{
+
+[||]
+
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedConstructorCursorBetweenTypeMembers()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : B
+{
+    int X;
+[||]
+    int Y;
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    int X;
+
+    int Y;
+
     public C(int x) : base(x)
     {
     }

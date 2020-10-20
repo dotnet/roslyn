@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.IO.Pipelines;
 using MessagePack;
@@ -35,9 +33,12 @@ namespace Microsoft.CodeAnalysis.Remote
             ProtocolMajorVersion = 3
         }.GetFrozenCopy();
 
-        private ServiceDescriptor(ServiceMoniker serviceMoniker, Type? clientInterface)
+        public readonly RemoteServiceCallbackDispatcher? CallbackDispatcher;
+
+        private ServiceDescriptor(ServiceMoniker serviceMoniker, Type? clientInterface, RemoteServiceCallbackDispatcher? callbackDispatcher)
             : base(serviceMoniker, clientInterface, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader, s_multiplexingStreamOptions)
         {
+            CallbackDispatcher = callbackDispatcher;
         }
 
         private ServiceDescriptor(ServiceDescriptor copyFrom)
@@ -45,11 +46,11 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, Type? clientInterface)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface);
+        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, Type? clientInterface, RemoteServiceCallbackDispatcher? callbackDispatcher)
+            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface, callbackDispatcher);
 
         public static ServiceDescriptor CreateInProcServiceDescriptor(string serviceName)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface: null);
+            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface: null, callbackDispatcher: null);
 
         protected override ServiceRpcDescriptor Clone()
             => new ServiceDescriptor(this);
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
             => ConfigureFormatter((MessagePackFormatter)base.CreateFormatter());
 
         private static readonly MessagePackSerializerOptions s_options = StandardResolverAllowPrivate.Options
-            .WithSecurity(MessagePackSecurity.UntrustedData)
+            .WithSecurity(MessagePackSecurity.UntrustedData.WithHashCollisionResistant(false))
             .WithResolver(CompositeResolver.Create(
                 MessagePackFormatters.GetFormatters(),
                 new IFormatterResolver[] { ImmutableCollectionMessagePackResolver.Instance, StandardResolverAllowPrivate.Instance }));

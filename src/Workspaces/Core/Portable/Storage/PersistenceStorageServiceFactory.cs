@@ -4,13 +4,13 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
 // When building for source-build, there is no sqlite dependency
 #if !DOTNET_BUILD_FROM_SOURCE
+using Microsoft.CodeAnalysis.SQLite.v2;
 #endif
 
 namespace Microsoft.CodeAnalysis.Storage
@@ -18,10 +18,21 @@ namespace Microsoft.CodeAnalysis.Storage
     [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Desktop), Shared]
     internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
+#if !DOTNET_BUILD_FROM_SOURCE
+        private readonly SQLiteConnectionPoolService _connectionPoolService;
+#endif
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PersistenceStorageServiceFactory()
+        public PersistenceStorageServiceFactory(
+#if !DOTNET_BUILD_FROM_SOURCE
+            SQLiteConnectionPoolService connectionPoolService
+#endif
+            )
         {
+#if !DOTNET_BUILD_FROM_SOURCE
+            _connectionPoolService = connectionPoolService;
+#endif
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -34,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 case StorageDatabase.SQLite:
                     var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
                     if (locationService != null)
-                        return new SQLite.v2.SQLitePersistentStorageService(locationService);
+                        return new SQLite.v2.SQLitePersistentStorageService(_connectionPoolService, locationService);
 
                     break;
             }

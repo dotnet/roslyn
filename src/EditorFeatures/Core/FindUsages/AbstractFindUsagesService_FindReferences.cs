@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                 _ = await client.TryInvokeAsync<IRemoteFindUsagesService>(
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.FindReferencesAsync(solutionInfo, symbolAndProjectId, options, cancellationToken),
+                    (service, solutionInfo, callbackId, cancellationToken) => service.FindReferencesAsync(solutionInfo, callbackId, symbolAndProjectId, options, cancellationToken),
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
             }

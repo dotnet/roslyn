@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         /// we're tagging.
         /// </summary>
         private static readonly ConditionalWeakTable<object, ITextSnapshot> _diagnosticIdToTextSnapshot =
-            new ConditionalWeakTable<object, ITextSnapshot>();
+            new();
 
         protected AbstractDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
@@ -153,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
             var buckets = _diagnosticService.GetDiagnosticBuckets(
-                workspace, document.Project.Id, document.Id, context.CancellationToken);
+                workspace, document.Project.Id, document.Id, forPullDiagnostics: false, context.CancellationToken);
 
             foreach (var bucket in buckets)
             {
@@ -173,7 +171,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 var id = bucket.Id;
                 var diagnostics = _diagnosticService.GetDiagnostics(
-                    workspace, document.Project.Id, document.Id, id, includeSuppressedDiagnostics: false, cancellationToken);
+                    workspace, document.Project.Id, document.Id, id,
+                    includeSuppressedDiagnostics: false, forPullDiagnostics: false, cancellationToken);
 
                 var isLiveUpdate = id is ISupportLiveUpdate;
 
@@ -229,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     }
                 }
             }
-            catch (ArgumentOutOfRangeException ex) when (FatalError.ReportWithoutCrash(ex))
+            catch (ArgumentOutOfRangeException ex) when (FatalError.ReportAndCatch(ex))
             {
                 // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=428328&_a=edit&triage=false
                 // explicitly report NFW to find out what is causing us for out of range.

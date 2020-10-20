@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Microsoft.CodeAnalysis.Host;
 
@@ -15,13 +13,6 @@ namespace Microsoft.CodeAnalysis.Extensions
         /// Name of the host to be used in error messages (e.g. "Visual Studio").
         /// </summary>
         string HostDisplayName { get; }
-
-        /// <summary>
-        /// Show error info in an active view.
-        ///
-        /// Different host can have different definition on what active view means.
-        /// </summary>
-        void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items);
 
         /// <summary>
         /// Show global error info.

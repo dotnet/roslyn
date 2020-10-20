@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToBase
 {
@@ -19,18 +22,17 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                 namedTypeSymbol.TypeKind == TypeKind.Interface ||
                 namedTypeSymbol.TypeKind == TypeKind.Struct))
             {
-                return new ValueTask<ImmutableArray<ISymbol>>(BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol));
+                return ValueTaskFactory.FromResult(BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol));
             }
-            else if (symbol.Kind == SymbolKind.Property ||
+
+            if (symbol.Kind == SymbolKind.Property ||
                 symbol.Kind == SymbolKind.Method ||
                 symbol.Kind == SymbolKind.Event)
             {
                 return BaseTypeFinder.FindOverriddenAndImplementedMembersAsync(symbol, solution, cancellationToken);
             }
-            else
-            {
-                return new ValueTask<ImmutableArray<ISymbol>>(ImmutableArray<ISymbol>.Empty);
-            }
+
+            return ValueTaskFactory.FromResult(ImmutableArray<ISymbol>.Empty);
         }
     }
 }

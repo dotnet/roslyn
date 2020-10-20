@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -418,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializer.Version == entry.Version)
                 {
-                    return new ValueTask<ImmutableArray<DiagnosticData>>(entry.Diagnostics);
+                    return ValueTaskFactory.FromResult(entry.Diagnostics);
                 }
 
                 return serializer.DeserializeAsync(persistentService, project, document, stateKey, cancellationToken);

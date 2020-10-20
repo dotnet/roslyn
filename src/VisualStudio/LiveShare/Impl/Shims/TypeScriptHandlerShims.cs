@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -52,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionHandlerShim(ILspSolutionProvider solutionProvider)
+        public TypeScriptCompletionHandlerShim(ILspSolutionProvider solutionProvider) : base(Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>())
         {
             _solutionProvider = solutionProvider;
         }
@@ -142,23 +140,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(context.CancellationToken);
             await base.FindImplementationsAsync(findUsagesService, document, position, context).ConfigureAwait(false);
         }
-    }
-
-    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.InitializeName)]
-    internal class TypeScriptInitializeHandlerShim : InitializeHandler, ILspRequestHandler<InitializeParams, InitializeResult, Solution>
-    {
-        private readonly ILspSolutionProvider _solutionProvider;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptInitializeHandlerShim([ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
-            ILspSolutionProvider solutionProvider) : base(completionProviders)
-        {
-            _solutionProvider = solutionProvider;
-        }
-
-        public Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(param, this.CreateRequestContext(param, _solutionProvider, requestContext.GetClientCapabilities()), cancellationToken);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentSignatureHelpName)]

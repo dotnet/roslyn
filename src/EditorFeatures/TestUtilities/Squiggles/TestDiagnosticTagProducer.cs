@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
         internal static async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
         {
-            var source = new TestDiagnosticUpdateSource();
+            var source = new TestDiagnosticUpdateSource(workspace);
             using (var wrapper = new DiagnosticTaggerWrapper<TProvider, IErrorTag>(workspace, updateSource: source))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -70,10 +72,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
         {
             private ImmutableArray<DiagnosticData> _diagnostics = ImmutableArray<DiagnosticData>.Empty;
+            private readonly Workspace _workspace;
+
+            public TestDiagnosticUpdateSource(Workspace workspace)
+                => _workspace = workspace;
 
             public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
             {
-                _diagnostics = args.Diagnostics;
+                _diagnostics = args.GetDiagnostics(_workspace, forPullDiagnostics: false);
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 

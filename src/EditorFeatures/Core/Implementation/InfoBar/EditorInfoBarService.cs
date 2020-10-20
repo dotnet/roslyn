@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Extensions;
@@ -19,10 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         {
         }
 
-        public void ShowInfoBarInActiveView(string message, params InfoBarUI[] items)
-            => ShowInfoBarInGlobalView(message, items);
-
-        public void ShowInfoBarInGlobalView(string message, params InfoBarUI[] items)
+        public void ShowInfoBar(string message, params InfoBarUI[] items)
             => Logger.Log(FunctionId.Extension_InfoBar, message);
     }
 }

@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
@@ -15,6 +15,24 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     /// </summary>
     internal interface IRemoteDesignerAttributeDiscoveryService
     {
-        ValueTask StartScanningForDesignerAttributesAsync(CancellationToken cancellation);
+        internal interface ICallback
+        {
+            ValueTask OnProjectRemovedAsync(RemoteServiceCallbackId callbackId, ProjectId projectId, CancellationToken cancellationToken);
+            ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
+        }
+
+        ValueTask StartScanningForDesignerAttributesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellation);
+    }
+
+    internal sealed class RemoteDesignerAttributeDiscoveryCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteDesignerAttributeDiscoveryService.ICallback
+    {
+        private IDesignerAttributeListener GetLogService(RemoteServiceCallbackId callbackId)
+            => (IDesignerAttributeListener)GetCallback(callbackId);
+
+        public ValueTask OnProjectRemovedAsync(RemoteServiceCallbackId callbackId, ProjectId projectId, CancellationToken cancellationToken)
+            => GetLogService(callbackId).OnProjectRemovedAsync(projectId, cancellationToken);
+
+        public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+            => GetLogService(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);
     }
 }
