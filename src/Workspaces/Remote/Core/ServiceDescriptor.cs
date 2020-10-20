@@ -33,9 +33,12 @@ namespace Microsoft.CodeAnalysis.Remote
             ProtocolMajorVersion = 3
         }.GetFrozenCopy();
 
-        private ServiceDescriptor(ServiceMoniker serviceMoniker, Type? clientInterface)
+        public readonly RemoteServiceCallbackDispatcher? CallbackDispatcher;
+
+        private ServiceDescriptor(ServiceMoniker serviceMoniker, Type? clientInterface, RemoteServiceCallbackDispatcher? callbackDispatcher)
             : base(serviceMoniker, clientInterface, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader, s_multiplexingStreamOptions)
         {
+            CallbackDispatcher = callbackDispatcher;
         }
 
         private ServiceDescriptor(ServiceDescriptor copyFrom)
@@ -43,11 +46,11 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, Type? clientInterface)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface);
+        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, Type? clientInterface, RemoteServiceCallbackDispatcher? callbackDispatcher)
+            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface, callbackDispatcher);
 
         public static ServiceDescriptor CreateInProcServiceDescriptor(string serviceName)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface: null);
+            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface: null, callbackDispatcher: null);
 
         protected override ServiceRpcDescriptor Clone()
             => new ServiceDescriptor(this);

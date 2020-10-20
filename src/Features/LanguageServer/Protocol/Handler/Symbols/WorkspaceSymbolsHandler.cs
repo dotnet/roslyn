@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var solution = context.Solution;
 
             var searchTasks = Task.WhenAll(solution.Projects.Select(project => SearchProjectAsync(project, request, cancellationToken)));
-            return (await searchTasks.ConfigureAwait(false)).WhereNotNull().SelectMany(s => s).ToArray();
+            var result = await searchTasks.ConfigureAwait(false);
+            return result.WhereNotNull().SelectMany(a => a).ToArray();
 
             // local functions
             static async Task<SymbolInformation[]?> SearchProjectAsync(Project project, WorkspaceSymbolParams request, CancellationToken cancellationToken)

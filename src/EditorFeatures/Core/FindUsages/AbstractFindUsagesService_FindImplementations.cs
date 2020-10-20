@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                 await client.TryInvokeAsync<IRemoteFindUsagesService>(
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.FindImplementationsAsync(solutionInfo, symbolAndProjectId, cancellationToken),
+                    (service, solutionInfo, callbackId, cancellationToken) => service.FindImplementationsAsync(solutionInfo, callbackId, symbolAndProjectId, cancellationToken),
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
             }

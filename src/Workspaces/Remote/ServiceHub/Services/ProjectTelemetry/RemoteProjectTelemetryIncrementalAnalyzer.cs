@@ -15,13 +15,16 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteCallback<IProjectTelemetryListener> _callback;
-
+        private readonly RemoteCallback<IRemoteProjectTelemetryService.ICallback> _callback;
+        private readonly RemoteServiceCallbackId _callbackId;
         private readonly object _gate = new object();
         private readonly Dictionary<ProjectId, ProjectTelemetryData> _projectToData = new Dictionary<ProjectId, ProjectTelemetryData>();
 
-        public RemoteProjectTelemetryIncrementalAnalyzer(RemoteCallback<IProjectTelemetryListener> callback)
-            => _callback = callback;
+        public RemoteProjectTelemetryIncrementalAnalyzer(RemoteCallback<IRemoteProjectTelemetryService.ICallback> callback, RemoteServiceCallbackId callbackId)
+        {
+            _callback = callback;
+            _callbackId = callbackId;
+        }
 
         /// <summary>
         /// Collects data from <paramref name="project"/> and reports it to the telemetry service.
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             await _callback.InvokeAsync(
-                (callback, cancellationToken) => callback.ReportProjectTelemetryDataAsync(info, cancellationToken),
+                (callback, cancellationToken) => callback.ReportProjectTelemetryDataAsync(_callbackId, info, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
