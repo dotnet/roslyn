@@ -26,5 +26,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static readonly Option2<bool> ProcessHiddenDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(ProcessHiddenDiagnostics), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Process Hidden Diagnostics"));
+
+        public static readonly Option2<bool> LspPullDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(LspPullDiagnostics), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Lsp Pull Diagnostics"));
     }
 }
