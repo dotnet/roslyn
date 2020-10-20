@@ -75,14 +75,20 @@ stages:
       displayName: Setting SourceBranchName variable
       condition: succeeded()
 
-    - powershell: Write-Host "##vso[build.addbuildtag]OfficialBuild"
+    - task: tagBuildOrRelease@0
       displayName: Tag official build
-      condition: and(succeeded(), endsWith(variables['SourceBranchName'], '-vs-deps'), eq(variables['PRNumber'], 'default'))      
-
-    - powershell: |
-        Write-Host "##vso[build.addbuildtag]PRValidationBuild"
-        Write-Host "##vso[build.addbuildtag]$('PRNumber:$(PRNumber)'.Replace(':', '`:'))"
+      inputs:
+        type: 'Build'
+        tags: 'OfficialBuild'
+      condition: and(succeeded(), endsWith(variables['SourceBranchName'], '-vs-deps'), eq(variables['PRNumber'], 'default'))
+          
+    - task: tagBuildOrRelease@0
       displayName: Tag PR validation build
+      inputs:
+        type: 'Build'
+        tags: |
+          PRValidationBuild
+          PRNumber:$(PRNumber)
       condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
 
     - task: PowerShell@2
