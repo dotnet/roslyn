@@ -33,7 +33,7 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline parameter name hints;
+        <source>Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -81,10 +81,10 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">인라인 매개 변수 이름 힌트 표시;
+        <target state="needs-review-translation">인라인 매개 변수 이름 힌트 표시;
 닫힌 파일에 대한 진단 표시;
-정규식 색 지정; 
-커서 아래의 관련 구성 요소 강조; 
+정규식 색 지정;
+커서 아래의 관련 구성 요소 강조;
 잘못된 정규식 보고;
 전체 솔루션 분석 사용;
 외부 프로세스에서 편집기 기능 분석 수행;
@@ -154,14 +154,14 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="translated">블록 내용 들여쓰기; 
-여는 중괄호 및 닫는 중괄호 들여쓰기; 
-case 내용 들여쓰기; 
-case 내용 들여쓰기(블록); 
-case 레이블 들여쓰기; 
-레이블 들여쓰기; 
-맨 왼쪽 열에 goto 레이블 배치; 
-보통 수준으로 레이블 들여쓰기; 
+        <target state="needs-review-translation">블록 내용 들여쓰기;
+여는 중괄호 및 닫는 중괄호 들여쓰기;
+case 내용 들여쓰기;
+case 내용 들여쓰기(블록);
+case 레이블 들여쓰기;
+레이블 들여쓰기;
+맨 왼쪽 열에 goto 레이블 배치;
+보통 수준으로 레이블 들여쓰기;
 goto 레이블을 현재 수준보다 한 수준 더 들여쓰기;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>

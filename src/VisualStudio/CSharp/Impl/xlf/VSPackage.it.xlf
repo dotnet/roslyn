@@ -33,7 +33,7 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline parameter name hints;
+        <source>Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -81,10 +81,10 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">Visualizza suggerimenti per i nomi di parametro inline;
+        <target state="needs-review-translation">Visualizza suggerimenti per i nomi di parametro inline;
 Mostra diagnostica per file chiusi;
-Colora espressione regolare; 
-Evidenzia i componenti correlati sotto il cursore; 
+Colora espressione regolare;
+Evidenzia i componenti correlati sotto il cursore;
 Segnala espressioni regolari non valide;
 Abilita analisi della soluzione completa;
 Esegui analisi delle funzionalità dell'editor in processo esterno;
@@ -154,14 +154,14 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="translated">Imposta rientro per contenuto del blocco; 
-imposta rientro per parentesi graffe di apertura e chiusura; 
-imposta rientro per contenuto case; 
-imposta rientro per contenuto case (quando è un blocco); 
-imposta rientro per etichette case; 
-imposta rientro per etichetta; 
-inserisci etichette goto nella colonna più a sinistra; 
-imposta rientro per etichette normalmente; 
+        <target state="needs-review-translation">Imposta rientro per contenuto del blocco;
+imposta rientro per parentesi graffe di apertura e chiusura;
+imposta rientro per contenuto case;
+imposta rientro per contenuto case (quando è un blocco);
+imposta rientro per etichette case;
+imposta rientro per etichetta;
+inserisci etichette goto nella colonna più a sinistra;
+imposta rientro per etichette normalmente;
 inserisci etichette goto con un livello di rientro inferiore al corrente;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>

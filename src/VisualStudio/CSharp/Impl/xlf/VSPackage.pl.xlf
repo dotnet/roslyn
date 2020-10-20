@@ -33,7 +33,7 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline parameter name hints;
+        <source>Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -81,10 +81,10 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">Wyświetlaj wbudowane wskazówki dotyczące nazw parametrów;
+        <target state="needs-review-translation">Wyświetlaj wbudowane wskazówki dotyczące nazw parametrów;
 Pokaż dane diagnostyczne dla zamkniętych plików;
-Koloruj wyrażenia regularne; 
-Wyróżnij powiązane składniki pod kursorem; 
+Koloruj wyrażenia regularne;
+Wyróżnij powiązane składniki pod kursorem;
 Raportuj nieprawidłowe wyrażenia regularne;
 Włącz pełną analizę rozwiązania;
 Wykonaj analizę funkcji edytora w procesie zewnętrznym;
@@ -154,14 +154,14 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="translated">Wcięcie zawartości bloku; 
-wcięcie otwierających i zamykających nawiasów klamrowych; 
-wcięcie zawartości elementu case; 
-wcięcie zawartości elementu case (w przypadku bloku); 
-wcięcie etykiet elementu case; 
-wcięcia etykiet; 
-umieść etykiety instrukcji goto w kolumnie z lewej strony; 
-normalne wcięcie etykiet; 
+        <target state="needs-review-translation">Wcięcie zawartości bloku;
+wcięcie otwierających i zamykających nawiasów klamrowych;
+wcięcie zawartości elementu case;
+wcięcie zawartości elementu case (w przypadku bloku);
+wcięcie etykiet elementu case;
+wcięcia etykiet;
+umieść etykiety instrukcji goto w kolumnie z lewej strony;
+normalne wcięcie etykiet;
 umieść etykiety instrukcji goto o jedno wcięcie bliżej niż bieżący element;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>

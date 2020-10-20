@@ -147,9 +147,19 @@
         <target state="translated">El análisis de código terminó antes de completarse para la solución.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Color_hints">
+        <source>Color hints</source>
+        <target state="new">Color hints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Colorear expresiones regulares</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="new">Comments</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -172,9 +182,19 @@
         <target state="translated">Parámetro actual</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_all_hints_while_pressing_Ctrl_Alt">
+        <source>Display all hints while pressing Ctrl+Alt</source>
+        <target state="new">Display all hints while pressing Ctrl+Alt</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
-        <source>Disp_lay inline parameter name hints (experimental)</source>
-        <target state="translated">_Mostrar sugerencias de nombre de parámetro insertado (experimental)</target>
+        <source>Disp_lay inline parameter name hints</source>
+        <target state="needs-review-translation">_Mostrar sugerencias de nombre de parámetro insertado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_type_hints">
+        <source>Display inline type hints</source>
+        <target state="new">Display inline type hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -265,6 +285,11 @@
       <trans-unit id="Indexed_in_repo">
         <source>Indexed in repo</source>
         <target state="translated">Indexado en el repositorio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints_experimental">
+        <source>Inline Hints (experimental)</source>
+        <target state="new">Inline Hints (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -767,9 +792,39 @@
         <target state="translated">Mostrar lista de finalización</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_everything_else">
+        <source>Show hints for everything else</source>
+        <target state="new">Show hints for everything else</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_lambda_parameter_types">
+        <source>Show hints for lambda parameter types</source>
+        <target state="new">Show hints for lambda parameter types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_literals">
+        <source>Show hints for literals</source>
+        <target state="new">Show hints for literals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_variables_with_inferred_types">
+        <source>Show hints for variables with inferred types</source>
+        <target state="new">Show hints for variables with inferred types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Algunos de los colores de la combinación se reemplazan por los cambios realizados en la página de opciones de Entorno &gt; Fuentes y colores. Elija "Usar valores predeterminados" en la página Fuentes y colores para revertir todas las personalizaciones.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="new">Suppress hints when parameter names differ only by suffix</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -1776,7 +1831,7 @@ Use la lista desplegable para ver y cambiar a otros proyectos a los que puede pe
 3. Establezca la variable de entorno “TraceDesignTime” en true (TraceDesignTime=true).
 4. Elimine el archivo .suo en el directorio .vs.
 5. Reinicie VS desde el símbolo del sistema donde estableció la variable de entorno (devenv).
-6. Abra la solución. 
+6. Abra la solución.
 7. Compruebe “{0}”y busque las tareas con errores (FAILED).</target>
         <note />
       </trans-unit>
@@ -2284,9 +2339,9 @@ Your use of the Decompiler is optional.  Microsoft is not responsible and discla
 
 I agree to all of the foregoing:</source>
         <target state="translated">IMPORTANTE: Visual Studio incluye la funcionalidad de descompilación ("Descompilador") que permite la reproducción de código fuente a partir de código binario. Al acceder al Descompilador y usarlo, acepta los términos de licencia de Visual Studio y los términos del Descompilador que figuran a continuación. Si no acepta la combinación de estos términos, no acceda al Descompilador ni lo use.
- 
+
 Reconoce que el código binario y el código fuente pueden estar protegidos por leyes de marca comercial y copyright. Antes de usar el Descompilador en cualquier código binario, primero debe:
-(i) confirmar que los términos de licencia que rigen el uso del código binario no incluyen ninguna disposición que le prohíba descompilar el software; o bien, 
+(i) confirmar que los términos de licencia que rigen el uso del código binario no incluyen ninguna disposición que le prohíba descompilar el software; o bien,
 (ii) obtener permiso del propietario del software para descompilar el código fuente.
 
 Su uso del Descompilador es opcional. Microsoft no es responsable y renuncia a toda responsabilidad con respecto a su uso del Descompilador que infrinja cualquier ley o término de licencia de software que prohíba la descompilación del mismo.

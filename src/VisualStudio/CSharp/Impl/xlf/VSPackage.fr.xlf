@@ -33,7 +33,7 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline parameter name hints;
+        <source>Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -81,10 +81,10 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">Afficher les indicateurs de nom de paramètre en ligne;
+        <target state="needs-review-translation">Afficher les indicateurs de nom de paramètre en ligne;
 Afficher les diagnostics pour les fichiers fermés;
-Coloriser l'expression régulière; 
-Surligner les composants liés sous le curseur; 
+Coloriser l'expression régulière;
+Surligner les composants liés sous le curseur;
 Signaler les expressions régulières non valides;
 Activer l'analyse complète de la solution;
 Effectuer l'analyse des fonctionnalités de l'éditeur dans un processus externe;
@@ -154,14 +154,14 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="translated">Mettre en retrait le contenu d'un bloc ; 
-mettre en retrait les accolades ouvrantes et fermantes ; 
-mettre en retrait le contenu de case ; 
-mettre en retrait le contenu de case (dans un bloc) ; 
-mettre en retrait les étiquettes case ; 
-mise en retrait d'étiquette ; 
-placer des étiquettes goto dans la colonne située le plus à gauche ; 
-mettre en retrait normalement les étiquettes ; 
+        <target state="needs-review-translation">Mettre en retrait le contenu d'un bloc ;
+mettre en retrait les accolades ouvrantes et fermantes ;
+mettre en retrait le contenu de case ;
+mettre en retrait le contenu de case (dans un bloc) ;
+mettre en retrait les étiquettes case ;
+mise en retrait d'étiquette ;
+placer des étiquettes goto dans la colonne située le plus à gauche ;
+mettre en retrait normalement les étiquettes ;
 placer les étiquettes goto en retrait d'un niveau par rapport au niveau actuel ;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>

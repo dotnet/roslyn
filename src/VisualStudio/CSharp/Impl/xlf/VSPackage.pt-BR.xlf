@@ -33,7 +33,7 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline parameter name hints;
+        <source>Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -81,10 +81,10 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">Exibir dicas de nome de parâmetro embutidas;
+        <target state="needs-review-translation">Exibir dicas de nome de parâmetro embutidas;
 Mostrar diagnósticos de arquivos fechados;
-Colorir a expressão regular; 
-Realçar os componentes relacionados sob o cursor; 
+Colorir a expressão regular;
+Realçar os componentes relacionados sob o cursor;
 Relatar expressões regulares inválidas;
 Habilitar a análise completa da solução;
 Executar análise de recurso do editor em processo externo;
@@ -154,7 +154,7 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="translated">Conteúdo do bloqueio de recuo;
+        <target state="needs-review-translation">Conteúdo do bloqueio de recuo;
 recuo aberto e fechamento de chaves;
 recuo do conteúdo do caso;
 recuo do conteúdo do caso (ao bloquear);

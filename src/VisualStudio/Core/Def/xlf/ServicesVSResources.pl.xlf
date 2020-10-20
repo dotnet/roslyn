@@ -147,9 +147,19 @@
         <target state="translated">Analiza kodu zakończyła się przed zakończeniem dla rozwiązania.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Color_hints">
+        <source>Color hints</source>
+        <target state="new">Color hints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Koloruj wyrażenia regularne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="new">Comments</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -172,9 +182,19 @@
         <target state="translated">Bieżący parametr</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_all_hints_while_pressing_Ctrl_Alt">
+        <source>Display all hints while pressing Ctrl+Alt</source>
+        <target state="new">Display all hints while pressing Ctrl+Alt</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
-        <source>Disp_lay inline parameter name hints (experimental)</source>
-        <target state="translated">Wyś_wietlaj wbudowane wskazówki dotyczące nazw parametrów (eksperymentalne)</target>
+        <source>Disp_lay inline parameter name hints</source>
+        <target state="needs-review-translation">Wyś_wietlaj wbudowane wskazówki dotyczące nazw parametrów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_type_hints">
+        <source>Display inline type hints</source>
+        <target state="new">Display inline type hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -265,6 +285,11 @@
       <trans-unit id="Indexed_in_repo">
         <source>Indexed in repo</source>
         <target state="translated">Indeksowane w repozytorium</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints_experimental">
+        <source>Inline Hints (experimental)</source>
+        <target state="new">Inline Hints (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -767,9 +792,39 @@
         <target state="translated">Pokaż listę uzupełniania</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_everything_else">
+        <source>Show hints for everything else</source>
+        <target state="new">Show hints for everything else</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_lambda_parameter_types">
+        <source>Show hints for lambda parameter types</source>
+        <target state="new">Show hints for lambda parameter types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_literals">
+        <source>Show hints for literals</source>
+        <target state="new">Show hints for literals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_variables_with_inferred_types">
+        <source>Show hints for variables with inferred types</source>
+        <target state="new">Show hints for variables with inferred types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Niektóre kolory w schemacie kolorów są przesłaniane przez zmiany wprowadzone na stronie opcji Środowisko &gt; Czcionki i kolory. Wybierz pozycję „Użyj ustawień domyślnych” na stronie Czcionki i kolory, aby wycofać wszystkie dostosowania.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="new">Suppress hints when parameter names differ only by suffix</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -2285,7 +2340,7 @@ Your use of the Decompiler is optional.  Microsoft is not responsible and discla
 I agree to all of the foregoing:</source>
         <target state="translated">WAŻNE: Program Visual Studio zawiera funkcję dekompilacji („Dekompilator”), która pozwala odtworzyć kod źródłowy na podstawie kodu binarnego. Otwierając Dekompilator i korzystając z niego, wyrażasz zgodę na postanowienia licencyjne programu Visual Studio i przedstawione niżej warunki dotyczące Dekompilatora. Jeśli nie zgadzasz się na połączenie tych warunków, nie otwieraj Dekompilatora i nie korzystaj z niego.
 
-Potwierdzasz, że kod binarny i kod źródłowy mogą być chronione prawem autorskim i jako znak towarowy. Przed użyciem Dekompilatora na jakimkolwiek kodzie binarnym musisz najpierw: 
+Potwierdzasz, że kod binarny i kod źródłowy mogą być chronione prawem autorskim i jako znak towarowy. Przed użyciem Dekompilatora na jakimkolwiek kodzie binarnym musisz najpierw:
 (i) potwierdzić, że postanowienia licencyjne, na mocy których korzystasz z kodu binarnego, nie zawierają zapisów zabraniających dekompilowania tego oprogramowania; lub
 (ii) uzyskać zgodę na dekompilację kodu binarnego od właściciela tego oprogramowania.
 

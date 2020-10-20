@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Roslyn.Utilities
 {
     internal partial class BKTree
@@ -28,7 +30,7 @@ namespace Roslyn.Utilities
             }
 
             internal static Edge ReadFrom(ObjectReader reader)
-                => new Edge(editDistance: reader.ReadInt32(), childNodeIndex: reader.ReadInt32());
+                => new(editDistance: reader.ReadInt32(), childNodeIndex: reader.ReadInt32());
         }
     }
 }

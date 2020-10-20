@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -246,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal static class ChecksumCache
     {
-        private static readonly ConditionalWeakTable<object, object> s_cache = new ConditionalWeakTable<object, object>();
+        private static readonly ConditionalWeakTable<object, object> s_cache = new();
 
         public static IReadOnlyList<T> GetOrCreate<T>(IReadOnlyList<T> unorderedList, ConditionalWeakTable<object, object>.CreateValueCallback orderedListGetter)
             => (IReadOnlyList<T>)s_cache.GetValue(unorderedList, orderedListGetter);

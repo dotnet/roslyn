@@ -33,7 +33,7 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline parameter name hints;
+        <source>Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -81,7 +81,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">インライン パラメーター名のヒントを表示する;
+        <target state="needs-review-translation">インライン パラメーター名のヒントを表示する;
 閉じているファイルの診断結果を表示する;
 正規表現をカラー化する;
 カーソルの下にある関連コンポーネントをハイライトする;
@@ -154,7 +154,7 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="translated">ブロックの内容をインデントする;
+        <target state="needs-review-translation">ブロックの内容をインデントする;
 始めと終わりの中かっこをインデントする;
 case の内容をインデントする;
 case の内容をインデントする (ブロックする場合);

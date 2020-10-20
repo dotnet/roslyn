@@ -77,9 +77,9 @@
         <target state="translated">기본으로 이동</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Parameter_Name_Hints">
-        <source>Inline Parameter Name Hints</source>
-        <target state="translated">인라인 매개 변수 이름 힌트</target>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="new">Inline Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -141,6 +141,11 @@
         <source>Rename symbol's _file</source>
         <target state="translated">기호의 파일 이름 바꾸기(_F)</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="new">Split comment</target>
+        <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -1090,7 +1095,7 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">구조체 "out/ref" 매개 변수를 만들지 않는 방법으로 오류를 수정할 수 있습니다. 
+        <target state="translated">구조체 "out/ref" 매개 변수를 만들지 않는 방법으로 오류를 수정할 수 있습니다.
 계속하시겠습니까?</target>
         <note />
       </trans-unit>

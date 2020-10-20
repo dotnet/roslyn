@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -2789,6 +2791,32 @@ void outer()
     }
 }
 ");
+        }
+
+        [WorkItem(42559, "https://github.com/dotnet/roslyn/issues/42559")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestAddParameter_TargetTypedNew()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    C(int i) { }
+
+    void M()
+    {
+       C c = [||]new(1, 2);
+    }
+}",
+@"
+class C
+{
+    C(int i, int v) { }
+
+    void M()
+    {
+       C c = new(1, 2);
+    }
+}");
         }
     }
 }
