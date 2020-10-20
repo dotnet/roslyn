@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public void CallbackDispatchers()
         {
             var hostServices = FeaturesTestCompositions.Features.WithTestHostParts(Testing.TestHost.OutOfProcess).GetHostServices();
-            var callbackDispatchers = ((IMefHostExportProvider)hostServices).GetExports<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatchers.ExportMetadata>();
+            var callbackDispatchers = ((IMefHostExportProvider)hostServices).GetExports<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>();
 
             var descriptorsWithCallbackServiceTypes = ServiceDescriptors.Descriptors.Where(d => d.Value.descriptor32.ClientInterface != null).Select(d => d.Key);
             var callbackDispatcherServiceTypes = callbackDispatchers.Select(d => d.Metadata.ServiceInterface);

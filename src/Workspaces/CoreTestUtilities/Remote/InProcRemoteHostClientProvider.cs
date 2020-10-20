@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), ServiceLayer.Test), Shared, PartNotDiscoverable]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
-            private readonly RemoteServiceCallbackDispatchers _callbackDispatchers;
+            private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory([ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatchers.ExportMetadata>> callbackDispatchers)
-                => _callbackDispatchers = new RemoteServiceCallbackDispatchers(callbackDispatchers);
+            public Factory([ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
+                => _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
                 => new InProcRemoteHostClientProvider(workspaceServices, _callbackDispatchers);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public Type[]? AdditionalRemoteParts { get; }
         public TraceListener? TraceListener { get; set; }
 
-        public InProcRemoteHostClientProvider(HostWorkspaceServices services, RemoteServiceCallbackDispatchers callbackDispatchers)
+        public InProcRemoteHostClientProvider(HostWorkspaceServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _services = services;
 

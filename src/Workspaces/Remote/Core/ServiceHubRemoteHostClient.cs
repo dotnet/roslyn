@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly IErrorReportingService? _errorReportingService;
         private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
-        private readonly RemoteServiceCallbackDispatchers _callbackDispatchers;
+        private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
         private readonly ConnectionPools? _connectionPools;
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ServiceBrokerClient serviceBrokerClient,
             HubClient hubClient,
             Stream stream,
-            RemoteServiceCallbackDispatchers callbackDispatchers)
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _connectionPools = new ConnectionPools(
                 connectionFactory: (serviceName, pool, cancellationToken) => CreateConnectionImplAsync(serviceName, callbackTarget: null, pool, cancellationToken),
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote
             HostWorkspaceServices services,
             AsynchronousOperationListenerProvider listenerProvider,
             IServiceBroker serviceBroker,
-            RemoteServiceCallbackDispatchers callbackDispatchers,
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))

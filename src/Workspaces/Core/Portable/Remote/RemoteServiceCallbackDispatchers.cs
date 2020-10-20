@@ -9,7 +9,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal readonly struct RemoteServiceCallbackDispatchers
+    internal readonly struct RemoteServiceCallbackDispatcherRegistry
+
     {
         public sealed class ExportMetadata
         {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private readonly ImmutableDictionary<Type, Lazy<IRemoteServiceCallbackDispatcher, ExportMetadata>> _callbackDispatchers;
 
-        public RemoteServiceCallbackDispatchers(IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, ExportMetadata>> dispatchers)
+        public RemoteServiceCallbackDispatcherRegistry(IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, ExportMetadata>> dispatchers)
             => _callbackDispatchers = dispatchers.ToImmutableDictionary(d => d.Metadata.ServiceInterface);
 
         public IRemoteServiceCallbackDispatcher GetDispatcher(Type serviceType)

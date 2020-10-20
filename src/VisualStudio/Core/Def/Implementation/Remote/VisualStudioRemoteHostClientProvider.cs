@@ -29,18 +29,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly IAsyncServiceProvider _vsServiceProvider;
             private readonly AsynchronousOperationListenerProvider _listenerProvider;
-            private readonly RemoteServiceCallbackDispatchers _callbackDispatchers;
+            private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public Factory(
                 SVsServiceProvider vsServiceProvider,
                 AsynchronousOperationListenerProvider listenerProvider,
-                [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatchers.ExportMetadata>> callbackDispatchers)
+                [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
             {
                 _vsServiceProvider = (IAsyncServiceProvider)vsServiceProvider;
                 _listenerProvider = listenerProvider;
-                _callbackDispatchers = new RemoteServiceCallbackDispatchers(callbackDispatchers);
+                _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
@@ -61,13 +61,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly AsyncLazy<RemoteHostClient?> _lazyClient;
         private readonly IAsyncServiceProvider _vsServiceProvider;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
-        private readonly RemoteServiceCallbackDispatchers _callbackDispatchers;
+        private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
         private VisualStudioRemoteHostClientProvider(
             HostWorkspaceServices services,
             IAsyncServiceProvider vsServiceProvider,
             AsynchronousOperationListenerProvider listenerProvider,
-            RemoteServiceCallbackDispatchers callbackDispatchers)
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _services = services;
             _vsServiceProvider = vsServiceProvider;

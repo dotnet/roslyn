@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
     {
         private readonly HostWorkspaceServices _workspaceServices;
         private readonly InProcRemoteServices _inprocServices;
-        private readonly RemoteServiceCallbackDispatchers _callbackDispatchers;
+        private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
         private readonly RemoteEndPoint _endPoint;
         private readonly TraceSource _logger;
 
-        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, RemoteServiceCallbackDispatchers callbackDispatchers, TraceListener? traceListener, RemoteHostTestData testData)
+        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers, TraceListener? traceListener, RemoteHostTestData testData)
         {
             var inprocServices = new InProcRemoteServices(services, traceListener, testData);
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private InProcRemoteHostClient(
             HostWorkspaceServices services,
             InProcRemoteServices inprocServices,
-            RemoteServiceCallbackDispatchers callbackDispatchers,
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
             Stream stream)
         {
             _workspaceServices = services;

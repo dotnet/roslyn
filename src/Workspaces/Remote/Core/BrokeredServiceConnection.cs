@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public BrokeredServiceConnection(
             object? callbackTarget,
-            RemoteServiceCallbackDispatchers callbackDispatchers,
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
             ServiceBrokerClient serviceBrokerClient,
             SolutionAssetStorage solutionAssetStorage,
             IErrorReportingService? errorReportingService,
