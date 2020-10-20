@@ -1631,7 +1631,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ITranslatedQueryOperation" Base="IOperation">
+  <Node Name="ITranslatedQueryOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an unrolled/lowered query operation.

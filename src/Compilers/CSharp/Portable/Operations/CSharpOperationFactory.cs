@@ -2193,6 +2193,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyIsPatternOperation(this, boundIsPatternExpression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IOperation CreateBoundQueryClauseOperation(BoundQueryClause boundQueryClause)
         {
             if (boundQueryClause.Syntax.Kind() != SyntaxKind.QueryExpression)
@@ -2201,13 +2202,13 @@ namespace Microsoft.CodeAnalysis.Operations
                 return Create(boundQueryClause.Value);
             }
 
-            BoundNode expression = boundQueryClause.Value;
+            IOperation operation = Create(boundQueryClause.Value);
             SyntaxNode syntax = boundQueryClause.Syntax;
-            ITypeSymbol type = boundQueryClause.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundQueryClause.ConstantValue;
+            ITypeSymbol? type = boundQueryClause.GetPublicTypeSymbol();
             bool isImplicit = boundQueryClause.WasCompilerGenerated;
-            return new CSharpLazyTranslatedQueryOperation(this, expression, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new TranslatedQueryOperation(operation, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private IOperation CreateBoundRangeVariableOperation(BoundRangeVariable boundRangeVariable)
         {

@@ -1590,12 +1590,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundQueryExpressionOperation(boundQueryExpression As BoundQueryExpression) As IOperation
-            Dim expression As BoundNode = boundQueryExpression.LastOperator
+            Dim operation As IOperation = Create(boundQueryExpression.LastOperator)
             Dim syntax As SyntaxNode = boundQueryExpression.Syntax
             Dim type As ITypeSymbol = boundQueryExpression.Type
-            Dim constantValue As ConstantValue = boundQueryExpression.ConstantValueOpt
             Dim isImplicit As Boolean = boundQueryExpression.WasCompilerGenerated
-            Return New VisualBasicLazyTranslatedQueryOperation(Me, expression, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New TranslatedQueryOperation(operation, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundAggregateClauseOperation(boundAggregateClause As BoundAggregateClause) As IOperation

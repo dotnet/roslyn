@@ -58,6 +58,7 @@ namespace IOperationGenerator
             "ICollectionElementInitializerOperation",
             "INameOfOperation",
             "ITupleOperation",
+            "ITranslatedQueryOperation",
         };
     }
 }

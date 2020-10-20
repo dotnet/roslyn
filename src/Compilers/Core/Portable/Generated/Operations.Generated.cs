@@ -1874,6 +1874,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IOperation> Arguments { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents an unrolled/lowered query operation.
     /// For example, for a C# query expression "from x in set where x.Name != null select x.Name", the Operation tree has the following shape:
@@ -1902,6 +1903,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Operation { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a delegate creation. This is created whenever a new delegate is created.
     /// <para>
@@ -5611,50 +5613,37 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseTranslatedQueryOperation : OperationOld, ITranslatedQueryOperation
+    #nullable enable
+    internal sealed partial class TranslatedQueryOperation : Operation, ITranslatedQueryOperation
     {
-        internal BaseTranslatedQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.TranslatedQuery, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Operation { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal TranslatedQueryOperation(IOperation operation, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Operation = SetParentOperation(operation, this);
+            Type = type;
+        }
+        public IOperation Operation { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Operation is object) yield return Operation;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Operation is not null) builder.Add(Operation);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.TranslatedQuery;
         public override void Accept(OperationVisitor visitor) => visitor.VisitTranslatedQuery(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTranslatedQuery(this, argument);
     }
-    internal sealed partial class TranslatedQueryOperation : BaseTranslatedQueryOperation, ITranslatedQueryOperation
-    {
-        internal TranslatedQueryOperation(IOperation operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operation = SetParentOperation(operation, this);
-        }
-        public override IOperation Operation { get; }
-    }
-    internal abstract partial class LazyTranslatedQueryOperation : BaseTranslatedQueryOperation, ITranslatedQueryOperation
-    {
-        private IOperation _lazyOperation = s_unset;
-        internal LazyTranslatedQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateOperation();
-        public override IOperation Operation
-        {
-            get
-            {
-                if (_lazyOperation == s_unset)
-                {
-                    IOperation operation = CreateOperation();
-                    SetParentOperation(operation, this);
-                    Interlocked.CompareExchange(ref _lazyOperation, operation, s_unset);
-                }
-                return _lazyOperation;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseDelegateCreationOperation : OperationOld, IDelegateCreationOperation
     {
         internal BaseDelegateCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8678,6 +8667,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (TupleOperation)operation;
             return new TupleOperation(VisitArray(internalOperation.Elements), internalOperation.NaturalType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, object? argument)
+        {
+            var internalOperation = (TranslatedQueryOperation)operation;
+            return new TranslatedQueryOperation(Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, object? argument)
         {

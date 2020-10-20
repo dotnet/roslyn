@@ -613,23 +613,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyTranslatedQueryOperation
-        Inherits LazyTranslatedQueryOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operation As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operation = operation
-        End Sub
-
-        Protected Overrides Function CreateOperation() As IOperation
-            Return _operationFactory.Create(_operation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyAggregateQueryOperation
         Inherits LazyAggregateQueryOperation
 

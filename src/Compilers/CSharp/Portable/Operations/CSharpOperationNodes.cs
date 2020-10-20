@@ -1199,24 +1199,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyTranslatedQueryOperation : LazyTranslatedQueryOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _operation;
-
-        internal CSharpLazyTranslatedQueryOperation(CSharpOperationFactory operationFactory, BoundNode operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _operation = operation;
-        }
-
-        protected override IOperation CreateOperation()
-        {
-            return _operationFactory.Create(_operation);
-        }
-    }
-
     internal sealed class CSharpLazyMethodBodyOperation : LazyMethodBodyOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

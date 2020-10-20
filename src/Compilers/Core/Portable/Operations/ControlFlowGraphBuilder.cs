@@ -6769,10 +6769,12 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
+#nullable enable
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
         {
-            return new TranslatedQueryOperation(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            return new TranslatedQueryOperation(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)
         {

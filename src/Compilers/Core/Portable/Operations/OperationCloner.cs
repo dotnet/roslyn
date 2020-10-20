@@ -316,11 +316,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new PatternCaseClauseOperation(operation.Label, Visit(operation.Pattern), Visit(operation.Guard), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, object argument)
-        {
-            return new TranslatedQueryOperation(Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, object argument)
         {
             return new ConstructorBodyOperation(operation.Locals, ((Operation)operation).OwningSemanticModel, operation.Syntax, Visit(operation.Initializer), Visit(operation.BlockBody), Visit(operation.ExpressionBody));
