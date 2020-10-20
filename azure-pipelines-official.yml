@@ -171,12 +171,13 @@ stages:
 
     # Publish OptProf configuration files
     - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+      env:
+        ARTIFACTSERVICES_DROP_PAT: $(_DevDivDropAccessToken)
       inputs:
         dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
         buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
         sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
         toLowerCase: false
-        usePat: false
         retentionDays: 90
       displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
       condition: succeeded()
@@ -224,6 +225,7 @@ stages:
       inputs:
         DropName: $(VisualStudio.DropName)
         DropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
+        AccessToken: $(_DevDivDropAccessToken)
       condition: succeeded()
 
     # Publish insertion packages to CoreXT store.
