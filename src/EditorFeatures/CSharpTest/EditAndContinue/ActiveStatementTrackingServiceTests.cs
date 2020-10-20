@@ -204,13 +204,13 @@ class C
                     $"V0 →←@[10..15): IsNonLeafFrame",
                     $"V0 →←@[20..25): IsLeafFrame"
                 }, spans1[document1.Id].Select(s => $"{s.Span}: {s.Flags}"));
+
+                var spans2 = await trackingSession.GetSpansAsync(document1, CancellationToken.None).ConfigureAwait(false);
+                AssertEx.Equal(new[] { "[10..15)", "[20..25)" }, spans2.Select(s => s.ToString()));
+
+                var spans3 = await trackingSession.GetSpansAsync(document2, CancellationToken.None).ConfigureAwait(false);
+                Assert.Empty(spans3);
             }
-
-            var spans2 = await trackingSession.GetSpansAsync(document1, CancellationToken.None).ConfigureAwait(false);
-            AssertEx.Equal(new[] { "[10..15)", "[20..25)" }, spans2.Select(s => s.ToString()));
-
-            var spans3 = await trackingSession.GetSpansAsync(document2, CancellationToken.None).ConfigureAwait(false);
-            Assert.Empty(spans3);
 
             var spans4 = await trackingSession.GetAdjustedTrackingSpansAsync(document1, snapshot1, CancellationToken.None).ConfigureAwait(false);
             AssertEx.Equal(new[]
