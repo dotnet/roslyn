@@ -3,29 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.OpenDocument;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    [ExportWorkspaceServiceFactory(typeof(IMetadataAsSourceFileLSPService), ServiceLayer.Host), Shared]
-    internal class VisualStudioMetadataAsSourceFileLSPServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(IOpenDocumentService), ServiceLayer.Host), Shared]
+    internal class VisualStudioOpenDocumentServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly IMetadataAsSourceFileLSPService _singleton;
+        private readonly IOpenDocumentService _singleton;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioMetadataAsSourceFileLSPServiceFactory(
+        public VisualStudioOpenDocumentServiceFactory(
             SVsServiceProvider serviceProvider)
         {
-            _singleton = new VisualStudioMetadataAsSourceFileLSPService(serviceProvider);
+            _singleton = new VisualStudioOpenDocumentService(serviceProvider);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

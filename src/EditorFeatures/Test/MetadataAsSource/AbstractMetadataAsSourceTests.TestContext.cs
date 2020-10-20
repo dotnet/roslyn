@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
                 // Generate and hold onto the result so it can be disposed of with this context
                 var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);
+                Contract.ThrowIfNull(symbol);
 
                 return result;
             }
