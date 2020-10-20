@@ -198,6 +198,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+#nullable enable
         internal IOperation CreateMemberInitializerInitializedMember(BoundNode initializedMember)
         {
 
@@ -214,7 +215,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-#nullable enable
         internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression, bool isObjectOrCollectionInitializer)
         {
             switch (containingExpression.Kind)

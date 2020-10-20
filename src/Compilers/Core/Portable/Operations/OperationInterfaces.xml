@@ -1441,7 +1441,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IMemberInitializerOperation" Base="IOperation" ChildrenOrder="InitializedMember,Initializer">
+  <Node Name="IMemberInitializerOperation" Base="IOperation" ChildrenOrder="InitializedMember,Initializer" HasType="true">
     <Comments>
       <summary>
         Represents an initialization of member within an object initializer with a nested object or collection initializer.

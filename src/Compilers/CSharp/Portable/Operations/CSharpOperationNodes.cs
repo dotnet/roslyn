@@ -1235,29 +1235,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyMemberInitializerOperation : LazyMemberInitializerOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundAssignmentOperator _assignmentOperator;
-
-        internal CSharpLazyMemberInitializerOperation(CSharpOperationFactory operationFactory, BoundAssignmentOperator assignmentOperator, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _assignmentOperator = assignmentOperator;
-        }
-
-        protected override IOperation CreateInitializedMember()
-        {
-            return _operationFactory.CreateMemberInitializerInitializedMember(_assignmentOperator.Left);
-        }
-
-        protected override IObjectOrCollectionInitializerOperation CreateInitializer()
-        {
-            return (IObjectOrCollectionInitializerOperation)_operationFactory.Create(_assignmentOperator.Right);
-        }
-    }
-
     internal sealed class CSharpLazyTranslatedQueryOperation : LazyTranslatedQueryOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

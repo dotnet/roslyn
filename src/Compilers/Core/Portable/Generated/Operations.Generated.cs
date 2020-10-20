@@ -1641,6 +1641,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<IOperation> Initializers { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an initialization of member within an object initializer with a nested object or collection initializer.
     /// <para>
@@ -1669,6 +1670,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IObjectOrCollectionInitializerOperation Initializer { get; }
     }
+    #nullable disable
     /// <summary>
     /// Obsolete interface that used to represent a collection element initializer. It has been replaced by
     /// <see cref="IInvocationOperation" /> and <see cref="IDynamicInvocationOperation" />, as appropriate.
@@ -5452,69 +5454,40 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitObjectOrCollectionInitializer(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseMemberInitializerOperation : OperationOld, IMemberInitializerOperation
+    #nullable enable
+    internal sealed partial class MemberInitializerOperation : Operation, IMemberInitializerOperation
     {
-        internal BaseMemberInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.MemberInitializer, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation InitializedMember { get; }
-        public abstract IObjectOrCollectionInitializerOperation Initializer { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal MemberInitializerOperation(IOperation initializedMember, IObjectOrCollectionInitializerOperation initializer, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            InitializedMember = SetParentOperation(initializedMember, this);
+            Initializer = SetParentOperation(initializer, this);
+            Type = type;
+        }
+        public IOperation InitializedMember { get; }
+        public IObjectOrCollectionInitializerOperation Initializer { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (InitializedMember is object) yield return InitializedMember;
-                if (Initializer is object) yield return Initializer;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (InitializedMember is not null) builder.Add(InitializedMember);
+                    if (Initializer is not null) builder.Add(Initializer);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.MemberInitializer;
         public override void Accept(OperationVisitor visitor) => visitor.VisitMemberInitializer(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitMemberInitializer(this, argument);
     }
-    internal sealed partial class MemberInitializerOperation : BaseMemberInitializerOperation, IMemberInitializerOperation
-    {
-        internal MemberInitializerOperation(IOperation initializedMember, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            InitializedMember = SetParentOperation(initializedMember, this);
-            Initializer = SetParentOperation(initializer, this);
-        }
-        public override IOperation InitializedMember { get; }
-        public override IObjectOrCollectionInitializerOperation Initializer { get; }
-    }
-    internal abstract partial class LazyMemberInitializerOperation : BaseMemberInitializerOperation, IMemberInitializerOperation
-    {
-        private IOperation _lazyInitializedMember = s_unset;
-        private IObjectOrCollectionInitializerOperation _lazyInitializer = s_unsetObjectOrCollectionInitializer;
-        internal LazyMemberInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateInitializedMember();
-        public override IOperation InitializedMember
-        {
-            get
-            {
-                if (_lazyInitializedMember == s_unset)
-                {
-                    IOperation initializedMember = CreateInitializedMember();
-                    SetParentOperation(initializedMember, this);
-                    Interlocked.CompareExchange(ref _lazyInitializedMember, initializedMember, s_unset);
-                }
-                return _lazyInitializedMember;
-            }
-        }
-        protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
-        public override IObjectOrCollectionInitializerOperation Initializer
-        {
-            get
-            {
-                if (_lazyInitializer == s_unsetObjectOrCollectionInitializer)
-                {
-                    IObjectOrCollectionInitializerOperation initializer = CreateInitializer();
-                    SetParentOperation(initializer, this);
-                    Interlocked.CompareExchange(ref _lazyInitializer, initializer, s_unsetObjectOrCollectionInitializer);
-                }
-                return _lazyInitializer;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseNameOfOperation : OperationOld, INameOfOperation
     {
         internal BaseNameOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8714,6 +8687,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ObjectOrCollectionInitializerOperation)operation;
             return new ObjectOrCollectionInitializerOperation(VisitArray(internalOperation.Initializers), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitMemberInitializer(IMemberInitializerOperation operation, object? argument)
+        {
+            var internalOperation = (MemberInitializerOperation)operation;
+            return new MemberInitializerOperation(Visit(internalOperation.InitializedMember), Visit(internalOperation.Initializer), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, object? argument)
         {

@@ -53,7 +53,8 @@ namespace IOperationGenerator
             "IConditionalAccessOperation",
             "IInterpolatedStringOperation",
             "IAnonymousObjectCreationOperation",
-            "IObjectOrCollectionInitializerOperation"
+            "IObjectOrCollectionInitializerOperation",
+            "IMemberInitializerOperation"
         };
     }
 }

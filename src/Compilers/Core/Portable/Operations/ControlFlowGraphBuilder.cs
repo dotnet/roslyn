@@ -5853,7 +5853,6 @@ oneMoreTime:
                 }
             }
         }
-#nullable disable
 
         public override IOperation VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, int? captureIdForResult)
         {
@@ -5867,7 +5866,6 @@ oneMoreTime:
             return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
         }
 
-#nullable enable
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
         {
             if (operation.Initializers.IsEmpty)

@@ -181,11 +181,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new AddressOfOperation(Visit(operation.Reference), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitMemberInitializer(IMemberInitializerOperation operation, object argument)
-        {
-            return new MemberInitializerOperation(Visit(operation.InitializedMember), Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, object argument)
         {
             return new FieldInitializerOperation(operation.InitializedFields, operation.Locals, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

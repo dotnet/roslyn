@@ -1215,16 +1215,18 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazySimpleAssignmentOperation(this, boundAssignmentOperator, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IMemberInitializerOperation CreateBoundMemberInitializerOperation(BoundAssignmentOperator boundAssignmentOperator)
         {
             Debug.Assert(IsMemberInitializer(boundAssignmentOperator));
-
+            IOperation initializedMember = CreateMemberInitializerInitializedMember(boundAssignmentOperator.Left);
+            IObjectOrCollectionInitializerOperation initializer = (IObjectOrCollectionInitializerOperation)Create(boundAssignmentOperator.Right);
             SyntaxNode syntax = boundAssignmentOperator.Syntax;
-            ITypeSymbol type = boundAssignmentOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundAssignmentOperator.ConstantValue;
+            ITypeSymbol? type = boundAssignmentOperator.GetPublicTypeSymbol();
             bool isImplicit = boundAssignmentOperator.WasCompilerGenerated;
-            return new CSharpLazyMemberInitializerOperation(this, boundAssignmentOperator, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new MemberInitializerOperation(initializedMember, initializer, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private ICompoundAssignmentOperation CreateBoundCompoundAssignmentOperatorOperation(BoundCompoundAssignmentOperator boundCompoundAssignmentOperator)
         {
