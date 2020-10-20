@@ -1089,29 +1089,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyIsPatternOperation : LazyIsPatternOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundIsPatternExpression _isPatternExpression;
-
-        internal CSharpLazyIsPatternOperation(CSharpOperationFactory operationFactory, BoundIsPatternExpression isPatternExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _isPatternExpression = isPatternExpression;
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_isPatternExpression.Expression);
-        }
-
-        protected override IPatternOperation CreatePattern()
-        {
-            return (IPatternOperation)_operationFactory.Create(_isPatternExpression.Pattern);
-        }
-    }
-
     internal sealed class CSharpLazySwitchExpressionOperation : LazySwitchExpressionOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

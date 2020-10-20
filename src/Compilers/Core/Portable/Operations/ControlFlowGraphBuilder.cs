@@ -5222,7 +5222,7 @@ oneMoreTime:
                             PushOperand(OperationCloner.CloneOperation(switchValue));
                             var pattern = (IPatternOperation)Visit(patternClause.Pattern);
                             condition = new IsPatternOperation(PopOperand(), pattern, semanticModel: null,
-                                                                patternClause.Pattern.Syntax, booleanType, constantValue: null, isImplicit: true);
+                                                               patternClause.Pattern.Syntax, booleanType, isImplicit: true);
                             ConditionalBranch(condition, jumpIfTrue: false, nextCase);
 
                             PopStackFrameAndLeaveRegion(frame);
@@ -6655,7 +6655,6 @@ oneMoreTime:
         {
             return new DefaultValueOperation(semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
-#nullable disable
 
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
         {
@@ -6665,8 +6664,9 @@ oneMoreTime:
             IOperation visitedValue = PopOperand();
             PopStackFrame(frame);
             return new IsPatternOperation(visitedValue, visitedPattern, semanticModel: null,
-                                           operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                                          operation.Syntax, operation.Type, IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitInvalid(IInvalidOperation operation, int? captureIdForResult)
         {
@@ -6901,6 +6901,7 @@ oneMoreTime:
             return new RangeOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method, isImplicit: IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, int? captureIdForResult)
         {
             // expression switch { pat1 when g1 => e1, pat2 when g2 => e2 }
@@ -6944,7 +6945,7 @@ oneMoreTime:
                     var visitedPattern = (IPatternOperation)Visit(arm.Pattern);
                     var patternTest = new IsPatternOperation(
                         OperationCloner.CloneOperation(capturedInput), visitedPattern, semanticModel: null,
-                        arm.Syntax, booleanType, null, IsImplicit(arm));
+                        arm.Syntax, booleanType, IsImplicit(arm));
                     ConditionalBranch(patternTest, jumpIfTrue: false, afterArm);
                     _currentBasicBlock = null;
                     PopStackFrameAndLeaveRegion(frame);
@@ -6976,7 +6977,7 @@ oneMoreTime:
 
             // throw new SwitchExpressionException
             var matchFailureCtor =
-                (IMethodSymbol)(_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor) ??
+                (IMethodSymbol?)(_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor) ??
                                 _compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_InvalidOperationException__ctor))?.GetISymbol();
             var makeException = (matchFailureCtor is null)
                 ? MakeInvalidOperation(operation.Syntax, type: _compilation.GetSpecialType(SpecialType.System_Object), ImmutableArray<IOperation>.Empty)
@@ -6993,7 +6994,6 @@ oneMoreTime:
             return GetCaptureReference(captureOutput, operation);
         }
 
-#nullable enable
         private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ImmutableArray<IOperation> statements)
         {
             IOperation saveCurrentStatement = _currentStatement;

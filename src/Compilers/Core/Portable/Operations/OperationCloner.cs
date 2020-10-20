@@ -251,11 +251,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InterpolationOperation(Visit(operation.Expression), Visit(operation.Alignment), Visit(operation.FormatString), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitIsPattern(IIsPatternOperation operation, object argument)
-        {
-            return new IsPatternOperation(Visit(operation.Value), Visit(operation.Pattern), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, object argument)
         {
             return new ConstantPatternOperation(operation.InputType, operation.NarrowedType, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);

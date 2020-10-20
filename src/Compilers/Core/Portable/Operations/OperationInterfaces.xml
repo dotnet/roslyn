@@ -1730,7 +1730,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IIsPatternOperation" Base="IOperation" ChildrenOrder="Value,Pattern">
+  <Node Name="IIsPatternOperation" Base="IOperation" ChildrenOrder="Value,Pattern" HasType="true">
     <Comments>
       <summary>
         Represents an operation that tests if a value matches a specific pattern.

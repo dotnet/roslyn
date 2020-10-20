@@ -61,6 +61,7 @@ namespace IOperationGenerator
             "ITranslatedQueryOperation",
             "IDelegateCreationOperation",
             "IAddressOfOperation",
+            "IIsPatternOperation",
         };
     }
 }

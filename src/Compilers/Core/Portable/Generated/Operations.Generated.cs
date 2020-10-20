@@ -2022,6 +2022,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Reference { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an operation that tests if a value matches a specific pattern.
     /// <para>
@@ -2048,6 +2049,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IPatternOperation Pattern { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an <see cref="OperationKind.Increment" /> or <see cref="OperationKind.Decrement" /> operation.
     /// Note that this operation is different from an <see cref="IUnaryOperation" /> as it mutates the <see cref="Target" />,
@@ -5764,69 +5766,40 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitAddressOf(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseIsPatternOperation : OperationOld, IIsPatternOperation
+    #nullable enable
+    internal sealed partial class IsPatternOperation : Operation, IIsPatternOperation
     {
-        internal BaseIsPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.IsPattern, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Value { get; }
-        public abstract IPatternOperation Pattern { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal IsPatternOperation(IOperation value, IPatternOperation pattern, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Value = SetParentOperation(value, this);
+            Pattern = SetParentOperation(pattern, this);
+            Type = type;
+        }
+        public IOperation Value { get; }
+        public IPatternOperation Pattern { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Value is object) yield return Value;
-                if (Pattern is object) yield return Pattern;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Value is not null) builder.Add(Value);
+                    if (Pattern is not null) builder.Add(Pattern);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.IsPattern;
         public override void Accept(OperationVisitor visitor) => visitor.VisitIsPattern(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitIsPattern(this, argument);
     }
-    internal sealed partial class IsPatternOperation : BaseIsPatternOperation, IIsPatternOperation
-    {
-        internal IsPatternOperation(IOperation value, IPatternOperation pattern, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-            Pattern = SetParentOperation(pattern, this);
-        }
-        public override IOperation Value { get; }
-        public override IPatternOperation Pattern { get; }
-    }
-    internal abstract partial class LazyIsPatternOperation : BaseIsPatternOperation, IIsPatternOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        private IPatternOperation _lazyPattern = s_unsetPattern;
-        internal LazyIsPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-        protected abstract IPatternOperation CreatePattern();
-        public override IPatternOperation Pattern
-        {
-            get
-            {
-                if (_lazyPattern == s_unsetPattern)
-                {
-                    IPatternOperation pattern = CreatePattern();
-                    SetParentOperation(pattern, this);
-                    Interlocked.CompareExchange(ref _lazyPattern, pattern, s_unsetPattern);
-                }
-                return _lazyPattern;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseIncrementOrDecrementOperation : OperationOld, IIncrementOrDecrementOperation
     {
         internal BaseIncrementOrDecrementOperation(bool isPostfix, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8675,6 +8648,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (AddressOfOperation)operation;
             return new AddressOfOperation(Visit(internalOperation.Reference), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitIsPattern(IIsPatternOperation operation, object? argument)
+        {
+            var internalOperation = (IsPatternOperation)operation;
+            return new IsPatternOperation(Visit(internalOperation.Value), Visit(internalOperation.Pattern), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, object? argument)
         {

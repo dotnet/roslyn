@@ -2185,16 +2185,17 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+#nullable enable
         private IIsPatternOperation CreateBoundIsPatternExpressionOperation(BoundIsPatternExpression boundIsPatternExpression)
         {
+            IOperation value = Create(boundIsPatternExpression.Expression);
+            IPatternOperation pattern = (IPatternOperation)Create(boundIsPatternExpression.Pattern);
             SyntaxNode syntax = boundIsPatternExpression.Syntax;
-            ITypeSymbol type = boundIsPatternExpression.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundIsPatternExpression.ConstantValue;
+            ITypeSymbol? type = boundIsPatternExpression.GetPublicTypeSymbol();
             bool isImplicit = boundIsPatternExpression.WasCompilerGenerated;
-            return new CSharpLazyIsPatternOperation(this, boundIsPatternExpression, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new IsPatternOperation(value, pattern, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IOperation CreateBoundQueryClauseOperation(BoundQueryClause boundQueryClause)
         {
             if (boundQueryClause.Syntax.Kind() != SyntaxKind.QueryExpression)
