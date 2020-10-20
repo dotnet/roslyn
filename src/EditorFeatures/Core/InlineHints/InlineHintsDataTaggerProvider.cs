@@ -36,6 +36,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
+        /// <summary>
+        /// We want to make sure that if the user edits the space that the tag exists in that it goes away and they
+        /// don't see stale tags sticking around in random locations until the next update.  A good example of when this
+        /// is desirable is 'cut line'. If the tags aren't removed, then the line will be gone but the tags will remain
+        /// at whatever points the tracking spans moved them to.
+        /// </summary>
+        protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits;
+
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         [ImportingConstructor]
         public InlineHintsDataTaggerProvider(
