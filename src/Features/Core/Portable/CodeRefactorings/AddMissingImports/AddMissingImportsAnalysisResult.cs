@@ -12,19 +12,14 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
     {
         public ImmutableArray<AddImportFixData> AddImportFixData { get; }
         public Document Document { get; }
-        public TextSpan TextSpan { get; }
-        public bool CanAddMissingImports { get; }
+        public bool CanAddMissingImports => !AddImportFixData.IsEmpty;
 
         public AddMissingImportsAnalysisResult(
             ImmutableArray<AddImportFixData> addImportFixData,
-            Document document,
-            TextSpan textSpan,
-            bool canAddMissingImports)
+            Document document)
         {
             AddImportFixData = addImportFixData;
             Document = document;
-            TextSpan = textSpan;
-            CanAddMissingImports = canAddMissingImports;
         }
     }
 }

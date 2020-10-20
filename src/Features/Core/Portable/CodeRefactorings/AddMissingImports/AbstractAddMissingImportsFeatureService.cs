@@ -57,9 +57,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             {
                 return new AddMissingImportsAnalysisResult(
                     ImmutableArray<AddImportFixData>.Empty,
-                    document,
-                    textSpan,
-                    canAddMissingImports: false);
+                    document);
             }
 
             // Find fixes for the diagnostic where there is only a single fix.
@@ -70,9 +68,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             return new AddMissingImportsAnalysisResult(
                 usableFixes,
-                document,
-                textSpan,
-                canAddMissingImports: !usableFixes.IsEmpty);
+                document);
         }
 
         private static bool DoesNotAddReference(AddImportFixData fixData, ProjectId currentProjectId)
