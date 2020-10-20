@@ -54,7 +54,8 @@ namespace IOperationGenerator
             "IInterpolatedStringOperation",
             "IAnonymousObjectCreationOperation",
             "IObjectOrCollectionInitializerOperation",
-            "IMemberInitializerOperation"
+            "IMemberInitializerOperation",
+            "ICollectionElementInitializerOperation",
         };
     }
 }

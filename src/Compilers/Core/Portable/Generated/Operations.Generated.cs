@@ -1671,6 +1671,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IObjectOrCollectionInitializerOperation Initializer { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Obsolete interface that used to represent a collection element initializer. It has been replaced by
     /// <see cref="IInvocationOperation" /> and <see cref="IDynamicInvocationOperation" />, as appropriate.
@@ -1694,6 +1695,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<IOperation> Arguments { get; }
         bool IsDynamic { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an operation that gets a string value for the <see cref="Argument" /> name.
     /// <para>
