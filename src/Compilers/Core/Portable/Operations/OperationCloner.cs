@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.GetConstantValue(), operation.IsImplicit, operation.Type);
         }
 
-        public override IOperation VisitBlock(IBlockOperation operation, object argument)
-        {
-            return new BlockOperation(VisitArray(operation.Operations), operation.Locals, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, object argument)
         {
             return new VariableDeclarationGroupOperation(VisitArray(operation.Declarations), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
@@ -44,11 +39,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitConversion(IConversionOperation operation, object argument)
         {
             return new ConversionOperation(Visit(operation.Operand), ((BaseConversionOperation)operation).ConversionConvertible, operation.IsTryCast, operation.IsChecked, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitSwitch(ISwitchOperation operation, object argument)
-        {
-            return new SwitchOperation(operation.Locals, Visit(operation.Value), VisitArray(operation.Cases), operation.ExitLabel, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, object argument)
@@ -100,27 +90,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ForEachLoopOperation(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable),
                                             Visit(operation.Collection), VisitArray(operation.NextVariables), operation.IsAsynchronous, Visit(operation.Body), ((BaseForEachLoopOperation)operation).Info,
                                             ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitLabeled(ILabeledOperation operation, object argument)
-        {
-            return new LabeledOperation(operation.Label, Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitReturn(IReturnOperation operation, object argument)
-        {
-            return new ReturnOperation(Visit(operation.ReturnedValue), operation.Kind, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitLock(ILockOperation operation, object argument)
-        {
-            var baseLockStatement = (BaseLockOperation)operation;
-            return new LockOperation(Visit(operation.LockedValue), Visit(operation.Body), baseLockStatement.LockTakenSymbol, baseLockStatement.OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitTry(ITryOperation operation, object argument)
-        {
-            return new TryOperation(Visit(operation.Body), VisitArray(operation.Catches), Visit(operation.Finally), operation.ExitLabel, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitCatchClause(ICatchClauseOperation operation, object argument)

@@ -1019,12 +1019,12 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundSelectStatementOperation(boundSelectStatement As BoundSelectStatement) As ISwitchOperation
             RecordParent(boundSelectStatement.ExprPlaceholderOpt, boundSelectStatement)
+            Dim value As IOperation = Create(boundSelectStatement.ExpressionStatement.Expression)
+            Dim cases As ImmutableArray(Of ISwitchCaseOperation) = CreateFromArray(Of BoundCaseBlock, ISwitchCaseOperation)(boundSelectStatement.CaseBlocks)
             Dim exitLabel As ILabelSymbol = boundSelectStatement.ExitLabel
             Dim syntax As SyntaxNode = boundSelectStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundSelectStatement.WasCompilerGenerated
-            Return New VisualBasicLazySwitchOperation(Me, boundSelectStatement, ImmutableArray(Of ILocalSymbol).Empty, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New SwitchOperation(ImmutableArray(Of ILocalSymbol).Empty, value, cases, exitLabel, _semanticModel, syntax, isImplicit)
         End Function
 
         Friend Function CreateBoundCaseBlockClauses(boundCaseBlock As BoundCaseBlock) As ImmutableArray(Of ICaseClauseOperation)
@@ -1207,12 +1207,13 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundTryStatementOperation(boundTryStatement As BoundTryStatement) As ITryOperation
+            Dim body As IBlockOperation = DirectCast(Create(boundTryStatement.TryBlock), IBlockOperation)
+            Dim catches As ImmutableArray(Of ICatchClauseOperation) = CreateFromArray(Of BoundCatchBlock, ICatchClauseOperation)(boundTryStatement.CatchBlocks)
+            Dim [finally] As IBlockOperation = DirectCast(Create(boundTryStatement.FinallyBlockOpt), IBlockOperation)
             Dim exitLabel As ILabelSymbol = boundTryStatement.ExitLabelOpt
             Dim syntax As SyntaxNode = boundTryStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundTryStatement.WasCompilerGenerated
-            Return New VisualBasicLazyTryOperation(Me, boundTryStatement, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New TryOperation(body, catches, [finally], exitLabel, _semanticModel, syntax, isImplicit)
         End Function
 
         Friend Function CreateBoundCatchBlockExceptionDeclarationOrExpression(boundCatchBlock As BoundCatchBlock) As IOperation
@@ -1238,12 +1239,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockOperation
+            Dim operations As ImmutableArray(Of IOperation) = CreateFromArray(Of BoundStatement, IOperation)(boundBlock.Statements)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
             Dim syntax As SyntaxNode = boundBlock.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundBlock.WasCompilerGenerated
-            Return New VisualBasicLazyBlockOperation(Me, boundBlock, locals, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New BlockOperation(operations, locals, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundBadStatementOperation(boundBadStatement As BoundBadStatement) As IInvalidOperation
@@ -1265,12 +1265,10 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundReturnStatementOperation(boundReturnStatement As BoundReturnStatement) As IReturnOperation
-            Dim returnedValue As BoundNode = boundReturnStatement.ExpressionOpt
+            Dim returnedValue As IOperation = Create(boundReturnStatement.ExpressionOpt)
             Dim syntax As SyntaxNode = boundReturnStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundReturnStatement.WasCompilerGenerated OrElse IsEndSubOrFunctionStatement(syntax)
-            Return New VisualBasicLazyReturnOperation(Me, returnedValue, OperationKind.Return, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ReturnOperation(returnedValue, OperationKind.Return, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Shared Function IsEndSubOrFunctionStatement(syntax As SyntaxNode) As Boolean
@@ -1318,22 +1316,18 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundYieldStatementOperation(boundYieldStatement As BoundYieldStatement) As IReturnOperation
-            Dim returnedValue As BoundNode = boundYieldStatement.Expression
+            Dim returnedValue As IOperation = Create(boundYieldStatement.Expression)
             Dim syntax As SyntaxNode = boundYieldStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundYieldStatement.WasCompilerGenerated
-            Return New VisualBasicLazyReturnOperation(Me, returnedValue, OperationKind.YieldReturn, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ReturnOperation(returnedValue, OperationKind.YieldReturn, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundLabelStatementOperation(boundLabelStatement As BoundLabelStatement) As ILabeledOperation
             Dim label As ILabelSymbol = boundLabelStatement.Label
-            Dim statement As BoundNode = Nothing
+            Dim statement As IOperation = Nothing
             Dim syntax As SyntaxNode = boundLabelStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundLabelStatement.WasCompilerGenerated OrElse IsEndSubOrFunctionStatement(syntax)
-            Return New VisualBasicLazyLabeledOperation(Me, statement, label, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LabeledOperation(label, statement, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundGotoStatementOperation(boundGotoStatement As BoundGotoStatement) As IBranchOperation
@@ -1368,11 +1362,11 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                     DirectCast(_semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean), TypeSymbol),
                                                     SynthesizedLocalKind.LockTaken,
                                                     syntaxOpt:=boundSyncLockStatement.LockExpression.Syntax))
+            Dim lockedValue as IOperation = Create(boundSyncLockStatement.LockExpression)
+            Dim body as IOperation = Create(boundSyncLockStatement.Body)
             Dim syntax As SyntaxNode = boundSyncLockStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundSyncLockStatement.WasCompilerGenerated
-            Return New VisualBasicLazyLockOperation(Me, boundSyncLockStatement, lockTakenSymbol, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LockOperation(lockedValue, body, lockTakenSymbol, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundNoOpStatementOperation(boundNoOpStatement As BoundNoOpStatement) As IEmptyOperation

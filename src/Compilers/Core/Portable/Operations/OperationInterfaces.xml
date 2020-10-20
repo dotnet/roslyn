@@ -333,7 +333,7 @@
         <summary>Label that can be the target of branches.</summary>
       </Comments>
     </Property>
-    <Property Name="Operation" Type="IOperation">
+    <Property Name="Operation" Type="IOperation?">
       <Comments>
         <summary>Operation that has been labeled. In VB, this is always null.</summary>
       </Comments>
@@ -388,7 +388,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="ReturnedValue" Type="IOperation">
+    <Property Name="ReturnedValue" Type="IOperation?">
       <Comments>
         <summary>Value to be returned.</summary>
       </Comments>
@@ -415,7 +415,7 @@
         <summary>Body of the lock, to be executed while holding the lock.</summary>
       </Comments>
     </Property>
-    <Property Name="LockTakenSymbol" Type="ILocalSymbol" Internal="true"/>
+    <Property Name="LockTakenSymbol" Type="ILocalSymbol?" Internal="true"/>
   </Node>
   <Node Name="ITryOperation" Base="IOperation" ChildrenOrder="Body,Catches,Finally">
     <Comments>
@@ -438,12 +438,12 @@
         <summary>Catch clauses of the try.</summary>
       </Comments>
     </Property>
-    <Property Name="Finally" Type="IBlockOperation">
+    <Property Name="Finally" Type="IBlockOperation?">
       <Comments>
         <summary>Finally handler of the try.</summary>
       </Comments>
     </Property>
-    <Property Name="ExitLabel" Type="ILabelSymbol">
+    <Property Name="ExitLabel" Type="ILabelSymbol?">
       <Comments>
         <summary>Exit label for the try. This will always be null for C#.</summary>
       </Comments>

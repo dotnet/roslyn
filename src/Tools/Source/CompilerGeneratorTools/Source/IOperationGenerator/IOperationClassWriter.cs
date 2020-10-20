@@ -408,7 +408,7 @@ namespace IOperationGenerator
             var lazyChildren = @"_lazyChildren";
             var hasType = false;
             var hasConstantValue = false;
-            var multipleValidKinds = (type.OperationKind?.Entries?.Where(e => e.EditorBrowsable != false).Count() ?? 0) > 1;
+            var multipleValidKinds = HasMultipleValidKinds(type);
 
             IEnumerable<Property>? baseProperties = null;
             if (_typeMap[type.Base] is { } baseNode)
@@ -429,7 +429,7 @@ namespace IOperationGenerator
             {
                 if (publicIOperationProps.Count != 0)
                 {
-                    WriteLine($"private IEnumerable<IOperation> {lazyChildren};");
+                    WriteLine($"private IEnumerable<IOperation>? {lazyChildren};");
                 }
 
                 hasType = node.HasType;
@@ -461,7 +461,14 @@ namespace IOperationGenerator
                     WriteLine($"var builder = ArrayBuilder<IOperation>.GetInstance({publicIOperationProps.Count});");
                     foreach (var prop in publicIOperationProps)
                     {
-                        WriteLine($"if ({prop.Name} is not null) builder.Add({prop.Name};");
+                        if (IsImmutableArray(prop.Type, out _))
+                        {
+                            WriteLine($"if (!{prop.Name}.IsEmpty) builder.AddRange({prop.Name});");
+                        }
+                        else
+                        {
+                            WriteLine($"if ({prop.Name} is not null) builder.Add({prop.Name});");
+                        }
                     }
 
                     WriteLine($"Interlocked.CompareExchange(ref {lazyChildren}, builder.ToImmutableAndFree(), null);");
@@ -622,6 +629,11 @@ namespace IOperationGenerator
 
                 return GetSubName(node.Name);
             }
+        }
+
+        private static bool HasMultipleValidKinds(AbstractNode type)
+        {
+            return (type.OperationKind?.Entries?.Where(e => e.EditorBrowsable != false).Count() ?? 0) > 1;
         }
 
         private void WriteClassOld(AbstractNode type)
@@ -998,7 +1010,7 @@ namespace IOperationGenerator
             WriteLine("/// <summary>Deep clone given IOperation</summary>");
             WriteLine("public static T CloneOperation<T>(T operation) where T : IOperation => s_instance.Visit(operation);");
             WriteLine("public OperationCloner() { }");
-            WriteLine("private T Visit<T>(T node) where T : IOperation => (T)Visit(node, argument: null);");
+            WriteLine("private T Visit<T>(T node) where T : IOperation? => (T)Visit(node, argument: null);");
             WriteLine("public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable;");
             WriteLine("private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this);");
             WriteLine("private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this);");
@@ -1029,6 +1041,11 @@ namespace IOperationGenerator
                     {
                         Write($"{internalName}.{prop.Name}, ");
                     }
+                }
+
+                if (HasMultipleValidKinds(node))
+                {
+                    Write($"{internalName}.Kind, ");
                 }
 
                 Write($"{internalName}.OwningSemanticModel, {internalName}.Syntax, ");
@@ -1136,8 +1153,14 @@ namespace IOperationGenerator
 
         private string GetSubName(string operationName) => operationName[1..^9];
 
-        private bool IsIOperationType(string typeName) => _typeMap.ContainsKey(typeName) ||
-                                                          (IsImmutableArray(typeName, out var innerType) && IsIOperationType(innerType));
+        private bool IsIOperationType(string typeName)
+        {
+            Debug.Assert(typeName.Length > 0);
+            return _typeMap.ContainsKey(getTypeName(typeName)) ||
+              (IsImmutableArray(typeName, out var innerType) && IsIOperationType(getTypeName(innerType)));
+
+            static string getTypeName(string typeName) => typeName[^1] == '?' ? typeName[..^1] : typeName;
+        }
 
         private static bool IsImmutableArray(string typeName, [NotNullWhen(true)] out string? arrayType)
         {

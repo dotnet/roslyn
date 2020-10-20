@@ -193,23 +193,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyBlockOperation
-        Inherits LazyBlockOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _block As BoundBlock
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, block As BoundBlock, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(locals, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _block = block
-        End Sub
-
-        Protected Overrides Function CreateOperations() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundStatement, IOperation)(_block.Statements)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyCatchClauseOperation
         Inherits LazyCatchClauseOperation
 
@@ -636,23 +619,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyLabeledOperation
-        Inherits LazyLabeledOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operation As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, label As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(label, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operation = operation
-        End Sub
-
-        Protected Overrides Function CreateOperation() As IOperation
-            Return _operationFactory.Create(_operation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyAnonymousFunctionOperation
         Inherits LazyAnonymousFunctionOperation
 
@@ -701,27 +667,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
 
         Protected Overrides Function CreateInstance() As IOperation
             Return _operationFactory.Create(_instance)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyLockOperation
-        Inherits LazyLockOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _lockStatement As BoundSyncLockStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, lockStatement As BoundSyncLockStatement, lockTakenSymbol As ILocalSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _lockStatement = lockStatement
-        End Sub
-
-        Protected Overrides Function CreateLockedValue() As IOperation
-            Return _operationFactory.Create(_lockStatement.LockExpression)
-        End Function
-
-        Protected Overrides Function CreateBody() As IOperation
-            Return _operationFactory.Create(_lockStatement.Body)
         End Function
     End Class
 
@@ -913,23 +858,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyReturnOperation
-        Inherits LazyReturnOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _returnedValue As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, returnedValue As BoundNode, kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(kind, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _returnedValue = returnedValue
-        End Sub
-
-        Protected Overrides Function CreateReturnedValue() As IOperation
-            Return _operationFactory.Create(_returnedValue)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazySingleValueCaseClauseOperation
         Inherits LazySingleValueCaseClauseOperation
 
@@ -969,52 +897,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
 
         Protected Overrides Function CreateBody() As ImmutableArray(Of IOperation)
             Return ImmutableArray.Create(_operationFactory.Create(_caseBlock.Body))
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazySwitchOperation
-        Inherits LazySwitchOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _selectStatement As BoundSelectStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, selectStatement As BoundSelectStatement, locals As ImmutableArray(Of ILocalSymbol), exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _selectStatement = selectStatement
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_selectStatement.ExpressionStatement.Expression)
-        End Function
-
-        Protected Overrides Function CreateCases() As ImmutableArray(Of ISwitchCaseOperation)
-            Return _operationFactory.CreateFromArray(Of BoundCaseBlock, ISwitchCaseOperation)(_selectStatement.CaseBlocks)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyTryOperation
-        Inherits LazyTryOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _tryStatement As BoundTryStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, tryStatement As BoundTryStatement, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _tryStatement = tryStatement
-        End Sub
-
-        Protected Overrides Function CreateBody() As IBlockOperation
-            Return DirectCast(_operationFactory.Create(_tryStatement.TryBlock), IBlockOperation)
-        End Function
-
-        Protected Overrides Function CreateCatches() As ImmutableArray(Of ICatchClauseOperation)
-            Return _operationFactory.CreateFromArray(Of BoundCatchBlock, ICatchClauseOperation)(_tryStatement.CatchBlocks)
-        End Function
-
-        Protected Overrides Function CreateFinally() As IBlockOperation
-            Return DirectCast(_operationFactory.Create(_tryStatement.FinallyBlockOpt), IBlockOperation)
         End Function
     End Class
 

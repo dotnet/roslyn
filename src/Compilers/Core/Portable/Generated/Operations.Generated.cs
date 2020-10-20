@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IInvalidOperation : IOperation
     {
     }
+    #nullable enable
     /// <summary>
     /// Represents a block containing a sequence of operations and local declarations.
     /// <para>
@@ -59,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<ILocalSymbol> Locals { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a variable declaration statement.
     /// </summary>
@@ -89,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </remarks>
         ImmutableArray<IVariableDeclarationOperation> Declarations { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents a switch operation with a value to be switched upon and switch cases.
     /// <para>
@@ -124,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ILabelSymbol ExitLabel { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a loop operation.
     /// <para>
@@ -298,6 +302,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation IgnoredCondition { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents an operation with a label.
     /// <para>
@@ -323,8 +328,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Operation that has been labeled. In VB, this is always null.
         /// </summary>
-        IOperation Operation { get; }
+        IOperation? Operation { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents a branch operation.
@@ -374,6 +380,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a return from the method with an optional return value.
     /// <para>
@@ -397,8 +404,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Value to be returned.
         /// </summary>
-        IOperation ReturnedValue { get; }
+        IOperation? ReturnedValue { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a <see cref="Body" /> of operations that are executed while holding a lock onto the <see cref="LockedValue" />.
     /// <para>
@@ -426,6 +435,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Body { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a try operation for exception handling code with a body, catch clauses and a finally handler.
     /// <para>
@@ -455,12 +466,13 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Finally handler of the try.
         /// </summary>
-        IBlockOperation Finally { get; }
+        IBlockOperation? Finally { get; }
         /// <summary>
         /// Exit label for the try. This will always be null for C#.
         /// </summary>
-        ILabelSymbol ExitLabel { get; }
+        ILabelSymbol? ExitLabel { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a <see cref="Body" /> of operations that are executed while using disposable <see cref="Resources" />.
     /// <para>
@@ -3345,57 +3357,38 @@ namespace Microsoft.CodeAnalysis.Operations
     #endregion
 
     #region Implementations
-    internal abstract partial class BaseBlockOperation : OperationOld, IBlockOperation
+    #nullable enable
+    internal sealed partial class BlockOperation : Operation, IBlockOperation
     {
-        internal BaseBlockOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Block, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal BlockOperation(ImmutableArray<IOperation> operations, ImmutableArray<ILocalSymbol> locals, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            Operations = SetParentOperation(operations, this);
             Locals = locals;
         }
-        public abstract ImmutableArray<IOperation> Operations { get; }
+        public ImmutableArray<IOperation> Operations { get; }
         public ImmutableArray<ILocalSymbol> Locals { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                foreach (var child in Operations)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (!Operations.IsEmpty) builder.AddRange(Operations);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Block;
         public override void Accept(OperationVisitor visitor) => visitor.VisitBlock(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitBlock(this, argument);
     }
-    internal sealed partial class BlockOperation : BaseBlockOperation, IBlockOperation
-    {
-        internal BlockOperation(ImmutableArray<IOperation> operations, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operations = SetParentOperation(operations, this);
-        }
-        public override ImmutableArray<IOperation> Operations { get; }
-    }
-    internal abstract partial class LazyBlockOperation : BaseBlockOperation, IBlockOperation
-    {
-        private ImmutableArray<IOperation> _lazyOperations;
-        internal LazyBlockOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract ImmutableArray<IOperation> CreateOperations();
-        public override ImmutableArray<IOperation> Operations
-        {
-            get
-            {
-                if (_lazyOperations.IsDefault)
-                {
-                    ImmutableArray<IOperation> operations = CreateOperations();
-                    SetParentOperation(operations, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyOperations, operations);
-                }
-                return _lazyOperations;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseVariableDeclarationGroupOperation : OperationOld, IVariableDeclarationGroupOperation
     {
         internal BaseVariableDeclarationGroupOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -3443,78 +3436,43 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseSwitchOperation : OperationOld, ISwitchOperation
+    #nullable enable
+    internal sealed partial class SwitchOperation : Operation, ISwitchOperation
     {
-        internal BaseSwitchOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Switch, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal SwitchOperation(ImmutableArray<ILocalSymbol> locals, IOperation value, ImmutableArray<ISwitchCaseOperation> cases, ILabelSymbol exitLabel, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Locals = locals;
+            Value = SetParentOperation(value, this);
+            Cases = SetParentOperation(cases, this);
             ExitLabel = exitLabel;
         }
         public ImmutableArray<ILocalSymbol> Locals { get; }
-        public abstract IOperation Value { get; }
-        public abstract ImmutableArray<ISwitchCaseOperation> Cases { get; }
+        public IOperation Value { get; }
+        public ImmutableArray<ISwitchCaseOperation> Cases { get; }
         public ILabelSymbol ExitLabel { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Value is object) yield return Value;
-                foreach (var child in Cases)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Value is not null) builder.Add(Value);
+                    if (!Cases.IsEmpty) builder.AddRange(Cases);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Switch;
         public override void Accept(OperationVisitor visitor) => visitor.VisitSwitch(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitSwitch(this, argument);
     }
-    internal sealed partial class SwitchOperation : BaseSwitchOperation, ISwitchOperation
-    {
-        internal SwitchOperation(ImmutableArray<ILocalSymbol> locals, IOperation value, ImmutableArray<ISwitchCaseOperation> cases, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-            Cases = SetParentOperation(cases, this);
-        }
-        public override IOperation Value { get; }
-        public override ImmutableArray<ISwitchCaseOperation> Cases { get; }
-    }
-    internal abstract partial class LazySwitchOperation : BaseSwitchOperation, ISwitchOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        private ImmutableArray<ISwitchCaseOperation> _lazyCases;
-        internal LazySwitchOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-        protected abstract ImmutableArray<ISwitchCaseOperation> CreateCases();
-        public override ImmutableArray<ISwitchCaseOperation> Cases
-        {
-            get
-            {
-                if (_lazyCases.IsDefault)
-                {
-                    ImmutableArray<ISwitchCaseOperation> cases = CreateCases();
-                    SetParentOperation(cases, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyCases, cases);
-                }
-                return _lazyCases;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseLoopOperation : OperationOld, ILoopOperation
     {
         protected BaseLoopOperation(LoopKind loopKind, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -3973,54 +3931,38 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseLabeledOperation : OperationOld, ILabeledOperation
+    #nullable enable
+    internal sealed partial class LabeledOperation : Operation, ILabeledOperation
     {
-        internal BaseLabeledOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Labeled, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal LabeledOperation(ILabelSymbol label, IOperation? operation, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Label = label;
+            Operation = SetParentOperation(operation, this);
         }
         public ILabelSymbol Label { get; }
-        public abstract IOperation Operation { get; }
+        public IOperation? Operation { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Operation is object) yield return Operation;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Operation is not null) builder.Add(Operation);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Labeled;
         public override void Accept(OperationVisitor visitor) => visitor.VisitLabeled(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLabeled(this, argument);
     }
-    internal sealed partial class LabeledOperation : BaseLabeledOperation, ILabeledOperation
-    {
-        internal LabeledOperation(ILabelSymbol label, IOperation operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(label, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operation = SetParentOperation(operation, this);
-        }
-        public override IOperation Operation { get; }
-    }
-    internal abstract partial class LazyLabeledOperation : BaseLabeledOperation, ILabeledOperation
-    {
-        private IOperation _lazyOperation = s_unset;
-        internal LazyLabeledOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(label, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateOperation();
-        public override IOperation Operation
-        {
-            get
-            {
-                if (_lazyOperation == s_unset)
-                {
-                    IOperation operation = CreateOperation();
-                    SetParentOperation(operation, this);
-                    Interlocked.CompareExchange(ref _lazyOperation, operation, s_unset);
-                }
-                return _lazyOperation;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class BranchOperation : Operation, IBranchOperation
     {
@@ -4053,206 +3995,110 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitEmpty(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseReturnOperation : OperationOld, IReturnOperation
+    #nullable enable
+    internal sealed partial class ReturnOperation : Operation, IReturnOperation
     {
-        internal BaseReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation ReturnedValue { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ReturnOperation(IOperation? returnedValue, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            ReturnedValue = SetParentOperation(returnedValue, this);
+            Kind = kind;
+        }
+        public IOperation? ReturnedValue { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (ReturnedValue is object) yield return ReturnedValue;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (ReturnedValue is not null) builder.Add(ReturnedValue);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind { get; }
         public override void Accept(OperationVisitor visitor) => visitor.VisitReturn(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitReturn(this, argument);
     }
-    internal sealed partial class ReturnOperation : BaseReturnOperation, IReturnOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class LockOperation : Operation, ILockOperation
     {
-        internal ReturnOperation(IOperation returnedValue, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ReturnedValue = SetParentOperation(returnedValue, this);
-        }
-        public override IOperation ReturnedValue { get; }
-    }
-    internal abstract partial class LazyReturnOperation : BaseReturnOperation, IReturnOperation
-    {
-        private IOperation _lazyReturnedValue = s_unset;
-        internal LazyReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateReturnedValue();
-        public override IOperation ReturnedValue
-        {
-            get
-            {
-                if (_lazyReturnedValue == s_unset)
-                {
-                    IOperation returnedValue = CreateReturnedValue();
-                    SetParentOperation(returnedValue, this);
-                    Interlocked.CompareExchange(ref _lazyReturnedValue, returnedValue, s_unset);
-                }
-                return _lazyReturnedValue;
-            }
-        }
-    }
-    internal abstract partial class BaseLockOperation : OperationOld, ILockOperation
-    {
-        internal BaseLockOperation(ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Lock, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            LockTakenSymbol = lockTakenSymbol;
-        }
-        public abstract IOperation LockedValue { get; }
-        public abstract IOperation Body { get; }
-        public ILocalSymbol LockTakenSymbol { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                if (LockedValue is object) yield return LockedValue;
-                if (Body is object) yield return Body;
-            }
-        }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitLock(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLock(this, argument);
-    }
-    internal sealed partial class LockOperation : BaseLockOperation, ILockOperation
-    {
-        internal LockOperation(IOperation lockedValue, IOperation body, ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal LockOperation(IOperation lockedValue, IOperation body, ILocalSymbol? lockTakenSymbol, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             LockedValue = SetParentOperation(lockedValue, this);
             Body = SetParentOperation(body, this);
+            LockTakenSymbol = lockTakenSymbol;
         }
-        public override IOperation LockedValue { get; }
-        public override IOperation Body { get; }
-    }
-    internal abstract partial class LazyLockOperation : BaseLockOperation, ILockOperation
-    {
-        private IOperation _lazyLockedValue = s_unset;
-        private IOperation _lazyBody = s_unset;
-        internal LazyLockOperation(ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateLockedValue();
-        public override IOperation LockedValue
-        {
-            get
-            {
-                if (_lazyLockedValue == s_unset)
-                {
-                    IOperation lockedValue = CreateLockedValue();
-                    SetParentOperation(lockedValue, this);
-                    Interlocked.CompareExchange(ref _lazyLockedValue, lockedValue, s_unset);
-                }
-                return _lazyLockedValue;
-            }
-        }
-        protected abstract IOperation CreateBody();
-        public override IOperation Body
-        {
-            get
-            {
-                if (_lazyBody == s_unset)
-                {
-                    IOperation body = CreateBody();
-                    SetParentOperation(body, this);
-                    Interlocked.CompareExchange(ref _lazyBody, body, s_unset);
-                }
-                return _lazyBody;
-            }
-        }
-    }
-    internal abstract partial class BaseTryOperation : OperationOld, ITryOperation
-    {
-        internal BaseTryOperation(ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Try, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ExitLabel = exitLabel;
-        }
-        public abstract IBlockOperation Body { get; }
-        public abstract ImmutableArray<ICatchClauseOperation> Catches { get; }
-        public abstract IBlockOperation Finally { get; }
-        public ILabelSymbol ExitLabel { get; }
+        public IOperation LockedValue { get; }
+        public IOperation Body { get; }
+        public ILocalSymbol? LockTakenSymbol { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Body is object) yield return Body;
-                foreach (var child in Catches)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (LockedValue is not null) builder.Add(LockedValue);
+                    if (Body is not null) builder.Add(Body);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                if (Finally is object) yield return Finally;
+                return _lazyChildren;
             }
         }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitTry(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTry(this, argument);
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Lock;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitLock(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLock(this, argument);
     }
-    internal sealed partial class TryOperation : BaseTryOperation, ITryOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class TryOperation : Operation, ITryOperation
     {
-        internal TryOperation(IBlockOperation body, ImmutableArray<ICatchClauseOperation> catches, IBlockOperation @finally, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal TryOperation(IBlockOperation body, ImmutableArray<ICatchClauseOperation> catches, IBlockOperation? @finally, ILabelSymbol? exitLabel, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Body = SetParentOperation(body, this);
             Catches = SetParentOperation(catches, this);
             Finally = SetParentOperation(@finally, this);
+            ExitLabel = exitLabel;
         }
-        public override IBlockOperation Body { get; }
-        public override ImmutableArray<ICatchClauseOperation> Catches { get; }
-        public override IBlockOperation Finally { get; }
+        public IBlockOperation Body { get; }
+        public ImmutableArray<ICatchClauseOperation> Catches { get; }
+        public IBlockOperation? Finally { get; }
+        public ILabelSymbol? ExitLabel { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
+                    if (Body is not null) builder.Add(Body);
+                    if (!Catches.IsEmpty) builder.AddRange(Catches);
+                    if (Finally is not null) builder.Add(Finally);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
+            }
+        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Try;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitTry(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTry(this, argument);
     }
-    internal abstract partial class LazyTryOperation : BaseTryOperation, ITryOperation
-    {
-        private IBlockOperation _lazyBody = s_unsetBlock;
-        private ImmutableArray<ICatchClauseOperation> _lazyCatches;
-        private IBlockOperation _lazyFinally = s_unsetBlock;
-        internal LazyTryOperation(ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IBlockOperation CreateBody();
-        public override IBlockOperation Body
-        {
-            get
-            {
-                if (_lazyBody == s_unsetBlock)
-                {
-                    IBlockOperation body = CreateBody();
-                    SetParentOperation(body, this);
-                    Interlocked.CompareExchange(ref _lazyBody, body, s_unsetBlock);
-                }
-                return _lazyBody;
-            }
-        }
-        protected abstract ImmutableArray<ICatchClauseOperation> CreateCatches();
-        public override ImmutableArray<ICatchClauseOperation> Catches
-        {
-            get
-            {
-                if (_lazyCatches.IsDefault)
-                {
-                    ImmutableArray<ICatchClauseOperation> catches = CreateCatches();
-                    SetParentOperation(catches, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyCatches, catches);
-                }
-                return _lazyCatches;
-            }
-        }
-        protected abstract IBlockOperation CreateFinally();
-        public override IBlockOperation Finally
-        {
-            get
-            {
-                if (_lazyFinally == s_unsetBlock)
-                {
-                    IBlockOperation @finally = CreateFinally();
-                    SetParentOperation(@finally, this);
-                    Interlocked.CompareExchange(ref _lazyFinally, @finally, s_unsetBlock);
-                }
-                return _lazyFinally;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseUsingOperation : OperationOld, IUsingOperation
     {
         internal BaseUsingOperation(ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -9171,10 +9017,25 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>Deep clone given IOperation</summary>
         public static T CloneOperation<T>(T operation) where T : IOperation => s_instance.Visit(operation);
         public OperationCloner() { }
-        private T Visit<T>(T node) where T : IOperation => (T)Visit(node, argument: null);
+        private T Visit<T>(T node) where T : IOperation? => (T)Visit(node, argument: null);
         public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable;
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this);
         private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this);
+        public override IOperation VisitBlock(IBlockOperation operation, object? argument)
+        {
+            var internalOperation = (BlockOperation)operation;
+            return new BlockOperation(VisitArray(internalOperation.Operations), internalOperation.Locals, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitSwitch(ISwitchOperation operation, object? argument)
+        {
+            var internalOperation = (SwitchOperation)operation;
+            return new SwitchOperation(internalOperation.Locals, Visit(internalOperation.Value), VisitArray(internalOperation.Cases), internalOperation.ExitLabel, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitLabeled(ILabeledOperation operation, object? argument)
+        {
+            var internalOperation = (LabeledOperation)operation;
+            return new LabeledOperation(internalOperation.Label, Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
         public override IOperation VisitBranch(IBranchOperation operation, object? argument)
         {
             var internalOperation = (BranchOperation)operation;
@@ -9184,6 +9045,21 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (EmptyOperation)operation;
             return new EmptyOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitReturn(IReturnOperation operation, object? argument)
+        {
+            var internalOperation = (ReturnOperation)operation;
+            return new ReturnOperation(Visit(internalOperation.ReturnedValue), internalOperation.Kind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitLock(ILockOperation operation, object? argument)
+        {
+            var internalOperation = (LockOperation)operation;
+            return new LockOperation(Visit(internalOperation.LockedValue), Visit(internalOperation.Body), internalOperation.LockTakenSymbol, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitTry(ITryOperation operation, object? argument)
+        {
+            var internalOperation = (TryOperation)operation;
+            return new TryOperation(Visit(internalOperation.Body), VisitArray(internalOperation.Catches), Visit(internalOperation.Finally), internalOperation.ExitLabel, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitStop(IStopOperation operation, object? argument)
         {

@@ -1336,6 +1336,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             _currentBasicBlock = null;
         }
 
+#nullable enable
         public override IOperation VisitBlock(IBlockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
@@ -1346,6 +1347,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             return FinishVisitingStatement(operation);
         }
+#nullable disable
 
         private void StartVisitingStatement(IOperation operation)
         {
@@ -1406,6 +1408,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     return false;
             }
 
+#nullable enable
             bool visitPossibleUsingDeclarationInLabel(ILabeledOperation labelOperation)
             {
                 var savedCurrentStatement = _currentStatement;
@@ -1419,6 +1422,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 _currentStatement = savedCurrentStatement;
                 return visitedAll;
             }
+#nullable disable
         }
 
         internal override IOperation VisitWithStatement(IWithStatementOperation operation, int? captureIdForResult)
@@ -3385,6 +3389,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
+#nullable enable
         public override IOperation VisitTry(ITryOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
@@ -3401,7 +3406,7 @@ oneMoreTime:
                 return FinishVisitingStatement(operation);
             }
 
-            RegionBuilder tryAndFinallyRegion = null;
+            RegionBuilder? tryAndFinallyRegion = null;
             bool haveFinally = operation.Finally != null;
             if (haveFinally)
             {
@@ -3427,7 +3432,7 @@ oneMoreTime:
 
                 foreach (ICatchClauseOperation catchClause in operation.Catches)
                 {
-                    RegionBuilder filterAndHandlerRegion = null;
+                    RegionBuilder? filterAndHandlerRegion = null;
 
                     IOperation exceptionDeclarationOrExpression = catchClause.ExceptionDeclarationOrExpression;
                     IOperation filter = catchClause.Filter;
@@ -3521,7 +3526,6 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-#nullable enable
         private void AddExceptionStore(ITypeSymbol exceptionType, IOperation exceptionDeclarationOrExpression)
         {
             if (exceptionDeclarationOrExpression != null)
@@ -3557,7 +3561,6 @@ oneMoreTime:
                         isImplicit: true));
                 }
             }
-#nullable disable
         }
 
         public override IOperation VisitCatchClause(ICatchClauseOperation operation, int? captureIdForResult)
@@ -3573,7 +3576,7 @@ oneMoreTime:
             switch (operation.Kind)
             {
                 case OperationKind.YieldReturn:
-                    AddStatement(new ReturnOperation(returnedValue, OperationKind.YieldReturn, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
+                    AddStatement(new ReturnOperation(returnedValue, OperationKind.YieldReturn, semanticModel: null, operation.Syntax, IsImplicit(operation)));
                     break;
 
                 case OperationKind.YieldBreak:
@@ -3614,14 +3617,14 @@ oneMoreTime:
             AppendNewBlock(labeled);
         }
 
-        private BasicBlockBuilder GetLabeledOrNewBlock(ILabelSymbol labelOpt)
+        private BasicBlockBuilder GetLabeledOrNewBlock(ILabelSymbol? labelOpt)
         {
             if (labelOpt == null)
             {
                 return new BasicBlockBuilder(BasicBlockKind.Block);
             }
 
-            BasicBlockBuilder labeledBlock;
+            BasicBlockBuilder? labeledBlock;
 
             if (_labeledBlocks == null)
             {
@@ -3636,6 +3639,7 @@ oneMoreTime:
             _labeledBlocks.Add(labelOpt, labeledBlock);
             return labeledBlock;
         }
+#nullable disable
 
         public override IOperation VisitBranch(IBranchOperation operation, int? captureIdForResult)
         {
@@ -3949,11 +3953,11 @@ oneMoreTime:
             // Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.CheckForSyncLockOnValueType to ensure no value type is
             // used.
             // For simplicity, we will not synthesize this call because its presence is unlikely to affect graph analysis.
-            var baseLockStatement = (BaseLockOperation)operation;
+            var lockStatement = (LockOperation)operation;
 
             var lockRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime,
-                                               locals: baseLockStatement.LockTakenSymbol != null ?
-                                                   ImmutableArray.Create(baseLockStatement.LockTakenSymbol) :
+                                               locals: lockStatement.LockTakenSymbol != null ?
+                                                   ImmutableArray.Create(lockStatement.LockTakenSymbol) :
                                                    ImmutableArray<ILocalSymbol>.Empty);
             EnterRegion(lockRegion);
 
@@ -3975,7 +3979,7 @@ oneMoreTime:
 
             if (legacyMode)
             {
-                Debug.Assert(baseLockStatement.LockTakenSymbol == null);
+                Debug.Assert(lockStatement.LockTakenSymbol == null);
                 enterMethod = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter)?.GetISymbol();
 
                 // Monitor.Enter($lock);
@@ -4009,10 +4013,10 @@ oneMoreTime:
             if (!legacyMode)
             {
                 // Monitor.Enter($lock, ref $lockTaken);
-                Debug.Assert(baseLockStatement.LockTakenSymbol is not null);
+                Debug.Assert(lockStatement.LockTakenSymbol is not null);
                 Debug.Assert(enterMethod is not null);
-                lockTaken = new LocalReferenceOperation(baseLockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
-                                                         baseLockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
+                lockTaken = new LocalReferenceOperation(lockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
+                                                         lockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
                 AddStatement(new InvocationOperation(enterMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
                                                                 new ArgumentOperation(lockedValue,
@@ -4051,9 +4055,9 @@ oneMoreTime:
             if (!legacyMode)
             {
                 // if ($lockTaken)
-                Debug.Assert(baseLockStatement.LockTakenSymbol is not null);
-                IOperation condition = new LocalReferenceOperation(baseLockStatement.LockTakenSymbol, isDeclaration: false, semanticModel: null, lockedValue.Syntax,
-                                                                    baseLockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
+                Debug.Assert(lockStatement.LockTakenSymbol is not null);
+                IOperation condition = new LocalReferenceOperation(lockStatement.LockTakenSymbol, isDeclaration: false, semanticModel: null, lockedValue.Syntax,
+                                                                    lockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
                 ConditionalBranch(condition, jumpIfTrue: false, endOfFinally);
                 _currentBasicBlock = null;
             }
@@ -5059,6 +5063,7 @@ oneMoreTime:
             return result;
         }
 
+#nullable enable
         public override IOperation VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
@@ -5070,7 +5075,7 @@ oneMoreTime:
             var switchRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
             EnterRegion(switchRegion);
 
-            BasicBlockBuilder defaultBody = null; // Adjusted in handleSection
+            BasicBlockBuilder? defaultBody = null; // Adjusted in handleSection
             BasicBlockBuilder @break = GetLabeledOrNewBlock(operation.ExitLabel);
 
             foreach (ISwitchCaseOperation section in operation.Cases)
@@ -5255,6 +5260,7 @@ oneMoreTime:
                 }
             }
         }
+#nullable disable
 
         private IOperation MakeNullable(IOperation operand, ITypeSymbol type)
         {
@@ -6962,6 +6968,7 @@ oneMoreTime:
             return GetCaptureReference(captureOutput, operation);
         }
 
+#nullable enable
         private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ImmutableArray<IOperation> statements)
         {
             IOperation saveCurrentStatement = _currentStatement;
@@ -6974,8 +6981,6 @@ oneMoreTime:
                 locals: ImmutableArray<ILocalSymbol>.Empty,
                 ((Operation)operation).OwningSemanticModel,
                 operation.Syntax,
-                operation.Type,
-                operation.GetConstantValue(),
                 isImplicit: true);
 
             HandleUsingOperationParts(
@@ -6987,6 +6992,7 @@ oneMoreTime:
             FinishVisitingStatement(operation);
             _currentStatement = saveCurrentStatement;
         }
+#nullable disable
 
         public IOperation Visit(IOperation operation)
         {

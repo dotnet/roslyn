@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -33,7 +34,9 @@ namespace Microsoft.CodeAnalysis.Operations
             _cachedCreateInternal = CreateInternal;
         }
 
-        public IOperation Create(BoundNode boundNode)
+#nullable enable
+        [return: NotNullIfNotNull("boundNode")]
+        public IOperation? Create(BoundNode? boundNode)
         {
             if (boundNode == null)
             {
@@ -64,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             return builder.ToImmutableAndFree();
         }
+#nullable disable
 
         internal IOperation CreateInternal(BoundNode boundNode)
         {
@@ -1485,17 +1489,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyParameterInitializerOperation(this, value, boundParameterEqualsValue.Locals.GetPublicSymbols(), parameter, kind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IBlockOperation CreateBoundBlockOperation(BoundBlock boundBlock)
         {
+            ImmutableArray<IOperation> operations = CreateFromArray<BoundStatement, IOperation>(boundBlock.Statements);
             ImmutableArray<ILocalSymbol> locals = boundBlock.Locals.GetPublicSymbols();
             SyntaxNode syntax = boundBlock.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundBlock.WasCompilerGenerated;
-            return new CSharpLazyBlockOperation(this, boundBlock, locals, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new BlockOperation(operations, locals, _semanticModel, syntax, isImplicit);
         }
 
-#nullable enable
         private IBranchOperation CreateBoundContinueStatementOperation(BoundContinueStatement boundContinueStatement)
         {
             ILabelSymbol target = boundContinueStatement.Label.GetPublicSymbol();
@@ -1513,19 +1516,15 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundBreakStatement.WasCompilerGenerated;
             return new BranchOperation(target, branchKind, _semanticModel, syntax, isImplicit);
         }
-#nullable disable
 
         private IReturnOperation CreateBoundYieldBreakStatementOperation(BoundYieldBreakStatement boundYieldBreakStatement)
         {
-            BoundNode returnedValue = null;
+            IOperation? returnedValue = null;
             SyntaxNode syntax = boundYieldBreakStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundYieldBreakStatement.WasCompilerGenerated;
-            return new CSharpLazyReturnOperation(this, returnedValue, OperationKind.YieldBreak, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ReturnOperation(returnedValue, OperationKind.YieldBreak, _semanticModel, syntax, isImplicit);
         }
 
-#nullable enable
         private IBranchOperation CreateBoundGotoStatementOperation(BoundGotoStatement boundGotoStatement)
         {
             ILabelSymbol target = boundGotoStatement.Label.GetPublicSymbol();
@@ -1677,14 +1676,17 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyForEachLoopOperation(this, boundForEachStatement, locals, continueLabel, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private ITryOperation CreateBoundTryStatementOperation(BoundTryStatement boundTryStatement)
         {
+            var body = (IBlockOperation)Create(boundTryStatement.TryBlock);
+            ImmutableArray<ICatchClauseOperation> catches = CreateFromArray<BoundCatchBlock, ICatchClauseOperation>(boundTryStatement.CatchBlocks);
+            var @finally = (IBlockOperation?)Create(boundTryStatement.FinallyBlockOpt);
             SyntaxNode syntax = boundTryStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundTryStatement.WasCompilerGenerated;
-            return new CSharpLazyTryOperation(this, boundTryStatement, exitLabel: null, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new TryOperation(body, catches, @finally, exitLabel: null, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private ICatchClauseOperation CreateBoundCatchBlockOperation(BoundCatchBlock boundCatchBlock)
         {
@@ -1727,42 +1729,40 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyThrowOperation(this, thrownObject, _semanticModel, syntax, statementType, constantValue, isImplicit);
         }
 
+#nullable enable
         private IReturnOperation CreateBoundReturnStatementOperation(BoundReturnStatement boundReturnStatement)
         {
-            BoundNode returnedValue = boundReturnStatement.ExpressionOpt;
+            IOperation? returnedValue = Create(boundReturnStatement.ExpressionOpt);
             SyntaxNode syntax = boundReturnStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundReturnStatement.WasCompilerGenerated;
-            return new CSharpLazyReturnOperation(this, returnedValue, OperationKind.Return, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ReturnOperation(returnedValue, OperationKind.Return, _semanticModel, syntax, isImplicit);
         }
 
         private IReturnOperation CreateBoundYieldReturnStatementOperation(BoundYieldReturnStatement boundYieldReturnStatement)
         {
-            BoundNode returnedValue = boundYieldReturnStatement.Expression;
+            IOperation returnedValue = Create(boundYieldReturnStatement.Expression);
             SyntaxNode syntax = boundYieldReturnStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundYieldReturnStatement.WasCompilerGenerated;
-            return new CSharpLazyReturnOperation(this, returnedValue, OperationKind.YieldReturn, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ReturnOperation(returnedValue, OperationKind.YieldReturn, _semanticModel, syntax, isImplicit);
         }
 
         private ILockOperation CreateBoundLockStatementOperation(BoundLockStatement boundLockStatement)
         {
             // If there is no Enter2 method, then there will be no lock taken reference
             bool legacyMode = _semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2) == null;
-            ILocalSymbol lockTakenSymbol =
+            ILocalSymbol? lockTakenSymbol =
                 legacyMode ? null : new SynthesizedLocal((_semanticModel.GetEnclosingSymbol(boundLockStatement.Syntax.SpanStart) as IMethodSymbol).GetSymbol(),
                                                          TypeWithAnnotations.Create(((CSharpCompilation)_semanticModel.Compilation).GetSpecialType(SpecialType.System_Boolean)),
                                                          SynthesizedLocalKind.LockTaken,
                                                          syntaxOpt: boundLockStatement.Argument.Syntax).GetPublicSymbol();
+            IOperation lockedValue = Create(boundLockStatement.Argument);
+            IOperation body = Create(boundLockStatement.Body);
             SyntaxNode syntax = boundLockStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundLockStatement.WasCompilerGenerated;
 
-            return new CSharpLazyLockOperation(this, boundLockStatement, lockTakenSymbol, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LockOperation(lockedValue, body, lockTakenSymbol, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private IInvalidOperation CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)
         {
@@ -1861,27 +1861,24 @@ namespace Microsoft.CodeAnalysis.Operations
             return variableDeclaration;
         }
 
+#nullable enable
         private ILabeledOperation CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
         {
             ILabelSymbol label = boundLabelStatement.Label.GetPublicSymbol();
-            BoundNode statement = null;
             SyntaxNode syntax = boundLabelStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundLabelStatement.WasCompilerGenerated;
-            return new CSharpLazyLabeledOperation(this, statement, label, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LabeledOperation(label, operation: null, _semanticModel, syntax, isImplicit);
         }
 
         private ILabeledOperation CreateBoundLabeledStatementOperation(BoundLabeledStatement boundLabeledStatement)
         {
             ILabelSymbol label = boundLabeledStatement.Label.GetPublicSymbol();
-            BoundNode labeledStatement = boundLabeledStatement.Body;
+            IOperation labeledStatement = Create(boundLabeledStatement.Body);
             SyntaxNode syntax = boundLabeledStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundLabeledStatement.WasCompilerGenerated;
-            return new CSharpLazyLabeledOperation(this, labeledStatement, label, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LabeledOperation(label, labeledStatement, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private IExpressionStatementOperation CreateBoundExpressionStatementOperation(BoundExpressionStatement boundExpressionStatement)
         {
@@ -2040,16 +2037,18 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyBinaryPatternOperation(this, boundBinaryPattern, _semanticModel);
         }
 
+#nullable enable
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)
         {
+            IOperation value = Create(boundSwitchStatement.Expression);
+            ImmutableArray<ISwitchCaseOperation> cases = CreateFromArray<BoundSwitchSection, ISwitchCaseOperation>(boundSwitchStatement.SwitchSections);
             ImmutableArray<ILocalSymbol> locals = boundSwitchStatement.InnerLocals.GetPublicSymbols();
             ILabelSymbol exitLabel = boundSwitchStatement.BreakLabel.GetPublicSymbol();
             SyntaxNode syntax = boundSwitchStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundSwitchStatement.WasCompilerGenerated;
-            return new CSharpLazySwitchOperation(this, boundSwitchStatement, locals, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new SwitchOperation(locals, value, cases, exitLabel, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private ISwitchCaseOperation CreateBoundSwitchSectionOperation(BoundSwitchSection boundSwitchSection)
         {

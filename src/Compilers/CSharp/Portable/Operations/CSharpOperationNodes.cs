@@ -350,24 +350,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyBlockOperation : LazyBlockOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundBlock _block;
-
-        internal CSharpLazyBlockOperation(CSharpOperationFactory operationFactory, BoundBlock block, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _block = block;
-        }
-
-        protected override ImmutableArray<IOperation> CreateOperations()
-        {
-            return _operationFactory.CreateFromArray<BoundStatement, IOperation>(_block.Statements);
-        }
-    }
-
     internal sealed class CSharpLazyCatchClauseOperation : LazyCatchClauseOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -861,24 +843,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyLabeledOperation : LazyLabeledOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _operation;
-
-        internal CSharpLazyLabeledOperation(CSharpOperationFactory operationFactory, BoundNode operation, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(label, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _operation = operation;
-        }
-
-        protected override IOperation CreateOperation()
-        {
-            return _operationFactory.Create(_operation);
-        }
-    }
-
     internal sealed class CSharpLazyAnonymousFunctionOperation : LazyAnonymousFunctionOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -930,29 +894,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateInstance()
         {
             return _operationFactory.Create(_instance);
-        }
-    }
-
-    internal sealed class CSharpLazyLockOperation : LazyLockOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundLockStatement _lockStatement;
-
-        internal CSharpLazyLockOperation(CSharpOperationFactory operationFactory, BoundLockStatement lockStatement, ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _lockStatement = lockStatement;
-        }
-
-        protected override IOperation CreateLockedValue()
-        {
-            return _operationFactory.Create(_lockStatement.Argument);
-        }
-
-        protected override IOperation CreateBody()
-        {
-            return _operationFactory.Create(_lockStatement.Body);
         }
     }
 
@@ -1172,24 +1113,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyReturnOperation : LazyReturnOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _returnedValue;
-
-        internal CSharpLazyReturnOperation(CSharpOperationFactory operationFactory, BoundNode returnedValue, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(kind, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _returnedValue = returnedValue;
-        }
-
-        protected override IOperation CreateReturnedValue()
-        {
-            return _operationFactory.Create(_returnedValue);
-        }
-    }
-
     internal sealed class CSharpLazySingleValueCaseClauseOperation : LazySingleValueCaseClauseOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -1233,57 +1156,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IOperation> CreateBody()
         {
             return _operationFactory.CreateFromArray<BoundStatement, IOperation>(_switchSection.Statements);
-        }
-    }
-
-    internal sealed class CSharpLazySwitchOperation : LazySwitchOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly IBoundSwitchStatement _switchStatement;
-
-        internal CSharpLazySwitchOperation(CSharpOperationFactory operationFactory, IBoundSwitchStatement switchStatement, ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _switchStatement = switchStatement;
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_switchStatement.Value);
-        }
-
-        protected override ImmutableArray<ISwitchCaseOperation> CreateCases()
-        {
-            return _operationFactory.CreateFromArray<BoundStatementList, ISwitchCaseOperation>(_switchStatement.Cases);
-        }
-    }
-
-    internal sealed class CSharpLazyTryOperation : LazyTryOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundTryStatement _tryStatement;
-
-        internal CSharpLazyTryOperation(CSharpOperationFactory operationFactory, BoundTryStatement tryStatement, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _tryStatement = tryStatement;
-        }
-
-        protected override IBlockOperation CreateBody()
-        {
-            return (IBlockOperation)_operationFactory.Create(_tryStatement.TryBlock);
-        }
-
-        protected override ImmutableArray<ICatchClauseOperation> CreateCatches()
-        {
-            return _operationFactory.CreateFromArray<BoundCatchBlock, ICatchClauseOperation>(_tryStatement.CatchBlocks);
-        }
-
-        protected override IBlockOperation CreateFinally()
-        {
-            return (IBlockOperation)_operationFactory.Create(_tryStatement.FinallyBlockOpt);
         }
     }
 

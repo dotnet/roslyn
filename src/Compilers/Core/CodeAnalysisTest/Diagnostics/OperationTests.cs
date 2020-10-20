@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void TestGetFlowGraphInvalidArgumentWithNonNullParent()
         {
             IOperation parent = new BlockOperation(ImmutableArray<IOperation>.Empty, ImmutableArray<ILocalSymbol>.Empty,
-                    semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: false);
+                    semanticModel: null, syntax: null, isImplicit: false);
 
             TestGetFlowGraphInvalidArgumentCore(argumentExceptionMessage: CodeAnalysisResources.NotARootOperation, parent);
         }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
                 IBlockOperation block = new BlockOperation(
                     ImmutableArray<IOperation>.Empty, ImmutableArray<ILocalSymbol>.Empty,
-                    semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: false);
+                    semanticModel: null, syntax: null, isImplicit: false);
                 block = Operation.SetParentOperation(block, parent);
                 _ = ControlFlowGraph.Create(block);
             }
