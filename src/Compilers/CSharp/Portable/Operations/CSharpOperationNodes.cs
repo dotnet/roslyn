@@ -547,24 +547,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyDelegateCreationOperation : LazyDelegateCreationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _delegateNode;
-
-        internal CSharpLazyDelegateCreationOperation(CSharpOperationFactory operationFactory, BoundNode delegateNode, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _delegateNode = delegateNode;
-        }
-
-        protected override IOperation CreateTarget()
-        {
-            return _operationFactory.CreateDelegateTargetOperation(_delegateNode);
-        }
-    }
-
     internal sealed class CSharpLazyDynamicMemberReferenceOperation : LazyDynamicMemberReferenceOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

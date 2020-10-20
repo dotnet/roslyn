@@ -699,21 +699,21 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim conversion As Conversion = conversionInfo.Conversion
 
             If conversionInfo.IsDelegateCreation Then
-                Return New DelegateCreationOperation(conversionInfo.Operation, _semanticModel, syntax, type, constantValue, isImplicit)
+                Return New DelegateCreationOperation(conversionInfo.Operation, _semanticModel, syntax, type, isImplicit)
             Else
                 Return New ConversionOperation(conversionInfo.Operation, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
         End Function
 
         Private Function CreateBoundDelegateCreationExpressionOperation(boundDelegateCreationExpression As BoundDelegateCreationExpression) As IDelegateCreationOperation
+            Dim target As IOperation = CreateBoundDelegateCreationExpressionChildOperation(boundDelegateCreationExpression)
             Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
             Dim type As ITypeSymbol = boundDelegateCreationExpression.Type
-            Dim constantValue As ConstantValue = boundDelegateCreationExpression.ConstantValueOpt
 
             ' The operand for this is going to be using the same syntax node as this, and since that node can be Explicit, this node cannot be.
             Dim isImplicit As Boolean = True
 
-            Return New VisualBasicLazyDelegateCreationOperation(Me, boundDelegateCreationExpression, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New DelegateCreationOperation(target, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Friend Function CreateBoundDelegateCreationExpressionChildOperation(boundDelegateCreationExpression As BoundDelegateCreationExpression) As IMethodReferenceOperation

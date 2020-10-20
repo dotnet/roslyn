@@ -966,7 +966,6 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundLocalFunctionStatement.WasCompilerGenerated;
             return new LocalFunctionOperation(symbol, body, ignoredBody, _semanticModel, syntax, isImplicit);
         }
-#nullable disable
 
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
@@ -975,8 +974,8 @@ namespace Microsoft.CodeAnalysis.Operations
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
                 SyntaxNode syntax = boundConversion.Syntax;
-                ITypeSymbol type = boundConversion.GetPublicTypeSymbol();
-                ConstantValue constantValue = boundConversion.ConstantValue;
+                ITypeSymbol? type = boundConversion.GetPublicTypeSymbol();
+                ConstantValue? constantValue = boundConversion.ConstantValue;
 
                 if (boundConversion.Type is FunctionPointerTypeSymbol)
                 {
@@ -989,7 +988,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
                 // overload resolution succeeded. The resulting method could be invalid for other reasons, but we don't
                 // hide the resolved method.
-                return new CSharpLazyDelegateCreationOperation(this, boundConversion, _semanticModel, syntax, type, constantValue, isImplicit);
+                IOperation target = CreateDelegateTargetOperation(boundConversion);
+                return new DelegateCreationOperation(target, _semanticModel, syntax, type, isImplicit);
             }
             else
             {
@@ -1047,8 +1047,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     }
                 }
 
-                ITypeSymbol type = boundConversion.GetPublicTypeSymbol();
-                ConstantValue constantValue = boundConversion.ConstantValue;
+                ITypeSymbol? type = boundConversion.GetPublicTypeSymbol();
+                ConstantValue? constantValue = boundConversion.ConstantValue;
 
                 // If this is a lambda or method group conversion to a delegate type, we return a delegate creation instead of a conversion
                 if ((boundOperand.Kind == BoundKind.Lambda ||
@@ -1056,7 +1056,8 @@ namespace Microsoft.CodeAnalysis.Operations
                      boundOperand.Kind == BoundKind.MethodGroup) &&
                     boundConversion.Type.IsDelegateType())
                 {
-                    return new CSharpLazyDelegateCreationOperation(this, correctedConversionNode, _semanticModel, syntax, type, constantValue, isImplicit);
+                    IOperation target = CreateDelegateTargetOperation(correctedConversionNode);
+                    return new DelegateCreationOperation(target, _semanticModel, syntax, type, isImplicit);
                 }
                 else
                 {
@@ -1067,6 +1068,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
         }
+#nullable disable
 
         private IConversionOperation CreateBoundAsOperatorOperation(BoundAsOperator boundAsOperator)
         {
@@ -1081,14 +1083,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyConversionOperation(this, operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+#nullable enable
         private IDelegateCreationOperation CreateBoundDelegateCreationExpressionOperation(BoundDelegateCreationExpression boundDelegateCreationExpression)
         {
+            IOperation target = CreateDelegateTargetOperation(boundDelegateCreationExpression);
             SyntaxNode syntax = boundDelegateCreationExpression.Syntax;
-            ITypeSymbol type = boundDelegateCreationExpression.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundDelegateCreationExpression.ConstantValue;
+            ITypeSymbol? type = boundDelegateCreationExpression.GetPublicTypeSymbol();
             bool isImplicit = boundDelegateCreationExpression.WasCompilerGenerated;
-            return new CSharpLazyDelegateCreationOperation(this, boundDelegateCreationExpression, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new DelegateCreationOperation(target, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private IMethodReferenceOperation CreateBoundMethodGroupSingleMethodOperation(BoundMethodGroup boundMethodGroup, MethodSymbol methodSymbol, bool suppressVirtualCalls)
         {

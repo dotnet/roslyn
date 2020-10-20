@@ -341,23 +341,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyDelegateCreationOperation
-        Inherits LazyDelegateCreationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _delegateCreation As BoundDelegateCreationExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, delegateCreation As BoundDelegateCreationExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _delegateCreation = delegateCreation
-        End Sub
-
-        Protected Overrides Function CreateTarget() As IOperation
-            Return _operationFactory.CreateBoundDelegateCreationExpressionChildOperation(_delegateCreation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyDynamicMemberReferenceOperation
         Inherits LazyDynamicMemberReferenceOperation
 

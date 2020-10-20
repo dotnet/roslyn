@@ -59,6 +59,7 @@ namespace IOperationGenerator
             "INameOfOperation",
             "ITupleOperation",
             "ITranslatedQueryOperation",
+            "IDelegateCreationOperation",
         };
     }
 }

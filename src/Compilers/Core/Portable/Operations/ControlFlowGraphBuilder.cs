@@ -6875,11 +6875,13 @@ oneMoreTime:
                 isImplicit: IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
         {
             return new DelegateCreationOperation(Visit(operation.Target), semanticModel: null,
-                operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                operation.Syntax, operation.Type, IsImplicit(operation));
         }
+#nullable disable
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)
         {

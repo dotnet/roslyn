@@ -1653,7 +1653,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDelegateCreationOperation" Base="IOperation">
+  <Node Name="IDelegateCreationOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a delegate creation. This is created whenever a new delegate is created.

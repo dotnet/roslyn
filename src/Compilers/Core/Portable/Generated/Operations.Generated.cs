@@ -1904,6 +1904,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Operation { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a delegate creation. This is created whenever a new delegate is created.
     /// <para>
@@ -1927,6 +1928,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Target { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents a default value operation.
@@ -5644,50 +5646,37 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTranslatedQuery(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseDelegateCreationOperation : OperationOld, IDelegateCreationOperation
+    #nullable enable
+    internal sealed partial class DelegateCreationOperation : Operation, IDelegateCreationOperation
     {
-        internal BaseDelegateCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.DelegateCreation, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Target { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal DelegateCreationOperation(IOperation target, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Target = SetParentOperation(target, this);
+            Type = type;
+        }
+        public IOperation Target { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Target is object) yield return Target;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Target is not null) builder.Add(Target);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.DelegateCreation;
         public override void Accept(OperationVisitor visitor) => visitor.VisitDelegateCreation(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDelegateCreation(this, argument);
     }
-    internal sealed partial class DelegateCreationOperation : BaseDelegateCreationOperation, IDelegateCreationOperation
-    {
-        internal DelegateCreationOperation(IOperation target, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Target = SetParentOperation(target, this);
-        }
-        public override IOperation Target { get; }
-    }
-    internal abstract partial class LazyDelegateCreationOperation : BaseDelegateCreationOperation, IDelegateCreationOperation
-    {
-        private IOperation _lazyTarget = s_unset;
-        internal LazyDelegateCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateTarget();
-        public override IOperation Target
-        {
-            get
-            {
-                if (_lazyTarget == s_unset)
-                {
-                    IOperation target = CreateTarget();
-                    SetParentOperation(target, this);
-                    Interlocked.CompareExchange(ref _lazyTarget, target, s_unset);
-                }
-                return _lazyTarget;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class DefaultValueOperation : Operation, IDefaultValueOperation
     {
@@ -8672,6 +8661,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (TranslatedQueryOperation)operation;
             return new TranslatedQueryOperation(Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, object? argument)
+        {
+            var internalOperation = (DelegateCreationOperation)operation;
+            return new DelegateCreationOperation(Visit(internalOperation.Target), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, object? argument)
         {
