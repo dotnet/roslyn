@@ -463,6 +463,8 @@ namespace Microsoft.CodeAnalysis.Completion
             builder.AddRange(displayNameToItemsMap);
             builder.Sort();
 
+            displayNameToItemsMap.Free();
+
             return CompletionList.Create(
                 finalCompletionListSpan,
                 builder.ToImmutable(),
@@ -627,13 +629,27 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private class DisplayNameToItemsMap : IEnumerable<CompletionItem>
         {
+            // We might need to handle large amount of items with import completion enabled,
+            // so use a dedicated pool to minimize array allocations.
+            private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool
+                = new(() => new(), 5);
+
             private readonly Dictionary<string, object> _displayNameToItemsMap;
             private readonly CompletionServiceWithProviders _service;
 
             public DisplayNameToItemsMap(CompletionServiceWithProviders service, int capacity)
             {
                 _service = service;
-                _displayNameToItemsMap = new(capacity);
+                _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
+#if NETCOREAPP
+                _displayNameToItemsMap.EnsureCapacity(capacity);
+#endif
+            }
+
+            public void Free()
+            {
+                _displayNameToItemsMap.Clear();
+                s_uniqueSourcesPool.Free(_displayNameToItemsMap);
             }
 
             public bool IsEmpty => _displayNameToItemsMap.Count == 0;
@@ -699,6 +715,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return GetEnumerator();
             }
         }
+
         internal TestAccessor GetTestAccessor()
             => new(this);
 
