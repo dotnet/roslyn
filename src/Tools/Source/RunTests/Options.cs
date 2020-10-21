@@ -69,6 +69,11 @@ namespace RunTests
         public TimeSpan? Timeout { get; set; }
 
         /// <summary>
+        /// Retry tests on failure 
+        /// </summary>
+        public bool Retry { get; set; }
+
+        /// <summary>
         /// Whether or not to use proc dump to monitor running processes for failures.
         /// </summary>
         public bool UseProcDump { get; set; }
@@ -129,6 +134,7 @@ namespace RunTests
             var includeHtml = false;
             var targetFramework = "net472";
             var sequential = false;
+            var retry = false;
             string? traits = null;
             string? noTraits = null;
             int? timeout = null;
@@ -155,6 +161,7 @@ namespace RunTests
                 { "display=", "Display", (Display d) => display = d },
                 { "procdumpPath=", "Path to procdump", (string s) => procDumpFilePath = s },
                 { "useProcdump", "Whether or not to use procdump", o => useProcDump = o is object },
+                { "retry", "Retry failed test a few times", o => retry = o is object },
             };
 
             List<string> assemblyList;
@@ -178,6 +185,12 @@ namespace RunTests
             if (useProcDump && string.IsNullOrEmpty(procDumpFilePath))
             {
                 Console.WriteLine($"The option 'useprocdump' was specified but 'procdumppath' was not provided");
+                return null;
+            }
+
+            if (retry && includeHtml)
+            {
+                Console.WriteLine($"Cannot specify both --retry and --html");
                 return null;
             }
 
