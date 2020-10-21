@@ -127,7 +127,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         Return
                     End If
 
-                    Dim useSemantics = info.UseSemantics
+                    Dim tree As SyntaxTree
+                    Dim useSemantics = info.UseHybridFormatting AndAlso Not isExplicitFormat
                     If useSemantics AndAlso Not isExplicitFormat Then
                         ' Avoid using semantics for formatting extremely large dirty spans without an explicit request
                         ' from the user. The "large span threshold" is 7000 lines. The 7000 line threshold is an
@@ -139,13 +140,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         Dim startCharIndex = 0
                         Dim endLineNumber = 0
                         Dim endCharIndex = 0
+                        info.SingleStatementToSemanticFormat.GetLinesAndCharacters(startLineNumber, startCharIndex, endLineNumber, endCharIndex)
+                        If endLineNumber - startLineNumber > 7000 Then
+                            useSemantics = False
+                        End If
+                        tree = _dirtyState.BaseDocument.GetSyntaxTreeSynchronously(cancellationToken)
+                        _commitFormatter.CommitRegion(info.SingleStatementToSemanticFormat, isExplicitFormat, useSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken)
+                    End If
+
+                    useSemantics = info.UseSemantics AndAlso Not info.UseHybridFormatting
+                    If useSemantics AndAlso Not isExplicitFormat Then
+                        ' same comment at above
+                        Dim startLineNumber = 0
+                        Dim startCharIndex = 0
+                        Dim endLineNumber = 0
+                        Dim endCharIndex = 0
                         info.SpanToFormat.GetLinesAndCharacters(startLineNumber, startCharIndex, endLineNumber, endCharIndex)
                         If endLineNumber - startLineNumber > 7000 Then
                             useSemantics = False
                         End If
                     End If
 
-                    Dim tree = _dirtyState.BaseDocument.GetSyntaxTreeSynchronously(cancellationToken)
+                    tree = _dirtyState.BaseDocument.GetSyntaxTreeSynchronously(cancellationToken)
                     _commitFormatter.CommitRegion(info.SpanToFormat, isExplicitFormat, useSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken)
                 End Using
             Finally
@@ -157,7 +173,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private Structure FormattingInfo
             Public UseSemantics As Boolean
+            Public UseHybridFormatting As Boolean
             Public SpanToFormat As SnapshotSpan
+            Public SingleStatementToSemanticFormat As SnapshotSpan
         End Structure
 
         Public Sub ExpandDirtyRegion(snapshotSpan As SnapshotSpan)
@@ -182,7 +200,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
             ' No matter what, we will always include the dirty span
             Dim finalSpanStart = dirtySpan.Start.Position
+            Dim hybridSpanStart = finalSpanStart
             Dim finalSpanEnd = dirtySpan.End.Position
+            Dim hybridSpanEnd = finalSpanEnd
 
             ' Find the containing statements
             Dim startingStatementInfo = ContainingStatementInfo.GetInfo(dirtySpan.Start, tree, cancellationToken)
@@ -194,8 +214,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     ' expensive semantic formatting checks.  We really just want to fix up indentation unless we are in a VB block.
                     ' In VB some constructs are not "Blocks" in the same way that they are in C#, IsExecutableBlock maps the semantics
                     ' of VB to match C# Block.
-                    formattingInfo.UseSemantics = (finalSpanStart <= startingStatementInfo.MatchingBlockConstruct.SpanStart) OrElse startingStatementInfo.MatchingBlockConstruct.Parent.IsExecutableBlock
-
+                    formattingInfo.UseSemantics = finalSpanStart <= startingStatementInfo.MatchingBlockConstruct.SpanStart
+                    formattingInfo.UseHybridFormatting = Not formattingInfo.UseSemantics AndAlso startingStatementInfo.MatchingBlockConstruct.Parent.IsExecutableBlock
+                    hybridSpanStart = dirtySpan.Start.Position
                     finalSpanStart = Math.Min(finalSpanStart, startingStatementInfo.MatchingBlockConstruct.SpanStart)
                 End If
             End If
@@ -205,6 +226,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 finalSpanEnd = Math.Max(finalSpanEnd, endingStatementInfo.TextSpan.End)
 
                 If endingStatementInfo.MatchingBlockConstruct IsNot Nothing Then
+                    hybridSpanEnd = dirtySpan.End.Position
                     finalSpanEnd = Math.Max(finalSpanEnd, endingStatementInfo.MatchingBlockConstruct.Span.End)
                 End If
             End If
@@ -217,7 +239,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' We want to include the line break into the line before
                 finalSpanStart = dirtySpan.Snapshot.GetLineFromLineNumber(startingLine.LineNumber - 1).End
             End If
-
+            If formattingInfo.UseHybridFormatting Then
+                Dim hyridStartingLine = dirtySpan.Snapshot.GetLineFromPosition(hybridSpanStart)
+                If hyridStartingLine.LineNumber = 0 Then
+                    hybridSpanStart = 0
+                Else
+                    ' We want to include the line break into the line before
+                    hybridSpanStart = dirtySpan.Snapshot.GetLineFromLineNumber(hyridStartingLine.LineNumber - 1).End
+                End If
+                formattingInfo.SingleStatementToSemanticFormat = New SnapshotSpan(dirtySpan.Snapshot, Span.FromBounds(hybridSpanStart, hybridSpanEnd))
+            End If
+            If hybridSpanStart = finalSpanStart AndAlso hybridSpanEnd = finalSpanEnd Then
+                formattingInfo.UseHybridFormatting = False
+            End If
             formattingInfo.SpanToFormat = New SnapshotSpan(dirtySpan.Snapshot, Span.FromBounds(finalSpanStart, finalSpanEnd))
             Return True
         End Function
