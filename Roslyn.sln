@@ -241,7 +241,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Resu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vbc", "src\Compilers\VisualBasic\vbc\vbc.csproj", "{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Test.Utilities", "src\Test\Utilities\Portable\Microsoft.CodeAnalysis.Test.Utilities.csproj", "{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Test.Utilities", "src\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj", "{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests", "src\Scripting\CoreTest.Desktop\Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests.csproj", "{6FD1CC3E-6A99-4736-9B8D-757992DDE75D}"
 EndProject
