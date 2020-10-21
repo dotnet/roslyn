@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     get { return true; }
                 }
 
-                public override SyntaxReference GetReference(SyntaxNode node)
+                public override SyntaxReference GetReference(SyntaxNode? node)
                 {
                     if (node != null)
                     {
