@@ -110,6 +110,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var renameTrackingSolutionSet = RenameSymbolAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document is null)
+                {
+                    return false;
+                }
+
                 var newName = _snapshotSpan.GetText();
 
                 var workspace = document.Project.Solution.Workspace;
@@ -133,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 {
                     // because changes have already been made to the workspace (UpdateWorkspaceForResetOfTypedIdentifier() above),
                     // these calls can't be cancelled and must be allowed to complete.
-                    var root = renameTrackingSolutionSet.RenamedSolution.GetDocument(docId).GetSyntaxRootSynchronously(CancellationToken.None);
+                    var root = renameTrackingSolutionSet.RenamedSolution.GetRequiredDocument(docId).GetRequiredSyntaxRootSynchronously(CancellationToken.None);
                     finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, root);
                 }
 
@@ -149,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private Solution CreateSolutionWithOriginalName(Document document, CancellationToken cancellationToken)
             {
-                var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
+                var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
                 var fullText = syntaxTree.GetText(cancellationToken);
                 var textChange = new TextChange(new TextSpan(_snapshotSpan.Start, _snapshotSpan.Length), _stateMachine.TrackingSession.OriginalName);
 
@@ -171,17 +176,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return solution;
             }
 
-            private async Task<ISymbol> TryGetSymbolAsync(Solution solutionWithOriginalName, DocumentId documentId, CancellationToken cancellationToken)
+            private async Task<ISymbol?> TryGetSymbolAsync(Solution solutionWithOriginalName, DocumentId documentId, CancellationToken cancellationToken)
             {
-                var documentWithOriginalName = solutionWithOriginalName.GetDocument(documentId);
-                var syntaxTreeWithOriginalName = await documentWithOriginalName.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var documentWithOriginalName = solutionWithOriginalName.GetRequiredDocument(documentId);
+                var syntaxTreeWithOriginalName = await documentWithOriginalName.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-                var syntaxFacts = documentWithOriginalName.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = documentWithOriginalName.GetRequiredLanguageService<ISyntaxFactsService>();
                 var semanticFacts = documentWithOriginalName.GetLanguageService<ISemanticFactsService>();
                 var semanticModel = await documentWithOriginalName.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var token = await syntaxTreeWithOriginalName.GetTouchingWordAsync(_snapshotSpan.Start, syntaxFacts, cancellationToken).ConfigureAwait(false);
                 var tokenRenameInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, token, cancellationToken);
+                if (tokenRenameInfo is null)
+                {
+                    return null;
+                }
 
                 return tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             }
