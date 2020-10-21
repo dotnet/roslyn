@@ -118,9 +118,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             switch (usingStatement.Statement)
             {
                 case BlockSyntax blockSyntax:
+                    var statements = blockSyntax.Statements;
+
+                    var openBraceTrailingTrivia = blockSyntax.OpenBraceToken.TrailingTrivia;
+                    if (openBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+                    {
+                        var firstStatement = statements.First()
+                            .WithPrependedLeadingTrivia(openBraceTrailingTrivia);
+                        statements = new SyntaxList<StatementSyntax>(statements.Skip(1).Prepend(firstStatement));
+                    }
+
+                    var closeBraceTrailingTrivia = blockSyntax.CloseBraceToken.TrailingTrivia;
+                    if (closeBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+                    {
+                        var lastStatement = statements.Last()
+                            .WithAppendedTrailingTrivia(closeBraceTrailingTrivia);
+                        statements = new SyntaxList<StatementSyntax>(statements.Take(statements.Count - 1).Append(lastStatement));
+                    }
+
                     // if we hit a block, then inline all the statements in the block into
                     // the final list of statements.
-                    result.AddRange(blockSyntax.Statements);
+                    result.AddRange(statements);
                     return blockSyntax.CloseBraceToken.LeadingTrivia;
                 case UsingStatementSyntax childUsing when childUsing.Declaration != null:
                     // If we have a directly nested using-statement, then recurse into that
@@ -142,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 usingStatement.UsingKeyword,
                 modifiers: default,
                 usingStatement.Declaration,
-                Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(ElasticCarriageReturnLineFeed);
+                Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
