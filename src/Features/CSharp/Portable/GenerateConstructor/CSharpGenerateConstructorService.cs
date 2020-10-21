@@ -280,9 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                     return CanDelegeteThisConstructor(state, document, delegatingConstructor, cancellationToken) ? delegatingConstructor : null;
                 }
             }
-            else if (oldToken.Parent is ImplicitObjectCreationExpressionSyntax)
-            {
-            }
             else
             {
                 var oldNode = oldToken.Parent
