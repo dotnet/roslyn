@@ -14,13 +14,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     [ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Editor), Shared]
-    internal sealed class VisualStudioTaskSchedulerProvider : ITaskSchedulerProvider
+    internal sealed class ThreadingContextTaskSchedulerProvider : ITaskSchedulerProvider
     {
         public TaskScheduler CurrentContextScheduler { get; }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioTaskSchedulerProvider(IThreadingContext threadingContext)
+        public ThreadingContextTaskSchedulerProvider(IThreadingContext threadingContext)
         {
             CurrentContextScheduler = threadingContext.HasMainThread
                 ? new JoinableTaskFactoryTaskScheduler(threadingContext.JoinableTaskFactory)
