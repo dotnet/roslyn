@@ -164,22 +164,25 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 if (_document.Project.Language != namedType.Language)
                     return false;
 
+                // Look for constructors in this specified type that are:
+                // 1. Non-implicit.  We don't want to add `: base()` as that's just redundant for subclasses and `:
+                //    this()` won't even work as we won't have an implicit constructor once we add this new constructor.
+                // 2. Accessible.  We obviously need our constructor to be able to call that other constructor.
+                // 3. Won't cause a cycle.  i.e. if we're generating a new constructor from an existing constructor,
+                //    then we don't want it calling back into us.
+                // 4. Are compatible with the parameters we're generating for this constructor.  Compatible means there
+                //    exists an implicit conversion from the new constructor's parameter types to the existing
+                //    constructor's parameter types.
                 var parameterTypesToMatch = ParameterTypes.Take(argumentCount).ToList();
                 var delegatedConstructor = namedType.InstanceConstructors
                     .Where(c => IsSymbolAccessible(c, _document))
                     .Where(c => !c.IsImplicitlyDeclared)
                     .Where(c => c.Parameters.Length == parameterTypesToMatch.Count)
                     .Where(c => _service.CanDelegeteThisConstructor(this, _document, c, cancellationToken))
-                    .FirstOrDefault(c => IsCompatible(c, parameterTypesToMatch));
+                    .Where(c => IsCompatible(c, parameterTypesToMatch))
+                    .FirstOrDefault();
                 if (delegatedConstructor == null)
                     return false;
-
-                var arguments = _arguments.Take(argumentCount).ToList();
-                var remainingArguments = _arguments.Skip(argumentCount).ToImmutableArray();
-                var remainingAttributeArguments = _attributeArguments != null
-                    ? _attributeArguments.Skip(argumentCount).ToImmutableArray()
-                    : (ImmutableArray<TAttributeArgumentSyntax>?)null;
-                var remainingParameterTypes = ParameterTypes.Skip(argumentCount).ToImmutableArray();
 
                 // Map the first N parameters to the other constructor in this type.  Then
                 // try to map any further parameters to existing fields.  Finally, generate
@@ -187,6 +190,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 // Find the names of the parameters that will follow the parameters we're
                 // delegating.
+                var remainingArguments = _arguments.Skip(argumentCount).ToImmutableArray();
                 var remainingParameterNames = _service.GenerateParameterNames(
                     _document.SemanticModel, remainingArguments,
                     delegatedConstructor.Parameters.Select(p => p.Name).ToList(),
@@ -196,9 +200,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // Can't generate the constructor if the parameter names we're copying over forcibly
                 // conflict with any names we generated.
                 if (delegatedConstructor.Parameters.Select(p => p.Name).Intersect(remainingParameterNames.Select(n => n.BestNameForParameter)).Any())
-                {
                     return false;
-                }
+
+                var remainingAttributeArguments = _attributeArguments != null
+                    ? _attributeArguments.Skip(argumentCount).ToImmutableArray()
+                    : (ImmutableArray<TAttributeArgumentSyntax>?)null;
+                var remainingParameterTypes = ParameterTypes.Skip(argumentCount).ToImmutableArray();
 
                 _delegatedConstructor = delegatedConstructor;
                 GetParameters(remainingArguments, remainingAttributeArguments, remainingParameterTypes, remainingParameterNames, cancellationToken);
