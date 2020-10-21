@@ -287,26 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                     .Where(node => SpeculationAnalyzer.CanSpeculateOnNode(node))
                     .LastOrDefault();
 
-                var typeNameToReplace = (TypeSyntax)oldToken.Parent;
-                TypeSyntax newTypeName;
-                if (!Equals(namedType, state.TypeToGenerateIn))
-                {
-                    while (true)
-                    {
-                        if (!(typeNameToReplace.Parent is TypeSyntax parentType))
-                        {
-                            break;
-                        }
-
-                        typeNameToReplace = parentType;
-                    }
-
-                    newTypeName = namedType.GenerateTypeSyntax().WithAdditionalAnnotations(s_annotation);
-                }
-                else
-                {
-                    newTypeName = typeNameToReplace.WithAdditionalAnnotations(s_annotation);
-                }
+                var newTypeName = GenerateConstructorInvocation(state.TypeToGenerateIn, namedType, (TypeSyntax)oldToken.Parent, out var typeNameToReplace);
 
                 var newNode = oldNode.ReplaceNode(typeNameToReplace, newTypeName);
                 newTypeName = (TypeSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
@@ -332,6 +313,37 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// We might be trying to create a base class of the original type name the user entered, so for
+        /// a normal creation expression we just find the typename part of the expression and
+        /// make sure its the type we want.
+        /// </summary>
+        private static SyntaxNode GenerateConstructorInvocation(INamedTypeSymbol typeToGenerateIn, INamedTypeSymbol namedType, TypeSyntax typeName, out TypeSyntax typeNameToReplace)
+        {
+            typeNameToReplace = typeName;
+
+            TypeSyntax newTypeName;
+            if (!Equals(namedType, typeToGenerateIn))
+            {
+                while (true)
+                {
+                    if (!(typeNameToReplace.Parent is TypeSyntax parentType))
+                    {
+                        break;
+                    }
+
+                    typeNameToReplace = parentType;
+                }
+
+                newTypeName = namedType.GenerateTypeSyntax().WithAdditionalAnnotations(s_annotation);
+            }
+            else
+            {
+                newTypeName = typeNameToReplace.WithAdditionalAnnotations(s_annotation);
+            }
+            return newTypeName;
         }
 
         private static ArgumentListSyntax GetNewArgumentList(ArgumentListSyntax oldArgumentList, int argumentCount)
