@@ -825,7 +825,7 @@ struct S
         }
 
         [Fact]
-        public void StructConstructorInitializer()
+        public void StructConstructorInitializer_UninitializedProperty()
         {
             var source = @"
 struct S1
@@ -866,6 +866,54 @@ struct S1
                 // (15,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public S1(object obj1, object obj2) : this() // 4
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("property", "Prop").WithLocation(15, 12));
+        }
+
+        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        public void StructConstructorInitializer_UninitializedField()
+        {
+            var source = @"
+struct S1
+{
+    public string field; // 0
+    public S1(string s) // 1
+    {
+        field.ToString(); // 2
+    }
+
+    public S1(object obj) : this()
+    {
+        field.ToString(); // 3
+    }
+
+    public S1(object obj1, object obj2) : this() // 4
+    {
+    }
+
+    public S1(string s1, string s2) : this(s1)
+    {
+        field.ToString();
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,19): warning CS0649: Field 'S1.field' is never assigned to, and will always have its default value null
+                //     public string field; // 0
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("S1.field", "null").WithLocation(4, 19),
+                // (5,12): error CS0171: Field 'S1.field' must be fully assigned before control is returned to the caller
+                //     public S1(string s) // 1
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.field").WithLocation(5, 12),
+                // (7,9): error CS0170: Use of possibly unassigned field 'field'
+                //         field.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "field").WithArguments("field").WithLocation(7, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         field.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(12, 9),
+                // (15,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S1(object obj1, object obj2) : this() // 4
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(15, 12)
+                );
         }
 
         [Fact, WorkItem(43215, "https://github.com/dotnet/roslyn/issues/43215")]

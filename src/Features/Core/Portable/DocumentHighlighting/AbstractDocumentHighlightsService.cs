@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)

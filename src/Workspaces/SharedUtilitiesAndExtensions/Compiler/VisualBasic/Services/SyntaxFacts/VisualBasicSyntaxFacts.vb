@@ -2226,9 +2226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Case SyntaxKind.Parameter
                     Return DeclarationKind.Parameter
                 Case SyntaxKind.FieldDeclaration
-                    If GetDeclarationCount(declaration) = 1 Then
-                        Return DeclarationKind.Field
-                    End If
+                    Return DeclarationKind.Field
                 Case SyntaxKind.LocalDeclarationStatement
                     If GetDeclarationCount(declaration) = 1 Then
                         Return DeclarationKind.Variable

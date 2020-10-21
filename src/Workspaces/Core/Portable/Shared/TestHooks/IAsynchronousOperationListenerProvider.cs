@@ -148,13 +148,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 {
                     var isCompleted = await remoteHostClient.TryInvokeAsync<IRemoteAsynchronousOperationListenerService, bool>(
                         (service, cancellationToken) => service.IsCompletedAsync(featureNames.ToImmutableArrayOrEmpty(), cancellationToken),
-                        callbackTarget: null,
                         CancellationToken.None).ConfigureAwait(false);
                     if (isCompleted.HasValue && !isCompleted.Value)
                     {
                         tasks.Add(remoteHostClient.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
                             (service, cancellationToken) => service.ExpeditedWaitAsync(featureNames.ToImmutableArrayOrEmpty(), cancellationToken),
-                            callbackTarget: null,
                             CancellationToken.None).AsTask());
                     }
                 }

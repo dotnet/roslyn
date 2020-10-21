@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return false;
         }
 
-        internal static bool TryGetWorkspace(this ITextBuffer buffer, out Workspace workspace)
+        internal static bool TryGetWorkspace(this ITextBuffer buffer, [NotNullWhen(true)] out Workspace? workspace)
             => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out workspace);
 
         /// <summary>
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         internal static bool SupportsNavigationToAnyPosition(this ITextBuffer buffer)
             => TryGetSupportsFeatureService(buffer, out var service) && service.SupportsNavigationToAnyPosition(buffer);
 
-        private static bool TryGetSupportsFeatureService(ITextBuffer buffer, out ITextBufferSupportsFeatureService service)
+        private static bool TryGetSupportsFeatureService(ITextBuffer buffer, [NotNullWhen(true)] out ITextBufferSupportsFeatureService? service)
         {
             service = null;
             if (buffer.TryGetWorkspace(out var workspace))

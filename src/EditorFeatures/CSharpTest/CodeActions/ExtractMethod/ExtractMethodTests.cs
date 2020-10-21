@@ -4204,5 +4204,30 @@ class C
     }
 }");
         }
+
+        [WorkItem(48453, "https://github.com/dotnet/roslyn/issues/48453")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestInRecord()
+        {
+            await TestInRegularAndScript1Async(@"
+record Program
+{
+    int field;
+
+    public int this[int i] => [|this.field|];
+}",
+@"
+record Program
+{
+    int field;
+
+    public int this[int i] => {|Rename:GetField|}();
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
     }
 }
