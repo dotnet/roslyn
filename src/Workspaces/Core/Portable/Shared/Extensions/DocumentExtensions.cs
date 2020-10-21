@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var currentDocumentVersion = await currentDocument.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
                 return !documentVersion.Equals(currentDocumentVersion);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

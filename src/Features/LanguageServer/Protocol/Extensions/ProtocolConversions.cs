@@ -8,8 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -218,25 +216,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 };
 
                 return location;
-            }
-        }
-
-        public static LSP.DiagnosticSeverity DiagnosticSeverityToLspDiagnositcSeverity(DiagnosticSeverity severity)
-        {
-            switch (severity)
-            {
-                // TO-DO: Add new LSP diagnostic severity for hidden diagnostics
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1063158
-                case DiagnosticSeverity.Hidden:
-                    return LSP.DiagnosticSeverity.Hint;
-                case DiagnosticSeverity.Info:
-                    return LSP.DiagnosticSeverity.Hint;
-                case DiagnosticSeverity.Warning:
-                    return LSP.DiagnosticSeverity.Warning;
-                case DiagnosticSeverity.Error:
-                    return LSP.DiagnosticSeverity.Error;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(severity);
             }
         }
 

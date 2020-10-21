@@ -17,6 +17,11 @@
         <target state="translated">包含类型“{0}”的程序集引用了 .NET Framework，而此操作不受支持。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="new">Changes must be within bounds of SourceText</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">调试过程中不允许更改程序集引用的版本:“{0}”版本改为“{1}”。</target>

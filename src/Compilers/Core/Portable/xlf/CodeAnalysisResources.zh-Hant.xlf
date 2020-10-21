@@ -17,6 +17,11 @@
         <target state="translated">包含類型 '{0}' 的組件參考了 .NET Framework，此情形不受支援。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="new">Changes must be within bounds of SourceText</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">在偵錯期間不允許變更組件參考的版本: '{0}' 已將版本變更為 '{1}'。</target>

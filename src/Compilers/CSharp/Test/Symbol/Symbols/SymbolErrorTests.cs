@@ -12980,12 +12980,12 @@ static class C
             };
 
             // in /warn:5 we diagnose "is" and "as" operators with a static type.
-            var strictComp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(5));
+            var strictComp = CreateCompilation(text);
             strictComp.VerifyDiagnostics(strictDiagnostics);
 
             // these rest of the diagnostics correspond to those produced by the native compiler.
             var regularDiagnostics = strictDiagnostics.Where(d => !d.Code.Equals((int)ErrorCode.WRN_StaticInAsOrIs)).ToArray();
-            var regularComp = CreateCompilation(text);
+            var regularComp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(4));
             regularComp.VerifyDiagnostics(regularDiagnostics);
         }
 
@@ -13185,7 +13185,7 @@ static class S
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                // new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 14, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 21 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 20 });
 
@@ -13241,6 +13241,8 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
+                // (12,14): warning CS8898: 'NS.D<T>': static types cannot be used as return types
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M").WithArguments("NS.D<T>").WithLocation(12, 14),
                 // (16,25): error CS0722: 'NS.C': static types cannot be used as return types
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "F").WithArguments("NS.C").WithLocation(16, 25),
                 // (23,29): error CS0722: 'NS.D<sbyte>': static types cannot be used as return types
@@ -13349,7 +13351,7 @@ interface I
     C this[C c] { get; set; } // 5, 6, 7
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
+            var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8897: 'C': static types cannot be used as parameters
@@ -13375,7 +13377,7 @@ interface I
                 Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(8, 24)
             );
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4));
             comp.VerifyDiagnostics();
         }
 
@@ -13685,13 +13687,13 @@ partial class C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial int f;
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial object P { get { return null; } }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial int this[int index]
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
                 // (4,17): warning CS0169: The field 'C.f' is never used
@@ -20426,7 +20428,7 @@ namespace Testspace
             var forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { ilModuleReference },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 assemblyName: "Forwarder");
 
             var csSource = @"
@@ -20491,7 +20493,7 @@ namespace UserSpace
             var forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { module1Reference, module2Reference },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 assemblyName: "Forwarder");
 
             var csSource = @"

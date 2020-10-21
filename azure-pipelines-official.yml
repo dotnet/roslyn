@@ -21,16 +21,20 @@ variables:
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
+  # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-GitHub-Versions-Repo-Write
   - ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+    - group: DotNet-GitHub-Versions-Repo-Write
     - name: _DevDivDropAccessToken
       value: $(System.AccessToken)
   # If the pipeline is running in dnceng:
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw from DotNet-VSTS-Infra-Access
   # Get $dotnetfeed-storage-access-key-1 from DotNet-Blob-Feed
   # Get $microsoft-symbol-server-pat and $symweb-symbol-server-pat from DotNet-Symbol-Server-Pats
+  # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
   - ${{ if eq(variables['System.TeamProject'], 'internal') }}:
     - group: DotNet-Blob-Feed
     - group: DotNet-Symbol-Server-Pats
+    - group: DotNet-Versions-Publish
     - group: DotNet-VSTS-Infra-Access
     - name: _DevDivDropAccessToken
       value: $(dn-bot-devdiv-drop-rw-code-rw)
@@ -162,7 +166,7 @@ stages:
       displayName: Publish Assets
       inputs:
         filePath: 'eng\publish-assets.ps1'
-        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(AccessToken-dotnet-build-bot-public-repo) -gitHubEmail $(Roslyn.GitHubEmail)'
       condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
     # Publish OptProf configuration files

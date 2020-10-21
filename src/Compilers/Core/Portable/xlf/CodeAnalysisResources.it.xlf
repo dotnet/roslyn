@@ -17,6 +17,11 @@
         <target state="translated">L'assembly che contiene il tipo '{0}' fa riferimento a .NET Framework, che non è supportato.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="new">Changes must be within bounds of SourceText</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">La modifica della versione di un riferimento ad assembly durante il debug non è consentita: '{0}' ha modificato la versione in '{1}'.</target>

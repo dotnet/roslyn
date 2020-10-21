@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (!(analyzerOptions is WorkspaceAnalyzerOptions workspaceAnalyzerOptions))
             {
-                return new ValueTask<OptionSet?>((OptionSet?)null);
+                return ValueTaskFactory.FromResult((OptionSet?)null);
             }
 
             return workspaceAnalyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken);
@@ -284,10 +284,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return ex =>
                 {
-                    if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
+                    if (ex is not OperationCanceledException && project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
                     {
-                        // if option is on, crash the host to get crash dump.
-                        FatalError.ReportUnlessCanceled(ex);
+                        // report telemetry
+                        FatalError.ReportAndPropagate(ex);
+
+                        // force fail fast (the host might not crash when reporting telemetry):
+                        FailFast.OnFatalException(ex);
                     }
 
                     return true;

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // When we are asked to flush, go actually acquire the write-scheduler and perform the actual writes from
             // it. Note: this is only called max every FlushAllDelayMS.  So we don't bother trying to avoid the delegate
             // allocation here.
-            return this.PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
+            return PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
         }
 
         private void FlushWritesOnClose()
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // cancellation.  If it runs after us, then it sees this.  If it runs before us, then we just
                     // block until it finishes.
                     //
-                    // We don't have to worry about reads/writes getting connections either.  
+                    // We don't have to worry about reads/writes getting connections either.
                     // The only way we can get disposed in the first place is if every user of this storage instance
                     // has released their ref on us. In that case, it would be an error on their part to ever try to
                     // read/write after releasing us.

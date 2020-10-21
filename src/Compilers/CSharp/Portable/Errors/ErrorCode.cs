@@ -1747,9 +1747,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InternalError = 8751,
 
-        ERR_TypelessNewIllegalTargetType = 8752,
-        ERR_TypelessNewNotValid = 8753,
-        ERR_TypelessNewNoTargetType = 8754,
+        ERR_ImplicitObjectCreationIllegalTargetType = 8752,
+        ERR_ImplicitObjectCreationNotValid = 8753,
+        ERR_ImplicitObjectCreationNoTargetType = 8754,
 
         ERR_BadFuncPointerParamModifier = 8755,
         ERR_BadFuncPointerArgCount = 8756,
@@ -1782,6 +1782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParameterDisallowsNull = 8777,
         WRN_ConstOutOfRangeChecked = 8778,
 
+        ERR_DuplicateInterfaceWithDifferencesInBaseList = 8779,
         ERR_DesignatorBeneathPatternCombinator = 8780,
         ERR_UnsupportedTypeForRelationalPattern = 8781,
         ERR_RelationalPatternWithNaN = 8782,

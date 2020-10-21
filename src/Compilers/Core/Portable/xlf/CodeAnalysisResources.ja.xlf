@@ -17,6 +17,11 @@
         <target state="translated">型 '{0}' を含むアセンブリが .NET Framework を参照しています。これはサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="new">Changes must be within bounds of SourceText</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">デバッグ中にアセンブリ参照のバージョンを変更することはできません: '{0}' のバージョンが '{1}' に変更されました。</target>

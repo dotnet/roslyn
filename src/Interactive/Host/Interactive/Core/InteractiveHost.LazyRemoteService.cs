@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     return new InitializedRemoteService(remoteService, result);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
