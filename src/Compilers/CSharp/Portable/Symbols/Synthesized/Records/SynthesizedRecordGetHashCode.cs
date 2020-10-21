@@ -47,19 +47,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             try
             {
-                if (_equalityContract.GetMethod is null)
-                {
-                    // There the equality contract isn't usable, an error was reported elsewhere
-                    F.CloseMethod(F.ThrowNull());
-                    return;
-                }
-
                 MethodSymbol? equalityComparer_GetHashCode = null;
                 MethodSymbol? equalityComparer_get_Default = null;
                 BoundExpression currentHashValue;
 
                 if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
+                    if (_equalityContract.GetMethod is null)
+                    {
+                        // The equality contract isn't usable, an error was reported elsewhere
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
                     if (_equalityContract.IsStatic)
                     {
                         F.CloseMethod(F.ThrowNull());
