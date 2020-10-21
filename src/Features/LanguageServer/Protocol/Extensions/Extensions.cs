@@ -29,7 +29,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return GetDocuments<Document>(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
         }
 
-        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri documentUri, Func<Solution, DocumentId, T> getDocument) where T : TextDocument
+        public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
+        {
+            return GetDocuments<DocumentId>(solution, documentUri, (s, i) => i);
+        }
+
+        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri documentUri, Func<Solution, DocumentId, T> getDocument)
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory

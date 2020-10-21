@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -51,31 +52,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Allows a mutating request to open a document and start it being tracked.
         /// </summary>
-        public void StartTracking(Document document, SourceText initialText)
+        public void StartTracking(Uri documentUri, SourceText initialText)
         {
             Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
 
-            _documentChangeTracker.StartTracking(document, initialText);
+            _documentChangeTracker.StartTracking(documentUri, initialText);
         }
 
         /// <summary>
         /// Allows a mutating request to update the contents of a tracked document.
         /// </summary>
-        public void UpdateTrackedDocument(Document document, SourceText changedText)
+        public void UpdateTrackedDocument(Uri documentUri, SourceText changedText)
         {
             Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
 
-            _documentChangeTracker.UpdateTrackedDocument(document, changedText);
+            _documentChangeTracker.UpdateTrackedDocument(documentUri, changedText);
         }
 
         /// <summary>
         /// Allows a mutating request to close a document and stop it being tracked.
         /// </summary>
-        public void StopTracking(Document document)
+        public void StopTracking(Uri documentUri)
         {
             Contract.ThrowIfNull(_documentChangeTracker, "Mutating documents not allowed in a non-mutating request handler");
 
-            _documentChangeTracker.StopTracking(document);
+            _documentChangeTracker.StopTracking(documentUri);
         }
     }
 }

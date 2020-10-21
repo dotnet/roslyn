@@ -6,7 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
@@ -35,11 +38,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             await DidOpen(queue, workspace.CurrentSolution, CreateDidOpenTextDocumentParams(caretLocation, documentText));
 
             var trackedDocuments = queue.GetTestAccessor().GetTrackedTexts();
-            Assert.Equal(2, trackedDocuments.Count);
+            Assert.Equal(1, trackedDocuments.Count);
 
-            foreach (var document in trackedDocuments)
+            var solution = await GetLSPSolution(queue, caretLocation.Uri);
+
+            foreach (var document in solution.Projects.First().Documents)
             {
-                Assert.Equal(documentText, document.ToString());
+                Assert.Equal(documentText, document.GetTextSynchronously(CancellationToken.None).ToString());
             }
 
             await DidClose(queue, workspace.CurrentSolution, CreateDidCloseTextDocumentParams(caretLocation));
@@ -83,19 +88,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             var queue = CreateRequestQueue(workspace.CurrentSolution);
             await DidOpen(queue, workspace.CurrentSolution, CreateDidOpenTextDocumentParams(caretLocation, initialText));
 
-            Assert.Equal(2, queue.GetTestAccessor().GetTrackedTexts().Count);
+            Assert.Equal(1, queue.GetTestAccessor().GetTrackedTexts().Count);
 
             await DidChange(queue, workspace.CurrentSolution, CreateDidChangeTextDocumentParams(caretLocation.Uri, (4, 8, "// hi there")));
 
-            var trackedDocuments = queue.GetTestAccessor().GetTrackedTexts();
-            foreach (var document in trackedDocuments)
+            var solution = await GetLSPSolution(queue, caretLocation.Uri);
+
+            foreach (var document in solution.Projects.First().Documents)
             {
-                Assert.Equal(updatedText, document.ToString());
+                Assert.Equal(updatedText, document.GetTextSynchronously(CancellationToken.None).ToString());
             }
 
             await DidClose(queue, workspace.CurrentSolution, CreateDidCloseTextDocumentParams(caretLocation));
 
             Assert.Empty(queue.GetTestAccessor().GetTrackedTexts());
+        }
+
+        private static Task<Solution> GetLSPSolution(Handler.RequestExecutionQueue queue, Uri uri)
+        {
+            return queue.ExecuteAsync(false, new GetLSPSolutionHandler(), uri, new ClientCapabilities(), null, CancellationToken.None);
+        }
+
+        private class GetLSPSolutionHandler : IRequestHandler<Uri, Solution>
+        {
+            public TextDocumentIdentifier? GetTextDocumentIdentifier(Uri request)
+                => new TextDocumentIdentifier { Uri = request };
+
+            public Task<Solution> HandleRequestAsync(Uri request, RequestContext context, CancellationToken cancellationToken)
+                => Task.FromResult(context.Solution);
         }
     }
 }

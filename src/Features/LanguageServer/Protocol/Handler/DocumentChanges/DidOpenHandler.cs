@@ -17,29 +17,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
     [ExportLspMethod(LSP.Methods.TextDocumentDidOpenName, mutatesSolutionState: true)]
     internal class DidOpenHandler : IRequestHandler<LSP.DidOpenTextDocumentParams, object?>
     {
-        private readonly ILspSolutionProvider _solutionProvider;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DidOpenHandler(ILspSolutionProvider solutionProvider)
+        public DidOpenHandler()
         {
-            _solutionProvider = solutionProvider;
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => null;
 
         public Task<object?> HandleRequestAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var documents = _solutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
-            Contract.ThrowIfTrue(documents.IsEmpty);
-
             // Add the document and ensure the text we have matches whats on the client
             var sourceText = SourceText.From(request.TextDocument.Text);
 
-            foreach (var document in documents)
-            {
-                context.StartTracking(document, sourceText);
-            }
+            context.StartTracking(request.TextDocument.Uri, sourceText);
 
             return SpecializedTasks.Default<object>();
         }

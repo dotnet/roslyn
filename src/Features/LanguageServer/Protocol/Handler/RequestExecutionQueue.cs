@@ -281,15 +281,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         private Solution GetSolutionWithReplacedDocuments(Solution solution)
         {
-            foreach (var (id, text) in _documentChangeTracker.GetTrackedDocuments())
+            foreach (var (uri, text) in _documentChangeTracker.GetTrackedDocuments())
             {
-                // We are tracking documents from multiple solutions, so this might not be one we care about
-                if (!solution.ContainsDocument(id))
-                {
-                    continue;
-                }
+                var documentIds = solution.GetDocumentIds(uri);
 
-                solution = solution.WithDocumentText(id, text);
+                // We are tracking documents from multiple solutions, so this might not be one we care about
+                if (!documentIds.IsEmpty)
+                {
+                    solution = solution.WithDocumentText(documentIds, text);
+                }
             }
 
             return solution;

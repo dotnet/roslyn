@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,37 +21,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         internal class DocumentChangeTracker : IWorkspaceService
         {
-            private readonly Dictionary<(Workspace Workspace, DocumentId Id), SourceText> _trackedDocuments = new();
+            private readonly Dictionary<Uri, SourceText> _trackedDocuments = new();
 
-            internal void StartTracking(Document document, SourceText initialText)
+            internal void StartTracking(Uri documentUri, SourceText initialText)
             {
-                var key = (document.Project.Solution.Workspace, document.Id);
+                Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(documentUri), "didOpen received for an already open document.");
 
-                Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(key), "didOpen received for an already open document.");
-
-                _trackedDocuments.Add(key, initialText);
+                _trackedDocuments.Add(documentUri, initialText);
             }
 
-            internal void UpdateTrackedDocument(Document document, SourceText text)
+            internal void UpdateTrackedDocument(Uri documentUri, SourceText text)
             {
-                var key = (document.Project.Solution.Workspace, document.Id);
+                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), "didChange received for a document that isn't open.");
 
-                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(key), "didChange received for a document that isn't open.");
-
-                _trackedDocuments[key] = text;
+                _trackedDocuments[documentUri] = text;
             }
 
-            internal void StopTracking(Document document)
+            internal void StopTracking(Uri documentUri)
             {
-                var key = (document.Project.Solution.Workspace, document.Id);
+                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), "didClose received for a document that isn't open.");
 
-                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(key), "didClose received for a document that isn't open.");
-
-                _trackedDocuments.Remove(key);
+                _trackedDocuments.Remove(documentUri);
             }
 
-            internal IEnumerable<(DocumentId Id, SourceText Text)> GetTrackedDocuments()
-                => _trackedDocuments.Select(k => (k.Key.Id, k.Value));
+            internal IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
+                => _trackedDocuments.Select(k => (k.Key, k.Value));
         }
 
         internal TestAccessor GetTestAccessor()
