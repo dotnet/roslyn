@@ -2,17 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.Internal.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -27,35 +22,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [AppliesToProject("(CSharp | VisualBasic) & !CPS")] // in the CPS case, the Analyzers folder is created by the project system
     internal class AnalyzersFolderItemProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
     {
-        // NOTE: the IComponentModel is used here rather than importing ISolutionExplorerWorkspaceProvider directly
-        // to avoid loading VisualStudioWorkspace and dependent assemblies directly
-        private readonly IComponentModel _componentModel;
         private readonly IAnalyzersCommandHandler _commandHandler;
-        private IHierarchyItemToProjectIdMap _projectMap;
-        private Workspace _workspace;
+        private IHierarchyItemToProjectIdMap? _projectMap;
+        private readonly Workspace _workspace;
 
-        [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [ImportingConstructor]
         public AnalyzersFolderItemProvider(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            VisualStudioWorkspace workspace,
             [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler)
         {
-            _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-            _commandHandler = commandHandler;
-        }
-
-        /// <summary>
-        /// Constructor for use only in unit tests. Bypasses MEF to set the project mapper, workspace and glyph service.
-        /// </summary>
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        internal AnalyzersFolderItemProvider(IHierarchyItemToProjectIdMap projectMap, Workspace workspace, IAnalyzersCommandHandler commandHandler)
-        {
-            _projectMap = projectMap;
             _workspace = workspace;
             _commandHandler = commandHandler;
         }
 
-        protected override IAttachedCollectionSource CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
+        protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
         {
             if (item != null &&
                 item.HierarchyIdentity != null &&
@@ -68,22 +49,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
                 if (projectTreeCapabilities.Any(c => c.Equals("References")))
                 {
-                    return CreateCollectionSourceCore(item.Parent, item);
+                    var hierarchyMapper = TryGetProjectMap();
+                    if (hierarchyMapper != null &&
+                        hierarchyMapper.TryGetProjectId(item.Parent, targetFrameworkMoniker: null, projectId: out var projectId))
+                    {
+                        return new AnalyzersFolderItemSource(_workspace, projectId, item, _commandHandler);
+                    }
+
+                    return null;
                 }
-            }
-
-            return null;
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private IAttachedCollectionSource CreateCollectionSourceCore(IVsHierarchyItem parentItem, IVsHierarchyItem item)
-        {
-            var hierarchyMapper = TryGetProjectMap();
-            if (hierarchyMapper != null &&
-                hierarchyMapper.TryGetProjectId(parentItem, targetFrameworkMoniker: null, projectId: out var projectId))
-            {
-                var workspace = TryGetWorkspace();
-                return new AnalyzersFolderItemSource(workspace, projectId, item, _commandHandler);
             }
 
             return null;
@@ -102,31 +76,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private Workspace TryGetWorkspace()
+        private IHierarchyItemToProjectIdMap? TryGetProjectMap()
         {
-            if (_workspace == null)
-            {
-                var provider = _componentModel.DefaultExportProvider.GetExportedValueOrDefault<ISolutionExplorerWorkspaceProvider>();
-                if (provider != null)
-                {
-                    _workspace = provider.GetWorkspace();
-                }
-            }
-
-            return _workspace;
-        }
-
-        private IHierarchyItemToProjectIdMap TryGetProjectMap()
-        {
-            var workspace = TryGetWorkspace();
-            if (workspace == null)
-            {
-                return null;
-            }
-
             if (_projectMap == null)
             {
-                _projectMap = workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
+                _projectMap = _workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
             }
 
             return _projectMap;
