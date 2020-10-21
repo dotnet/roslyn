@@ -1,0 +1,3 @@
+steps:
+- powershell: echo "##vso[build.addbuildtag]auto-insertion"
+  displayName: Tag for auto-insertion

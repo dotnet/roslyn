@@ -9,6 +9,12 @@ trigger:
     - doc/
     - '*.md'
     - .vscode/
+#schedules:
+#- cron: "0 3 * * *" # Daily @ 8 PM PST
+#  displayName: Daily vs-insertion
+#  branches:
+#    include:
+#    - microbuild
 
 parameters:
 - name: SignTypeSelection

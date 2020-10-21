@@ -9,6 +9,10 @@ jobs:
   steps:
   - checkout: self
     clean: true
+
+  - ${{ if eq(variables['Build.Reason'], 'Schedule') }}:
+    - template: schedule-only-steps.yml
+
   - template: install-dependencies.yml
 
   - powershell: '& (./azure-pipelines/Get-nbgv.ps1) cloud'
