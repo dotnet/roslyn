@@ -22,6 +22,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         Public Sub New()
         End Sub
 
+        Protected Overrides Function IsImplicitObjectCreation(document As SemanticDocument, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function TryInitializeImplicitObjectCreation(document As SemanticDocument, node As SyntaxNode, cancellationToken As CancellationToken, ByRef token As SyntaxToken, ByRef arguments As ImmutableArray(Of ArgumentSyntax), ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
+            token = Nothing
+            arguments = Nothing
+            typeToGenerateIn = Nothing
+            Return False
+        End Function
+
         Protected Overrides Function ContainingTypesOrSelfHasUnsafeKeyword(containingType As INamedTypeSymbol) As Boolean
             Return False
         End Function
