@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -31,6 +32,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         internal override bool IsExpandItemProvider => true;
 
+        private bool? _isImportCompletionExperimentEnabled = null;
+
+        private bool IsExperimentEnabled(Workspace workspace)
+        {
+            if (!_isImportCompletionExperimentEnabled.HasValue)
+            {
+                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
+                _isImportCompletionExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
+            }
+
+            return _isImportCompletionExperimentEnabled == true;
+        }
+
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             var cancellationToken = completionContext.CancellationToken;
@@ -50,8 +64,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var isExpandedCompletion = completionContext.Options.GetOption(CompletionServiceOptions.IsExpandedCompletion);
             if (!isExpandedCompletion)
             {
-                var isImportCompletionEnabled = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-                if (isImportCompletionEnabled == false)
+                var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
+
+                // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
+                if (importCompletionOptionValue == false ||
+                    (importCompletionOptionValue == null && !IsExperimentEnabled(document.Project.Solution.Workspace)))
                 {
                     return;
                 }

@@ -85,10 +85,6 @@ End Class]]></document>
 
             Dim testSnippetInfoService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ISnippetInfoService)(), TestVisualBasicSnippetInfoService)
             testSnippetInfoService.SetSnippetShortcuts(snippetShortcuts)
-
-            Dim newOptions = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, False)
-            state.Workspace.SetOptions(newOptions)
-
             Return state
         End Function
     End Class

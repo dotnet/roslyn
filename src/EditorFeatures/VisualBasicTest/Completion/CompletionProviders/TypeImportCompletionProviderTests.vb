@@ -22,6 +22,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
         End Function
 
+        Protected Overrides Function GetComposition() As TestComposition
+            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
+        End Function
+
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(TypeImportCompletionProvider)
         End Function
