@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
                     exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
                     _threadingContext), isThreadSafe: true);
-                    
+
             _refactorNotifyServices = exportProvider.GetExports<IRefactorNotifyService>();
         }
 
@@ -365,7 +365,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (base.TryApplyChanges(newSolution, progressTracker))
             {
-                _refactorNotifyServices.TryNotifyChangesSynchronously(this, newSolution, currentSolution);
+                _refactorNotifyServices.TryNotifyChangesSynchronously(this, newSolution, currentSolution, _foregroundObject.ThreadingContext);
                 return true;
             }
 

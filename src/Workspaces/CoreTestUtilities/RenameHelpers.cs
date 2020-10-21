@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -22,27 +23,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Utilities
 
             foreach (var document in allDocuments)
             {
-                var root = await document.GetSyntaxRootAsync(cancellationToken);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken);
                 var annotatedNodesAndTokens = root.GetAnnotatedNodesAndTokens(RenameSymbolAnnotation.RenameSymbolKind);
 
                 var annotatedNodes = annotatedNodesAndTokens.Select(nodeOrToken => nodeOrToken.IsNode ? nodeOrToken.AsNode() : nodeOrToken.AsToken().Parent);
 
-                var originalDocument = originalSolution.GetDocument(document.Id);
-                var originalSemanticModel = await originalDocument.GetSemanticModelAsync(cancellationToken);
+                var originalDocument = originalSolution.GetRequiredDocument(document.Id);
+                var originalSemanticModel = await originalDocument.GetRequiredSemanticModelAsync(cancellationToken);
                 var originalCompilation = originalSemanticModel.Compilation;
 
-                var newSemanticModel = await document.GetSemanticModelAsync(cancellationToken);
+                var newSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken);
 
                 foreach (var node in annotatedNodes)
                 {
-                    var annotation = node.GetAnnotations(RenameSymbolAnnotation.RenameSymbolKind).Single();
+                    var annotation = node!.GetAnnotations(RenameSymbolAnnotation.RenameSymbolKind).Single();
                     var originalSymbol = RenameSymbolAnnotation.ResolveSymbol(annotation, originalCompilation);
                     var newSymbol = newSemanticModel.GetDeclaredSymbol(node, cancellationToken);
 
                     Assert.NotNull(originalSymbol);
                     Assert.NotNull(newSymbol);
 
-                    var pair = (originalSymbol.ToDisplayString(), newSymbol.ToDisplayString());
+                    var pair = (originalSymbol!.ToDisplayString(), newSymbol!.ToDisplayString());
 
                     var isRemoved = remainingSymbols.Remove(pair.ToKeyValuePair());
                     if (!isRemoved)

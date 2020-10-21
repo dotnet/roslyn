@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
@@ -18,17 +19,27 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class IRefactorNotifyServiceExtensions
     {
+        /// <summary>
+        /// Calls all IRefactorNotifyService implementations TryOnBeforeGlobalSymbolRenamed, and if it succeds calls
+        /// TryOnAfterGlobalSymbolRenamed. All calls are made on the UI thread, the <see cref="ForegroundThreadAffinitizedObject"/>
+        /// is used to ensure this behavior. 
+        /// </summary>
         public static void TryNotifyChangesSynchronously(
             this IEnumerable<Lazy<IRefactorNotifyService>> refactorNotifyServices,
             Workspace workspace,
             Solution newSolution,
             Solution oldSolution,
+            IThreadingContext threadContext,
             CancellationToken cancellationToken = default)
         {
+            // TryOn{Before, After}GlobalSymbolRenamed requires calls from the foreground thread. Check that the
+            // caller is calling from the right thread before doing any work.
+            threadContext.ThrowIfNotOnUIThread();
+
             try
             {
-                var refactorNotifyTask = refactorNotifyServices.TryNotifyChangesAsync(workspace, newSolution, oldSolution, cancellationToken);
-                refactorNotifyTask.Wait();
+                var refactorNotifyTask = refactorNotifyServices.TryNotifyChangesAsync(workspace, newSolution, oldSolution, threadContext, cancellationToken);
+                refactorNotifyTask.Wait(cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -42,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             Workspace workspace,
             Solution newSolution,
             Solution oldSolution,
+            IThreadingContext threadContext,
             CancellationToken cancellationToken)
         {
             var projectChanges = newSolution.GetChanges(oldSolution).GetProjectChanges().ToImmutableArray();
@@ -70,13 +82,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                         var oldSymbol = annotation.ResolveSymbol(oldSemanticModel.Compilation);
                         Contract.ThrowIfNull(oldSymbol);
 
-                        var newSymbol = newSemanticModel.GetDeclaredSymbol(node);
+                        var newSymbol = newSemanticModel.GetDeclaredSymbol(node, cancellationToken);
                         Contract.ThrowIfNull(newSymbol);
 
                         changedSymbols.Add(oldSymbol, newSymbol);
                     }
                 }
             }
+
+            // TryOn{Before, After}GlobalSymbolRenamed requires calls from the foreground thread. 
+            await threadContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             foreach (var (oldSymbol, newSymbol) in changedSymbols)
             {

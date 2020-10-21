@@ -274,7 +274,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var currentSolution = CurrentSolution;
             if (base.TryApplyChanges(newSolution, progressTracker))
             {
-                _refactorNotifyServices.TryNotifyChangesSynchronously(this, newSolution, currentSolution);
+                var threadingContext = ExportProvider.GetExportedValue<IThreadingContext>();
+                _refactorNotifyServices.TryNotifyChangesSynchronously(this, newSolution, currentSolution, threadingContext);
                 return true;
             }
 

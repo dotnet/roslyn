@@ -430,10 +430,10 @@ namespace Test
         path: @"Test\C2.cs",
         name: @"C.cs");
 
-         return TestRenameDocument(
-                originalDocuments,
-                newDocuments,
-                RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.C2"));
+            return TestRenameDocument(
+                   originalDocuments,
+                   newDocuments,
+                   RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.C2"));
         }
 
         [Fact]
