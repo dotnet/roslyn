@@ -34,17 +34,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// We need this sempahore to ensure that we aren't making concurrent
         /// modifications to data such as _id and _definitionToId.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _semaphore = new(1);
 
-        private readonly Dictionary<DefinitionItem, int> _definitionToId =
-            new Dictionary<DefinitionItem, int>();
+        private readonly Dictionary<DefinitionItem, int> _definitionToId = new();
 
         /// <summary>
         /// Keeps track of definitions that cannot be reported without references and which we have
         /// not yet found a reference for.
         /// </summary>
-        private readonly Dictionary<int, VSReferenceItem> _definitionsWithoutReference =
-            new Dictionary<int, VSReferenceItem>();
+        private readonly Dictionary<int, VSReferenceItem> _definitionsWithoutReference = new();
 
         /// <summary>
         /// We report the results in chunks. A batch, if it contains results, is reported every 0.5s.
@@ -216,7 +214,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 }
 
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (symbol == null || symbol.Locations == null || symbol.Locations.IsEmpty)
+                if (symbol == null || symbol.Locations.IsEmpty)
                 {
                     // We couldn't find the location in metadata and it's not in any of our known documents.
                     return null;
