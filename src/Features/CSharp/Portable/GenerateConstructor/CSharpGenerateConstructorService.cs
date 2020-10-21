@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                     .Where(node => SpeculationAnalyzer.CanSpeculateOnNode(node))
                     .LastOrDefault();
 
-                var newTypeName = GetConstructorInvocationWithCorrectTypeName(state.TypeToGenerateIn, namedType, (TypeSyntax)oldToken.Parent, out var typeNameToReplace);
+                var newTypeName = GetConstructorInvocationWithCorrectTypeName(state.TypeToGenerateIn, namedType, oldToken, out var typeNameToReplace);
 
                 var newNode = oldNode.ReplaceNode(typeNameToReplace, newTypeName);
                 newTypeName = (TypeSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
@@ -313,6 +313,25 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             }
 
             return null;
+        }
+
+        private static SyntaxNode GetConstructorInvocationWithCorrectTypeName(INamedTypeSymbol typeToGenerateIn, INamedTypeSymbol desiredTypeName, SyntaxToken oldToken, out SyntaxNode nodeToReplace)
+            => oldToken.Parent is ImplicitObjectCreationExpressionSyntax implicitObjectCreation
+                ? GetConstructorInvocationWithCorrectTypeName(desiredTypeName, implicitObjectCreation, out nodeToReplace)
+                : GetConstructorInvocationWithCorrectTypeName(typeToGenerateIn, desiredTypeName, (TypeSyntax)oldToken.Parent, out nodeToReplace);
+
+        /// <summary>
+        /// We might be trying to create a base class of the original type name the user entered, and for
+        /// an implicit object creation expression, we never have a type name from the user, so just always
+        /// change to a normal creation expression to force the type we want.
+        /// </summary>
+        private static SyntaxNode GetConstructorInvocationWithCorrectTypeName(INamedTypeSymbol desiredTypeName, ImplicitObjectCreationExpressionSyntax implicitObjectCreation, out SyntaxNode nodeToReplace)
+        {
+            nodeToReplace = implicitObjectCreation;
+
+            var typeToCreate = desiredTypeName.GenerateTypeSyntax().WithAdditionalAnnotations(s_annotation);
+
+            return SyntaxFactory.ObjectCreationExpression(implicitObjectCreation.NewKeyword, typeToCreate, implicitObjectCreation.ArgumentList, implicitObjectCreation.Initializer);
         }
 
         /// <summary>
