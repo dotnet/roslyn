@@ -170,6 +170,7 @@ stages:
       condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
     # Publish OptProf configuration files
+    # The env variable is required to enable cross account access using PAT (dnceng -> devdiv)
     - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
       env:
         ARTIFACTSERVICES_DROP_PAT: $(_DevDivDropAccessToken)
@@ -280,8 +281,12 @@ stages:
       publishUsingPipelines: true
       dependsOn:	
         - OfficialBuild
-      queue:
-        name: Hosted VS2017
+      ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+        queue:
+          name: Hosted VS2017
+      ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+        pool:
+          vmImage: vs2017-win2016
 
 # We need to skip post-build stages for PR validation build, but it can only be identified by 
 # the runtime variable 'PRNumber', thus this dummy stage. Also the dummy job is required
