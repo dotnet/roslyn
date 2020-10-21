@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     .Where(c => IsSymbolAccessible(c, _document))
                     .Where(c => !c.IsImplicitlyDeclared)
                     .Where(c => c.Parameters.Length == parameterTypesToMatch.Count)
-                    .Where(c => _service.CanDelegeteThisConstructor(this, _document, c, cancellationToken))
+                    .Where(c => _service.CanDelegateThisConstructor(this, _document, c, cancellationToken))
                     .Where(c => IsCompatible(c, parameterTypesToMatch))
                     .FirstOrDefault();
                 if (delegatedConstructor == null)
