@@ -191,7 +191,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                 If startingStatementInfo.MatchingBlockConstruct IsNot Nothing Then
                     ' If we're expanding backwards because of editing an end construct, we don't wan to run
-                    ' expensive semantic formatting checks.  We really just want to fix up indentation.
+                    ' expensive semantic formatting checks.  We really just want to fix up indentation unless we are in a VB block.
+                    ' In VB some constructs are not "Blocks" in the same way that they are in C#, IsExecutableBlock maps the semantics
+                    ' of VB to match C# Block.
                     formattingInfo.UseSemantics = (finalSpanStart <= startingStatementInfo.MatchingBlockConstruct.SpanStart) OrElse startingStatementInfo.MatchingBlockConstruct.Parent.IsExecutableBlock
 
                     finalSpanStart = Math.Min(finalSpanStart, startingStatementInfo.MatchingBlockConstruct.SpanStart)
