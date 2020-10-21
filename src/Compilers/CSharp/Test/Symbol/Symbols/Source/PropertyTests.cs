@@ -2499,24 +2499,24 @@ End Class";
             Assert.Equal(interfacePropertyGetter, classPropertyGetter.ExplicitInterfaceImplementations.Single());
             Assert.Equal(interfacePropertySetter, classPropertySetter.ExplicitInterfaceImplementations.Single());
 
-            var typeDef = (Microsoft.Cci.ITypeDefinition)@class;
+            var typeDef = (Microsoft.Cci.ITypeDefinition)@class.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(2, explicitOverrides.Count());
-            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
+            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType.GetInternalSymbol())));
 
             // We're not actually asserting that the overrides are in this order - set comparison just seems like overkill for two elements
             var getterOverride = explicitOverrides.First();
-            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod);
-            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context));
+            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context).GetInternalSymbol());
             Assert.Equal(interfacePropertyGetter.Name, getterOverride.ImplementedMethod.Name);
 
             var setterOverride = explicitOverrides.Last();
-            Assert.Equal(classPropertySetter, setterOverride.ImplementingMethod);
-            Assert.Equal(interfacePropertySetter.ContainingType, setterOverride.ImplementedMethod.GetContainingType(context));
+            Assert.Equal(classPropertySetter, setterOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfacePropertySetter.ContainingType, setterOverride.ImplementedMethod.GetContainingType(context).GetInternalSymbol());
             Assert.Equal(interfacePropertySetter.Name, setterOverride.ImplementedMethod.Name);
             context.Diagnostics.Verify();
         }
@@ -2537,19 +2537,19 @@ End Class";
 
             Assert.Equal(interfacePropertyGetter, classPropertyGetter.ExplicitInterfaceImplementations.Single());
 
-            var typeDef = (Microsoft.Cci.ITypeDefinition)@class;
+            var typeDef = (Microsoft.Cci.ITypeDefinition)@class.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(1, explicitOverrides.Count());
-            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
+            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType.GetInternalSymbol())));
 
             // We're not actually asserting that the overrides are in this order - set comparison just seems like overkill for two elements
             var getterOverride = explicitOverrides.Single();
-            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod);
-            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context));
+            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context).GetInternalSymbol());
             Assert.Equal(interfacePropertyGetter.Name, getterOverride.ImplementedMethod.Name);
         }
 

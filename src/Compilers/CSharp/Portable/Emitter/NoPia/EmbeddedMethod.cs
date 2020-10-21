@@ -15,7 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedMethod : EmbeddedTypesManager.CommonEmbeddedMethod
     {
-        public EmbeddedMethod(EmbeddedType containingType, MethodSymbol underlyingMethod) :
+        public EmbeddedMethod(EmbeddedType containingType,
+#if DEBUG
+            MethodSymbolAdapter
+#else
+            MethodSymbol
+#endif
+                underlyingMethod) :
             base(containingType, underlyingMethod)
         {
         }
@@ -30,24 +36,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return UnderlyingMethod.GetCustomAttributesToEmit(moduleBuilder);
+            return UnderlyingMethod.AdaptedSymbol.GetCustomAttributesToEmit(moduleBuilder);
         }
 
         protected override ImmutableArray<EmbeddedParameter> GetParameters()
         {
-            return EmbeddedTypesManager.EmbedParameters(this, UnderlyingMethod.Parameters);
+            return EmbeddedTypesManager.EmbedParameters(this, UnderlyingMethod.AdaptedMethodSymbol.Parameters);
         }
 
         protected override ImmutableArray<EmbeddedTypeParameter> GetTypeParameters()
         {
-            return UnderlyingMethod.TypeParameters.SelectAsArray((t, m) => new EmbeddedTypeParameter(m, t), this);
+            return UnderlyingMethod.AdaptedMethodSymbol.TypeParameters.SelectAsArray((t, m) => new EmbeddedTypeParameter(m, t.GetCciAdapter()), this);
         }
 
         protected override bool IsAbstract
         {
             get
             {
-                return UnderlyingMethod.IsAbstract;
+                return UnderlyingMethod.AdaptedMethodSymbol.IsAbstract;
             }
         }
 
@@ -55,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.IsAccessCheckedOnOverride;
+                return UnderlyingMethod.AdaptedMethodSymbol.IsAccessCheckedOnOverride;
             }
         }
 
@@ -63,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.MethodKind == MethodKind.Constructor;
+                return UnderlyingMethod.AdaptedMethodSymbol.MethodKind == MethodKind.Constructor;
             }
         }
 
@@ -71,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.IsExternal;
+                return UnderlyingMethod.AdaptedMethodSymbol.IsExternal;
             }
         }
 
@@ -79,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return !UnderlyingMethod.HidesBaseMethodsByName;
+                return !UnderlyingMethod.AdaptedMethodSymbol.HidesBaseMethodsByName;
             }
         }
 
@@ -87,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.IsMetadataNewSlot();
+                return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataNewSlot();
             }
         }
 
@@ -95,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.GetDllImportData();
+                return UnderlyingMethod.AdaptedMethodSymbol.GetDllImportData();
             }
         }
 
@@ -103,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.HasRuntimeSpecialName;
+                return UnderlyingMethod.AdaptedMethodSymbol.HasRuntimeSpecialName;
             }
         }
 
@@ -111,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.HasSpecialName;
+                return UnderlyingMethod.AdaptedMethodSymbol.HasSpecialName;
             }
         }
 
@@ -119,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.IsMetadataFinal;
+                return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataFinal;
             }
         }
 
@@ -127,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.IsStatic;
+                return UnderlyingMethod.AdaptedMethodSymbol.IsStatic;
             }
         }
 
@@ -135,20 +141,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.IsMetadataVirtual();
+                return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataVirtual();
             }
         }
 
         protected override System.Reflection.MethodImplAttributes GetImplementationAttributes(EmitContext context)
         {
-            return UnderlyingMethod.ImplementationAttributes;
+            return UnderlyingMethod.AdaptedMethodSymbol.ImplementationAttributes;
         }
 
         protected override bool ReturnValueIsMarshalledExplicitly
         {
             get
             {
-                return UnderlyingMethod.ReturnValueIsMarshalledExplicitly;
+                return UnderlyingMethod.AdaptedMethodSymbol.ReturnValueIsMarshalledExplicitly;
             }
         }
 
@@ -156,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.ReturnValueMarshallingInformation;
+                return UnderlyingMethod.AdaptedMethodSymbol.ReturnValueMarshallingInformation;
             }
         }
 
@@ -164,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.ReturnValueMarshallingDescriptor;
+                return UnderlyingMethod.AdaptedMethodSymbol.ReturnValueMarshallingDescriptor;
             }
         }
 
@@ -172,20 +178,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return PEModuleBuilder.MemberVisibility(UnderlyingMethod);
+                return PEModuleBuilder.MemberVisibility(UnderlyingMethod.AdaptedMethodSymbol);
             }
         }
 
         protected override string Name
         {
-            get { return UnderlyingMethod.MetadataName; }
+            get { return UnderlyingMethod.AdaptedMethodSymbol.MetadataName; }
         }
 
         protected override bool AcceptsExtraArguments
         {
             get
             {
-                return UnderlyingMethod.IsVararg;
+                return UnderlyingMethod.AdaptedMethodSymbol.IsVararg;
             }
         }
 
@@ -201,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.ContainingNamespace;
+                return UnderlyingMethod.AdaptedMethodSymbol.ContainingNamespace.GetCciAdapter();
             }
         }
     }

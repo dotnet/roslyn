@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal sealed class TokenMap
     {
         private readonly ConcurrentDictionary<IReferenceOrISignature, uint> _itemIdentityToToken = new();
-        private readonly Dictionary<IReferenceOrISignatureEquivalent, uint> _itemEquivalentToToken = new();
         private object[] _items = Array.Empty<object>();
         private int _count = 0;
 
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return token;
             }
 
-            return AddItem(new IReferenceOrISignatureEquivalent(item), out referenceAdded);
+            return AddItem(new IReferenceOrISignature(item), out referenceAdded);
         }
 
         public uint GetOrAddTokenFor(ISignature item, out bool referenceAdded)
@@ -48,22 +47,22 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return token;
             }
 
-            return AddItem(new IReferenceOrISignatureEquivalent(item), out referenceAdded);
+            return AddItem(new IReferenceOrISignature(item), out referenceAdded);
         }
 
-        private uint AddItem(IReferenceOrISignatureEquivalent item, out bool referenceAdded)
+        private uint AddItem(IReferenceOrISignature item, out bool referenceAdded)
         {
             uint token;
             // NOTE: cannot use GetOrAdd here since items and itemToToken must be in sync
             // so if we do need to add we have to take a lock and modify both collections.
-            lock (_itemEquivalentToToken)
+            lock (_itemIdentityToToken)
             {
-                // Check if there is an equivalent type that has a token
-                if (!_itemEquivalentToToken.TryGetValue(item, out token))
+                if (!_itemIdentityToToken.TryGetValue(item, out token))
                 {
                     token = (uint)_count;
-                    // No equivalent, add the token for this type
-                    _itemEquivalentToToken.Add(item, token);
+                    // Add the token for this type
+                    referenceAdded = _itemIdentityToToken.TryAdd(item, token);
+                    Debug.Assert(referenceAdded);
 
                     var count = (int)token + 1;
                     var items = _items;
@@ -83,10 +82,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                     Volatile.Write(ref _count, count);
                 }
+                else
+                {
+                    referenceAdded = false;
+                }
             }
 
-            // Use the provided token to update the reference dictionary
-            referenceAdded = _itemIdentityToToken.TryAdd(item, token);
             return token;
         }
 
