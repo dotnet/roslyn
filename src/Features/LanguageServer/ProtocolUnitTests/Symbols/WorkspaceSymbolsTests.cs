@@ -4,9 +4,11 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -32,6 +34,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(workspace.CurrentSolution, "A").ConfigureAwait(false);
+            AssertJsonEquals(expected, results);
+        }
+
+        [Fact]
+        public async Task TestGetWorkspaceSymbolsAsync_Class_Streaming()
+        {
+            var markup =
+@"class {|class:A|}
+{
+    void M()
+    {
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var expected = new LSP.SymbolInformation[]
+            {
+                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].Single())
+            };
+
+            using var progress = BufferedProgress.Create<LSP.SymbolInformation>(null);
+
+            var results = await RunGetWorkspaceSymbolsAsync(workspace.CurrentSolution, "A", progress).ConfigureAwait(false);
+
+            Assert.Empty(results);
+
+            results = progress.GetValues().ToArray();
+
             AssertJsonEquals(expected, results);
         }
 
@@ -151,11 +180,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             Assert.Empty(results);
         }
 
-        private static async Task<LSP.SymbolInformation[]> RunGetWorkspaceSymbolsAsync(Solution solution, string query)
+        private static async Task<LSP.SymbolInformation[]> RunGetWorkspaceSymbolsAsync(Solution solution, string query, IProgress<LSP.SymbolInformation[]> progress = null)
         {
             var request = new LSP.WorkspaceSymbolParams
             {
-                Query = query
+                Query = query,
+                PartialResultToken = progress
             };
 
             var queue = CreateRequestQueue(solution);

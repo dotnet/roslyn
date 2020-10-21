@@ -104,6 +104,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => new ValueTask<bool>(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+            => ValueTaskFactory.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
     }
 }
