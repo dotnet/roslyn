@@ -240,6 +240,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             AssertIsForeground();
 
+            // Don't execute in cloud environment, should be handled by LSP
+            if (subjectBuffer.IsInCloudEnvironmentClientContext())
+            {
+                return false;
+            }
+
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
