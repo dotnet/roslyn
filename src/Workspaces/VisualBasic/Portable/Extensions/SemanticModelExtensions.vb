@@ -45,20 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GenerateParameterNames(semanticModel As SemanticModel,
                                                arguments As IList(Of ArgumentSyntax),
-                                               reservedNames As IEnumerable(Of String),
-                                               parameterNamingRule As NamingRule,
-                                               cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
-            reservedNames = If(reservedNames, SpecializedCollections.EmptyEnumerable(Of String))
-            Return semanticModel.GenerateParameterNames(
-                arguments,
-                Function(s) Not reservedNames.Any(Function(n) CaseInsensitiveComparison.Equals(s, n)),
-                parameterNamingRule,
-                cancellationToken)
-        End Function
-
-        <Extension()>
-        Public Function GenerateParameterNames(semanticModel As SemanticModel,
-                                               arguments As IList(Of ArgumentSyntax),
                                                canUse As Func(Of String, Boolean),
                                                cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
             If arguments.Count = 0 Then

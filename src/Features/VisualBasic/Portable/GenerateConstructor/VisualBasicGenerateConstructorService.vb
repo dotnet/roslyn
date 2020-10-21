@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     <ExportLanguageService(GetType(IGenerateConstructorService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicGenerateConstructorService
-        Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ArgumentSyntax, AttributeSyntax)
+        Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ExpressionSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
             Return False
         End Function
 
-        Protected Overrides Function TryInitializeImplicitObjectCreation(document As SemanticDocument, node As SyntaxNode, cancellationToken As CancellationToken, ByRef token As SyntaxToken, ByRef arguments As ImmutableArray(Of ArgumentSyntax), ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
+        Protected Overrides Function TryInitializeImplicitObjectCreation(document As SemanticDocument, node As SyntaxNode, cancellationToken As CancellationToken, ByRef token As SyntaxToken, ByRef arguments As ImmutableArray(Of Argument), ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
             token = Nothing
             arguments = Nothing
             typeToGenerateIn = Nothing
@@ -37,33 +37,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
             Return False
         End Function
 
-        Protected Overrides Function GenerateNameForArgument(semanticModel As SemanticModel, argument As ArgumentSyntax, cancellationToken As CancellationToken) As String
-            Return semanticModel.GenerateNameForArgument(argument, cancellationToken)
-        End Function
-
-        Protected Overrides Function GenerateParameterNames(
-                semanticModel As SemanticModel,
-                arguments As IEnumerable(Of ArgumentSyntax),
-                reservedNames As IList(Of String),
-                parameterNamingRule As NamingRule,
-                cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
-            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames, parameterNamingRule, cancellationToken)
+        Protected Overrides Function GenerateNameForExpression(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As String
+            Return semanticModel.GenerateNameForExpression(expression, capitalize:=False, cancellationToken)
         End Function
 
         Protected Overrides Function GetArgumentType(
                 semanticModel As SemanticModel,
-                argument As ArgumentSyntax,
+                argument As Argument,
                 cancellationToken As CancellationToken) As ITypeSymbol
-            Return argument.DetermineType(semanticModel, cancellationToken)
-        End Function
-
-        Protected Overrides Function GetRefKind(argument As ArgumentSyntax) As RefKind
-            ' TODO(cyrusn): If the argument is a parameter, then consider copying over its refkind.
-            Return RefKind.None
-        End Function
-
-        Protected Overrides Function IsNamedArgument(argument As ArgumentSyntax) As Boolean
-            Return argument.IsNamed
+            Return argument.Expression.DetermineType(semanticModel, cancellationToken)
         End Function
 
         Protected Overrides Function IsConstructorInitializerGeneration(document As SemanticDocument, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
@@ -73,8 +55,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         End Function
 
         Protected Overrides Function TryInitializeConstructorInitializerGeneration(
-                document As SemanticDocument, node As SyntaxNode, cancellationToken As CancellationToken,
-                ByRef token As SyntaxToken, ByRef arguments As ImmutableArray(Of ArgumentSyntax), ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
+                document As SemanticDocument,
+                node As SyntaxNode,
+                cancellationToken As CancellationToken,
+                ByRef token As SyntaxToken,
+                ByRef arguments As ImmutableArray(Of Argument),
+                ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
             Dim simpleName = DirectCast(node, SimpleNameSyntax)
             Dim memberAccess = DirectCast(simpleName.Parent, MemberAccessExpressionSyntax)
             Dim invocation = DirectCast(memberAccess.Parent, InvocationExpressionSyntax)
@@ -84,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
                 If containingType IsNot Nothing Then
                     token = simpleName.Identifier
-                    arguments = invocation.ArgumentList.Arguments.ToImmutableArray()
+                    arguments = GetArguments(invocation.ArgumentList.Arguments)
                     typeToGenerateIn = If(memberAccess.Expression.IsKind(SyntaxKind.MyBaseExpression),
                                           containingType.BaseType,
                                           containingType)
@@ -108,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 node As SyntaxNode,
                 cancellationToken As CancellationToken,
                 ByRef token As SyntaxToken,
-                ByRef arguments As ImmutableArray(Of ArgumentSyntax),
+                ByRef arguments As ImmutableArray(Of Argument),
                 ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
 
             Dim simpleName = DirectCast(node, SimpleNameSyntax)
@@ -123,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                     Dim semanticModel = document.SemanticModel
 
                     token = simpleName.Identifier
-                    arguments = objectCreationExpression.ArgumentList.Arguments.ToImmutableArray()
+                    arguments = GetArguments(objectCreationExpression.ArgumentList.Arguments)
 
                     Dim symbolInfo = semanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken)
                     typeToGenerateIn = TryCast(symbolInfo.GetAnySymbol(), INamedTypeSymbol)
@@ -143,8 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 node As SyntaxNode,
                 cancellationToken As CancellationToken,
                 ByRef token As SyntaxToken,
-                ByRef arguments As ImmutableArray(Of ArgumentSyntax),
-                ByRef attributeArguments As ImmutableArray(Of AttributeSyntax),
+                ByRef arguments As ImmutableArray(Of Argument),
                 ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
 
             Dim simpleName = DirectCast(node, SimpleNameSyntax)
@@ -159,8 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                     Dim symbolInfo = document.SemanticModel.GetSymbolInfo(attribute, cancellationToken)
                     If symbolInfo.CandidateReason = CandidateReason.OverloadResolutionFailure AndAlso Not symbolInfo.CandidateSymbols.IsEmpty Then
                         token = simpleName.Identifier
-                        arguments = attribute.ArgumentList.Arguments.ToImmutableArray()
-                        attributeArguments = Nothing
+                        arguments = GetArguments(attribute.ArgumentList.Arguments)
                         typeToGenerateIn = TryCast(symbolInfo.CandidateSymbols.FirstOrDefault().ContainingSymbol, INamedTypeSymbol)
 
                         Return typeToGenerateIn IsNot Nothing
@@ -172,6 +156,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
             arguments = Nothing
             typeToGenerateIn = Nothing
             Return False
+        End Function
+
+        Private Shared Function GetArguments(arguments As SeparatedSyntaxList(Of ArgumentSyntax)) As ImmutableArray(Of Argument)
+            Return arguments.SelectAsArray(Function(a) New Argument(RefKind.None, TryCast(a, SimpleArgumentSyntax)?.NameColonEquals?.Name.Identifier.ValueText, a.GetArgumentExpression()))
         End Function
 
         Protected Overrides Function IsConversionImplicit(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean

@@ -5,24 +5,22 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 {
     [ExportLanguageService(typeof(IGenerateConstructorService), LanguageNames.CSharp), Shared]
-    internal class CSharpGenerateConstructorService : AbstractGenerateConstructorService<CSharpGenerateConstructorService, ArgumentSyntax, AttributeArgumentSyntax>
+    internal class CSharpGenerateConstructorService
+        : AbstractGenerateConstructorService<CSharpGenerateConstructorService, ExpressionSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -43,15 +41,19 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             => node is ImplicitObjectCreationExpressionSyntax;
 
         protected override bool TryInitializeConstructorInitializerGeneration(
-            SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,
-            out SyntaxToken token, out ImmutableArray<ArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn)
+            SemanticDocument document,
+            SyntaxNode node,
+            CancellationToken cancellationToken,
+            out SyntaxToken token,
+            out ImmutableArray<Argument> arguments,
+            out INamedTypeSymbol typeToGenerateIn)
         {
             var constructorInitializer = (ConstructorInitializerSyntax)node;
 
             if (!constructorInitializer.ArgumentList.CloseParenToken.IsMissing)
             {
                 token = constructorInitializer.ThisOrBaseKeyword;
-                arguments = constructorInitializer.ArgumentList.Arguments.ToImmutableArray();
+                arguments = GetArguments(constructorInitializer.ArgumentList.Arguments);
 
                 var semanticModel = document.SemanticModel;
                 var currentType = semanticModel.GetEnclosingNamedType(constructorInitializer.SpanStart, cancellationToken);
@@ -67,12 +69,21 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             return false;
         }
 
+        private static ImmutableArray<Argument> GetArguments(SeparatedSyntaxList<ArgumentSyntax> arguments)
+            => arguments.SelectAsArray(a => new Argument(a.GetRefKind(), a.NameColon?.Name.Identifier.ValueText, a.Expression));
+
+        private static ImmutableArray<Argument> GetArguments(SeparatedSyntaxList<AttributeArgumentSyntax> arguments)
+            => arguments.SelectAsArray(a => new Argument(
+                refKind: RefKind.None,
+                a.NameEquals?.Name.Identifier.ValueText ?? a.NameColon?.Name.Identifier.ValueText,
+                a.Expression));
+
         protected override bool TryInitializeSimpleNameGenerationState(
             SemanticDocument document,
             SyntaxNode node,
             CancellationToken cancellationToken,
             out SyntaxToken token,
-            out ImmutableArray<ArgumentSyntax> arguments,
+            out ImmutableArray<Argument> arguments,
             out INamedTypeSymbol typeToGenerateIn)
         {
             var simpleName = (SimpleNameSyntax)node;
@@ -80,15 +91,14 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 ? (NameSyntax)simpleName.Parent
                 : simpleName;
 
-            if (fullName.Parent is ObjectCreationExpressionSyntax)
+            if (fullName.Parent is ObjectCreationExpressionSyntax objectCreationExpression)
             {
-                var objectCreationExpression = (ObjectCreationExpressionSyntax)fullName.Parent;
                 if (objectCreationExpression.ArgumentList != null &&
                     !objectCreationExpression.ArgumentList.CloseParenToken.IsMissing)
                 {
                     var symbolInfo = document.SemanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken);
                     token = simpleName.Identifier;
-                    arguments = objectCreationExpression.ArgumentList.Arguments.ToImmutableArray();
+                    arguments = GetArguments(objectCreationExpression.ArgumentList.Arguments);
                     typeToGenerateIn = symbolInfo.GetAnySymbol() as INamedTypeSymbol;
                     return typeToGenerateIn != null;
                 }
@@ -105,8 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             SyntaxNode node,
             CancellationToken cancellationToken,
             out SyntaxToken token,
-            out ImmutableArray<ArgumentSyntax> arguments,
-            out ImmutableArray<AttributeArgumentSyntax> attributeArguments,
+            out ImmutableArray<Argument> arguments,
             out INamedTypeSymbol typeToGenerateIn)
         {
             var simpleName = (SimpleNameSyntax)node;
@@ -114,9 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 ? (NameSyntax)simpleName.Parent
                 : simpleName;
 
-            if (fullName.Parent is AttributeSyntax)
+            if (fullName.Parent is AttributeSyntax attribute)
             {
-                var attribute = (AttributeSyntax)fullName.Parent;
                 if (attribute.ArgumentList != null &&
                     !attribute.ArgumentList.CloseParenToken.IsMissing)
                 {
@@ -124,11 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                     if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && !symbolInfo.CandidateSymbols.IsEmpty)
                     {
                         token = simpleName.Identifier;
-                        attributeArguments = attribute.ArgumentList.Arguments.ToImmutableArray();
-                        arguments = attributeArguments.Select(
-                            x => SyntaxFactory.Argument(
-                                x.NameColon ?? (x.NameEquals != null ? SyntaxFactory.NameColon(x.NameEquals.Name) : null),
-                                default, x.Expression)).ToImmutableArray();
+                        arguments = GetArguments(attribute.ArgumentList.Arguments);
 
                         typeToGenerateIn = symbolInfo.CandidateSymbols.FirstOrDefault().ContainingSymbol as INamedTypeSymbol;
                         return typeToGenerateIn != null;
@@ -138,7 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
             token = default;
             arguments = default;
-            attributeArguments = default;
             typeToGenerateIn = null;
             return false;
         }
@@ -147,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             SyntaxNode node,
             CancellationToken cancellationToken,
             out SyntaxToken token,
-            out ImmutableArray<ArgumentSyntax> arguments,
+            out ImmutableArray<Argument> arguments,
             out INamedTypeSymbol typeToGenerateIn)
         {
             var implicitObjectCreation = (ImplicitObjectCreationExpressionSyntax)node;
@@ -158,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 if (typeInfo.Type is INamedTypeSymbol typeSymbol)
                 {
                     token = implicitObjectCreation.NewKeyword;
-                    arguments = implicitObjectCreation.ArgumentList.Arguments.ToImmutableArray();
+                    arguments = GetArguments(implicitObjectCreation.ArgumentList.Arguments);
                     typeToGenerateIn = typeSymbol;
                     return true;
                 }
@@ -170,37 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             return false;
         }
 
-        protected override ImmutableArray<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames, parameterNamingRule, cancellationToken);
+        protected override string GenerateNameForExpression(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+            => semanticModel.GenerateNameForExpression(expression, capitalize: false, cancellationToken: cancellationToken);
 
-        protected override ImmutableArray<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames, parameterNamingRule, cancellationToken);
-
-        protected override string GenerateNameForArgument(SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
-            => semanticModel.GenerateNameForArgument(argument, cancellationToken);
-
-        protected override string GenerateNameForArgument(SemanticModel semanticModel, AttributeArgumentSyntax argument, CancellationToken cancellationToken)
-            => semanticModel.GenerateNameForArgument(argument, cancellationToken);
-
-        protected override RefKind GetRefKind(ArgumentSyntax argument)
-            => argument.GetRefKind();
-
-        protected override bool IsNamedArgument(ArgumentSyntax argument)
-            => argument.NameColon != null;
-
-        protected override ITypeSymbol GetArgumentType(
-            SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
-        {
-            return argument.DetermineParameterType(semanticModel, cancellationToken);
-        }
-
-        protected override ITypeSymbol GetAttributeArgumentType(
-            SemanticModel semanticModel, AttributeArgumentSyntax argument, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetType(argument.Expression, cancellationToken);
-        }
+        protected override ITypeSymbol GetArgumentType(SemanticModel semanticModel, Argument argument, CancellationToken cancellationToken)
+            => InternalExtensions.DetermineParameterType(argument.Expression, semanticModel, cancellationToken);
 
         protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
             => compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
