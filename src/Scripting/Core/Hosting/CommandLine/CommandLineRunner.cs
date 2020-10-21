@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
 using System;
@@ -116,7 +118,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
             }
 
-
             // only emit symbols for non-interactive mode,
             var emitDebugInformation = !_compiler.Arguments.InteractiveMode;
 
@@ -173,11 +174,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
         {
-            return new RuntimeMetadataReferenceResolver(
-                pathResolver: new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
-                packageResolver: null,
-                gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                useCoreResolver: !GacFileResolver.IsAvailable,
+            return RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
+                arguments.ReferencePaths,
+                arguments.BaseDirectory,
                 fileReferenceProvider: (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);

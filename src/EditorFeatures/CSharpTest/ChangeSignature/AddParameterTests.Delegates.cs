@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -30,7 +32,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -64,7 +66,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -98,7 +100,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -133,7 +135,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -167,7 +169,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -201,7 +203,7 @@ class C
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
             };
             var expectedUpdatedCode = @"
 delegate void MyDelegate(int newIntegerParameter);
@@ -240,7 +242,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -282,7 +284,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -325,7 +327,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -372,7 +374,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -422,7 +424,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -465,7 +467,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -499,7 +501,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -532,7 +534,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -580,7 +582,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -630,7 +632,7 @@ class Program
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -671,7 +673,7 @@ public class DP16a
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
             };
             var expectedUpdatedCode = @"
 public class DP16a
@@ -708,7 +710,7 @@ public class D17Test
     internal void M17(string s) { }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
             };
             var expectedUpdatedCode = @"
 public class D17<T>
@@ -749,7 +751,7 @@ public class DP20<T>
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
             };
             var expectedUpdatedCode = @"
 class DA
@@ -791,7 +793,7 @@ class Test
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int")
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int")
             };
             var expectedUpdatedCode = @"public class CD<T>
 {
@@ -829,7 +831,7 @@ public class D2
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int")
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int")
             };
             var expectedUpdatedCode = @"
 public class C2<T>
@@ -874,7 +876,7 @@ class C0
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"

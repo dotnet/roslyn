@@ -6,8 +6,6 @@ using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -125,12 +123,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _underlyingField.ForceComplete(locationOpt, cancellationToken);
         }
 
-        public override sealed int GetHashCode()
+        public sealed override int GetHashCode()
         {
             return Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override sealed bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             var other = obj as TupleFieldSymbol;
 

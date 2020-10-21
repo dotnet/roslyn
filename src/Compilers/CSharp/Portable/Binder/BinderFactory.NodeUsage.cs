@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BinderFactory
@@ -16,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AccessorBody = 1 << 0,
             OperatorBody = 1 << 0,
 
-            NamedTypeBodyOrTypeParameters = 1 << 0,
-            NamedTypeBaseList = 1 << 1,
+            NamedTypeBodyOrTypeParameters = 1 << 1, // Cannot share the value with ConstructorBodyOrInitializer
+            NamedTypeBaseListOrParameterList = 1 << 2, // Cannot share the value with ConstructorBodyOrInitializer
 
             NamespaceBody = 1 << 0,
             NamespaceUsings = 1 << 1,

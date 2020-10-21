@@ -167,6 +167,7 @@ using G=   H.I;
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")>
         Public Async Function TestAddImport_BadNamespaceGetsAdded() As Task
             Dim originalCode = ""
             Dim namespacesToAdd = {"$system"}
@@ -335,7 +336,7 @@ using G=   H.I;
                     subjectBufferDocument.GetTextBuffer(),
                     Nothing)
 
-                SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, subjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+                SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using
         End Sub
 

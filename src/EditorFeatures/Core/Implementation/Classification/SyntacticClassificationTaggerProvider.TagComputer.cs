@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -42,12 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // parsed it yet, and we want to get back to a known state.
             private const int ReportChangeDelayInMilliseconds = TaggerConstants.ShortDelay;
 
-            // TODO - Cleanup once experiment completed - https://github.com/dotnet/roslyn/projects/45#card-27261853
-            // LSP client language names
-            private readonly ImmutableArray<string> _lspClientLanguages = ImmutableArray.Create("C#_LSP", "VB_LSP");
-            // Cache if the LSP experiment is enabled.
-            private bool? _areRemoteClassificationsEnabled;
-
             private readonly ITextBuffer _subjectBuffer;
             private readonly WorkspaceRegistration _workspaceRegistration;
             private readonly AsynchronousSerialWorkQueue _workQueue;
@@ -62,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // Note: we cache this data once we've retrieved the actual syntax tree for a document.  This 
             // way, when we call into the actual classification service, it should be very quick for the 
             // it to get the tree if it needs it.
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private ITextSnapshot _lastProcessedSnapshot;
             private Document _lastProcessedDocument;
 
@@ -207,9 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
-                // TODO - Cleanup once experiment completed - https://github.com/dotnet/roslyn/projects/45#card-27261853
-                var latencyTracker = ShouldLogLocalTelemetry(document.Project.Language)
-                    ? new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger) : null;
+                var latencyTracker = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
                 using (latencyTracker)
                 {
                     // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
@@ -232,26 +226,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     ReportChangeDelayInMilliseconds,
                     _listener.BeginAsyncOperation("ReportEntireFileChanged"),
                     _reportChangeCancellationSource.Token);
-            }
-
-            /// <summary>
-            /// TODO - Cleanup once experiment completed - https://github.com/dotnet/roslyn/projects/45#card-27261853
-            /// Only capture local classification telemetry for experiment when in liveshare and remote classifications are not active.
-            /// </summary>
-            private bool ShouldLogLocalTelemetry(string languageName)
-            {
-                if (!_lspClientLanguages.Contains(languageName))
-                {
-                    return false;
-                }
-
-                if (_areRemoteClassificationsEnabled == null)
-                {
-                    var experimentationService = _workspace.Services.GetService<IExperimentationService>();
-                    _areRemoteClassificationsEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote);
-                }
-
-                return !(bool)_areRemoteClassificationsEnabled;
             }
 
             private void ReportChangedSpan(SnapshotSpan changeSpan)
@@ -446,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 ClassificationUtilities.ReturnClassifiedSpanList(tempList);
             }
 
-            private void AddClassifiedSpansForTokens(
+            private static void AddClassifiedSpansForTokens(
                 IClassificationService classificationService,
                 SnapshotSpan span,
                 List<ClassifiedSpan> classifiedSpans)

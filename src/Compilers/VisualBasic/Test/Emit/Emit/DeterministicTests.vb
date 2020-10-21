@@ -245,11 +245,11 @@ using System.Runtime.CompilerServices;
                     references:={forwardedToReference2, forwardingReference})
 
             Dim retargeting = DirectCast(withRetargeting.GetReferencedAssemblySymbol(forwardingReference), Retargeting.RetargetingAssemblySymbol)
-            Dim orwardedToAssembly2 = withRetargeting.GetReferencedAssemblySymbol(forwardedToReference2)
+            Dim forwardedToAssembly2 = withRetargeting.GetReferencedAssemblySymbol(forwardedToReference2)
             Assert.Equal(sortedFullNames, GetNamesOfForwardedTypes(retargeting))
 
             For Each t In GetForwardedTypes(retargeting)
-                Assert.Same(orwardedToAssembly2, t.ContainingAssembly)
+                Assert.Same(forwardedToAssembly2, t.ContainingAssembly)
             Next
         End Sub
 

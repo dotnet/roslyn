@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -115,6 +117,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly))
                     {
                         EmitCallExpression(call, UseKind.UsedAsAddress);
+                        break;
+                    }
+
+                    goto default;
+
+                case BoundKind.FunctionPointerInvocation:
+                    var funcPtrInvocation = (BoundFunctionPointerInvocation)expression;
+                    var funcPtrRefKind = funcPtrInvocation.FunctionPointer.Signature.RefKind;
+                    if (funcPtrRefKind == RefKind.Ref ||
+                        (IsAnyReadOnly(addressKind) && funcPtrRefKind == RefKind.RefReadOnly))
+                    {
+                        EmitCalli(funcPtrInvocation, UseKind.UsedAsAddress);
                         break;
                     }
 

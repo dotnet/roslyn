@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -53,7 +55,7 @@ StackTrace:
                 this.Disconnect();
             }
 
-            internal void OnTaggerAdded(Tagger tagger)
+            internal void OnTaggerAdded(Tagger _)
             {
                 // this should be only called from UI thread. 
                 // in unit test, must be called from same thread as OnTaggerDisposed
@@ -65,7 +67,7 @@ StackTrace:
                 DebugRecordCurrentThread();
             }
 
-            internal void OnTaggerDisposed(Tagger tagger)
+            internal void OnTaggerDisposed(Tagger _)
             {
                 // this should be only called from UI thread.
                 // in unit test, must be called from same thread as OnTaggerAdded
@@ -104,15 +106,15 @@ StackTrace:
             private void DebugVerifyThread()
                 => Contract.ThrowIfFalse(Thread.CurrentThread == _thread);
 #else
-            private void DebugRecordInitialStackTrace()
+            private static void DebugRecordInitialStackTrace()
             {
             }
 
-            private void DebugRecordCurrentThread()
+            private static void DebugRecordCurrentThread()
             {
             }
 
-            private void DebugVerifyThread()
+            private static void DebugVerifyThread()
             {
             }
 #endif

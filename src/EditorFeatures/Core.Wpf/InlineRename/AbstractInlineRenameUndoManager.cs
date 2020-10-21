@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             textView.SetSelection(anchor, active);
         }
 
-        public void Undo(ITextBuffer subjectBuffer)
+        public void Undo(ITextBuffer _)
         {
             if (this.UndoStack.Count > 0)
             {
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public void Redo(ITextBuffer subjectBuffer)
+        public void Redo(ITextBuffer _)
         {
             if (this.RedoStack.Count > 0)
             {
@@ -144,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        protected string GetUndoTransactionDescription(string replacementText)
+        protected static string GetUndoTransactionDescription(string replacementText)
             => replacementText == string.Empty ? "Delete Text" : replacementText;
     }
 }

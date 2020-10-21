@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -51,6 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.UnsafeKeyword:
                     case SyntaxKind.AsyncKeyword:
                     case SyntaxKind.RefKeyword:
+                    case SyntaxKind.OutKeyword:
+                    case SyntaxKind.InKeyword:
                         result.Add(token.Kind());
                         token = token.GetPreviousToken(includeSkipped: true);
                         continue;
@@ -58,6 +63,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
                         {
                             result.Add(SyntaxKind.AsyncKeyword);
+                            token = token.GetPreviousToken(includeSkipped: true);
+                            continue;
+                        }
+
+                        if (token.HasMatchingText(SyntaxKind.DataKeyword))
+                        {
+                            result.Add(SyntaxKind.DataKeyword);
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;
                         }

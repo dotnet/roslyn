@@ -8,6 +8,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d"
              MinWidth="400" MinHeight="166"
@@ -16,7 +17,9 @@
              ResizeMode="CanResizeWithGrip"
              ShowInTaskbar="False"
              HasDialogFrame="True"
-             WindowStartupLocation="CenterOwner">
+             WindowStartupLocation="CenterOwner"
+             vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
+             Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
 
     <Window.Resources>
         <Thickness x:Key="verticalLabelMargin">0, 0, 0, 5</Thickness>
@@ -47,7 +50,28 @@
                           Text="{Binding NamespaceName, Mode=TwoWay, ValidatesOnDataErrors=True}"
                           ItemsSource="{Binding AvailableNamespaces, Mode=OneTime}"
                           BorderThickness="0" 
-                          MaxDropDownHeight="200" />
+                          Margin="0 0 20 0"
+                          MaxDropDownHeight="200">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace.NamespaceItem">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <imaging:CrispImage 
+                                Grid.Column="0" 
+                                Visibility="{Binding IsFromHistory, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                Margin="0 0 5 0" 
+                                 Moniker="{x:Static imagecatalog:KnownMonikers.History}" />
+                            
+                            <TextBlock Grid.Column="1" Text="{Binding Namespace}" />
+                        </Grid>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            
         </StackPanel>
 
         <StackPanel Grid.Row="1">
@@ -62,7 +86,8 @@
 
                 <vs:LiveTextBlock x:Name="MessageText"
                            Text="{Binding Message}"
-                           Margin="7, 0, 0, 0" />
+                           Margin="7, 0, 0, 0"
+                           Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}" />
             </StackPanel>
         </StackPanel>
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -85,6 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement rewritten, SyntaxNode syntax)
         {
+            if (syntax.IsKind(SyntaxKind.Parameter))
+            {
+                // This is an initialization of a generated property based on record parameter.
+                return AddSequencePoint(rewritten);
+            }
+
             Debug.Assert(syntax is { Parent: { Parent: { } } });
             var grandparent = syntax.Parent.Parent;
             switch (grandparent.Kind())

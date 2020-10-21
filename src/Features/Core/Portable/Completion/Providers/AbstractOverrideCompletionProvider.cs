@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -69,10 +71,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             out ITypeSymbol returnType,
             out SyntaxToken nextToken);
 
-        protected bool IsOnStartLine(int position, SourceText text, int startLine)
+        protected static bool IsOnStartLine(int position, SourceText text, int startLine)
             => text.Lines.IndexOf(position) == startLine;
 
-        protected ITypeSymbol GetReturnType(ISymbol symbol)
+        protected static ITypeSymbol GetReturnType(ISymbol symbol)
             => symbol.Kind switch
             {
                 SymbolKind.Event => ((IEventSymbol)symbol).Type,

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntax = syntax;
         }
 
-        override protected ImmutableArray<LocalSymbol> BuildLocals()
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 

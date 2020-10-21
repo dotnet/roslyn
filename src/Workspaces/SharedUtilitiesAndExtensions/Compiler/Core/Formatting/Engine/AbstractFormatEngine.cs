@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -78,6 +77,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             this.SpanToFormat = GetSpanToFormat();
             _commonRoot = token1.GetCommonRoot(token2) ?? throw ExceptionUtilities.Unreachable;
         }
+
+        internal abstract ISyntaxFacts SyntaxFacts { get; }
 
         protected abstract AbstractTriviaDataFactory CreateTriviaFactory();
         protected abstract AbstractFormattingResult CreateFormattingResult(TokenStream tokenStream);
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return new NodeOperations(indentBlockOperation, suppressOperation, anchorIndentationOperations, alignmentOperation);
         }
 
-        private List<T> AddOperations<T>(List<SyntaxNode> nodes, Action<List<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
+        private static List<T> AddOperations<T>(List<SyntaxNode> nodes, Action<List<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
         {
             var operations = new List<T>();
             var list = new List<T>();
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return TextSpan.FromBounds(startPosition, endPosition);
         }
 
-        private void ApplySpecialOperations(
+        private static void ApplySpecialOperations(
             FormattingContext context, NodeOperations nodeOperationsCollector, OperationApplier applier, CancellationToken cancellationToken)
         {
             // apply alignment operation
@@ -352,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private void ApplyAnchorOperations(
+        private static void ApplyAnchorOperations(
             FormattingContext context,
             TokenPairWithOperations[] tokenOperations,
             OperationApplier applier,
@@ -399,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return false;
         }
 
-        private SyntaxToken FindCorrectBaseTokenOfRelativeIndentBlockOperation(IndentBlockOperation operation, TokenStream tokenStream)
+        private static SyntaxToken FindCorrectBaseTokenOfRelativeIndentBlockOperation(IndentBlockOperation operation, TokenStream tokenStream)
         {
             if (operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine))
             {
@@ -409,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return operation.BaseToken;
         }
 
-        private void ApplySpaceAndWrappingOperations(
+        private static void ApplySpaceAndWrappingOperations(
             FormattingContext context,
             TokenPairWithOperations[] tokenOperations,
             OperationApplier applier,
@@ -468,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private void BuildContext(
+        private static void BuildContext(
             FormattingContext context,
             NodeOperations nodeOperations,
             CancellationToken cancellationToken)

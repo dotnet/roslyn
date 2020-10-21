@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         /// </summary>
         protected abstract bool IsSupported(ILocalSymbol foreachVariable, IForEachLoopOperation forEachOperation, TForEachStatement foreachStatement);
 
-        protected SyntaxAnnotation CreateWarningAnnotation()
+        protected static SyntaxAnnotation CreateWarningAnnotation()
             => WarningAnnotation.Create(FeaturesResources.Warning_colon_semantics_may_change_when_converting_statement);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -82,11 +84,11 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                 foreachStatement.Span);
         }
 
-        protected SyntaxToken CreateUniqueName(
+        protected static SyntaxToken CreateUniqueName(
             ISemanticFactsService semanticFacts, SemanticModel model, SyntaxNode location, string baseName, CancellationToken cancellationToken)
             => semanticFacts.GenerateUniqueLocalName(model, location, containerOpt: null, baseName, cancellationToken);
 
-        protected SyntaxNode GetCollectionVariableName(
+        protected static SyntaxNode GetCollectionVariableName(
             SemanticModel model, SyntaxGenerator generator,
             ForEachInfo foreachInfo, SyntaxNode foreachCollectionExpression, CancellationToken cancellationToken)
         {
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             return foreachCollectionExpression.WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        protected void IntroduceCollectionStatement(
+        protected static void IntroduceCollectionStatement(
             ForEachInfo foreachInfo, SyntaxEditor editor,
             SyntaxNode type, SyntaxNode foreachCollectionExpression, SyntaxNode collectionVariable)
         {
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             editor.InsertBefore(foreachInfo.ForEachStatement, collectionStatement);
         }
 
-        protected TStatementSyntax AddItemVariableDeclaration(
+        protected static TStatementSyntax AddItemVariableDeclaration(
             SyntaxGenerator generator, SyntaxNode type, SyntaxToken foreachVariable,
             ITypeSymbol castType, SyntaxNode collectionVariable, SyntaxToken indexVariable)
         {

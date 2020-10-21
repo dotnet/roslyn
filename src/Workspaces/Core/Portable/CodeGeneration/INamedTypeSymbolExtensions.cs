@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             return new CodeGenerationNamedTypeSymbol(
+                namedType.ContainingAssembly,
                 namedType.ContainingType,
                 namedType.GetAttributes(),
                 namedType.DeclaredAccessibility,

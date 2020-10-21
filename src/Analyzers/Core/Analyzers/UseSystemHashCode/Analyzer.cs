@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         /// Analyzes the containing <c>GetHashCode</c> method to determine which fields and
         /// properties were combined to form a hash code for this type.
         /// </summary>
-        public (bool accessesBase, ImmutableArray<ISymbol> members, ImmutableArray<IOperation> statements) GetHashedMembers(ISymbol owningSymbol, IOperation? operation)
+        public (bool accessesBase, ImmutableArray<ISymbol> members, ImmutableArray<IOperation> statements) GetHashedMembers(ISymbol? owningSymbol, IOperation? operation)
         {
             if (!(operation is IBlockOperation blockOperation))
                 return default;

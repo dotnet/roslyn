@@ -18,15 +18,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     Friend Class EncapsulateFieldTestState
         Implements IDisposable
 
-        Private _testDocument As TestHostDocument
+        Private ReadOnly _testDocument As TestHostDocument
         Public Workspace As TestWorkspace
         Public TargetDocument As Document
-
-        Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-                    GetType(VisualBasicEncapsulateFieldService),
-                    GetType(DefaultTextBufferSupportsFeatureService)))
 
         Private Sub New(workspace As TestWorkspace)
             Me.Workspace = workspace
@@ -35,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
         End Sub
 
         Public Shared Function Create(markup As String) As EncapsulateFieldTestState
-            Dim workspace = TestWorkspace.CreateVisualBasic(markup, exportProvider:=s_exportProviderFactory.CreateExportProvider())
+            Dim workspace = TestWorkspace.CreateVisualBasic(markup, composition:=EditorTestCompositions.EditorFeatures)
             Return New EncapsulateFieldTestState(workspace)
         End Function
 

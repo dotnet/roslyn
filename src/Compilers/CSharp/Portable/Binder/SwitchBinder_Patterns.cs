@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -237,7 +239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CaseSwitchLabel:
                     {
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
-                        SyntaxNode innerExpression = caseLabelSyntax.Value.SkipParens();
                         bool hasErrors = node.HasErrors;
                         BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
                             caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics);
@@ -249,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.DefaultSwitchLabel:
                     {
-                        var pattern = new BoundDiscardPattern(node, inputType: SwitchGoverningType, convertedType: SwitchGoverningType);
+                        var pattern = new BoundDiscardPattern(node, inputType: SwitchGoverningType, narrowedType: SwitchGoverningType);
                         bool hasErrors = pattern.HasErrors;
                         if (defaultLabel != null)
                         {

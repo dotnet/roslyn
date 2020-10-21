@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             }
         }
 
-        private bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)
+        private static bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)
         {
             node = null;
             var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();

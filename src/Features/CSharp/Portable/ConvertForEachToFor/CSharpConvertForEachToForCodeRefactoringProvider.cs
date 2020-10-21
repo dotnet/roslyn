@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 
             var typeSymbol = foreachInfo.RequireExplicitCastInterface
                 ? foreachInfo.ExplicitCastInterface
-                : model.GetTypeInfo(foreachCollectionExpression).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object);
+                : model.GetTypeInfo(foreachCollectionExpression, cancellationToken).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object);
 
             var collectionStatementType = typeSymbol.GenerateTypeSyntax();
 

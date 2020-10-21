@@ -2,17 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
@@ -21,11 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         internal class PreviewTagger : ITagger<HighlightTag>
         {
             private readonly ITextBuffer _textBuffer;
-            private readonly ITextView _textView;
 
-            public PreviewTagger(ITextView textView, ITextBuffer textBuffer)
+            public PreviewTagger(ITextBuffer textBuffer)
             {
-                _textView = textView;
                 _textBuffer = textBuffer;
             }
 

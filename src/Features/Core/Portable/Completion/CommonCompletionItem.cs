@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,41 +14,6 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CommonCompletionItem
     {
-        [Obsolete("This is a compatibility shim for FSharp; please do not use it.", error: true)]
-        public static CompletionItem Create(
-            string displayText,
-            CompletionItemRules rules,
-            Glyph? glyph = null,
-            ImmutableArray<SymbolDisplayPart> description = default,
-            string sortText = null,
-            string filterText = null,
-            bool showsWarningIcon = false,
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
-        {
-            return Create(
-                displayText, displayTextSuffix: string.Empty, rules,
-                glyph, description, sortText, filterText, showsWarningIcon, properties, tags, inlineDescription: null);
-        }
-
-        // Back compat overload for FSharp
-        public static CompletionItem Create(
-            string displayText,
-            string displayTextSuffix,
-            CompletionItemRules rules,
-            Glyph? glyph,
-            ImmutableArray<SymbolDisplayPart> description,
-            string sortText,
-            string filterText,
-            bool showsWarningIcon,
-            ImmutableDictionary<string, string> properties,
-            ImmutableArray<string> tags)
-        {
-            return Create(
-                  displayText, displayTextSuffix, rules,
-                  glyph, description, sortText, filterText, showsWarningIcon, properties, tags, inlineDescription: null);
-        }
-
         public static CompletionItem Create(
             string displayText,
             string displayTextSuffix,

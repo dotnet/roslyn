@@ -1349,7 +1349,6 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-
         <Fact>
         Public Sub InstancePropertyAsNewInitializer_Update()
             Dim src1 = "
@@ -2295,7 +2294,6 @@ Class C
     Dim b As Integer = 1
 End Class
 "
-
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
@@ -5652,8 +5650,6 @@ End Module"
             Dim active = GetActiveStatements(src1, src2)
             Extensions.VerifyUnchangedDocument(src2, active)
         End Sub
-
-
 
 #End Region
 

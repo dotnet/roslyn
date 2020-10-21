@@ -18,14 +18,12 @@ namespace RunTests
     internal struct RunAllResult
     {
         internal bool Succeeded { get; }
-        internal int CacheCount { get; }
         internal ImmutableArray<TestResult> TestResults { get; }
         internal ImmutableArray<ProcessResult> ProcessResults { get; }
 
-        internal RunAllResult(bool succeeded, int cacheCount, ImmutableArray<TestResult> testResults, ImmutableArray<ProcessResult> processResults)
+        internal RunAllResult(bool succeeded, ImmutableArray<TestResult> testResults, ImmutableArray<ProcessResult> processResults)
         {
             Succeeded = succeeded;
-            CacheCount = cacheCount;
             TestResults = testResults;
             ProcessResults = processResults;
         }
@@ -33,10 +31,10 @@ namespace RunTests
 
     internal sealed class TestRunner
     {
-        private readonly ITestExecutor _testExecutor;
+        private readonly ProcessTestExecutor _testExecutor;
         private readonly Options _options;
 
-        internal TestRunner(Options options, ITestExecutor testExecutor)
+        internal TestRunner(Options options, ProcessTestExecutor testExecutor)
         {
             _testExecutor = testExecutor;
             _options = options;
@@ -48,7 +46,6 @@ namespace RunTests
             // since they perform actual UI operations (such as mouse clicks and sending keystrokes) and we don't want two
             // tests to conflict with one-another.
             var max = (_options.TestVsi || _options.Sequential) ? 1 : (int)(Environment.ProcessorCount * 1.5);
-            var cacheCount = 0;
             var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
             var running = new List<Task<TestResult>>();
             var completed = new List<TestResult>();
@@ -70,18 +67,14 @@ namespace RunTests
                             if (!testResult.Succeeded)
                             {
                                 failures++;
-                            }
-
-                            if (testResult.IsFromCache)
-                            {
-                                cacheCount++;
+                                ConsoleUtil.WriteLine(ConsoleColor.Red, "Test failure log: " + testResult.ResultsFilePath);
                             }
 
                             completed.Add(testResult);
                         }
                         catch (Exception ex)
                         {
-                            ConsoleUtil.WriteLine($"Error: {ex.Message}");
+                            ConsoleUtil.WriteLine(ConsoleColor.Red, $"Error: {ex.Message}");
                             failures++;
                         }
 
@@ -122,7 +115,7 @@ namespace RunTests
                 processResults.AddRange(c.ProcessResults);
             }
 
-            return new RunAllResult((failures == 0), cacheCount, completed.ToImmutableArray(), processResults.ToImmutable());
+            return new RunAllResult((failures == 0), completed.ToImmutableArray(), processResults.ToImmutable());
         }
 
         private void Print(List<TestResult> testResults)
@@ -143,7 +136,6 @@ namespace RunTests
                 line.Append($"{testResult.DisplayName,-75}");
                 line.Append($" {(testResult.Succeeded ? "PASSED" : "FAILED")}");
                 line.Append($" {testResult.Elapsed}");
-                line.Append($" {(testResult.IsFromCache ? "*" : "")}");
                 line.Append($" {(!string.IsNullOrEmpty(testResult.Diagnostics) ? "?" : "")}");
 
                 var message = line.ToString();
@@ -155,14 +147,14 @@ namespace RunTests
             ConsoleUtil.WriteLine("Extra run diagnostics for logging, did not impact run results");
             foreach (var testResult in testResults.Where(x => !string.IsNullOrEmpty(x.Diagnostics)))
             {
-                ConsoleUtil.WriteLine(testResult.Diagnostics);
+                ConsoleUtil.WriteLine(testResult.Diagnostics!);
             }
         }
 
         private void PrintFailedTestResult(TestResult testResult)
         {
             // Save out the error output for easy artifact inspecting
-            var outputLogPath = Path.Combine(_options.LogFilesOutputDirectory, $"xUnitFailure-{testResult.DisplayName}.log");
+            var outputLogPath = Path.Combine(_options.LogFilesDirectory, $"xUnitFailure-{testResult.DisplayName}.log");
 
             ConsoleUtil.WriteLine($"Errors {testResult.AssemblyName}");
             ConsoleUtil.WriteLine(testResult.ErrorOutput);
@@ -183,7 +175,7 @@ namespace RunTests
             }
 
             // If the results are html, use Process.Start to open in the browser.
-            if (_options.UseHtml && !string.IsNullOrEmpty(testResult.ResultsFilePath))
+            if (_options.IncludeHtml && !string.IsNullOrEmpty(testResult.ResultsFilePath))
             {
                 Process.Start(testResult.ResultsFilePath);
             }

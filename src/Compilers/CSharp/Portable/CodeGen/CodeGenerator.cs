@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -352,6 +354,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitSymbolToken(FieldSymbol symbol, SyntaxNode syntaxNode)
         {
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
+        }
+
+        private void EmitSignatureToken(FunctionPointerTypeSymbol symbol, SyntaxNode syntaxNode)
+        {
+            _builder.EmitToken(PEModuleBuilder.Translate(symbol).Signature, syntaxNode, _diagnostics);
         }
 
         private void EmitSequencePointStatement(BoundSequencePoint node)

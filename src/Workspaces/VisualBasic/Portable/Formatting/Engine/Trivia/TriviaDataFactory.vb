@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Private Function ContainsOnlyLineContinuation(result As Analyzer.AnalysisResult) As Boolean
+        Private Shared Function ContainsOnlyLineContinuation(result As Analyzer.AnalysisResult) As Boolean
             Return result.HasLineContinuation AndAlso
                    Not result.HasComments AndAlso
                    Not result.HasColonTrivia AndAlso
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                    Not result.HasConflictMarker
         End Function
 
-        Private Function ContainsOnlyWhitespace(result As Analyzer.AnalysisResult) As Boolean
+        Private Shared Function ContainsOnlyWhitespace(result As Analyzer.AnalysisResult) As Boolean
             Return Not result.HasComments AndAlso
                    Not result.HasColonTrivia AndAlso
                    Not result.HasPreprocessor AndAlso
@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return ValueTuple.Create(True, result.LineBreaks, indentation)
         End Function
 
-        Private Function GetSpaceOnSingleLine(result As Analyzer.AnalysisResult) As Integer
+        Private Shared Function GetSpaceOnSingleLine(result As Analyzer.AnalysisResult) As Integer
             If result.HasTrailingSpace OrElse result.HasUnknownWhitespace OrElse result.LineBreaks > 0 OrElse result.Tab > 0 Then
                 Return -1
             End If

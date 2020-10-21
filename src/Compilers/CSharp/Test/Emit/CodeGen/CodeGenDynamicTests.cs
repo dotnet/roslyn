@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
@@ -60,7 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         private readonly CSharpParseOptions _localFunctionParseOptions = TestOptions.Regular;
 
         #endregion
-
 
         #region C# Runtime and System.Core sources
 
@@ -1068,7 +1069,7 @@ class C
   IL_0069:  ldarg.0
   IL_006a:  ldfld      ""T C.<>c__DisplayClass0_0<T>.a""
   IL_006f:  ldarg.0
-  IL_0070:  ldfld      """"
+  IL_0070:  ldfld      ""dynamic C.<>c__DisplayClass0_0<T>.b""
   IL_0075:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, T, object>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, T, object)""
   IL_007a:  ret
 }

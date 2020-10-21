@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             End If
         End Function
 
-        Private Function GetToolTipForKeyword([operator] As String) As String
+        Private Shared Function GetToolTipForKeyword([operator] As String) As String
             Select Case [operator]
                 Case "+"
                     Return VBFeaturesResources.Returns_the_sum_of_two_numbers_or_the_positive_value_of_a_numeric_expression

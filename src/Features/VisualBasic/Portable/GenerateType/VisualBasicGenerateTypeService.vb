@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return True
         End Function
 
-        Private Function GetMemberGroupIfPresent(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As IMethodSymbol
+        Private Shared Function GetMemberGroupIfPresent(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As IMethodSymbol
             If expression Is Nothing Then
                 Return Nothing
             End If
@@ -381,7 +381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Dim typeArguments = If(state.SimpleName.Arity = genericName.TypeArgumentList.Arguments.Count,
                     genericName.TypeArgumentList.Arguments.OfType(Of SyntaxNode)().ToList(),
                     Enumerable.Repeat(Of SyntaxNode)(Nothing, state.SimpleName.Arity))
-                Return Me.GetTypeParameters(state, semanticModel, typeArguments, cancellationToken)
+                Return GetTypeParameters(state, semanticModel, typeArguments, cancellationToken)
             End If
 
             Return ImmutableArray(Of ITypeParameterSymbol).Empty
@@ -512,7 +512,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return namespaceContainers.Count
         End Function
 
-        Private Function IdentifierMatches(indexDone As Integer, namespaceContainers As List(Of String), containers As List(Of String)) As Boolean
+        Private Shared Function IdentifierMatches(indexDone As Integer, namespaceContainers As List(Of String), containers As List(Of String)) As Boolean
             For index = 0 To namespaceContainers.Count - 1
                 If Not namespaceContainers(index).Equals(containers(indexDone + index), StringComparison.OrdinalIgnoreCase) Then
                     Return False
@@ -602,7 +602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return False
         End Function
 
-        Private Function IsAllContainingTypeBlocksPublic(node As SyntaxNode) As Boolean
+        Private Shared Function IsAllContainingTypeBlocksPublic(node As SyntaxNode) As Boolean
             ' Make sure all the Ancestoral Type Blocks are Declared with Public Access Modifiers
             Dim containingTypeBlocks = node.GetAncestorsOrThis(Of TypeBlockSyntax)()
             If containingTypeBlocks.Count() = 0 Then
@@ -679,7 +679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return updatedSolution
         End Function
 
-        Private Function GetPropertyType(propIdentifierName As SimpleNameSyntax,
+        Private Shared Function GetPropertyType(propIdentifierName As SimpleNameSyntax,
                                          semanticModel As SemanticModel,
                                          typeInference As ITypeInferenceService,
                                          cancellationToken As CancellationToken) As ITypeSymbol
@@ -691,7 +691,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return Nothing
         End Function
 
-        Private Function GenerateProperty(propertyName As SimpleNameSyntax, typeSymbol As ITypeSymbol) As IPropertySymbol
+        Private Shared Function GenerateProperty(propertyName As SimpleNameSyntax, typeSymbol As ITypeSymbol) As IPropertySymbol
             Return CodeGenerationSymbolFactory.CreatePropertySymbol(
                 attributes:=ImmutableArray(Of AttributeData).Empty,
                 accessibility:=Accessibility.Public,

@@ -79,4 +79,3 @@ class C
     End Class
 End Namespace
 
-

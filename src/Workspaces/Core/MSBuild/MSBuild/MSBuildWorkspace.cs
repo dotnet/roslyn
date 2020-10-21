@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private string GetAbsolutePath(string path, string baseDirectoryPath)
+        private static string GetAbsolutePath(string path, string baseDirectoryPath)
         {
             return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, baseDirectoryPath) ?? path);
         }
@@ -283,7 +285,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private bool HasProjectFileChanges(ProjectChanges changes)
+        private static bool HasProjectFileChanges(ProjectChanges changes)
         {
             return changes.GetAddedDocuments().Any() ||
                    changes.GetRemovedDocuments().Any() ||
@@ -319,7 +321,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             try
             {
                 // if we need to modify the project file, load it first.
-                if (this.HasProjectFileChanges(projectChanges))
+                if (HasProjectFileChanges(projectChanges))
                 {
                     var projectPath = project.FilePath;
                     if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var fileLoader))
@@ -363,7 +365,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var document = this.CurrentSolution.GetDocument(documentId);
             if (document != null)
             {
-                Encoding encoding = DetermineEncoding(text, document);
+                var encoding = DetermineEncoding(text, document);
 
                 this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 this.OnDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);

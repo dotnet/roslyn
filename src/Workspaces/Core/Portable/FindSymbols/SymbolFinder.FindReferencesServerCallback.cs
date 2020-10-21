@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly IStreamingFindReferencesProgress _progress;
             private readonly CancellationToken _cancellationToken;
 
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private readonly Dictionary<SerializableSymbolAndProjectId, ISymbol> _definitionMap;
 
             public FindReferencesServerCallback(
@@ -35,25 +37,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _definitionMap = new Dictionary<SerializableSymbolAndProjectId, ISymbol>(this);
             }
 
-            public Task AddItemsAsync(int count) => _progress.ProgressTracker.AddItemsAsync(count);
-            public Task ItemCompletedAsync() => _progress.ProgressTracker.ItemCompletedAsync();
+            public ValueTask AddItemsAsync(int count)
+                => _progress.ProgressTracker.AddItemsAsync(count);
 
-            public Task OnStartedAsync() => _progress.OnStartedAsync();
-            public Task OnCompletedAsync() => _progress.OnCompletedAsync();
+            public ValueTask ItemCompletedAsync()
+                => _progress.ProgressTracker.ItemCompletedAsync();
 
-            public Task OnFindInDocumentStartedAsync(DocumentId documentId)
+            public ValueTask OnStartedAsync()
+                => _progress.OnStartedAsync();
+
+            public ValueTask OnCompletedAsync()
+                => _progress.OnCompletedAsync();
+
+            public ValueTask OnFindInDocumentStartedAsync(DocumentId documentId)
             {
                 var document = _solution.GetDocument(documentId);
                 return _progress.OnFindInDocumentStartedAsync(document);
             }
 
-            public Task OnFindInDocumentCompletedAsync(DocumentId documentId)
+            public ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId)
             {
                 var document = _solution.GetDocument(documentId);
                 return _progress.OnFindInDocumentCompletedAsync(document);
             }
 
-            public async Task OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
+            public async ValueTask OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
             {
                 var symbol = await definition.TryRehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
@@ -69,13 +77,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await _progress.OnDefinitionFoundAsync(symbol).ConfigureAwait(false);
             }
 
-            public async Task OnReferenceFoundAsync(
+            public async ValueTask OnReferenceFoundAsync(
                 SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
             {
                 ISymbol symbol;
                 lock (_gate)
                 {
-                    symbol = _definitionMap[definition];
+                    // The definition may not be in the map if we failed to map it over using TryRehydrateAsync in OnDefinitionFoundAsync.
+                    // Just ignore this reference.  Note: while this is a degraded experience:
+                    //
+                    // 1. TryRehydrateAsync logs an NFE so we can track down while we're failing to roundtrip the
+                    //    definition so we can track down that issue.
+                    // 2. NFE'ing and failing to show a result, is much better than NFE'ing and then crashing
+                    //    immediately afterwards.
+                    if (!_definitionMap.TryGetValue(definition, out symbol))
+                        return;
                 }
 
                 var referenceLocation = await reference.RehydrateAsync(

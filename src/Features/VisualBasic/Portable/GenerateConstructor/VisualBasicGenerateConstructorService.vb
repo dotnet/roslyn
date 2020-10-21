@@ -22,6 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         Public Sub New()
         End Sub
 
+        Protected Overrides Function ContainingTypesOrSelfHasUnsafeKeyword(containingType As INamedTypeSymbol) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function GenerateNameForArgument(semanticModel As SemanticModel, argument As ArgumentSyntax, cancellationToken As CancellationToken) As String
             Return semanticModel.GenerateNameForArgument(argument, cancellationToken)
         End Function
@@ -165,12 +169,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
         Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
-        Friend Overrides Function GetDelegatingConstructor(state As State,
-                                                           document As SemanticDocument,
-                                                           argumentCount As Integer,
-                                                           namedType As INamedTypeSymbol,
-                                                           candidates As ISet(Of IMethodSymbol),
-                                                           cancellationToken As CancellationToken) As IMethodSymbol
+        Protected Overrides Function GetDelegatingConstructor(
+                state As State,
+                document As SemanticDocument,
+                argumentCount As Integer,
+                namedType As INamedTypeSymbol,
+                candidates As ISet(Of IMethodSymbol),
+                cancellationToken As CancellationToken) As IMethodSymbol
             Dim oldToken = state.Token
             Dim tokenKind = oldToken.Kind()
             Dim simpleName = DirectCast(oldToken.Parent, SimpleNameSyntax)

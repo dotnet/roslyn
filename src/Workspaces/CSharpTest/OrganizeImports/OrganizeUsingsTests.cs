@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
     [UseExportProvider]
     public class OrganizeUsingsTests
     {
-        protected async Task CheckAsync(
+        protected static async Task CheckAsync(
             string initial, string final,
             bool placeSystemNamespaceFirst = false,
             bool separateImportGroups = false)

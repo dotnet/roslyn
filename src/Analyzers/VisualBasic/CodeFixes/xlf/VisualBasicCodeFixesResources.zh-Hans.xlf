@@ -7,6 +7,11 @@
         <target state="translated">添加 "Me."</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_GetType_to_NameOf">
+        <source>Convert 'GetType' to 'NameOf'</source>
+        <target state="translated">将 "GetType" 转换为 "NameOf"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">删除不必要的导入</target>

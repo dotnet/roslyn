@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -538,7 +540,7 @@ public class Ref<T> where T : Entity
             var tree = await (GetCurrentDocument()).GetSyntaxTreeAsync();
             var position = text.ToString().IndexOf("DynamicMethod", StringComparison.Ordinal);
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
-            var textPoint = new MockTextPoint(virtualTreePoint, 4);
+            var textPoint = new MockTextPoint(virtualTreePoint);
             var scope = vsCMElement.vsCMElementFunction;
             var element = (GetCodeModel()).CodeElementFromPoint(textPoint, scope);
             Assert.Equal("DynamicMethod", element.Name);
@@ -553,7 +555,7 @@ public class Ref<T> where T : Entity
             var tree = await (GetCurrentDocument()).GetSyntaxTreeAsync();
             var position = text.ToString().IndexOf("protected virtual string MethodB", StringComparison.Ordinal) - 1;
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
-            var textPoint = new MockTextPoint(virtualTreePoint, 4);
+            var textPoint = new MockTextPoint(virtualTreePoint);
 
             Assert.Throws<COMException>(() =>
                 (GetCodeModel()).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementFunction));

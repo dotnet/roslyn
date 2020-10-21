@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             // type argument or parameter list
             if (!token.CheckParent<TypeParameterListSyntax>(n => n.LessThanToken == token) &&
                 !token.CheckParent<TypeArgumentListSyntax>(n => n.LessThanToken == token) &&
+                !token.CheckParent<FunctionPointerParameterListSyntax>(n => n.LessThanToken == token) &&
                 !PossibleTypeArgument(snapshot, token, cancellationToken))
             {
                 return false;
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             return true;
         }
 
-        private bool PossibleTypeArgument(ITextSnapshot snapshot, SyntaxToken token, CancellationToken cancellationToken)
+        private static bool PossibleTypeArgument(ITextSnapshot snapshot, SyntaxToken token, CancellationToken cancellationToken)
         {
             // type argument can be easily ambiguous with normal < operations
             if (!(token.Parent is BinaryExpressionSyntax node) || node.Kind() != SyntaxKind.LessThanExpression || node.OperatorToken != token)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -27,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             TestParameters? testParameters = null,
             string targetNamespace = null,
             bool optionCancelled = false,
-            bool testAnalysis = false,
-            IReadOnlyDictionary<string, string> expectedSymbolChanges = null
-            )
+            IReadOnlyDictionary<string, string> expectedSymbolChanges = null)
         {
             testParameters ??= new TestParameters();
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                 ? MoveToNamespaceOptionsResult.Cancelled
                 : new MoveToNamespaceOptionsResult(targetNamespace);
 
-            var workspace = CreateWorkspaceFromFile(markup, testParameters.Value);
+            var workspace = CreateWorkspaceFromOptions(markup, testParameters.Value);
             using var testState = new TestState(workspace);
 
             testState.TestMoveToNamespaceOptionsService.SetOptions(moveToNamespaceOptions);
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
 
         public async Task TestMoveToNamespaceAnalysisAsync(string markup, string expectedNamespaceName)
         {
-            var workspace = CreateWorkspaceFromFile(markup, new TestParameters());
+            var workspace = CreateWorkspaceFromOptions(markup, new TestParameters());
             using var testState = new TestState(workspace);
 
             var analysis = await testState.MoveToNamespaceService.AnalyzeTypeAtPositionAsync(

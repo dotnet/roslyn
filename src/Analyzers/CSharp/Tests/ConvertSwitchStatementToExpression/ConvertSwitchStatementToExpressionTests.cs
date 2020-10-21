@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 
     public class ConvertSwitchStatementToExpressionTests
     {
-        private static readonly LanguageVersion CSharp9 = LanguageVersionExtensions.CSharp9;
+        private static readonly LanguageVersion CSharp9 = LanguageVersion.CSharp9;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public void TestStandardProperties()
@@ -583,8 +584,6 @@ class Program
             }.RunAsync();
         }
 
-#if !CODE_STYLE
-
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestOnMultiCaseSection_CSharp9()
@@ -623,8 +622,6 @@ class Program
                 LanguageVersion = CSharp9,
             }.RunAsync();
         }
-
-#endif
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnMultiCompoundAssignment()
@@ -1889,6 +1886,128 @@ class Program
         };
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TopLevelStatement()
+        {
+            var source = @"
+int i = 0;
+[|switch|] (i)
+{
+    case 1:
+        return 4;
+    default:
+        return 7;
+}";
+
+            var fixedSource = @"
+int i = 0;
+return i switch
+{
+    1 => 4,
+    _ => 7,
+};
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.CSharp9,
+            };
+
+            test.ExpectedDiagnostics.Add(
+                // error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805"));
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(44449, "https://github.com/dotnet/roslyn/issues/44449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TopLevelStatement_FollowedWithThrow()
+        {
+            // We should be rewriting the declaration for 'j' to get 'var j = i switch ...'
+            var source = @"
+int i = 0;
+int j;
+[|switch|] (i)
+{
+    case 1:
+        j = 4;
+        break;
+    case 2:
+        j = 5;
+        break;
+}
+throw null;
+";
+
+            var fixedSource = @"
+int i = 0;
+int j;
+j = i switch
+{
+    1 => 4,
+    2 => 5,
+    _ => throw null,
+};
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.CSharp9,
+            };
+
+            test.ExpectedDiagnostics.Add(
+                // error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805"));
+
+            await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(48006, "https://github.com/dotnet/roslyn/issues/48006")]
+        public async Task TestOnMultiCaseSection_String_CSharp9()
+        {
+            var testCode = @"
+class Program
+{
+    bool M(string s)
+    {
+        [|switch|] (s)
+        {
+	        case ""Last"":
+            case ""First"":
+            case ""Count"":
+                return true;
+            default:
+                return false;
+        }
+    }
+}";
+            var fixedCode = @"
+class Program
+{
+    bool M(string s)
+    {
+        return s switch
+        {
+            ""Last"" or ""First"" or ""Count"" => true,
+            _ => false,
+        };
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                LanguageVersion = CSharp9,
+            }.RunAsync();
         }
     }
 }

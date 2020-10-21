@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1358,7 +1360,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c2')
 
         Jump if False (Regular) to Block[B3]
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
         Next (Regular) Block[B2]
     Block[B2] - Block
@@ -1409,9 +1411,12 @@ Block[B5] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,20): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                // file.cs(8,24): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         p = $"{c2,(a ? b : c):D3}";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a ? b : c").WithArguments("string", "int").WithLocation(8, 20)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "b").WithArguments("string", "int").WithLocation(8, 24),
+                // file.cs(8,28): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         p = $"{c2,(a ? b : c):D3}";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c").WithArguments("string", "int").WithLocation(8, 28)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);

@@ -3,7 +3,7 @@
 ### Overview
 The format is based on concepts defined in the ECMA-335 Partition II metadata standard and in [Portable PDB format](https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md).
 
-##Metadata Layout
+## Metadata Layout
 
 The physical layout of the Dynamic Analysis metadata blob starts with [Header](#Header), followed by [Tables](#Tables), followed by [Heaps](#Heaps). Layout of each of these three parts is defined in the following sections.
 
@@ -13,7 +13,7 @@ Unless stated otherwise, all binary values are stored in little-endian format.
 
 This document uses the term _(un)signed compressed integer_ for an encoding of an (un)signed 29-bit integer as defined in ECMA §23.2.
 
-##Header
+## Header
 
 | Offset  | Size | Field          | Description                                                    |
 |:--------|:-----|:---------------|----------------------------------------------------------------|
@@ -27,7 +27,7 @@ The number of tables in this version of the format is T = 2. These tables are Do
 
 The number of heaps in this version of the format is H = 2. These heaps are GUID Heap and Blob Heap and their sizes are stored in this order. No heap may be larger than 2^19 bytes (0.5 GB). 
 
-##<a name="Tables"></a>Tables
+## <a name="Tables"></a>Tables
 
 Entities stored in tables are referred to by _row id_ if used in a context that implies the table. The first row of the table has row id 1. If the table is not implied by the context the entity is referred to by its _token_ -- a 32-bit unsigned integer that combines the id of the table (in highest 8 bits) and the row id of the entity within that table (in lowest 24 bits). 
 

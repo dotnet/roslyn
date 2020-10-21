@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<ImmutableArray<INamedTypeSymbol>> DescendInheritanceTreeAsync(
             INamedTypeSymbol type,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
@@ -249,7 +247,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Need to find all the possible projects that contain this metadata.
                 var projectsThatReferenceMetadataAssembly =
                     await DependentProjectsFinder.GetDependentProjectsAsync(
-                        type, solution, projects: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        solution, type, projects: null, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // Now collect all the dependent projects as well.
                 var projectsThatCouldReferenceType =
@@ -261,7 +259,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else
             {
                 // For a source project, find the project that that type was defined in.
-                var sourceProject = solution.GetProject(type.ContainingAssembly);
+                var sourceProject = solution.GetProject(type.ContainingAssembly, cancellationToken);
                 if (sourceProject == null)
                 {
                     return SpecializedCollections.EmptySet<ProjectId>();
@@ -488,7 +486,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         case SpecialType.System_Object:
                             await AddMatchingTypesAsync(
                                 cachedModels,
-                                projectIndex.ClassesThatMayDeriveFromSystemObject,
+                                projectIndex.ClassesAndRecordsThatMayDeriveFromSystemObject,
                                 result: tempBuffer,
                                 predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object,
                                 cancellationToken).ConfigureAwait(false);

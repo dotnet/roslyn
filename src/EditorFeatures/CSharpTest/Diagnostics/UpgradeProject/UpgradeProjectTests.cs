@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -14,12 +16,18 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProject
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
     public partial class UpgradeProjectTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UpgradeProjectTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpUpgradeProjectCodeFixProvider());
 
@@ -391,8 +399,6 @@ class C
     </Project>
     <Project Language=""C#"" LanguageVersion=""6"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""Default"">
-    </Project>
     <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
     <Project Language=""Visual Basic"">
@@ -420,14 +426,38 @@ class C
     </Project>
     <Project Language=""C#"" LanguageVersion=""6"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""Default"">
-    </Project>
     <Project Language=""C#"" LanguageVersion=""7"">
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""8"">
     </Project>
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
                 LanguageVersion.CSharp8,
+                parseOptions: null,
+                index: 1);
+        }
+
+        [Fact]
+        public async Task UpgradeAllProjectsToCSharp9()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""6"">
+        <Document>
+[|System.Console.WriteLine();|]
+        </Document>
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""6"">
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""7"">
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""8"">
+    </Project>
+    <Project Language=""Visual Basic"">
+    </Project>
+</Workspace>",
+                LanguageVersion.CSharp9,
                 parseOptions: null,
                 index: 1);
         }
@@ -479,7 +509,7 @@ class C
     </Project>
     <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""800"">
+    <Project Language=""C#"" LanguageVersion=""8"">
     </Project>
 </Workspace>",
                 new[]
@@ -585,7 +615,7 @@ class C
 }
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""800"">
+    <Project Language=""C#"" LanguageVersion=""8"">
     </Project>
     <Project Language=""Visual Basic"">
     </Project>
@@ -622,6 +652,19 @@ class C
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, defaultEffectiveVersion),
                     string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultEffectiveVersion)
                     });
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnconstrainedNullableTypeParameter()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"#nullable enable
+class C<T>
+{
+    static void F([|T?|] t) { }
+}",
+                LanguageVersion.CSharp9,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
         [Fact]
@@ -843,7 +886,7 @@ class Test<T> where T : [|notnull|]
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 class Test&lt;T&gt; where T : [|notnull|]
@@ -873,7 +916,7 @@ class Test
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 class Test
@@ -900,7 +943,7 @@ class Test
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 delegate void D&lt;T&gt;() where T : [| notnull |];
@@ -931,7 +974,7 @@ class Test
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 class Test
@@ -945,6 +988,20 @@ class Test
     </Project>
 </Workspace>",
                 expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForVarianceSafetyForStaticInterfaceMembers_CS8904()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+interface I2<out T1>
+{
+    static T1 M1([|T1|] x) => x;
+}
+",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
         }
     }
 }

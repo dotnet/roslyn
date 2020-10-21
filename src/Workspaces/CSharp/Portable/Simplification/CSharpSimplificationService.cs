@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -176,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         protected override void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken)
         {
-            var root = model.SyntaxTree.GetRoot();
+            var root = model.SyntaxTree.GetRoot(cancellationToken);
             var diagnostics = model.GetDiagnostics(cancellationToken: cancellationToken);
 
             foreach (var diagnostic in diagnostics)

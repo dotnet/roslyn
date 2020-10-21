@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var pdbStreamCom = SymUnmanagedStreamFactory.CreateStream(pdbStream);
             if (pdbImage.Length > 4 && pdbImage[0] == 'B' && pdbImage[1] == 'S' && pdbImage[2] == 'J' && pdbImage[3] == 'B')
             {
-                int hr = symBinder.GetReaderFromPdbStream(metadataImportProvider, pdbStreamCom, out var symReader);
+                var hr = symBinder.GetReaderFromPdbStream(metadataImportProvider, pdbStreamCom, out var symReader);
                 Assert.Equal(0, hr);
                 return (ISymUnmanagedReader5)symReader;
             }

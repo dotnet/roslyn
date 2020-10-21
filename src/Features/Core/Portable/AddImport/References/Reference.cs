@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public int CompareTo(Document document, Reference other)
             {
-                int diff = ComparerWithState.CompareTo(this, other, document, s_comparers);
+                var diff = ComparerWithState.CompareTo(this, other, document, s_comparers);
                 if (diff != 0)
                 {
                     return diff;

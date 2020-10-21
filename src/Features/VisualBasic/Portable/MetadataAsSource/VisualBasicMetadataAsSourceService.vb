@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 Return c = vbCr OrElse c = vbLf OrElse SyntaxFacts.IsNewLine(c)
             End Function
 
-            Private Function ValidTopLevelDeclaration(node As DeclarationStatementSyntax) As Boolean
+            Private Shared Function ValidTopLevelDeclaration(node As DeclarationStatementSyntax) As Boolean
                 Select Case node.Kind
                     Case SyntaxKind.SubStatement,
                          SyntaxKind.FunctionStatement,

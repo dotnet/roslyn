@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -120,7 +122,7 @@ class C
     // (4,24): error CS0500: 'C.M()' cannot declare a body because it is marked abstract
     //    public abstract int M() => 1;
     Diagnostic(ErrorCode.ERR_AbstractHasBody, "M").WithArguments("C.M()").WithLocation(4, 24),
-    // (4,24): error CS0513: 'C.M()' is abstract but it is contained in non-abstract class 'C'
+    // (4,24): error CS0513: 'C.M()' is abstract but it is contained in non-abstract type 'C'
     //    public abstract int M() => 1;
     Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("C.M()", "C").WithLocation(4, 24));
         }

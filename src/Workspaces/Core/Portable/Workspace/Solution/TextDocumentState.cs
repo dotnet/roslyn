@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -97,7 +96,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
-            => new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
+        {
+            var result = new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
+
+            // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
+            // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
+            // transitions to a weak reference backed by temporary storage after the first time GetValue (or
+            // GetValueAsync) is called. Since we know we are creating a RecoverableTextAndVersion for the purpose of
+            // avoiding problematic address space overhead, we call GetValue immediately to force the object to weakly
+            // hold its data from the start.
+            result.GetValue();
+
+            return result;
+        }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services)
         {

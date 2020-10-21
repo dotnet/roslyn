@@ -1,0 +1,6 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Suggest language feature
+    url: https://github.com/dotnet/csharplang/issues/new/choose
+    about: Language feature suggestions are discussed in dotnet/csharplang repository first.
+    

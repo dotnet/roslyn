@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
-        <source>Failed to create a remote process for interactive code execution.</source>
-        <target state="translated">無法為互動式程式碼執行，建立遠端處理序。</target>
+        <source>Failed to create a remote process for interactive code execution: '{0}'</source>
+        <target state="new">Failed to create a remote process for interactive code execution: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_initialize_remote_interactive_process">

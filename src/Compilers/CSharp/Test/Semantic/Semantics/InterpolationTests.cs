@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
@@ -151,14 +154,8 @@ class Program {
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (5,71): error CS8077: A single-line comment may not be used in an interpolated string.
-                //         Console.WriteLine("Jenny don\'t change your number \{ 8675309 // ");
-                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(5, 71),
-                // (5,77): error CS1026: ) expected
-                //         Console.WriteLine("Jenny don\'t change your number \{ 8675309 // ");
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 77),
-                // (5,77): error CS1002: ; expected
-                //         Console.WriteLine("Jenny don\'t change your number \{ 8675309 // ");
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 77)
+                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 // ");
+                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(5, 71)
                 );
         }
 
@@ -930,7 +927,7 @@ class Program {
         }
     }
 }";
-            CreateEmptyCompilation(text, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication))
+            CreateEmptyCompilation(text, options: TestOptions.DebugExe)
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
                 // (15,21): error CS0117: 'string' does not contain a definition for 'Format'
                 //             var s = $"X = { 1 } ";
@@ -963,7 +960,7 @@ class Program {
         }
     }
 }";
-            CreateEmptyCompilation(text, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication))
+            CreateEmptyCompilation(text, options: TestOptions.DebugExe)
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
                 // (17,21): error CS0029: Cannot implicitly convert type 'bool' to 'string'
                 //             var s = $"X = { 1 } ";

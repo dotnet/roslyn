@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
             private partial class IncrementalAnalyzerProcessor
             {
@@ -35,8 +33,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
-                private readonly IDocumentTrackingService _documentTracker;
-                private readonly IProjectCacheService _cacheService;
+                private readonly IDocumentTrackingService? _documentTracker;
+                private readonly IProjectCacheService? _cacheService;
 
                 private readonly HighPriorityProcessor _highPriorityProcessor;
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
@@ -61,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     _listener = listener;
                     _registration = registration;
-                    _cacheService = registration.GetService<IProjectCacheService>();
+                    _cacheService = registration.Workspace.Services.GetService<IProjectCacheService>();
 
                     _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService?>(() => GetDiagnosticAnalyzerService(analyzerProviders));
 
@@ -79,23 +77,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     // event and worker queues
-                    _documentTracker = _registration.GetService<IDocumentTrackingService>();
+                    _documentTracker = _registration.Workspace.Services.GetService<IDocumentTrackingService>();
 
-                    var globalNotificationService = _registration.GetService<IGlobalOperationNotificationService>();
+                    var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
                     _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
                     _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpanInMs, shutdownToken);
                     _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpanInMs, shutdownToken);
                 }
 
-                private IDiagnosticAnalyzerService? GetDiagnosticAnalyzerService(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
+                private static IDiagnosticAnalyzerService? GetDiagnosticAnalyzerService(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
                 {
                     // alternatively, we could just MEF import IDiagnosticAnalyzerService directly
                     // this can be null in test env.
                     return (IDiagnosticAnalyzerService?)analyzerProviders.Where(p => p.Value is IDiagnosticAnalyzerService).SingleOrDefault()?.Value;
                 }
 
-                private ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(Registration registration, AnalyzersGetter analyzersGetter, bool onlyHighPriorityAnalyzer)
+                private static ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(Registration registration, AnalyzersGetter analyzersGetter, bool onlyHighPriorityAnalyzer)
                 {
                     var orderedAnalyzers = analyzersGetter.GetOrderedAnalyzers(registration.Workspace, onlyHighPriorityAnalyzer);
 
@@ -237,13 +235,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private async Task ProcessDocumentAnalyzersAsync(
-                    Document document, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
+                    TextDocument textDocument, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                 {
                     // process all analyzers for each categories in this order - syntax, body, document
                     var reasons = workItem.InvocationReasons;
                     if (workItem.MustRefresh || reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
                     {
-                        await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeSyntaxAsync(d, reasons, c), cancellationToken).ConfigureAwait(false);
+                        await RunAnalyzersAsync(analyzers, textDocument, workItem, (a, d, c) => AnalyzeSyntaxAsync(a, d, reasons, c), cancellationToken).ConfigureAwait(false);
+                    }
+
+                    if (!(textDocument is Document document))
+                    {
+                        // Semantic analysis is not supported for non-source documents.
+                        return;
                     }
 
                     if (workItem.MustRefresh || reasons.Contains(PredefinedInvocationReasons.SemanticChanged))
@@ -254,6 +258,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         // if we don't need to re-analyze whole body, see whether we need to at least re-analyze one method.
                         await RunBodyAnalyzersAsync(analyzers, workItem, document, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    return;
+
+                    static async Task AnalyzeSyntaxAsync(IIncrementalAnalyzer analyzer, TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+                    {
+                        if (textDocument is Document document)
+                        {
+                            await analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken).ConfigureAwait(false);
+                        }
+                        else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                        {
+                            await analyzer2.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
+                        }
                     }
                 }
 
@@ -319,7 +337,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // re-run just the body
                         await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, activeMember, reasons, c), cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -336,14 +354,25 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         return null;
                     }
-                    catch (AggregateException e) when (CrashUnlessCanceled(e))
+                    catch (AggregateException e) when (ReportWithoutCrashUnlessAllCanceledAndPropagate(e))
                     {
                         return null;
                     }
-                    catch (Exception e) when (FatalError.Report(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagate(e))
                     {
                         // TODO: manage bad workers like what code actions does now
                         throw ExceptionUtilities.Unreachable;
+                    }
+
+                    static bool ReportWithoutCrashUnlessAllCanceledAndPropagate(AggregateException aggregate)
+                    {
+                        var flattened = aggregate.Flatten();
+                        if (flattened.InnerExceptions.All(e => e is OperationCanceledException))
+                        {
+                            return true;
+                        }
+
+                        return FatalError.ReportAndPropagate(flattened);
                     }
                 }
 
@@ -375,30 +404,33 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return $"Tick:{tick}, {documentOrProjectId}, Replaced:{replaced}";
                 }
 
-                private static bool CrashUnlessCanceled(AggregateException aggregate)
+                internal TestAccessor GetTestAccessor()
                 {
-                    var flattened = aggregate.Flatten();
-                    if (flattened.InnerExceptions.All(e => e is OperationCanceledException))
+                    return new TestAccessor(this);
+                }
+
+                internal readonly struct TestAccessor
+                {
+                    private readonly IncrementalAnalyzerProcessor _incrementalAnalyzerProcessor;
+
+                    internal TestAccessor(IncrementalAnalyzerProcessor incrementalAnalyzerProcessor)
                     {
-                        return true;
+                        _incrementalAnalyzerProcessor = incrementalAnalyzerProcessor;
                     }
 
-                    FatalError.Report(flattened);
-                    return false;
-                }
+                    internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                    {
+                        _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion(analyzers, items);
 
-                internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
-                {
-                    _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
+                        var projectItems = items.Select(i => i.ToProjectWorkItem(EmptyAsyncToken.Instance));
+                        _incrementalAnalyzerProcessor._lowPriorityProcessor.GetTestAccessor().WaitUntilCompletion(analyzers, items);
+                    }
 
-                    var projectItems = items.Select(i => i.ToProjectWorkItem(EmptyAsyncToken.Instance));
-                    _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
-                }
-
-                internal void WaitUntilCompletion_ForTestingPurposesOnly()
-                {
-                    _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
-                    _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
+                    internal void WaitUntilCompletion()
+                    {
+                        _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
+                        _incrementalAnalyzerProcessor._lowPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
+                    }
                 }
 
                 private class NullDisposable : IDisposable

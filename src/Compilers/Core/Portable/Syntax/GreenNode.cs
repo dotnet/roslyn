@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -906,7 +904,7 @@ namespace Microsoft.CodeAnalysis
         public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
 
-        public virtual GreenNode? CreateList(IEnumerable<GreenNode>? nodes, bool alwaysCreateListNode = false)
+        public static GreenNode? CreateList(IEnumerable<GreenNode>? nodes, bool alwaysCreateListNode = false)
         {
             if (nodes == null)
             {

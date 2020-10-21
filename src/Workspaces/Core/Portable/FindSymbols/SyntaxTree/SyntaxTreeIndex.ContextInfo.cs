@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
@@ -30,7 +32,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsDeconstruction,
                 bool containsAwait,
                 bool containsTupleExpressionOrTupleType,
-                bool containsImplicitObjectCreation)
+                bool containsImplicitObjectCreation,
+                bool containsGlobalAttributes)
                 : this(predefinedTypes, predefinedOperators,
                        ConvertToContainingNodeFlag(
                          containsForEachStatement,
@@ -44,7 +47,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsDeconstruction,
                          containsAwait,
                          containsTupleExpressionOrTupleType,
-                         containsImplicitObjectCreation))
+                         containsImplicitObjectCreation,
+                         containsGlobalAttributes))
             {
             }
 
@@ -67,7 +71,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsDeconstruction,
                 bool containsAwait,
                 bool containsTupleExpressionOrTupleType,
-                bool containsImplicitObjectCreation)
+                bool containsImplicitObjectCreation,
+                bool containsGlobalAttributes)
             {
                 var containingNodes = ContainingNodes.None;
 
@@ -83,6 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 containingNodes |= containsAwait ? ContainingNodes.ContainsAwait : 0;
                 containingNodes |= containsTupleExpressionOrTupleType ? ContainingNodes.ContainsTupleExpressionOrTupleType : 0;
                 containingNodes |= containsImplicitObjectCreation ? ContainingNodes.ContainsImplicitObjectCreation : 0;
+                containingNodes |= containsGlobalAttributes ? ContainingNodes.ContainsGlobalAttributes : 0;
 
                 return containingNodes;
             }
@@ -129,6 +135,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool ContainsTupleExpressionOrTupleType
                 => (_containingNodes & ContainingNodes.ContainsTupleExpressionOrTupleType) == ContainingNodes.ContainsTupleExpressionOrTupleType;
 
+            public bool ContainsGlobalAttributes
+                => (_containingNodes & ContainingNodes.ContainsGlobalAttributes) == ContainingNodes.ContainsGlobalAttributes;
+
             public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteInt32(_predefinedTypes);
@@ -169,6 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsAwait = 1 << 9,
                 ContainsTupleExpressionOrTupleType = 1 << 10,
                 ContainsImplicitObjectCreation = 1 << 11,
+                ContainsGlobalAttributes = 1 << 12,
             }
         }
     }

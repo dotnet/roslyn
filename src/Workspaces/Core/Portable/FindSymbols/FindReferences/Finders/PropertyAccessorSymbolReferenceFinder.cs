@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // This will find explicit calls to the method (which can happen when C# references
             // a VB parameterized property).
             var result = await FindDocumentsAsync(
-                project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
+                project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name).ConfigureAwait(false);
 
             if (symbol.AssociatedSymbol is IPropertySymbol property &&
                 options.AssociatePropertyReferencesWithSpecificAccessor)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result;
         }
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
                     cancellationToken).ConfigureAwait(false);
 
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
                 var accessorReferences = propertyReferences.WhereAsArray(
                     loc =>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
@@ -1069,7 +1071,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        private async Task VerifyAsync(string codeWithMarker, string expectedResult)
+        private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
             MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);

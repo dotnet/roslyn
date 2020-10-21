@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class TupleParameterSymbol
         Inherits WrappedParameterSymbol
 
-        Private _container As Symbol
+        Private ReadOnly _container As Symbol
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get

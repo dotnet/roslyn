@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -98,16 +100,16 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             return ImmutableArray<HighlightSpan>.Empty;
         }
 
-        private ImmutableArray<HighlightSpan> CreateHighlights(
+        private static ImmutableArray<HighlightSpan> CreateHighlights(
             RegexEscapeNode node, TextSpan captureSpan)
         {
             return ImmutableArray.Create(CreateHighlightSpan(node.GetSpan()), CreateHighlightSpan(captureSpan));
         }
 
-        private HighlightSpan CreateHighlightSpan(TextSpan textSpan)
-            => new HighlightSpan(textSpan, HighlightSpanKind.None);
+        private static HighlightSpan CreateHighlightSpan(TextSpan textSpan)
+            => new(textSpan, HighlightSpanKind.None);
 
-        private RegexToken GetCaptureToken(RegexEscapeNode node)
+        private static RegexToken GetCaptureToken(RegexEscapeNode node)
             => node switch
             {
                 RegexBackreferenceEscapeNode backReference => backReference.NumberToken,

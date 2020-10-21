@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -43,10 +45,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             => _context.Value;
 
         public InsertionPoint With(SemanticDocument document)
-            => new InsertionPoint(document, _annotation);
+            => new(document, _annotation);
 
         private Lazy<SyntaxNode> CreateLazyContextNode()
-            => new Lazy<SyntaxNode>(ComputeContextNode, isThreadSafe: true);
+            => new(ComputeContextNode, isThreadSafe: true);
 
         private SyntaxNode ComputeContextNode()
         {

@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         internal static RunRequest GetRunRequest(BuildRequest req)
         {
-            string currentDirectory;
-            string libDirectory;
-            string tempDirectory;
+            string? currentDirectory;
+            string? libDirectory;
+            string? tempDirectory;
             string[] arguments = GetCommandLineArguments(req, out currentDirectory, out tempDirectory, out libDirectory);
             string language = "";
             switch (req.Language)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return new RunRequest(language, currentDirectory, tempDirectory, libDirectory, arguments);
         }
 
-        internal static string[] GetCommandLineArguments(BuildRequest req, out string currentDirectory, out string tempDirectory, out string libDirectory)
+        internal static string[] GetCommandLineArguments(BuildRequest req, out string? currentDirectory, out string? tempDirectory, out string? libDirectory)
         {
             currentDirectory = null;
             libDirectory = null;
@@ -58,10 +58,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.CommandLineArgument)
                 {
-                    int argIndex = arg.ArgumentIndex;
-                    while (argIndex >= commandLineArguments.Count)
-                        commandLineArguments.Add("");
-                    commandLineArguments[argIndex] = arg.Value;
+                    if (arg.Value is object)
+                    {
+                        int argIndex = arg.ArgumentIndex;
+                        while (argIndex >= commandLineArguments.Count)
+                            commandLineArguments.Add("");
+                        commandLineArguments[argIndex] = arg.Value;
+                    }
                 }
             }
 

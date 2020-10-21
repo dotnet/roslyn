@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -666,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (reorderedArgument.Kind == TypedConstantKind.Array &&
                         parameter.Type.TypeKind == TypeKind.Array &&
-                        !((TypeSymbol)reorderedArgument.TypeInternal).Equals(parameter.Type, TypeCompareKind.AllIgnoreOptions))
+                        !((TypeSymbol)reorderedArgument.TypeInternal!).Equals(parameter.Type, TypeCompareKind.AllIgnoreOptions))
                     {
                         // NOTE: As in dev11, we don't allow array covariance conversions (presumably, we don't have a way to
                         // represent the conversion in metadata).
@@ -922,6 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
+            Debug.Assert(argument.TypeInternal is object);
             Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.TypeInternal, parameter.Type, ref useSiteDiagnostics);
 
             // NOTE: Won't always succeed, even though we've performed overload resolution.

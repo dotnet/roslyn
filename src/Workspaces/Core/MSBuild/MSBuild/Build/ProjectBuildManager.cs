@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 # nullable enable
 
 using System;
@@ -162,7 +164,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
 
             globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
-            var allProperties = s_defaultGlobalProperties.AddRange(globalProperties);
+            var allProperties = s_defaultGlobalProperties.RemoveRange(globalProperties.Keys).AddRange(globalProperties);
             _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
             _batchBuildLogger = new MSBuildDiagnosticLogger()
             {
@@ -244,7 +246,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         // this lock is static because we are using the default build manager, and there is only one per process
         private static readonly SemaphoreSlim s_buildManagerLock = new SemaphoreSlim(initialCount: 1);
 
-        private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        private static async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
             // only allow one build to use the default build manager at a time
             using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -253,7 +255,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        private Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        private static Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
             var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
 

@@ -32,7 +32,6 @@ End Module]]>.Value)
             ' no stack overflow
         End Sub
 
-
     End Class
 
 End Namespace

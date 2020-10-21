@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -33,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
             => CreateNavInfo(rgSymbolNodes, ulcNodes, out ppNavInfo);
 
         int IVsSimpleLibrary2.GetBrowseContainersForHierarchy(IVsHierarchy pHierarchy, uint celt, VSBROWSECONTAINER[] rgBrowseContainers, uint[] pcActual)
-            => throw new NotImplementedException();
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleLibrary2.GetGuid(out Guid pguidLib)
         {

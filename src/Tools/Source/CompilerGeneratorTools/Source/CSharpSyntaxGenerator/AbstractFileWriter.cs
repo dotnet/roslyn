@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -71,6 +73,12 @@ namespace CSharpSyntaxGenerator
                 WriteIndentIfNeeded();
             }
 
+            _writer.WriteLine(msg);
+            _needIndent = true; //need an indent after each line break
+        }
+
+        protected void WriteLineWithoutIndent(string msg)
+        {
             _writer.WriteLine(msg);
             _needIndent = true; //need an indent after each line break
         }

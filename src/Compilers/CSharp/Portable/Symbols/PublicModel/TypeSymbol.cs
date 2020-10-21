@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 : null;
         }
 
-        bool ITypeSymbol.IsUnmanagedType => !UnderlyingTypeSymbol.IsManagedType;
+        bool ITypeSymbol.IsUnmanagedType => !UnderlyingTypeSymbol.IsManagedTypeNoUseSiteDiagnostics;
 
         bool ITypeSymbol.IsReferenceType
         {

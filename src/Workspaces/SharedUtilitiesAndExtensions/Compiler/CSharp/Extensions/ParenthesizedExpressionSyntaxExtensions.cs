@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-
-#if !CODE_STYLE
-using System.Diagnostics;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -55,6 +54,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 parentExpression.IsKind(SyntaxKind.ParenthesizedExpression))
             {
                 return true;
+            }
+
+            if (expression is StackAllocArrayCreationExpressionSyntax ||
+                expression is ImplicitStackAllocArrayCreationExpressionSyntax)
+            {
+                // var span = (stackalloc byte[8]);
+                // https://github.com/dotnet/roslyn/issues/44629
+                // The code semantics changes if the parenthesis removed.
+                // With parenthesis:    variable span is of type `Span<byte>`.
+                // Without parenthesis: variable span is of type `byte*` which can only be used in unsafe context.
+                return false;
             }
 
             // (throw ...) -> throw ...
@@ -665,8 +675,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxKind.SimpleMemberAccessExpression);
         }
 
-#if !CODE_STYLE
-
         public static bool CanRemoveParentheses(this ParenthesizedPatternSyntax node)
         {
             if (node.OpenParenToken.IsMissing || node.CloseParenToken.IsMissing)
@@ -735,14 +743,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return precedence < parentPrecedence;
         }
 
-#endif
-
         public static OperatorPrecedence GetOperatorPrecedence(this PatternSyntax pattern)
         {
-#if CODE_STYLE
-            return OperatorPrecedence.None;
-#else
-
             switch (pattern)
             {
                 case ConstantPatternSyntax _:
@@ -769,8 +771,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             Debug.Fail("Unhandled pattern type");
             return OperatorPrecedence.None;
-
-#endif
         }
     }
 }

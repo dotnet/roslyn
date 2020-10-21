@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -34,6 +32,28 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 public DocumentId DocumentId => _newState.Attributes.Id;
+            }
+
+            internal sealed class TouchAdditionalDocumentAction : CompilationAndGeneratorDriverTranslationAction
+            {
+                private readonly TextDocumentState _oldState;
+                private readonly TextDocumentState _newState;
+
+                public TouchAdditionalDocumentAction(TextDocumentState oldState, TextDocumentState newState)
+                {
+                    _oldState = oldState;
+                    _newState = newState;
+                }
+
+                public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
+                {
+                    // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an additional file has been changed
+                    // to allow for incremental updates: our only option is to recreate the generator driver from scratch.
+                    _ = _oldState;
+                    _ = _newState;
+
+                    return new TrackedGeneratorDriver(generatorDriver: null);
+                }
             }
 
             internal sealed class RemoveDocumentsAction : CompilationAndGeneratorDriverTranslationAction

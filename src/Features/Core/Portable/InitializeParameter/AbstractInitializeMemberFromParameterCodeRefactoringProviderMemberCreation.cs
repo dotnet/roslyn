@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
             ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan, CancellationToken cancellationToken)
         {
-            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
+            return SpecializedTasks.EmptyImmutableArray<CodeAction>();
         }
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -199,7 +197,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return (fieldAction, propertyAction);
         }
 
-        private ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers(
+        private static ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers(
             IBlockOperation? blockStatementOpt,
             ImmutableArray<NamingRule> rules,
             IMethodSymbol method)
@@ -239,7 +237,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     document, functionDeclaration, blockStatementOpt, parameter, fieldOrProperty, c)));
         }
 
-        private ISymbol? TryFindSiblingFieldOrProperty(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
+        private static ISymbol? TryFindSiblingFieldOrProperty(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
         {
             foreach (var (siblingParam, _) in GetSiblingParameters(parameter))
             {
@@ -372,7 +370,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var trackedRoot = root.TrackNodes(nodesToTrack);
             var currentDocument = document.WithSyntaxRoot(trackedRoot);
 
-            for (int i = 0; i < parameters.Length; i++)
+            for (var i = 0; i < parameters.Length; i++)
             {
                 var parameter = parameters[i];
                 var fieldOrProperty = fieldsOrProperties[i];
@@ -388,7 +386,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 IBlockOperation? currentBlockStatementOpt = null;
                 if (blockStatementOpt != null)
                 {
-                    currentBlockStatementOpt = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatementOpt.Syntax));
+                    currentBlockStatementOpt = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatementOpt.Syntax), cancellationToken);
                     if (currentBlockStatementOpt == null)
                         continue;
                 }
@@ -420,9 +418,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, workspace);
             var generator = editor.Generator;
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             if (fieldOrProperty.ContainingType == null)
             {
@@ -448,13 +447,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             return CodeGenerator.AddPropertyDeclaration(
                                 currentTypeDecl, property, workspace,
-                                GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, cancellationToken));
+                                GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, options, cancellationToken));
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
                             return CodeGenerator.AddFieldDeclaration(
                                 currentTypeDecl, field, workspace,
-                                GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, cancellationToken));
+                                GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, options, cancellationToken));
                         }
                         else
                         {
@@ -482,9 +481,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private CodeGenerationOptions? GetAddOptions<TSymbol>(
+        private static CodeGenerationOptions GetAddOptions<TSymbol>(
             IParameterSymbol parameter, IBlockOperation? blockStatementOpt,
-            SyntaxNode typeDeclaration, CancellationToken cancellationToken)
+            SyntaxNode typeDeclaration, OptionSet options, CancellationToken cancellationToken)
             where TSymbol : ISymbol
         {
             foreach (var (sibling, before) in GetSiblingParameters(parameter))
@@ -502,22 +501,22 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             // Found an existing field/property that corresponds to a preceding parameter.
                             // Place ourselves directly after it.
-                            return new CodeGenerationOptions(afterThisLocation: symbolSyntax.GetLocation());
+                            return new CodeGenerationOptions(afterThisLocation: symbolSyntax.GetLocation(), options: options);
                         }
                         else
                         {
                             // Found an existing field/property that corresponds to a following parameter.
                             // Place ourselves directly before it.
-                            return new CodeGenerationOptions(beforeThisLocation: symbolSyntax.GetLocation());
+                            return new CodeGenerationOptions(beforeThisLocation: symbolSyntax.GetLocation(), options: options);
                         }
                     }
                 }
             }
 
-            return null;
+            return new CodeGenerationOptions(options: options);
         }
 
-        private ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
+        private static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
         {
             using var _ = ArrayBuilder<(IParameterSymbol, bool before)>.GetInstance(out var siblings);
 
@@ -566,10 +565,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return TryGetLastStatement(blockStatementOpt);
         }
 
-        private IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
+        private static IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
             => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatementOpt, out _);
 
-        private IOperation? TryFindFieldOrPropertyAssignmentStatement(
+        private static IOperation? TryFindFieldOrPropertyAssignmentStatement(
             IParameterSymbol parameter, IBlockOperation? blockStatementOpt, out ISymbol? fieldOrProperty)
         {
             if (blockStatementOpt != null)
@@ -661,7 +660,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
-        private bool ContainsMemberAssignment(
+        private static bool ContainsMemberAssignment(
             IBlockOperation? blockStatementOpt, ISymbol member)
         {
             if (blockStatementOpt != null)

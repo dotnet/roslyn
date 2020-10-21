@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -30,14 +28,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// an important scenario that we can be generating multiple documents in parallel, and so 
         /// we simply take this lock around all public entrypoints to enforce sequential access.
         /// </summary>
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         /// <summary>
         /// For a description of the key, see GetKeyAsync.
         /// </summary>
-        private readonly Dictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo> _keyToInformation = new Dictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo>();
+        private readonly Dictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo> _keyToInformation = new();
 
-        private readonly Dictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new Dictionary<string, MetadataAsSourceGeneratedFileInfo>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
         private IBidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId> _openedDocumentIds = BidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId>.Empty;
 
         private MetadataAsSourceWorkspace? _workspace;
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                 useDecompiler = false;
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
                         {
                             useDecompiler = false;
                         }
@@ -168,9 +166,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         }
                     }
 
-                    using (var textWriter = new StreamWriter(fileInfo.TemporaryFilePath, append: false, encoding: fileInfo.Encoding))
+                    using (var textWriter = new StreamWriter(fileInfo.TemporaryFilePath, append: false, encoding: MetadataAsSourceGeneratedFileInfo.Encoding))
                     {
-                        text.Write(textWriter);
+                        text.Write(textWriter, cancellationToken);
                     }
 
                     // Mark read-only
@@ -267,13 +265,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             Contract.ThrowIfNull(documentId);
             Contract.ThrowIfNull(_workspace);
 
-            _workspace.OnDocumentClosed(documentId, new FileTextLoader(fileInfo.TemporaryFilePath, fileInfo.Encoding));
+            _workspace.OnDocumentClosed(documentId, new FileTextLoader(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding));
             _workspace.OnProjectRemoved(documentId.ProjectId);
 
             _openedDocumentIds = _openedDocumentIds.RemoveKey(fileInfo);
         }
 
-        private async Task<UniqueDocumentKey> GetUniqueDocumentKeyAsync(Project project, INamedTypeSymbol topLevelNamedType, bool allowDecompilation, CancellationToken cancellationToken)
+        private static async Task<UniqueDocumentKey> GetUniqueDocumentKeyAsync(Project project, INamedTypeSymbol topLevelNamedType, bool allowDecompilation, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(compilation, "We are trying to produce a key for a language that doesn't support compilations.");
@@ -319,7 +317,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return null;
             }
 
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
             if (resolutionResult.Symbol == null)
             {

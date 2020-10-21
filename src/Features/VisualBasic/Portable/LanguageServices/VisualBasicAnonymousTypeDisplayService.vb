@@ -2,9 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
@@ -35,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
         Public Sub New()
         End Sub
 
-        Public Overrides Function GetAnonymousTypeParts(anonymousType As INamedTypeSymbol, semanticModel As SemanticModel, position As Integer) As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides Function GetAnonymousTypeParts(anonymousType As INamedTypeSymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
             If anonymousType.IsAnonymousDelegateType() Then
                 Return GetDelegateAnonymousType(anonymousType, semanticModel, position)
             Else
@@ -43,22 +45,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             End If
         End Function
 
-        Private Function GetDelegateAnonymousType(anonymousType As INamedTypeSymbol,
-                                                  semanticModel As SemanticModel,
-                                                  position As Integer) As IList(Of SymbolDisplayPart)
+        Private Shared Function GetDelegateAnonymousType(
+                anonymousType As INamedTypeSymbol,
+                semanticModel As SemanticModel,
+                position As Integer) As ImmutableArray(Of SymbolDisplayPart)
             Dim method = anonymousType.DelegateInvokeMethod
 
-            Dim members = New List(Of SymbolDisplayPart)()
+            Dim members = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
             members.Add(Punctuation("<"))
             members.AddRange(MassageDelegateParts(
                 method,
                 method.ToMinimalDisplayParts(semanticModel, position, s_anonymousDelegateFormat)))
             members.Add(Punctuation(">"))
 
-            Return members
+            Return members.ToImmutableAndFree()
         End Function
 
-        Private Function MassageDelegateParts(delegateInvoke As IMethodSymbol,
+        Private Shared Function MassageDelegateParts(delegateInvoke As IMethodSymbol,
                                               parts As IEnumerable(Of SymbolDisplayPart)) As IEnumerable(Of SymbolDisplayPart)
             ' So ugly.  We remove the 'Invoke' name that was added by the symbol display service.
             Dim result = New List(Of SymbolDisplayPart)
@@ -77,10 +80,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Return result
         End Function
 
-        Private Function GetNormalAnonymousType(anonymousType As INamedTypeSymbol,
-                                                semanticModel As SemanticModel,
-                                                position As Integer) As IList(Of SymbolDisplayPart)
-            Dim members = New List(Of SymbolDisplayPart)()
+        Private Shared Function GetNormalAnonymousType(
+                anonymousType As INamedTypeSymbol,
+                semanticModel As SemanticModel,
+                position As Integer) As ImmutableArray(Of SymbolDisplayPart)
+            Dim members = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
 
             members.Add(Keyword(SyntaxFacts.GetText(SyntaxKind.NewKeyword)))
             members.AddRange(Space())
@@ -112,8 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             members.AddRange(Space())
             members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.CloseBraceToken)))
 
-            Return members
+            Return members.ToImmutableAndFree()
         End Function
     End Class
-
 End Namespace

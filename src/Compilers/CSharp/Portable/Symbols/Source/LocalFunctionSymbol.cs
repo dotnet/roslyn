@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -47,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declarationModifiers =
                 DeclarationModifiers.Private |
                 syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
+
+            if (SyntaxFacts.HasYieldOperations(syntax.Body))
+            {
+                _lazyIteratorElementType = TypeWithAnnotations.Boxed.Sentinel;
+            }
 
             this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
 
@@ -130,6 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AsyncMethodChecks(_declarationDiagnostics);
 
             addTo.AddRange(_declarationDiagnostics);
+
+            if (IsEntryPointCandidate && !IsGenericMethod &&
+                ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
+                DeclaringCompilation.HasEntryPointSignature(this, new DiagnosticBag()).IsCandidate)
+            {
+                addTo.Add(ErrorCode.WRN_MainIgnored, Syntax.Identifier.GetLocation(), this);
+            }
         }
 
         internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
@@ -251,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // span-like types are returnable in general
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                // Method or delegate cannot return type '{0}'
+                // The return type of a method, delegate, or function pointer cannot be '{0}'
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.Type);
             }
 
@@ -301,10 +311,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             set
             {
-                Debug.Assert(_lazyIteratorElementType == null || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
-                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), null);
+                Debug.Assert(_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel || (_lazyIteratorElementType is object && TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2)));
+                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), TypeWithAnnotations.Boxed.Sentinel);
             }
         }
+
+        internal override bool IsIterator => _lazyIteratorElementType is object;
 
         public override MethodKind MethodKind => MethodKind.LocalFunction;
 
@@ -356,6 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsExpressionBodied => Syntax is { Body: null, ExpressionBody: object _ };
 
         internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 
@@ -412,6 +426,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
+                SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(identifier.Text, this.DeclaringCompilation, diagnostics, location);
+
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object?)tpEnclosing != null)
                 {
@@ -443,9 +459,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext)
         {
-            if (_lazyTypeParameterConstraints.IsDefault)
+            if (!_lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext))
             {
                 var syntax = Syntax;
                 var diagnostics = DiagnosticBag.GetInstance();
@@ -454,13 +470,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
-                    syntax.Identifier.GetLocation(),
+                    canIgnoreNullableContext,
                     diagnostics);
                 lock (_declarationDiagnostics)
                 {
-                    if (_lazyTypeParameterConstraints.IsDefault)
+                    canIgnoreNullableContext = constraints.IgnoresNullableContext();
+                    if (!_lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext))
                     {
-                        _declarationDiagnostics.AddRange(diagnostics);
+                        if (!canIgnoreNullableContext)
+                        {
+                            _declarationDiagnostics.AddRange(diagnostics);
+                        }
                         _lazyTypeParameterConstraints = constraints;
                     }
                 }

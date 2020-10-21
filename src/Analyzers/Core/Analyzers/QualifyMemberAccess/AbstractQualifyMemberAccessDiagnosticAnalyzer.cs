@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
         }
 
-        private bool IsStaticMemberOrIsLocalFunction(IOperation operation)
+        private static bool IsStaticMemberOrIsLocalFunction(IOperation operation)
         {
             return operation switch
             {

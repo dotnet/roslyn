@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -29,7 +31,7 @@ class C
                         null,
                         "Dictionary<ConsoleColor, Task<AsyncOperation>>",
                         "test",
-                        "TODO"),
+                        CallSiteKind.Todo),
                     "System.Collections.Generic.Dictionary<System.ConsoleColor, System.Threading.Tasks.Task<System.ComponentModel.AsyncOperation>>")};
 
             var updatedCode = @"
@@ -63,7 +65,7 @@ class C
                         null,
                         "Dictionary<ConsoleColor, Task<AsyncOperation>>",
                         "test",
-                        "TODO"),
+                        CallSiteKind.Todo),
                     "System.Collections.Generic.Dictionary<System.ConsoleColor, System.Threading.Tasks.Task<System.ComponentModel.AsyncOperation>>")};
 
             var updatedCode = @"
@@ -113,7 +115,7 @@ namespace NS2
                         null,
                         "Dictionary<ConsoleColor, Task<AsyncOperation>>",
                         "test",
-                        "TODO"),
+                        CallSiteKind.Todo),
                     "System.Collections.Generic.Dictionary<System.ConsoleColor, System.Threading.Tasks.Task<System.ComponentModel.AsyncOperation>>")};
 
             var updatedCode = @"

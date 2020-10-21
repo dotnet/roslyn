@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -387,6 +385,17 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
+    /// This interface models the metadata representation of a pointer to a function in unmanaged memory.
+    /// </summary>
+    internal interface IFunctionPointerTypeReference : ITypeReference
+    {
+        /// <summary>
+        /// The signature of the function located at the target memory address.
+        /// </summary>
+        ISignature Signature { get; }
+    }
+
+    /// <summary>
     /// A type ref with attributes attached directly to the type reference
     /// itself. Unlike <see cref="IReference.GetAttributes(EmitContext)"/> a
     /// <see cref="TypeReferenceWithAttributes"/> will never provide attributes
@@ -720,6 +729,11 @@ namespace Microsoft.Cci
         /// Not a primitive type.
         /// </summary>
         NotPrimitive,
+
+        /// <summary>
+        /// A pointer to a function in fixed or managed memory.
+        /// </summary>
+        FunctionPointer,
 
         /// <summary>
         /// Type is a dummy type.

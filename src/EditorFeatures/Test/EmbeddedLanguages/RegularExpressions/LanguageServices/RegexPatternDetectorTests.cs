@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Xunit;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 {
     public class RegexPatternDetectorTests
     {
-        private void Match(string value, RegexOptions? expectedOptions = null, string prefix = "//")
+        private static void Match(string value, RegexOptions? expectedOptions = null, string prefix = "//")
         {
             var (matched, options) = RegexPatternDetector.TestAccessor.TryMatch(prefix + value);
             Assert.True(matched);
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
             }
         }
 
-        private void NoMatch(string value, string prefix = "//")
+        private static void NoMatch(string value, string prefix = "//")
         {
             var (matched, _) = RegexPatternDetector.TestAccessor.TryMatch(prefix + value);
             Assert.False(matched);

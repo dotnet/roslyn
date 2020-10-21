@@ -34,6 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for identifier name.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IdentifierName"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IdentifierNameSyntax : SimpleNameSyntax
     {
         internal IdentifierNameSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -49,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIdentifierName(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIdentifierName(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIdentifierName(this);
 
         public IdentifierNameSyntax Update(SyntaxToken identifier)
         {
@@ -69,6 +74,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for qualified name.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.QualifiedName"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class QualifiedNameSyntax : NameSyntax
     {
         private NameSyntax? left;
@@ -105,8 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQualifiedName(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQualifiedName(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitQualifiedName(this);
 
         public QualifiedNameSyntax Update(NameSyntax left, SyntaxToken dotToken, SimpleNameSyntax right)
         {
@@ -126,6 +136,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for generic name.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.GenericName"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class GenericNameSyntax : SimpleNameSyntax
     {
         private TypeArgumentListSyntax? typeArgumentList;
@@ -146,8 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.typeArgumentList : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGenericName(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGenericName(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitGenericName(this);
 
         public GenericNameSyntax Update(SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList)
         {
@@ -169,6 +184,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for type argument list.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeArgumentList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeArgumentListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? arguments;
@@ -199,8 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.arguments : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeArgumentList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeArgumentList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeArgumentList(this);
 
         public TypeArgumentListSyntax Update(SyntaxToken lessThanToken, SeparatedSyntaxList<TypeSyntax> arguments, SyntaxToken greaterThanToken)
         {
@@ -222,6 +242,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for alias qualified name.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AliasQualifiedName"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AliasQualifiedNameSyntax : NameSyntax
     {
         private IdentifierNameSyntax? alias;
@@ -258,8 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAliasQualifiedName(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAliasQualifiedName(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAliasQualifiedName(this);
 
         public AliasQualifiedNameSyntax Update(IdentifierNameSyntax alias, SyntaxToken colonColonToken, SimpleNameSyntax name)
         {
@@ -288,6 +313,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for predefined types.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PredefinedType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PredefinedTypeSyntax : TypeSyntax
     {
         internal PredefinedTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -303,8 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPredefinedType(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPredefinedType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPredefinedType(this);
 
         public PredefinedTypeSyntax Update(SyntaxToken keyword)
         {
@@ -322,6 +352,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for the array type.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArrayType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArrayTypeSyntax : TypeSyntax
     {
         private TypeSyntax? elementType;
@@ -355,8 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayType(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArrayType(this);
 
         public ArrayTypeSyntax Update(TypeSyntax elementType, SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers)
         {
@@ -376,6 +411,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ArrayTypeSyntax AddRankSpecifiers(params ArrayRankSpecifierSyntax[] items) => WithRankSpecifiers(this.RankSpecifiers.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArrayRankSpecifier"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArrayRankSpecifierSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? sizes;
@@ -403,8 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.sizes : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayRankSpecifier(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayRankSpecifier(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArrayRankSpecifier(this);
 
         public ArrayRankSpecifierSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
         {
@@ -426,6 +466,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for pointer type.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PointerType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PointerTypeSyntax : TypeSyntax
     {
         private TypeSyntax? elementType;
@@ -446,8 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.elementType : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPointerType(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPointerType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPointerType(this);
 
         public PointerTypeSyntax Update(TypeSyntax elementType, SyntaxToken asteriskToken)
         {
@@ -465,7 +510,286 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PointerTypeSyntax WithAsteriskToken(SyntaxToken asteriskToken) => Update(this.ElementType, asteriskToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FunctionPointerType"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class FunctionPointerTypeSyntax : TypeSyntax
+    {
+        private FunctionPointerCallingConventionSyntax? callingConvention;
+        private FunctionPointerParameterListSyntax? parameterList;
+
+        internal FunctionPointerTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>SyntaxToken representing the delegate keyword.</summary>
+        public SyntaxToken DelegateKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerTypeSyntax)this.Green).delegateKeyword, Position, 0);
+
+        /// <summary>SyntaxToken representing the asterisk.</summary>
+        public SyntaxToken AsteriskToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
+
+        /// <summary>Node representing the optional calling convention.</summary>
+        public FunctionPointerCallingConventionSyntax? CallingConvention => GetRed(ref this.callingConvention, 2);
+
+        /// <summary>List of the parameter types and return type of the function pointer.</summary>
+        public FunctionPointerParameterListSyntax ParameterList => GetRed(ref this.parameterList, 3)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                2 => GetRed(ref this.callingConvention, 2),
+                3 => GetRed(ref this.parameterList, 3)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                2 => this.callingConvention,
+                3 => this.parameterList,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerType(this);
+
+        public FunctionPointerTypeSyntax Update(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterListSyntax parameterList)
+        {
+            if (delegateKeyword != this.DelegateKeyword || asteriskToken != this.AsteriskToken || callingConvention != this.CallingConvention || parameterList != this.ParameterList)
+            {
+                var newNode = SyntaxFactory.FunctionPointerType(delegateKeyword, asteriskToken, callingConvention, parameterList);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public FunctionPointerTypeSyntax WithDelegateKeyword(SyntaxToken delegateKeyword) => Update(delegateKeyword, this.AsteriskToken, this.CallingConvention, this.ParameterList);
+        public FunctionPointerTypeSyntax WithAsteriskToken(SyntaxToken asteriskToken) => Update(this.DelegateKeyword, asteriskToken, this.CallingConvention, this.ParameterList);
+        public FunctionPointerTypeSyntax WithCallingConvention(FunctionPointerCallingConventionSyntax? callingConvention) => Update(this.DelegateKeyword, this.AsteriskToken, callingConvention, this.ParameterList);
+        public FunctionPointerTypeSyntax WithParameterList(FunctionPointerParameterListSyntax parameterList) => Update(this.DelegateKeyword, this.AsteriskToken, this.CallingConvention, parameterList);
+
+        public FunctionPointerTypeSyntax AddParameterListParameters(params FunctionPointerParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+    }
+
+    /// <summary>Function pointer parameter list syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FunctionPointerParameterList"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class FunctionPointerParameterListSyntax : CSharpSyntaxNode
+    {
+        private SyntaxNode? parameters;
+
+        internal FunctionPointerParameterListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>SyntaxToken representing the less than token.</summary>
+        public SyntaxToken LessThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerParameterListSyntax)this.Green).lessThanToken, Position, 0);
+
+        /// <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
+        public SeparatedSyntaxList<FunctionPointerParameterSyntax> Parameters
+        {
+            get
+            {
+                var red = GetRed(ref this.parameters, 1);
+                return red != null ? new SeparatedSyntaxList<FunctionPointerParameterSyntax>(red, GetChildIndex(1)) : default;
+            }
+        }
+
+        /// <summary>SyntaxToken representing the greater than token.</summary>
+        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerParameterListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.parameters : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerParameterList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerParameterList(this);
+
+        public FunctionPointerParameterListSyntax Update(SyntaxToken lessThanToken, SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        {
+            if (lessThanToken != this.LessThanToken || parameters != this.Parameters || greaterThanToken != this.GreaterThanToken)
+            {
+                var newNode = SyntaxFactory.FunctionPointerParameterList(lessThanToken, parameters, greaterThanToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public FunctionPointerParameterListSyntax WithLessThanToken(SyntaxToken lessThanToken) => Update(lessThanToken, this.Parameters, this.GreaterThanToken);
+        public FunctionPointerParameterListSyntax WithParameters(SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters) => Update(this.LessThanToken, parameters, this.GreaterThanToken);
+        public FunctionPointerParameterListSyntax WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.LessThanToken, this.Parameters, greaterThanToken);
+
+        public FunctionPointerParameterListSyntax AddParameters(params FunctionPointerParameterSyntax[] items) => WithParameters(this.Parameters.AddRange(items));
+    }
+
+    /// <summary>Function pointer calling convention syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FunctionPointerCallingConvention"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class FunctionPointerCallingConventionSyntax : CSharpSyntaxNode
+    {
+        private FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList;
+
+        internal FunctionPointerCallingConventionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>SyntaxToken representing whether the calling convention is managed or unmanaged.</summary>
+        public SyntaxToken ManagedOrUnmanagedKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)this.Green).managedOrUnmanagedKeyword, Position, 0);
+
+        /// <summary>Optional list of identifiers that will contribute to an unmanaged calling convention.</summary>
+        public FunctionPointerUnmanagedCallingConventionListSyntax? UnmanagedCallingConventionList => GetRed(ref this.unmanagedCallingConventionList, 1);
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.unmanagedCallingConventionList, 1) : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.unmanagedCallingConventionList : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerCallingConvention(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerCallingConvention(this);
+
+        public FunctionPointerCallingConventionSyntax Update(SyntaxToken managedOrUnmanagedKeyword, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
+        {
+            if (managedOrUnmanagedKeyword != this.ManagedOrUnmanagedKeyword || unmanagedCallingConventionList != this.UnmanagedCallingConventionList)
+            {
+                var newNode = SyntaxFactory.FunctionPointerCallingConvention(managedOrUnmanagedKeyword, unmanagedCallingConventionList);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public FunctionPointerCallingConventionSyntax WithManagedOrUnmanagedKeyword(SyntaxToken managedOrUnmanagedKeyword) => Update(managedOrUnmanagedKeyword, this.UnmanagedCallingConventionList);
+        public FunctionPointerCallingConventionSyntax WithUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList) => Update(this.ManagedOrUnmanagedKeyword, unmanagedCallingConventionList);
+
+        public FunctionPointerCallingConventionSyntax AddUnmanagedCallingConventionListCallingConventions(params FunctionPointerUnmanagedCallingConventionSyntax[] items)
+        {
+            var unmanagedCallingConventionList = this.UnmanagedCallingConventionList ?? SyntaxFactory.FunctionPointerUnmanagedCallingConventionList();
+            return WithUnmanagedCallingConventionList(unmanagedCallingConventionList.WithCallingConventions(unmanagedCallingConventionList.CallingConventions.AddRange(items)));
+        }
+    }
+
+    /// <summary>Function pointer calling convention syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FunctionPointerUnmanagedCallingConventionList"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class FunctionPointerUnmanagedCallingConventionListSyntax : CSharpSyntaxNode
+    {
+        private SyntaxNode? callingConventions;
+
+        internal FunctionPointerUnmanagedCallingConventionListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>SyntaxToken representing open bracket.</summary>
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).openBracketToken, Position, 0);
+
+        /// <summary>SeparatedSyntaxList of calling convention identifiers.</summary>
+        public SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> CallingConventions
+        {
+            get
+            {
+                var red = GetRed(ref this.callingConventions, 1);
+                return red != null ? new SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax>(red, GetChildIndex(1)) : default;
+            }
+        }
+
+        /// <summary>SyntaxToken representing close bracket.</summary>
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.callingConventions, 1)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.callingConventions : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerUnmanagedCallingConventionList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerUnmanagedCallingConventionList(this);
+
+        public FunctionPointerUnmanagedCallingConventionListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken != this.OpenBracketToken || callingConventions != this.CallingConventions || closeBracketToken != this.CloseBracketToken)
+            {
+                var newNode = SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(openBracketToken, callingConventions, closeBracketToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public FunctionPointerUnmanagedCallingConventionListSyntax WithOpenBracketToken(SyntaxToken openBracketToken) => Update(openBracketToken, this.CallingConventions, this.CloseBracketToken);
+        public FunctionPointerUnmanagedCallingConventionListSyntax WithCallingConventions(SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions) => Update(this.OpenBracketToken, callingConventions, this.CloseBracketToken);
+        public FunctionPointerUnmanagedCallingConventionListSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.CallingConventions, closeBracketToken);
+
+        public FunctionPointerUnmanagedCallingConventionListSyntax AddCallingConventions(params FunctionPointerUnmanagedCallingConventionSyntax[] items) => WithCallingConventions(this.CallingConventions.AddRange(items));
+    }
+
+    /// <summary>Individual function pointer unmanaged calling convention.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FunctionPointerUnmanagedCallingConvention"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class FunctionPointerUnmanagedCallingConventionSyntax : CSharpSyntaxNode
+    {
+        internal FunctionPointerUnmanagedCallingConventionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>SyntaxToken representing the calling convention identifier.</summary>
+        public SyntaxToken Name => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax)this.Green).name, Position, 0);
+
+        internal override SyntaxNode? GetNodeSlot(int index) => null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerUnmanagedCallingConvention(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerUnmanagedCallingConvention(this);
+
+        public FunctionPointerUnmanagedCallingConventionSyntax Update(SyntaxToken name)
+        {
+            if (name != this.Name)
+            {
+                var newNode = SyntaxFactory.FunctionPointerUnmanagedCallingConvention(name);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public FunctionPointerUnmanagedCallingConventionSyntax WithName(SyntaxToken name) => Update(name);
+    }
+
     /// <summary>Class which represents the syntax node for a nullable type.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NullableType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NullableTypeSyntax : TypeSyntax
     {
         private TypeSyntax? elementType;
@@ -486,8 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.elementType : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNullableType(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNullableType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNullableType(this);
 
         public NullableTypeSyntax Update(TypeSyntax elementType, SyntaxToken questionToken)
         {
@@ -506,6 +829,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for tuple type.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TupleType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TupleTypeSyntax : TypeSyntax
     {
         private SyntaxNode? elements;
@@ -535,8 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.elements : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleType(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTupleType(this);
 
         public TupleTypeSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<TupleElementSyntax> elements, SyntaxToken closeParenToken)
         {
@@ -558,6 +886,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Tuple type element.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TupleElement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TupleElementSyntax : CSharpSyntaxNode
     {
         private TypeSyntax? type;
@@ -585,8 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleElement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleElement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTupleElement(this);
 
         public TupleElementSyntax Update(TypeSyntax type, SyntaxToken identifier)
         {
@@ -605,6 +938,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents a placeholder in the type argument list of an unbound generic type.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.OmittedTypeArgument"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OmittedTypeArgumentSyntax : TypeSyntax
     {
         internal OmittedTypeArgumentSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -620,8 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOmittedTypeArgument(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOmittedTypeArgument(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOmittedTypeArgument(this);
 
         public OmittedTypeArgumentSyntax Update(SyntaxToken omittedTypeArgumentToken)
         {
@@ -639,6 +977,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>The ref modifier of a method's return value or a local.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RefType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RefTypeSyntax : TypeSyntax
     {
         private TypeSyntax? type;
@@ -667,8 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefType(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefType(this);
 
         public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
         {
@@ -705,6 +1048,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for parenthesized expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ParenthesizedExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ParenthesizedExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -728,8 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParenthesizedExpression(this);
 
         public ParenthesizedExpressionSyntax Update(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
         {
@@ -749,6 +1097,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for tuple expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TupleExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TupleExpressionSyntax : ExpressionSyntax
     {
         private SyntaxNode? arguments;
@@ -779,8 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.arguments : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTupleExpression(this);
 
         public TupleExpressionSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
         {
@@ -802,6 +1155,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for prefix unary expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.UnaryPlusExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UnaryMinusExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.BitwiseNotExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LogicalNotExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.PreIncrementExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.PreDecrementExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.AddressOfExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.PointerIndirectionExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.IndexExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PrefixUnaryExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? operand;
@@ -822,8 +1189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.operand : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPrefixUnaryExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPrefixUnaryExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPrefixUnaryExpression(this);
 
         public PrefixUnaryExpressionSyntax Update(SyntaxToken operatorToken, ExpressionSyntax operand)
         {
@@ -842,6 +1208,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for an "await" expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AwaitExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AwaitExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -862,8 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAwaitExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAwaitExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAwaitExpression(this);
 
         public AwaitExpressionSyntax Update(SyntaxToken awaitKeyword, ExpressionSyntax expression)
         {
@@ -882,6 +1253,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for postfix unary expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PostIncrementExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.PostDecrementExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.SuppressNullableWarningExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PostfixUnaryExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? operand;
@@ -902,8 +1281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.operand : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPostfixUnaryExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPostfixUnaryExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPostfixUnaryExpression(this);
 
         public PostfixUnaryExpressionSyntax Update(ExpressionSyntax operand, SyntaxToken operatorToken)
         {
@@ -922,6 +1300,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for member access expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SimpleMemberAccessExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.PointerMemberAccessExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class MemberAccessExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -958,8 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMemberAccessExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMemberAccessExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitMemberAccessExpression(this);
 
         public MemberAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
         {
@@ -979,6 +1363,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for conditional access expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConditionalAccessExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConditionalAccessExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1015,8 +1405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConditionalAccessExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConditionalAccessExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConditionalAccessExpression(this);
 
         public ConditionalAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, ExpressionSyntax whenNotNull)
         {
@@ -1036,6 +1425,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for member binding expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.MemberBindingExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class MemberBindingExpressionSyntax : ExpressionSyntax
     {
         private SimpleNameSyntax? name;
@@ -1056,8 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.name : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMemberBindingExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMemberBindingExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitMemberBindingExpression(this);
 
         public MemberBindingExpressionSyntax Update(SyntaxToken operatorToken, SimpleNameSyntax name)
         {
@@ -1076,6 +1470,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for element binding expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ElementBindingExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ElementBindingExpressionSyntax : ExpressionSyntax
     {
         private BracketedArgumentListSyntax? argumentList;
@@ -1093,8 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.argumentList : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElementBindingExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElementBindingExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitElementBindingExpression(this);
 
         public ElementBindingExpressionSyntax Update(BracketedArgumentListSyntax argumentList)
         {
@@ -1114,6 +1513,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for a range expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RangeExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RangeExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? leftOperand;
@@ -1150,8 +1555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRangeExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRangeExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRangeExpression(this);
 
         public RangeExpressionSyntax Update(ExpressionSyntax? leftOperand, SyntaxToken operatorToken, ExpressionSyntax? rightOperand)
         {
@@ -1171,6 +1575,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for implicit element access expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ImplicitElementAccess"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ImplicitElementAccessSyntax : ExpressionSyntax
     {
         private BracketedArgumentListSyntax? argumentList;
@@ -1188,8 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.argumentList : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitElementAccess(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitElementAccess(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitImplicitElementAccess(this);
 
         public ImplicitElementAccessSyntax Update(BracketedArgumentListSyntax argumentList)
         {
@@ -1209,6 +1618,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents an expression that has a binary operator.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AddExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.SubtractExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.MultiplyExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.DivideExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ModuloExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LeftShiftExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.RightShiftExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LogicalOrExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LogicalAndExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.BitwiseOrExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.BitwiseAndExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ExclusiveOrExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.EqualsExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.NotEqualsExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LessThanExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LessThanOrEqualExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.GreaterThanExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.GreaterThanOrEqualExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.IsExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.AsExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.CoalesceExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BinaryExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? left;
@@ -1245,8 +1680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBinaryExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBinaryExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBinaryExpression(this);
 
         public BinaryExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
         {
@@ -1266,6 +1700,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents an expression that has an assignment operator.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SimpleAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.AddAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.SubtractAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.MultiplyAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.DivideAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ModuloAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.AndAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ExclusiveOrAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.OrAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LeftShiftAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.RightShiftAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.CoalesceAssignmentExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AssignmentExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? left;
@@ -1302,8 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAssignmentExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAssignmentExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAssignmentExpression(this);
 
         public AssignmentExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
         {
@@ -1323,6 +1773,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for conditional expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConditionalExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConditionalExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? condition;
@@ -1368,8 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConditionalExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConditionalExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConditionalExpression(this);
 
         public ConditionalExpressionSyntax Update(ExpressionSyntax condition, SyntaxToken questionToken, ExpressionSyntax whenTrue, SyntaxToken colonToken, ExpressionSyntax whenFalse)
         {
@@ -1400,6 +1855,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for a this expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ThisExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ThisExpressionSyntax : InstanceExpressionSyntax
     {
         internal ThisExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -1415,8 +1876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThisExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThisExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitThisExpression(this);
 
         public ThisExpressionSyntax Update(SyntaxToken token)
         {
@@ -1434,6 +1894,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for a base expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BaseExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BaseExpressionSyntax : InstanceExpressionSyntax
     {
         internal BaseExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -1449,8 +1915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBaseExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBaseExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBaseExpression(this);
 
         public BaseExpressionSyntax Update(SyntaxToken token)
         {
@@ -1468,6 +1933,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for a literal expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArgListExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.NumericLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.StringLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.CharacterLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.TrueLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.FalseLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.NullLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.DefaultLiteralExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LiteralExpressionSyntax : ExpressionSyntax
     {
         internal LiteralExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -1483,8 +1961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLiteralExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLiteralExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLiteralExpression(this);
 
         public LiteralExpressionSyntax Update(SyntaxToken token)
         {
@@ -1502,6 +1979,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for MakeRef expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.MakeRefExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class MakeRefExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1528,8 +2011,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMakeRefExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMakeRefExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitMakeRefExpression(this);
 
         public MakeRefExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
         {
@@ -1550,6 +2032,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for RefType expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RefTypeExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RefTypeExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1576,8 +2064,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefTypeExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefTypeExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefTypeExpression(this);
 
         public RefTypeExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
         {
@@ -1598,6 +2085,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for RefValue expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RefValueExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RefValueExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1643,8 +2136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefValueExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefValueExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefValueExpression(this);
 
         public RefValueExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken comma, TypeSyntax type, SyntaxToken closeParenToken)
         {
@@ -1667,6 +2159,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for Checked or Unchecked expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CheckedExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UncheckedExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CheckedExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1693,8 +2192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCheckedExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCheckedExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCheckedExpression(this);
 
         public CheckedExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
         {
@@ -1715,6 +2213,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for Default expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DefaultExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DefaultExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -1741,8 +2245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefaultExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDefaultExpression(this);
 
         public DefaultExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
         {
@@ -1763,6 +2266,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for TypeOf expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeOfExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeOfExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -1789,8 +2298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeOfExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeOfExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeOfExpression(this);
 
         public TypeOfExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
         {
@@ -1811,6 +2319,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for SizeOf expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SizeOfExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SizeOfExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -1837,8 +2351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSizeOfExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSizeOfExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSizeOfExpression(this);
 
         public SizeOfExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
         {
@@ -1859,6 +2372,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for invocation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InvocationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InvocationExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1892,8 +2411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInvocationExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInvocationExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInvocationExpression(this);
 
         public InvocationExpressionSyntax Update(ExpressionSyntax expression, ArgumentListSyntax argumentList)
         {
@@ -1914,6 +2432,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for element access expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ElementAccessExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ElementAccessExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1947,8 +2471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElementAccessExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElementAccessExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitElementAccessExpression(this);
 
         public ElementAccessExpressionSyntax Update(ExpressionSyntax expression, BracketedArgumentListSyntax argumentList)
         {
@@ -1986,6 +2509,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for the list of arguments.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArgumentList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArgumentListSyntax : BaseArgumentListSyntax
     {
         private SyntaxNode? arguments;
@@ -2016,8 +2545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.arguments : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArgumentList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArgumentList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArgumentList(this);
 
         public ArgumentListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
         {
@@ -2041,6 +2569,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for bracketed argument list.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BracketedArgumentList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BracketedArgumentListSyntax : BaseArgumentListSyntax
     {
         private SyntaxNode? arguments;
@@ -2071,8 +2605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.arguments : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBracketedArgumentList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBracketedArgumentList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBracketedArgumentList(this);
 
         public BracketedArgumentListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeBracketToken)
         {
@@ -2096,6 +2629,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for argument.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Argument"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArgumentSyntax : CSharpSyntaxNode
     {
         private NameColonSyntax? nameColon;
@@ -2139,8 +2678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArgument(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArgument(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArgument(this);
 
         public ArgumentSyntax Update(NameColonSyntax? nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
         {
@@ -2160,6 +2698,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for name colon syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NameColon"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NameColonSyntax : CSharpSyntaxNode
     {
         private IdentifierNameSyntax? name;
@@ -2180,8 +2724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.name : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameColon(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameColon(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNameColon(this);
 
         public NameColonSyntax Update(IdentifierNameSyntax name, SyntaxToken colonToken)
         {
@@ -2200,6 +2743,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for the variable declaration in an out var declaration or a deconstruction declaration.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DeclarationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DeclarationExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -2232,8 +2781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDeclarationExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDeclarationExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDeclarationExpression(this);
 
         public DeclarationExpressionSyntax Update(TypeSyntax type, VariableDesignationSyntax designation)
         {
@@ -2252,6 +2800,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for cast expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CastExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CastExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -2291,8 +2845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCastExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCastExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCastExpression(this);
 
         public CastExpressionSyntax Update(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, ExpressionSyntax expression)
         {
@@ -2320,10 +2873,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public abstract SyntaxToken AsyncKeyword { get; }
-        public AnonymousFunctionExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => WithAsyncKeywordCore(asyncKeyword);
-        internal abstract AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword);
+        public abstract SyntaxTokenList Modifiers { get; }
+        public AnonymousFunctionExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => WithModifiersCore(modifiers);
+        internal abstract AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers);
+
+        public AnonymousFunctionExpressionSyntax AddModifiers(params SyntaxToken[] items) => AddModifiersCore(items);
+        internal abstract AnonymousFunctionExpressionSyntax AddModifiersCore(params SyntaxToken[] items);
 
         /// <summary>
         /// BlockSyntax node representing the body of the anonymous function.
@@ -2349,6 +2904,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for anonymous method expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AnonymousMethodExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AnonymousMethodExpressionSyntax : AnonymousFunctionExpressionSyntax
     {
         private ParameterListSyntax? parameterList;
@@ -2360,13 +2921,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public override SyntaxToken AsyncKeyword
+        public override SyntaxTokenList Modifiers
         {
             get
             {
-                var slot = ((Syntax.InternalSyntax.AnonymousMethodExpressionSyntax)this.Green).asyncKeyword;
-                return slot != null ? new SyntaxToken(this, slot, Position, 0) : default;
+                var slot = this.Green.GetSlot(0);
+                return slot != null ? new SyntaxTokenList(this, slot, Position, 0) : default;
             }
         }
 
@@ -2407,14 +2967,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousMethodExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousMethodExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAnonymousMethodExpression(this);
 
-        public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
+        public AnonymousMethodExpressionSyntax Update(SyntaxTokenList modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
         {
-            if (asyncKeyword != this.AsyncKeyword || delegateKeyword != this.DelegateKeyword || parameterList != this.ParameterList || block != this.Block || expressionBody != this.ExpressionBody)
+            if (modifiers != this.Modifiers || delegateKeyword != this.DelegateKeyword || parameterList != this.ParameterList || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
+                var newNode = SyntaxFactory.AnonymousMethodExpression(modifiers, delegateKeyword, parameterList, block, expressionBody);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -2422,15 +2981,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
-        public new AnonymousMethodExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => Update(asyncKeyword, this.DelegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
-        public AnonymousMethodExpressionSyntax WithDelegateKeyword(SyntaxToken delegateKeyword) => Update(this.AsyncKeyword, delegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
-        public AnonymousMethodExpressionSyntax WithParameterList(ParameterListSyntax? parameterList) => Update(this.AsyncKeyword, this.DelegateKeyword, parameterList, this.Block, this.ExpressionBody);
+        internal override AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new AnonymousMethodExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(modifiers, this.DelegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
+        public AnonymousMethodExpressionSyntax WithDelegateKeyword(SyntaxToken delegateKeyword) => Update(this.Modifiers, delegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
+        public AnonymousMethodExpressionSyntax WithParameterList(ParameterListSyntax? parameterList) => Update(this.Modifiers, this.DelegateKeyword, parameterList, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax? block) => WithBlock(block ?? throw new ArgumentNullException(nameof(block)));
-        public new AnonymousMethodExpressionSyntax WithBlock(BlockSyntax block) => Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, block, this.ExpressionBody);
+        public new AnonymousMethodExpressionSyntax WithBlock(BlockSyntax block) => Update(this.Modifiers, this.DelegateKeyword, this.ParameterList, block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax? expressionBody) => WithExpressionBody(expressionBody);
-        public new AnonymousMethodExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, this.Block, expressionBody);
+        public new AnonymousMethodExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.Modifiers, this.DelegateKeyword, this.ParameterList, this.Block, expressionBody);
 
+        internal override AnonymousFunctionExpressionSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new AnonymousMethodExpressionSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         public AnonymousMethodExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items)
         {
             var parameterList = this.ParameterList ?? SyntaxFactory.ParameterList();
@@ -2455,9 +3016,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => WithArrowTokenCore(arrowToken);
         internal abstract LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken);
 
-        public new LambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => (LambdaExpressionSyntax)WithAsyncKeywordCore(asyncKeyword);
+        public new LambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => (LambdaExpressionSyntax)WithModifiersCore(modifiers);
         public new LambdaExpressionSyntax WithBlock(BlockSyntax? block) => (LambdaExpressionSyntax)WithBlockCore(block);
         public new LambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => (LambdaExpressionSyntax)WithExpressionBodyCore(expressionBody);
+
+        public new LambdaExpressionSyntax AddModifiers(params SyntaxToken[] items) => (LambdaExpressionSyntax)AddModifiersCore(items);
 
         public new AnonymousFunctionExpressionSyntax AddBlockAttributeLists(params AttributeListSyntax[] items) => AddBlockAttributeListsCore(items);
 
@@ -2465,6 +3028,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for a simple lambda expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SimpleLambdaExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SimpleLambdaExpressionSyntax : LambdaExpressionSyntax
     {
         private ParameterSyntax? parameter;
@@ -2476,13 +3045,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public override SyntaxToken AsyncKeyword
+        public override SyntaxTokenList Modifiers
         {
             get
             {
-                var slot = ((Syntax.InternalSyntax.SimpleLambdaExpressionSyntax)this.Green).asyncKeyword;
-                return slot != null ? new SyntaxToken(this, slot, Position, 0) : default;
+                var slot = this.Green.GetSlot(0);
+                return slot != null ? new SyntaxTokenList(this, slot, Position, 0) : default;
             }
         }
 
@@ -2523,14 +3091,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleLambdaExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleLambdaExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSimpleLambdaExpression(this);
 
-        public SimpleLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public SimpleLambdaExpressionSyntax Update(SyntaxTokenList modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-            if (asyncKeyword != this.AsyncKeyword || parameter != this.Parameter || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
+            if (modifiers != this.Modifiers || parameter != this.Parameter || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, block, expressionBody);
+                var newNode = SyntaxFactory.SimpleLambdaExpression(modifiers, parameter, arrowToken, block, expressionBody);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -2538,16 +3105,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
-        public new SimpleLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => Update(asyncKeyword, this.Parameter, this.ArrowToken, this.Block, this.ExpressionBody);
-        public SimpleLambdaExpressionSyntax WithParameter(ParameterSyntax parameter) => Update(this.AsyncKeyword, parameter, this.ArrowToken, this.Block, this.ExpressionBody);
+        internal override AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new SimpleLambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(modifiers, this.Parameter, this.ArrowToken, this.Block, this.ExpressionBody);
+        public SimpleLambdaExpressionSyntax WithParameter(ParameterSyntax parameter) => Update(this.Modifiers, parameter, this.ArrowToken, this.Block, this.ExpressionBody);
         internal override LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken) => WithArrowToken(arrowToken);
-        public new SimpleLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.AsyncKeyword, this.Parameter, arrowToken, this.Block, this.ExpressionBody);
+        public new SimpleLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.Modifiers, this.Parameter, arrowToken, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax? block) => WithBlock(block);
-        public new SimpleLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, block, this.ExpressionBody);
+        public new SimpleLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.Modifiers, this.Parameter, this.ArrowToken, block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax? expressionBody) => WithExpressionBody(expressionBody);
-        public new SimpleLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, this.Block, expressionBody);
+        public new SimpleLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.Modifiers, this.Parameter, this.ArrowToken, this.Block, expressionBody);
 
+        internal override AnonymousFunctionExpressionSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new SimpleLambdaExpressionSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         public SimpleLambdaExpressionSyntax AddParameterAttributeLists(params AttributeListSyntax[] items) => WithParameter(this.Parameter.WithAttributeLists(this.Parameter.AttributeLists.AddRange(items)));
         public SimpleLambdaExpressionSyntax AddParameterModifiers(params SyntaxToken[] items) => WithParameter(this.Parameter.WithModifiers(this.Parameter.Modifiers.AddRange(items)));
         internal override AnonymousFunctionExpressionSyntax AddBlockAttributeListsCore(params AttributeListSyntax[] items) => AddBlockAttributeLists(items);
@@ -2564,6 +3133,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RefExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RefExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -2582,8 +3157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefExpression(this);
 
         public RefExpressionSyntax Update(SyntaxToken refKeyword, ExpressionSyntax expression)
         {
@@ -2602,6 +3176,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for parenthesized lambda expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ParenthesizedLambdaExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ParenthesizedLambdaExpressionSyntax : LambdaExpressionSyntax
     {
         private ParameterListSyntax? parameterList;
@@ -2613,13 +3193,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public override SyntaxToken AsyncKeyword
+        public override SyntaxTokenList Modifiers
         {
             get
             {
-                var slot = ((Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).asyncKeyword;
-                return slot != null ? new SyntaxToken(this, slot, Position, 0) : default;
+                var slot = this.Green.GetSlot(0);
+                return slot != null ? new SyntaxTokenList(this, slot, Position, 0) : default;
             }
         }
 
@@ -2660,14 +3239,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedLambdaExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedLambdaExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParenthesizedLambdaExpression(this);
 
-        public ParenthesizedLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public ParenthesizedLambdaExpressionSyntax Update(SyntaxTokenList modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-            if (asyncKeyword != this.AsyncKeyword || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
+            if (modifiers != this.Modifiers || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, block, expressionBody);
+                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(modifiers, parameterList, arrowToken, block, expressionBody);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -2675,16 +3253,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
-        public new ParenthesizedLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => Update(asyncKeyword, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
-        public ParenthesizedLambdaExpressionSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AsyncKeyword, parameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        internal override AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new ParenthesizedLambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(modifiers, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        public ParenthesizedLambdaExpressionSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.Modifiers, parameterList, this.ArrowToken, this.Block, this.ExpressionBody);
         internal override LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken) => WithArrowToken(arrowToken);
-        public new ParenthesizedLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.AsyncKeyword, this.ParameterList, arrowToken, this.Block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.Modifiers, this.ParameterList, arrowToken, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax? block) => WithBlock(block);
-        public new ParenthesizedLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.AsyncKeyword, this.ParameterList, this.ArrowToken, block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.Modifiers, this.ParameterList, this.ArrowToken, block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax? expressionBody) => WithExpressionBody(expressionBody);
-        public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AsyncKeyword, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.Modifiers, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
 
+        internal override AnonymousFunctionExpressionSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new ParenthesizedLambdaExpressionSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         public ParenthesizedLambdaExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
         internal override AnonymousFunctionExpressionSyntax AddBlockAttributeListsCore(params AttributeListSyntax[] items) => AddBlockAttributeLists(items);
         public new ParenthesizedLambdaExpressionSyntax AddBlockAttributeLists(params AttributeListSyntax[] items)
@@ -2701,6 +3281,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for initializer expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ObjectInitializerExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.CollectionInitializerExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ArrayInitializerExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ComplexElementInitializerExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.WithInitializerExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InitializerExpressionSyntax : ExpressionSyntax
     {
         private SyntaxNode? expressions;
@@ -2731,8 +3321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.expressions : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInitializerExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInitializerExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInitializerExpression(this);
 
         public InitializerExpressionSyntax Update(SyntaxToken openBraceToken, SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
         {
@@ -2780,6 +3369,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for implicit object creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ImplicitObjectCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ImplicitObjectCreationExpressionSyntax : BaseObjectCreationExpressionSyntax
     {
         private ArgumentListSyntax? argumentList;
@@ -2816,8 +3411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitObjectCreationExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitObjectCreationExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitImplicitObjectCreationExpression(this);
 
         public ImplicitObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, ArgumentListSyntax argumentList, InitializerExpressionSyntax? initializer)
         {
@@ -2843,6 +3437,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for object creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ObjectCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ObjectCreationExpressionSyntax : BaseObjectCreationExpressionSyntax
     {
         private TypeSyntax? type;
@@ -2885,8 +3485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitObjectCreationExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitObjectCreationExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitObjectCreationExpression(this);
 
         public ObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, TypeSyntax type, ArgumentListSyntax? argumentList, InitializerExpressionSyntax? initializer)
         {
@@ -2916,6 +3515,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.WithExpression"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class WithExpressionSyntax : ExpressionSyntax
+    {
+        private ExpressionSyntax? expression;
+        private InitializerExpressionSyntax? initializer;
+
+        internal WithExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
+
+        public SyntaxToken WithKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).withKeyword, GetChildPosition(1), GetChildIndex(1));
+
+        /// <summary>InitializerExpressionSyntax representing the initializer expression for the with expression.</summary>
+        public InitializerExpressionSyntax Initializer => GetRed(ref this.initializer, 2)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                0 => GetRedAtZero(ref this.expression)!,
+                2 => GetRed(ref this.initializer, 2)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                0 => this.expression,
+                2 => this.initializer,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWithExpression(this);
+
+        public WithExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        {
+            if (expression != this.Expression || withKeyword != this.WithKeyword || initializer != this.Initializer)
+            {
+                var newNode = SyntaxFactory.WithExpression(expression, withKeyword, initializer);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public WithExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(expression, this.WithKeyword, this.Initializer);
+        public WithExpressionSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(this.Expression, withKeyword, this.Initializer);
+        public WithExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.Expression, this.WithKeyword, initializer);
+
+        public WithExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items) => WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AnonymousObjectMemberDeclarator"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AnonymousObjectMemberDeclaratorSyntax : CSharpSyntaxNode
     {
         private NameEqualsSyntax? nameEquals;
@@ -2949,8 +3615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousObjectMemberDeclarator(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousObjectMemberDeclarator(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAnonymousObjectMemberDeclarator(this);
 
         public AnonymousObjectMemberDeclaratorSyntax Update(NameEqualsSyntax? nameEquals, ExpressionSyntax expression)
         {
@@ -2969,6 +3634,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for anonymous object creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AnonymousObjectCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AnonymousObjectCreationExpressionSyntax : ExpressionSyntax
     {
         private SyntaxNode? initializers;
@@ -3002,8 +3673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.initializers : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousObjectCreationExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousObjectCreationExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAnonymousObjectCreationExpression(this);
 
         public AnonymousObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
         {
@@ -3026,6 +3696,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for array creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArrayCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArrayCreationExpressionSyntax : ExpressionSyntax
     {
         private ArrayTypeSyntax? type;
@@ -3062,8 +3738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayCreationExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayCreationExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArrayCreationExpression(this);
 
         public ArrayCreationExpressionSyntax Update(SyntaxToken newKeyword, ArrayTypeSyntax type, InitializerExpressionSyntax? initializer)
         {
@@ -3085,6 +3760,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for implicit array creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ImplicitArrayCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ImplicitArrayCreationExpressionSyntax : ExpressionSyntax
     {
         private InitializerExpressionSyntax? initializer;
@@ -3121,8 +3802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 4 ? this.initializer : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitArrayCreationExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitArrayCreationExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitImplicitArrayCreationExpression(this);
 
         public ImplicitArrayCreationExpressionSyntax Update(SyntaxToken newKeyword, SyntaxToken openBracketToken, SyntaxTokenList commas, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
         {
@@ -3147,6 +3827,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for stackalloc array creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.StackAllocArrayCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class StackAllocArrayCreationExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -3183,8 +3869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitStackAllocArrayCreationExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitStackAllocArrayCreationExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitStackAllocArrayCreationExpression(this);
 
         public StackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax? initializer)
         {
@@ -3204,6 +3889,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for implicit stackalloc array creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ImplicitStackAllocArrayCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ImplicitStackAllocArrayCreationExpressionSyntax : ExpressionSyntax
     {
         private InitializerExpressionSyntax? initializer;
@@ -3230,8 +3921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 3 ? this.initializer : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitStackAllocArrayCreationExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitStackAllocArrayCreationExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitImplicitStackAllocArrayCreationExpression(this);
 
         public ImplicitStackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
         {
@@ -3269,6 +3959,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.QueryExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class QueryExpressionSyntax : ExpressionSyntax
     {
         private FromClauseSyntax? fromClause;
@@ -3300,8 +3996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitQueryExpression(this);
 
         public QueryExpressionSyntax Update(FromClauseSyntax fromClause, QueryBodySyntax body)
         {
@@ -3321,6 +4016,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public QueryExpressionSyntax AddBodyClauses(params QueryClauseSyntax[] items) => WithBody(this.Body.WithClauses(this.Body.Clauses.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.QueryBody"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class QueryBodySyntax : CSharpSyntaxNode
     {
         private SyntaxNode? clauses;
@@ -3357,8 +4058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryBody(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryBody(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitQueryBody(this);
 
         public QueryBodySyntax Update(SyntaxList<QueryClauseSyntax> clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax? continuation)
         {
@@ -3379,6 +4079,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public QueryBodySyntax AddClauses(params QueryClauseSyntax[] items) => WithClauses(this.Clauses.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FromClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class FromClauseSyntax : QueryClauseSyntax
     {
         private TypeSyntax? type;
@@ -3417,8 +4123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFromClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFromClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFromClause(this);
 
         public FromClauseSyntax Update(SyntaxToken fromKeyword, TypeSyntax? type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression)
         {
@@ -3439,6 +4144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FromClauseSyntax WithExpression(ExpressionSyntax expression) => Update(this.FromKeyword, this.Type, this.Identifier, this.InKeyword, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LetClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LetClauseSyntax : QueryClauseSyntax
     {
         private ExpressionSyntax? expression;
@@ -3462,8 +4173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 3 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLetClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLetClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLetClause(this);
 
         public LetClauseSyntax Update(SyntaxToken letKeyword, SyntaxToken identifier, SyntaxToken equalsToken, ExpressionSyntax expression)
         {
@@ -3483,6 +4193,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LetClauseSyntax WithExpression(ExpressionSyntax expression) => Update(this.LetKeyword, this.Identifier, this.EqualsToken, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.JoinClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class JoinClauseSyntax : QueryClauseSyntax
     {
         private TypeSyntax? type;
@@ -3540,8 +4256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitJoinClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitJoinClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitJoinClause(this);
 
         public JoinClauseSyntax Update(SyntaxToken joinKeyword, TypeSyntax? type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax inExpression, SyntaxToken onKeyword, ExpressionSyntax leftExpression, SyntaxToken equalsKeyword, ExpressionSyntax rightExpression, JoinIntoClauseSyntax? into)
         {
@@ -3567,6 +4282,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public JoinClauseSyntax WithInto(JoinIntoClauseSyntax? into) => Update(this.JoinKeyword, this.Type, this.Identifier, this.InKeyword, this.InExpression, this.OnKeyword, this.LeftExpression, this.EqualsKeyword, this.RightExpression, into);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.JoinIntoClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class JoinIntoClauseSyntax : CSharpSyntaxNode
     {
         internal JoinIntoClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -3584,8 +4305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitJoinIntoClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitJoinIntoClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitJoinIntoClause(this);
 
         public JoinIntoClauseSyntax Update(SyntaxToken intoKeyword, SyntaxToken identifier)
         {
@@ -3603,6 +4323,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public JoinIntoClauseSyntax WithIdentifier(SyntaxToken identifier) => Update(this.IntoKeyword, identifier);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.WhereClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class WhereClauseSyntax : QueryClauseSyntax
     {
         private ExpressionSyntax? condition;
@@ -3621,8 +4347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.condition : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhereClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhereClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWhereClause(this);
 
         public WhereClauseSyntax Update(SyntaxToken whereKeyword, ExpressionSyntax condition)
         {
@@ -3640,6 +4365,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public WhereClauseSyntax WithCondition(ExpressionSyntax condition) => Update(this.WhereKeyword, condition);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.OrderByClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OrderByClauseSyntax : QueryClauseSyntax
     {
         private SyntaxNode? orderings;
@@ -3665,8 +4396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.orderings : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOrderByClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOrderByClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOrderByClause(this);
 
         public OrderByClauseSyntax Update(SyntaxToken orderByKeyword, SeparatedSyntaxList<OrderingSyntax> orderings)
         {
@@ -3686,6 +4416,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public OrderByClauseSyntax AddOrderings(params OrderingSyntax[] items) => WithOrderings(this.Orderings.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AscendingOrdering"/></description></item>
+    /// <item><description><see cref="SyntaxKind.DescendingOrdering"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OrderingSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? expression;
@@ -3711,8 +4448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOrdering(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOrdering(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOrdering(this);
 
         public OrderingSyntax Update(ExpressionSyntax expression, SyntaxToken ascendingOrDescendingKeyword)
         {
@@ -3730,6 +4466,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public OrderingSyntax WithAscendingOrDescendingKeyword(SyntaxToken ascendingOrDescendingKeyword) => Update(this.Expression, ascendingOrDescendingKeyword);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SelectClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SelectClauseSyntax : SelectOrGroupClauseSyntax
     {
         private ExpressionSyntax? expression;
@@ -3748,8 +4490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSelectClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSelectClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSelectClause(this);
 
         public SelectClauseSyntax Update(SyntaxToken selectKeyword, ExpressionSyntax expression)
         {
@@ -3767,6 +4508,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SelectClauseSyntax WithExpression(ExpressionSyntax expression) => Update(this.SelectKeyword, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.GroupClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class GroupClauseSyntax : SelectOrGroupClauseSyntax
     {
         private ExpressionSyntax? groupExpression;
@@ -3802,8 +4549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGroupClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGroupClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitGroupClause(this);
 
         public GroupClauseSyntax Update(SyntaxToken groupKeyword, ExpressionSyntax groupExpression, SyntaxToken byKeyword, ExpressionSyntax byExpression)
         {
@@ -3823,6 +4569,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public GroupClauseSyntax WithByExpression(ExpressionSyntax byExpression) => Update(this.GroupKeyword, this.GroupExpression, this.ByKeyword, byExpression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.QueryContinuation"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class QueryContinuationSyntax : CSharpSyntaxNode
     {
         private QueryBodySyntax? body;
@@ -3844,8 +4596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.body : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryContinuation(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryContinuation(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitQueryContinuation(this);
 
         public QueryContinuationSyntax Update(SyntaxToken intoKeyword, SyntaxToken identifier, QueryBodySyntax body)
         {
@@ -3867,6 +4618,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents a placeholder in an array size list.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.OmittedArraySizeExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OmittedArraySizeExpressionSyntax : ExpressionSyntax
     {
         internal OmittedArraySizeExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -3882,8 +4639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOmittedArraySizeExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOmittedArraySizeExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOmittedArraySizeExpression(this);
 
         public OmittedArraySizeExpressionSyntax Update(SyntaxToken omittedArraySizeExpressionToken)
         {
@@ -3900,6 +4656,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public OmittedArraySizeExpressionSyntax WithOmittedArraySizeExpressionToken(SyntaxToken omittedArraySizeExpressionToken) => Update(omittedArraySizeExpressionToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InterpolatedStringExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterpolatedStringExpressionSyntax : ExpressionSyntax
     {
         private SyntaxNode? contents;
@@ -3923,8 +4685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.contents : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolatedStringExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolatedStringExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterpolatedStringExpression(this);
 
         public InterpolatedStringExpressionSyntax Update(SyntaxToken stringStartToken, SyntaxList<InterpolatedStringContentSyntax> contents, SyntaxToken stringEndToken)
         {
@@ -3946,6 +4707,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents a simple pattern-matching expression using the "is" keyword.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IsPatternExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IsPatternExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -3981,8 +4748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIsPatternExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIsPatternExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIsPatternExpression(this);
 
         public IsPatternExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken isKeyword, PatternSyntax pattern)
         {
@@ -4001,6 +4767,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public IsPatternExpressionSyntax WithPattern(PatternSyntax pattern) => Update(this.Expression, this.IsKeyword, pattern);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ThrowExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ThrowExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -4019,8 +4791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThrowExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThrowExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitThrowExpression(this);
 
         public ThrowExpressionSyntax Update(SyntaxToken throwKeyword, ExpressionSyntax expression)
         {
@@ -4038,6 +4809,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ThrowExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(this.ThrowKeyword, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.WhenClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class WhenClauseSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? condition;
@@ -4056,8 +4833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.condition : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhenClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhenClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWhenClause(this);
 
         public WhenClauseSyntax Update(SyntaxToken whenKeyword, ExpressionSyntax condition)
         {
@@ -4083,6 +4859,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DiscardPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DiscardPatternSyntax : PatternSyntax
     {
         internal DiscardPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -4097,8 +4879,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDiscardPattern(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDiscardPattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDiscardPattern(this);
 
         public DiscardPatternSyntax Update(SyntaxToken underscoreToken)
         {
@@ -4115,6 +4896,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public DiscardPatternSyntax WithUnderscoreToken(SyntaxToken underscoreToken) => Update(underscoreToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DeclarationPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DeclarationPatternSyntax : PatternSyntax
     {
         private TypeSyntax? type;
@@ -4146,8 +4933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDeclarationPattern(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDeclarationPattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDeclarationPattern(this);
 
         public DeclarationPatternSyntax Update(TypeSyntax type, VariableDesignationSyntax designation)
         {
@@ -4165,6 +4951,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public DeclarationPatternSyntax WithDesignation(VariableDesignationSyntax designation) => Update(this.Type, designation);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.VarPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class VarPatternSyntax : PatternSyntax
     {
         private VariableDesignationSyntax? designation;
@@ -4183,8 +4975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.designation : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVarPattern(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVarPattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitVarPattern(this);
 
         public VarPatternSyntax Update(SyntaxToken varKeyword, VariableDesignationSyntax designation)
         {
@@ -4202,6 +4993,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public VarPatternSyntax WithDesignation(VariableDesignationSyntax designation) => Update(this.VarKeyword, designation);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RecursivePattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RecursivePatternSyntax : PatternSyntax
     {
         private TypeSyntax? type;
@@ -4243,8 +5040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRecursivePattern(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRecursivePattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRecursivePattern(this);
 
         public RecursivePatternSyntax Update(TypeSyntax? type, PositionalPatternClauseSyntax? positionalPatternClause, PropertyPatternClauseSyntax? propertyPatternClause, VariableDesignationSyntax? designation)
         {
@@ -4275,6 +5071,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PositionalPatternClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PositionalPatternClauseSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? subpatterns;
@@ -4302,8 +5104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.subpatterns : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPositionalPatternClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPositionalPatternClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPositionalPatternClause(this);
 
         public PositionalPatternClauseSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
         {
@@ -4324,6 +5125,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PositionalPatternClauseSyntax AddSubpatterns(params SubpatternSyntax[] items) => WithSubpatterns(this.Subpatterns.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PropertyPatternClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? subpatterns;
@@ -4351,8 +5158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.subpatterns : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPropertyPatternClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPropertyPatternClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPropertyPatternClause(this);
 
         public PropertyPatternClauseSyntax Update(SyntaxToken openBraceToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
         {
@@ -4373,6 +5179,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PropertyPatternClauseSyntax AddSubpatterns(params SubpatternSyntax[] items) => WithSubpatterns(this.Subpatterns.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Subpattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SubpatternSyntax : CSharpSyntaxNode
     {
         private NameColonSyntax? nameColon;
@@ -4404,8 +5216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSubpattern(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSubpattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSubpattern(this);
 
         public SubpatternSyntax Update(NameColonSyntax? nameColon, PatternSyntax pattern)
         {
@@ -4423,6 +5234,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SubpatternSyntax WithPattern(PatternSyntax pattern) => Update(this.NameColon, pattern);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConstantPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConstantPatternSyntax : PatternSyntax
     {
         private ExpressionSyntax? expression;
@@ -4440,8 +5257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstantPattern(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstantPattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConstantPattern(this);
 
         public ConstantPatternSyntax Update(ExpressionSyntax expression)
         {
@@ -4458,6 +5274,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ConstantPatternSyntax WithExpression(ExpressionSyntax expression) => Update(expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ParenthesizedPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ParenthesizedPatternSyntax : PatternSyntax
     {
         private PatternSyntax? pattern;
@@ -4478,8 +5300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.pattern : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedPattern(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedPattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParenthesizedPattern(this);
 
         public ParenthesizedPatternSyntax Update(SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken)
         {
@@ -4498,6 +5319,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ParenthesizedPatternSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Pattern, closeParenToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RelationalPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RelationalPatternSyntax : PatternSyntax
     {
         private ExpressionSyntax? expression;
@@ -4517,8 +5344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRelationalPattern(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRelationalPattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRelationalPattern(this);
 
         public RelationalPatternSyntax Update(SyntaxToken operatorToken, ExpressionSyntax expression)
         {
@@ -4536,6 +5362,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public RelationalPatternSyntax WithExpression(ExpressionSyntax expression) => Update(this.OperatorToken, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypePattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypePatternSyntax : PatternSyntax
     {
         private TypeSyntax? type;
@@ -4553,8 +5385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypePattern(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypePattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypePattern(this);
 
         public TypePatternSyntax Update(TypeSyntax type)
         {
@@ -4571,6 +5402,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TypePatternSyntax WithType(TypeSyntax type) => Update(type);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.OrPattern"/></description></item>
+    /// <item><description><see cref="SyntaxKind.AndPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BinaryPatternSyntax : PatternSyntax
     {
         private PatternSyntax? left;
@@ -4604,8 +5442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBinaryPattern(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBinaryPattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBinaryPattern(this);
 
         public BinaryPatternSyntax Update(PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right)
         {
@@ -4624,6 +5461,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public BinaryPatternSyntax WithRight(PatternSyntax right) => Update(this.Left, this.OperatorToken, right);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NotPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class UnaryPatternSyntax : PatternSyntax
     {
         private PatternSyntax? pattern;
@@ -4642,8 +5485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.pattern : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnaryPattern(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUnaryPattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUnaryPattern(this);
 
         public UnaryPatternSyntax Update(SyntaxToken operatorToken, PatternSyntax pattern)
         {
@@ -4669,6 +5511,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InterpolatedStringText"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterpolatedStringTextSyntax : InterpolatedStringContentSyntax
     {
         internal InterpolatedStringTextSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -4684,8 +5532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolatedStringText(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolatedStringText(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterpolatedStringText(this);
 
         public InterpolatedStringTextSyntax Update(SyntaxToken textToken)
         {
@@ -4702,6 +5549,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InterpolatedStringTextSyntax WithTextToken(SyntaxToken textToken) => Update(textToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Interpolation"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterpolationSyntax : InterpolatedStringContentSyntax
     {
         private ExpressionSyntax? expression;
@@ -4742,8 +5595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolation(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolation(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterpolation(this);
 
         public InterpolationSyntax Update(SyntaxToken openBraceToken, ExpressionSyntax expression, InterpolationAlignmentClauseSyntax? alignmentClause, InterpolationFormatClauseSyntax? formatClause, SyntaxToken closeBraceToken)
         {
@@ -4764,6 +5616,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InterpolationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.OpenBraceToken, this.Expression, this.AlignmentClause, this.FormatClause, closeBraceToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InterpolationAlignmentClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterpolationAlignmentClauseSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? value;
@@ -4782,8 +5640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.value : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolationAlignmentClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolationAlignmentClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterpolationAlignmentClause(this);
 
         public InterpolationAlignmentClauseSyntax Update(SyntaxToken commaToken, ExpressionSyntax value)
         {
@@ -4801,6 +5658,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InterpolationAlignmentClauseSyntax WithValue(ExpressionSyntax value) => Update(this.CommaToken, value);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InterpolationFormatClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterpolationFormatClauseSyntax : CSharpSyntaxNode
     {
         internal InterpolationFormatClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -4818,8 +5681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolationFormatClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolationFormatClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterpolationFormatClause(this);
 
         public InterpolationFormatClauseSyntax Update(SyntaxToken colonToken, SyntaxToken formatStringToken)
         {
@@ -4837,6 +5699,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InterpolationFormatClauseSyntax WithFormatStringToken(SyntaxToken formatStringToken) => Update(this.ColonToken, formatStringToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.GlobalStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class GlobalStatementSyntax : MemberDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -4877,8 +5745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGlobalStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGlobalStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitGlobalStatement(this);
 
         public GlobalStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, StatementSyntax statement)
         {
@@ -4920,6 +5787,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal abstract StatementSyntax AddAttributeListsCore(params AttributeListSyntax[] items);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Block"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BlockSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -4955,8 +5828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBlock(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBlock(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBlock(this);
 
         public BlockSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken openBraceToken, SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
         {
@@ -4981,6 +5853,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public BlockSyntax AddStatements(params StatementSyntax[] items) => WithStatements(this.Statements.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LocalFunctionStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LocalFunctionStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5059,8 +5937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLocalFunctionStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLocalFunctionStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLocalFunctionStatement(this);
 
         public LocalFunctionStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -5108,6 +5985,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LocalDeclarationStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5169,8 +6052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLocalDeclarationStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLocalDeclarationStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLocalDeclarationStatement(this);
 
         public LocalDeclarationStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
         {
@@ -5198,6 +6080,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LocalDeclarationStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.VariableDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class VariableDeclarationSyntax : CSharpSyntaxNode
     {
         private TypeSyntax? type;
@@ -5236,8 +6124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVariableDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVariableDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitVariableDeclaration(this);
 
         public VariableDeclarationSyntax Update(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
         {
@@ -5257,6 +6144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public VariableDeclarationSyntax AddVariables(params VariableDeclaratorSyntax[] items) => WithVariables(this.Variables.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.VariableDeclarator"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class VariableDeclaratorSyntax : CSharpSyntaxNode
     {
         private BracketedArgumentListSyntax? argumentList;
@@ -5291,8 +6184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVariableDeclarator(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVariableDeclarator(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitVariableDeclarator(this);
 
         public VariableDeclaratorSyntax Update(SyntaxToken identifier, BracketedArgumentListSyntax? argumentList, EqualsValueClauseSyntax? initializer)
         {
@@ -5317,6 +6209,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EqualsValueClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EqualsValueClauseSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? value;
@@ -5335,8 +6233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.value : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEqualsValueClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEqualsValueClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEqualsValueClause(this);
 
         public EqualsValueClauseSyntax Update(SyntaxToken equalsToken, ExpressionSyntax value)
         {
@@ -5362,6 +6259,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SingleVariableDesignation"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SingleVariableDesignationSyntax : VariableDesignationSyntax
     {
         internal SingleVariableDesignationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -5376,8 +6279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSingleVariableDesignation(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSingleVariableDesignation(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSingleVariableDesignation(this);
 
         public SingleVariableDesignationSyntax Update(SyntaxToken identifier)
         {
@@ -5394,6 +6296,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SingleVariableDesignationSyntax WithIdentifier(SyntaxToken identifier) => Update(identifier);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DiscardDesignation"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DiscardDesignationSyntax : VariableDesignationSyntax
     {
         internal DiscardDesignationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -5408,8 +6316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDiscardDesignation(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDiscardDesignation(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDiscardDesignation(this);
 
         public DiscardDesignationSyntax Update(SyntaxToken underscoreToken)
         {
@@ -5426,6 +6333,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public DiscardDesignationSyntax WithUnderscoreToken(SyntaxToken underscoreToken) => Update(underscoreToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ParenthesizedVariableDesignation"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ParenthesizedVariableDesignationSyntax : VariableDesignationSyntax
     {
         private SyntaxNode? variables;
@@ -5453,8 +6366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.variables : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedVariableDesignation(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedVariableDesignation(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParenthesizedVariableDesignation(this);
 
         public ParenthesizedVariableDesignationSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<VariableDesignationSyntax> variables, SyntaxToken closeParenToken)
         {
@@ -5475,6 +6387,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ParenthesizedVariableDesignationSyntax AddVariables(params VariableDesignationSyntax[] items) => WithVariables(this.Variables.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ExpressionStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ExpressionStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5508,8 +6426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExpressionStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExpressionStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExpressionStatement(this);
 
         public ExpressionStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, ExpressionSyntax expression, SyntaxToken semicolonToken)
         {
@@ -5532,6 +6449,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ExpressionStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EmptyStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EmptyStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5550,8 +6473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.attributeLists : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEmptyStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEmptyStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEmptyStatement(this);
 
         public EmptyStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken semicolonToken)
         {
@@ -5574,6 +6496,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a labeled statement syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LabeledStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LabeledStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5611,8 +6539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLabeledStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLabeledStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLabeledStatement(this);
 
         public LabeledStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
         {
@@ -5639,6 +6566,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// Represents a goto statement syntax
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.GotoStatement"/></description></item>
+    /// <item><description><see cref="SyntaxKind.GotoCaseStatement"/></description></item>
+    /// <item><description><see cref="SyntaxKind.GotoDefaultStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class GotoStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5695,8 +6630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGotoStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGotoStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitGotoStatement(this);
 
         public GotoStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
         {
@@ -5721,6 +6655,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new GotoStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BreakStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BreakStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5741,8 +6681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.attributeLists : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBreakStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBreakStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBreakStatement(this);
 
         public BreakStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
         {
@@ -5765,6 +6704,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new BreakStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ContinueStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ContinueStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5785,8 +6730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.attributeLists : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitContinueStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitContinueStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitContinueStatement(this);
 
         public ContinueStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
         {
@@ -5809,6 +6753,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ContinueStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ReturnStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ReturnStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5844,8 +6794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitReturnStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitReturnStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitReturnStatement(this);
 
         public ReturnStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken returnKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
         {
@@ -5869,6 +6818,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ReturnStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ThrowStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ThrowStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5904,8 +6859,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThrowStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThrowStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitThrowStatement(this);
 
         public ThrowStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken throwKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
         {
@@ -5929,6 +6883,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ThrowStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.YieldReturnStatement"/></description></item>
+    /// <item><description><see cref="SyntaxKind.YieldBreakStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class YieldStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5966,8 +6927,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitYieldStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitYieldStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitYieldStatement(this);
 
         public YieldStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
         {
@@ -5992,6 +6952,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new YieldStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.WhileStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class WhileStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6034,8 +7000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhileStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhileStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWhileStatement(this);
 
         public WhileStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -6061,6 +7026,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new WhileStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DoStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DoStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6107,8 +7078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDoStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDoStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDoStatement(this);
 
         public DoStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
         {
@@ -6136,6 +7106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new DoStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ForStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ForStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6211,8 +7187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitForStatement(this);
 
         public ForStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax? declaration, SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax? condition, SyntaxToken secondSemicolonToken, SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -6285,6 +7260,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new CommonForEachStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => (CommonForEachStatementSyntax)AddAttributeListsCore(items);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ForEachStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ForEachStatementSyntax : CommonForEachStatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6346,8 +7327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForEachStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForEachStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitForEachStatement(this);
 
         public ForEachStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -6384,6 +7364,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ForEachStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ForEachVariableStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ForEachVariableStatementSyntax : CommonForEachStatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6448,8 +7434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForEachVariableStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForEachVariableStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitForEachVariableStatement(this);
 
         public ForEachVariableStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -6485,6 +7470,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ForEachVariableStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.UsingStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class UsingStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6541,8 +7532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUsingStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUsingStatement(this);
 
         public UsingStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax? declaration, ExpressionSyntax? expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -6570,6 +7560,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new UsingStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FixedStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class FixedStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6612,8 +7608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFixedStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFixedStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFixedStatement(this);
 
         public FixedStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -6640,6 +7635,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FixedStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CheckedStatement"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UncheckedStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CheckedStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6673,8 +7675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCheckedStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCheckedStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCheckedStatement(this);
 
         public CheckedStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken keyword, BlockSyntax block)
         {
@@ -6699,6 +7700,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CheckedStatementSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.UnsafeStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class UnsafeStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6732,8 +7739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnsafeStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUnsafeStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUnsafeStatement(this);
 
         public UnsafeStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken unsafeKeyword, BlockSyntax block)
         {
@@ -6758,6 +7764,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public UnsafeStatementSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LockStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LockStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6800,8 +7812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLockStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLockStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLockStatement(this);
 
         public LockStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -6830,6 +7841,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// Represents an if statement syntax.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IfStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IfStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6895,8 +7912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIfStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIfStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIfStatement(this);
 
         public IfStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax? @else)
         {
@@ -6924,6 +7940,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents an else statement syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ElseClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ElseClauseSyntax : CSharpSyntaxNode
     {
         private StatementSyntax? statement;
@@ -6945,8 +7967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.statement : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElseClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElseClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitElseClause(this);
 
         public ElseClauseSyntax Update(SyntaxToken elseKeyword, StatementSyntax statement)
         {
@@ -6965,6 +7986,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a switch statement syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SwitchStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SwitchStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -7046,8 +8073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSwitchStatement(this);
 
         public SwitchStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
         {
@@ -7077,6 +8103,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a switch section syntax of a switch statement.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SwitchSection"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SwitchSectionSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? labels;
@@ -7114,8 +8146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchSection(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchSection(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSwitchSection(this);
 
         public SwitchSectionSyntax Update(SyntaxList<SwitchLabelSyntax> labels, SyntaxList<StatementSyntax> statements)
         {
@@ -7160,6 +8191,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a case label within a switch statement.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CasePatternSwitchLabel"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CasePatternSwitchLabelSyntax : SwitchLabelSyntax
     {
         private PatternSyntax? pattern;
@@ -7199,8 +8236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCasePatternSwitchLabel(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCasePatternSwitchLabel(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCasePatternSwitchLabel(this);
 
         public CasePatternSwitchLabelSyntax Update(SyntaxToken keyword, PatternSyntax pattern, WhenClauseSyntax? whenClause, SyntaxToken colonToken)
         {
@@ -7223,6 +8259,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a case label within a switch statement.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CaseSwitchLabel"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CaseSwitchLabelSyntax : SwitchLabelSyntax
     {
         private ExpressionSyntax? value;
@@ -7247,8 +8289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.value : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCaseSwitchLabel(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCaseSwitchLabel(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCaseSwitchLabel(this);
 
         public CaseSwitchLabelSyntax Update(SyntaxToken keyword, ExpressionSyntax value, SyntaxToken colonToken)
         {
@@ -7270,6 +8311,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a default label within a switch statement.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DefaultSwitchLabel"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DefaultSwitchLabelSyntax : SwitchLabelSyntax
     {
         internal DefaultSwitchLabelSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -7287,8 +8334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultSwitchLabel(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefaultSwitchLabel(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDefaultSwitchLabel(this);
 
         public DefaultSwitchLabelSyntax Update(SyntaxToken keyword, SyntaxToken colonToken)
         {
@@ -7308,6 +8354,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new DefaultSwitchLabelSyntax WithColonToken(SyntaxToken colonToken) => Update(this.Keyword, colonToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SwitchExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SwitchExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? governingExpression;
@@ -7352,8 +8404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSwitchExpression(this);
 
         public SwitchExpressionSyntax Update(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
         {
@@ -7376,6 +8427,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SwitchExpressionSyntax AddArms(params SwitchExpressionArmSyntax[] items) => WithArms(this.Arms.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SwitchExpressionArm"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SwitchExpressionArmSyntax : CSharpSyntaxNode
     {
         private PatternSyntax? pattern;
@@ -7414,8 +8471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchExpressionArm(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchExpressionArm(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSwitchExpressionArm(this);
 
         public SwitchExpressionArmSyntax Update(PatternSyntax pattern, WhenClauseSyntax? whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
         {
@@ -7435,6 +8491,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SwitchExpressionArmSyntax WithExpression(ExpressionSyntax expression) => Update(this.Pattern, this.WhenClause, this.EqualsGreaterThanToken, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TryStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TryStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -7478,8 +8540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTryStatement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTryStatement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTryStatement(this);
 
         public TryStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken tryKeyword, BlockSyntax block, SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax? @finally)
         {
@@ -7507,6 +8568,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TryStatementSyntax AddCatches(params CatchClauseSyntax[] items) => WithCatches(this.Catches.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CatchClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CatchClauseSyntax : CSharpSyntaxNode
     {
         private CatchDeclarationSyntax? declaration;
@@ -7545,8 +8612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCatchClause(this);
 
         public CatchClauseSyntax Update(SyntaxToken catchKeyword, CatchDeclarationSyntax? declaration, CatchFilterClauseSyntax? filter, BlockSyntax block)
         {
@@ -7569,6 +8635,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CatchClauseSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CatchDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CatchDeclarationSyntax : CSharpSyntaxNode
     {
         private TypeSyntax? type;
@@ -7598,8 +8670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCatchDeclaration(this);
 
         public CatchDeclarationSyntax Update(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken closeParenToken)
         {
@@ -7619,6 +8690,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CatchDeclarationSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Type, this.Identifier, closeParenToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CatchFilterClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CatchFilterClauseSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? filterExpression;
@@ -7641,8 +8718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.filterExpression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchFilterClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchFilterClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCatchFilterClause(this);
 
         public CatchFilterClauseSyntax Update(SyntaxToken whenKeyword, SyntaxToken openParenToken, ExpressionSyntax filterExpression, SyntaxToken closeParenToken)
         {
@@ -7662,6 +8738,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CatchFilterClauseSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.WhenKeyword, this.OpenParenToken, this.FilterExpression, closeParenToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FinallyClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class FinallyClauseSyntax : CSharpSyntaxNode
     {
         private BlockSyntax? block;
@@ -7680,8 +8762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.block : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFinallyClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFinallyClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFinallyClause(this);
 
         public FinallyClauseSyntax Update(SyntaxToken finallyKeyword, BlockSyntax block)
         {
@@ -7702,6 +8783,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FinallyClauseSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CompilationUnit"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CompilationUnitSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? externs;
@@ -7746,8 +8833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCompilationUnit(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCompilationUnit(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCompilationUnit(this);
 
         public CompilationUnitSyntax Update(SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<AttributeListSyntax> attributeLists, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken endOfFileToken)
         {
@@ -7776,6 +8862,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// Represents an ExternAlias directive syntax, e.g. "extern alias MyAlias;" with specifying "/r:MyAlias=SomeAssembly.dll " on the compiler command line.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ExternAliasDirective"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ExternAliasDirectiveSyntax : CSharpSyntaxNode
     {
         internal ExternAliasDirectiveSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -7800,8 +8892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExternAliasDirective(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExternAliasDirective(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExternAliasDirective(this);
 
         public ExternAliasDirectiveSyntax Update(SyntaxToken externKeyword, SyntaxToken aliasKeyword, SyntaxToken identifier, SyntaxToken semicolonToken)
         {
@@ -7821,6 +8912,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ExternAliasDirectiveSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.ExternKeyword, this.AliasKeyword, this.Identifier, semicolonToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.UsingDirective"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class UsingDirectiveSyntax : CSharpSyntaxNode
     {
         private NameEqualsSyntax? alias;
@@ -7865,8 +8962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingDirective(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUsingDirective(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUsingDirective(this);
 
         public UsingDirectiveSyntax Update(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
         {
@@ -7912,6 +9008,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal abstract MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NamespaceDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NamespaceDeclarationSyntax : MemberDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -7983,8 +9085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNamespaceDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNamespaceDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNamespaceDeclaration(this);
 
         public NamespaceDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -8021,6 +9122,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class representing one or more attributes applied to a language construct.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AttributeList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AttributeListSyntax : CSharpSyntaxNode
     {
         private AttributeTargetSpecifierSyntax? target;
@@ -8067,8 +9174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAttributeList(this);
 
         public AttributeListSyntax Update(SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax? target, SeparatedSyntaxList<AttributeSyntax> attributes, SyntaxToken closeBracketToken)
         {
@@ -8091,6 +9197,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class representing what language construct an attribute targets.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AttributeTargetSpecifier"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AttributeTargetSpecifierSyntax : CSharpSyntaxNode
     {
         internal AttributeTargetSpecifierSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -8109,8 +9221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeTargetSpecifier(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeTargetSpecifier(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAttributeTargetSpecifier(this);
 
         public AttributeTargetSpecifierSyntax Update(SyntaxToken identifier, SyntaxToken colonToken)
         {
@@ -8129,6 +9240,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Attribute syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Attribute"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AttributeSyntax : CSharpSyntaxNode
     {
         private NameSyntax? name;
@@ -8161,8 +9278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttribute(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttribute(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAttribute(this);
 
         public AttributeSyntax Update(NameSyntax name, AttributeArgumentListSyntax? argumentList)
         {
@@ -8187,6 +9303,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Attribute argument list syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AttributeArgumentList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AttributeArgumentListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? arguments;
@@ -8217,8 +9339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.arguments : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeArgumentList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeArgumentList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAttributeArgumentList(this);
 
         public AttributeArgumentListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)
         {
@@ -8240,6 +9361,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Attribute argument syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AttributeArgument"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AttributeArgumentSyntax : CSharpSyntaxNode
     {
         private NameEqualsSyntax? nameEquals;
@@ -8277,8 +9404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeArgument(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeArgument(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAttributeArgument(this);
 
         public AttributeArgumentSyntax Update(NameEqualsSyntax? nameEquals, NameColonSyntax? nameColon, ExpressionSyntax expression)
         {
@@ -8298,6 +9424,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class representing an identifier name followed by an equals token.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NameEquals"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NameEqualsSyntax : CSharpSyntaxNode
     {
         private IdentifierNameSyntax? name;
@@ -8317,8 +9449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.name : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameEquals(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameEquals(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNameEquals(this);
 
         public NameEqualsSyntax Update(IdentifierNameSyntax name, SyntaxToken equalsToken)
         {
@@ -8337,6 +9468,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Type parameter list syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeParameterList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeParameterListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? parameters;
@@ -8367,8 +9504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.parameters : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameterList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameterList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeParameterList(this);
 
         public TypeParameterListSyntax Update(SyntaxToken lessThanToken, SeparatedSyntaxList<TypeParameterSyntax> parameters, SyntaxToken greaterThanToken)
         {
@@ -8390,6 +9526,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Type parameter syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeParameter"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeParameterSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? attributeLists;
@@ -8419,8 +9561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.attributeLists : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameter(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameter(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeParameter(this);
 
         public TypeParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken varianceKeyword, SyntaxToken identifier)
         {
@@ -8485,7 +9626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new BaseTypeDeclarationSyntax AddModifiers(params SyntaxToken[] items) => (BaseTypeDeclarationSyntax)AddModifiersCore(items);
     }
 
-    /// <summary>Base class for type declaration syntax (class, struct, interface).</summary>
+    /// <summary>Base class for type declaration syntax (class, struct, interface, record).</summary>
     public abstract partial class TypeDeclarationSyntax : BaseTypeDeclarationSyntax
     {
         internal TypeDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -8493,7 +9634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>Gets the type keyword token ("class", "struct", "interface").</summary>
+        /// <summary>Gets the type keyword token ("class", "struct", "interface", "record").</summary>
         public abstract SyntaxToken Keyword { get; }
         public TypeDeclarationSyntax WithKeyword(SyntaxToken keyword) => WithKeywordCore(keyword);
         internal abstract TypeDeclarationSyntax WithKeywordCore(SyntaxToken keyword);
@@ -8531,6 +9672,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class type declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ClassDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ClassDeclarationSyntax : TypeDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -8604,8 +9751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitClassDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitClassDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitClassDeclaration(this);
 
         public ClassDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -8665,6 +9811,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Struct type declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.StructDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -8738,8 +9890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitStructDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitStructDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitStructDeclaration(this);
 
         public StructDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -8799,6 +9950,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Interface type declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InterfaceDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterfaceDeclarationSyntax : TypeDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -8872,8 +10029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterfaceDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterfaceDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterfaceDeclaration(this);
 
         public InterfaceDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -8932,7 +10088,175 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new InterfaceDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => WithMembers(this.Members.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RecordDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class RecordDeclarationSyntax : TypeDeclarationSyntax
+    {
+        private SyntaxNode? attributeLists;
+        private TypeParameterListSyntax? typeParameterList;
+        private ParameterListSyntax? parameterList;
+        private BaseListSyntax? baseList;
+        private SyntaxNode? constraintClauses;
+        private SyntaxNode? members;
+
+        internal RecordDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
+
+        public override SyntaxTokenList Modifiers
+        {
+            get
+            {
+                var slot = this.Green.GetSlot(1);
+                return slot != null ? new SyntaxTokenList(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
+            }
+        }
+
+        public override SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+
+        public override SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+
+        public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
+
+        public ParameterListSyntax? ParameterList => GetRed(ref this.parameterList, 5);
+
+        public override BaseListSyntax? BaseList => GetRed(ref this.baseList, 6);
+
+        public override SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new SyntaxList<TypeParameterConstraintClauseSyntax>(GetRed(ref this.constraintClauses, 7));
+
+        public override SyntaxToken OpenBraceToken
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).openBraceToken;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(8), GetChildIndex(8)) : default;
+            }
+        }
+
+        public override SyntaxList<MemberDeclarationSyntax> Members => new SyntaxList<MemberDeclarationSyntax>(GetRed(ref this.members, 9));
+
+        public override SyntaxToken CloseBraceToken
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).closeBraceToken;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(10), GetChildIndex(10)) : default;
+            }
+        }
+
+        public override SyntaxToken SemicolonToken
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).semicolonToken;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(11), GetChildIndex(11)) : default;
+            }
+        }
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                4 => GetRed(ref this.typeParameterList, 4),
+                5 => GetRed(ref this.parameterList, 5),
+                6 => GetRed(ref this.baseList, 6),
+                7 => GetRed(ref this.constraintClauses, 7)!,
+                9 => GetRed(ref this.members, 9)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                0 => this.attributeLists,
+                4 => this.typeParameterList,
+                5 => this.parameterList,
+                6 => this.baseList,
+                7 => this.constraintClauses,
+                9 => this.members,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRecordDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRecordDeclaration(this);
+
+        public RecordDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
+            {
+                var newNode = SyntaxFactory.RecordDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+        public new RecordDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override MemberDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new RecordDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override TypeDeclarationSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
+        public new RecordDeclarationSyntax WithKeyword(SyntaxToken keyword) => Update(this.AttributeLists, this.Modifiers, keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override BaseTypeDeclarationSyntax WithIdentifierCore(SyntaxToken identifier) => WithIdentifier(identifier);
+        public new RecordDeclarationSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Keyword, identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override TypeDeclarationSyntax WithTypeParameterListCore(TypeParameterListSyntax? typeParameterList) => WithTypeParameterList(typeParameterList);
+        public new RecordDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax? typeParameterList) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, typeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        public RecordDeclarationSyntax WithParameterList(ParameterListSyntax? parameterList) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, parameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override BaseTypeDeclarationSyntax WithBaseListCore(BaseListSyntax? baseList) => WithBaseList(baseList);
+        public new RecordDeclarationSyntax WithBaseList(BaseListSyntax? baseList) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, baseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override TypeDeclarationSyntax WithConstraintClausesCore(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => WithConstraintClauses(constraintClauses);
+        public new RecordDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, constraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override BaseTypeDeclarationSyntax WithOpenBraceTokenCore(SyntaxToken openBraceToken) => WithOpenBraceToken(openBraceToken);
+        public new RecordDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, openBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override TypeDeclarationSyntax WithMembersCore(SyntaxList<MemberDeclarationSyntax> members) => WithMembers(members);
+        public new RecordDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, members, this.CloseBraceToken, this.SemicolonToken);
+        internal override BaseTypeDeclarationSyntax WithCloseBraceTokenCore(SyntaxToken closeBraceToken) => WithCloseBraceToken(closeBraceToken);
+        public new RecordDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
+        internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+        public new RecordDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
+
+        internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
+        public new RecordDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
+        internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new RecordDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
+        internal override TypeDeclarationSyntax AddTypeParameterListParametersCore(params TypeParameterSyntax[] items) => AddTypeParameterListParameters(items);
+        public new RecordDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
+        {
+            var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
+            return WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
+        }
+        public RecordDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
+        {
+            var parameterList = this.ParameterList ?? SyntaxFactory.ParameterList();
+            return WithParameterList(parameterList.WithParameters(parameterList.Parameters.AddRange(items)));
+        }
+        internal override BaseTypeDeclarationSyntax AddBaseListTypesCore(params BaseTypeSyntax[] items) => AddBaseListTypes(items);
+        public new RecordDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items)
+        {
+            var baseList = this.BaseList ?? SyntaxFactory.BaseList();
+            return WithBaseList(baseList.WithTypes(baseList.Types.AddRange(items)));
+        }
+        internal override TypeDeclarationSyntax AddConstraintClausesCore(params TypeParameterConstraintClauseSyntax[] items) => AddConstraintClauses(items);
+        public new RecordDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items) => WithConstraintClauses(this.ConstraintClauses.AddRange(items));
+        internal override TypeDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items) => AddMembers(items);
+        public new RecordDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => WithMembers(this.Members.AddRange(items));
+    }
+
     /// <summary>Enum type declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EnumDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EnumDeclarationSyntax : BaseTypeDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9005,8 +10329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEnumDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEnumDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEnumDeclaration(this);
 
         public EnumDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -9051,6 +10374,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Delegate declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DelegateDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DelegateDeclarationSyntax : MemberDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9118,8 +10447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDelegateDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDelegateDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDelegateDeclaration(this);
 
         public DelegateDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken semicolonToken)
         {
@@ -9158,6 +10486,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public DelegateDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items) => WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EnumMemberDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EnumMemberDeclarationSyntax : MemberDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9201,8 +10535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEnumMemberDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEnumMemberDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEnumMemberDeclaration(this);
 
         public EnumMemberDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, EqualsValueClauseSyntax? equalsValue)
         {
@@ -9230,6 +10563,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Base list syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BaseList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BaseListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? types;
@@ -9257,8 +10596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.types : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBaseList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBaseList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBaseList(this);
 
         public BaseListSyntax Update(SyntaxToken colonToken, SeparatedSyntaxList<BaseTypeSyntax> types)
         {
@@ -9291,6 +10629,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal abstract BaseTypeSyntax WithTypeCore(TypeSyntax type);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SimpleBaseType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SimpleBaseTypeSyntax : BaseTypeSyntax
     {
         private TypeSyntax? type;
@@ -9307,8 +10651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleBaseType(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleBaseType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSimpleBaseType(this);
 
         public SimpleBaseTypeSyntax Update(TypeSyntax type)
         {
@@ -9326,7 +10669,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new SimpleBaseTypeSyntax WithType(TypeSyntax type) => Update(type);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PrimaryConstructorBaseType"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class PrimaryConstructorBaseTypeSyntax : BaseTypeSyntax
+    {
+        private TypeSyntax? type;
+        private ArgumentListSyntax? argumentList;
+
+        internal PrimaryConstructorBaseTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public override TypeSyntax Type => GetRedAtZero(ref this.type)!;
+
+        public ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 1)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                0 => GetRedAtZero(ref this.type)!,
+                1 => GetRed(ref this.argumentList, 1)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                0 => this.type,
+                1 => this.argumentList,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPrimaryConstructorBaseType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPrimaryConstructorBaseType(this);
+
+        public PrimaryConstructorBaseTypeSyntax Update(TypeSyntax type, ArgumentListSyntax argumentList)
+        {
+            if (type != this.Type || argumentList != this.ArgumentList)
+            {
+                var newNode = SyntaxFactory.PrimaryConstructorBaseType(type, argumentList);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        internal override BaseTypeSyntax WithTypeCore(TypeSyntax type) => WithType(type);
+        public new PrimaryConstructorBaseTypeSyntax WithType(TypeSyntax type) => Update(type, this.ArgumentList);
+        public PrimaryConstructorBaseTypeSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.Type, argumentList);
+
+        public PrimaryConstructorBaseTypeSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
+    }
+
     /// <summary>Type parameter constraint clause.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeParameterConstraintClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeParameterConstraintClauseSyntax : CSharpSyntaxNode
     {
         private IdentifierNameSyntax? name;
@@ -9372,8 +10779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameterConstraintClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameterConstraintClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeParameterConstraintClause(this);
 
         public TypeParameterConstraintClauseSyntax Update(SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, SeparatedSyntaxList<TypeParameterConstraintSyntax> constraints)
         {
@@ -9405,6 +10811,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Constructor constraint syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConstructorConstraint"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConstructorConstraintSyntax : TypeParameterConstraintSyntax
     {
         internal ConstructorConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -9426,8 +10838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorConstraint(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorConstraint(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConstructorConstraint(this);
 
         public ConstructorConstraintSyntax Update(SyntaxToken newKeyword, SyntaxToken openParenToken, SyntaxToken closeParenToken)
         {
@@ -9446,7 +10857,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ConstructorConstraintSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.NewKeyword, this.OpenParenToken, closeParenToken);
     }
 
-    /// <summary>Base type for class or struct constraint syntax.</summary>
+    /// <summary>Class or struct constraint syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ClassConstraint"/></description></item>
+    /// <item><description><see cref="SyntaxKind.StructConstraint"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ClassOrStructConstraintSyntax : TypeParameterConstraintSyntax
     {
         internal ClassOrStructConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -9472,8 +10890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitClassOrStructConstraint(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitClassOrStructConstraint(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitClassOrStructConstraint(this);
 
         public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
         {
@@ -9492,6 +10909,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Type constraint syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeConstraint"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeConstraintSyntax : TypeParameterConstraintSyntax
     {
         private TypeSyntax? type;
@@ -9509,8 +10932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeConstraint(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeConstraint(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeConstraint(this);
 
         public TypeConstraintSyntax Update(TypeSyntax type)
         {
@@ -9525,6 +10947,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         public TypeConstraintSyntax WithType(TypeSyntax type) => Update(type);
+    }
+
+    /// <summary>Default constraint syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DefaultConstraint"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class DefaultConstraintSyntax : TypeParameterConstraintSyntax
+    {
+        internal DefaultConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>Gets the "default" keyword.</summary>
+        public SyntaxToken DefaultKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.DefaultConstraintSyntax)this.Green).defaultKeyword, Position, 0);
+
+        internal override SyntaxNode? GetNodeSlot(int index) => null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultConstraint(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDefaultConstraint(this);
+
+        public DefaultConstraintSyntax Update(SyntaxToken defaultKeyword)
+        {
+            if (defaultKeyword != this.DefaultKeyword)
+            {
+                var newNode = SyntaxFactory.DefaultConstraint(defaultKeyword);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public DefaultConstraintSyntax WithDefaultKeyword(SyntaxToken defaultKeyword) => Update(defaultKeyword);
     }
 
     public abstract partial class BaseFieldDeclarationSyntax : MemberDeclarationSyntax
@@ -9553,6 +11014,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new BaseFieldDeclarationSyntax AddModifiers(params SyntaxToken[] items) => (BaseFieldDeclarationSyntax)AddModifiersCore(items);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FieldDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class FieldDeclarationSyntax : BaseFieldDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9595,8 +11062,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFieldDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFieldDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFieldDeclaration(this);
 
         public FieldDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
         {
@@ -9627,6 +11093,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new FieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EventFieldDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EventFieldDeclarationSyntax : BaseFieldDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9671,8 +11143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEventFieldDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEventFieldDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEventFieldDeclaration(this);
 
         public EventFieldDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
         {
@@ -9704,6 +11175,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new EventFieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ExplicitInterfaceSpecifier"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ExplicitInterfaceSpecifierSyntax : CSharpSyntaxNode
     {
         private NameSyntax? name;
@@ -9722,8 +11199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.name : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExplicitInterfaceSpecifier(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExplicitInterfaceSpecifier(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExplicitInterfaceSpecifier(this);
 
         public ExplicitInterfaceSpecifierSyntax Update(NameSyntax name, SyntaxToken dotToken)
         {
@@ -9785,6 +11261,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Method declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.MethodDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class MethodDeclarationSyntax : BaseMethodDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9870,8 +11352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMethodDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMethodDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitMethodDeclaration(this);
 
         public MethodDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -9930,6 +11411,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Operator declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.OperatorDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OperatorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10002,8 +11489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOperatorDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOperatorDeclaration(this);
 
         public OperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -10054,6 +11540,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Conversion operator declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConversionOperatorDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConversionOperatorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10126,8 +11618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConversionOperatorDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConversionOperatorDeclaration(this);
 
         public ConversionOperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -10178,6 +11669,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Constructor declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConstructorDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConstructorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10246,8 +11743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConstructorDeclaration(this);
 
         public ConstructorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax? initializer, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -10297,6 +11793,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Constructor initializer syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BaseConstructorInitializer"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ThisConstructorInitializer"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConstructorInitializerSyntax : CSharpSyntaxNode
     {
         private ArgumentListSyntax? argumentList;
@@ -10319,8 +11822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.argumentList : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorInitializer(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorInitializer(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConstructorInitializer(this);
 
         public ConstructorInitializerSyntax Update(SyntaxToken colonToken, SyntaxToken thisOrBaseKeyword, ArgumentListSyntax argumentList)
         {
@@ -10342,6 +11844,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Destructor declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DestructorDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DestructorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10408,8 +11916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDestructorDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDestructorDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDestructorDeclaration(this);
 
         public DestructorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken tildeToken, SyntaxToken identifier, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -10491,6 +11998,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new BasePropertyDeclarationSyntax AddModifiers(params SyntaxToken[] items) => (BasePropertyDeclarationSyntax)AddModifiersCore(items);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PropertyDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PropertyDeclarationSyntax : BasePropertyDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10563,8 +12076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPropertyDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPropertyDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPropertyDeclaration(this);
 
         public PropertyDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax? accessorList, ArrowExpressionClauseSyntax? expressionBody, EqualsValueClauseSyntax? initializer, SyntaxToken semicolonToken)
         {
@@ -10606,6 +12118,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>The syntax for the expression body of an expression-bodied member.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArrowExpressionClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArrowExpressionClauseSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? expression;
@@ -10624,8 +12142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrowExpressionClause(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrowExpressionClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArrowExpressionClause(this);
 
         public ArrowExpressionClauseSyntax Update(SyntaxToken arrowToken, ExpressionSyntax expression)
         {
@@ -10643,6 +12160,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ArrowExpressionClauseSyntax WithExpression(ExpressionSyntax expression) => Update(this.ArrowToken, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EventDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EventDeclarationSyntax : BasePropertyDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10707,8 +12230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEventDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEventDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEventDeclaration(this);
 
         public EventDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax? accessorList, SyntaxToken semicolonToken)
         {
@@ -10748,6 +12270,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IndexerDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IndexerDeclarationSyntax : BasePropertyDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10820,8 +12348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIndexerDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIndexerDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIndexerDeclaration(this);
 
         public IndexerDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax? accessorList, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -10863,6 +12390,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AccessorList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AccessorListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? accessors;
@@ -10883,8 +12416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.accessors : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAccessorList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAccessorList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAccessorList(this);
 
         public AccessorListSyntax Update(SyntaxToken openBraceToken, SyntaxList<AccessorDeclarationSyntax> accessors, SyntaxToken closeBraceToken)
         {
@@ -10905,6 +12437,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public AccessorListSyntax AddAccessors(params AccessorDeclarationSyntax[] items) => WithAccessors(this.Accessors.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.GetAccessorDeclaration"/></description></item>
+    /// <item><description><see cref="SyntaxKind.SetAccessorDeclaration"/></description></item>
+    /// <item><description><see cref="SyntaxKind.InitAccessorDeclaration"/></description></item>
+    /// <item><description><see cref="SyntaxKind.AddAccessorDeclaration"/></description></item>
+    /// <item><description><see cref="SyntaxKind.RemoveAccessorDeclaration"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UnknownAccessorDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AccessorDeclarationSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? attributeLists;
@@ -10967,8 +12510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAccessorDeclaration(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAccessorDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAccessorDeclaration(this);
 
         public AccessorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -11021,6 +12563,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Parameter list syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ParameterList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ParameterListSyntax : BaseParameterListSyntax
     {
         private SyntaxNode? parameters;
@@ -11050,8 +12598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.parameters : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameterList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParameterList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParameterList(this);
 
         public ParameterListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeParenToken)
         {
@@ -11075,6 +12622,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Parameter list syntax with surrounding brackets.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BracketedParameterList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BracketedParameterListSyntax : BaseParameterListSyntax
     {
         private SyntaxNode? parameters;
@@ -11104,8 +12657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.parameters : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBracketedParameterList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBracketedParameterList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBracketedParameterList(this);
 
         public BracketedParameterListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeBracketToken)
         {
@@ -11128,8 +12680,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new BracketedParameterListSyntax AddParameters(params ParameterSyntax[] items) => WithParameters(this.Parameters.AddRange(items));
     }
 
+    /// <summary>Base parameter syntax.</summary>
+    public abstract partial class BaseParameterSyntax : CSharpSyntaxNode
+    {
+        internal BaseParameterSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>Gets the attribute declaration list.</summary>
+        public abstract SyntaxList<AttributeListSyntax> AttributeLists { get; }
+        public BaseParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeListsCore(attributeLists);
+        internal abstract BaseParameterSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists);
+
+        public BaseParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => AddAttributeListsCore(items);
+        internal abstract BaseParameterSyntax AddAttributeListsCore(params AttributeListSyntax[] items);
+
+        /// <summary>Gets the modifier list.</summary>
+        public abstract SyntaxTokenList Modifiers { get; }
+        public BaseParameterSyntax WithModifiers(SyntaxTokenList modifiers) => WithModifiersCore(modifiers);
+        internal abstract BaseParameterSyntax WithModifiersCore(SyntaxTokenList modifiers);
+
+        public BaseParameterSyntax AddModifiers(params SyntaxToken[] items) => AddModifiersCore(items);
+        internal abstract BaseParameterSyntax AddModifiersCore(params SyntaxToken[] items);
+
+        public abstract TypeSyntax? Type { get; }
+        public BaseParameterSyntax WithType(TypeSyntax? type) => WithTypeCore(type);
+        internal abstract BaseParameterSyntax WithTypeCore(TypeSyntax? type);
+    }
+
     /// <summary>Parameter syntax.</summary>
-    public sealed partial class ParameterSyntax : CSharpSyntaxNode
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Parameter"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class ParameterSyntax : BaseParameterSyntax
     {
         private SyntaxNode? attributeLists;
         private TypeSyntax? type;
@@ -11141,10 +12728,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the attribute declaration list.</summary>
-        public SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
+        public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
         /// <summary>Gets the modifier list.</summary>
-        public SyntaxTokenList Modifiers
+        public override SyntaxTokenList Modifiers
         {
             get
             {
@@ -11153,7 +12740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public TypeSyntax? Type => GetRed(ref this.type, 2);
+        public override TypeSyntax? Type => GetRed(ref this.type, 2);
 
         /// <summary>Gets the identifier.</summary>
         public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.ParameterSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
@@ -11179,8 +12766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameter(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParameter(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParameter(this);
 
         public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
         {
@@ -11194,16 +12780,103 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.Default);
-        public ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.Default);
-        public ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.Default);
+        internal override BaseParameterSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+        public new ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.Default);
+        internal override BaseParameterSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.Default);
+        internal override BaseParameterSyntax WithTypeCore(TypeSyntax? type) => WithType(type);
+        public new ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.Default);
         public ParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.Default);
         public ParameterSyntax WithDefault(EqualsValueClauseSyntax? @default) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, @default);
 
-        public ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
-        public ParameterSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
+        internal override BaseParameterSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
+        public new ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
+        internal override BaseParameterSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new ParameterSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
     }
 
+    /// <summary>Parameter syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FunctionPointerParameter"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class FunctionPointerParameterSyntax : BaseParameterSyntax
+    {
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? type;
+
+        internal FunctionPointerParameterSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>Gets the attribute declaration list.</summary>
+        public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
+
+        /// <summary>Gets the modifier list.</summary>
+        public override SyntaxTokenList Modifiers
+        {
+            get
+            {
+                var slot = this.Green.GetSlot(1);
+                return slot != null ? new SyntaxTokenList(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
+            }
+        }
+
+        public override TypeSyntax Type => GetRed(ref this.type, 2)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                2 => GetRed(ref this.type, 2)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                0 => this.attributeLists,
+                2 => this.type,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerParameter(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerParameter(this);
+
+        public FunctionPointerParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type)
+            {
+                var newNode = SyntaxFactory.FunctionPointerParameter(attributeLists, modifiers, type);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        internal override BaseParameterSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+        public new FunctionPointerParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type);
+        internal override BaseParameterSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new FunctionPointerParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type);
+        internal override BaseParameterSyntax WithTypeCore(TypeSyntax? type) => WithType(type ?? throw new ArgumentNullException(nameof(type)));
+        public new FunctionPointerParameterSyntax WithType(TypeSyntax type) => Update(this.AttributeLists, this.Modifiers, type);
+
+        internal override BaseParameterSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
+        public new FunctionPointerParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
+        internal override BaseParameterSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new FunctionPointerParameterSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IncompleteMember"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IncompleteMemberSyntax : MemberDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -11244,8 +12917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIncompleteMember(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIncompleteMember(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIncompleteMember(this);
 
         public IncompleteMemberSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type)
         {
@@ -11271,6 +12943,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new IncompleteMemberSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SkippedTokensTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SkippedTokensTriviaSyntax : StructuredTriviaSyntax
     {
         internal SkippedTokensTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -11292,8 +12970,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSkippedTokensTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSkippedTokensTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSkippedTokensTrivia(this);
 
         public SkippedTokensTriviaSyntax Update(SyntaxTokenList tokens)
         {
@@ -11312,6 +12989,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SkippedTokensTriviaSyntax AddTokens(params SyntaxToken[] items) => WithTokens(this.Tokens.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/></description></item>
+    /// <item><description><see cref="SyntaxKind.MultiLineDocumentationCommentTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DocumentationCommentTriviaSyntax : StructuredTriviaSyntax
     {
         private SyntaxNode? content;
@@ -11330,8 +13014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.content : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDocumentationCommentTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDocumentationCommentTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDocumentationCommentTrivia(this);
 
         public DocumentationCommentTriviaSyntax Update(SyntaxList<XmlNodeSyntax> content, SyntaxToken endOfComment)
         {
@@ -11370,6 +13053,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// will always be bound as type, so it's safer to use QualifiedCrefSyntax or MemberCrefSyntax if the symbol
     /// might be a non-type member.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeCrefSyntax : CrefSyntax
     {
         private TypeSyntax? type;
@@ -11386,8 +13075,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeCref(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeCref(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeCref(this);
 
         public TypeCrefSyntax Update(TypeSyntax type)
         {
@@ -11411,6 +13099,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// will always be bound as type, so it's safer to use QualifiedCrefSyntax or MemberCrefSyntax if the symbol
     /// might be a non-type member.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.QualifiedCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class QualifiedCrefSyntax : CrefSyntax
     {
         private TypeSyntax? container;
@@ -11444,8 +13138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQualifiedCref(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQualifiedCref(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitQualifiedCref(this);
 
         public QualifiedCrefSyntax Update(TypeSyntax container, SyntaxToken dotToken, MemberCrefSyntax member)
         {
@@ -11485,6 +13178,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// For example, "M", "M&lt;T&gt;" or "M(int)".
     /// Also, "A::B()" or "string()".
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NameMemberCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NameMemberCrefSyntax : MemberCrefSyntax
     {
         private TypeSyntax? name;
@@ -11516,8 +13215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameMemberCref(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameMemberCref(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNameMemberCref(this);
 
         public NameMemberCrefSyntax Update(TypeSyntax name, CrefParameterListSyntax? parameters)
         {
@@ -11545,6 +13243,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// A MemberCrefSyntax specified by a this keyword and an optional parameter list.
     /// For example, "this" or "this[int]".
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IndexerMemberCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IndexerMemberCrefSyntax : MemberCrefSyntax
     {
         private CrefBracketedParameterListSyntax? parameters;
@@ -11563,8 +13267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.parameters : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIndexerMemberCref(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIndexerMemberCref(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIndexerMemberCref(this);
 
         public IndexerMemberCrefSyntax Update(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)
         {
@@ -11593,6 +13296,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// For example, "operator +" or "operator -[int]".
     /// NOTE: the operator must be overloadable.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.OperatorMemberCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OperatorMemberCrefSyntax : MemberCrefSyntax
     {
         private CrefParameterListSyntax? parameters;
@@ -11614,8 +13323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.parameters : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorMemberCref(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOperatorMemberCref(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOperatorMemberCref(this);
 
         public OperatorMemberCrefSyntax Update(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
         {
@@ -11644,6 +13352,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// A MemberCrefSyntax specified by an implicit or explicit keyword, an operator keyword, a destination type, and an optional parameter list.
     /// For example, "implicit operator int" or "explicit operator MyType(int)".
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConversionOperatorMemberCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConversionOperatorMemberCrefSyntax : MemberCrefSyntax
     {
         private TypeSyntax? type;
@@ -11679,8 +13393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorMemberCref(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConversionOperatorMemberCref(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConversionOperatorMemberCref(this);
 
         public ConversionOperatorMemberCrefSyntax Update(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
         {
@@ -11729,6 +13442,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// A parenthesized list of cref parameters.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CrefParameterList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CrefParameterListSyntax : BaseCrefParameterListSyntax
     {
         private SyntaxNode? parameters;
@@ -11758,8 +13477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.parameters : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefParameterList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefParameterList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCrefParameterList(this);
 
         public CrefParameterListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeParenToken)
         {
@@ -11785,6 +13503,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// A bracketed list of cref parameters.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CrefBracketedParameterList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CrefBracketedParameterListSyntax : BaseCrefParameterListSyntax
     {
         private SyntaxNode? parameters;
@@ -11814,8 +13538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.parameters : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefBracketedParameterList(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefBracketedParameterList(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCrefBracketedParameterList(this);
 
         public CrefBracketedParameterListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeBracketToken)
         {
@@ -11843,6 +13566,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// Unlike a regular parameter, a cref parameter has only an optional ref or out keyword and a type -
     /// there is no name and there are no attributes or other modifiers.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CrefParameter"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CrefParameterSyntax : CSharpSyntaxNode
     {
         private TypeSyntax? type;
@@ -11868,8 +13597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefParameter(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefParameter(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCrefParameter(this);
 
         public CrefParameterSyntax Update(SyntaxToken refKindKeyword, TypeSyntax type)
         {
@@ -11895,6 +13623,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlElement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlElementSyntax : XmlNodeSyntax
     {
         private XmlElementStartTagSyntax? startTag;
@@ -11931,8 +13665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlElement(this);
 
         public XmlElementSyntax Update(XmlElementStartTagSyntax startTag, SyntaxList<XmlNodeSyntax> content, XmlElementEndTagSyntax endTag)
         {
@@ -11954,6 +13687,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlElementSyntax AddContent(params XmlNodeSyntax[] items) => WithContent(this.Content.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlElementStartTag"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlElementStartTagSyntax : CSharpSyntaxNode
     {
         private XmlNameSyntax? name;
@@ -11989,8 +13728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElementStartTag(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElementStartTag(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlElementStartTag(this);
 
         public XmlElementStartTagSyntax Update(SyntaxToken lessThanToken, XmlNameSyntax name, SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken greaterThanToken)
         {
@@ -12012,6 +13750,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlElementStartTagSyntax AddAttributes(params XmlAttributeSyntax[] items) => WithAttributes(this.Attributes.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlElementEndTag"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlElementEndTagSyntax : CSharpSyntaxNode
     {
         private XmlNameSyntax? name;
@@ -12032,8 +13776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.name : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElementEndTag(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElementEndTag(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlElementEndTag(this);
 
         public XmlElementEndTagSyntax Update(SyntaxToken lessThanSlashToken, XmlNameSyntax name, SyntaxToken greaterThanToken)
         {
@@ -12052,6 +13795,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlElementEndTagSyntax WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.LessThanSlashToken, this.Name, greaterThanToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlEmptyElement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlEmptyElementSyntax : XmlNodeSyntax
     {
         private XmlNameSyntax? name;
@@ -12087,8 +13836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlEmptyElement(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlEmptyElement(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlEmptyElement(this);
 
         public XmlEmptyElementSyntax Update(SyntaxToken lessThanToken, XmlNameSyntax name, SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
         {
@@ -12110,6 +13858,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlEmptyElementSyntax AddAttributes(params XmlAttributeSyntax[] items) => WithAttributes(this.Attributes.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlName"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlNameSyntax : CSharpSyntaxNode
     {
         private XmlPrefixSyntax? prefix;
@@ -12128,8 +13882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.prefix : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlName(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlName(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlName(this);
 
         public XmlNameSyntax Update(XmlPrefixSyntax? prefix, SyntaxToken localName)
         {
@@ -12147,6 +13900,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlNameSyntax WithLocalName(SyntaxToken localName) => Update(this.Prefix, localName);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlPrefix"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlPrefixSyntax : CSharpSyntaxNode
     {
         internal XmlPrefixSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12163,8 +13922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlPrefix(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlPrefix(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlPrefix(this);
 
         public XmlPrefixSyntax Update(SyntaxToken prefix, SyntaxToken colonToken)
         {
@@ -12206,6 +13964,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal abstract XmlAttributeSyntax WithEndQuoteTokenCore(SyntaxToken endQuoteToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlTextAttribute"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlTextAttributeSyntax : XmlAttributeSyntax
     {
         private XmlNameSyntax? name;
@@ -12237,8 +14001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.name : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlTextAttribute(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlTextAttribute(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlTextAttribute(this);
 
         public XmlTextAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, SyntaxTokenList textTokens, SyntaxToken endQuoteToken)
         {
@@ -12265,6 +14028,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlTextAttributeSyntax AddTextTokens(params SyntaxToken[] items) => WithTextTokens(this.TextTokens.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlCrefAttribute"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlCrefAttributeSyntax : XmlAttributeSyntax
     {
         private XmlNameSyntax? name;
@@ -12302,8 +14071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlCrefAttribute(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlCrefAttribute(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlCrefAttribute(this);
 
         public XmlCrefAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, CrefSyntax cref, SyntaxToken endQuoteToken)
         {
@@ -12328,6 +14096,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new XmlCrefAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken) => Update(this.Name, this.EqualsToken, this.StartQuoteToken, this.Cref, endQuoteToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlNameAttribute"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlNameAttributeSyntax : XmlAttributeSyntax
     {
         private XmlNameSyntax? name;
@@ -12365,8 +14139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlNameAttribute(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlNameAttribute(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlNameAttribute(this);
 
         public XmlNameAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, IdentifierNameSyntax identifier, SyntaxToken endQuoteToken)
         {
@@ -12391,6 +14164,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new XmlNameAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken) => Update(this.Name, this.EqualsToken, this.StartQuoteToken, this.Identifier, endQuoteToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlText"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlTextSyntax : XmlNodeSyntax
     {
         internal XmlTextSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12412,8 +14191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlText(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlText(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlText(this);
 
         public XmlTextSyntax Update(SyntaxTokenList textTokens)
         {
@@ -12432,6 +14210,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlTextSyntax AddTextTokens(params SyntaxToken[] items) => WithTextTokens(this.TextTokens.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlCDataSection"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlCDataSectionSyntax : XmlNodeSyntax
     {
         internal XmlCDataSectionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12457,8 +14241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlCDataSection(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlCDataSection(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlCDataSection(this);
 
         public XmlCDataSectionSyntax Update(SyntaxToken startCDataToken, SyntaxTokenList textTokens, SyntaxToken endCDataToken)
         {
@@ -12479,6 +14262,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlCDataSectionSyntax AddTextTokens(params SyntaxToken[] items) => WithTextTokens(this.TextTokens.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlProcessingInstruction"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlProcessingInstructionSyntax : XmlNodeSyntax
     {
         private XmlNameSyntax? name;
@@ -12508,8 +14297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.name : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlProcessingInstruction(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlProcessingInstruction(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlProcessingInstruction(this);
 
         public XmlProcessingInstructionSyntax Update(SyntaxToken startProcessingInstructionToken, XmlNameSyntax name, SyntaxTokenList textTokens, SyntaxToken endProcessingInstructionToken)
         {
@@ -12531,6 +14319,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlProcessingInstructionSyntax AddTextTokens(params SyntaxToken[] items) => WithTextTokens(this.TextTokens.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlComment"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlCommentSyntax : XmlNodeSyntax
     {
         internal XmlCommentSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12556,8 +14350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlComment(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlComment(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlComment(this);
 
         public XmlCommentSyntax Update(SyntaxToken lessThanExclamationMinusMinusToken, SyntaxTokenList textTokens, SyntaxToken minusMinusGreaterThanToken)
         {
@@ -12623,6 +14416,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public abstract bool ConditionValue { get; }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IfDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IfDirectiveTriviaSyntax : ConditionalDirectiveTriviaSyntax
     {
         private ExpressionSyntax? condition;
@@ -12651,8 +14450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.condition : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIfDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIfDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIfDirectiveTrivia(this);
 
         public IfDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken ifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
         {
@@ -12678,6 +14476,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public IfDirectiveTriviaSyntax WithConditionValue(bool conditionValue) => Update(this.HashToken, this.IfKeyword, this.Condition, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken, conditionValue);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ElifDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ElifDirectiveTriviaSyntax : ConditionalDirectiveTriviaSyntax
     {
         private ExpressionSyntax? condition;
@@ -12706,8 +14510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.condition : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElifDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElifDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitElifDirectiveTrivia(this);
 
         public ElifDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken elifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
         {
@@ -12733,6 +14536,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ElifDirectiveTriviaSyntax WithConditionValue(bool conditionValue) => Update(this.HashToken, this.ElifKeyword, this.Condition, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken, conditionValue);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ElseDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ElseDirectiveTriviaSyntax : BranchingDirectiveTriviaSyntax
     {
         internal ElseDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12755,8 +14564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElseDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElseDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitElseDirectiveTrivia(this);
 
         public ElseDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken elseKeyword, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken)
         {
@@ -12779,6 +14587,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ElseDirectiveTriviaSyntax WithBranchTaken(bool branchTaken) => Update(this.HashToken, this.ElseKeyword, this.EndOfDirectiveToken, this.IsActive, branchTaken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EndIfDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EndIfDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal EndIfDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12799,8 +14613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEndIfDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEndIfDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEndIfDirectiveTrivia(this);
 
         public EndIfDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken endIfKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -12822,6 +14635,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public EndIfDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.EndIfKeyword, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RegionDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RegionDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal RegionDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12842,8 +14661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRegionDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRegionDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRegionDirectiveTrivia(this);
 
         public RegionDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken regionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -12865,6 +14683,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public RegionDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.RegionKeyword, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EndRegionDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EndRegionDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal EndRegionDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12885,8 +14709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEndRegionDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEndRegionDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEndRegionDirectiveTrivia(this);
 
         public EndRegionDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken endRegionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -12908,6 +14731,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public EndRegionDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.EndRegionKeyword, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ErrorDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ErrorDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal ErrorDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12928,8 +14757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitErrorDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitErrorDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitErrorDirectiveTrivia(this);
 
         public ErrorDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken errorKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -12951,6 +14779,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ErrorDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.ErrorKeyword, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.WarningDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class WarningDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal WarningDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12971,8 +14805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWarningDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWarningDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWarningDirectiveTrivia(this);
 
         public WarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken warningKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -12994,6 +14827,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public WarningDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.WarningKeyword, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BadDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BadDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal BadDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -13014,8 +14853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBadDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBadDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBadDirectiveTrivia(this);
 
         public BadDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken identifier, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -13037,6 +14875,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public BadDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.Identifier, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DefineDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DefineDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal DefineDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -13059,8 +14903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefineDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefineDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDefineDirectiveTrivia(this);
 
         public DefineDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken defineKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -13083,6 +14926,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public DefineDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.DefineKeyword, this.Name, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.UndefDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class UndefDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal UndefDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -13105,8 +14954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUndefDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUndefDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUndefDirectiveTrivia(this);
 
         public UndefDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken undefKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -13129,6 +14977,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public UndefDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.UndefKeyword, this.Name, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LineDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LineDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal LineDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -13160,8 +15014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLineDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLineDirectiveTrivia(this);
 
         public LineDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken lineKeyword, SyntaxToken line, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -13185,6 +15038,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LineDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.LineKeyword, this.Line, this.File, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PragmaWarningDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PragmaWarningDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         private SyntaxNode? errorCodes;
@@ -13220,8 +15079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => index == 4 ? this.errorCodes : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPragmaWarningDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPragmaWarningDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPragmaWarningDirectiveTrivia(this);
 
         public PragmaWarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -13248,6 +15106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PragmaWarningDirectiveTriviaSyntax AddErrorCodes(params ExpressionSyntax[] items) => WithErrorCodes(this.ErrorCodes.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PragmaChecksumDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PragmaChecksumDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal PragmaChecksumDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -13276,8 +15140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPragmaChecksumDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPragmaChecksumDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPragmaChecksumDirectiveTrivia(this);
 
         public PragmaChecksumDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -13303,6 +15166,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PragmaChecksumDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.PragmaKeyword, this.ChecksumKeyword, this.File, this.Guid, this.Bytes, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ReferenceDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ReferenceDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal ReferenceDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -13325,8 +15194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitReferenceDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitReferenceDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitReferenceDirectiveTrivia(this);
 
         public ReferenceDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken referenceKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -13349,6 +15217,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ReferenceDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.ReferenceKeyword, this.File, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LoadDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LoadDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal LoadDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -13371,8 +15245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLoadDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLoadDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLoadDirectiveTrivia(this);
 
         public LoadDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken loadKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -13395,6 +15268,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LoadDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.LoadKeyword, this.File, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ShebangDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal ShebangDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -13415,8 +15294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitShebangDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitShebangDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitShebangDirectiveTrivia(this);
 
         public ShebangDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -13438,6 +15316,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ShebangDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.ExclamationToken, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NullableDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal NullableDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -13469,8 +15353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index) => null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNullableDirectiveTrivia(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNullableDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNullableDirectiveTrivia(this);
 
         public NullableDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken targetToken, SyntaxToken endOfDirectiveToken, bool isActive)
         {

@@ -14,7 +14,6 @@
     <Compile Include="..\..\..\EditorFeatures\CSharpTest\Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" Link="AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">

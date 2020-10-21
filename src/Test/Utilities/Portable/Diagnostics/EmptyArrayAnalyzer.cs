@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <summary>The name of the Empty method on System.Array.</summary>
         internal const string ArrayEmptyMethodName = "Empty";
 
-        private static LocalizableString s_localizableTitle = "Empty Array";
-        private static LocalizableString s_localizableMessage = "Empty array creation can be replaced with Array.Empty";
+        private static readonly LocalizableString s_localizableTitle = "Empty Array";
+        private static readonly LocalizableString s_localizableMessage = "Empty array creation can be replaced with Array.Empty";
 
         /// <summary>The diagnostic descriptor used when Array.Empty should be used instead of a new array allocation.</summary>
         public static readonly DiagnosticDescriptor UseArrayEmptyDescriptor = new DiagnosticDescriptor(

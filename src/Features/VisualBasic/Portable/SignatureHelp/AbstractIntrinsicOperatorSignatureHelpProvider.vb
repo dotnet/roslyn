@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim items As New List(Of SignatureHelpItem)
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(node, cancellationToken).ConfigureAwait(False)
             For Each documentation In Await GetIntrinsicOperatorDocumentationAsync(node, document, cancellationToken).ConfigureAwait(False)
                 Dim signatureHelpItem = GetSignatureHelpItemForIntrinsicOperator(document, semanticModel, node.SpanStart, documentation, cancellationToken)
                 items.Add(signatureHelpItem)
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Friend Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem
+        Friend Shared Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem
             Dim parameters As New List(Of SignatureHelpSymbolParameter)
 
             For i = 0 To documentation.ParameterCount - 1

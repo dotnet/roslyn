@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
@@ -17,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new MakeLocalFunctionStaticCodeRefactoringProvider();
 
-        private static ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
-        private static ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
+        private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
+        private static readonly ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
         public async Task ShouldNotTriggerForCSharp7()
@@ -473,6 +476,71 @@ parseOptions: CSharp8ParseOptions);
         static int AddLocal(int @static)
         {
             return @static + 1;
+        }
+    }  
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [WorkItem(46858, "https://github.com/dotnet/roslyn/issues/46858")]
+        public async Task ShouldNotTriggerIfCallsOtherLocalFunction()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    int N(int x)
+    {
+        return AddLocal();
+
+        int [||]AddLocal()
+        {
+            B();
+            return x + 1;
+        }
+        
+        void B()
+        {
+        }
+    }  
+}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestCallingStaticLocationFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int N(int x)
+    {
+        return AddLocal();
+
+        int [||]AddLocal()
+        {
+            B();
+            return x + 1;
+        }
+        
+        static void B()
+        {
+        }
+    }  
+}",
+@"class C
+{
+    int N(int x)
+    {
+        return AddLocal(x);
+
+        static int [||]AddLocal(int x)
+        {
+            B();
+            return x + 1;
+        }
+        
+        static void B()
+        {
         }
     }  
 }",

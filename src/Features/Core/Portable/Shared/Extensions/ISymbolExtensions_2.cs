@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -128,6 +126,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 case SymbolKind.PointerType:
                     return ((IPointerTypeSymbol)symbol).PointedAtType.GetGlyph();
+
+                case SymbolKind.FunctionPointerType:
+                    return Glyph.Intrinsic;
 
                 case SymbolKind.Property:
                     {
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => c => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken: c);
 
         public static readonly SymbolDisplayFormat CrefFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,

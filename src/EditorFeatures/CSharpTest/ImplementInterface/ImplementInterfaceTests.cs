@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -15,12 +18,18 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
     public partial class ImplementInterfaceTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private readonly NamingStylesTestOptionSets _options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+
+        public ImplementInterfaceTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementInterfaceCodeFixProvider());
@@ -158,6 +167,32 @@ class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethodInRecord()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+}
+
+record Record : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+}
+
+record Record : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
         public async Task TestMethodWithNativeIntegers()
         {
@@ -187,9 +222,7 @@ namespace System.Runtime.CompilerServices
 class Class : [|IInterface|]
 {
 }" + nativeIntegerAttributeDefinition,
-    @"using System;
-
-interface IInterface
+    @"interface IInterface
 {
     [return: System.Runtime.CompilerServices.NativeInteger(new[] { true, true })]
     (nint, nuint) Method(nint x, nuint x2);
@@ -199,7 +232,7 @@ class Class : IInterface
 {
     public (nint, nuint) Method(nint x, nuint x2)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }" + nativeIntegerAttributeDefinition);
         }
@@ -320,7 +353,7 @@ class Class : IInterface
 " + s_tupleElementNamesAttribute);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInMethod_Explicitly()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -350,7 +383,7 @@ class Class : IInterface
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInProperty()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -387,7 +420,7 @@ class Class : IInterface
 " + s_tupleElementNamesAttribute);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInEvent()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -892,6 +925,136 @@ class C : I
     {
         i.Method1();
     }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_SameMemberInDifferentType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    I i;
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_FieldInOnePropInAnother()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    I i { get; }
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    I i { get; }
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_FieldInOneNonViableInAnother()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    int i;
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    int i;
 }",
 index: 1);
         }
@@ -6846,7 +7009,7 @@ class Issue2785<T> : IList<object>
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task LongTuple()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8418,6 +8581,30 @@ class C : [|I|]
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementInitOnlyProperty()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    int Property { get; init; }
+}
+
+class C : [|I|]
+{
+}",
+@"
+interface I
+{
+    int Property { get; init; }
+}
+
+class C : [|I|]
+{
+    public int Property { get => throw new System.NotImplementedException(); init => throw new System.NotImplementedException(); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task ImplementRemainingExplicitlyMissingWhenAllImplemented()
         {
             await TestActionCountAsync(@"
@@ -8480,6 +8667,90 @@ class C : [|I|]
         throw new System.NotImplementedException();
     }
 }", index: 1);
+        }
+
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementOnRecord_WithSemiColon()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|];
+",
+@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|]
+{
+    public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementOnRecord_WithBracesAndTrivia()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|] { } // hello
+",
+@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|]
+{
+    public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+} // hello
+");
+        }
+
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementOnRecord_WithSemiColonAndTrivia()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|]; // hello
+",
+@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|] // hello
+{
+    public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
         }
     }
 }

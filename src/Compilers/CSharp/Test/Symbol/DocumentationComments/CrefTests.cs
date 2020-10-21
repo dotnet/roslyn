@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1562,7 +1564,7 @@ class C<T, U, V>
             AssertEx.None(actualTypeParameters, p => p.HasReferenceTypeConstraint);
             AssertEx.None(actualTypeParameters, p => p.HasConstructorConstraint);
             AssertEx.All(actualTypeParameters, p => p.ContainingSymbol == null);
-            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null).Length == 0);
+            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null, canIgnoreNullableContext: false).Length == 0);
             AssertEx.All(actualTypeParameters, p => p.GetInterfaces(null).Length == 0);
 
             foreach (var p in actualTypeParameters)
@@ -3357,17 +3359,17 @@ class Outer
                 "T",
                 "void C<T>.M()",
                 "C<T>",
-                "Outer",
 
                 // Boring
                 "System",
-                "Microsoft",
 
                 // Inaccessible and boring
                 "FXAssembly",
                 "ThisAssembly",
                 "AssemblyRef",
-                "SRETW");
+                "SRETW",
+                "Outer",
+                "Microsoft");
 
             // Consider inaccessible symbols, as in Dev11
             Assert.Equal(typeInner.GetPublicSymbol(), model.LookupSymbols(position, typeOuter.GetPublicSymbol(), typeInner.Name).Single());
@@ -5472,7 +5474,7 @@ class C<T>
 
             Func<Symbol> lookupSymbol = () =>
             {
-                var factory = new BinderFactory(compilation, tree);
+                var factory = new BinderFactory(compilation, tree, ignoreAccessibility: false);
                 var binder = factory.GetBinder(cref);
                 var lookupResult = LookupResult.GetInstance();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;

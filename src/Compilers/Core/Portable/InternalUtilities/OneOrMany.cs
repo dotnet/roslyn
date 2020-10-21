@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -20,8 +17,7 @@ namespace Roslyn.Utilities
     internal struct OneOrMany<T>
         where T : notnull
     {
-        [AllowNull, MaybeNull]
-        private readonly T _one;
+        private readonly T? _one;
         private readonly ImmutableArray<T> _many;
 
         public OneOrMany(T one)
@@ -52,7 +48,7 @@ namespace Roslyn.Utilities
                         throw new IndexOutOfRangeException();
                     }
 
-                    return _one;
+                    return _one!;
                 }
                 else
                 {
@@ -74,7 +70,7 @@ namespace Roslyn.Utilities
             var builder = ArrayBuilder<T>.GetInstance();
             if (_many.IsDefault)
             {
-                builder.Add(_one);
+                builder.Add(_one!);
             }
             else
             {

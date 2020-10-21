@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -61,8 +63,8 @@ static class Ext
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(0),
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "System.Int32"),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "string", "newString", ""), "System.String"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "System.Int32"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "string", "newString", CallSiteKind.Value, ""), "System.String"),
                 new AddedParameterOrExistingIndex(5)};
             var updatedCode = @"
 static class Ext
@@ -121,7 +123,7 @@ static class Ext
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "System.Int32")};
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "System.Int32")};
             var updatedCode = @"
 static class Ext
 {
@@ -151,7 +153,7 @@ class MyClass
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 using System;
@@ -186,7 +188,7 @@ class MyClass
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 using System;
@@ -217,7 +219,7 @@ class MyClass
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 using System;
@@ -245,7 +247,7 @@ class MyClass
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 using System;
@@ -274,7 +276,7 @@ class MyClass
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 using System;
@@ -315,7 +317,7 @@ class MyClass
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                AddedParameterOrExistingIndex.CreateAdded("byte", "b", "34"),
+                AddedParameterOrExistingIndex.CreateAdded("byte", "b", CallSiteKind.Value, "34"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 using System;
@@ -359,7 +361,7 @@ class MyAttribute : System.Attribute
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 [My(8, 34, ""test"")]
@@ -398,7 +400,7 @@ public static class CExt
                 new AddedParameterOrExistingIndex(0),
                 new AddedParameterOrExistingIndex(2),
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(5),
                 new AddedParameterOrExistingIndex(4),
                 new AddedParameterOrExistingIndex(3)};
@@ -445,7 +447,7 @@ public static class CExt
                 new AddedParameterOrExistingIndex(0),
                 new AddedParameterOrExistingIndex(2),
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(5),
                 new AddedParameterOrExistingIndex(4),
                 new AddedParameterOrExistingIndex(3)};
@@ -482,7 +484,7 @@ public class C
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(0),
                 new AddedParameterOrExistingIndex(1),
-                AddedParameterOrExistingIndex.CreateAdded("int", "z", isRequired: false, defaultValue: "3", isCallsiteOmitted: true),
+                AddedParameterOrExistingIndex.CreateAdded("int", "z", CallSiteKind.Omitted, isRequired: false, defaultValue: "3"),
                 new AddedParameterOrExistingIndex(2)};
             var updatedCode = @"
 public class C
@@ -510,7 +512,7 @@ public class C
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(2)};
             var updatedCode = @"
 public class C
@@ -538,7 +540,7 @@ public class C
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(2)};
 
             var updatedCode = @"
@@ -577,7 +579,7 @@ public static class CExt
                 new AddedParameterOrExistingIndex(0),
                 new AddedParameterOrExistingIndex(2),
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(5),
                 new AddedParameterOrExistingIndex(4),
                 new AddedParameterOrExistingIndex(3),
@@ -624,7 +626,7 @@ class Program
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 class Program
@@ -662,7 +664,7 @@ public class C
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(2),
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 public class C
@@ -695,7 +697,7 @@ public class C
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(2),
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 public class C
@@ -733,7 +735,7 @@ public class C
                 new AddedParameterOrExistingIndex(4),
                 new AddedParameterOrExistingIndex(3),
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
@@ -773,7 +775,7 @@ public class C
                 new AddedParameterOrExistingIndex(4),
                 new AddedParameterOrExistingIndex(3),
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
@@ -809,7 +811,7 @@ class Program
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
@@ -842,7 +844,7 @@ class Program
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
@@ -874,7 +876,7 @@ public class C
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
@@ -907,7 +909,7 @@ public class C
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
@@ -939,7 +941,7 @@ public class C
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
@@ -972,7 +974,7 @@ public class C
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
@@ -1006,7 +1008,7 @@ public class C
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
@@ -1041,7 +1043,7 @@ public class C
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(1),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
@@ -1074,7 +1076,7 @@ class C
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 class C
@@ -1110,7 +1112,7 @@ class D : C, I
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 interface I
@@ -1153,7 +1155,7 @@ class D : C, I
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 interface I
@@ -1199,7 +1201,7 @@ namespace ConsoleApp426
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(0),
-                AddedParameterOrExistingIndex.CreateAdded("byte", "bb", callSiteValue: "34") };
+                AddedParameterOrExistingIndex.CreateAdded("byte", "bb", CallSiteKind.Value, callSiteValue: "34") };
 
             var updatedCode = @"
 using System.Linq;
@@ -1237,12 +1239,12 @@ class C
 
     public void M()
     {
-        _ = new(1, 2);
+        C _ = new(1, ""y"");
     }
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, callSiteValue: "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 using System;
@@ -1254,11 +1256,9 @@ class C
 
     public void M()
     {
-        _ = new(1, 2);
+        C _ = new(""y"", 34, 1);
     }
 }";
-            // Expect: _ = new(2, 34, 1);
-            // Tracked by https://github.com/dotnet/roslyn/issues/44126
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
     }

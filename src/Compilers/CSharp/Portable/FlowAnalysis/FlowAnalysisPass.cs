@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -41,7 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.ReturnsVoid || method.IsIterator || method.IsAsyncReturningTask(compilation))
             {
                 // we don't analyze synthesized void methods.
-                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
+                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) ||
+                    Analyze(compilation, method, block, diagnostics))
                 {
                     block = AppendImplicitReturn(block, method, originalBodyNested);
                 }
@@ -116,7 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(body.WasCompilerGenerated ||
                          syntax.IsKind(SyntaxKind.Block) ||
                          syntax.IsKind(SyntaxKind.ArrowExpressionClause) ||
-                         syntax.IsKind(SyntaxKind.ConstructorDeclaration));
+                         syntax.IsKind(SyntaxKind.ConstructorDeclaration) ||
+                         syntax.IsKind(SyntaxKind.CompilationUnit));
 
             BoundStatement ret = (method.IsIterator && !method.IsAsync)
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)

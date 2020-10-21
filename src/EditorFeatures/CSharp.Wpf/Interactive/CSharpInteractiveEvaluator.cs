@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,6 +14,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
@@ -24,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 
         public CSharpInteractiveEvaluator(
             IThreadingContext threadingContext,
+            IAsynchronousOperationListener listener,
             HostServices hostServices,
             IViewClassifierAggregatorService classifierAggregator,
             IInteractiveWindowCommandsFactory commandsFactory,
@@ -32,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
             string initialWorkingDirectory)
             : base(
                 threadingContext,
+                listener,
                 contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType),
                 hostServices,
                 classifierAggregator,

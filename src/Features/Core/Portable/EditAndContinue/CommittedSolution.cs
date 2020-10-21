@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -88,7 +86,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         private readonly Dictionary<DocumentId, DocumentState> _documentState;
 
-        private readonly object _guard = new object();
+        private readonly object _guard = new();
 
         public CommittedSolution(DebuggingSession debuggingSession, Solution solution)
         {
@@ -245,7 +243,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private (SourceText? Source, bool? HasDocument) TryGetPdbMatchingSourceText(string sourceFilePath, Encoding? encoding, Project project)
         {
-            bool? hasDocument = TryReadSourceFileChecksumFromPdb(sourceFilePath, project, out var symChecksum, out var algorithm);
+            var hasDocument = TryReadSourceFileChecksumFromPdb(sourceFilePath, project, out var symChecksum, out var algorithm);
             if (hasDocument != true)
             {
                 return (Source: null, hasDocument);
@@ -336,7 +334,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     debugInfoReaderProvider.Dispose();
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: unexpected exception: {1}", sourceFilePath, e.Message);
             }

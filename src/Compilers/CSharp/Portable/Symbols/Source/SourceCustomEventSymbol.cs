@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -110,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
                         case SyntaxKind.GetAccessorDeclaration:
                         case SyntaxKind.SetAccessorDeclaration:
+                        case SyntaxKind.InitAccessorDeclaration:
                             diagnostics.Add(ErrorCode.ERR_AddOrRemoveExpected, accessor.Keyword.GetLocation());
                             break;
 

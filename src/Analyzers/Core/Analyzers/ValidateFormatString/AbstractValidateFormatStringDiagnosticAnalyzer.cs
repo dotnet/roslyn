@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -33,12 +31,12 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             AnalyzersResources.ResourceManager,
             typeof(AnalyzersResources));
 
-        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor Rule = new(
             DiagnosticID,
             Title,
             MessageFormat,
             DiagnosticCategory.Compiler,
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Info,
             isEnabledByDefault: true,
             description: Description);
 
@@ -49,13 +47,13 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         /// this regex is used to remove escaped brackets from
         /// the format string before looking for valid {} pairs
         /// </summary>
-        private static readonly Regex s_removeEscapedBracketsRegex = new Regex("{{");
+        private static readonly Regex s_removeEscapedBracketsRegex = new("{{");
 
         /// <summary>
         /// this regex is used to extract the text between the
         /// brackets and save the contents in a MatchCollection
         /// </summary>
-        private static readonly Regex s_extractPlaceholdersRegex = new Regex("{(.*?)}");
+        private static readonly Regex s_extractPlaceholdersRegex = new("{(.*?)}");
 
         private const string NameOfArgsParameter = "args";
         private const string NameOfFormatStringParameter = "format";
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 formatString, formatStringLiteralExpressionSyntax.SpanStart);
         }
 
-        private bool IsValidFormatMethod(ISyntaxFacts syntaxFacts, SyntaxNode expression)
+        private static bool IsValidFormatMethod(ISyntaxFacts syntaxFacts, SyntaxNode expression)
         {
             // When calling string.Format(...), the expression will be MemberAccessExpressionSyntax
             if (syntaxFacts.IsSimpleMemberAccessExpression(expression))
@@ -204,7 +202,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             }
 
             var expression = syntaxFacts.GetExpressionOfArgument(argsArgument);
-            return semanticModel.GetTypeInfo(expression).Type;
+            return semanticModel.GetTypeInfo(expression).ConvertedType;
         }
 
         protected SyntaxNode? TryGetArgument(
@@ -244,7 +242,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return arguments[parameterWithMatchingName.Ordinal];
         }
 
-        private IParameterSymbol? GetParameterWithMatchingName(ImmutableArray<IParameterSymbol> parameters, string searchArgumentName)
+        private static IParameterSymbol? GetParameterWithMatchingName(ImmutableArray<IParameterSymbol> parameters, string searchArgumentName)
         {
             foreach (var p in parameters)
             {
@@ -311,7 +309,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return (IMethodSymbol)symbolInfo.Symbol;
         }
 
-        private bool FormatCallWorksAtRuntime(string formatString, int numberOfPlaceholderArguments)
+        private static bool FormatCallWorksAtRuntime(string formatString, int numberOfPlaceholderArguments)
         {
             var testArray = new object[numberOfPlaceholderArguments];
             for (var i = 0; i < numberOfPlaceholderArguments; i++)
@@ -331,7 +329,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return true;
         }
 
-        protected void ValidateAndReportDiagnostic(
+        protected static void ValidateAndReportDiagnostic(
             SyntaxNodeAnalysisContext context,
             int numberOfPlaceholderArguments,
             string formatString,

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             TypeKind.Interface
         };
 
-        protected bool ValidateTypeToGenerateIn(
+        protected static bool ValidateTypeToGenerateIn(
             INamedTypeSymbol typeToGenerateIn,
             bool isStatic,
             ISet<TypeKind> typeKinds)
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             return locations.Any(loc => loc.IsInSource);
         }
 
-        protected bool TryDetermineTypeToGenerateIn(
+        protected static bool TryDetermineTypeToGenerateIn(
             SemanticDocument document,
             INamedTypeSymbol containingType,
             TExpressionSyntax simpleNameOrMemberAccessExpression,

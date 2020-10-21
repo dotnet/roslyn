@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Windows;
@@ -33,9 +31,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public abstract string Modifier { get; }
             public abstract string Default { get; }
 
+            public string ModifierAutomationText => ValueOrNone(Modifier);
+            public string DefaultAutomationText => ValueOrNone(Default);
+            public string CallSiteAutomationText => ValueOrNone(CallSite);
+
             public ParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel)
             {
                 ChangeSignatureDialogViewModel = changeSignatureDialogViewModel;
+            }
+
+            private string ValueOrNone(string value)
+            {
+                return !string.IsNullOrEmpty(value)
+                    ? value
+                    : ServicesVSResources.None;
             }
 
             public Visibility HasParameterNameConflict { get; set; }
@@ -124,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 get
                 {
-                    return _addedParameter.UseNamedArguments
+                    return _addedParameter.CallSiteKind == CallSiteKind.ValueWithName
                         ? _addedParameter.Name + ": " + _addedParameter.CallSiteValue
                         : _addedParameter.CallSiteValue;
                 }
@@ -231,7 +240,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                                ParameterSymbol.ExplicitDefaultValue is string ? "\"" + ParameterSymbol.ExplicitDefaultValue.ToString() + "\"" :
                                ParameterSymbol.ExplicitDefaultValue.ToString();
                     }
-
                 }
             }
 

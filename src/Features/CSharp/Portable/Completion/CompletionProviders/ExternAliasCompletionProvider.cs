@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -54,7 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     .FindTokenOnLeftOfPosition(position, cancellationToken)
                     .GetPreviousTokenIfTouchingWord(position);
 
-                if (targetToken.IsKind(SyntaxKind.AliasKeyword) && targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective))
+                if (!targetToken.IsKind(SyntaxKind.AliasKeyword)
+                    && !(targetToken.IsKind(SyntaxKind.IdentifierToken) && targetToken.HasMatchingText(SyntaxKind.AliasKeyword)))
+                {
+                    return;
+                }
+
+                if (targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective)
+                    || (targetToken.Parent.IsKind(SyntaxKind.IdentifierName) && targetToken.Parent.IsParentKind(SyntaxKind.IncompleteMember)))
                 {
                     var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var aliases = compilation.ExternalReferences.SelectMany(r => r.Properties.Aliases).ToSet();
@@ -79,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }

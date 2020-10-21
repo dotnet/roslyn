@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -43,12 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             using var _1 = PooledHashSet<Location>.GetInstance(out var declaratorLocations);
             using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var statementParentScopes);
+
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var languageVersion = ((CSharpParseOptions)tree.Options).LanguageVersion;
 
             foreach (var diagnostic in diagnostics)
             {
@@ -56,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
                 if (declaratorLocations.Add(diagnostic.AdditionalLocations[0]))
                 {
-                    AddEdits(editor, diagnostic, RemoveStatement, cancellationToken);
+                    AddEdits(editor, diagnostic, languageVersion, RemoveStatement, cancellationToken);
                 }
             }
 
@@ -71,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 });
             }
 
-            return Task.CompletedTask;
+            return;
 
             void RemoveStatement(StatementSyntax statement)
             {
@@ -86,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private static void AddEdits(
             SyntaxEditor editor,
             Diagnostic diagnostic,
+            LanguageVersion languageVersion,
             Action<StatementSyntax> removeStatement,
             CancellationToken cancellationToken)
         {
@@ -106,15 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var declarationPattern = SyntaxFactory.DeclarationPattern(
                 ((TypeSyntax)asExpression.Right).WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticMarker),
                 SyntaxFactory.SingleVariableDesignation(newIdentifier));
-            ExpressionSyntax isExpression = SyntaxFactory.IsPatternExpression(asExpression.Left, declarationPattern);
 
-            // We should negate the is-expression if we have something like "x == null" or "x is null"
-            if (comparison.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.IsPatternExpression))
-            {
-                isExpression = SyntaxFactory.PrefixUnaryExpression(
-                    SyntaxKind.LogicalNotExpression,
-                    isExpression.Parenthesize());
-            }
+            var condition = GetCondition(languageVersion, comparison, asExpression, declarationPattern);
 
             if (declarator.Parent is VariableDeclarationSyntax declaration &&
                 declaration.Parent is LocalDeclarationStatementSyntax localDeclaration &&
@@ -134,7 +133,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 editor.RemoveNode(declarator, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             }
 
-            editor.ReplaceNode(comparison, isExpression.WithTriviaFrom(comparison));
+            editor.ReplaceNode(comparison, condition.WithTriviaFrom(comparison));
+        }
+
+        private static ExpressionSyntax GetCondition(
+            LanguageVersion languageVersion,
+            ExpressionSyntax comparison,
+            BinaryExpressionSyntax asExpression,
+            DeclarationPatternSyntax declarationPattern)
+        {
+            var isPatternExpression = SyntaxFactory.IsPatternExpression(asExpression.Left, declarationPattern);
+
+            // We should negate the is-expression if we have something like "x == null" or "x is null"
+            if (!comparison.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.IsPatternExpression))
+                return isPatternExpression;
+
+            if (languageVersion >= LanguageVersion.CSharp9)
+            {
+                // In C# 9 and higher, convert to `x is not string s`.
+                return isPatternExpression.WithPattern(
+                    SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), isPatternExpression.Pattern));
+            }
+
+            // In C# 8 and lower, convert to `!(x is string s)`
+            return SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, isPatternExpression.Parenthesize());
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -133,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     usingsBinder = new InContainerBinder(binder.Container, binder.Next, imports);
                 }
 
-                var uniqueUsings = Symbols.SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<NamespaceOrTypeSymbol>();
+                var uniqueUsings = SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<NamespaceOrTypeSymbol>();
 
                 foreach (var usingDirective in usingDirectives)
                 {
@@ -141,24 +143,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (usingDirective.Alias != null)
                     {
-                        if (usingDirective.Alias.Name.Identifier.ContextualKind() == SyntaxKind.GlobalKeyword)
+                        SyntaxToken identifier = usingDirective.Alias.Name.Identifier;
+                        Location location = usingDirective.Alias.Name.Location;
+
+                        if (identifier.ContextualKind() == SyntaxKind.GlobalKeyword)
                         {
-                            diagnostics.Add(ErrorCode.WRN_GlobalAliasDefn, usingDirective.Alias.Name.Location);
+                            diagnostics.Add(ErrorCode.WRN_GlobalAliasDefn, location);
                         }
 
                         if (usingDirective.StaticKeyword != default(SyntaxToken))
                         {
-                            diagnostics.Add(ErrorCode.ERR_NoAliasHere, usingDirective.Alias.Name.Location);
+                            diagnostics.Add(ErrorCode.ERR_NoAliasHere, location);
                         }
 
-                        string identifierValueText = usingDirective.Alias.Name.Identifier.ValueText;
+                        SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(identifier.Text, compilation, diagnostics, location);
+
+                        string identifierValueText = identifier.ValueText;
                         if (usingAliases != null && usingAliases.ContainsKey(identifierValueText))
                         {
                             // Suppress diagnostics if we're already broken.
                             if (!usingDirective.Name.IsMissing)
                             {
                                 // The using alias '{0}' appeared previously in this namespace
-                                diagnostics.Add(ErrorCode.ERR_DuplicateAlias, usingDirective.Alias.Name.Location, identifierValueText);
+                                diagnostics.Add(ErrorCode.ERR_DuplicateAlias, location, identifierValueText);
                             }
                         }
                         else

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public readonly ParameterConfiguration OriginalConfiguration;
         public readonly ParameterConfiguration UpdatedConfiguration;
 
-        private readonly Dictionary<int, int?> _originalIndexToUpdatedIndexMap = new Dictionary<int, int?>();
+        private readonly Dictionary<int, int?> _originalIndexToUpdatedIndexMap = new();
 
         public SignatureChange(ParameterConfiguration originalConfiguration, ParameterConfiguration updatedConfiguration)
         {
@@ -57,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         internal SignatureChange WithoutAddedParameters()
-            => new SignatureChange(OriginalConfiguration, UpdatedConfiguration.WithoutAddedParameters());
+            => new(OriginalConfiguration, UpdatedConfiguration.WithoutAddedParameters());
 
         internal void LogTelemetry()
         {
@@ -82,17 +80,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     ChangeSignatureLogger.LogAddedParameterTypeBinds();
                 }
 
-                if (addedParameter.IsCallsiteTodo)
+                if (addedParameter.CallSiteKind == CallSiteKind.Todo)
                 {
                     ChangeSignatureLogger.LogAddedParameter_ValueTODO();
                 }
-                else if (addedParameter.IsCallsiteOmitted)
+                else if (addedParameter.CallSiteKind == CallSiteKind.Omitted)
                 {
                     ChangeSignatureLogger.LogAddedParameter_ValueOmitted();
                 }
                 else
                 {
-                    if (addedParameter.UseNamedArguments)
+                    if (addedParameter.CallSiteKind == CallSiteKind.ValueWithName)
                     {
                         ChangeSignatureLogger.LogAddedParameter_ValueExplicitNamed();
                     }
@@ -104,12 +102,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-        private bool AnyParametersReordered(ImmutableArray<Parameter> originalListOfParameters, ImmutableArray<Parameter> updatedListOfParameters)
+        private static bool AnyParametersReordered(ImmutableArray<Parameter> originalListOfParameters, ImmutableArray<Parameter> updatedListOfParameters)
         {
             var originalListWithoutRemovedOrAdded = originalListOfParameters.Where(p => updatedListOfParameters.Contains(p)).ToImmutableArray();
             var updatedListWithoutRemovedOrAdded = updatedListOfParameters.Where(p => originalListOfParameters.Contains(p)).ToImmutableArray();
 
-            for (int i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
+            for (var i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
             {
                 if (originalListWithoutRemovedOrAdded[i] != updatedListWithoutRemovedOrAdded[i])
                 {

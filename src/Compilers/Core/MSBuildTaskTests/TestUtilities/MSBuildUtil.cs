@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.Build.Framework;
 using Moq;
 using System;
@@ -25,6 +23,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             var taskItem = new Mock<ITaskItem>(MockBehavior.Strict);
             taskItem.Setup(x => x.ItemSpec).Returns(fileName);
+            return taskItem.Object;
+        }
+
+        public static ITaskItem CreateTaskItem(string fileName, Dictionary<string, string> metadata)
+        {
+            var taskItem = new Mock<ITaskItem>(MockBehavior.Strict);
+            taskItem.Setup(x => x.ItemSpec).Returns(fileName);
+            taskItem.Setup(x => x.GetMetadata(It.IsAny<string>())).Returns<string>(s => s switch
+            {
+                "FullPath" => fileName,
+                _ => metadata.ContainsKey(s) ? metadata[s] : string.Empty
+            });
             return taskItem.Object;
         }
     }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 # nullable enable
 
 using System.Collections.Generic;
@@ -371,7 +373,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 => _projectIdToProjectReferencesMap.TryGetValue(from, out var references)
                 && references.Contains(pr => pr.ProjectId == to);
 
-            private bool ProjectReferenceExists(ProjectId to, ProjectInfo from)
+            private static bool ProjectReferenceExists(ProjectId to, ProjectInfo from)
                 => from.ProjectReferences.Any(pr => pr.ProjectId == to);
 
             private bool TryAddReferenceToKnownProject(

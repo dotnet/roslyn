@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -187,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 this.TrackingSession = new TrackingSession(this, new SnapshotSpan(eventArgs.Before, originalSpan), _asyncListener);
             }
 
-            private bool IsTrackableCharacter(ISyntaxFactsService syntaxFactsService, char c)
+            private static bool IsTrackableCharacter(ISyntaxFactsService syntaxFactsService, char c)
             {
                 // Allow identifier part characters at the beginning of strings (even if they are
                 // not identifier start characters). If an intermediate name is not valid, the smart
@@ -280,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
             }
 
-            internal CodeAction TryGetCodeAction(
+            internal (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
                 Document document, SourceText text, TextSpan userSpan,
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
@@ -308,14 +310,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                                 trackingSession.OriginalName,
                                 snapshotSpan.GetText());
 
-                            return new RenameTrackingCodeAction(
-                                document, title, refactorNotifyServices, undoHistoryRegistry);
+                            return (new RenameTrackingCodeAction(
+                                        document, title, refactorNotifyServices, undoHistoryRegistry),
+                                    snapshotSpan.Span.ToTextSpan());
                         }
                     }
 
-                    return null;
+                    return default;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

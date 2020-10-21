@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -53,6 +55,10 @@ namespace Microsoft.CodeAnalysis
 
         private void DeleteLeftoverDirectories()
         {
+            // Avoid first chance exception
+            if (!Directory.Exists(_baseDirectory))
+                return;
+
             IEnumerable<string> subDirectories;
             try
             {

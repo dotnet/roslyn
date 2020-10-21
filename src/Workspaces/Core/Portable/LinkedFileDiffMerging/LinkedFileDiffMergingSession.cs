@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -223,7 +225,7 @@ namespace Microsoft.CodeAnalysis
             return successfullyMergedChanges.ToImmutableAndFree();
         }
 
-        private IEnumerable<TextChange> MergeChangesWithMergeFailComments(
+        private static IEnumerable<TextChange> MergeChangesWithMergeFailComments(
             IEnumerable<TextChange> mergedChanges,
             IEnumerable<TextChange> commentChanges,
             IList<TextSpan> mergeConflictResolutionSpans,
@@ -289,7 +291,7 @@ namespace Microsoft.CodeAnalysis
             return NormalizeChanges(combinedChanges);
         }
 
-        private IEnumerable<TextChange> NormalizeChanges(IEnumerable<TextChange> changes)
+        private static IEnumerable<TextChange> NormalizeChanges(IEnumerable<TextChange> changes)
         {
             if (changes.Count() <= 1)
             {
@@ -329,7 +331,7 @@ namespace Microsoft.CodeAnalysis
 
         internal class LinkedFileDiffMergingSessionInfo
         {
-            public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = new List<LinkedFileGroupSessionInfo>();
+            public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = new();
 
             public void LogLinkedFileResult(LinkedFileGroupSessionInfo info)
                 => LinkedFileGroups.Add(info);

@@ -183,8 +183,8 @@ End Class
             Assert.False(type1.IsOverrides)
 
             ' 4 nested types, 64 members overall
-            Assert.Equal(64, type1.GetMembers().Length)
-            Assert.Equal(4, type1.GetTypeMembers().Length())
+            Assert.Equal(63, type1.GetMembers().Length)
+            Assert.Equal(3, type1.GetTypeMembers().Length())
             ' IDictionary<TKey, TValue>, ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, 
             ' IDictionary, ICollection, IEnumerable, ISerializable, IDeserializationCallback
             Assert.Equal(8, type1.Interfaces.Length())

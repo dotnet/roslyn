@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -101,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (item.Properties.TryGetValue("Symbols", out var symbolIds))
             {
                 var idList = symbolIds.Split(s_symbolSplitters, StringSplitOptions.RemoveEmptyEntries).ToList();
-                var symbols = new List<ISymbol>();
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 DecodeSymbols(idList, compilation, symbols);
@@ -121,13 +124,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 
-                return symbols.ToImmutableArray();
+                return symbols.ToImmutable();
             }
 
             return ImmutableArray<ISymbol>.Empty;
         }
 
-        private static void DecodeSymbols(List<string> ids, Compilation compilation, List<ISymbol> symbols)
+        private static void DecodeSymbols(List<string> ids, Compilation compilation, ArrayBuilder<ISymbol> symbols)
         {
             for (var i = 0; i < ids.Count;)
             {

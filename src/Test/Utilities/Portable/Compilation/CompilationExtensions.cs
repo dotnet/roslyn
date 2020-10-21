@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -181,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SyntaxNode root = tree.GetRoot();
             SemanticModel model = compilation.GetSemanticModel(tree);
             var declarationsBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            model.ComputeDeclarationsInNode(root, getSymbol: true, builder: declarationsBuilder, cancellationToken: CancellationToken.None);
+            model.ComputeDeclarationsInNode(root, associatedSymbol: null, getSymbol: true, builder: declarationsBuilder, cancellationToken: CancellationToken.None);
 
             var actualTextBuilder = new StringBuilder();
             foreach (DeclarationInfo declaration in declarationsBuilder.ToArrayAndFree().Where(d => d.DeclaredSymbol != null).OrderBy(d => d.DeclaredSymbol.ToTestDisplayString()))

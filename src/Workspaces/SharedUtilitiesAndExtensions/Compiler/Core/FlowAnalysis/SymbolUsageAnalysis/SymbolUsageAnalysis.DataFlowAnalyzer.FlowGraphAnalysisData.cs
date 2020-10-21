@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -230,7 +232,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                                 }
                                 else if (invocation.TargetMethod.IsLocalFunction())
                                 {
-                                    var localFunctionGraph = cfg.GetLocalFunctionControlFlowGraphInScope(invocation.TargetMethod.OriginalDefinition);
+                                    var localFunctionGraph = cfg.GetLocalFunctionControlFlowGraphInScope(invocation.TargetMethod.OriginalDefinition, cancellationToken);
                                     if (localFunctionGraph != null)
                                     {
                                         AddDescendantOperationsInLambdaOrLocalFunctionGraph(localFunctionGraph);
@@ -282,7 +284,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     {
                         if (_lambdaTargetsToAccessingCfgMap.TryGetValue(flowAnonymousFunctionOperation, out var lambdaAccessingCfg))
                         {
-                            var anonymousFunctionCfg = lambdaAccessingCfg.GetAnonymousFunctionControlFlowGraphInScope(flowAnonymousFunctionOperation);
+                            var anonymousFunctionCfg = lambdaAccessingCfg.GetAnonymousFunctionControlFlowGraphInScope(flowAnonymousFunctionOperation, cancellationToken);
                             Debug.Assert(anonymousFunctionCfg != null);
                             return anonymousFunctionCfg;
                         }
@@ -299,7 +301,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                         if (_localFunctionTargetsToAccessingCfgMap.TryGetValue(localFunction, out var localFunctionAccessingCfg))
                         {
-                            var localFunctionCfg = localFunctionAccessingCfg.GetLocalFunctionControlFlowGraphInScope(localFunction);
+                            var localFunctionCfg = localFunctionAccessingCfg.GetLocalFunctionControlFlowGraphInScope(localFunction, cancellationToken);
                             Debug.Assert(localFunctionCfg != null);
                             return localFunctionCfg;
                         }

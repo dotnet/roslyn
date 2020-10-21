@@ -17,7 +17,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Private Class TempPEProject
             Implements IVbCompilerProject
 
-            Private ReadOnly _tempPECompiler As TempPECompiler
             Private ReadOnly _compilerHost As IVbCompilerHost
             Private ReadOnly _references As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
             Private ReadOnly _files As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
@@ -27,8 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Private _outputPath As String
             Private _runtimeLibraries As ImmutableArray(Of String)
 
-            Public Sub New(tempPECompiler As TempPECompiler, compilerHost As IVbCompilerHost)
-                _tempPECompiler = tempPECompiler
+            Public Sub New(compilerHost As IVbCompilerHost)
                 _compilerHost = compilerHost
             End Sub
 

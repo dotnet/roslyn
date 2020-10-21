@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return IsFinalSpanSemanticallyValidSpan(semanticModel.SyntaxTree.GetRoot(cancellationToken), textSpan, returnStatements, cancellationToken);
         }
 
-        protected Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainingSpan<T>(
+        protected static Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainingSpan<T>(
             SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
         {
             // use top-down approach to find smallest statement range that contains given span.
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return new Tuple<SyntaxNode, SyntaxNode>(firstStatement, lastStatement);
         }
 
-        protected Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainedInSpan<T>(
+        protected static Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainedInSpan<T>(
             SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
         {
             // use top-down approach to find largest statement range contained in the given span

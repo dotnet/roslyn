@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -67,12 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return (newGetAccessor: newGetter, newSetAccessor: newSetter);
         }
 
-        private (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
+        private static (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
             GetExistingAccessors(AccessorListSyntax accessorListSyntax)
             => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
-                accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)));
+                accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) ||
+                                                                 a.IsKind(SyntaxKind.InitAccessorDeclaration)));
 
-        private SyntaxNode GetUpdatedAccessor(DocumentOptionSet options,
+        private static SyntaxNode GetUpdatedAccessor(DocumentOptionSet options,
             SyntaxNode accessor, SyntaxNode statement)
         {
             var newAccessor = AddStatement(accessor, statement);
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        internal SyntaxNode AddStatement(SyntaxNode accessor, SyntaxNode statement)
+        internal static SyntaxNode AddStatement(SyntaxNode accessor, SyntaxNode statement)
         {
             var blockSyntax = SyntaxFactory.Block(
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
@@ -136,12 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return propertyDeclaration.WithSemicolonToken(default);
         }
 
-        internal ExpressionBodyPreference GetAccessorExpressionBodyPreference(DocumentOptionSet options)
+        internal static ExpressionBodyPreference GetAccessorExpressionBodyPreference(DocumentOptionSet options)
             => options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
 
-        internal ExpressionBodyPreference GetPropertyExpressionBodyPreference(DocumentOptionSet options)
+        internal static ExpressionBodyPreference GetPropertyExpressionBodyPreference(DocumentOptionSet options)
             => options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
-
 
         internal override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
             => syntaxNode;

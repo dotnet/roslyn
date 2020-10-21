@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         private static readonly ImmutableArray<string> s_defaultIgnorableReferenceNames = ImmutableArray.Create("mscorlib", "System", "Microsoft.CodeAnalysis", "netstandard");
 
-        public static bool Check(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> ignorableReferenceNames = null)
+        public static bool Check(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string>? ignorableReferenceNames = null)
         {
             if (ignorableReferenceNames == null)
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             foreach (var analyzerReference in analyzerReferences)
             {
-                string resolvedPath = FileUtilities.ResolveRelativePath(analyzerReference.FilePath, basePath: null, baseDirectory: baseDirectory, searchPaths: SpecializedCollections.EmptyEnumerable<string>(), fileExists: File.Exists);
+                string? resolvedPath = FileUtilities.ResolveRelativePath(analyzerReference.FilePath, basePath: null, baseDirectory: baseDirectory, searchPaths: SpecializedCollections.EmptyEnumerable<string>(), fileExists: File.Exists);
                 if (resolvedPath != null)
                 {
                     resolvedPath = FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     if (!ignorableReferenceNames.Any(name => missingDependency.Name.StartsWith(name)))
                     {
-                        CompilerServerLogger.Log($"Analyzer assembly {resolvedPath} depends on '{missingDependency}' but it was not found.");
+                        CompilerServerLogger.LogError($"Analyzer assembly {resolvedPath} depends on '{missingDependency}' but it was not found.");
                         return false;
                     }
                 }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 if (resolvedPathMvid != loadedAssemblyMvid)
                 {
-                    CompilerServerLogger.Log($"Analyzer assembly {resolvedPath} has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'.");
+                    CompilerServerLogger.LogError($"Analyzer assembly {resolvedPath} has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'.");
                     return false;
                 }
             }

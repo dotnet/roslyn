@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 private int PriorityComparison(StateSet state1, StateSet state2)
                     => GetPriority(state1) - GetPriority(state2);
 
-                private int GetPriority(StateSet state)
+                private static int GetPriority(StateSet state)
                 {
                     // compiler gets highest priority
                     if (state.Analyzer.IsCompilerAnalyzer())

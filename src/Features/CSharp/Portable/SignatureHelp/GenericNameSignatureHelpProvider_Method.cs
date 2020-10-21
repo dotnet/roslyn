@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class GenericNameSignatureHelpProvider
     {
-        private IList<SymbolDisplayPart> GetPreambleParts(
+        private static IList<SymbolDisplayPart> GetPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private ITypeSymbol GetContainingType(IMethodSymbol method)
+        private static ITypeSymbol GetContainingType(IMethodSymbol method)
         {
             var result = method.ReceiverType;
 
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
+        private static IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>
             {

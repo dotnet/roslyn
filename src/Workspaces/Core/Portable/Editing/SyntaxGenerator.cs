@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -219,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return decl;
         }
 
-        private OperatorKind GetOperatorKind(IMethodSymbol method)
+        private static OperatorKind GetOperatorKind(IMethodSymbol method)
             => method.Name switch
             {
                 WellKnownMemberNames.ImplicitConversionName => OperatorKind.ImplicitConversion,
@@ -279,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// langword="false"/>.
         /// </summary>
         /// <remarks>
-        /// In C# there is a distinction betwene passing in <see langword="null"/> for <paramref
+        /// In C# there is a distinction between passing in <see langword="null"/> for <paramref
         /// name="getAccessorStatements"/> or <paramref name="setAccessorStatements"/> versus
         /// passing in an empty list. <see langword="null"/> will produce an auto-property-accessor
         /// (i.e. <c>get;</c>) whereas an empty list will produce an accessor with an empty block
@@ -1171,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
         }
 
-        internal SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
+        internal static SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
             => root.ReplaceNode(node, newDeclarations);
 
         /// <summary>
@@ -1294,7 +1296,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode;
 
+#pragma warning disable CA1822 // Mark members as static - shipped public API
         protected int IndexOf<T>(IReadOnlyList<T> list, T element)
+#pragma warning restore CA1822 // Mark members as static
         {
             for (int i = 0, count = list.Count; i < count; i++)
             {
@@ -2179,21 +2183,6 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString);
 
         internal abstract SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content);
-
-        #endregion
-
-        #region Patterns
-
-        internal abstract bool SupportsPatterns(ParseOptions options);
-        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isToken, SyntaxNode pattern);
-
-        internal abstract SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right);
-        internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
-        internal abstract SyntaxNode ConstantPattern(SyntaxNode expression);
-        internal abstract SyntaxNode NotPattern(SyntaxNode pattern);
-        internal abstract SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right);
-        internal abstract SyntaxNode ParenthesizedPattern(SyntaxNode pattern);
-        internal abstract SyntaxNode TypePattern(SyntaxNode type);
 
         #endregion
     }

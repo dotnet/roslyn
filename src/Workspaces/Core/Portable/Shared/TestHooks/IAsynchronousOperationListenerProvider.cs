@@ -5,12 +5,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
@@ -124,17 +127,37 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// loop, dig into the waiters and see all of the active <see cref="IAsyncToken"/> values 
         /// representing the remaining work.
         /// </remarks>
-        public async Task WaitAllAsync(string[] featureNames = null, Action eventProcessingAction = null)
+        public async Task WaitAllAsync(Workspace? workspace, string[]? featureNames = null, Action? eventProcessingAction = null, TimeSpan? timeout = null)
         {
+            var startTime = Stopwatch.StartNew();
             var smallTimeout = TimeSpan.FromMilliseconds(10);
 
-            Task[] tasks = null;
+            RemoteHostClient? remoteHostClient = null;
+            if (workspace?.Services.GetService<IRemoteHostClientProvider>() is { } remoteHostClientProvider)
+            {
+                remoteHostClient = await remoteHostClientProvider.TryGetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
+            }
+
+            List<Task>? tasks = null;
             while (true)
             {
                 var waiters = GetCandidateWaiters(featureNames);
-                tasks = waiters.Select(x => x.ExpeditedWaitAsync()).Where(t => !t.IsCompleted).ToArray();
+                tasks = waiters.Select(x => x.ExpeditedWaitAsync()).Where(t => !t.IsCompleted).ToList();
 
-                if (tasks.Length == 0)
+                if (remoteHostClient is not null)
+                {
+                    var isCompleted = await remoteHostClient.TryInvokeAsync<IRemoteAsynchronousOperationListenerService, bool>(
+                        (service, cancellationToken) => service.IsCompletedAsync(featureNames.ToImmutableArrayOrEmpty(), cancellationToken),
+                        CancellationToken.None).ConfigureAwait(false);
+                    if (isCompleted.HasValue && !isCompleted.Value)
+                    {
+                        tasks.Add(remoteHostClient.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
+                            (service, cancellationToken) => service.ExpeditedWaitAsync(featureNames.ToImmutableArrayOrEmpty(), cancellationToken),
+                            CancellationToken.None).AsTask());
+                    }
+                }
+
+                if (tasks.Count == 0)
                 {
                     // no new pending tasks
                     break;
@@ -143,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 do
                 {
                     // wait for all current tasks to be done for the time given
-                    if (Task.WaitAll(tasks, smallTimeout))
+                    if (Task.WaitAll(tasks.ToArray(), smallTimeout))
                     {
                         // current set of tasks are done.
                         // see whether there are new tasks added while we were waiting
@@ -160,6 +183,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     // same or higher priority to execute prior to the continuation.
                     var continueOnCapturedContext = eventProcessingAction is object;
                     await Task.Yield().ConfigureAwait(continueOnCapturedContext);
+
+                    if (startTime.Elapsed > timeout && timeout != Timeout.InfiniteTimeSpan)
+                    {
+                        throw new TimeoutException();
+                    }
                 } while (true);
             }
 
@@ -184,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public List<AsynchronousOperationListener.DiagnosticAsyncToken> GetTokens()
             => _singletonListeners.Values.Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens).ToList();
 
-        private static bool IsEnabled
+        internal static bool IsEnabled
         {
             get
             {
@@ -199,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        private bool DiagnosticTokensEnabled
+        internal bool DiagnosticTokensEnabled
         {
             get
             {
@@ -221,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        private IEnumerable<IAsynchronousOperationWaiter> GetCandidateWaiters(string[] featureNames)
+        private IEnumerable<IAsynchronousOperationWaiter> GetCandidateWaiters(string[]? featureNames)
         {
             if (featureNames == null || featureNames.Length == 0)
             {
@@ -235,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         {
             public IAsyncToken BeginAsyncOperation(
                 string name,
-                object tag = null,
+                object? tag = null,
                 [CallerFilePath] string filePath = "",
                 [CallerLineNumber] int lineNumber = 0) => EmptyAsyncToken.Instance;
 

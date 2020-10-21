@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _useSiteDiagnosticInfo;
         }
 
-        public override sealed int GetHashCode()
+        public sealed override int GetHashCode()
         {
             return Hash.Combine(ContainingType.GetHashCode(), _tupleElementIndex.GetHashCode());
         }

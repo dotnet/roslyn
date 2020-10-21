@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -40,13 +42,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                 return option.DefaultValue;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
         }
 
-        internal static bool TryGetWorkspace(this ITextBuffer buffer, out Workspace workspace)
+        internal static bool IsInCloudEnvironmentClientContext(this ITextBuffer buffer)
+        {
+            if (buffer.TryGetWorkspace(out var workspace))
+            {
+                var workspaceContextService = workspace.Services.GetRequiredService<IWorkspaceContextService>();
+                return workspaceContextService.IsCloudEnvironmentClient();
+            }
+
+            return false;
+        }
+
+        internal static bool TryGetWorkspace(this ITextBuffer buffer, [NotNullWhen(true)] out Workspace? workspace)
             => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out workspace);
 
         /// <summary>
@@ -73,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         internal static bool SupportsNavigationToAnyPosition(this ITextBuffer buffer)
             => TryGetSupportsFeatureService(buffer, out var service) && service.SupportsNavigationToAnyPosition(buffer);
 
-        private static bool TryGetSupportsFeatureService(ITextBuffer buffer, out ITextBufferSupportsFeatureService service)
+        private static bool TryGetSupportsFeatureService(ITextBuffer buffer, [NotNullWhen(true)] out ITextBufferSupportsFeatureService? service)
         {
             service = null;
             if (buffer.TryGetWorkspace(out var workspace))

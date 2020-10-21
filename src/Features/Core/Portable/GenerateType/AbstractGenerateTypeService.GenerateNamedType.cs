@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -106,15 +108,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private ImmutableArray<ISymbol> DetermineMembers(GenerateTypeOptionsResult options = null)
             {
-                var members = ArrayBuilder<ISymbol>.GetInstance();
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var members);
                 AddMembers(members, options);
 
                 if (_state.IsException)
-                {
                     AddExceptionConstructors(members);
-                }
 
-                return members.ToImmutableAndFree();
+                return members.ToImmutable();
             }
 
             private void AddMembers(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var parameterNames = _service.GenerateParameterNames(_semanticDocument.SemanticModel, argumentList, _cancellationToken);
                 using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
 
-                var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
-                var parameterToNewFieldMap = new Dictionary<string, string>();
+                var parameterToExistingFieldMap = ImmutableDictionary.CreateBuilder<string, ISymbol>();
+                var parameterToNewFieldMap = ImmutableDictionary.CreateBuilder<string, string>();
 
                 var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
                 for (var i = 0; i < parameterNames.Count; i++)
@@ -224,13 +224,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     parameterType = parameterType.RemoveUnavailableTypeParameters(
                         _semanticDocument.SemanticModel.Compilation, availableTypeParameters);
 
-                    if (!TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: true))
-                    {
-                        if (!TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: false))
-                        {
-                            parameterToNewFieldMap[parameterName.BestNameForParameter] = parameterName.NameBasedOnArgument;
-                        }
-                    }
+                    FindExistingOrCreateNewMember(parameterName, parameterType, parameterToExistingFieldMap, parameterToNewFieldMap);
 
                     parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                         attributes: default,
@@ -243,13 +237,15 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Empty Constructor for Struct is not allowed
                 if (!(parameters.Count == 0 && options != null && (options.TypeKind == TypeKind.Struct || options.TypeKind == TypeKind.Structure)))
                 {
-                    var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
+                    members.AddRange(factory.CreateMemberDelegatingConstructor(
                         _semanticDocument.SemanticModel,
                         DetermineName(), null, parameters.ToImmutable(),
-                        parameterToExistingFieldMap, parameterToNewFieldMap,
-                        addNullChecks: false, preferThrowExpression: false);
-                    members.AddRange(fields);
-                    members.Add(constructor);
+                        parameterToExistingFieldMap.ToImmutable(),
+                        parameterToNewFieldMap.ToImmutable(),
+                        addNullChecks: false,
+                        preferThrowExpression: false,
+                        generateProperties: false,
+                        isContainedInUnsafeType: false)); // Since we generated the type, we know its not unsafe
                 }
             }
 
@@ -291,7 +287,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private Accessibility DetermineAccessibility()
                 => _service.GetAccessibility(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
 
-            private DeclarationModifiers DetermineModifiers()
+            private static DeclarationModifiers DetermineModifiers()
                 => default;
 
             private INamedTypeSymbol DetermineBaseType()

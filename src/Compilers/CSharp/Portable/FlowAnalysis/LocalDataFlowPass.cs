@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -58,13 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected LocalDataFlowPass(
             CSharpCompilation compilation,
-            Symbol member,
+            Symbol? member,
             BoundNode node,
             EmptyStructTypeCache emptyStructs,
             bool trackUnassignments,
             int maxSlotDepth = 0)
             : base(compilation, member, node, nonMonotonicTransferFunction: trackUnassignments)
         {
+            Debug.Assert(emptyStructs != null);
             _maxSlotDepth = maxSlotDepth;
             _emptyStructTypeCache = emptyStructs;
         }
@@ -119,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
             Debug.Assert(containingSlot >= 0);
+            Debug.Assert(symbol != null);
 
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
@@ -196,8 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private int DescendThroughTupleRestFields(ref Symbol symbol, int containingSlot, bool forceContainingSlotsToExist)
         {
-            var fieldSymbol = symbol as TupleFieldSymbol;
-            if ((object)fieldSymbol != null)
+            if (symbol is TupleFieldSymbol fieldSymbol)
             {
                 TypeSymbol containingType = symbol.ContainingType;
 
@@ -233,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingSlot;
         }
 
-        protected abstract bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member);
+        protected abstract bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression? receiver, [NotNullWhen(true)] out Symbol? member);
 
         protected Symbol GetNonMemberSymbol(int slot)
         {
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                 case BoundKind.EventAccess:
                 case BoundKind.PropertyAccess:
-                    if (TryGetReceiverAndMember(node, out BoundExpression receiver, out Symbol member))
+                    if (TryGetReceiverAndMember(node, out BoundExpression? receiver, out Symbol? member))
                     {
                         Debug.Assert((receiver is null) != member.RequiresInstanceReceiver());
                         return MakeMemberSlot(receiver, member);
@@ -280,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        protected int MakeMemberSlot(BoundExpression receiverOpt, Symbol member)
+        protected int MakeMemberSlot(BoundExpression? receiverOpt, Symbol member)
         {
             int containingSlot;
             if (member.RequiresInstanceReceiver())
@@ -318,5 +320,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        protected static bool HasInitializer(Symbol field) => field switch
+        {
+            SourceMemberFieldSymbol f => f.HasInitializer,
+            SynthesizedBackingFieldSymbol f => f.HasInitializer,
+            SourceFieldLikeEventSymbol e => e.AssociatedEventField?.HasInitializer == true,
+            _ => false
+        };
     }
 }

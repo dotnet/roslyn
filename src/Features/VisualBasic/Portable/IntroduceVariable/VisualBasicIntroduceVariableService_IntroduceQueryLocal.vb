@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return document.Document.WithSyntaxRoot(newRoot)
         End Function
 
-        Private Function GetNewQuery(
+        Private Shared Function GetNewQuery(
             oldQuery As QueryExpressionSyntax,
             oldClause As QueryClauseSyntax,
             newClause As QueryClauseSyntax,

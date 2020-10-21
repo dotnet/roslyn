@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             bool hasConstantValue,
             object constantValue)
-            : base(containingType, attributes, accessibility, modifiers, name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, accessibility, modifiers, name)
         {
             this.Type = type;
             this.HasConstantValue = hasConstantValue;

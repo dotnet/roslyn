@@ -4,7 +4,6 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
-Imports System.Windows.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -19,6 +18,7 @@ Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
+Imports Microsoft.VisualStudio.Text.Projection
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -27,9 +27,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class SignatureHelpControllerTests
         <WpfFact>
         Public Sub InvokeSignatureHelpWithoutDocumentShouldNotStartNewSession()
-            Dim emptyProvider = New Mock(Of IDocumentProvider)
+            Dim emptyProvider = New Mock(Of IDocumentProvider)(MockBehavior.Strict)
             emptyProvider.Setup(Function(p) p.GetDocument(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(DirectCast(Nothing, Document))
             Dim controller As Controller = CreateController(documentProvider:=emptyProvider)
+
+            GetMocks(controller).PresenterSession.Setup(Sub(p) p.Dismiss())
+
             controller.WaitForController()
 
             Assert.Equal(0, GetMocks(controller).Provider.GetItemsCount)
@@ -44,7 +47,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Sub EmptyModelShouldStopSession()
-            Dim controller = CreateController(items:={}, waitForPresentation:=True)
+            Dim presenterSession = New Mock(Of ISignatureHelpPresenterSession)(MockBehavior.Strict)
+            presenterSession.Setup(Sub(p) p.Dismiss())
+
+            Dim controller = CreateController(presenterSession:=presenterSession, items:={}, waitForPresentation:=True)
 
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
@@ -52,6 +58,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         Public Sub UpKeyShouldDismissWhenThereIsOnlyOneItem()
             Dim controller = CreateController(items:=CreateItems(1), waitForPresentation:=True)
+
+            GetMocks(controller).PresenterSession.Setup(Sub(p) p.Dismiss())
 
             Dim handled = controller.TryHandleUpKey()
 
@@ -63,6 +71,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub UpKeyShouldNavigateWhenThereAreMultipleItems()
             Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=True)
 
+            GetMocks(controller).PresenterSession.Setup(Sub(p) p.SelectPreviousItem())
+
             Dim handled = controller.TryHandleUpKey()
 
             Assert.True(handled)
@@ -73,7 +83,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WorkItem(985007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985007")>
         Public Sub UpKeyShouldNotCrashWhenSessionIsDismissed()
             ' Create a provider that will return an empty state when queried the second time
-            Dim slowProvider = New Mock(Of ISignatureHelpProvider)
+            Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
+            slowProvider.Setup(Function(p) p.IsTriggerCharacter(" "c)).Returns(True)
+            slowProvider.Setup(Function(p) p.IsRetriggerCharacter(" "c)).Returns(True)
             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
                 .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
             Dim controller = CreateController(provider:=slowProvider.Object, waitForPresentation:=True)
@@ -86,6 +98,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), " "c),
                 Sub() GetMocks(controller).Buffer.Insert(0, " "), TestCommandExecutionContext.Create())
 
+            GetMocks(controller).PresenterSession.Setup(Sub(p) p.Dismiss())
+
             Dim handled = controller.TryHandleUpKey() ' this will block on the model being updated which should dismiss the session
 
             Assert.False(handled)
@@ -97,13 +111,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub DownKeyShouldNotBlockOnModelComputation()
             Dim mre = New ManualResetEvent(False)
             Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=False)
-            Dim slowProvider = New Mock(Of ISignatureHelpProvider)
+            Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
                 .Returns(Function()
                              mre.WaitOne()
                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
                          End Function)
 
+            GetMocks(controller).PresenterSession.Setup(Sub(p) p.Dismiss())
+            GetMocks(controller).PresenterSession.Setup(Function(p) p.EditorSessionIsActive).Returns(False)
 
             Dim handled = controller.TryHandleDownKey()
 
@@ -115,13 +131,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub UpKeyShouldNotBlockOnModelComputation()
             Dim mre = New ManualResetEvent(False)
             Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=False)
-            Dim slowProvider = New Mock(Of ISignatureHelpProvider)
+            Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
                 .Returns(Function()
                              mre.WaitOne()
                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
                          End Function)
 
+            GetMocks(controller).PresenterSession.Setup(Sub(p) p.Dismiss())
+            GetMocks(controller).PresenterSession.Setup(Function(p) p.EditorSessionIsActive).Returns(False)
 
             Dim handled = controller.TryHandleUpKey()
 
@@ -131,13 +149,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         <WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Async Function UpKeyShouldBlockOnRecomputationAfterPresentation() As Task
-            Dim dispatcher = System.Windows.Threading.Dispatcher.CurrentDispatcher
+            Dim exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider()
+            Dim threadingContext = exportProvider.GetExportedValue(Of IThreadingContext)()
+
             Dim worker = Async Function()
-                             Dim slowProvider = New Mock(Of ISignatureHelpProvider)
+                             Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
+                             slowProvider.Setup(Function(p) p.IsTriggerCharacter(" "c)).Returns(True)
+                             slowProvider.Setup(Function(p) p.IsRetriggerCharacter(" "c)).Returns(True)
                              slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
                                  .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
 
-                             Dim controller = dispatcher.Invoke(Function() CreateController(provider:=slowProvider.Object, waitForPresentation:=True))
+                             Await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync()
+                             Dim controller = CreateController(provider:=slowProvider.Object, waitForPresentation:=True)
 
                              ' Update session so that providers are requeried.
                              ' SlowProvider now blocks on the checkpoint's task.
@@ -148,16 +171,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                               Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 2), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
                                           End Function)
 
-                             dispatcher.Invoke(Sub() DirectCast(controller, IChainedCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
+                             Await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync()
+                             DirectCast(controller, IChainedCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
                                  New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), " "c),
-                                 Sub() GetMocks(controller).Buffer.Insert(0, " "), TestCommandExecutionContext.Create()))
+                                 Sub() GetMocks(controller).Buffer.Insert(0, " "), TestCommandExecutionContext.Create())
 
-                             Dim handled = dispatcher.InvokeAsync(Function() controller.TryHandleUpKey()) ' Send the controller an up key, which should block on the computation
+                             GetMocks(controller).PresenterSession.Setup(Sub(p) p.SelectPreviousItem())
+
+                             Dim handled = threadingContext.JoinableTaskFactory.RunAsync(Async Function()
+                                                                                             Await Task.Yield()
+                                                                                             ' Send the controller an up key, which should block on the computation
+                                                                                             Return controller.TryHandleUpKey()
+                                                                                         End Function)
                              checkpoint.Release() ' Allow slowprovider to finish
-                             Await handled.Task.ConfigureAwait(False)
+                             Await handled.JoinAsync().ConfigureAwait(False)
 
                              ' We expect 2 calls to the presenter (because we had an existing presentation session when we started the second computation).
-                             Assert.True(handled.Result)
+                             Assert.True(handled.Task.Result)
                              GetMocks(controller).PresenterSession.Verify(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)),
                                                                                                 It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?)), Times.Exactly(2))
                          End Function
@@ -168,6 +198,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         Public Sub DownKeyShouldNavigateWhenThereAreMultipleItems()
             Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=True)
+
+            GetMocks(controller).PresenterSession.Setup(Sub(p) p.SelectNextItem())
 
             Dim handled = controller.TryHandleDownKey()
 
@@ -180,6 +212,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub UpAndDownKeysShouldStillNavigateWhenDuplicateItemsAreFiltered()
             Dim item = CreateItems(1).Single()
             Dim controller = CreateController(items:={item, item}, waitForPresentation:=True)
+
+            GetMocks(controller).PresenterSession.Setup(Sub(p) p.Dismiss())
 
             Dim handled = controller.TryHandleUpKey()
 
@@ -251,9 +285,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim bufferFactory As ITextBufferFactoryService = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
             Dim buffer = bufferFactory.CreateTextBuffer()
             Dim view = CreateMockTextView(buffer)
-            Dim asyncListener = New Mock(Of IAsynchronousOperationListener)
+            Dim asyncListener = AsynchronousOperationListenerProvider.NullListener
             If documentProvider Is Nothing Then
-                documentProvider = New Mock(Of IDocumentProvider)
+                documentProvider = New Mock(Of IDocumentProvider)(MockBehavior.Strict)
                 documentProvider.Setup(Function(p) p.GetDocument(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(document)
             End If
 
@@ -262,13 +296,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 provider = New MockSignatureHelpProvider(items)
             End If
 
-            Dim presenter = New Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)) With {.DefaultValue = DefaultValue.Mock}
-            presenterSession = If(presenterSession, New Mock(Of ISignatureHelpPresenterSession) With {.DefaultValue = DefaultValue.Mock})
+            Dim presenter = New Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))(MockBehavior.Strict) With {.DefaultValue = DefaultValue.Mock}
+            presenterSession = If(presenterSession, New Mock(Of ISignatureHelpPresenterSession)(MockBehavior.Strict) With {.DefaultValue = DefaultValue.Mock})
             presenter.Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of ISignatureHelpSession))).Returns(presenterSession.Object)
             presenterSession.Setup(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)), It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?))) _
                 .Callback(Sub() presenterSession.SetupGet(Function(p) p.EditorSessionIsActive).Returns(True))
 
-            Dim mockCompletionBroker = New Mock(Of IAsyncCompletionBroker)
+            Dim mockCompletionBroker = New Mock(Of IAsyncCompletionBroker)(MockBehavior.Strict)
             mockCompletionBroker.Setup(Function(b) b.GetSession(It.IsAny(Of ITextView))).Returns(DirectCast(Nothing, IAsyncCompletionSession))
 
             Dim controller = New Controller(
@@ -276,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 view.Object,
                 buffer,
                 presenter.Object,
-                asyncListener.Object,
+                asyncListener,
                 documentProvider.Object,
                 {provider},
                 mockCompletionBroker.Object)
@@ -333,17 +367,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Class
 
         Private Shared Function CreateMockTextView(buffer As ITextBuffer) As Mock(Of ITextView)
-            Dim caret = New Mock(Of ITextCaret)
+            Dim caret = New Mock(Of ITextCaret)(MockBehavior.Strict)
             caret.Setup(Function(c) c.Position).Returns(Function() New CaretPosition(New VirtualSnapshotPoint(buffer.CurrentSnapshot, buffer.CurrentSnapshot.Length), CreateMock(Of IMappingPoint), PositionAffinity.Predecessor))
-            Dim view = New Mock(Of ITextView) With {.DefaultValue = DefaultValue.Mock}
+            Dim view = New Mock(Of ITextView)(MockBehavior.Strict) With {.DefaultValue = DefaultValue.Mock}
             view.Setup(Function(v) v.Caret).Returns(caret.Object)
             view.Setup(Function(v) v.TextBuffer).Returns(buffer)
             view.Setup(Function(v) v.TextSnapshot).Returns(buffer.CurrentSnapshot)
+            Dim bufferGraph = New Mock(Of IBufferGraph)(MockBehavior.Strict)
+            view.Setup(Function(v) v.BufferGraph).Returns(bufferGraph.Object)
             Return view
         End Function
 
         Private Shared Function CreateMock(Of T As Class)() As T
-            Dim mock = New Mock(Of T)
+            Dim mock = New Mock(Of T)(MockBehavior.Strict)
             Return mock.Object
         End Function
 
@@ -352,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Public ReadOnly Buffer As ITextBuffer
             Public ReadOnly Presenter As Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))
             Public ReadOnly PresenterSession As Mock(Of ISignatureHelpPresenterSession)
-            Public ReadOnly AsyncListener As Mock(Of IAsynchronousOperationListener)
+            Public ReadOnly AsyncListener As IAsynchronousOperationListener
             Public ReadOnly DocumentProvider As Mock(Of IDocumentProvider)
             Public ReadOnly Provider As MockSignatureHelpProvider
 
@@ -360,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                            buffer As ITextBuffer,
                            presenter As Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
                            presenterSession As Mock(Of ISignatureHelpPresenterSession),
-                           asyncListener As Mock(Of IAsynchronousOperationListener),
+                           asyncListener As IAsynchronousOperationListener,
                            documentProvider As Mock(Of IDocumentProvider),
                            provider As MockSignatureHelpProvider)
                 Me.View = view

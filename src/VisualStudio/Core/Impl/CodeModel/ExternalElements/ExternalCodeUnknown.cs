@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements
@@ -19,12 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             return (EnvDTE.CodeElement)ComAggregate.CreateAggregatedObject(newElement);
         }
 
-        private readonly string _name;
-
         private ExternalCodeUnknown(CodeModelState state, ProjectId projectId, ITypeSymbol typeSymbol)
             : base(state, projectId, typeSymbol)
         {
-            _name = typeSymbol.Name;
         }
 
         public override EnvDTE.vsCMElement Kind

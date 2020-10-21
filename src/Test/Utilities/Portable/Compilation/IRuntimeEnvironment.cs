@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -330,6 +332,10 @@ namespace Roslyn.Test.Utilities
                     {
                         module.Image.WriteToFile(pePath);
                     }
+                    catch (ArgumentException e)
+                    {
+                        pePath = $"<unable to write file: '{pePath}' -- {e.Message}>";
+                    }
                     catch (IOException e)
                     {
                         pePath = $"<unable to write file: '{pePath}' -- {e.Message}>";
@@ -343,6 +349,10 @@ namespace Roslyn.Test.Utilities
                         try
                         {
                             module.Pdb.WriteToFile(pdbPath);
+                        }
+                        catch (ArgumentException e)
+                        {
+                            pdbPath = $"<unable to write file: '{pdbPath}' -- {e.Message}>";
                         }
                         catch (IOException e)
                         {

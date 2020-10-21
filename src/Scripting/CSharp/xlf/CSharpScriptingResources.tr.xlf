@@ -36,7 +36,7 @@ Options:
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="needs-review-translation">Kullanım: csi [seçenek] ... [betik-dosyası.csx] [betik-bağımsız-değişkeni] ...
+        <target state="translated">Kullanım: csi [seçenek] ... [betik-dosyası.csx] [betik-bağımsız-değişkeni] ...
 
 Belirtildiyse betik-dosyası.csx dosyasını yürütür, belirtilmediyse etkileşimli bir REPL (Okuma Değerlendirme Yazdırma Döngüsü) başlatır.
 
@@ -49,6 +49,13 @@ Seçenekler:
   /lib:&lt;yol listesi&gt;               #r yönergesiyle belirtilen kitaplıklar için bakılacak dizinler listesi. 
                                  (alternatif biçimler: /libPath /libPaths)
   /u:&lt;ad alanı&gt;                 Genel ad alanı kullanımını tanımla (alternatif biçimler: /using, /usings, /import, /imports)
+  /langversion:?                 Dil sürümü için izin verilen değerleri görüntüle ve çıkış yap
+  /langversion:&lt;dize&gt;          Dil sürümü belirt, örneğin
+                                 `latest` (ikincil sürümler dahil en son sürüm),
+                                 `default` (`latest` ile aynı),
+                                 `latestmajor` (ikincil sürümler hariç en son sürüm),
+                                 `preview` (desteklenmeyen önizlemedeki özellikler dahil en son sürüm),
+                                 veya `6` ya da `7.1` gibi belirli sürümler
   @&lt;dosya&gt;                        Daha fazla seçenek için yanıt dosyasını okuyun
   --                             Kalan bağımsız değişkenlerin seçenek olarak değerlendirilmemesi gerektiğini belirtir.
 </target>

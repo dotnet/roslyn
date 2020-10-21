@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             CollectBlockSpans(trivia.SyntaxTree, trivia, spans, cancellationToken);
         }
 
-        public void CollectBlockSpans(
+        public static void CollectBlockSpans(
             SyntaxTree syntaxTree, SyntaxTrivia trivia,
             ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken)
         {
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                    endPos >= 1 && SyntaxFacts.IsNewLine(text[endPos - 1]) ? endPos - 1 : endPos;
         }
 
-        private SyntaxTrivia GetCorrespondingEndTrivia(
+        private static SyntaxTrivia GetCorrespondingEndTrivia(
             SyntaxTrivia trivia, SyntaxTriviaList triviaList, int index)
         {
             // Look through our parent token's trivia, to extend the span to the end of the last

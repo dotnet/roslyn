@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -26,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         public CSharpUseAutoPropertyCodeFixProvider()
         {
         }
+
+        protected override PropertyDeclarationSyntax GetPropertyDeclaration(SyntaxNode node)
+            => (PropertyDeclarationSyntax)node;
 
         protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
         {
@@ -58,7 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                     accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
                 }
 
-                updatedProperty = updatedProperty.AddAccessorListAccessors(accessor);
+                var modifiers = SyntaxFactory.TokenList(
+                    updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword)));
+
+                updatedProperty = updatedProperty.WithModifiers(modifiers)
+                                                 .AddAccessorListAccessors(accessor);
             }
 
             var fieldInitializer = await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(false);
@@ -81,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 
         private class SingleLinePropertyFormattingRule : AbstractFormattingRule
         {
-            private bool ForceSingleSpace(SyntaxToken previousToken, SyntaxToken currentToken)
+            private static bool ForceSingleSpace(SyntaxToken previousToken, SyntaxToken currentToken)
             {
                 if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
                 {
@@ -122,13 +131,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             }
         }
 
-        private async Task<ExpressionSyntax> GetFieldInitializerAsync(IFieldSymbol fieldSymbol, CancellationToken cancellationToken)
+        private static async Task<ExpressionSyntax> GetFieldInitializerAsync(IFieldSymbol fieldSymbol, CancellationToken cancellationToken)
         {
             var variableDeclarator = (VariableDeclaratorSyntax)await fieldSymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
             return variableDeclarator.Initializer?.Value;
         }
 
-        private bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
+        private static bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
         {
             if (propertyDeclaration.AccessorList?.Accessors.Any(SyntaxKind.SetAccessorDeclaration) == true)
             {
@@ -147,10 +156,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return isWrittenOutsideOfConstructor;
         }
 
-        private bool SupportsReadOnlyProperties(Compilation compilation)
+        private static bool SupportsReadOnlyProperties(Compilation compilation)
             => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
 
-        private AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)
+        private static AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)
         {
             if (accessorList == null)
             {
@@ -162,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return accessorList.WithAccessors(SyntaxFactory.List(GetAccessors(accessorList.Accessors)));
         }
 
-        private IEnumerable<AccessorDeclarationSyntax> GetAccessors(SyntaxList<AccessorDeclarationSyntax> accessors)
+        private static IEnumerable<AccessorDeclarationSyntax> GetAccessors(SyntaxList<AccessorDeclarationSyntax> accessors)
         {
             foreach (var accessor in accessors)
             {

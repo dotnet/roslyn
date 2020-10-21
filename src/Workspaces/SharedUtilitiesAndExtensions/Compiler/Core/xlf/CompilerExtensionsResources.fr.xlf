@@ -17,6 +17,11 @@
         <target state="translated">Il existe déjà un élément utilisant la même clé mais une autre valeur.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ArgumentException_OtherNotArrayOfCorrectLength">
+        <source>Object is not a array with the same number of elements as the array to compare it to.</source>
+        <target state="translated">L'objet n'est pas un tableau avec le même nombre d'éléments que celui auquel il doit être comparé.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
         <target state="translated">Commence par I</target>
@@ -102,6 +107,11 @@
         <target state="translated">Membres autres que des champs</target>
         <note>{locked:field}</note>
       </trans-unit>
+      <trans-unit id="NotSupported_FixedSizeCollection">
+        <source>Collection was of a fixed size.</source>
+        <target state="translated">La collection était d'une taille fixe.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
         <target state="translated">Organiser les instructions Using</target>
@@ -157,6 +167,11 @@
         <target state="translated">Champ public ou protégé</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
       </trans-unit>
+      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
+        <source>Segment size must be power of 2 greater than 1</source>
+        <target state="translated">La taille du segment doit être une puissance de 2 supérieure à 1</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">
         <source>Specified sequence has duplicate items</source>
         <target state="translated">La séquence spécifiée comporte des éléments dupliqués</target>
@@ -176,6 +191,11 @@
         <source>Struct</source>
         <target state="new">Struct</target>
         <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Suppression_preferences">
+        <source>Suppression preferences</source>
+        <target state="new">Suppression preferences</target>
+        <note />
       </trans-unit>
       <trans-unit id="Symbol_specifications">
         <source>Symbol specifications</source>

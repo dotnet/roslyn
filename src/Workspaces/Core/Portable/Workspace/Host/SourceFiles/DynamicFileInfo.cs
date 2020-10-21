@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
@@ -14,12 +12,13 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal sealed class DynamicFileInfo
     {
-        public DynamicFileInfo(string filePath, SourceCodeKind sourceCodeKind, TextLoader textLoader, IDocumentServiceProvider documentServiceProvider)
+        public DynamicFileInfo(string filePath, SourceCodeKind sourceCodeKind, TextLoader textLoader, bool designTimeOnly, IDocumentServiceProvider documentServiceProvider)
         {
             FilePath = filePath;
             SourceCodeKind = sourceCodeKind;
             TextLoader = textLoader;
             DocumentServiceProvider = documentServiceProvider;
+            DesignTimeOnly = designTimeOnly;
         }
 
         /// <summary>
@@ -36,6 +35,12 @@ namespace Microsoft.CodeAnalysis.Host
         /// return <see cref="TextLoader"/> to load content for the dynamic file
         /// </summary>
         public TextLoader TextLoader { get; }
+
+        /// <summary>
+        /// True if the source code contained in the document is only used in design-time (e.g. for completion),
+        /// but is not passed to the compiler when the containing project is built, e.g. a Razor view.
+        /// </summary>
+        public bool DesignTimeOnly { get; }
 
         /// <summary>
         /// return <see cref="IDocumentServiceProvider"/> for the content it provided

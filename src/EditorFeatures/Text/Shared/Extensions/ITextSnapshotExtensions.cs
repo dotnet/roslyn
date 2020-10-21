@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         }
 
         public static int GetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
-            => TryGetPosition(snapshot, lineNumber, columnIndex).Value;
+            => TryGetPosition(snapshot, lineNumber, columnIndex) ?? throw new InvalidOperationException(TextEditorResources.The_snapshot_does_not_contain_the_specified_position);
 
         public static int? TryGetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
         {
@@ -57,7 +59,6 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
 
         public static bool TryGetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex, out SnapshotPoint position)
         {
-            var result = 0;
             position = new SnapshotPoint();
 
             if (lineNumber < 0 || lineNumber >= snapshot.LineCount)
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
                 return false;
             }
 
-            result = line.Start.Position + columnIndex;
+            var result = line.Start.Position + columnIndex;
             position = new SnapshotPoint(snapshot, result);
             return true;
         }
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         }
 
         public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, int startLine, int startIndex, int endLine, int endIndex)
-            => TryGetSpan(snapshot, startLine, startIndex, endLine, endIndex).Value;
+            => TryGetSpan(snapshot, startLine, startIndex, endLine, endIndex) ?? throw new InvalidOperationException(TextEditorResources.The_snapshot_does_not_contain_the_specified_span);
 
         public static SnapshotSpan? TryGetSpan(this ITextSnapshot snapshot, int startLine, int startIndex, int endLine, int endIndex)
         {

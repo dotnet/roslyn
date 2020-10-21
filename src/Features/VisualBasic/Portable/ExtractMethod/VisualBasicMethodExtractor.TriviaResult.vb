@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return Function(location, tokenPair, triviaMap) TriviaResolver(location, tokenPair, triviaMap, methodDefinition)
             End Function
 
-            Private Function AnnotationResolver(
+            Private Shared Function AnnotationResolver(
                 node As SyntaxNode,
                 location As TriviaLocation,
                 annotation As SyntaxAnnotation,
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 throw ExceptionUtilities.UnexpectedValue(location)
             End Function
 
-            Private Function RemoveTrailingElasticTrivia(
+            Private Shared Function RemoveTrailingElasticTrivia(
                 token1 As SyntaxToken, list As IEnumerable(Of SyntaxTrivia), token2 As SyntaxToken) As IEnumerable(Of SyntaxTrivia)
 
                 ' special case for skipped token trivia
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return token1.TrailingTrivia.Concat(list)
             End Function
 
-            Private Function RemoveLeadingElasticTrivia(
+            Private Shared Function RemoveLeadingElasticTrivia(
                 token1 As SyntaxToken, list As IEnumerable(Of SyntaxTrivia), token2 As SyntaxToken) As IEnumerable(Of SyntaxTrivia)
 
                 If token1.IsLastTokenOfStatement() Then
@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return list.Concat(token2.LeadingTrivia)
             End Function
 
-            Private Function RemoveLeadingElasticTrivia(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
+            Private Shared Function RemoveLeadingElasticTrivia(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
                 ' remove leading elastic trivia if it is followed by noisy trivia
                 Dim trivia = list.FirstOrDefault()
                 If Not trivia.IsElastic() Then
@@ -159,11 +159,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return list
             End Function
 
-            Private Function ReplaceElasticToEndOfLine(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
+            Private Shared Function ReplaceElasticToEndOfLine(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
                 Return list.Select(Function(t) If(t.IsElastic, SyntaxFactory.CarriageReturnLineFeed, t))
             End Function
 
-            Private Function SingleLineStatement(token As SyntaxToken) As Boolean
+            Private Shared Function SingleLineStatement(token As SyntaxToken) As Boolean
                 ' check whether given token is the last token of a single line statement
                 Dim singleLineIf = token.Parent.GetAncestor(Of SingleLineIfStatementSyntax)()
                 If singleLineIf IsNot Nothing Then
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End Function
 
-            Private Function RemoveElasticAfterColon(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
+            Private Shared Function RemoveElasticAfterColon(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
                 ' make sure we don't have elastic trivia after colon trivia
                 Dim colon = False
                 Dim result = New List(Of SyntaxTrivia)()

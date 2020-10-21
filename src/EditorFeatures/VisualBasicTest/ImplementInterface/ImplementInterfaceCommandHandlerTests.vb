@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
     <[UseExportProvider]>
     Public Class ImplementInterfaceCommandHandlerTests
 
-        Private Sub Test(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, TestWorkspace), assertion As Action(Of String, String, IWpfTextView))
+        Private Shared Sub Test(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, TestWorkspace), assertion As Action(Of String, String, IWpfTextView))
             Using workspace = GetWorkspace(code.NormalizedValue)
                 Dim commandHandler = MoveCaretAndCreateCommandHandler(workspace)
                 Dim view = workspace.Documents.Single().GetTextView()
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             Return New ImplementInterfaceCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService))
         End Function
 
-        Private Function GetWorkspace(code As String) As TestWorkspace
+        Private Shared Function GetWorkspace(code As String) As TestWorkspace
             Return TestWorkspace.Create(
 <Workspace>
     <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -265,7 +265,6 @@ Interface IGoo
     Sub TestSub()
 End Interface</text>
 
-
             Dim expectedText = <text>   
     Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
@@ -285,7 +284,6 @@ Class Goo
 End Class
 Interface IGoo
 End Interface</text>
-
 
             Dim expectedText = <text>   
 Class Goo

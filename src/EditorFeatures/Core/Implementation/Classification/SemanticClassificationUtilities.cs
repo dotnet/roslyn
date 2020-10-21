@@ -2,15 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -131,8 +137,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
-                    await classificationService.AddSemanticClassificationsAsync(
-                        document, snapshotSpan.Span.ToTextSpan(), classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    await AddSemanticClassificationsAsync(
+                        document, snapshotSpan.Span.ToTextSpan(), classificationService, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
                     ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
@@ -144,10 +150,63 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     context.State = version;
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private static async Task AddSemanticClassificationsAsync(
+            Document document,
+            TextSpan textSpan,
+            IClassificationService classificationService,
+            List<ClassifiedSpan> classifiedSpans,
+            CancellationToken cancellationToken)
+        {
+            var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+
+            // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
+            // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
+            // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
+            // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
+            // fully loaded.
+            var isFullyLoadedTask = workspaceStatusService.IsFullyLoadedAsync(cancellationToken);
+            var isFullyLoaded = isFullyLoadedTask.IsCompleted && isFullyLoadedTask.GetAwaiter().GetResult();
+
+            // If we're not fully loaded try to read from the cache instead so that classifications appear up to date.
+            // New code will not be semantically classified, but will eventually when the project fully loads.
+            if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, classifiedSpans, isFullyLoaded, cancellationToken).ConfigureAwait(false))
+                return;
+
+            await classificationService.AddSemanticClassificationsAsync(
+                document, textSpan, classifiedSpans, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<bool> TryAddSemanticClassificationsFromCacheAsync(
+            Document document,
+            TextSpan textSpan,
+            List<ClassifiedSpan> classifiedSpans,
+            bool isFullyLoaded,
+            CancellationToken cancellationToken)
+        {
+            // Don't use the cache if we're fully loaded.  We should just compute values normally.
+            if (isFullyLoaded)
+                return false;
+
+            var semanticCacheService = document.Project.Solution.Workspace.Services.GetService<ISemanticClassificationCacheService>();
+            if (semanticCacheService == null)
+                return false;
+
+            var checksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var checksum = checksums.Text;
+
+            var result = await semanticCacheService.GetCachedSemanticClassificationsAsync(
+                (DocumentKey)document, textSpan, checksum, cancellationToken).ConfigureAwait(false);
+            if (result.IsDefault)
+                return false;
+
+            classifiedSpans.AddRange(result);
+            return true;
         }
     }
 }

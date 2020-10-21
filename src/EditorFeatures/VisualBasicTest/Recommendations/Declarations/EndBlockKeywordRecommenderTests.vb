@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class EndBlockKeywordRecommenderTests
         <Fact>
@@ -225,6 +224,7 @@ End |</ClassDeclaration>, "Function", "Sub")
         <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         <WorkItem(530599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Async Function EndFunctionDoesNotSuggestEndSubTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Function Goo()
 |</ClassDeclaration>, "End Sub")

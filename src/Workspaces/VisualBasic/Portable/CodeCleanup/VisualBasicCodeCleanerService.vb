@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             End If
         End Sub
 
-        Private Function SkipProcessing(nodeOrToken As SyntaxNodeOrToken, result As ArrayBuilder(Of TextSpan)) As Boolean
+        Private Shared Function SkipProcessing(nodeOrToken As SyntaxNodeOrToken, result As ArrayBuilder(Of TextSpan)) As Boolean
             ' Don't bother looking at nodes or token that don't have any syntax errors in them.
             If Not nodeOrToken.ContainsDiagnostics Then
                 Return True
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             Return False
         End Function
 
-        Private Function ContainsMultiLineStringLiteral(node As SyntaxNode) As Boolean
+        Private Shared Function ContainsMultiLineStringLiteral(node As SyntaxNode) As Boolean
             Return node.DescendantTokens().Any(
                 Function(t)
                     If t.Kind() = SyntaxKind.StringLiteralToken OrElse

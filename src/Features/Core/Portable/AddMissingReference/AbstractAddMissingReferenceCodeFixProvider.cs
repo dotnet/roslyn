@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             return result.ToImmutableAndFree();
         }
 
-        private async Task<ISet<AssemblyIdentity>> GetUniqueIdentitiesAsync(CodeFixContext context)
+        private static async Task<ISet<AssemblyIdentity>> GetUniqueIdentitiesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
             var compilation = await context.Document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
