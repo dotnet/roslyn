@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SemanticModelExtensions
     {
-        private const string DefaultParameterName = "p";
-
         public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             ArgumentListSyntax argumentList,
@@ -183,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var info = semanticModel.GetTypeInfo(expression, cancellationToken);
             if (info.Type == null)
             {
-                return DefaultParameterName;
+                return CodeAnalysis.Shared.Extensions.ITypeSymbolExtensions.DefaultParameterName;
             }
 
             return semanticModel.GenerateNameFromType(info.Type, CSharpSyntaxFacts.Instance, capitalize);
