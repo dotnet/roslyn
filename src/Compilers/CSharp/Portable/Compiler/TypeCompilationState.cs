@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // See https://github.com/dotnet/roslyn/issues/41964: Emitting returning true implies ModuleBuilderOpt is non-null.
+        [MemberNotNullWhen(true, nameof(ModuleBuilderOpt))]
         public bool Emitting
         {
             get { return ModuleBuilderOpt != null; }

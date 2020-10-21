@@ -17,21 +17,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         internal interface ICallback
         {
-            ValueTask AddItemsAsync(int count);
-            ValueTask ItemCompletedAsync();
-            ValueTask OnStartedAsync();
-            ValueTask OnCompletedAsync();
-            ValueTask OnFindInDocumentStartedAsync(DocumentId documentId);
-            ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId);
-            ValueTask OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition);
-            ValueTask OnReferenceFoundAsync(SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference);
-            ValueTask OnLiteralReferenceFoundAsync(DocumentId documentId, TextSpan span);
+            ValueTask AddReferenceItemsAsync(RemoteServiceCallbackId callbackId, int count);
+            ValueTask ReferenceItemCompletedAsync(RemoteServiceCallbackId callbackId);
+            ValueTask OnStartedAsync(RemoteServiceCallbackId callbackId);
+            ValueTask OnCompletedAsync(RemoteServiceCallbackId callbackId);
+            ValueTask OnFindInDocumentStartedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId);
+            ValueTask OnFindInDocumentCompletedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId);
+            ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolAndProjectId definition);
+            ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference);
+
+            ValueTask AddLiteralItemsAsync(RemoteServiceCallbackId callbackId, int count);
+            ValueTask LiteralItemCompletedAsync(RemoteServiceCallbackId callbackId);
+            ValueTask OnLiteralReferenceFoundAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span);
         }
 
-        ValueTask FindReferencesAsync(PinnedSolutionInfo solutionInfo, SerializableSymbolAndProjectId symbolAndProjectIdArg, ImmutableArray<DocumentId> documentArgs,
+        ValueTask FindReferencesAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, SerializableSymbolAndProjectId symbolAndProjectIdArg, ImmutableArray<DocumentId> documentArgs,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        ValueTask FindLiteralReferencesAsync(PinnedSolutionInfo solutionInfo, object value, TypeCode typeCode, CancellationToken cancellationToken);
+        ValueTask FindLiteralReferencesAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, object value, TypeCode typeCode, CancellationToken cancellationToken);
 
         ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             PinnedSolutionInfo solutionInfo, ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria, CancellationToken cancellationToken);

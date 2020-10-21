@@ -230,6 +230,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property WRN_AnalyzerReferencesFramework As Integer
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property INF_UnableToLoadSomeTypesInAnalyzer As Integer
             Get
                 Return ERRID.INF_UnableToLoadSomeTypesInAnalyzer

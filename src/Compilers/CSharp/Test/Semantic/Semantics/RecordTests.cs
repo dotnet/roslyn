@@ -18561,7 +18561,7 @@ record R
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (4,35): error CS9101: Record equality contract property 'R.EqualityContract' must have a get accessor.
+                // (4,35): error CS8906: Record equality contract property 'R.EqualityContract' must have a get accessor.
                 //     protected virtual System.Type EqualityContract { set { } }
                 Diagnostic(ErrorCode.ERR_EqualityContractRequiresGetter, "EqualityContract").WithArguments("R.EqualityContract").WithLocation(4, 35)
                 );
@@ -18598,7 +18598,7 @@ record R : Base
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (5,36): error CS9101: Record equality contract property 'R.EqualityContract' must have a get accessor.
+                // (5,36): error CS8906: Record equality contract property 'R.EqualityContract' must have a get accessor.
                 //     protected override System.Type EqualityContract { set { } }
                 Diagnostic(ErrorCode.ERR_EqualityContractRequiresGetter, "EqualityContract").WithArguments("R.EqualityContract").WithLocation(5, 36),
                 // (5,55): error CS0546: 'R.EqualityContract.set': cannot override because 'Base.EqualityContract' does not have an overridable set accessor
@@ -24157,7 +24157,7 @@ partial public record C  // CS0267
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial public class C  // CS0267
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }

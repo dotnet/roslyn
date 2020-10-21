@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 {
     internal static class InteractiveHostEntryPoint
     {
+        [SupportedOSPlatform("windows")]
         private static async Task<int> Main(string[] args)
         {
             FatalError.Handler = FailFast.OnFatalException;
@@ -51,9 +53,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
+        [SupportedOSPlatform("windows")]
         [DllImport("kernel32", PreserveSig = true)]
         internal static extern ErrorMode SetErrorMode(ErrorMode mode);
 
+        [SupportedOSPlatform("windows")]
         [DllImport("kernel32", PreserveSig = true)]
         internal static extern ErrorMode GetErrorMode();
 

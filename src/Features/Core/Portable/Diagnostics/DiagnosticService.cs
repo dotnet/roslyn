@@ -119,8 +119,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Debug.Assert(_updateSources.Contains(source));
 
+                // The diagnostic service itself caches all diagnostics produced by the IDiagnosticUpdateSource's.  As
+                // such, we want to grab all the diagnostics (regardless of push/pull setting) and cache inside
+                // ourselves.  Later, when anyone calls GetDiagnostics or GetDiagnosticBuckets we will check if their 
+                // push/pull request matches the current user setting and return these if appropriate.
+                var diagnostics = args.GetAllDiagnosticsRegardlessOfPushPullSetting();
+
                 // check cheap early bail out
-                if (args.Diagnostics.Length == 0 && !_map.ContainsKey(source))
+                if (diagnostics.Length == 0 && !_map.ContainsKey(source))
                 {
                     // no new diagnostic, and we don't have update source for it.
                     return false;
@@ -130,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // distinguish them. so we separate diagnostics per workspace map.
                 var workspaceMap = _map.GetOrAdd(source, _ => new Dictionary<Workspace, Dictionary<object, Data>>());
 
-                if (args.Diagnostics.Length == 0 && !workspaceMap.ContainsKey(args.Workspace))
+                if (diagnostics.Length == 0 && !workspaceMap.ContainsKey(args.Workspace))
                 {
                     // no new diagnostic, and we don't have workspace for it.
                     return false;
@@ -139,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var diagnosticDataMap = workspaceMap.GetOrAdd(args.Workspace, _ => new Dictionary<object, Data>());
 
                 diagnosticDataMap.Remove(args.Id);
-                if (diagnosticDataMap.Count == 0 && args.Diagnostics.Length == 0)
+                if (diagnosticDataMap.Count == 0 && diagnostics.Length == 0)
                 {
                     workspaceMap.Remove(args.Workspace);
 
@@ -151,10 +157,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return true;
                 }
 
-                if (args.Diagnostics.Length > 0)
+                if (diagnostics.Length > 0)
                 {
                     // save data only if there is a diagnostic
-                    var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
+                    var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, diagnostics);
                     diagnosticDataMap.Add(args.Id, data);
                 }
 
@@ -192,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
         {
-            AssertIfNull(e.Diagnostics);
+            AssertIfNull(e.GetAllDiagnosticsRegardlessOfPushPullSetting());
 
             // all events are serialized by async event handler
             RaiseDiagnosticsUpdated((IDiagnosticUpdateSource)sender, e);
@@ -205,8 +211,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public ImmutableArray<DiagnosticData> GetDiagnostics(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            Workspace workspace,
+            ProjectId projectId,
+            DocumentId documentId,
+            object id,
+            bool includeSuppressedDiagnostics,
+            bool forPullDiagnostics,
+            CancellationToken cancellationToken)
         {
+            // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
+            // push client and pull diagnostics are on, they get nothing.
+            if (forPullDiagnostics != workspace.Options.GetOption(InternalDiagnosticsOptions.LspPullDiagnostics))
+                return ImmutableArray<DiagnosticData>.Empty;
+
             if (id != null)
             {
                 // get specific one
@@ -284,8 +301,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+            Workspace workspace,
+            ProjectId projectId,
+            DocumentId documentId,
+            bool forPullDiagnostics,
+            CancellationToken cancellationToken)
         {
+            // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
+            // push client and pull diagnostics are on, they get nothing.
+            if (forPullDiagnostics != workspace.Options.GetOption(InternalDiagnosticsOptions.LspPullDiagnostics))
+                return ImmutableArray<DiagnosticBucket>.Empty;
+
             using var _1 = ArrayBuilder<DiagnosticBucket>.GetInstance(out var result);
             using var _2 = ArrayBuilder<Data>.GetInstance(out var buffer);
 

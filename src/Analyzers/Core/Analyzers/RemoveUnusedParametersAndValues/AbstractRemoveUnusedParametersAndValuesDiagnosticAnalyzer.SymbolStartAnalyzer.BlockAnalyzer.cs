@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
                             symbol.GetSymbolType().IsErrorType() ||
                             (symbol.IsStatic && symbol.Kind == SymbolKind.Local) ||
-                            IsSymbolWithSpecialDiscardName(symbol))
+                            symbol.IsSymbolWithSpecialDiscardName())
                         {
                             return false;
                         }
