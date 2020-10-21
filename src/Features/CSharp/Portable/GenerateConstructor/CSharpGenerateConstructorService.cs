@@ -207,6 +207,34 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
             => compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
 
+        /// <summary>
+        /// Find the constructor that our newly generated constructor should delegate to, if any, instead of creating members.
+        /// </summary>
+        /// <returns>
+        /// <para>
+        /// This method is called multiple times, for different numbers of arguments, and different types to create, until
+        /// it finds a valid match for an existing constructor that can be delegated to. For example given:
+        /// </para>
+        /// <code>
+        /// class Base
+        /// {
+        ///     Base(int x) { }
+        /// }
+        /// 
+        /// class Derived : Base
+        /// {
+        /// }
+        /// </code>
+        /// <para>
+        /// If the user types <c>new Derived(1, 2)</c> then this method will be called 4 times, to try to find a constructor
+        /// on Derived that takes two ints, then that takes one int, then a constructor on Base that takes two ints, then that
+        /// takes one int.
+        /// </para>
+        /// <para>
+        /// This class takes the original syntax node that the user typed and creates a new node, for whichever form is being
+        /// tried, places that in the surrounding context, and then uses the speculative semantic model to see if it can be bound.
+        /// </para>
+        /// </returns>
         protected override IMethodSymbol GetDelegatingConstructor(
             State state,
             SemanticDocument document,
