@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,13 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly IProjectCacheHostService _projectCacheService;
                 private readonly ProjectId _cacheKey;
 
-                object ICachedObjectOwner.CachedObject { get; set; }
+                object? ICachedObjectOwner.CachedObject { get; set; }
 
                 private RecoverableSyntaxTree(AbstractSyntaxTreeFactoryService service, ProjectId cacheKey, CompilationUnitSyntax root, SyntaxTreeInfo info)
                 {
                     _recoverableRoot = new RecoverableSyntaxRoot<CompilationUnitSyntax>(service, root, this);
                     _info = info;
-                    _projectCacheService = service.LanguageServices.WorkspaceServices.GetService<IProjectCacheHostService>();
+                    _projectCacheService = service.LanguageServices.WorkspaceServices.GetRequiredService<IProjectCacheHostService>();
                     _cacheKey = cacheKey;
                 }
 
@@ -52,10 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal static SyntaxTree CreateRecoverableTree(
                     AbstractSyntaxTreeFactoryService service,
                     ProjectId cacheKey,
-                    string filePath,
+                    string? filePath,
                     ParseOptions options,
                     ValueSource<TextAndVersion> text,
-                    Encoding encoding,
+                    Encoding? encoding,
                     CompilationUnitSyntax root)
                 {
                     return new RecoverableSyntaxTree(
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     get { return _info.Length; }
                 }
 
-                public override bool TryGetText(out SourceText text)
+                public override bool TryGetText([NotNullWhen(true)] out SourceText? text)
                     => _info.TryGetText(out text);
 
                 public override SourceText GetText(CancellationToken cancellationToken)
@@ -94,15 +93,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
                     => _info.GetTextAsync(cancellationToken);
 
-                public override Encoding Encoding
+                public override Encoding? Encoding
                 {
                     get { return _info.Encoding; }
                 }
 
-                private CompilationUnitSyntax CacheRootNode(CompilationUnitSyntax node)
+                [return: NotNullIfNotNull("node")]
+                private CompilationUnitSyntax? CacheRootNode(CompilationUnitSyntax? node)
                     => _projectCacheService.CacheObjectIfCachingEnabledForKey(_cacheKey, this, node);
 
-                public override bool TryGetRoot(out CSharpSyntaxNode root)
+                public override bool TryGetRoot([NotNullWhen(true)] out CSharpSyntaxNode? root)
                 {
                     var status = _recoverableRoot.TryGetValue(out var node);
                     root = node;

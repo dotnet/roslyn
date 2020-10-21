@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.IO;
@@ -43,13 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion()
                 => _parseOptionWithLatestLanguageVersion;
 
-            public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root)
+            public override SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SyntaxNode root)
             {
                 options ??= GetDefaultParseOptions();
                 return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, filePath, encoding);
             }
 
-            public override SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken)
+            public override SyntaxTree ParseSyntaxTree(string? filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken)
             {
                 options ??= GetDefaultParseOptions();
                 return SyntaxFactory.ParseSyntaxTree(text, options, filePath, cancellationToken: cancellationToken);
@@ -63,10 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override SyntaxTree CreateRecoverableTree(
                 ProjectId cacheKey,
-                string filePath,
+                string? filePath,
                 ParseOptions options,
                 ValueSource<TextAndVersion> text,
-                Encoding encoding,
+                Encoding? encoding,
                 SyntaxNode root)
             {
                 System.Diagnostics.Debug.Assert(CanCreateRecoverableTree(root));
