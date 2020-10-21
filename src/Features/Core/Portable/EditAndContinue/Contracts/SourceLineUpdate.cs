@@ -7,10 +7,11 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 {
     [DataContract]
-    internal readonly struct LineChange : IEquatable<LineChange>
+    internal readonly struct SourceLineUpdate
+        : IEquatable<SourceLineUpdate>
     {
         /// <summary>
         /// Zero-based line number.
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         [DataMember(Order = 1)]
         public readonly int NewLine;
 
-        internal LineChange(int oldLine, int newLine)
+        internal SourceLineUpdate(int oldLine, int newLine)
         {
             Debug.Assert(oldLine >= 0);
             Debug.Assert(newLine >= 0);
@@ -35,9 +36,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public override bool Equals(object? obj)
-            => obj is LineChange change && Equals(change);
+            => obj is SourceLineUpdate change && Equals(change);
 
-        public bool Equals(LineChange other)
+        public bool Equals(SourceLineUpdate other)
             => OldLine == other.OldLine && NewLine == other.NewLine;
 
         public override int GetHashCode()
