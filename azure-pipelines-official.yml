@@ -178,7 +178,9 @@ stages:
         buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
         sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
         toLowerCase: false
+        usePat: false
         retentionDays: 90
+        detailedLog: true
       displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
       condition: succeeded()
 
