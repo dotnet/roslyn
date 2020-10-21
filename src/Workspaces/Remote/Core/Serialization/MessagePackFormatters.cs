@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -49,8 +50,10 @@ namespace Microsoft.CodeAnalysis.Remote
             EnumFormatters.AddImportFixKind,
             EnumFormatters.CodeActionPriority,
             EnumFormatters.DependentTypesKind,
-            EnumFormatters.SolutionUpdateStatus,
-            EnumFormatters.ActiveStatementFlags);
+            EnumFormatters.ManagedModuleUpdateStatus,
+            EnumFormatters.DebugSessionFlags,
+            EnumFormatters.ActiveStatementFlags,
+            EnumFormatters.ManagedEditAndContinueAvailabilityStatus);
 
         private static readonly ImmutableArray<IFormatterResolver> s_resolvers = ImmutableArray.Create<IFormatterResolver>(
             ImmutableCollectionMessagePackResolver.Instance,
@@ -77,8 +80,10 @@ namespace Microsoft.CodeAnalysis.Remote
             public static readonly EnumFormatter<AddImportFixKind> AddImportFixKind = new(value => (int)value, value => (AddImportFixKind)value);
             public static readonly EnumFormatter<CodeActionPriority> CodeActionPriority = new(value => (int)value, value => (CodeActionPriority)value);
             public static readonly EnumFormatter<DependentTypesKind> DependentTypesKind = new(value => (int)value, value => (DependentTypesKind)value);
-            public static readonly EnumFormatter<SolutionUpdateStatus> SolutionUpdateStatus = new(value => (int)value, value => (SolutionUpdateStatus)value);
+            public static readonly EnumFormatter<ManagedModuleUpdateStatus> ManagedModuleUpdateStatus = new(value => (int)value, value => (ManagedModuleUpdateStatus)value);
+            public static readonly EnumFormatter<DebugSessionFlags> DebugSessionFlags = new(value => (int)value, value => (DebugSessionFlags)value);
             public static readonly EnumFormatter<ActiveStatementFlags> ActiveStatementFlags = new(value => (int)value, value => (ActiveStatementFlags)value);
+            public static readonly EnumFormatter<ManagedEditAndContinueAvailabilityStatus> ManagedEditAndContinueAvailabilityStatus = new(value => (int)value, value => (ManagedEditAndContinueAvailabilityStatus)value);
         }
 
         internal sealed class SolutionIdFormatter : IMessagePackFormatter<SolutionId?>
