@@ -466,9 +466,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override bool AreEquivalent(SyntaxNode left, SyntaxNode right)
             => SyntaxFactory.AreEquivalent(left, right);
 
-        private bool AreEquivalentModifiersIgnoringGivenModifier(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers, SyntaxKind[] ignoredModiferKinds)
+        private static bool AreEquivalentModifiersIgnoringGivenModifier(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers, SyntaxKind[] ignoredModiferKinds)
         {
-            foreach (var modifierKind in ignoredmodifierKinds)
+            foreach (var modifierKind in ignoredModifierKinds)
             {
                 var oldIndex = oldModifiers.IndexOf(modifierKind);
                 var newIndex = newModifiers.IndexOf(modifierKind);
@@ -2463,7 +2463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 // Adding or removing unsafe modifier while debugging shouldn't be an issue.
-                if (!AreEquivalentModifiersIgnoringGivenModifier(oldName.Modifiers, newNode.Modifiers, s_ignoredMemberModifiers))
+                if (!AreEquivalentModifiersIgnoringGivenModifier(oldNode.Modifiers, newNode.Modifiers, s_ignoredMemberModifiers))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
