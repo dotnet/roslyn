@@ -366,6 +366,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // influences.
             processStartInfo.Environment.Remove("DOTNET_MULTILEVEL_LOOKUP");
             processStartInfo.Environment.Remove("DOTNET_INSTALL_DIR");
+            processStartInfo.Environment.Remove("DotNetRoot");
+            processStartInfo.Environment.Remove("DotNetTool");
 
             // The first element of the path in CI is a .dotnet used for the Roslyn build. Make sure to remove that.
             if (processStartInfo.Environment.TryGetValue("BUILD_SOURCESDIRECTORY", out var sourcesDirectory))
