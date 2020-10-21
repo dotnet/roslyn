@@ -521,7 +521,9 @@ namespace Analyzer.Utilities
             public NameParts(string symbolName, TValue associatedValue = default)
             {
                 SymbolName = symbolName.Trim();
+#pragma warning disable CS8601 // Possible null reference assignment - https://github.com/dotnet/roslyn-analyzers/issues/4350
                 AssociatedValue = associatedValue;
+#pragma warning restore CS8601 // Possible null reference assignment
             }
 
             public string SymbolName { get; }
