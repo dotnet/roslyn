@@ -123,17 +123,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                     var openBraceTrailingTrivia = blockSyntax.OpenBraceToken.TrailingTrivia;
                     if (openBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
                     {
-                        var firstStatement = statements.First()
+                        var newFirstStatement = statements.First()
                             .WithPrependedLeadingTrivia(openBraceTrailingTrivia);
-                        statements = new SyntaxList<StatementSyntax>(statements.Skip(1).Prepend(firstStatement));
+                        statements = statements.Replace(statements.First(), newFirstStatement);
                     }
 
                     var closeBraceTrailingTrivia = blockSyntax.CloseBraceToken.TrailingTrivia;
                     if (closeBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
                     {
-                        var lastStatement = statements.Last()
+                        var newLastStatement = statements.Last()
                             .WithAppendedTrailingTrivia(closeBraceTrailingTrivia);
-                        statements = new SyntaxList<StatementSyntax>(statements.Take(statements.Count - 1).Append(lastStatement));
+                        statements = statements.Replace(statements.Last(), newLastStatement);
                     }
 
                     // if we hit a block, then inline all the statements in the block into
