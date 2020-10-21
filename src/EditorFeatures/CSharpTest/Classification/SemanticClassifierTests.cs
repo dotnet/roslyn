@@ -2590,7 +2590,7 @@ struct Type<T>
 
             WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
             using var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer);
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
             var provider = new SemanticClassificationViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
@@ -2616,7 +2616,7 @@ struct Type<T>
             using var workspace = TestWorkspace.CreateCSharp("class C { C c; }");
             var document = workspace.Documents.First();
 
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
             var provider = new SemanticClassificationBufferTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),

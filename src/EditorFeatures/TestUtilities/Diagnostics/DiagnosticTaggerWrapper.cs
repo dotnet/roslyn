@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private readonly SolutionCrawlerRegistrationService _registrationService;
         public readonly DiagnosticService DiagnosticService;
         private readonly IThreadingContext _threadingContext;
-        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+        private readonly AsynchronousOperationListenerProvider _listenerProvider;
 
         private ITaggerProvider? _taggerProvider;
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             bool createTaggerProvider = true)
         {
             _threadingContext = workspace.GetService<IThreadingContext>();
-            _listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
+            _listenerProvider = workspace.GetService<AsynchronousOperationListenerProvider>();
 
             var analyzerReference = new TestAnalyzerReferenceByLanguage(analyzerMap ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));

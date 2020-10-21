@@ -137,7 +137,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim fileChangeService = New MockVsFileChangeEx
                 Dim fileChangeWatcher = New FileChangeWatcher(Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
 
-                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)
                 Dim listener = listenerProvider.GetListener("test")
 
                 Dim ruleSetManager = New VisualStudioRuleSetManager(fileChangeWatcher, workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)(), listener)
@@ -178,7 +178,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim fileChangeService = New MockVsFileChangeEx
                 Dim fileChangeWatcher = New FileChangeWatcher(Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
 
-                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)
                 Dim listener = listenerProvider.GetListener("test")
 
                 Dim ruleSetManager = New VisualStudioRuleSetManager(fileChangeWatcher, workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)(), listener)

@@ -16,8 +16,5 @@ namespace Roslyn.Test.Utilities
         {
             await ((AsynchronousOperationListenerProvider)provider).WaitAllAsync(workspace, featureNames).ConfigureAwait(false);
         }
-
-        internal static IAsynchronousOperationWaiter GetWaiter(this IAsynchronousOperationListenerProvider provider, string featureName)
-            => (IAsynchronousOperationWaiter)provider.GetListener(featureName);
     }
 }
