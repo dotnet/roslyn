@@ -10,26 +10,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    [DataContract]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal readonly struct NonRemappableRegion : IEquatable<NonRemappableRegion>
     {
         /// <summary>
         /// Pre-remap span.
         /// </summary>
-        [DataMember(Order = 0)]
         public readonly LinePositionSpan Span;
 
         /// <summary>
         /// Difference between new span and pre-remap span (new = old + delta).
         /// </summary>
-        [DataMember(Order = 1)]
         public readonly int LineDelta;
 
         /// <summary>
         /// True if the region represents an exception region, false if it represents an active statement.
         /// </summary>
-        [DataMember(Order = 2)]
         public readonly bool IsExceptionRegion;
 
         public NonRemappableRegion(LinePositionSpan span, int lineDelta, bool isExceptionRegion)

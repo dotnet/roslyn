@@ -16,7 +16,9 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     /// <summary>
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // 3rd break: previously updated statements contains (F, v=1, il=1)->span3
         //            get active statements returns (F, v=3, il=3, span3) the active statement is up-to-date
         //
-        internal ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> NonRemappableRegions { get; private set; }
+        internal ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> NonRemappableRegions { get; private set; }
 
         private readonly HashSet<Guid> _modulesPreparedForUpdate;
         private readonly object _modulesPreparedForUpdateGuard = new();
@@ -93,11 +95,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _modulesPreparedForUpdate = new HashSet<Guid>();
 
             LastCommittedSolution = new CommittedSolution(this, solution);
-            NonRemappableRegions = ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
+            NonRemappableRegions = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
         }
 
         // test only
-        internal void Test_SetNonRemappableRegions(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
+        internal void Test_SetNonRemappableRegions(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
             => NonRemappableRegions = nonRemappableRegions;
 
         // test only
@@ -157,9 +159,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // If no edits were made the pending list will be empty and we need to keep the previous regions.
 
             var nonRemappableRegions = GroupToImmutableDictionary(
-                from delta in update.Deltas
-                from region in delta.NonRemappableRegions
-                group region.Region by region.Method);
+                from moduleRegions in update.NonRemappableRegions
+                from region in moduleRegions.Regions
+                group region.Region by new ManagedMethodId(moduleRegions.ModuleId, region.Method));
 
             if (nonRemappableRegions.Count > 0)
             {

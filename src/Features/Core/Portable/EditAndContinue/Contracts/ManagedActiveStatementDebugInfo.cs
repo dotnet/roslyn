@@ -8,19 +8,19 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 {
     /// <summary>
     /// Active statement debug information retrieved from the runtime and the PDB.
     /// </summary>
     [DataContract]
-    internal readonly struct ActiveStatementDebugInfo
+    internal readonly struct ManagedActiveStatementDebugInfo
     {
         /// <summary>
         /// The instruction of the active statement that is being executed.
         /// </summary>
         [DataMember(Order = 0)]
-        public readonly ActiveInstructionId InstructionId;
+        public readonly ManagedInstructionId ActiveInstruction;
 
         /// <summary>
         /// Document name as found in the PDB, or null if the debugger can't determine the location of the active statement.
@@ -30,37 +30,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// Location of the closest non-hidden sequence point retrieved from the PDB, 
-        /// or default(<see cref="LinePositionSpan"/>) if the debugger can't determine the location of the active statement.
+        /// or default(<see cref="SourceSpan"/>) if the debugger can't determine the location of the active statement.
         /// </summary>
         [DataMember(Order = 2)]
-        public readonly LinePositionSpan LinePositionSpan;
+        public readonly SourceSpan SourceSpan;
 
         /// <summary>
-        /// Threads that share the instruction. May contain duplicates in case a thread is executing a function recursively.
+        /// Aggregated across threads.
         /// </summary>
         [DataMember(Order = 3)]
-        public readonly ImmutableArray<Guid> ThreadIds;
-
-        /// <summary>
-        /// Aggregated across <see cref="ThreadIds"/>.
-        /// </summary>
-        [DataMember(Order = 4)]
         public readonly ActiveStatementFlags Flags;
 
-        public ActiveStatementDebugInfo(
-            ActiveInstructionId instructionId,
+        public ManagedActiveStatementDebugInfo(
+            ManagedInstructionId activeInstruction,
             string? documentName,
-            LinePositionSpan linePositionSpan,
-            ImmutableArray<Guid> threadIds,
+            SourceSpan sourceSpan,
             ActiveStatementFlags flags)
         {
-            Debug.Assert(!threadIds.IsDefaultOrEmpty);
-
-            ThreadIds = threadIds;
-            InstructionId = instructionId;
+            ActiveInstruction = activeInstruction;
             Flags = flags;
             DocumentName = documentName;
-            LinePositionSpan = linePositionSpan;
+            SourceSpan = sourceSpan;
         }
 
         public bool HasSourceLocation => DocumentName != null;
