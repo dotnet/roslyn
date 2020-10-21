@@ -358,7 +358,6 @@ function TestUsingOptimizedRunner() {
   $args += " --logs `"$LogDir`""
   $args += " --secondaryLogs `"$secondaryLogDir`""
   $args += " --tfm net472"
-  $args += " --html"
 
   if ($testDesktop -or $testIOperation) {
     if ($test32) {
