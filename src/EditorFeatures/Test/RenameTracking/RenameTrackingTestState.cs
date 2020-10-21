@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private async Task WaitForAsyncOperationsAsync()
         {
             var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            await provider.WaitAllDispatcherOperationAndTasksAsync(
+            await provider.WaitAllAsync(
                 Workspace,
                 FeatureAttribute.RenameTracking,
                 FeatureAttribute.SolutionCrawler,

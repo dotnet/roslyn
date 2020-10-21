@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         public async Task WaitForTags()
         {
-            await _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
+            await _listenerProvider.WaitAllAsync(
                 _workspace,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
