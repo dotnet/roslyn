@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -102,12 +103,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
 
-        public void StartEditSession(ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void StartEditSession(IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
 
-            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider, debuggeeModuleMetadataProvider);
+            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, debuggerService);
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (debuggingSession.AddModulePreparedForUpdate(mvid))
                     {
                         // fire and forget:
-                        _ = Task.Run(() => editSession.DebugeeModuleMetadataProvider.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
+                        _ = Task.Run(() => editSession.DebuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
                     }
                 }
 
@@ -347,8 +348,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// them on "continue".
         /// </summary>
         /// <returns>
-        /// Returns <see cref="SolutionUpdateStatus.Blocked"/> if there are rude edits or other errors 
-        /// that block the application of the updates. Might return <see cref="SolutionUpdateStatus.Ready"/> even if there are 
+        /// Returns <see cref="ManagedModuleUpdateStatus.Blocked"/> if there are rude edits or other errors 
+        /// that block the application of the updates. Might return <see cref="ManagedModuleUpdateStatus.Ready"/> even if there are 
         /// errors in the code that will block the application of the updates. E.g. emit diagnostics can't be determined until 
         /// emit is actually performed. Therefore, this method only serves as an optimization to avoid unnecessary emit attempts,
         /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
@@ -368,24 +369,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return editSession.HasChangesAsync(solution, solutionActiveStatementSpanProvider, sourceFilePath, cancellationToken);
         }
 
-        public async ValueTask<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<DiagnosticData> Diagnostics)>
+        public async ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics)>
             EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
             {
-                return (SolutionUpdateStatus.None, ImmutableArray<Deltas>.Empty, ImmutableArray<DiagnosticData>.Empty);
+                return (new(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty), ImmutableArray<DiagnosticData>.Empty);
             }
 
             var solutionUpdate = await editSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-            if (solutionUpdate.Summary == SolutionUpdateStatus.Ready)
+            if (solutionUpdate.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
                 editSession.StorePendingUpdate(solution, solutionUpdate);
             }
 
             // Note that we may return empty deltas if all updates have been deferred.
             // The debugger will still call commit or discard on the update batch.
-            return (solutionUpdate.Summary, solutionUpdate.Deltas, ToDiagnosticData(solution, solutionUpdate.Diagnostics));
+            return (solutionUpdate.ModuleUpdates, ToDiagnosticData(solution, solutionUpdate.Diagnostics));
         }
 
         private static ImmutableArray<DiagnosticData> ToDiagnosticData(Solution solution, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnosticsByProject)
@@ -491,7 +492,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return analysis.ActiveStatements.SelectAsArray(s => (s.Span, s.Flags));
         }
 
-        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
             try
             {
@@ -552,7 +553,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// True if the instruction is located within an exception region, false if it is not, null if the instruction isn't an active statement 
         /// or the exception regions can't be determined.
         /// </returns>
-        public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
             try
             {

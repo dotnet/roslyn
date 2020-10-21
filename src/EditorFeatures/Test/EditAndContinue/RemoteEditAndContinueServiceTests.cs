@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 {
@@ -97,25 +98,22 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             diagnosticUpdateSource.DiagnosticsCleared += (object sender, EventArgs args) => emitDiagnosticsClearedCount++;
 
             var span1 = new LinePositionSpan(new LinePosition(1, 2), new LinePosition(1, 5));
-            var threadId1 = new Guid("{22222222-1111-1111-1111-111111111111}");
-            var threadId2 = new Guid("{33333333-1111-1111-1111-111111111111}");
             var moduleId1 = new Guid("{44444444-1111-1111-1111-111111111111}");
-            var methodId1 = new ActiveMethodId(moduleId1, token: 0x06000003, version: 2);
-            var instructionId1 = new ActiveInstructionId(methodId1, ilOffset: 10);
+            var methodId1 = new ManagedMethodId(moduleId1, token: 0x06000003, version: 2);
+            var instructionId1 = new ManagedInstructionId(methodId1, ilOffset: 10);
 
-            var as1 = new ActiveStatementDebugInfo(
+            var as1 = new ManagedActiveStatementDebugInfo(
                 instructionId1,
                 documentName: "test.cs",
-                span1,
-                threadIds: ImmutableArray.Create(threadId1, threadId2),
+                span1.ToSourceSpan(),
                 flags: ActiveStatementFlags.IsLeafFrame | ActiveStatementFlags.PartiallyExecuted);
 
-            var methodId2 = new ActiveMethodId(new Guid("{11111111-1111-1111-1111-111111111111}"), token: 0x06000002, version: 1);
+            var methodId2 = new ManagedModuleMethodId(token: 0x06000002, version: 1);
 
-            var region1 = new NonRemappableRegion(
-                new LinePositionSpan(new LinePosition(1, 2), new LinePosition(1, 5)),
-                lineDelta: 1,
-                isExceptionRegion: true);
+            var exceptionRegionUpdate1 = new ManagedExceptionRegionUpdate(
+                methodId2,
+                delta: 1,
+                newSpan: new SourceSpan(1, 2, 1, 5));
 
             var document1 = localWorkspace.CurrentSolution.Projects.Single().Documents.Single();
 
@@ -145,34 +143,31 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // StartEditSession
 
-            ActiveStatementProvider? remoteActiveStatementProvider = null;
-            IDebuggeeModuleMetadataProvider? remoteDebuggeeModuleMetadataProvider = null;
-            mockEncService.StartEditSessionImpl = (ActiveStatementProvider activeStatementProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider, out ImmutableArray<DocumentId> documentsToReanalyze) =>
+            IManagedEditAndContinueDebuggerService? remoteDebuggeeModuleMetadataProvider = null;
+            mockEncService.StartEditSessionImpl = (IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze) =>
             {
-                remoteActiveStatementProvider = activeStatementProvider;
-                remoteDebuggeeModuleMetadataProvider = debuggeeModuleMetadataProvider;
+                remoteDebuggeeModuleMetadataProvider = debuggerService;
                 documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
             };
 
             await proxy.StartEditSessionAsync(
                 mockDiagnosticService.Object,
-                activeStatementProvider: _ => new(ImmutableArray.Create(as1)),
-                debuggeeModuleMetadataProvider: new MockDebuggeeModuleMetadataProvider()
+                debuggerService: new MockManagedEditAndContinueDebuggerService()
                 {
-                    IsEditAndContinueAvailable = _ => ((int, string?)?)(1, "can't do enc")
+                    IsEditAndContinueAvailable = _ => new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.NotAllowedForModule, "can't do enc"),
+                    GetActiveStatementsImpl = () => ImmutableArray.Create(as1)
                 },
                 CancellationToken.None).ConfigureAwait(false);
 
             VerifyReanalyzeInvocation(ImmutableArray<DocumentId>.Empty);
 
-            var activeStatement = (await remoteActiveStatementProvider!(CancellationToken.None).ConfigureAwait(false)).Single();
-            Assert.Equal(as1.InstructionId, activeStatement.InstructionId);
-            Assert.Equal(as1.LinePositionSpan, activeStatement.LinePositionSpan);
-            AssertEx.Equal(as1.ThreadIds, activeStatement.ThreadIds);
+            var activeStatement = (await remoteDebuggeeModuleMetadataProvider!.GetActiveStatementsAsync(CancellationToken.None).ConfigureAwait(false)).Single();
+            Assert.Equal(as1.ActiveInstruction, activeStatement.ActiveInstruction);
+            Assert.Equal(as1.SourceSpan, activeStatement.SourceSpan);
             Assert.Equal(as1.Flags, activeStatement.Flags);
 
-            var availability = await remoteDebuggeeModuleMetadataProvider!.GetEncAvailabilityAsync(moduleId1, CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal<(int, string?)?>((1, "can't do enc"), availability);
+            var availability = await remoteDebuggeeModuleMetadataProvider!.GetAvailabilityAsync(moduleId1, CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.NotAllowedForModule, "can't do enc"), availability);
 
             // EndEditSession
 
@@ -219,15 +214,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 Assert.Equal("proj", project.Name);
                 AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, CancellationToken.None).Result);
 
-                var deltas = ImmutableArray.Create(new Deltas(
-                    mvid: moduleId1,
-                    il: ImmutableArray.Create<byte>(1, 2),
-                    metadata: ImmutableArray.Create<byte>(3, 4),
-                    pdb: ImmutableArray.Create<byte>(5, 6),
+                var deltas = ImmutableArray.Create(new ManagedModuleUpdate(
+                    module: moduleId1,
+                    ilDelta: ImmutableArray.Create<byte>(1, 2),
+                    metadataDelta: ImmutableArray.Create<byte>(3, 4),
+                    pdbDelta: ImmutableArray.Create<byte>(5, 6),
                     updatedMethods: ImmutableArray.Create(0x06000001),
-                    lineEdits: ImmutableArray.Create(("file.cs", ImmutableArray.Create(new LineChange(1, 2)))),
-                    nonRemappableRegions: ImmutableArray.Create((methodId2, region1)),
-                    activeStatementsInUpdatedMethods: ImmutableArray.Create((threadId1, instructionId1, span1))));
+                    sequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
+                    activeStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
+                    exceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1)));
 
                 var syntaxTree = project.Documents.Single().GetSyntaxTreeSynchronously(CancellationToken.None)!;
 
@@ -235,11 +230,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 var projectDiagnostic = DiagnosticData.Create(Diagnostic.Create(diagnosticDescriptor1, Location.None, new[] { "proj", "some error" }), project);
                 var solutionDiagnostic = DiagnosticData.Create(Diagnostic.Create(diagnosticDescriptor1, Location.None, new[] { "sol", "some error" }), solution.Options);
 
-                return (SolutionUpdateStatus.Ready, deltas, ImmutableArray.Create(documentDiagnostic, projectDiagnostic, solutionDiagnostic));
+                return (new(ManagedModuleUpdateStatus.Ready, deltas), ImmutableArray.Create(documentDiagnostic, projectDiagnostic, solutionDiagnostic));
             };
 
-            var (status, deltas) = await proxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, solutionActiveStatementSpanProvider, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal(SolutionUpdateStatus.Ready, status);
+            var updates = await proxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, solutionActiveStatementSpanProvider, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
 
             Assert.Equal(1, emitDiagnosticsClearedCount);
             emitDiagnosticsClearedCount = 0;
@@ -252,28 +247,28 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             },
             emitDiagnosticsUpdated.Select(update =>
             {
-                var d = update.Diagnostics.Single();
+                var d = update.GetPushDiagnostics(localWorkspace, InternalDiagnosticsOptions.NormalDiagnosticMode).Single();
                 return $"[{d.ProjectId}] {d.Severity} {d.Id}:" +
                        (d.DataLocation != null ? $" {d.DataLocation.OriginalFilePath}({d.DataLocation.OriginalStartLine}, {d.DataLocation.OriginalStartColumn}, {d.DataLocation.OriginalEndLine}, {d.DataLocation.OriginalEndColumn}):" : "") +
                        $" {d.Message}";
             }));
 
-            var delta = deltas.Single();
-            Assert.Equal(moduleId1, delta.Mvid);
-            AssertEx.Equal(new byte[] { 1, 2 }, delta.IL);
-            AssertEx.Equal(new byte[] { 3, 4 }, delta.Metadata);
-            AssertEx.Equal(new byte[] { 5, 6 }, delta.Pdb);
+            var delta = updates.Updates.Single();
+            Assert.Equal(moduleId1, delta.Module);
+            AssertEx.Equal(new byte[] { 1, 2 }, delta.ILDelta);
+            AssertEx.Equal(new byte[] { 3, 4 }, delta.MetadataDelta);
+            AssertEx.Equal(new byte[] { 5, 6 }, delta.PdbDelta);
             AssertEx.Equal(new[] { 0x06000001 }, delta.UpdatedMethods);
 
-            var lineEdit = delta.LineEdits.Single();
-            Assert.Equal("file.cs", lineEdit.SourceFilePath);
-            AssertEx.Equal(new[] { new LineChange(1, 2) }, lineEdit.Deltas);
-            Assert.Equal((methodId2, region1), delta.NonRemappableRegions.Single());
+            var lineEdit = delta.SequencePoints.Single();
+            Assert.Equal("file.cs", lineEdit.FileName);
+            AssertEx.Equal(new[] { new SourceLineUpdate(1, 2) }, lineEdit.LineUpdates);
+            Assert.Equal(exceptionRegionUpdate1, delta.ExceptionRegions.Single());
 
-            var activeStatements = delta.ActiveStatementsInUpdatedMethods.Single();
-            Assert.Equal(threadId1, activeStatements.ThreadId);
-            Assert.Equal(instructionId1, activeStatements.OldInstructionId);
-            Assert.Equal(span1, activeStatements.NewSpan);
+            var activeStatements = delta.ActiveStatements.Single();
+            Assert.Equal(instructionId1.Method.Method, activeStatements.Method);
+            Assert.Equal(instructionId1.ILOffset, activeStatements.ILOffset);
+            Assert.Equal(span1, activeStatements.NewSpan.ToLinePositionSpan());
 
             // CommitSolutionUpdate
 

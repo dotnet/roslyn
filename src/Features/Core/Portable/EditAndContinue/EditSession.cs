@@ -6,19 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal sealed class EditSession : IDisposable
@@ -27,9 +26,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal readonly DebuggingSession DebuggingSession;
         internal readonly EditSessionTelemetry Telemetry;
-        internal readonly IDebuggeeModuleMetadataProvider DebugeeModuleMetadataProvider;
+        internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
 
-        private readonly ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> _nonRemappableRegions;
+        private readonly ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> _nonRemappableRegions;
 
         /// <summary>
         /// Lazily calculated map of base active statements.
@@ -64,16 +63,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal EditSession(
             DebuggingSession debuggingSession,
             EditSessionTelemetry telemetry,
-            ActiveStatementProvider activeStatementProvider,
-            IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider)
+            IManagedEditAndContinueDebuggerService debuggerService)
         {
             DebuggingSession = debuggingSession;
             Telemetry = telemetry;
-            DebugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
+            DebuggerService = debuggerService;
 
             _nonRemappableRegions = debuggingSession.NonRemappableRegions;
 
-            BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(activeStatementProvider, cancellationToken), cacheResult: true);
+            BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(cancellationToken), cacheResult: true);
         }
 
         internal PendingSolutionUpdate? Test_GetPendingSolutionUpdate() => _pendingUpdate;
@@ -90,41 +88,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <returns><see langword="default"/> if the module is not loaded.</returns>
         public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, string projectDisplayName, CancellationToken cancellationToken)
         {
-            var availability = await DebugeeModuleMetadataProvider.GetEncAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
-            if (availability == null)
+            var availability = await DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
+            if (availability.Status == ManagedEditAndContinueAvailabilityStatus.ModuleNotLoaded)
             {
                 return null;
             }
 
-            var (errorCode, localizedMessage) = availability.Value;
-            if (errorCode == 0)
+            if (availability.Status == ManagedEditAndContinueAvailabilityStatus.Available)
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var descriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(errorCode);
-            return ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { projectDisplayName, localizedMessage }));
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(availability.Status);
+            return ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { projectDisplayName, availability.LocalizedMessage }));
         }
 
-        private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(ActiveStatementProvider activeStatementProvider, CancellationToken cancellationToken)
+        private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(CancellationToken cancellationToken)
         {
             try
             {
                 // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
-                return CreateActiveStatementsMap(await activeStatementProvider(cancellationToken).ConfigureAwait(false));
+                return CreateActiveStatementsMap(await DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return new ActiveStatementsMap(
                     SpecializedCollections.EmptyReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>>(),
-                    SpecializedCollections.EmptyReadOnlyDictionary<ActiveInstructionId, ActiveStatement>());
+                    SpecializedCollections.EmptyReadOnlyDictionary<ManagedInstructionId, ActiveStatement>());
             }
         }
 
-        private ActiveStatementsMap CreateActiveStatementsMap(ImmutableArray<ActiveStatementDebugInfo> debugInfos)
+        private ActiveStatementsMap CreateActiveStatementsMap(ImmutableArray<ManagedActiveStatementDebugInfo> debugInfos)
         {
             var byDocument = PooledDictionary<DocumentId, ArrayBuilder<ActiveStatement>>.GetInstance();
-            var byInstruction = PooledDictionary<ActiveInstructionId, ActiveStatement>.GetInstance();
+            var byInstruction = PooledDictionary<ManagedInstructionId, ActiveStatement>.GetInstance();
 
             bool supportsEditAndContinue(DocumentId documentId)
                 => EditAndContinueWorkspaceService.SupportsEditAndContinue(DebuggingSession.LastCommittedSolution.GetProject(documentId.ProjectId)!);
@@ -157,8 +154,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     documentIds: documentIds,
                     flags: debugInfo.Flags,
                     span: GetUpToDateSpan(debugInfo),
-                    instructionId: debugInfo.InstructionId,
-                    threadIds: debugInfo.ThreadIds);
+                    instructionId: debugInfo.ActiveInstruction);
 
                 primaryDocumentActiveStatements.Add(activeStatement);
 
@@ -182,7 +178,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 try
                 {
-                    byInstruction.Add(debugInfo.InstructionId, activeStatement);
+                    byInstruction.Add(debugInfo.ActiveInstruction, activeStatement);
                 }
                 catch (ArgumentException)
                 {
@@ -193,21 +189,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new ActiveStatementsMap(byDocument.ToMultiDictionaryAndFree(), byInstruction.ToDictionaryAndFree());
         }
 
-        private LinePositionSpan GetUpToDateSpan(ActiveStatementDebugInfo activeStatementInfo)
+        private LinePositionSpan GetUpToDateSpan(ManagedActiveStatementDebugInfo activeStatementInfo)
         {
+            var activeSpan = activeStatementInfo.SourceSpan.ToLinePositionSpan();
+
             if ((activeStatementInfo.Flags & ActiveStatementFlags.MethodUpToDate) != 0)
             {
-                return activeStatementInfo.LinePositionSpan;
+                return activeSpan;
             }
 
+            var instructionId = activeStatementInfo.ActiveInstruction;
+
             // Map active statement spans in non-remappable regions to the latest source locations.
-            if (_nonRemappableRegions.TryGetValue(activeStatementInfo.InstructionId.MethodId, out var regionsInMethod))
+            if (_nonRemappableRegions.TryGetValue(instructionId.Method, out var regionsInMethod))
             {
                 foreach (var region in regionsInMethod)
                 {
-                    if (region.Span.Contains(activeStatementInfo.LinePositionSpan))
+                    if (region.Span.Contains(activeSpan))
                     {
-                        return activeStatementInfo.LinePositionSpan.AddLineDelta(region.LineDelta);
+                        return activeSpan.AddLineDelta(region.LineDelta);
                     }
                 }
             }
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // The active statement is in a method that's not up-to-date but the active span have not changed.
             // We only add changed spans to non-remappable regions map, so we won't find unchanged span there.
             // Return the original span.
-            return activeStatementInfo.LinePositionSpan;
+            return activeSpan;
         }
 
         /// <summary>
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 var allEdits = ArrayBuilder<SemanticEdit>.GetInstance();
-                var allLineEdits = ArrayBuilder<(DocumentId, ImmutableArray<LineChange>)>.GetInstance();
+                var allLineEdits = ArrayBuilder<(DocumentId, ImmutableArray<SourceLineUpdate>)>.GetInstance();
                 var activeStatementsInChangedDocuments = ArrayBuilder<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)>.GetInstance();
                 using var _ = ArrayBuilder<ISymbol>.GetInstance(out var allAddedSymbols);
 
@@ -664,12 +664,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                using var deltasDisposer = ArrayBuilder<Deltas>.GetInstance(out var deltas);
-                using var emitBaselinesDisposer = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance(out var emitBaselines);
-                using var readersDisposer = ArrayBuilder<IDisposable>.GetInstance(out var readers);
-                using var diagnosticsDisposer = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
-                using var changedDocumentsDisposer = ArrayBuilder<Document>.GetInstance(out var changedDocuments);
-                using var addedDocumentsDisposer = ArrayBuilder<Document>.GetInstance(out var addedDocuments);
+                using var _1 = ArrayBuilder<ManagedModuleUpdate>.GetInstance(out var deltas);
+                using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
+                using var _3 = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance(out var emitBaselines);
+                using var _4 = ArrayBuilder<IDisposable>.GetInstance(out var readers);
+                using var _5 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
+                using var _6 = ArrayBuilder<Document>.GetInstance(out var changedDocuments);
+                using var _7 = ArrayBuilder<Document>.GetInstance(out var addedDocuments);
 
                 var baseSolution = DebuggingSession.LastCommittedSolution;
 
@@ -769,7 +770,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
                     var projectChanges = await GetProjectChangesAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
-                    var lineEdits = projectChanges.LineChanges.SelectAsArray((lineChange, p) => (p.GetDocument(lineChange.DocumentId)!.FilePath, lineChange.Changes), project);
+                    var lineEdits = projectChanges.LineChanges.SelectAsArray((lineChange, project) =>
+                    {
+                        var filePath = project.GetDocument(lineChange.DocumentId)!.FilePath;
+                        Contract.ThrowIfNull(filePath);
+                        return new SequencePointUpdates(filePath, lineChange.Changes);
+                    }, project);
 
                     using var pdbStream = SerializableBytes.CreateWritableStream();
                     using var metadataStream = SerializableBytes.CreateWritableStream();
@@ -805,18 +811,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             _nonRemappableRegions,
                             projectChanges.NewActiveStatements,
                             out var activeStatementsInUpdatedMethods,
-                            out var nonRemappableRegions);
+                            out var moduleNonRemappableRegions);
 
-                        deltas.Add(new Deltas(
+                        var exceptionRegions = moduleNonRemappableRegions.SelectAsArray(
+                            r => r.Region.IsExceptionRegion,
+                            r => new ManagedExceptionRegionUpdate(r.Method, r.Region.LineDelta, r.Region.Span.ToSourceSpan()));
+
+                        deltas.Add(new ManagedModuleUpdate(
                             mvid,
                             ilStream.ToImmutableArray(),
                             metadataStream.ToImmutableArray(),
                             pdbStream.ToImmutableArray(),
-                            updatedMethodTokens,
                             lineEdits,
-                            nonRemappableRegions,
-                            activeStatementsInUpdatedMethods));
+                            updatedMethodTokens,
+                            activeStatementsInUpdatedMethods,
+                            exceptionRegions));
 
+                        nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
                         emitBaselines.Add((project.Id, emitResult.Baseline));
                     }
                     else
@@ -851,8 +862,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 return new SolutionUpdate(
-                    (deltas.Count > 0) ? SolutionUpdateStatus.Ready : SolutionUpdateStatus.None,
-                    deltas.ToImmutable(),
+                    new ManagedModuleUpdates(
+                        (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
+                        deltas.ToImmutable()),
+                    nonRemappableRegions.ToImmutable(),
                     readers.ToImmutable(),
                     emitBaselines.ToImmutable(),
                     diagnostics.ToImmutable());
@@ -869,14 +882,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ActiveStatementsMap baseActiveStatements,
             ImmutableArray<ActiveStatementExceptionRegions> baseActiveExceptionRegions,
             ImmutableArray<int> updatedMethodTokens,
-            ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> previousNonRemappableRegions,
+            ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> previousNonRemappableRegions,
             ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> newActiveStatementsInChangedDocuments,
-            out ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
-            out ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
+            out ImmutableArray<ManagedActiveStatementUpdate> activeStatementsInUpdatedMethods,
+            out ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
         {
-            using var _1 = PooledDictionary<(int MethodToken, int MethodVersion, LinePositionSpan BaseSpan), LinePositionSpan>.GetInstance(out var changedNonRemappableSpans);
-            var activeStatementsInUpdatedMethodsBuilder = ArrayBuilder<(Guid, ActiveInstructionId, LinePositionSpan)>.GetInstance();
-            var nonRemappableRegionsBuilder = ArrayBuilder<(ActiveMethodId Method, NonRemappableRegion Region)>.GetInstance();
+            using var _1 = PooledDictionary<(ManagedModuleMethodId MethodId, LinePositionSpan BaseSpan), LinePositionSpan>.GetInstance(out var changedNonRemappableSpans);
+            var activeStatementsInUpdatedMethodsBuilder = ArrayBuilder<ManagedActiveStatementUpdate>.GetInstance();
+            var nonRemappableRegionsBuilder = ArrayBuilder<(ManagedModuleMethodId Method, NonRemappableRegion Region)>.GetInstance();
 
             // Process active statements and their exception regions in changed documents of this project/module:
             foreach (var (documentId, newActiveStatements, newExceptionRegions) in newActiveStatementsInChangedDocuments)
@@ -890,16 +903,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldActiveStatement = oldActiveStatements[i];
                     var newActiveStatement = newActiveStatements[i];
                     var oldInstructionId = oldActiveStatement.InstructionId;
-                    var methodToken = oldInstructionId.MethodId.Token;
-                    var methodVersion = oldInstructionId.MethodId.Version;
+                    var oldMethodId = oldInstructionId.Method.Method;
 
-                    var isMethodUpdated = updatedMethodTokens.Contains(methodToken);
+                    var isMethodUpdated = updatedMethodTokens.Contains(oldMethodId.Token);
                     if (isMethodUpdated)
                     {
-                        foreach (var threadId in oldActiveStatement.ThreadIds)
-                        {
-                            activeStatementsInUpdatedMethodsBuilder.Add((threadId, oldInstructionId, newActiveStatement.Span));
-                        }
+                        activeStatementsInUpdatedMethodsBuilder.Add(new ManagedActiveStatementUpdate(oldMethodId, oldInstructionId.ILOffset, newActiveStatement.Span.ToSourceSpan()));
                     }
 
                     void AddNonRemappableRegion(LinePositionSpan oldSpan, LinePositionSpan newSpan, bool isExceptionRegion)
@@ -911,7 +920,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             if (isMethodUpdated)
                             {
                                 var lineDelta = oldSpan.GetLineDelta(newSpan: newSpan);
-                                nonRemappableRegionsBuilder.Add((oldInstructionId.MethodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion)));
+                                nonRemappableRegionsBuilder.Add((oldMethodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion)));
                             }
 
                             // If the method has been up-to-date and it is not updated now then either the active statement span has not changed,
@@ -922,7 +931,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         else if (oldSpan != newSpan)
                         {
                             // The method is not up-to-date hence we maintain non-remapable span map for it that needs to be updated.
-                            changedNonRemappableSpans[(methodToken, methodVersion, oldSpan)] = newSpan;
+                            changedNonRemappableSpans[(oldMethodId, oldSpan)] = newSpan;
                         }
                     }
 
@@ -943,12 +952,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             activeStatementsInUpdatedMethods = activeStatementsInUpdatedMethodsBuilder.ToImmutableAndFree();
 
             // Gather all active method instances contained in this project/module that are not up-to-date:
-            using var _2 = PooledHashSet<ActiveMethodId>.GetInstance(out var unremappedActiveMethods);
+            using var _2 = PooledHashSet<ManagedModuleMethodId>.GetInstance(out var unremappedActiveMethods);
             foreach (var (instruction, baseActiveStatement) in baseActiveStatements.InstructionMap)
             {
-                if (moduleId == instruction.MethodId.ModuleId && !baseActiveStatement.IsMethodUpToDate)
+                if (moduleId == instruction.Method.Module && !baseActiveStatement.IsMethodUpToDate)
                 {
-                    unremappedActiveMethods.Add(instruction.MethodId);
+                    unremappedActiveMethods.Add(instruction.Method.Method);
                 }
             }
 
@@ -956,9 +965,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 foreach (var (methodInstance, regionsInMethod) in previousNonRemappableRegions)
                 {
+                    if (methodInstance.Module != moduleId)
+                    {
+                        continue;
+                    }
+
                     // Skip non-remappable regions that belong to method instances that are from a different module 
                     // or no longer active (all active statements in these method instances have been remapped to newer versions).
-                    if (!unremappedActiveMethods.Contains(methodInstance))
+                    if (!unremappedActiveMethods.Contains(methodInstance.Method))
                     {
                         continue;
                     }
@@ -969,7 +983,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var baseSpan = region.Span.AddLineDelta(region.LineDelta);
 
                         NonRemappableRegion newRegion;
-                        if (changedNonRemappableSpans.TryGetValue((methodInstance.Token, methodInstance.Version, baseSpan), out var newSpan))
+                        if (changedNonRemappableSpans.TryGetValue((methodInstance.Method, baseSpan), out var newSpan))
                         {
                             // all spans must be of the same size:
                             Debug.Assert(newSpan.End.Line - newSpan.Start.Line == baseSpan.End.Line - baseSpan.Start.Line);
@@ -982,7 +996,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             newRegion = region;
                         }
 
-                        nonRemappableRegionsBuilder.Add((methodInstance, newRegion));
+                        nonRemappableRegionsBuilder.Add((methodInstance.Method, newRegion));
                     }
                 }
             }
@@ -995,7 +1009,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var previousPendingUpdate = Interlocked.Exchange(ref _pendingUpdate, new PendingSolutionUpdate(
                 solution,
                 update.EmitBaselines,
-                update.Deltas,
+                update.ModuleUpdates.Updates,
+                update.NonRemappableRegions,
                 update.ModuleReaders));
 
             // commit/discard was not called:

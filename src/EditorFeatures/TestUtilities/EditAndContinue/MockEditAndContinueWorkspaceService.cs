@@ -8,24 +8,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal delegate void StartEditSession(ActiveStatementProvider activeStatementProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider, out ImmutableArray<DocumentId> documentsToReanalyze);
+    internal delegate void StartEditSession(IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze);
     internal delegate void EndSession(out ImmutableArray<DocumentId> documentsToReanalyze);
 
     internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
         public Func<ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>>? GetBaseActiveStatementSpansImpl;
-        public Func<Solution, SolutionActiveStatementSpanProvider, ActiveInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionImpl;
+        public Func<Solution, SolutionActiveStatementSpanProvider, ManagedInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionImpl;
         public Func<Document, DocumentActiveStatementSpanProvider, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetAdjustedActiveStatementSpansImpl;
         public Action<Solution>? StartDebuggingSessionImpl;
         public StartEditSession? StartEditSessionImpl;
         public EndSession? EndDebuggingSessionImpl;
         public EndSession? EndEditSessionImpl;
         public Func<Solution, SolutionActiveStatementSpanProvider, string?, bool>? HasChangesImpl;
-        public Func<Solution, SolutionActiveStatementSpanProvider, (SolutionUpdateStatus, ImmutableArray<Deltas>, ImmutableArray<DiagnosticData>)>? EmitSolutionUpdateImpl;
-        public Func<ActiveInstructionId, bool?>? IsActiveStatementInExceptionRegionImpl;
+        public Func<Solution, SolutionActiveStatementSpanProvider, (ManagedModuleUpdates, ImmutableArray<DiagnosticData>)>? EmitSolutionUpdateImpl;
+        public Func<ManagedInstructionId, bool?>? IsActiveStatementInExceptionRegionImpl;
         public Action<DocumentId>? OnSourceFileUpdatedImpl;
         public Action? CommitSolutionUpdateImpl;
         public Action? DiscardSolutionUpdateImpl;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public void DiscardSolutionUpdate()
             => DiscardSolutionUpdateImpl?.Invoke();
 
-        public ValueTask<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<DiagnosticData> Diagnostics)>
+        public ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics)>
             EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
             => new((EmitSolutionUpdateImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider));
 
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public ValueTask<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
             => new((GetBaseActiveStatementSpansImpl ?? throw new NotImplementedException()).Invoke(documentIds));
 
-        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
             => new((GetCurrentActiveStatementPositionImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider, instructionId));
 
         public ValueTask<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public ValueTask<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
             => new((HasChangesImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider, sourceFilePath));
 
-        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(ManagedInstructionId instructionId, CancellationToken cancellationToken)
             => new((IsActiveStatementInExceptionRegionImpl ?? throw new NotImplementedException()).Invoke(instructionId));
 
         public void OnSourceFileUpdated(DocumentId documentId)
@@ -77,10 +78,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public void StartDebuggingSession(Solution solution)
             => StartDebuggingSessionImpl?.Invoke(solution);
 
-        public void StartEditSession(ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void StartEditSession(IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
-            StartEditSessionImpl?.Invoke(activeStatementsProvider, debuggeeModuleMetadataProvider, out documentsToReanalyze);
+            StartEditSessionImpl?.Invoke(debuggerService, out documentsToReanalyze);
         }
     }
 }

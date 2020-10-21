@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,11 +9,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    /// <summary>
-    /// Provides current active statements.
-    /// </summary>
-    internal delegate ValueTask<ImmutableArray<ActiveStatementDebugInfo>> ActiveStatementProvider(CancellationToken cancellationToken);
-
     /// <summary>
     /// Provides active statement spans within the specified document of a solution.
     /// </summary>
