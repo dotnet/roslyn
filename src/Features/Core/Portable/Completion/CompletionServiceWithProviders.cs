@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
 
             var itemsCount = completionContexts.Sum(context => context.Items.Count);
-            var displayNameToItemsMap = new DisplayNameToItemsMap(this, completionContexts.Sum(context => context.Items.Count));
+            var displayNameToItemsMap = new DisplayNameToItemsMap(this, itemsCount);
             CompletionItem suggestionModeItem = null;
 
             foreach (var context in completionContexts)
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // TODO(DustinCa): Revisit performance of this.
-            using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<CompletionItem>.GetInstance(itemsCount, out var builder);
             builder.AddRange(displayNameToItemsMap);
             builder.Sort();
 
