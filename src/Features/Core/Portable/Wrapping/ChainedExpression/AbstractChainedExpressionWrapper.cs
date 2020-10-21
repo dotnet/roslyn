@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
                     // Ignore null nodes, they are never relevant when building up the sequence of
                     // pieces in this chained expression.
-                    if (node == null)
+                    if (node is null)
                     {
                         continue;
                     }
