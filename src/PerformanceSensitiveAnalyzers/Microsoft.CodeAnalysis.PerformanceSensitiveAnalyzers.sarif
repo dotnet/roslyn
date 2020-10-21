@@ -183,6 +183,15 @@
     },
     {
       "tool": {
+        "name": "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes",
+        "version": "3.3.1",
+        "language": "en-US"
+      },
+      "rules": {
+      }
+    },
+    {
+      "tool": {
         "name": "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers",
         "version": "3.3.1",
         "language": "en-US"

@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     break;
 
                 default:
-                    // Optimististically assume the operation cannot throw.
+                    // Optimistically assume the operation cannot throw.
                     return;
             }
 
@@ -2145,7 +2145,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Bail out if configured not to execute interprocedural analysis.
             var skipInterproceduralAnalysis = !isLambdaOrLocalFunction && InterproceduralAnalysisKind == InterproceduralAnalysisKind.None ||
                 DataFlowAnalysisContext.InterproceduralAnalysisPredicate?.SkipInterproceduralAnalysis(invokedMethod, isLambdaOrLocalFunction) == true ||
-                invokedMethod.IsConfiguredToSkipAnalysis(OwningSymbol, DataFlowAnalysisContext.AnalyzerOptions, s_dummyDataflowAnalysisDescriptor, WellKnownTypeProvider.Compilation, CancellationToken.None);
+                DataFlowAnalysisContext.AnalyzerOptions.IsConfiguredToSkipAnalysis(s_dummyDataflowAnalysisDescriptor, invokedMethod, OwningSymbol, WellKnownTypeProvider.Compilation, CancellationToken.None);
 
             // Also bail out for non-source methods and methods where we are not sure about the actual runtime target method.
             if (skipInterproceduralAnalysis ||
@@ -3010,7 +3010,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// Post process argument which needs to be escaped/reset after being passed to an invocation/creation target
         /// without interprocedural analysis.
         /// This method resets the analysis data for an object instance passed around as an <see cref="IArgumentOperation"/>
-        /// and also handles resetting the argument value for ref/out parmater.
+        /// and also handles resetting the argument value for ref/out parameter.
         /// </summary>
         private void PostProcessEscapedArgument(IArgumentOperation operation)
         {
@@ -3417,7 +3417,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// Visits an invocation, either as a direct method call, or intermediately through a delegate.
         /// </summary>
         /// <param name="method">Method that is invoked.</param>
-        /// <param name="visitedInstance">Instance that that the method is invoked on, if any.</param>
+        /// <param name="visitedInstance">Instance that the method is invoked on, if any.</param>
         /// <param name="visitedArguments">Arguments to the invoked method.</param>
         /// <param name="invokedAsDelegate">Indicates that invocation is a delegate invocation.</param>
         /// <param name="originalOperation">Original invocation operation, which may be a delegate invocation.</param>
