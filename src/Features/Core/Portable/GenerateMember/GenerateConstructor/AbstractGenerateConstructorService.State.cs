@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var remainingAttributeArguments = _attributeArguments != null
                     ? _attributeArguments.Skip(argumentCount).ToImmutableArray()
-                    : (ImmutableArray<TAttributeArgumentSyntax>?)null;
+                    : default;
                 var remainingParameterTypes = ParameterTypes.Skip(argumentCount).ToImmutableArray();
 
                 _delegatedConstructor = delegatedConstructor;
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             private void GetParameters(
                 ImmutableArray<TArgumentSyntax> arguments,
-                ImmutableArray<TAttributeArgumentSyntax>? attributeArguments,
+                ImmutableArray<TAttributeArgumentSyntax> attributeArguments,
                 ImmutableArray<ITypeSymbol> parameterTypes,
                 ImmutableArray<ParameterName> parameterNames,
                 CancellationToken cancellationToken)
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     var parameterName = parameterNames[i];
                     var parameterType = parameterTypes[i];
                     var argument = arguments[i];
-                    var attributeArgument = attributeArguments != null ? attributeArguments.Value[i] : null;
+                    var attributeArgument = attributeArguments.IsDefaultOrEmpty ? null : attributeArguments[i];
 
                     // See if there's a matching field or property we can use, or create a new member otherwise.
                     FindExistingOrCreateNewMember(

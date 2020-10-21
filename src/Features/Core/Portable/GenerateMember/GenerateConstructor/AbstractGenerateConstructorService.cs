@@ -49,8 +49,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         protected virtual ImmutableArray<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TAttributeArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameternamingRule, CancellationToken cancellationToken) => default;
         protected virtual ITypeSymbol GetAttributeArgumentType(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) => null;
 
-        protected bool CanDelegeteThisConstructor(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken)
+        protected bool CanDelegateThisConstructor(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken)
         {
+            // Check if we're in a constructor.  If not, then we can always have our new constructor delegate to
+            // another, as it can't cause a cycle.
             var currentConstructor = GetCurrentConstructor(document.SemanticModel, state.Token, cancellationToken);
             if (currentConstructor == null)
                 return true;
