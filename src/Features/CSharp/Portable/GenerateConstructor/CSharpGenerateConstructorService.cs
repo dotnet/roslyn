@@ -287,11 +287,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                     .Where(node => SpeculationAnalyzer.CanSpeculateOnNode(node))
                     .LastOrDefault();
 
-                var newTypeName = GetConstructorInvocationWithCorrectTypeName(state.TypeToGenerateIn, namedType, oldToken, out var typeNameToReplace);
+                // Get the new constructor call for the desired named type
+                var newConstructorCall = GetConstructorInvocationWithCorrectTypeName(state.TypeToGenerateIn, namedType, oldToken, out var nodeToReplace);
 
-                var newNode = oldNode.ReplaceNode(typeNameToReplace, newTypeName);
-                newTypeName = (TypeSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
+                var newNode = oldNode.ReplaceNode(nodeToReplace, newConstructorCall);
+                var newTypeName = (TypeSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
 
+                // Now trim the argument list as appropriate
                 var oldArgumentList = (ArgumentListSyntax)newTypeName.Parent.ChildNodes().FirstOrDefault(n => n is ArgumentListSyntax);
                 if (oldArgumentList != null)
                 {
@@ -303,6 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                     }
                 }
 
+                // Try to find the symbol info to see if this is a valid call, which means we'll delegate to it
                 var speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(oldNode, newNode, document.SemanticModel);
                 if (speculativeModel != null)
                 {
