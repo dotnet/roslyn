@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -271,38 +273,55 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         }
 
         /// <summary>
-        /// Recursively walks down <paramref name="node"/> decomposing it into the individual 
-        /// tokens and nodes we want to look for chunks in. 
+        /// Walks down <paramref name="node"/> decomposing it into the individual tokens
+        /// and nodes we want to look for chunks in.
         /// </summary>
         private void Decompose(SyntaxNode node, ArrayBuilder<SyntaxNodeOrToken> pieces)
         {
-            // Ignore null nodes, they are never relevant when building up the sequence of
-            // pieces in this chained expression.
-            if (node is null)
+            // Recursion can get us into trouble with deeply chained statements. Let's
+            // use a queue instead.
+            var queue = SharedPools.Default<Queue<SyntaxNode>>().AllocateAndClear();
+            try
             {
-                return;
-            }
+                queue.Enqueue(node);
 
-            // We've hit some node that can't be decomposed further (like an argument list,
-            // or name node).  Just add directly to the pieces list.
-            if (!IsDecomposableChainPart(node))
-            {
-                pieces.Add(node);
-                return;
-            }
+                while (queue.Count > 0)
+                {
+                    node = queue.Dequeue();
 
-            // For everything else that is a chain part, just decompose into its constituent 
-            // parts and add to the pieces array.
-            foreach (var child in node.ChildNodesAndTokens())
+                    // Ignore null nodes, they are never relevant when building up the sequence of
+                    // pieces in this chained expression.
+                    if (node == null)
+                    {
+                        continue;
+                    }
+
+                    // We've hit some node that can't be decomposed further (like an argument list,
+                    // or name node).  Just add directly to the pieces list.
+                    if (!IsDecomposableChainPart(node))
+                    {
+                        pieces.Add(node);
+                        continue;
+                    }
+
+                    // For everything else that is a chain part, just decompose into its constituent 
+                    // parts and add to the pieces array.
+                    foreach (var child in node.ChildNodesAndTokens())
+                    {
+                        if (child.IsNode)
+                        {
+                            queue.Enqueue(child.AsNode());
+                        }
+                        else
+                        {
+                            pieces.Add(child.AsToken());
+                        }
+                    }
+                }
+            }
+            finally
             {
-                if (child.IsNode)
-                {
-                    Decompose(child.AsNode(), pieces);
-                }
-                else
-                {
-                    pieces.Add(child.AsToken());
-                }
+                SharedPools.Default<Queue<SyntaxNode>>().ClearAndFree(queue);
             }
         }
     }
