@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -163,20 +164,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 if (_document.Project.Language != namedType.Language)
                     return false;
 
+                var parameterTypesToMatch = ParameterTypes.Take(argumentCount).ToList();
+                var delegatedConstructor = namedType.InstanceConstructors
+                    .Where(c => IsSymbolAccessible(c, _document))
+                    .Where(c => !c.IsImplicitlyDeclared)
+                    .Where(c => c.Parameters.Length == parameterTypesToMatch.Count)
+                    .Where(c => _service.CanDelegeteThisConstructor(this, _document, c, cancellationToken))
+                    .FirstOrDefault(c => IsCompatible(c, parameterTypesToMatch));
+                if (delegatedConstructor == null)
+                    return false;
+
                 var arguments = _arguments.Take(argumentCount).ToList();
                 var remainingArguments = _arguments.Skip(argumentCount).ToImmutableArray();
                 var remainingAttributeArguments = _attributeArguments != null
                     ? _attributeArguments.Skip(argumentCount).ToImmutableArray()
                     : (ImmutableArray<TAttributeArgumentSyntax>?)null;
                 var remainingParameterTypes = ParameterTypes.Skip(argumentCount).ToImmutableArray();
-
-                var instanceConstructors = namedType.InstanceConstructors.Where(c => IsSymbolAccessible(c, _document)).ToSet();
-                if (instanceConstructors.IsEmpty())
-                    return false;
-
-                var delegatedConstructor = _service.GetDelegatingConstructor(this, _document, argumentCount, namedType, instanceConstructors, cancellationToken);
-                if (delegatedConstructor == null)
-                    return false;
 
                 // Map the first N parameters to the other constructor in this type.  Then
                 // try to map any further parameters to existing fields.  Finally, generate
@@ -199,6 +202,28 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 _delegatedConstructor = delegatedConstructor;
                 GetParameters(remainingArguments, remainingAttributeArguments, remainingParameterTypes, remainingParameterNames, cancellationToken);
+                return true;
+            }
+
+            private bool IsCompatible(IMethodSymbol constructor, List<ITypeSymbol> parameterTypes)
+            {
+                Debug.Assert(constructor.Parameters.Length == parameterTypes.Count);
+
+                // Don't delegate to another constructor in this type. if we're generating a new constructor with the
+                // same parameter types.  Note: this can happen if we're generating the new constructor because
+                // parameter names don't match (when a user explicitly provides named parameters).
+                if (TypeToGenerateIn.Equals(constructor.ContainingType) && constructor.Parameters.Select(p => p.Type).SequenceEqual(this.ParameterTypes))
+                    return false;
+
+                var compilation = _document.SemanticModel.Compilation;
+                for (var i = 0; i < constructor.Parameters.Length; i++)
+                {
+                    var constructorParameter = constructor.Parameters[i];
+                    var conversion = compilation.ClassifyCommonConversion(parameterTypes[i], constructorParameter.Type);
+                    if (!conversion.IsIdentity && !conversion.IsImplicit)
+                        return false;
+                }
+
                 return true;
             }
 
