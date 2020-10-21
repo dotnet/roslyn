@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                     .Where(node => SpeculationAnalyzer.CanSpeculateOnNode(node))
                     .LastOrDefault();
 
-                var newTypeName = GenerateConstructorInvocation(state.TypeToGenerateIn, namedType, (TypeSyntax)oldToken.Parent, out var typeNameToReplace);
+                var newTypeName = GetConstructorInvocationWithCorrectTypeName(state.TypeToGenerateIn, namedType, (TypeSyntax)oldToken.Parent, out var typeNameToReplace);
 
                 var newNode = oldNode.ReplaceNode(typeNameToReplace, newTypeName);
                 newTypeName = (TypeSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
@@ -320,28 +320,28 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         /// a normal creation expression we just find the typename part of the expression and
         /// make sure its the type we want.
         /// </summary>
-        private static SyntaxNode GenerateConstructorInvocation(INamedTypeSymbol typeToGenerateIn, INamedTypeSymbol namedType, TypeSyntax typeName, out TypeSyntax typeNameToReplace)
+        private static SyntaxNode GetConstructorInvocationWithCorrectTypeName(INamedTypeSymbol typeToGenerateIn, INamedTypeSymbol desiredTypeName, TypeSyntax existingTypeName, out SyntaxNode nodeToReplace)
         {
-            typeNameToReplace = typeName;
+            nodeToReplace = existingTypeName;
 
             TypeSyntax newTypeName;
-            if (!Equals(namedType, typeToGenerateIn))
+            if (!Equals(desiredTypeName, typeToGenerateIn))
             {
                 while (true)
                 {
-                    if (!(typeNameToReplace.Parent is TypeSyntax parentType))
+                    if (nodeToReplace.Parent is not TypeSyntax parentType)
                     {
                         break;
                     }
 
-                    typeNameToReplace = parentType;
+                    nodeToReplace = parentType;
                 }
 
-                newTypeName = namedType.GenerateTypeSyntax().WithAdditionalAnnotations(s_annotation);
+                newTypeName = desiredTypeName.GenerateTypeSyntax().WithAdditionalAnnotations(s_annotation);
             }
             else
             {
-                newTypeName = typeNameToReplace.WithAdditionalAnnotations(s_annotation);
+                newTypeName = existingTypeName.WithAdditionalAnnotations(s_annotation);
             }
             return newTypeName;
         }
