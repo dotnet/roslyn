@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">Mostra automaticamente l'elenco di completamento negli elenchi di argomenti (sperimentale)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="needs-review-translation">Mostra automaticamente l'elenco di completamento negli elenchi di argomenti (sperimentale)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">

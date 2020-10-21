@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">인수 목록에 자동으로 완성 목록 표시(실험적)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="needs-review-translation">인수 목록에 자동으로 완성 목록 표시(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">

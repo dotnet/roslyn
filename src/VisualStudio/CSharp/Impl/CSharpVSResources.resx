@@ -603,7 +603,7 @@
     <value>Prefer switch expression</value>
   </data>
   <data name="Automatically_show_completion_list_in_argument_lists" xml:space="preserve">
-    <value>Automatically show completion list in argument lists (experimental)</value>
+    <value>Automatically show completion list in argument lists</value>
   </data>
   <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
     <value>Show remarks in Quick Info</value>

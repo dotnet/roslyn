@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">Bağımsız değişken listelerinde tamamlama listesini otomatik olarak göster (deneysel)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="needs-review-translation">Bağımsız değişken listelerinde tamamlama listesini otomatik olarak göster (deneysel)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
