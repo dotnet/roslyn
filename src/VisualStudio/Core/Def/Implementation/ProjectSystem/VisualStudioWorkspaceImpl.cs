@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
         private readonly IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> _documentOptionsProviderFactories;
-        private bool _documentOptionsProvidersInitialized = false;
+        private bool _documentOptionsProvidersInitialized;
 
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
         private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
@@ -273,6 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "The DocumentId should be contained inside a VisualStudioWorkspaceImpl even if member data is not accessed")]
         internal ContainedDocument? TryGetContainedDocument(DocumentId documentId)
         {
             // TODO: move everybody off of this instance method and replace them with calls to
@@ -446,35 +447,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             => e.TextBuffer.Properties.AddProperty(typeof(ITextBufferCloneService), _textBufferCloneService);
 
         public override bool CanApplyChange(ApplyChangesKind feature)
-        {
-            switch (feature)
+            => feature switch
             {
-                case ApplyChangesKind.AddDocument:
-                case ApplyChangesKind.RemoveDocument:
-                case ApplyChangesKind.ChangeDocument:
-                case ApplyChangesKind.AddMetadataReference:
-                case ApplyChangesKind.RemoveMetadataReference:
-                case ApplyChangesKind.AddProjectReference:
-                case ApplyChangesKind.RemoveProjectReference:
-                case ApplyChangesKind.AddAnalyzerReference:
-                case ApplyChangesKind.RemoveAnalyzerReference:
-                case ApplyChangesKind.AddAdditionalDocument:
-                case ApplyChangesKind.RemoveAdditionalDocument:
-                case ApplyChangesKind.ChangeAdditionalDocument:
-                case ApplyChangesKind.ChangeCompilationOptions:
-                case ApplyChangesKind.ChangeParseOptions:
-                case ApplyChangesKind.ChangeDocumentInfo:
-                case ApplyChangesKind.AddAnalyzerConfigDocument:
-                case ApplyChangesKind.RemoveAnalyzerConfigDocument:
-                case ApplyChangesKind.ChangeAnalyzerConfigDocument:
-                case ApplyChangesKind.AddSolutionAnalyzerReference:
-                case ApplyChangesKind.RemoveSolutionAnalyzerReference:
-                    return true;
+                ApplyChangesKind.AddDocument or
+                ApplyChangesKind.RemoveDocument or
+                ApplyChangesKind.ChangeDocument or
+                ApplyChangesKind.AddMetadataReference or
+                ApplyChangesKind.RemoveMetadataReference or
+                ApplyChangesKind.AddProjectReference or
+                ApplyChangesKind.RemoveProjectReference or
+                ApplyChangesKind.AddAnalyzerReference or
+                ApplyChangesKind.RemoveAnalyzerReference or
+                ApplyChangesKind.AddAdditionalDocument or
+                ApplyChangesKind.RemoveAdditionalDocument or
+                ApplyChangesKind.ChangeAdditionalDocument or
+                ApplyChangesKind.ChangeCompilationOptions or
+                ApplyChangesKind.ChangeParseOptions or
+                ApplyChangesKind.ChangeDocumentInfo or
+                ApplyChangesKind.AddAnalyzerConfigDocument or
+                ApplyChangesKind.RemoveAnalyzerConfigDocument or
+                ApplyChangesKind.ChangeAnalyzerConfigDocument or
+                ApplyChangesKind.AddSolutionAnalyzerReference or
+                ApplyChangesKind.RemoveSolutionAnalyzerReference
+                    => true,
 
-                default:
-                    return false;
-            }
-        }
+                _ => false
+            };
 
         private bool TryGetProjectData(ProjectId projectId, [NotNullWhen(returnValue: true)] out IVsHierarchy? hierarchy, [NotNullWhen(returnValue: true)] out EnvDTE.Project? project)
         {
@@ -516,7 +514,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        private string? GetAnalyzerPath(AnalyzerReference analyzerReference)
+        private static string? GetAnalyzerPath(AnalyzerReference analyzerReference)
             => analyzerReference.FullPath;
 
         protected override void ApplyCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
@@ -597,7 +595,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private string? GetMetadataPath(MetadataReference metadataReference)
+        private static string? GetMetadataPath(MetadataReference metadataReference)
         {
             if (metadataReference is PortableExecutableReference fileMetadata)
             {
@@ -676,7 +674,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Instead, we invoke this in JTF run which will mitigate deadlocks when the ConfigureAwait(true)
             // tries to switch back to the main thread in the LSP client.
             // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
             var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChanges(solutionChanges));
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
 
             // Group the mapped text changes by file, then apply all mapped text changes for the file.
             foreach (var changesForFile in mappedChanges)
@@ -691,7 +691,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return;
 
-            async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChanges(SolutionChanges solutionChanges)
+            static async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChanges(SolutionChanges solutionChanges)
             {
                 var filePathToMappedTextChanges = new MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>();
                 foreach (var projectChanges in solutionChanges.GetProjectChanges())
@@ -726,7 +726,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return filePathToMappedTextChanges;
             }
 
-            bool ShouldApplyChangesToMappedDocuments(CodeAnalysis.Document document, [NotNullWhen(true)] out ISpanMappingService? spanMappingService)
+            static bool ShouldApplyChangesToMappedDocuments(CodeAnalysis.Document document, [NotNullWhen(true)] out ISpanMappingService? spanMappingService)
             {
                 spanMappingService = document.Services.GetService<ISpanMappingService>();
                 // Only consider files that are mapped and that we are unable to apply changes to.
@@ -863,7 +863,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private bool IsWebsite(EnvDTE.Project project)
+        private static bool IsWebsite(EnvDTE.Project project)
             => project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
 
         private IEnumerable<string> FilterFolderForProjectType(EnvDTE.Project project, IEnumerable<string> folders)
@@ -1266,7 +1266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The <see cref="VisualStudioWorkspace"/> currently supports only a subset of <see cref="DocumentInfo"/> 
         /// changes.
         /// </summary>
-        private void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
+        private static void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
         {
             if (document.SourceCodeKind != updatedInfo.SourceCodeKind)
             {
@@ -1785,19 +1785,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Update ConvertedProjectReferences in place to avoid duplicate list allocations
                 for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Count; i++)
                 {
-                    var convertedReference = referenceInfo.ConvertedProjectReferences[i];
+                    var (path, projectReference) = referenceInfo.ConvertedProjectReferences[i];
 
-                    if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
-                        convertedReference.projectReference.ProjectId == projectId)
+                    if (string.Equals(path, outputPath, StringComparison.OrdinalIgnoreCase) &&
+                        projectReference.ProjectId == projectId)
                     {
                         var metadataReference =
                             FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(
-                                convertedReference.path,
+                                path,
                                 new MetadataReferenceProperties(
-                                    aliases: convertedReference.projectReference.Aliases,
-                                    embedInteropTypes: convertedReference.projectReference.EmbedInteropTypes));
+                                    aliases: projectReference.Aliases,
+                                    embedInteropTypes: projectReference.EmbedInteropTypes));
 
-                        modifiedSolution = modifiedSolution.RemoveProjectReference(projectIdToRetarget, convertedReference.projectReference)
+                        modifiedSolution = modifiedSolution.RemoveProjectReference(projectIdToRetarget, projectReference)
                                                            .AddMetadataReference(projectIdToRetarget, metadataReference);
 
                         projectIdsChanged.Add(projectIdToRetarget);
