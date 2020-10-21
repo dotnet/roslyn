@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Use a monotonically increasing integer to keep track the original alphabetical order of each item.
             var currentIndex = 0;
 
-            var builder = ArrayBuilder<MatchResult>.GetInstance();
+            using var _ = ArrayBuilder<MatchResult>.GetInstance(out var builder);
             if (KeepAllItemsInTheList(initialRoslynTriggerKind, filterText) && !needToFilterExpanded && !needToFilter)
             {
                 // PERF: Conditionally set the capacity of the ArrayBuilder, i.e. if we think it's likely that the filtering result
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // to `MatchResult` to achieve this.
             builder.Sort(MatchResult.SortingComparer);
 
-            var initialListOfItemsToBeIncluded = builder.ToImmutableAndFree();
+            var initialListOfItemsToBeIncluded = builder.ToImmutable();
 
             var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
 

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // Timebox is enabled if timeout value is >= 0 and we are not triggered via expander
                     if (timeoutInMilliseconds >= 0 && !isExpandedCompletion)
                     {
-                        // timeout == 0 means immediate timeout
+                        // timeout == 0 means immediate timeout (for testing purpose)
                         if (timeoutInMilliseconds == 0 || await Task.WhenAny(getItemsTask, Task.Delay(timeoutInMilliseconds, linkedTokenSource.Token)).ConfigureAwait(false) != getItemsTask)
                         {
                             nestedTokenSource.Cancel();
