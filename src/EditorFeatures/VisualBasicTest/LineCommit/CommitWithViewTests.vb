@@ -1134,9 +1134,8 @@ End Class
             End Using
         End Sub
 
-        ' Remove Skip to debug issue and when fixed
         <WorkItem(9999, "https://github.com/dotnet/roslyn/issues/48745")>
-        <WpfFact(Skip:="This test will fail"), Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCaseChangeInDoLoop()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -1171,9 +1170,8 @@ End Class
             End Using
         End Sub
 
-        ' Remove Skip to debug issue and when fixed
         <WorkItem(9999, "https://github.com/dotnet/roslyn/issues/48745")>
-        <WpfFact(Skip:="This test will fail"), Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCaseChangeInElseIf()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -1210,9 +1208,8 @@ End Class
             End Using
         End Sub
 
-        ' Remove Skip to debug issue and when fixed
         <WorkItem(9999, "https://github.com/dotnet/roslyn/issues/48745")>
-        <WpfFact(Skip:="This test will fail"), Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCaseChangeInFor()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -1284,7 +1281,7 @@ End Class
         End Sub
 
         <WorkItem(9999, "https://github.com/dotnet/roslyn/issues/48745")>
-        <WpfFact(Skip:="This test will fail"), Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCaseChangeInTry()
             Using testData = CommitTestData.Create(
                 <Workspace>

@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 If startingStatementInfo.MatchingBlockConstruct IsNot Nothing Then
                     ' If we're expanding backwards because of editing an end construct, we don't wan to run
                     ' expensive semantic formatting checks.  We really just want to fix up indentation.
-                    formattingInfo.UseSemantics = finalSpanStart <= startingStatementInfo.MatchingBlockConstruct.SpanStart
+                    formattingInfo.UseSemantics = (finalSpanStart <= startingStatementInfo.MatchingBlockConstruct.SpanStart) OrElse startingStatementInfo.MatchingBlockConstruct.Parent.IsExecutableBlock
 
                     finalSpanStart = Math.Min(finalSpanStart, startingStatementInfo.MatchingBlockConstruct.SpanStart)
                 End If
