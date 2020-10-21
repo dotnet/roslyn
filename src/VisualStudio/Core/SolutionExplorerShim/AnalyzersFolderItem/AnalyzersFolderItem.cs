@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// </summary>
         private VSProject3 GetVSProject()
         {
-            var vsWorkspace = _workspace as VisualStudioWorkspaceImpl;
+            var vsWorkspace = _workspace as VisualStudioWorkspace;
             if (vsWorkspace == null)
             {
                 return null;
