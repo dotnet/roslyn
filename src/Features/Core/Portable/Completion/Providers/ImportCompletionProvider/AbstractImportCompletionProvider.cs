@@ -51,8 +51,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (!isExpandedCompletion)
             {
                 var isImportCompletionEnabled = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-                if (isImportCompletionEnabled == false)
+                if (isImportCompletionEnabled != true)
                 {
+                    // This is a tri-value option, default value (null) means disabled
                     return;
                 }
             }
