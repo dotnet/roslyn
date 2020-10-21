@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name("AnalyzersFolderProvider")]
     [Order(Before = HierarchyItemsProviderNames.Contains)]
+    [AppliesToProject("(CSharp | VisualBasic) & !CPS")] // in the CPS case, the Analyzers folder is created by the project system
     internal class AnalyzersFolderItemProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
     {
         // NOTE: the IComponentModel is used here rather than importing ISolutionExplorerWorkspaceProvider directly
