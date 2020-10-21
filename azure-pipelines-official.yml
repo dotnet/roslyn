@@ -233,10 +233,14 @@ stages:
       displayName: Publish CoreXT Packages 
       inputs:
         command: push
-        feedsToUse: config
         packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
-        publishVstsFeed: '97a41293-2972-4f48-8c0e-05493ae82010'
         allowPackageConflicts: true
+        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+          feedsToUse: config
+          publishVstsFeed: '97a41293-2972-4f48-8c0e-05493ae82010'
+        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+          nuGetFeedType: external
+          publishFeedCredentials: 'DevDiv - VS package feed'
       condition: succeeded()
 
     # Publish an artifact that the RoslynInsertionTool is able to find by its name.
