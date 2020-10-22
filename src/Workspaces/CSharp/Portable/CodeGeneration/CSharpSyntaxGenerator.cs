@@ -1271,8 +1271,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 _ => 1,
             };
 
+        private static SyntaxNode EnsureRecordDeclarationHasBody(SyntaxNode declaration)
+        {
+            if (declaration is RecordDeclarationSyntax recordDeclaration)
+            {
+                if (recordDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken))
+                {
+                    recordDeclaration = recordDeclaration.WithSemicolonToken(default);
+                }
+                if (!recordDeclaration.OpenBraceToken.IsKind(SyntaxKind.OpenBraceToken))
+                {
+                    recordDeclaration = recordDeclaration.WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken));
+                }
+                if (!recordDeclaration.CloseBraceToken.IsKind(SyntaxKind.CloseBraceToken))
+                {
+                    recordDeclaration = recordDeclaration.WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+                }
+
+                return recordDeclaration;
+            }
+
+            return declaration;
+        }
+
         public override SyntaxNode InsertMembers(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> members)
         {
+            declaration = EnsureRecordDeclarationHasBody(declaration);
             var newMembers = this.AsMembersOf(declaration, members);
 
             var existingMembers = this.GetMembers(declaration);
