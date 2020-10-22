@@ -21,6 +21,7 @@ namespace Analyzer.Utilities
             bool isPortedFxCopRule,
             bool isDataflowRule,
             bool isEnabledByDefaultInFxCopAnalyzers = true,
+            bool isReportedAtCompilationEnd = false,
             params string[] additionalCustomTags)
         {
             // PERF: Ensure that all DFA rules are disabled by default in NetAnalyzers package.
@@ -35,6 +36,12 @@ namespace Analyzer.Utilities
             var customTags = isPortedFxCopRule ?
                 (isDataflowRule ? FxCopWellKnownDiagnosticTags.PortedFxCopDataflowRule : FxCopWellKnownDiagnosticTags.PortedFxCopRule) :
                 (isDataflowRule ? WellKnownDiagnosticTagsExtensions.DataflowAndTelemetry : WellKnownDiagnosticTagsExtensions.Telemetry);
+
+            if (isReportedAtCompilationEnd)
+            {
+                customTags = customTags.Concat(WellKnownDiagnosticTagsExtensions.CompilationEnd).ToArray();
+            }
+
             if (additionalCustomTags.Length > 0)
             {
                 customTags = customTags.Concat(additionalCustomTags).ToArray();

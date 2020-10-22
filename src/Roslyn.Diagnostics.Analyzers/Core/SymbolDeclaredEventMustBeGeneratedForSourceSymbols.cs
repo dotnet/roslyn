@@ -28,7 +28,7 @@ namespace Roslyn.Diagnostics.Analyzers
             DiagnosticSeverity.Error,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(SymbolDeclaredEventRule);
 
