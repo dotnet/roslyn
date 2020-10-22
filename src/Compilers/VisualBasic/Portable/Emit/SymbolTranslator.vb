@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If namedTypeSymbol.IsUnboundGenericType Then
                     namedTypeSymbol = namedTypeSymbol.OriginalDefinition
                 Else
-                    Return namedTypeSymbol
+                    Return DirectCast(GetCciAdapter(namedTypeSymbol), Microsoft.Cci.INamedTypeReference)
                 End If
 
             ElseIf Not needDeclaration Then
@@ -204,6 +204,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             Return namedTypeSymbol
+        End Function
+
+        Private Function GetCciAdapter(symbol As Symbol) As Object
+            Return _genericInstanceMap.GetOrAdd(symbol, symbol)
         End Function
 
         Private Sub CheckTupleUnderlyingType(namedTypeSymbol As NamedTypeSymbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
@@ -274,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             If fieldSymbol IsNot fieldSymbol.OriginalDefinition Then
                 Debug.Assert(Not needDeclaration)
-                Return fieldSymbol
+                Return DirectCast(GetCciAdapter(fieldSymbol), Microsoft.Cci.IFieldReference)
 
             ElseIf Not needDeclaration AndAlso IsOrInGenericType(fieldSymbol.ContainingType) Then
 
@@ -388,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If methodSymbol.OriginalDefinition IsNot methodSymbol Then
 
                 Debug.Assert(Not needDeclaration)
-                Return methodSymbol
+                Return DirectCast(GetCciAdapter(methodSymbol), Microsoft.Cci.IMethodReference)
 
             ElseIf Not needDeclaration Then
                 Dim methodIsGeneric As Boolean = methodSymbol.IsGenericMethod
@@ -515,7 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overloads Function Translate(symbol As ArrayTypeSymbol) As Microsoft.Cci.IArrayTypeReference
-            Return symbol
+            Return DirectCast(GetCciAdapter(symbol), Microsoft.Cci.IArrayTypeReference)
         End Function
     End Class
 End Namespace
