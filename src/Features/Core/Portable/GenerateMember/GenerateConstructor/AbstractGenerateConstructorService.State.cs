@@ -97,6 +97,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     if (!await TryInitializeSimpleNameGenerationAsync(node, cancellationToken).ConfigureAwait(false))
                         return false;
                 }
+                else if (_service.IsImplicitObjectCreation(_document, node, cancellationToken))
+                {
+                    if (!await TryInitializeImplicitObjectCreationAsync(node, cancellationToken).ConfigureAwait(false))
+                        return false;
+                }
                 else
                 {
                     return false;
@@ -271,6 +276,23 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     IsConstructorInitializerGeneration = true;
 
                     var semanticInfo = _document.SemanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
+                    if (semanticInfo.Symbol == null)
+                        return await TryDetermineTypeToGenerateInAsync(typeToGenerateIn, cancellationToken).ConfigureAwait(false);
+                }
+
+                return false;
+            }
+
+            private async Task<bool> TryInitializeImplicitObjectCreationAsync(SyntaxNode implicitObjectCreation, CancellationToken cancellationToken)
+            {
+                if (_service.TryInitializeImplicitObjectCreation(
+                        _document, implicitObjectCreation, cancellationToken,
+                        out var token, out var arguments, out var typeToGenerateIn))
+                {
+                    Token = token;
+                    _arguments = arguments;
+
+                    var semanticInfo = _document.SemanticModel.GetSymbolInfo(implicitObjectCreation, cancellationToken);
                     if (semanticInfo.Symbol == null)
                         return await TryDetermineTypeToGenerateInAsync(typeToGenerateIn, cancellationToken).ConfigureAwait(false);
                 }
