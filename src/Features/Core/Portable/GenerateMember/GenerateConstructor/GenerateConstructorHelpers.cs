@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             ImmutableArray<ITypeSymbol> parameterTypes,
             Func<IMethodSymbol, bool> canDelegateToConstructor)
         {
-            for (var i = parameterTypes.Length; i >= 1; i--)
+            for (var i = parameterTypes.Length; i >= 0; i--)
             {
                 var types = parameterTypes.Take(i).ToImmutableArray();
                 var result = FindConstructorToDelegateTo(compilation, typeToGenerateIn, parameterTypes, types, typeToGenerateIn.InstanceConstructors, canDelegateToConstructor);
@@ -46,10 +46,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             ImmutableArray<IMethodSymbol> constructors,
             Func<IMethodSymbol, bool> canDelegateToConstructor)
         {
-            // We can't resolve overloads across language.
-            //if (_document.Project.Language != namedType.Language)
-            //    return false;
-
             // Look for constructors in this specified type that are:
             // 1. Non-implicit.  We don't want to add `: base()` as that's just redundant for subclasses and `:
             //    this()` won't even work as we won't have an implicit constructor once we add this new constructor.
@@ -108,15 +104,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             ImmutableArray<ITypeSymbol> firstParameterTypes)
         {
             Debug.Assert(constructor.Parameters.Length == firstParameterTypes.Length);
-
-            // Don't delegate to another constructor in this type. if we're generating a new constructor with the
-            // same parameter types.  Note: this can happen if we're generating the new constructor because
-            // parameter names don't match (when a user explicitly provides named parameters).
-            if (typeToGenerateIn.Equals(constructor.ContainingType) &&
-                constructor.Parameters.Select(p => p.Type).SequenceEqual(allParameters))
-            {
-                return false;
-            }
 
             for (var i = 0; i < constructor.Parameters.Length; i++)
             {

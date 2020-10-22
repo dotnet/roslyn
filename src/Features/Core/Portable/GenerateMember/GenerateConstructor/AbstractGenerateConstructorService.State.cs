@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     TypeToGenerateIn,
                     includeBaseType: true,
                     ParameterTypes,
-                    c => _service.CanDelegateThisConstructor(this, _document, c, cancellationToken));
+                    c => CanDelegateThisConstructor(c, cancellationToken));
                 if (delegatedConstructor == null)
                     return false;
 
@@ -174,6 +174,23 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 GetParameters(remainingArguments, remainingParameterTypes, remainingParameterNames, cancellationToken);
                 return true;
 
+            }
+
+            private bool CanDelegateThisConstructor(IMethodSymbol constructor, CancellationToken cancellationToken)
+            {
+                if (constructor.Parameters.Length == 0)
+                    return false;
+
+                // Don't delegate to another constructor in this type. if we're generating a new constructor with the
+                // same parameter types.  Note: this can happen if we're generating the new constructor because
+                // parameter names don't match (when a user explicitly provides named parameters).
+                if (TypeToGenerateIn.Equals(constructor.ContainingType) &&
+                    constructor.Parameters.Select(p => p.Type).SequenceEqual(ParameterTypes))
+                {
+                    return false;
+                }
+
+                return _service.CanDelegateThisConstructor(this, _document, constructor, cancellationToken);
             }
 
             private bool ClashesWithExistingConstructor()

@@ -553,10 +553,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return new CodeActionOperation[] { new ApplyChangesOperation(codeGenResult.Project.Solution) };
             }
 
-            private IList<ITypeSymbol> GetArgumentTypes(IList<TArgumentSyntax> argumentList)
+            private ImmutableArray<ITypeSymbol> GetArgumentTypes(IList<TArgumentSyntax> argumentList)
             {
                 var types = argumentList.Select(a => _service.DetermineArgumentType(_semanticDocument.SemanticModel, a, _cancellationToken));
-                return types.Select(FixType).ToList();
+                return types.SelectAsArray(FixType);
             }
 
             private ITypeSymbol FixType(

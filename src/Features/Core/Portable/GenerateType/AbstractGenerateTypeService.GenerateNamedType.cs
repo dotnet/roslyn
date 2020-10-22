@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,13 +21,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
 {
     internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
     {
-        internal abstract IMethodSymbol GetDelegatingConstructor(
-            SemanticDocument document,
-            TObjectCreationExpressionSyntax objectCreation,
-            INamedTypeSymbol namedType,
-            ISet<IMethodSymbol> candidates,
-            CancellationToken cancellationToken);
-
         private partial class Editor
         {
             private INamedTypeSymbol GenerateNamedType()
@@ -148,23 +142,18 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         return;
                     }
 
-                    var accessibleInstanceConstructors = _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Where(
-                        IsSymbolAccessible).ToSet();
+                    var delegatedConstructor = GenerateConstructorHelpers.FindConstructorToDelegateTo(
+                        _semanticDocument.SemanticModel.Compilation,
+                        _state.BaseTypeOrInterfaceOpt,
+                        includeBaseType: false,
+                        parameterTypes,
+                        _ => true);
 
-                    if (accessibleInstanceConstructors.Any())
+                    if (delegatedConstructor != null)
                     {
-                        var delegatedConstructor = _service.GetDelegatingConstructor(
-                            _semanticDocument,
-                            _state.ObjectCreationExpressionOpt,
-                            _state.BaseTypeOrInterfaceOpt,
-                            accessibleInstanceConstructors,
-                            _cancellationToken);
-                        if (delegatedConstructor != null)
-                        {
-                            // There was a best match.  Call it directly.  
-                            AddBaseDelegatingConstructor(delegatedConstructor, members);
-                            return;
-                        }
+                        // There was a best match.  Call it directly.  
+                        AddBaseDelegatingConstructor(delegatedConstructor, members);
+                        return;
                     }
                 }
 
