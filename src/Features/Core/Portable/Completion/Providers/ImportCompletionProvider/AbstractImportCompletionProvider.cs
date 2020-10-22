@@ -62,17 +62,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via expander in completion list)
             var isExpandedCompletion = completionContext.Options.GetOption(CompletionServiceOptions.IsExpandedCompletion);
-            if (!isExpandedCompletion)
-            {
-                var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-
-                // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
-                if (importCompletionOptionValue == false ||
-                    (importCompletionOptionValue == null && !IsExperimentEnabled(document.Project.Solution.Workspace)))
-                {
-                    return;
-                }
-            }
 
             // Find all namespaces in scope at current cursor location, 
             // which will be used to filter so the provider only returns out-of-scope types.
