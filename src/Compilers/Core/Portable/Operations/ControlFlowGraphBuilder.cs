@@ -3446,8 +3446,8 @@ oneMoreTime:
                 {
                     RegionBuilder? filterAndHandlerRegion = null;
 
-                    IOperation exceptionDeclarationOrExpression = catchClause.ExceptionDeclarationOrExpression;
-                    IOperation filter = catchClause.Filter;
+                    IOperation? exceptionDeclarationOrExpression = catchClause.ExceptionDeclarationOrExpression;
+                    IOperation? filter = catchClause.Filter;
                     bool haveFilter = filter != null;
                     var catchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
 
@@ -3538,7 +3538,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        private void AddExceptionStore(ITypeSymbol exceptionType, IOperation exceptionDeclarationOrExpression)
+        private void AddExceptionStore(ITypeSymbol exceptionType, IOperation? exceptionDeclarationOrExpression)
         {
             if (exceptionDeclarationOrExpression != null)
             {

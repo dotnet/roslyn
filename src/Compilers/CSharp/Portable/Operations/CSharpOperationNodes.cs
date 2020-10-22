@@ -119,36 +119,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyCatchClauseOperation : LazyCatchClauseOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundCatchBlock _catchBlock;
-
-        internal CSharpLazyCatchClauseOperation(CSharpOperationFactory operationFactory, BoundCatchBlock catchBlock, ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _catchBlock = catchBlock;
-        }
-
-        protected override IOperation CreateExceptionDeclarationOrExpression()
-        {
-            return _operationFactory.CreateVariableDeclarator((BoundLocal)_catchBlock.ExceptionSourceOpt);
-        }
-
-        protected override IOperation CreateFilter()
-        {
-            // The exception filter prologue is introduced during lowering, so should be null here.
-            Debug.Assert(_catchBlock.ExceptionFilterPrologueOpt is null);
-            return _operationFactory.Create(_catchBlock.ExceptionFilterOpt);
-        }
-
-        protected override IBlockOperation CreateHandler()
-        {
-            return (IBlockOperation)_operationFactory.Create(_catchBlock.Body);
-        }
-    }
-
     internal sealed class CSharpLazyCompoundAssignmentOperation : LazyCompoundAssignmentOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

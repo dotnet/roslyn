@@ -1772,18 +1772,21 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundTryStatement.WasCompilerGenerated;
             return new TryOperation(body, catches, @finally, exitLabel: null, _semanticModel, syntax, isImplicit);
         }
-#nullable disable
 
         private ICatchClauseOperation CreateBoundCatchBlockOperation(BoundCatchBlock boundCatchBlock)
         {
+            IOperation? exceptionDeclarationOrExpression = CreateVariableDeclarator((BoundLocal?)boundCatchBlock.ExceptionSourceOpt);
+            // The exception filter prologue is introduced during lowering, so should be null here.
+            Debug.Assert(boundCatchBlock.ExceptionFilterPrologueOpt is null);
+            IOperation? filter = Create(boundCatchBlock.ExceptionFilterOpt);
+            IBlockOperation handler = (IBlockOperation)Create(boundCatchBlock.Body);
             ITypeSymbol exceptionType = boundCatchBlock.ExceptionTypeOpt.GetPublicSymbol() ?? _semanticModel.Compilation.ObjectType;
             ImmutableArray<ILocalSymbol> locals = boundCatchBlock.Locals.GetPublicSymbols();
             SyntaxNode syntax = boundCatchBlock.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundCatchBlock.WasCompilerGenerated;
-            return new CSharpLazyCatchClauseOperation(this, boundCatchBlock, exceptionType, locals, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CatchClauseOperation(exceptionDeclarationOrExpression, exceptionType, locals, filter, handler, _semanticModel, syntax, isImplicit);
         }
+#nullable disable
 
         private IFixedOperation CreateBoundFixedStatementOperation(BoundFixedStatement boundFixedStatement)
         {

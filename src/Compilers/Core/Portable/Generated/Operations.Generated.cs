@@ -2450,6 +2450,7 @@ namespace Microsoft.CodeAnalysis.Operations
         CommonConversion OutConversion { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a catch clause.
     /// <para>
@@ -2475,7 +2476,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// 3. Reference to an existing local or parameter (VB) OR
         /// 4. Other expression for error scenarios (VB)
         /// </summary>
-        IOperation ExceptionDeclarationOrExpression { get; }
+        IOperation? ExceptionDeclarationOrExpression { get; }
         /// <summary>
         /// Type of the exception handled by the catch clause.
         /// </summary>
@@ -2487,12 +2488,13 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Filter operation to be executed to determine whether to handle the exception.
         /// </summary>
-        IOperation Filter { get; }
+        IOperation? Filter { get; }
         /// <summary>
         /// Body of the exception handler.
         /// </summary>
         IBlockOperation Handler { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a switch case section with one or more case clauses to match and one or more operations to execute within the section.
     /// <para>
@@ -6411,94 +6413,46 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitArgument(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseCatchClauseOperation : OperationOld, ICatchClauseOperation
+    #nullable enable
+    internal sealed partial class CatchClauseOperation : Operation, ICatchClauseOperation
     {
-        internal BaseCatchClauseOperation(ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.CatchClause, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal CatchClauseOperation(IOperation? exceptionDeclarationOrExpression, ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, IOperation? filter, IBlockOperation handler, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            ExceptionDeclarationOrExpression = SetParentOperation(exceptionDeclarationOrExpression, this);
             ExceptionType = exceptionType;
             Locals = locals;
+            Filter = SetParentOperation(filter, this);
+            Handler = SetParentOperation(handler, this);
         }
-        public abstract IOperation ExceptionDeclarationOrExpression { get; }
+        public IOperation? ExceptionDeclarationOrExpression { get; }
         public ITypeSymbol ExceptionType { get; }
         public ImmutableArray<ILocalSymbol> Locals { get; }
-        public abstract IOperation Filter { get; }
-        public abstract IBlockOperation Handler { get; }
+        public IOperation? Filter { get; }
+        public IBlockOperation Handler { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (ExceptionDeclarationOrExpression is object) yield return ExceptionDeclarationOrExpression;
-                if (Filter is object) yield return Filter;
-                if (Handler is object) yield return Handler;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
+                    if (ExceptionDeclarationOrExpression is not null) builder.Add(ExceptionDeclarationOrExpression);
+                    if (Filter is not null) builder.Add(Filter);
+                    if (Handler is not null) builder.Add(Handler);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.CatchClause;
         public override void Accept(OperationVisitor visitor) => visitor.VisitCatchClause(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitCatchClause(this, argument);
     }
-    internal sealed partial class CatchClauseOperation : BaseCatchClauseOperation, ICatchClauseOperation
-    {
-        internal CatchClauseOperation(IOperation exceptionDeclarationOrExpression, ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, IOperation filter, IBlockOperation handler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ExceptionDeclarationOrExpression = SetParentOperation(exceptionDeclarationOrExpression, this);
-            Filter = SetParentOperation(filter, this);
-            Handler = SetParentOperation(handler, this);
-        }
-        public override IOperation ExceptionDeclarationOrExpression { get; }
-        public override IOperation Filter { get; }
-        public override IBlockOperation Handler { get; }
-    }
-    internal abstract partial class LazyCatchClauseOperation : BaseCatchClauseOperation, ICatchClauseOperation
-    {
-        private IOperation _lazyExceptionDeclarationOrExpression = s_unset;
-        private IOperation _lazyFilter = s_unset;
-        private IBlockOperation _lazyHandler = s_unsetBlock;
-        internal LazyCatchClauseOperation(ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateExceptionDeclarationOrExpression();
-        public override IOperation ExceptionDeclarationOrExpression
-        {
-            get
-            {
-                if (_lazyExceptionDeclarationOrExpression == s_unset)
-                {
-                    IOperation exceptionDeclarationOrExpression = CreateExceptionDeclarationOrExpression();
-                    SetParentOperation(exceptionDeclarationOrExpression, this);
-                    Interlocked.CompareExchange(ref _lazyExceptionDeclarationOrExpression, exceptionDeclarationOrExpression, s_unset);
-                }
-                return _lazyExceptionDeclarationOrExpression;
-            }
-        }
-        protected abstract IOperation CreateFilter();
-        public override IOperation Filter
-        {
-            get
-            {
-                if (_lazyFilter == s_unset)
-                {
-                    IOperation filter = CreateFilter();
-                    SetParentOperation(filter, this);
-                    Interlocked.CompareExchange(ref _lazyFilter, filter, s_unset);
-                }
-                return _lazyFilter;
-            }
-        }
-        protected abstract IBlockOperation CreateHandler();
-        public override IBlockOperation Handler
-        {
-            get
-            {
-                if (_lazyHandler == s_unsetBlock)
-                {
-                    IBlockOperation handler = CreateHandler();
-                    SetParentOperation(handler, this);
-                    Interlocked.CompareExchange(ref _lazyHandler, handler, s_unsetBlock);
-                }
-                return _lazyHandler;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseSwitchCaseOperation : OperationOld, ISwitchCaseOperation
     {
         internal BaseSwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8626,6 +8580,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ArgumentOperation)operation;
             return new ArgumentOperation(internalOperation.ArgumentKind, internalOperation.Parameter, Visit(internalOperation.Value), internalOperation.InConversionConvertible, internalOperation.OutConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitCatchClause(ICatchClauseOperation operation, object? argument)
+        {
+            var internalOperation = (CatchClauseOperation)operation;
+            return new CatchClauseOperation(Visit(internalOperation.ExceptionDeclarationOrExpression), internalOperation.ExceptionType, internalOperation.Locals, Visit(internalOperation.Filter), Visit(internalOperation.Handler), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, object? argument)
         {

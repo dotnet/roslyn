@@ -1263,15 +1263,16 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundCatchBlockOperation(boundCatchBlock As BoundCatchBlock) As ICatchClauseOperation
+            Dim exceptionDeclarationOrExpression as IOperation = CreateBoundCatchBlockExceptionDeclarationOrExpression(boundCatchBlock)
+            Dim filter As IOperation = Create(boundCatchBlock.ExceptionFilterOpt)
+            Dim handler As IBlockOperation = DirectCast(Create(boundCatchBlock.Body), IBlockOperation)
             Dim exceptionType As ITypeSymbol = If(boundCatchBlock.ExceptionSourceOpt?.Type, DirectCast(_semanticModel.Compilation, VisualBasicCompilation).GetWellKnownType(WellKnownType.System_Exception))
             Dim locals As ImmutableArray(Of ILocalSymbol) = If(boundCatchBlock.LocalOpt IsNot Nothing,
                 ImmutableArray.Create(Of ILocalSymbol)(boundCatchBlock.LocalOpt),
                 ImmutableArray(Of ILocalSymbol).Empty)
             Dim syntax As SyntaxNode = boundCatchBlock.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundCatchBlock.WasCompilerGenerated
-            Return New VisualBasicLazyCatchClauseOperation(Me, boundCatchBlock, exceptionType, locals, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New CatchClauseOperation(exceptionDeclarationOrExpression, exceptionType, locals, filter, handler, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockOperation

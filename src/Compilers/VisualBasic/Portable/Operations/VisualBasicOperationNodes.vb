@@ -45,31 +45,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyCatchClauseOperation
-        Inherits LazyCatchClauseOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _boundCatchBlock As BoundCatchBlock
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundCatchBlock As BoundCatchBlock, exceptionType As ITypeSymbol, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _boundCatchBlock = boundCatchBlock
-        End Sub
-
-        Protected Overrides Function CreateExceptionDeclarationOrExpression() As IOperation
-            Return _operationFactory.CreateBoundCatchBlockExceptionDeclarationOrExpression(_boundCatchBlock)
-        End Function
-
-        Protected Overrides Function CreateFilter() As IOperation
-            Return _operationFactory.Create(_boundCatchBlock.ExceptionFilterOpt)
-        End Function
-
-        Protected Overrides Function CreateHandler() As IBlockOperation
-            Return DirectCast(_operationFactory.Create(_boundCatchBlock.Body), IBlockOperation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyCompoundAssignmentOperation
         Inherits LazyCompoundAssignmentOperation
 

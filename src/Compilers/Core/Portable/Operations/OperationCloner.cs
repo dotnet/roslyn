@@ -92,11 +92,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                             ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitCatchClause(ICatchClauseOperation operation, object argument)
-        {
-            return new CatchClauseOperation(Visit(operation.ExceptionDeclarationOrExpression), operation.ExceptionType, operation.Locals, Visit(operation.Filter), Visit(operation.Handler), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         // https://github.com/dotnet/roslyn/issues/21281
         internal override IOperation VisitFixed(IFixedOperation operation, object argument)
         {

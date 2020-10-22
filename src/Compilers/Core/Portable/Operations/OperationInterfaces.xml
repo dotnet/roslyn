@@ -2093,7 +2093,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="ExceptionDeclarationOrExpression" Type="IOperation">
+    <Property Name="ExceptionDeclarationOrExpression" Type="IOperation?">
       <Comments>
         <summary>
           Optional source for exception. This could be any of the following operation:
@@ -2116,7 +2116,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="Filter" Type="IOperation">
+    <Property Name="Filter" Type="IOperation?">
       <Comments>
         <summary>Filter operation to be executed to determine whether to handle the exception.</summary>
       </Comments>
