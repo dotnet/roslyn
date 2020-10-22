@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public static readonly CultureInfo USCultureInfo = new("en-US");
 
-        public static string? GetBingHelpMessage(this Diagnostic diagnostic, OptionSet options)
+        public static string GetBingHelpMessage(this Diagnostic diagnostic, OptionSet options)
         {
             // We use the ENU version of the message for bing search.
             return options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch) ?
                 diagnostic.GetMessage(USCultureInfo) : diagnostic.Descriptor.GetBingHelpMessage();
         }
 
-        public static string? GetBingHelpMessage(this DiagnosticDescriptor descriptor)
+        public static string GetBingHelpMessage(this DiagnosticDescriptor descriptor)
         {
             // We use the ENU version of the message for bing search.
             return descriptor.MessageFormat.ToString(USCultureInfo);

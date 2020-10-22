@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return new BrowseObject(this);
         }
 
-        public Uri GetHelpLink()
+        public Uri? GetHelpLink()
             => BrowserHelper.GetHelpLink(Descriptor, Language);
 
         internal void UpdateEffectiveSeverity(ReportDiagnostic newEffectiveSeverity)
