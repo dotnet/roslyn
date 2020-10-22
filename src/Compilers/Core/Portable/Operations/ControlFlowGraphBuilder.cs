@@ -1990,7 +1990,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             return VisitArray(arguments, UnwrapArgument, RewriteArgumentFromArray);
         }
-#nullable disable
 
         private static IOperation UnwrapArgument(IArgumentOperation argument)
         {
@@ -2000,11 +1999,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> args)
         {
             Debug.Assert(index >= 0 && index < args.Length);
-            var originalArgument = (BaseArgumentOperation)args[index];
-            return new ArgumentOperation(visitedArgument, originalArgument.ArgumentKind, originalArgument.Parameter,
-                                         originalArgument.InConversionConvertibleOpt, originalArgument.OutConversionConvertibleOpt,
+            var originalArgument = (ArgumentOperation)args[index];
+            return new ArgumentOperation(originalArgument.ArgumentKind,originalArgument.Parameter, visitedArgument, 
+                                         originalArgument.InConversionConvertible, originalArgument.OutConversionConvertible,
                                          semanticModel: null, originalArgument.Syntax, IsImplicit(originalArgument));
         }
+#nullable disable
 
         public override IOperation VisitSimpleAssignment(ISimpleAssignmentOperation operation, int? captureIdForResult)
         {
@@ -4003,11 +4003,11 @@ oneMoreTime:
                 {
                     AddStatement(new InvocationOperation(enterMethod, instance: null, isVirtual: false,
                                                           ImmutableArray.Create<IArgumentOperation>(
-                                                                    new ArgumentOperation(lockedValue,
-                                                                                          ArgumentKind.Explicit,
+                                                                    new ArgumentOperation(ArgumentKind.Explicit,
                                                                                           enterMethod.Parameters[0],
-                                                                                          inConversionOpt: null,
-                                                                                          outConversionOpt: null,
+                                                                                          lockedValue,
+                                                                                          inConversion: OperationFactory.IdentityConversion,
+                                                                                          outConversion: OperationFactory.IdentityConversion,
                                                                                           semanticModel: null,
                                                                                           lockedValue.Syntax,
                                                                                           isImplicit: true)),
@@ -4031,19 +4031,19 @@ oneMoreTime:
                                                          lockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
                 AddStatement(new InvocationOperation(enterMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
-                                                                new ArgumentOperation(lockedValue,
-                                                                                      ArgumentKind.Explicit,
+                                                                new ArgumentOperation(ArgumentKind.Explicit,
                                                                                       enterMethod.Parameters[0],
-                                                                                      inConversionOpt: null,
-                                                                                      outConversionOpt: null,
+                                                                                      lockedValue,
+                                                                                      inConversion: OperationFactory.IdentityConversion,
+                                                                                      outConversion: OperationFactory.IdentityConversion,
                                                                                       semanticModel: null,
                                                                                       lockedValue.Syntax,
                                                                                       isImplicit: true),
-                                                                new ArgumentOperation(lockTaken,
-                                                                                      ArgumentKind.Explicit,
+                                                                new ArgumentOperation(ArgumentKind.Explicit,
                                                                                       enterMethod.Parameters[1],
-                                                                                      inConversionOpt: null,
-                                                                                      outConversionOpt: null,
+                                                                                      lockTaken,
+                                                                                      inConversion: OperationFactory.IdentityConversion,
+                                                                                      outConversion: OperationFactory.IdentityConversion,
                                                                                       semanticModel: null,
                                                                                       lockedValue.Syntax,
                                                                                       isImplicit: true)),
@@ -4086,11 +4086,11 @@ oneMoreTime:
             {
                 AddStatement(new InvocationOperation(exitMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
-                                                                new ArgumentOperation(lockedValue,
-                                                                                      ArgumentKind.Explicit,
+                                                                new ArgumentOperation(ArgumentKind.Explicit,
                                                                                       exitMethod.Parameters[0],
-                                                                                      inConversionOpt: null,
-                                                                                      outConversionOpt: null,
+                                                                                      lockedValue,
+                                                                                      inConversion: OperationFactory.IdentityConversion,
+                                                                                      outConversion: OperationFactory.IdentityConversion,
                                                                                       semanticModel: null,
                                                                                       lockedValue.Syntax,
                                                                                       isImplicit: true)),
@@ -4435,22 +4435,25 @@ oneMoreTime:
                 {
                     var builder = ArrayBuilder<IArgumentOperation>.GetInstance(parametersCount, fillWithValue: null!);
 
-                    builder[--parametersCount] = new ArgumentOperation(visitLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                                       ArgumentKind.Explicit, method.Parameters[parametersCount],
-                                                                       inConversionOpt: null, outConversionOpt: null,
+                    builder[--parametersCount] = new ArgumentOperation(ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                       visitLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
+                                                                       inConversion: OperationFactory.IdentityConversion,
+                                                                       outConversion: OperationFactory.IdentityConversion,
                                                                        semanticModel: null, syntax, isImplicit: true);
 
-                    builder[--parametersCount] = new ArgumentOperation(loopObjectReference,
-                                                                       ArgumentKind.Explicit, method.Parameters[parametersCount],
-                                                                       inConversionOpt: null, outConversionOpt: null,
+                    builder[--parametersCount] = new ArgumentOperation(ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                       loopObjectReference,
+                                                                       inConversion: OperationFactory.IdentityConversion,
+                                                                       outConversion: OperationFactory.IdentityConversion,
                                                                        semanticModel: null, syntax, isImplicit: true);
 
                     do
                     {
                         IOperation value = PopOperand();
-                        builder[--parametersCount] = new ArgumentOperation(value,
-                                                                           ArgumentKind.Explicit, method.Parameters[parametersCount],
-                                                                           inConversionOpt: null, outConversionOpt: null,
+                        builder[--parametersCount] = new ArgumentOperation(ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                           value,
+                                                                           inConversion: OperationFactory.IdentityConversion,
+                                                                           outConversion: OperationFactory.IdentityConversion,
                                                                            semanticModel: null, isInitialization ? value.Syntax : syntax, isImplicit: true);
                     }
                     while (parametersCount != 0);
@@ -6465,8 +6468,10 @@ oneMoreTime:
                     {
                         var value = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null,
                             operation.Syntax, parameter.Type, constantValue: null, isImplicit: true);
-                        var argument = new ArgumentOperation(value, ArgumentKind.Explicit, parameter, inConversionOpt: null,
-                            outConversionOpt: null, semanticModel: null, operation.Syntax, isImplicit: true);
+                        var argument = new ArgumentOperation(ArgumentKind.Explicit, parameter, value,
+                                                             inConversion: OperationFactory.IdentityConversion,
+                                                             outConversion: OperationFactory.IdentityConversion,
+                                                             semanticModel: null, operation.Syntax, isImplicit: true);
                         builder.Add(argument);
                     }
 

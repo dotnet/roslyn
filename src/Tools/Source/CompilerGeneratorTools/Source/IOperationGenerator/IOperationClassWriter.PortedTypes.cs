@@ -66,6 +66,7 @@ namespace IOperationGenerator
             "IThrowOperation",
             "IDeclarationExpressionOperation",
             "IArrayInitializerOperation",
+            "IArgumentOperation",
         };
     }
 }

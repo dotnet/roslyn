@@ -24,23 +24,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyArgumentOperation
-        Inherits LazyArgumentOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _value As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, argumentKind As ArgumentKind, inConversionOpt As IConvertibleConversion, outConversionOpt As IConvertibleConversion, parameter As IParameterSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, isImplicit As Boolean)
-            MyBase.New(argumentKind, inConversionOpt, outConversionOpt, parameter, semanticModel, syntax, isImplicit)
-            _operationFactory = operationFactory
-            _value = value
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_value)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazySimpleAssignmentOperation
         Inherits LazySimpleAssignmentOperation
 

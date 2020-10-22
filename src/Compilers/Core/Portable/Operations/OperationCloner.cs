@@ -113,12 +113,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new WithStatementOperation(Visit(operation.Body), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitArgument(IArgumentOperation operation, object argument)
-        {
-            var baseArgument = (BaseArgumentOperation)operation;
-            return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
-        }
-
         public override IOperation VisitFieldReference(IFieldReferenceOperation operation, object argument)
         {
             return new FieldReferenceOperation(operation.Field, operation.IsDeclaration, Visit(operation.Instance), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

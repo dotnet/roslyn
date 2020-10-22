@@ -73,43 +73,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal abstract partial class BaseArgumentOperation
-    {
-        internal BaseArgumentOperation(ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversion, IConvertibleConversion outConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            InConversionConvertibleOpt = inConversion;
-            OutConversionConvertibleOpt = outConversion;
-        }
-
-        internal IConvertibleConversion InConversionConvertibleOpt { get; }
-        internal IConvertibleConversion OutConversionConvertibleOpt { get; }
-        public CommonConversion InConversion => InConversionConvertibleOpt?.ToCommonConversion() ?? Identity();
-        public CommonConversion OutConversion => OutConversionConvertibleOpt?.ToCommonConversion() ?? Identity();
-
-        private static CommonConversion Identity()
-        {
-            return new CommonConversion(exists: true, isIdentity: true, isNumeric: false, isReference: false, methodSymbol: null, isImplicit: true, isNullable: false);
-        }
-    }
-
-    internal sealed partial class ArgumentOperation
-    {
-        public ArgumentOperation(IOperation value, ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-        }
-    }
-
-
-    internal abstract partial class LazyArgumentOperation
-    {
-        public LazyArgumentOperation(ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        { }
-    }
-
     internal abstract partial class BaseConversionOperation : OperationOld, IConversionOperation
     {
         public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;

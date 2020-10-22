@@ -2409,6 +2409,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IOperation> IgnoredDimensions { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents an argument to a method invocation.
     /// <para>
@@ -2432,9 +2433,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ArgumentKind ArgumentKind { get; }
         /// <summary>
-        /// Parameter the argument matches.
+        /// Parameter the argument matches. This can be null for __arglist parameters.
         /// </summary>
-        IParameterSymbol Parameter { get; }
+        IParameterSymbol? Parameter { get; }
         /// <summary>
         /// Value supplied for the argument.
         /// </summary>
@@ -2448,6 +2449,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         CommonConversion OutConversion { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a catch clause.
     /// <para>
@@ -6369,56 +6371,46 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseArgumentOperation : OperationOld, IArgumentOperation
+    #nullable enable
+    internal sealed partial class ArgumentOperation : Operation, IArgumentOperation
     {
-        internal BaseArgumentOperation(ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Argument, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ArgumentOperation(ArgumentKind argumentKind, IParameterSymbol? parameter, IOperation value, IConvertibleConversion inConversion, IConvertibleConversion outConversion, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             ArgumentKind = argumentKind;
             Parameter = parameter;
+            Value = SetParentOperation(value, this);
+            InConversionConvertible = inConversion;
+            OutConversionConvertible = outConversion;
         }
         public ArgumentKind ArgumentKind { get; }
-        public IParameterSymbol Parameter { get; }
-        public abstract IOperation Value { get; }
+        public IParameterSymbol? Parameter { get; }
+        public IOperation Value { get; }
+        internal IConvertibleConversion InConversionConvertible { get; }
+        public CommonConversion InConversion => InConversionConvertible.ToCommonConversion();
+        internal IConvertibleConversion OutConversionConvertible { get; }
+        public CommonConversion OutConversion => OutConversionConvertible.ToCommonConversion();
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Value is object) yield return Value;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Value is not null) builder.Add(Value);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Argument;
         public override void Accept(OperationVisitor visitor) => visitor.VisitArgument(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitArgument(this, argument);
     }
-    internal sealed partial class ArgumentOperation : BaseArgumentOperation, IArgumentOperation
-    {
-        internal ArgumentOperation(ArgumentKind argumentKind, IParameterSymbol parameter, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-        }
-        public override IOperation Value { get; }
-    }
-    internal abstract partial class LazyArgumentOperation : BaseArgumentOperation, IArgumentOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        internal LazyArgumentOperation(ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseCatchClauseOperation : OperationOld, ICatchClauseOperation
     {
         internal BaseCatchClauseOperation(ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8629,6 +8621,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ArrayInitializerOperation)operation;
             return new ArrayInitializerOperation(VisitArray(internalOperation.ElementValues), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitArgument(IArgumentOperation operation, object? argument)
+        {
+            var internalOperation = (ArgumentOperation)operation;
+            return new ArgumentOperation(internalOperation.ArgumentKind, internalOperation.Parameter, Visit(internalOperation.Value), internalOperation.InConversionConvertible, internalOperation.OutConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, object? argument)
         {

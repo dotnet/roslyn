@@ -2061,9 +2061,9 @@
         <summary>Kind of argument.</summary>
       </Comments>
     </Property>
-    <Property Name="Parameter" Type="IParameterSymbol">
+    <Property Name="Parameter" Type="IParameterSymbol?">
       <Comments>
-        <summary>Parameter the argument matches.</summary>
+        <summary>Parameter the argument matches. This can be null for __arglist parameters.</summary>
       </Comments>
     </Property>
     <Property Name="Value" Type="IOperation">
@@ -2071,12 +2071,12 @@
         <summary>Value supplied for the argument.</summary>
       </Comments>
     </Property>
-    <Property Name="InConversion" Type="CommonConversion" SkipGeneration="true">
+    <Property Name="InConversion" Type="CommonConversion">
       <Comments>
         <summary>Information of the conversion applied to the argument value passing it into the target method. Applicable only to VB Reference arguments.</summary>
       </Comments>
     </Property>
-    <Property Name="OutConversion" Type="CommonConversion" SkipGeneration="true">
+    <Property Name="OutConversion" Type="CommonConversion">
       <Comments>
         <summary>Information of the conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.</summary>
       </Comments>

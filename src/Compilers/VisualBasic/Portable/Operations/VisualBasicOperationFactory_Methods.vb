@@ -250,37 +250,23 @@ Namespace Microsoft.CodeAnalysis.Operations
             isImplicit As Boolean) As IArgumentOperation
 
             ' put argument syntax to argument operation
-            Dim argument = If(valueNode.Syntax.Kind = SyntaxKind.OmittedArgument, valueNode.Syntax, TryCast(valueNode.Syntax?.Parent, ArgumentSyntax))
+            Dim syntax = If(valueNode.Syntax.Kind = SyntaxKind.OmittedArgument, valueNode.Syntax, TryCast(valueNode.Syntax?.Parent, ArgumentSyntax))
+            Dim value = Create(valueNode)
 
-            If argument Is Nothing Then
-
-                ' We don't create this lazily because, in the case of query nodes we may want to skip intermediate nodes and then
-                ' use the same syntax as the underlying value for the containing Argument. So we need to actually create the child
-                ' node to determine the correct syntax
-                Dim value = Create(valueNode)
-
-                Return New ArgumentOperation(
-                    value,
-                    kind,
-                    parameter,
-                    inConversion,
-                    outConversion,
-                    semanticModel:=_semanticModel,
-                    syntax:=value.Syntax,
-                    isImplicit:=True)
-            Else
-                Debug.Assert(argument IsNot valueNode.Syntax OrElse valueNode.Syntax Is Create(valueNode).Syntax)
-                Return New VisualBasicLazyArgumentOperation(
-                    Me,
-                    valueNode,
-                    kind,
-                    inConversion,
-                    outConversion,
-                    parameter,
-                    semanticModel:=_semanticModel,
-                    syntax:=argument,
-                    isImplicit:=isImplicit)
+            If syntax Is Nothing Then
+                syntax = value.Syntax
+                isImplicit = True
             End If
+
+            Return New ArgumentOperation(
+                kind,
+                parameter,
+                value,
+                inConversion,
+                outConversion,
+                _semanticModel,
+                syntax,
+                isImplicit)
         End Function
 
         Friend Function CreateReceiverOperation(node As BoundNode, symbol As ISymbol) As IOperation
