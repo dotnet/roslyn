@@ -689,11 +689,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             if (_workspace == null)
             {
                 var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-                var provider = componentModel.DefaultExportProvider.GetExportedValueOrDefault<ISolutionExplorerWorkspaceProvider>();
-                if (provider != null)
-                {
-                    _workspace = provider.GetWorkspace();
-                }
+                _workspace = componentModel.DefaultExportProvider.GetExportedValueOrDefault<VisualStudioWorkspace>();
             }
 
             return _workspace;
