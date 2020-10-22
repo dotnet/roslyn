@@ -132,42 +132,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyDeclarationExpressionOperation : LazyDeclarationExpressionOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundExpression _underlyingReference;
-
-        public CSharpLazyDeclarationExpressionOperation(CSharpOperationFactory operationFactory, BoundExpression underlyingReference, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Debug.Assert(underlyingReference.Kind == BoundKind.Local ||
-                         underlyingReference.Kind == BoundKind.FieldAccess ||
-                         underlyingReference is BoundTupleExpression);
-
-            _operationFactory = operationFactory;
-            _underlyingReference = underlyingReference;
-        }
-
-        protected override IOperation CreateExpression()
-        {
-            SyntaxNode underlyingSyntax = ((DeclarationExpressionSyntax)_underlyingReference.Syntax).Designation;
-
-            switch (_underlyingReference)
-            {
-                case BoundLocal local:
-                    return _operationFactory.CreateBoundLocalOperation(local, createDeclaration: false);
-                case BoundTupleLiteral tupleLiteral:
-                    return _operationFactory.CreateBoundTupleLiteralOperation(tupleLiteral, createDeclaration: false);
-                case BoundConvertedTupleLiteral convertedTupleLiteral:
-                    return _operationFactory.CreateBoundConvertedTupleLiteralOperation(convertedTupleLiteral, createDeclaration: false);
-                case BoundFieldAccess fieldAccess:
-                    return _operationFactory.CreateBoundFieldAccessOperation(fieldAccess, createDeclaration: false);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(_underlyingReference.Kind);
-            }
-        }
-    }
-
     internal sealed class CSharpLazyTupleBinaryOperation : LazyTupleBinaryOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

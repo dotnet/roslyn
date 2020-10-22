@@ -242,9 +242,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.ExpressionStatement:
                     return CreateBoundExpressionStatementOperation((BoundExpressionStatement)boundNode);
                 case BoundKind.TupleLiteral:
-                    return CreateBoundTupleLiteralOperation((BoundTupleLiteral)boundNode);
                 case BoundKind.ConvertedTupleLiteral:
-                    return CreateBoundConvertedTupleLiteralOperation((BoundConvertedTupleLiteral)boundNode);
+                    return CreateBoundTupleOperation((BoundTupleExpression)boundNode);
                 case BoundKind.InterpolatedString:
                     return CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)boundNode);
                 case BoundKind.StringInsert:
@@ -514,21 +513,21 @@ namespace Microsoft.CodeAnalysis.Operations
                 syntax = declarationExpressionSyntax.Designation;
                 if (createDeclaration)
                 {
-                    return new CSharpLazyDeclarationExpressionOperation(this, boundLocal, _semanticModel, declarationExpressionSyntax, type, constantValue: null, isImplicit: false);
+                    IOperation localReference = CreateBoundLocalOperation(boundLocal, createDeclaration: false);
+                    return new DeclarationExpressionOperation(localReference, _semanticModel, declarationExpressionSyntax, type, isImplicit: false);
                 }
             }
             return new LocalReferenceOperation(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
         }
-#nullable disable
 
         internal IOperation CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess, bool createDeclaration = true)
         {
             IFieldSymbol field = boundFieldAccess.FieldSymbol.GetPublicSymbol();
             bool isDeclaration = boundFieldAccess.IsDeclaration;
-            BoundNode instance = boundFieldAccess.ReceiverOpt;
+            BoundNode? instance = boundFieldAccess.ReceiverOpt;
             SyntaxNode syntax = boundFieldAccess.Syntax;
-            ITypeSymbol type = boundFieldAccess.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundFieldAccess.ConstantValue;
+            ITypeSymbol? type = boundFieldAccess.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundFieldAccess.ConstantValue;
             bool isImplicit = boundFieldAccess.WasCompilerGenerated;
             if (isDeclaration && syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
@@ -536,11 +535,13 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (createDeclaration)
                 {
-                    return new CSharpLazyDeclarationExpressionOperation(this, boundFieldAccess, _semanticModel, declarationExpressionSyntax, type, constantValue: null, isImplicit: false);
+                    IOperation fieldAccess = CreateBoundFieldAccessOperation(boundFieldAccess, createDeclaration: false);
+                    return new DeclarationExpressionOperation(fieldAccess, _semanticModel, declarationExpressionSyntax, type, isImplicit: false);
                 }
             }
             return new CSharpLazyFieldReferenceOperation(this, instance, field, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
         }
+#nullable disable
 
         internal IOperation CreateBoundPropertyReferenceInstance(BoundNode boundNode)
         {
@@ -1979,27 +1980,25 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ExpressionStatementOperation(expression, _semanticModel, syntax, isImplicit);
         }
 
-        internal IOperation CreateBoundTupleLiteralOperation(BoundTupleLiteral boundTupleLiteral, bool createDeclaration = true)
-        {
-            return CreateTupleOperation(boundTupleLiteral, boundTupleLiteral.Type, createDeclaration);
-        }
-
-        internal IOperation CreateBoundConvertedTupleLiteralOperation(BoundConvertedTupleLiteral boundConvertedTupleLiteral, bool createDeclaration = true)
-        {
-            return CreateTupleOperation(boundConvertedTupleLiteral, boundConvertedTupleLiteral.SourceTuple?.Type, createDeclaration);
-        }
-
-        internal IOperation CreateTupleOperation(BoundTupleExpression boundTupleExpression, TypeSymbol? naturalType, bool createDeclaration)
+        internal IOperation CreateBoundTupleOperation(BoundTupleExpression boundTupleExpression, bool createDeclaration = true)
         {
             SyntaxNode syntax = boundTupleExpression.Syntax;
             bool isImplicit = boundTupleExpression.WasCompilerGenerated;
             ITypeSymbol? type = boundTupleExpression.GetPublicTypeSymbol();
+            TypeSymbol? naturalType = boundTupleExpression switch
+            {
+                BoundTupleLiteral { Type: var t } => t,
+                BoundConvertedTupleLiteral { SourceTuple: { Type: var t } } => t,
+                BoundConvertedTupleLiteral => null,
+                { Kind: var kind } => throw ExceptionUtilities.UnexpectedValue(kind)
+            };
             if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
                 syntax = declarationExpressionSyntax.Designation;
                 if (createDeclaration)
                 {
-                    return new CSharpLazyDeclarationExpressionOperation(this, boundTupleExpression, _semanticModel, declarationExpressionSyntax, type, constantValue: null, isImplicit: false);
+                    var tupleOperation = CreateBoundTupleOperation(boundTupleExpression, createDeclaration: false);
+                    return new DeclarationExpressionOperation(tupleOperation, _semanticModel, declarationExpressionSyntax, type, isImplicit: false);
                 }
             }
 

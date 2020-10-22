@@ -6179,14 +6179,12 @@ oneMoreTime:
                 return PopOperand();
             }
         }
-#nullable disable
 
         public override IOperation VisitDeclarationExpression(IDeclarationExpressionOperation operation, int? captureIdForResult)
         {
-            return new DeclarationExpressionOperation(VisitPreservingTupleOperations(operation.Expression), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            return new DeclarationExpressionOperation(VisitPreservingTupleOperations(operation.Expression), semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
-#nullable enable
         private IOperation VisitPreservingTupleOperations(IOperation operation)
         {
             EvalStackFrame frame = PushStackFrame();

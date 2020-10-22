@@ -64,6 +64,7 @@ namespace IOperationGenerator
             "IIsPatternOperation",
             "IIncrementOrDecrementOperation",
             "IThrowOperation",
+            "IDeclarationExpressionOperation",
         };
     }
 }

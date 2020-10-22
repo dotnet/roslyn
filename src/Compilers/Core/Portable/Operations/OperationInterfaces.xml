@@ -1831,7 +1831,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IDeclarationExpressionOperation" Base="IOperation">
+  <Node Name="IDeclarationExpressionOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a declaration expression operation. Unlike a regular variable declaration <see cref="IVariableDeclaratorOperation" /> and <see cref="IVariableDeclarationOperation" />, this operation represents an "expression" declaring a variable.

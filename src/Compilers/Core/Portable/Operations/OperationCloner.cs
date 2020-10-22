@@ -196,11 +196,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DeconstructionAssignmentOperation(Visit(operation.Target), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitDeclarationExpression(IDeclarationExpressionOperation operation, object argument)
-        {
-            return new DeclarationExpressionOperation(Visit(operation.Expression), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation, object argument)
         {
             return new DynamicMemberReferenceOperation(Visit(operation.Instance), operation.MemberName, operation.TypeArguments, operation.ContainingType, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
