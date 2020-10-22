@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -9,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -89,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
                 return CommandState.Unspecified;
             }
@@ -123,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
                 return CommandState.Unspecified;
             }
@@ -157,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
                 return CommandState.Unspecified;
             }
@@ -191,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
                 return CommandState.Unspecified;
             }
@@ -237,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             AssertIsForeground();
 
-            Document document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return false;
@@ -258,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // Find the snippet shortcut
             while (startPosition > 0)
             {
-                char c = currentText[startPosition - 1];
+                var c = currentText[startPosition - 1];
                 if (!syntaxFactsService.IsIdentifierPartCharacter(c) && c != '#' && c != '~')
                 {
                     break;

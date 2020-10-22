@@ -1,25 +1,8 @@
-﻿//
-// FindExtensionMethodsCommandHandler.cs
-//
-// Copyright (c) 2019 Microsoft
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -38,13 +21,14 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands.Navigation;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 {
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(FindExtensionMethodsCommandHandler))]
-    public class FindExtensionMethodsCommandHandler :
+    internal sealed class FindExtensionMethodsCommandHandler :
         AbstractNavigationCommandHandler<FindExtensionMethodsCommandArgs>
     {
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -52,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         public override string DisplayName => nameof(FindExtensionMethodsCommandHandler);
 
         [ImportingConstructor]
-        internal FindExtensionMethodsCommandHandler(
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FindExtensionMethodsCommandHandler(
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(streamingPresenters)
@@ -91,7 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                         context.CancellationToken))
                     {
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                         var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                         var symbol = candidateSymbolProjectPair?.symbol as INamedTypeSymbol;
 
@@ -135,7 +122,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                                         var definitionItem = reducedMethod.ToNonClassifiedDefinitionItem(solution, true);
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                                         await context.OnDefinitionFoundAsync(definitionItem);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                                     }
                                 }
                             }

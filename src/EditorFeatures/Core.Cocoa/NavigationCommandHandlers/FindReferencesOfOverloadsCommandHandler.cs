@@ -1,25 +1,8 @@
-﻿//
-// FindBaseSymbolsCommandHandler.cs
-//
-// Copyright (c) 2019 Microsoft
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -32,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -46,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(FindReferencesOfOverloadsCommandHandler))]
-    public class FindReferencesOfOverloadsCommandHandler :
+    internal sealed class FindReferencesOfOverloadsCommandHandler :
         AbstractNavigationCommandHandler<FindReferencesOfOverloadsCommandArgs>
     {
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -55,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         public override string DisplayName => nameof(FindReferencesOfOverloadsCommandHandler);
 
         [ImportingConstructor]
-        internal FindReferencesOfOverloadsCommandHandler(
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FindReferencesOfOverloadsCommandHandler(
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext)
@@ -68,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
             _threadingContext = threadingContext;
         }
-
 
         protected override bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)
         {
@@ -89,10 +73,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
         private static async Task<ISymbol[]> GatherSymbolsAsync(ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, CancellationToken token)
         {
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
             var implementations = await SymbolFinder.FindImplementationsAsync(symbol, solution, null, token);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
             var result = new ISymbol[implementations.Count() + 1];
-            result [0] = symbol;
-            int i = 1;
+            result[0] = symbol;
+            var i = 1;
             foreach (var item in implementations)
             {
                 result[i++] = item;
@@ -107,13 +93,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             try
             {
                 // first, let's see if we even have a comment, otherwise there's no use in starting a search
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                 var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, new CancellationToken());
-                ISymbol symbol = relevantSymbol?.symbol;
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                var symbol = relevantSymbol?.symbol;
                 if (symbol == null)
                     return; // would be useful if we could notify the user why we didn't do anything
                             // maybe using something like an info bar?
 
-                IFindUsagesService findUsagesService = document.GetLanguageService<IFindUsagesService>();
+                var findUsagesService = document.GetLanguageService<IFindUsagesService>();
 
                 using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync)))
                 {
@@ -124,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                     using (Logger.LogBlock(
                         FunctionId.CommandHandler_FindAllReference,
-                        KeyValueLogMessage.Create(LogType.UserAction, m => m ["type"] = "streaming"),
+                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                         context.CancellationToken))
                     {
                         var symbolsToLookup = new List<ISymbol>();
@@ -142,14 +130,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                             foreach (var sym in SymbolFinder.FindSimilarSymbols(curSymbol, compilation, context.CancellationToken))
                             {
                                 // assumption here is, that FindSimilarSymbols returns symbols inside same project
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                                 var symbolsToAdd = await GatherSymbolsAsync(sym, document.Project.Solution, context.CancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                                 symbolsToLookup.AddRange(symbolsToAdd);
                             }
                         }
 
                         foreach (var candidate in symbolsToLookup)
                         {
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                             await AbstractFindUsagesService.FindSymbolReferencesAsync(context, candidate, document.Project);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                         }
 
                         // Note: we don't need to put this in a finally.  The only time we might not hit

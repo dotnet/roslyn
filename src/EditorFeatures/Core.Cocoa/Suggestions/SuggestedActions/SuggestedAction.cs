@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 () => CodeAction.GetOperationsAsync(progressTracker, cancellationToken), cancellationToken);
         }
 
-        protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
+        protected static Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
         {
             return Task.Run(
                 () => actionWithOptions.GetOperationsAsync(options, cancellationToken), cancellationToken);
@@ -160,12 +164,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var options = actionWithOptions.GetOptions(cancellationToken);
                 if (options != null)
                 {
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                     operations = await GetOperationsAsync(actionWithOptions, options, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                 }
             }
             else
             {
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                 operations = await GetOperationsAsync(progressTracker, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
             }
 
             if (operations != null)

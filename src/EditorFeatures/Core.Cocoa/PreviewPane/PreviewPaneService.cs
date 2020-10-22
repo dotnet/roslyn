@@ -1,23 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Globalization;
-using System.Linq;
 using AppKit;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
@@ -39,7 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return this;
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         private NSImage GetSeverityIconForDiagnostic(DiagnosticData diagnostic)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             int? moniker = null;
             switch (diagnostic.Severity)
@@ -97,9 +99,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             var helpLinkToolTip = BrowserHelper.GetHelpLinkToolTip(data.Id, helpLinkUri);
 
             Guid optionPageGuid = default;
-            if (data.Properties.TryGetValue("OptionName", out var optionName))
+            if (data.Properties.TryGetValue("OptionName", out _))
             {
-                data.Properties.TryGetValue("OptionLanguage", out var optionLanguage);
+                data.Properties.TryGetValue("OptionLanguage", out _);
                 throw new NotImplementedException();
             }
 

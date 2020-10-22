@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -91,7 +95,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             textView.SetSelection(anchor, active);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter (https://github.com/dotnet/roslyn/issues/48865)
         public void Undo(ITextBuffer subjectBuffer)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (this.UndoStack.Count > 0)
             {
@@ -105,7 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter (https://github.com/dotnet/roslyn/issues/48865)
         public void Redo(ITextBuffer subjectBuffer)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (this.RedoStack.Count > 0)
             {
@@ -122,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // roll back to the initial state for the buffer after conflict resolution
             this.UndoTemporaryEdits(subjectBuffer, disconnect: false, undoConflictResolution: replacementText == string.Empty);
 
-            using (var transaction = undoHistory.CreateTransaction(GetUndoTransactionDescription(replacementText)))
+            using (var transaction = undoHistory.CreateTransaction(AbstractInlineRenameUndoManager<TBufferState>.GetUndoTransactionDescription(replacementText)))
             using (var edit = subjectBuffer.CreateEdit(EditOptions.None, null, propagateSpansEditTag))
             {
                 foreach (var span in spans)
@@ -145,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        protected string GetUndoTransactionDescription(string replacementText)
+        protected static string GetUndoTransactionDescription(string replacementText)
         {
             return replacementText == string.Empty ? "Delete Text" : replacementText;
         }

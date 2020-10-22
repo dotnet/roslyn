@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -20,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal class FixAllGetFixesService : IFixAllGetFixesService, IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FixAllGetFixesService()
         {
         }
@@ -54,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 codeAction, showPreviewChangesDialog, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<CodeAction> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
+        private static async Task<CodeAction> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
         {
             using (Logger.LogBlock(
                 FunctionId.CodeFixes_FixAllOccurrencesComputation,
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        private async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
+        private static async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
             CodeAction codeAction, bool showPreviewChangesDialog,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -192,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (!foundApplyChanges)
                 {
-                    if (operation is ApplyChangesOperation applyChangesOperation)
+                    if (operation is ApplyChangesOperation)
                     {
                         foundApplyChanges = true;
                         result.Add(new ApplyChangesOperation(newSolution));

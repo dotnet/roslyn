@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -7,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 formattedDocument.Id, formattedDocument.GetTextSynchronously(cancellationToken));
         }
 
-        private Document AddMethodNameAndAnnotationsToSolution(
+        private static Document AddMethodNameAndAnnotationsToSolution(
             Document document,
             string eventHandlerMethodName,
             int position,
@@ -220,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             return documentWithNameAdded.WithSyntaxRoot(rootWithUpdatedEventHookupExpression);
         }
 
-        private SyntaxNode AddGeneratedHandlerMethodToSolution(
+        private static SyntaxNode AddGeneratedHandlerMethodToSolution(
             SemanticDocument document,
             string eventHandlerMethodName,
             SyntaxAnnotation plusEqualsTokenAnnotation,
@@ -243,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             return root.ReplaceNode(typeDecl, typeDeclWithMethodAdded);
         }
 
-        private IMethodSymbol GetMethodSymbol(
+        private static IMethodSymbol GetMethodSymbol(
             SemanticDocument semanticDocument,
             string eventHandlerMethodName,
             AssignmentExpressionSyntax eventHookupExpression,
@@ -282,7 +285,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                     CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, semanticDocument, "System.NotImplementedException")));
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         private void BeginInlineRename(Workspace workspace, ITextView textView, ITextBuffer subjectBuffer, int plusEqualTokenEndPosition, CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             AssertIsForeground();
 
@@ -400,5 +405,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             return default;
         }
-    }    
+    }
 }

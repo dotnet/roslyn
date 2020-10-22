@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -209,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private ImmutableArray<SuggestedActionSet> GetInitiallyOrderedActionSets(
+            private static ImmutableArray<SuggestedActionSet> GetInitiallyOrderedActionSets(
                 TextSpan? selectionOpt, ImmutableArray<SuggestedActionSet> fixes, ImmutableArray<SuggestedActionSet> refactorings)
             {
                 // First, order refactorings based on the order the providers actually gave for their actions.
@@ -240,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private ImmutableArray<SuggestedActionSet> OrderActionSets(
+            private static ImmutableArray<SuggestedActionSet> OrderActionSets(
                 ImmutableArray<SuggestedActionSet> actionSets, TextSpan? selectionOpt)
             {
                 return actionSets.OrderByDescending(s => s.Priority)
@@ -248,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                  .ToImmutableArray();
             }
 
-            private ImmutableArray<SuggestedActionSet> FilterActionSetsByTitle(ImmutableArray<SuggestedActionSet> allActionSets)
+            private static ImmutableArray<SuggestedActionSet> FilterActionSetsByTitle(ImmutableArray<SuggestedActionSet> allActionSets)
             {
                 var result = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
@@ -266,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return result.ToImmutableAndFree();
             }
 
-            private SuggestedActionSet FilterActionSetByTitle(SuggestedActionSet set, HashSet<string> seenTitles)
+            private static SuggestedActionSet FilterActionSetByTitle(SuggestedActionSet set, HashSet<string> seenTitles)
             {
                 var actions = ArrayBuilder<ISuggestedAction>.GetInstance();
 
@@ -370,7 +374,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private CodeFixCollection FilterOnUIThread(
                 CodeFixCollection collection,
+#pragma warning disable IDE0060 // Remove unused parameter
                 Workspace workspace)
+#pragma warning restore IDE0060 // Remove unused parameter
             {
                 this.AssertIsForeground();
 
@@ -384,12 +390,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             collection.FixAllState, collection.SupportedScopes, collection.FirstDiagnostic);
             }
 
-            private ImmutableArray<CodeRefactoring> FilterOnUIThread(ImmutableArray<CodeRefactoring> refactorings, Workspace workspace)
+            private static ImmutableArray<CodeRefactoring> FilterOnUIThread(ImmutableArray<CodeRefactoring> refactorings, Workspace workspace)
             {
                 return refactorings.Select(r => FilterOnUIThread(r, workspace)).WhereNotNull().ToImmutableArray();
             }
 
-            private CodeRefactoring FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
+#pragma warning disable IDE0060 // Remove unused parameter
+            private static CodeRefactoring FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
+#pragma warning restore IDE0060 // Remove unused parameter
             {
                 var actions = refactoring.CodeActions;
                 return actions.Length == 0
@@ -693,7 +701,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         return PredefinedSuggestedActionCategoryNames.ErrorFix;
                     default:
                         throw ExceptionUtilities.Unreachable;
-                };
+                }
             }
 
             private static SuggestedActionSetPriority GetSuggestedActionSetPriority(CodeActionPriority key)

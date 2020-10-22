@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
@@ -14,11 +16,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Expansion;
@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     }
 
                     SubjectBuffer.Delete(new Span(line.Start.Position, line.Length));
-                    endSnapshotSpan = SubjectBuffer.CurrentSnapshot.GetSpan(new Span(line.Start.Position, 0));
+                    _ = SubjectBuffer.CurrentSnapshot.GetSpan(new Span(line.Start.Position, 0));
                 }
             }
         }
@@ -302,8 +302,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             // The expansion itself needs to be created in the data buffer, so map everything up
-            var startPointInSubjectBuffer = SubjectBuffer.CurrentSnapshot.GetPoint(startPositionInSubjectBuffer);
-            var endPointInSubjectBuffer = SubjectBuffer.CurrentSnapshot.GetPoint(endPositionInSubjectBuffer);
+            _ = SubjectBuffer.CurrentSnapshot.GetPoint(startPositionInSubjectBuffer);
+            _ = SubjectBuffer.CurrentSnapshot.GetPoint(endPositionInSubjectBuffer);
             if (!TryGetSpanOnHigherBuffer(
                 SubjectBuffer.CurrentSnapshot.GetSpan(startPositionInSubjectBuffer, endPositionInSubjectBuffer - startPositionInSubjectBuffer),
                 textViewModel.DataBuffer,
@@ -390,7 +390,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             AddReferences(documentWithImports.Project, snippetNode);
         }
 
-        private void AddReferences(Project originalProject, XElement snippetNode)
+#pragma warning disable IDE0060 // Remove unused parameter
+        private static void AddReferences(Project originalProject, XElement snippetNode)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var referencesNode = snippetNode.Element(XName.Get("References", snippetNode.Name.NamespaceName));
             if (referencesNode == null)

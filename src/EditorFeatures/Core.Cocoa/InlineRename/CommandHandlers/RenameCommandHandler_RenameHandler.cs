@@ -1,15 +1,17 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Linq;
 using System.Threading;
-using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            var documents = textContainer.GetRelatedDocuments();
+            _ = textContainer.GetRelatedDocuments();
             var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
             if (!supportsFeatureService.SupportsRename(args.SubjectBuffer))
             {
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 // Is the caret within any of the rename fields in this buffer?
                 // If so, focus the dashboard
-                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var editableSpan))
+                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var _))
                 {
                     //var dashboard = GetDashboard(args.TextView);
                     //dashboard.Focus();
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var position = caretPoint.Value;
+            _ = caretPoint.Value;
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {

@@ -1,25 +1,6 @@
-﻿//
-// FindBaseSymbolsCommandHandler.cs
-//
-// Copyright (c) 2019 Microsoft
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -28,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -42,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(FindBaseSymbolsCommandHandler))]
-    public class FindBaseSymbolsCommandHandler :
+    internal sealed class FindBaseSymbolsCommandHandler :
         AbstractNavigationCommandHandler<FindBaseSymbolsCommandArgs>
     {
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -50,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         public override string DisplayName => nameof(FindBaseSymbolsCommandHandler);
 
         [ImportingConstructor]
-        internal FindBaseSymbolsCommandHandler(
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FindBaseSymbolsCommandHandler(
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(streamingPresenters)
@@ -86,12 +69,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                     using (Logger.LogBlock(
                         FunctionId.CommandHandler_FindAllReference,
-                        KeyValueLogMessage.Create(LogType.UserAction, m => m ["type"] = "streaming"),
+                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                         context.CancellationToken))
                     {
                         try
                         {
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                             var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                             var overriddenSymbol = relevantSymbol?.symbol.OverriddenMember();
 
@@ -103,12 +88,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                                 }
 
                                 var definitionItem = overriddenSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                                 await context.OnDefinitionFoundAsync(definitionItem);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                                 // try getting the next one
                                 overriddenSymbol = overriddenSymbol.OverriddenMember();
                             }
-
                         }
                         finally
                         {

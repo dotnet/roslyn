@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -14,7 +17,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         AsynchronousTaggerProvider<TRegionTag>
         where TRegionTag : class, ITag
     {
-        private static IComparer<BlockSpan> s_blockSpanComparer =
+        private static readonly IComparer<BlockSpan> s_blockSpanComparer =
             Comparer<BlockSpan>.Create((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
         protected readonly ICocoaTextEditorFactoryService TextEditorFactoryService;
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
-                var outliningService = TryGetService(context, documentSnapshotSpan);
+                var outliningService = AbstractStructureTaggerProvider<TRegionTag>.TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {
                     var blockStructure = await outliningService.GetBlockStructureAsync(
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
-                var outliningService = TryGetService(context, documentSnapshotSpan);
+                var outliningService = AbstractStructureTaggerProvider<TRegionTag>.TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {
                     var document = documentSnapshotSpan.Document;
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
         }
 
-        private BlockStructureService TryGetService(
+        private static BlockStructureService TryGetService(
             TaggerContext<TRegionTag> context,
             DocumentSnapshotSpan documentSnapshotSpan)
         {
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             if (spans != null)
             {
                 var snapshot = snapshotSpan.Snapshot;
-                spans = GetMultiLineRegions(outliningService, spans, snapshot);
+                spans = AbstractStructureTaggerProvider<TRegionTag>.GetMultiLineRegions(outliningService, spans, snapshot);
 
                 // Create the outlining tags.
                 var tagSpanStack = new Stack<TagSpan<TRegionTag>>();
@@ -217,8 +219,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         private static bool s_exceptionReported = false;
 
-        private ImmutableArray<BlockSpan> GetMultiLineRegions(
+        private static ImmutableArray<BlockSpan> GetMultiLineRegions(
+#pragma warning disable IDE0060 // Remove unused parameter
             BlockStructureService service,
+#pragma warning restore IDE0060 // Remove unused parameter
             ImmutableArray<BlockSpan> regions, ITextSnapshot snapshot)
         {
             // Remove any spans that aren't multiline.
@@ -298,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 return null;
             }
 
-            int end = snapshot.GetLineFromLineNumber(lineNumber).Start.Position + columnIndex;
+            var end = snapshot.GetLineFromLineNumber(lineNumber).Start.Position + columnIndex;
             if (end < 0 || end > snapshot.Length)
             {
                 return null;
@@ -309,7 +313,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         public static bool TryGetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex, out SnapshotPoint position)
         {
-            int result = 0;
             position = new SnapshotPoint();
 
             if (lineNumber < 0 || lineNumber >= snapshot.LineCount)
@@ -323,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 return false;
             }
 
-            result = line.Start.Position + columnIndex;
+            var result = line.Start.Position + columnIndex;
             position = new SnapshotPoint(snapshot, result);
             return true;
         }

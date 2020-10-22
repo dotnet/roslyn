@@ -1,20 +1,28 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using AppKit;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 
+#pragma warning disable IDE0052 // Remove unread private members
+
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
-    class PreviewPane : NSView
+    internal class PreviewPane : NSView
     {
-        private NSImage severityIcon;
-        private string id;
-        private string title;
-        private string description;
-        private Uri helpLink;
-        private string helpLinkToolTipText;
-        private IReadOnlyList<object> previewContent;
-        private bool logIdVerbatimInTelemetry;
+        private readonly NSImage severityIcon;
+        private readonly string id;
+        private readonly string title;
+        private readonly string description;
+        private readonly Uri helpLink;
+        private readonly string helpLinkToolTipText;
+        private readonly IReadOnlyList<object> previewContent;
+        private readonly bool logIdVerbatimInTelemetry;
         private Guid? optionPageGuid;
         private DifferenceViewerPreview _differenceViewerPreview;
 
@@ -29,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             this.previewContent = previewContent;
             this.logIdVerbatimInTelemetry = logIdVerbatimInTelemetry;
             this.optionPageGuid = optionPageGuid;
-            _differenceViewerPreview = (DifferenceViewerPreview) previewContent[0];
+            _differenceViewerPreview = (DifferenceViewerPreview)previewContent[0];
             var view = _differenceViewerPreview.Viewer.VisualElement;
             SetFrameSize(view.Frame.Size);
             AddSubview(view);
@@ -37,11 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             // HACK: This is here for a11y compliance and should be removed as
             // we find a better alternative
             this.AccessibilityHelp = _differenceViewerPreview?.Viewer?.DifferenceBuffer?.InlineBuffer?.CurrentSnapshot.GetText();
-        }
-
-        PreviewPane(IntPtr ptr)
-            : base(ptr)
-        {
         }
 
         protected override void Dispose(bool disposing)

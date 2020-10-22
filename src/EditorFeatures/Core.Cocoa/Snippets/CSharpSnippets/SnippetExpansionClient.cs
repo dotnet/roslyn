@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +19,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 using Microsoft.VisualStudio.Text;
@@ -45,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
             var endPosition = subjectBufferEndSpan.End.Position;
 
-            string commentString = "/**/";
+            var commentString = "/**/";
             SubjectBuffer.Insert(endPosition, commentString);
 
             var commentSpan = new Span(endPosition, commentString.Length);
@@ -61,14 +64,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
             switch (snippetFunctionName)
             {
-            case "SimpleTypeName":
-                return new SnippetFunctionSimpleTypeName(this, TextView, SubjectBuffer, fieldName, param);
-            case "ClassName":
-                return new SnippetFunctionClassName(this, TextView, SubjectBuffer, fieldName);
-            case "GenerateSwitchCases":
-                return new SnippetFunctionGenerateSwitchCases(this, TextView, SubjectBuffer, fieldName, param);
-            default:
-                return null;
+                case "SimpleTypeName":
+                    return new SnippetFunctionSimpleTypeName(this, TextView, SubjectBuffer, fieldName, param);
+                case "ClassName":
+                    return new SnippetFunctionClassName(this, TextView, SubjectBuffer, fieldName);
+                case "GenerateSwitchCases":
+                    return new SnippetFunctionGenerateSwitchCases(this, TextView, SubjectBuffer, fieldName, param);
+                default:
+                    return null;
             }
         }
 
@@ -113,10 +116,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         }
 
         private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
+#pragma warning disable IDE0060 // Remove unused parameter
+#pragma warning disable IDE0060 // Remove unused parameter
             SyntaxNode contextLocation, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
-            var existingUsings = default(IEnumerable<UsingDirectiveSyntax>);// contextLocation.GetEnclosingUsingDirectives();
+            var existingUsings = (IEnumerable<UsingDirectiveSyntax>)null;// contextLocation.GetEnclosingUsingDirectives();
             var newUsings = new List<UsingDirectiveSyntax>();
 
             foreach (var import in importsNode.Elements(XName.Get("Import", snippetNode.Name.NamespaceName)))
@@ -148,7 +155,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             return newUsings;
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         private static string GetAliasName(UsingDirectiveSyntax usingDirective)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             return (usingDirective.Alias == null || usingDirective.Alias.Name == null) ? null : usingDirective.Alias.Name.ToString();
         }

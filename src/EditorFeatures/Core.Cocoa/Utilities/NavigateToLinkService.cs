@@ -6,11 +6,11 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using AppKit;
+using Foundation;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
-using AppKit;
-using Foundation;
 
 namespace Microsoft.CodeAnalysis.EditorFeatures.Cocoa
 {

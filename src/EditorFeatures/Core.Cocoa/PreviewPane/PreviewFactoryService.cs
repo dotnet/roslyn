@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +11,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
@@ -439,8 +442,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // We also need to show the spans that are in conflict.
             var originalSpans = GetOriginalSpans(diffResult, cancellationToken);
             var changedSpans = GetChangedSpans(diffResult, cancellationToken);
-            var description = default(string);
-            var allSpans = default(NormalizedSpanCollection);
+            var description = (string)null;
+            var allSpans = (NormalizedSpanCollection)null;
 
             if (newDocument.SupportsSyntaxTree)
             {
@@ -649,7 +652,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         private async Task<object> CreateNewDifferenceViewerAsync(
             PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,
             IProjectionBuffer originalBuffer, IProjectionBuffer changedBuffer,
+#pragma warning disable IDE0060 // Remove unused parameter
             double zoomLevel, CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -719,7 +724,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return new DifferenceViewerPreview(diffViewer);
         }
 
-        private List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)
+        private static List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -739,7 +744,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         // Find the lines that surround the span of the difference.  Try to expand the span to
         // include both the previous and next lines so that we can show more context to the
         // user.
-        private LineSpan GetLineSpan(
+        private static LineSpan GetLineSpan(
             ITextSnapshot snapshot,
             Span span)
         {
@@ -798,7 +803,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             });
         }
 
-        private NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
+        private static NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var lineSpans = new List<Span>();
@@ -813,7 +818,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return new NormalizedSpanCollection(lineSpans);
         }
 
-        private NormalizedSpanCollection GetChangedSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
+        private static NormalizedSpanCollection GetChangedSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var lineSpans = new List<Span>();

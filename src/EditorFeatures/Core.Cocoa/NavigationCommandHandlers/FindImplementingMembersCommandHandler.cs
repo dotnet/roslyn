@@ -1,37 +1,19 @@
-﻿//
-// FindBaseSymbolsCommandHandler.cs
-//
-// Copyright (c) 2019 Microsoft
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands.Navigation;
@@ -44,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(FindImplementingMembersCommandHandler))]
-    public class FindImplementingMembersCommandHandler :
+    internal sealed class FindImplementingMembersCommandHandler :
         AbstractNavigationCommandHandler<FindImplementingMembersCommandArgs>
     {
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -52,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         public override string DisplayName => nameof(FindImplementingMembersCommandHandler);
 
         [ImportingConstructor]
-        internal FindImplementingMembersCommandHandler(
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FindImplementingMembersCommandHandler(
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(streamingPresenters)
@@ -93,7 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     {
                         try
                         {
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                             var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                             var interfaceSymbol = relevantSymbol?.symbol as INamedTypeSymbol;
 
@@ -109,28 +94,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                             if (!document.TryGetSyntaxRoot(out nodeRoot))
                                 return;
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                             var syntaxTree = await document.GetSyntaxTreeAsync();
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                             var documentToken = nodeRoot.FindToken(caretPosition);
 
-                            if (documentToken == null || !documentToken.Span.IntersectsWith(caretPosition))
+                            if (!documentToken.Span.IntersectsWith(caretPosition))
                                 return; // looks like it's not relevant
 
                             // the parents should bring us to the class definition
                             var parentTypeNode = documentToken.Parent?.Parent?.Parent?.Parent;
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                             var compilation = await document.Project.GetCompilationAsync();
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                             // let's finally get our implementing type
                             var namedTypeSymbol = compilation.GetSemanticModel(syntaxTree).GetDeclaredSymbol(parentTypeNode) as INamedTypeSymbol;
                             // unless something went wrong, and we got an empty symbol,
-                            if (namedTypeSymbol == null) return;
+                            if (namedTypeSymbol == null)
+                                return;
 
                             // we can search for implementations of the interface, within this type
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                             await InspectInterfaceAsync(context, interfaceSymbol, namedTypeSymbol, document.Project);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                             // now, we iterate on interfaces of our interfaces
                             foreach (var iFace in interfaceSymbol.AllInterfaces)
                             {
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                                 await InspectInterfaceAsync(context, iFace, namedTypeSymbol, document.Project);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                             }
                         }
                         finally
@@ -148,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             }
         }
 
-        private async Task InspectInterfaceAsync(IFindUsagesContext context, INamedTypeSymbol interfaceSymbol, INamedTypeSymbol namedTypeSymbol, Project project)
+        private static async Task InspectInterfaceAsync(IFindUsagesContext context, INamedTypeSymbol interfaceSymbol, INamedTypeSymbol namedTypeSymbol, Project project)
         {
             foreach (var interfaceMember in interfaceSymbol.GetMembers())
             {
@@ -160,7 +154,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     continue;
 
                 var definitionItem = impl.ToNonClassifiedDefinitionItem(project.Solution, true);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                 await context.OnDefinitionFoundAsync(definitionItem);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
             }
         }
     }

@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Operations;
@@ -26,9 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class RenameCommandHandler
     {
         private readonly InlineRenameService _renameService;
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+#pragma warning restore IDE0052 // Remove unread private members
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RenameCommandHandler(
             InlineRenameService renameService,
             IEditorOperationsFactoryService editorOperationsFactoryService)

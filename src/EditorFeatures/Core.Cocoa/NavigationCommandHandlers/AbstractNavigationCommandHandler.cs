@@ -1,41 +1,23 @@
-﻿//
-// AbstractNavigationCommandHandler.cs
-//
-// Copyright (c) 2019 Microsoft
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 {
-    public abstract class AbstractNavigationCommandHandler<TCommandArgs> :
+    internal abstract class AbstractNavigationCommandHandler<TCommandArgs> :
         VSCommanding.ICommandHandler<TCommandArgs> where TCommandArgs : Microsoft.VisualStudio.Text.Editor.Commanding.EditorCommandArgs
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
@@ -61,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
             if (snapshotSpans.Count == 1)
             {
-                var selectedSpan = snapshotSpans [0];
-                ITextSnapshot snapshot = args.SubjectBuffer.CurrentSnapshot;
-                Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var selectedSpan = snapshotSpans[0];
+                var snapshot = args.SubjectBuffer.CurrentSnapshot;
+                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
                     // Do a find-refs at the *start* of the selection.  That way if the
