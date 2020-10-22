@@ -2,21 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.ComponentModelHost;
-using System.Runtime.CompilerServices;
-using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -29,23 +25,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     internal sealed class CpsDiagnosticItemProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
     {
         private readonly IAnalyzersCommandHandler _commandHandler;
-        private readonly IComponentModel _componentModel;
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
+        private readonly Workspace _workspace;
 
-        private IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-        private IHierarchyItemToProjectIdMap _projectMap;
-        private Workspace _workspace;
+        private IHierarchyItemToProjectIdMap? _projectMap;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CpsDiagnosticItemProvider(
             [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            IDiagnosticAnalyzerService diagnosticAnalyzerService,
+            VisualStudioWorkspace workspace)
         {
             _commandHandler = commandHandler;
-            _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+            _diagnosticAnalyzerService = diagnosticAnalyzerService;
+            _workspace = workspace;
         }
 
-        protected override IAttachedCollectionSource CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
+        protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
         {
             if (item != null &&
                 item.HierarchyIdentity != null &&
@@ -57,7 +54,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     var projectRootItem = FindProjectRootItem(item, out var targetFrameworkMoniker);
                     if (projectRootItem != null)
                     {
-                        return CreateCollectionSourceCore(projectRootItem, item, targetFrameworkMoniker);
+                        var hierarchyMapper = TryGetProjectMap();
+                        if (hierarchyMapper != null &&
+                            hierarchyMapper.TryGetProjectId(projectRootItem, targetFrameworkMoniker, out var projectId))
+                        {
+                            var hierarchy = projectRootItem.HierarchyIdentity.NestedHierarchy;
+                            var itemId = projectRootItem.HierarchyIdentity.NestedItemID;
+                            if (hierarchy.GetCanonicalName(itemId, out var projectCanonicalName) == VSConstants.S_OK)
+                            {
+                                return new CpsDiagnosticItemSource(_workspace, projectCanonicalName, projectId, item, _commandHandler, _diagnosticAnalyzerService);
+                            }
+                        }
                     }
                 }
             }
@@ -70,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// If the item is located under a target-framwork specific node, the corresponding 
         /// TargetFrameworkMoniker will be found as well.
         /// </summary>
-        private static IVsHierarchyItem FindProjectRootItem(IVsHierarchyItem item, out string targetFrameworkMoniker)
+        private static IVsHierarchyItem? FindProjectRootItem(IVsHierarchyItem item, out string? targetFrameworkMoniker)
         {
             targetFrameworkMoniker = null;
 
@@ -94,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// Given an item determines if it represents a particular target frmework.
         /// If so, it returns the corresponding TargetFrameworkMoniker.
         /// </summary>
-        private static string GetTargetFrameworkMoniker(IVsHierarchyItem item)
+        private static string? GetTargetFrameworkMoniker(IVsHierarchyItem item)
         {
             var hierarchy = item.HierarchyIdentity.NestedHierarchy;
             var itemId = item.HierarchyIdentity.NestedItemID;
@@ -102,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
 
             var isTargetNode = false;
-            string potentialTFM = null;
+            string? potentialTFM = null;
             foreach (var capability in projectTreeCapabilities)
             {
                 if (capability.Equals("TargetNode"))
@@ -116,30 +123,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             return isTargetNode ? potentialTFM : null;
-        }
-
-        // This method is separate from CreateCollectionSource and marked with
-        // MethodImplOptions.NoInlining because we don't want calls to CreateCollectionSource
-        // to cause Roslyn assemblies to load where they aren't needed.
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private IAttachedCollectionSource CreateCollectionSourceCore(IVsHierarchyItem projectRootItem, IVsHierarchyItem item, string targetFrameworkMoniker)
-        {
-            var hierarchyMapper = TryGetProjectMap();
-            if (hierarchyMapper != null &&
-                hierarchyMapper.TryGetProjectId(projectRootItem, targetFrameworkMoniker, out var projectId))
-            {
-                var workspace = TryGetWorkspace();
-                var analyzerService = GetAnalyzerService();
-
-                var hierarchy = projectRootItem.HierarchyIdentity.NestedHierarchy;
-                var itemId = projectRootItem.HierarchyIdentity.NestedItemID;
-                if (hierarchy.GetCanonicalName(itemId, out var projectCanonicalName) == VSConstants.S_OK)
-                {
-                    return new CpsDiagnosticItemSource(workspace, projectCanonicalName, projectId, item, _commandHandler, analyzerService);
-                }
-            }
-
-            return null;
         }
 
         private static bool NestedHierarchyHasProjectTreeCapability(IVsHierarchyItem item, string capability)
@@ -164,44 +147,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private Workspace TryGetWorkspace()
+        private IHierarchyItemToProjectIdMap? TryGetProjectMap()
         {
-            if (_workspace == null)
-            {
-                var provider = _componentModel.DefaultExportProvider.GetExportedValueOrDefault<ISolutionExplorerWorkspaceProvider>();
-                if (provider != null)
-                {
-                    _workspace = provider.GetWorkspace();
-                }
-            }
-
-            return _workspace;
-        }
-
-        private IHierarchyItemToProjectIdMap TryGetProjectMap()
-        {
-            var workspace = TryGetWorkspace();
-            if (workspace == null)
-            {
-                return null;
-            }
-
             if (_projectMap == null)
             {
-                _projectMap = workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
+                _projectMap = _workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
             }
 
             return _projectMap;
-        }
-
-        private IDiagnosticAnalyzerService GetAnalyzerService()
-        {
-            if (_diagnosticAnalyzerService == null)
-            {
-                _diagnosticAnalyzerService = _componentModel.GetService<IDiagnosticAnalyzerService>();
-            }
-
-            return _diagnosticAnalyzerService;
         }
     }
 }
