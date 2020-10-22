@@ -143,12 +143,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var parameters = ParameterTypes.Zip(_parameterRefKinds,
                     (t, r) => CodeGenerationSymbolFactory.CreateParameterSymbol(r, t, name: "")).ToImmutableArray();
                 var expressions = _arguments.SelectAsArray(a => a.Expression);
-                var delegatedConstructor = GenerateConstructorHelpers.FindConstructorToDelegateTo(
-                    _document,
-                    TypeToGenerateIn,
-                    parameters,
-                    expressions,
-                    c => CanDelegateThisConstructor(c, cancellationToken));
+                var delegatedConstructor = FindConstructorToDelegateTo(parameters, expressions, cancellationToken);
                 if (delegatedConstructor == null)
                     return false;
 
@@ -176,6 +171,50 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 _delegatedConstructor = delegatedConstructor;
                 GetParameters(remainingArguments, remainingParameterTypes, remainingParameterNames, cancellationToken);
                 return true;
+            }
+
+            private IMethodSymbol FindConstructorToDelegateTo(
+                ImmutableArray<IParameterSymbol> allParameters,
+                ImmutableArray<TExpressionSyntax> allExpressions,
+                CancellationToken cancellationToken)
+            {
+                for (var i = allParameters.Length; i >= 0; i--)
+                {
+                    var parameters = allParameters.Take(i).ToImmutableArray();
+                    var expressions = allExpressions.Take(i).ToImmutableArray();
+                    var result = FindConstructorToDelegateTo(
+                        parameters, expressions, TypeToGenerateIn.InstanceConstructors, cancellationToken);
+                    if (result != null)
+                        return result;
+
+                    if (TypeToGenerateIn.BaseType != null)
+                    {
+                        result = FindConstructorToDelegateTo(
+                            parameters, expressions, TypeToGenerateIn.BaseType.InstanceConstructors, cancellationToken);
+                        if (result != null)
+                            return result;
+                    }
+                }
+
+                return null;
+            }
+
+            private IMethodSymbol FindConstructorToDelegateTo(
+                ImmutableArray<IParameterSymbol> parameters,
+                ImmutableArray<TExpressionSyntax> expressions,
+                ImmutableArray<IMethodSymbol> constructors,
+                CancellationToken cancellationToken)
+            {
+                foreach (var constructor in constructors)
+                {
+                    if (GenerateConstructorHelpers.CanDelegateTo(_document, parameters, expressions, constructor) &&
+                        CanDelegateThisConstructor(constructor, cancellationToken))
+                    {
+                        return constructor;
+                    }
+                }
+
+                return null;
             }
 
             private bool CanDelegateThisConstructor(IMethodSymbol constructor, CancellationToken cancellationToken)

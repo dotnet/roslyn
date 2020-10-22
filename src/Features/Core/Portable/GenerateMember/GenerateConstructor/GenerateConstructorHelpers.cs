@@ -14,52 +14,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
     internal static class GenerateConstructorHelpers
     {
-        public static IMethodSymbol? FindConstructorToDelegateTo<TExpressionSyntax>(
-            SemanticDocument document,
-            INamedTypeSymbol typeToGenerateIn,
-            ImmutableArray<IParameterSymbol> allParameters,
-            ImmutableArray<TExpressionSyntax> allExpressions,
-            Func<IMethodSymbol, bool> canDelegateToConstructor)
-            where TExpressionSyntax : SyntaxNode
-        {
-            for (var i = allParameters.Length; i >= 0; i--)
-            {
-                var parameters = allParameters.Take(i).ToImmutableArray();
-                var expressions = allExpressions.Take(i).ToImmutableArray();
-                var result = FindConstructorToDelegateTo(
-                    document, parameters, expressions, typeToGenerateIn.InstanceConstructors, canDelegateToConstructor);
-                if (result != null)
-                    return result;
-
-                if (typeToGenerateIn.BaseType != null)
-                {
-                    result = FindConstructorToDelegateTo(
-                        document, parameters, expressions, typeToGenerateIn.BaseType.InstanceConstructors, canDelegateToConstructor);
-                    if (result != null)
-                        return result;
-                }
-            }
-
-            return null;
-        }
-
-        private static IMethodSymbol? FindConstructorToDelegateTo<TExpressionSyntax>(
-            SemanticDocument document,
-            ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<TExpressionSyntax> expressions,
-            ImmutableArray<IMethodSymbol> constructors,
-            Func<IMethodSymbol, bool> canDelegateToConstructor)
-            where TExpressionSyntax : SyntaxNode
-        {
-            foreach (var constructor in constructors.Where(canDelegateToConstructor))
-            {
-                if (CanDelegateTo(document, parameters, expressions, constructor))
-                    return constructor;
-            }
-
-            return null;
-        }
-
         public static bool CanDelegateTo<TExpressionSyntax>(
             SemanticDocument document,
             ImmutableArray<IParameterSymbol> parameters,
