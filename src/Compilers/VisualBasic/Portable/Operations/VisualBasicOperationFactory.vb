@@ -538,10 +538,6 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Friend Function CreateBoundBinaryOperatorChild(binaryOperator As BoundExpression, isLeft As Boolean) As IOperation
             Select Case binaryOperator.Kind
-                Case BoundKind.BinaryOperator
-                    Dim boundBinaryOperator = DirectCast(binaryOperator, BoundBinaryOperator)
-                    Dim binaryOperatorInfo = GetBinaryOperatorInfo(boundBinaryOperator)
-                    Return Create(If(isLeft, binaryOperatorInfo.LeftOperand, binaryOperatorInfo.RightOperand))
                 Case BoundKind.UserDefinedBinaryOperator
                     Dim boundUserDefined = DirectCast(binaryOperator, BoundUserDefinedBinaryOperator)
                     Dim binaryOperatorInfo As BinaryOperatorInfo = GetUserDefinedBinaryOperatorInfo(boundUserDefined)
@@ -561,17 +557,38 @@ Namespace Microsoft.CodeAnalysis.Operations
             End Select
         End Function
 
-        Private Function CreateBoundBinaryOperatorOperation(boundBinaryOperator As BoundBinaryOperator) As IBinaryOperation
-            Dim left As IOperation = CreateBoundBinaryOperatorChild(boundBinaryOperator, isLeft:=True)
-            Dim right As IOperation = CreateBoundBinaryOperatorChild(boundBinaryOperator, isLeft:=False)
-            Dim binaryOperatorInfo = GetBinaryOperatorInfo(boundBinaryOperator)
-            Dim syntax As SyntaxNode = boundBinaryOperator.Syntax
-            Dim type As ITypeSymbol = boundBinaryOperator.Type
-            Dim constantValue As ConstantValue = boundBinaryOperator.ConstantValueOpt
-            Dim isImplicit As Boolean = boundBinaryOperator.WasCompilerGenerated
-            Return New BinaryOperation(binaryOperatorInfo.OperatorKind, left, right, binaryOperatorInfo.IsLifted,
-                                       binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
-                                       unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
+        Private Function CreateBoundBinaryOperatorOperation(boundBinaryOperator As BoundBinaryOperator) As IOperation
+            ' Binary operators can be nested _many_ levels deep, and cause a stack overflow if we manually recurse.
+            ' To solve this, we use a manual stack for the left side.
+            Dim stack As ArrayBuilder(Of BoundBinaryOperator) = ArrayBuilder(Of BoundBinaryOperator).GetInstance()
+            Dim currentBinary As BoundBinaryOperator = boundBinaryOperator
+
+            Do
+                stack.Push(currentBinary)
+                currentBinary = TryCast(currentBinary.Left, BoundBinaryOperator)
+            Loop While currentBinary IsNot Nothing
+
+            Debug.Assert(stack.Count > 0)
+            Dim left As IOperation = Nothing
+
+            While stack.TryPop(currentBinary)
+                left = If(left, Create(currentBinary.Left))
+                Dim right As IOperation = Create(currentBinary.Right)
+
+                Dim binaryOperatorInfo = GetBinaryOperatorInfo(currentBinary)
+                Dim syntax As SyntaxNode = currentBinary.Syntax
+                Dim type As ITypeSymbol = currentBinary.Type
+                Dim constantValue As ConstantValue = currentBinary.ConstantValueOpt
+                Dim isImplicit As Boolean = currentBinary.WasCompilerGenerated
+
+                left = New BinaryOperation(binaryOperatorInfo.OperatorKind, left, right, binaryOperatorInfo.IsLifted,
+                                           binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
+                                           unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
+            End While
+
+            Debug.Assert(left IsNot Nothing AndAlso stack.Count = 0)
+            stack.Free()
+            Return left
         End Function
 
         Private Function CreateBoundUserDefinedBinaryOperatorOperation(boundUserDefinedBinaryOperator As BoundUserDefinedBinaryOperator) As IBinaryOperation
