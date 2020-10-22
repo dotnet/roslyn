@@ -41,6 +41,13 @@
     <PackageReference GeneratePathProperty="true" />
   </ItemDefinitionGroup>
 
+  <Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
+    <PropertyGroup>
+      <!-- TEMPLATE USER: replace the ORG/REPO (or entire link) below and uncomment. -->
+      <!-- <PackageReleaseNotes>https://github.com/ORG/REPO/releases/tag/v$(Version)</PackageReleaseNotes> -->
+    </PropertyGroup>
+  </Target>
+
   <PropertyGroup Condition="'$(IsWpfTempProject)' == ''">
     <IsWpfTempProject>false</IsWpfTempProject>
     <IsWpfTempProject Condition="$(MSBuildProjectName.EndsWith('_wpftmp'))">true</IsWpfTempProject>
