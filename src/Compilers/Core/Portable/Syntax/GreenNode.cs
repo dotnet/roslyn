@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
-        
+
         /*
          * There are 3 overloads of this, because most callers already know what they have is a List<T> and only transform it.
          * In those cases List<TFrom> performs much better.
@@ -932,8 +932,7 @@ namespace Microsoft.CodeAnalysis
                     return SyntaxList.List(select(list[0]), select(list[1]));
                 case 3:
                     return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
-                default:
-                {
+                default: {
                     var array = new ArrayElement<GreenNode>[list.Count];
                     for (int i = 0; i < array.Length; i++)
                         array[i].Value = select(list[i]);
@@ -941,7 +940,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
-        
+
         public static GreenNode? CreateList<TFrom>(IReadOnlyList<TFrom> list, Func<TFrom, GreenNode> select)
         {
             switch (list.Count)
@@ -954,8 +953,7 @@ namespace Microsoft.CodeAnalysis
                     return SyntaxList.List(select(list[0]), select(list[1]));
                 case 3:
                     return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
-                default:
-                {
+                default: {
                     var array = new ArrayElement<GreenNode>[list.Count];
                     for (int i = 0; i < array.Length; i++)
                         array[i].Value = select(list[i]);
