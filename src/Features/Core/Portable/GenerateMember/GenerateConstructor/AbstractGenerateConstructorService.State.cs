@@ -146,7 +146,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var delegatedConstructor = GenerateConstructorHelpers.FindConstructorToDelegateTo(
                     _document,
                     TypeToGenerateIn,
-                    includeBaseType: true,
                     parameters,
                     expressions,
                     c => CanDelegateThisConstructor(c, cancellationToken));
@@ -177,11 +176,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 _delegatedConstructor = delegatedConstructor;
                 GetParameters(remainingArguments, remainingParameterTypes, remainingParameterNames, cancellationToken);
                 return true;
-
             }
 
             private bool CanDelegateThisConstructor(IMethodSymbol constructor, CancellationToken cancellationToken)
             {
+                // Don't bother delegating to an implicit constructor. We don't want to add `: base()` as that's just
+                // redundant for subclasses and `: this()` won't even work as we won't have an implicit constructor once
+                // we add this new constructor.
+                if (constructor.IsImplicitlyDeclared)
+                    return false;
+
                 if (constructor.Parameters.Length == 0)
                     return false;
 

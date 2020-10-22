@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // just call into that instead of generating fields.
                 if (_state.BaseTypeOrInterfaceOpt != null)
                 {
-                    if (_state.BaseTypeOrInterfaceOpt.TypeKind == TypeKind.Interface && argumentList.Count == 0)
+                    if (argumentList.Count == 0)
                     {
                         // No need to add the default constructor if our base type is going to be
                         // 'object'.  We get that constructor for free.
@@ -148,18 +148,17 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         (t, r) => CodeGenerationSymbolFactory.CreateParameterSymbol(r, t, name: "")).ToImmutableArray();
 
                     var expressions = GetArgumentExpressions(argumentList);
-                    var delegatedConstructor = GenerateConstructorHelpers.FindConstructorToDelegateTo(
-                        _semanticDocument,
-                        _state.BaseTypeOrInterfaceOpt,
-                        includeBaseType: false,
-                        parameters,
-                        expressions,
-                        _ => true);
+                    var constructorCandidates = _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Where(c => c.Parameters.Length == argumentList.Count);
+
+                    var delegatedConstructor = constructorCandidates.FirstOrDefault(
+                        c => GenerateConstructorHelpers.CanDelegateTo(_semanticDocument, parameters, expressions, c));
 
                     if (delegatedConstructor != null)
                     {
                         // There was a best match.  Call it directly.  
-                        AddBaseDelegatingConstructor(delegatedConstructor, members);
+                        var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
+                        members.Add(factory.CreateBaseDelegatingConstructor(
+                            delegatedConstructor, DetermineName()));
                         return;
                     }
                 }
@@ -179,22 +178,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         members.Add(generatedProperty);
                     }
                 }
-            }
-
-            private void AddBaseDelegatingConstructor(
-                IMethodSymbol methodSymbol,
-                ArrayBuilder<ISymbol> members)
-            {
-                // If we're generating a constructor to delegate into the no-param base constructor
-                // then we can just elide the constructor entirely.
-                if (methodSymbol.Parameters.Length == 0)
-                {
-                    return;
-                }
-
-                var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
-                members.Add(factory.CreateBaseDelegatingConstructor(
-                    methodSymbol, DetermineName()));
             }
 
             private void AddFieldDelegatingConstructor(

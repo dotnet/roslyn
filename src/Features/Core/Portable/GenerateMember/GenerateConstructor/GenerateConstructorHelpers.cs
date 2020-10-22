@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         public static IMethodSymbol? FindConstructorToDelegateTo<TExpressionSyntax>(
             SemanticDocument document,
             INamedTypeSymbol typeToGenerateIn,
-            bool includeBaseType,
             ImmutableArray<IParameterSymbol> allParameters,
             ImmutableArray<TExpressionSyntax> allExpressions,
             Func<IMethodSymbol, bool> canDelegateToConstructor)
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 if (result != null)
                     return result;
 
-                if (includeBaseType && typeToGenerateIn.BaseType != null)
+                if (typeToGenerateIn.BaseType != null)
                 {
                     result = FindConstructorToDelegateTo(
                         document, parameters, expressions, typeToGenerateIn.BaseType.InstanceConstructors, canDelegateToConstructor);
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             return null;
         }
 
-        private static IMethodSymbol FindConstructorToDelegateTo<TExpressionSyntax>(
+        private static IMethodSymbol? FindConstructorToDelegateTo<TExpressionSyntax>(
             SemanticDocument document,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<TExpressionSyntax> expressions,
@@ -52,29 +51,37 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             Func<IMethodSymbol, bool> canDelegateToConstructor)
             where TExpressionSyntax : SyntaxNode
         {
+            foreach (var constructor in constructors.Where(canDelegateToConstructor))
+            {
+                if (CanDelegateTo(document, parameters, expressions, constructor))
+                    return constructor;
+            }
+
+            return null;
+        }
+
+        public static bool CanDelegateTo<TExpressionSyntax>(
+            SemanticDocument document,
+            ImmutableArray<IParameterSymbol> parameters,
+            ImmutableArray<TExpressionSyntax> expressions,
+            IMethodSymbol constructor)
+            where TExpressionSyntax : SyntaxNode
+        {
             // Look for constructors in this specified type that are:
-            // 1. Non-implicit.  We don't want to add `: base()` as that's just redundant for subclasses and `:
-            //    this()` won't even work as we won't have an implicit constructor once we add this new constructor.
-            // 2. Accessible.  We obviously need our constructor to be able to call that other constructor.
-            // 3. Won't cause a cycle.  i.e. if we're generating a new constructor from an existing constructor,
+            // 1. Accessible.  We obviously need our constructor to be able to call that other constructor.
+            // 2. Won't cause a cycle.  i.e. if we're generating a new constructor from an existing constructor,
             //    then we don't want it calling back into us.
-            // 4. Are compatible with the parameters we're generating for this constructor.  Compatible means there
+            // 3. Are compatible with the parameters we're generating for this constructor.  Compatible means there
             //    exists an implicit conversion from the new constructor's parameter types to the existing
             //    constructor's parameter types.
             var semanticFacts = document.Document.GetRequiredLanguageService<ISemanticFactsService>();
             var semanticModel = document.SemanticModel;
             var compilation = semanticModel.Compilation;
 
-            var delegatedConstructor = constructors
-                .Where(c => c.Parameters.Length == parameters.Length)
-                .Where(c => c.Parameters.SequenceEqual(parameters, (p1, p2) => p1.RefKind == p2.RefKind))
-                .Where(c => IsSymbolAccessible(compilation, c))
-                .Where(c => !c.IsImplicitlyDeclared)
-                .Where(canDelegateToConstructor)
-                .Where(c => IsCompatible(semanticFacts, semanticModel, c, expressions))
-                .FirstOrDefault();
-
-            return delegatedConstructor;
+            return constructor.Parameters.Length == parameters.Length &&
+                   constructor.Parameters.SequenceEqual(parameters, (p1, p2) => p1.RefKind == p2.RefKind) &&
+                   IsSymbolAccessible(compilation, constructor) &&
+                   IsCompatible(semanticFacts, semanticModel, constructor, expressions);
         }
 
         private static bool IsSymbolAccessible(Compilation compilation, ISymbol symbol)
@@ -122,77 +129,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var conversion = semanticFacts.ClassifyConversion(semanticModel, expressions[i], constructorParameter.Type);
                 if (!conversion.IsIdentity && !conversion.IsImplicit)
                     return false;
-            }
-
-            return true;
-        }
-
-        public static IMethodSymbol? GetDelegatingConstructor(
-            SemanticDocument document,
-            SymbolInfo symbolInfo,
-            ISet<IMethodSymbol> candidateInstanceConstructors,
-            INamedTypeSymbol containingType,
-            IList<ITypeSymbol> parameterTypes)
-        {
-            var symbol = symbolInfo.Symbol as IMethodSymbol;
-            if (symbol == null && symbolInfo.CandidateSymbols.Length == 1)
-            {
-                // Even though the symbol info has a non-viable candidate symbol, we are trying 
-                // to speculate a base constructor invocation from a different position then 
-                // where the invocation to it would be generated. Passed in candidateInstanceConstructors 
-                // actually represent all accessible and invocable constructor symbols. So, we allow 
-                // candidate symbol for inaccessible OR not creatable candidate reason if it is in 
-                // the given candidateInstanceConstructors.
-                //
-                // Note: if we get either of these cases, we ensure that we can at least convert 
-                // the parameter types we have to the constructor parameter types.  This way we
-                // don't accidentally think we delegate to a constructor in an abstract base class
-                // when the parameter types don't match.
-                if (symbolInfo.CandidateReason == CandidateReason.Inaccessible ||
-                    (symbolInfo.CandidateReason == CandidateReason.NotCreatable && containingType.IsAbstract))
-                {
-                    var method = symbolInfo.CandidateSymbols.Single() as IMethodSymbol;
-                    if (ParameterTypesMatch(document, parameterTypes, method))
-                    {
-                        symbol = method;
-                    }
-                }
-            }
-
-            if (symbol != null && candidateInstanceConstructors.Contains(symbol))
-            {
-                return symbol;
-            }
-
-            return null;
-        }
-
-        private static bool ParameterTypesMatch(SemanticDocument semanticDocument, IList<ITypeSymbol> parameterTypes, IMethodSymbol? method)
-        {
-            if (method == null)
-            {
-                return false;
-            }
-
-            if (parameterTypes.Count != method.Parameters.Length)
-            {
-                return false;
-            }
-
-            var compilation = semanticDocument.SemanticModel.Compilation;
-
-            for (var i = 0; i < parameterTypes.Count; i++)
-            {
-                var type1 = parameterTypes[i];
-                if (type1 != null)
-                {
-                    var type2 = method.Parameters[i].Type;
-
-                    if (!compilation.HasImplicitConversion(fromType: type1, toType: type2))
-                    {
-                        return false;
-                    }
-                }
             }
 
             return true;
