@@ -358,7 +358,6 @@ function TestUsingOptimizedRunner() {
   $args += " --logs `"$LogDir`""
   $args += " --secondaryLogs `"$secondaryLogDir`""
   $args += " --tfm net472"
-  $args += " --html"
 
   if ($testDesktop -or $testIOperation) {
     if ($test32) {
@@ -371,6 +370,7 @@ function TestUsingOptimizedRunner() {
     # integration tests in CI.
     if ($ci) {
       $dlls += @(Get-Item (GetProjectOutputBinary "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
+      $args += " --retry"
     }
 
     $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
