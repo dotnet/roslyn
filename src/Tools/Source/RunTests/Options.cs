@@ -219,6 +219,7 @@ namespace RunTests
                 Trait = traits,
                 NoTrait = noTraits,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
+                Retry = retry,
             };
         }
     }
