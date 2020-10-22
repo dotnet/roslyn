@@ -406,8 +406,8 @@ function TestUsingOptimizedRunner() {
 
   if ($procdump) {
     $procdumpFilePath = Ensure-ProcDump
-    $args += " --procdumppath $procDumpFilePath"
-    $args += " --useprocdump";
+    $args += " --procDumpPath $procDumpFilePath"
+    $args += " --useProDdump";
   }
 
   if ($test64) {
