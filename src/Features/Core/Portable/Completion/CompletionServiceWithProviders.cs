@@ -430,52 +430,44 @@ namespace Microsoft.CodeAnalysis.Completion
             TextSpan defaultSpan,
             bool isExclusive)
         {
-            DisplayNameToItemsMap displayNameToItemsMap = null;
-            try
+            // See if any contexts changed the completion list span.  If so, the first context that
+            // changed it 'wins' and picks the span that will be used for all items in the completion
+            // list.  If no contexts changed it, then just use the default span provided by the service.
+            var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
+            var itemsCount = completionContexts.Sum(context => context.Items.Count);
+            using var displayNameToItemsMap = new DisplayNameToItemsMap(this, itemsCount);
+            CompletionItem suggestionModeItem = null;
+
+            foreach (var context in completionContexts)
             {
-                // See if any contexts changed the completion list span.  If so, the first context that
-                // changed it 'wins' and picks the span that will be used for all items in the completion
-                // list.  If no contexts changed it, then just use the default span provided by the service.
-                var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
-                var itemsCount = completionContexts.Sum(context => context.Items.Count);
-                displayNameToItemsMap = new DisplayNameToItemsMap(this, itemsCount);
-                CompletionItem suggestionModeItem = null;
+                Debug.Assert(context != null);
 
-                foreach (var context in completionContexts)
+                foreach (var item in context.Items)
                 {
-                    Debug.Assert(context != null);
-
-                    foreach (var item in context.Items)
-                    {
-                        Debug.Assert(item != null);
-                        displayNameToItemsMap.Add(item);
-                    }
-
-                    // first one wins
-                    suggestionModeItem ??= context.SuggestionModeItem;
+                    Debug.Assert(item != null);
+                    displayNameToItemsMap.Add(item);
                 }
 
-                if (displayNameToItemsMap.IsEmpty)
-                {
-                    return CompletionList.Empty;
-                }
-
-                // TODO(DustinCa): Revisit performance of this.
-                using var _ = ArrayBuilder<CompletionItem>.GetInstance(itemsCount, out var builder);
-                builder.AddRange(displayNameToItemsMap);
-                builder.Sort();
-
-                return CompletionList.Create(
-                    finalCompletionListSpan,
-                    builder.ToImmutable(),
-                    GetRules(),
-                    suggestionModeItem,
-                    isExclusive);
+                // first one wins
+                suggestionModeItem ??= context.SuggestionModeItem;
             }
-            finally
+
+            if (displayNameToItemsMap.IsEmpty)
             {
-                displayNameToItemsMap?.Free();
+                return CompletionList.Empty;
             }
+
+            // TODO(DustinCa): Revisit performance of this.
+            using var _ = ArrayBuilder<CompletionItem>.GetInstance(itemsCount, out var builder);
+            builder.AddRange(displayNameToItemsMap);
+            builder.Sort();
+
+            return CompletionList.Create(
+                finalCompletionListSpan,
+                builder.ToImmutable(),
+                GetRules(),
+                suggestionModeItem,
+                isExclusive);
         }
 
         /// <summary>
@@ -632,7 +624,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return hash;
         }
 
-        private class DisplayNameToItemsMap : IEnumerable<CompletionItem>
+        private class DisplayNameToItemsMap : IEnumerable<CompletionItem>, IDisposable
         {
             // We might need to handle large amount of items with import completion enabled,
             // so use a dedicated pool to minimize array allocations.
@@ -653,7 +645,7 @@ namespace Microsoft.CodeAnalysis.Completion
 #endif
             }
 
-            public void Free()
+            public void Dispose()
             {
                 _displayNameToItemsMap.Clear();
                 s_uniqueSourcesPool.Free(_displayNameToItemsMap);
