@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Workspace workspace,
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> diagnostics,
-            TaskQueue postBuildTaskQueue,
+            TaskQueue postBuildAndErrorListRefreshTaskQueue,
             bool onBuildCompleted,
             CancellationToken cancellationToken)
         {
             if (_map.TryGetValue(workspace, out var analyzer))
             {
-                return analyzer.SynchronizeWithBuildAsync(diagnostics, postBuildTaskQueue, onBuildCompleted, cancellationToken);
+                return analyzer.SynchronizeWithBuildAsync(diagnostics, postBuildAndErrorListRefreshTaskQueue, onBuildCompleted, cancellationToken);
             }
 
             return Task.CompletedTask;

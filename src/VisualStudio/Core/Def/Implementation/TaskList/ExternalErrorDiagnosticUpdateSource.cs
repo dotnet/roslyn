@@ -51,9 +51,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly TaskQueue _taskQueue;
 
         /// <summary>
-        /// Task queue to serialize all the post-build work for errors reported by build.
+        /// Task queue to serialize all the post-build and post error list refresh tasks.
+        /// Error list refresh requires build/live diagnostics de-duping to complete, which happens during
+        /// <see cref="SyncBuildErrorsAndReportOnBuildCompletedAsync(DiagnosticAnalyzerService, InProgressState, CancellationToken)"/>.
+        /// Computationally expensive tasks such as writing build errors into persistent storage,
+        /// invoking background analysis on open files/solution after build completes, etc.
+        /// are added to this task queue to help ensure faster error list refresh.
         /// </summary>
-        private readonly TaskQueue _postBuildTaskQueue;
+        private readonly TaskQueue _postBuildAndErrorListRefreshTaskQueue;
 
         // Gate for concurrent access and fields guarded with this gate.
         private readonly object _gate = new();
@@ -89,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             // use queue to serialize work. no lock needed
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
-            _postBuildTaskQueue = new TaskQueue(listener, TaskScheduler.Default);
+            _postBuildAndErrorListRefreshTaskQueue = new TaskQueue(listener, TaskScheduler.Default);
             _disposalToken = disposalToken;
 
             _workspace = workspace;
@@ -218,6 +223,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
+            // Clear relevant build-only errors on workspace events such as solution added/removed/reloaded,
+            // project added/removed/reloaded, etc.
             switch (e.Kind)
             {
                 case WorkspaceChangeKind.SolutionAdded:
@@ -306,7 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
                 finally
                 {
-                    await _postBuildTaskQueue.LastScheduledTask.ConfigureAwait(false);
+                    await _postBuildAndErrorListRefreshTaskQueue.LastScheduledTask.ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
@@ -342,7 +349,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             // Report pending live errors
-            await diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, _postBuildTaskQueue, onBuildCompleted: true, cancellationToken).ConfigureAwait(false);
+            await diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, _postBuildAndErrorListRefreshTaskQueue, onBuildCompleted: true, cancellationToken).ConfigureAwait(false);
         }
 
         private void ReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
@@ -452,7 +459,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 // make those errors live errors
                 var map = ProjectErrorMap.Empty.Add(projectId, diagnostics);
-                await diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, _postBuildTaskQueue, onBuildCompleted: false, cancellationToken).ConfigureAwait(false);
+                await diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, _postBuildAndErrorListRefreshTaskQueue, onBuildCompleted: false, cancellationToken).ConfigureAwait(false);
             }
         }
 

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async Task SynchronizeWithBuildAsync(
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> buildDiagnostics,
-            TaskQueue postBuildTaskQueue,
+            TaskQueue postBuildAndErrorListRefreshTaskQueue,
             bool onBuildCompleted,
             CancellationToken cancellationToken)
         {
@@ -68,10 +68,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // Save into in-memory cache.
                         await state.SaveInMemoryCacheAsync(project, result).ConfigureAwait(false);
 
-                        // Save into persistent storage on a separate post-build task queue.
-                        _ = postBuildTaskQueue.ScheduleTask(
+                        // Save into persistent storage on a separate post-build and post error list refresh task queue.
+                        _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(
                                 nameof(SynchronizeWithBuildAsync),
-                                async () => await state.SaveAsync(PersistentStorageService, project, result).ConfigureAwait(false),
+                                () => state.SaveAsync(PersistentStorageService, project, result),
                                 cancellationToken);
                     }
 
@@ -89,14 +89,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // Refresh live diagnostics after solution build completes.
                 if (onBuildCompleted && PreferLiveErrorsOnOpenedFiles(options))
                 {
-                    // Enqueue re-analysis of active document.
+                    // Enqueue re-analysis of active document with high-priority right away.
                     if (_documentTrackingService?.GetActiveDocument(solution) is { } activeDocument)
                     {
                         AnalyzerService.Reanalyze(Workspace, documentIds: ImmutableArray.Create(activeDocument.Id), highPriority: true);
                     }
 
-                    // Enqueue remaining re-analysis on the task queue.
-                    _ = postBuildTaskQueue.ScheduleTask(nameof(SynchronizeWithBuildAsync), () =>
+                    // Enqueue remaining re-analysis with normal priority on a separate task queue
+                    // that will execute at the end of all the post build and error list refresh tasks.
+                    _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuildAsync), () =>
                     {
                         // Enqueue re-analysis of open documents.
                         AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds());
