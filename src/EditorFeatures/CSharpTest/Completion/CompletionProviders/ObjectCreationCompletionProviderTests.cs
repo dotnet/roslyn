@@ -677,5 +677,113 @@ namespace ConsoleApplication1
 ";
             await VerifyItemExistsAsync(markup, "List<object?>");
         }
+
+        [WpfFact]
+        public async Task CreateObjectAndCommitWithSemicolon()
+        {
+            var markup = @"
+class Program
+{
+    void Bar()
+    {
+        object o = new $$
+    }
+}";
+            var expectedMark = @"
+class Program
+{
+    void Bar()
+    {
+        object o = new object();$$
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "object", expectedMark, commitChar: ';');
+        }
+
+        [WpfFact]
+        public async Task CreateNullableObjectAndCommitWithSemicolon()
+        {
+            var markup = @"
+class Program
+{
+    void Bar()
+    {
+        object? o = new $$
+    }
+}";
+            var expectedMark = @"
+class Program
+{
+    void Bar()
+    {
+        object? o = new object();$$
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "object", expectedMark, commitChar: ';');
+        }
+
+        [WpfFact]
+        public async Task CreateStringAsLocalAndCommitWithSemicolon()
+        {
+            var markup = @"
+class Program
+{
+    void Bar()
+    {
+        string o = new $$
+    }
+}";
+            var expectedMark = @"
+class Program
+{
+    void Bar()
+    {
+        string o = new string($$);
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "string", expectedMark, commitChar: ';');
+        }
+
+        [WpfFact]
+        public async Task CreateGenericListAsLocalAndCommitWithSemicolon()
+        {
+            var markup = @"
+using System.Collections.Generic;
+class Program
+{
+    void Bar()
+    {
+        List<int> o = new $$
+    }
+}";
+            var expectedMark = @"
+using System.Collections.Generic;
+class Program
+{
+    void Bar()
+    {
+        List<int> o = new List<int>();$$
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "List<int>", expectedMark, commitChar: ';');
+        }
+
+        [WpfFact]
+        public async Task CreateGenericListAsFieldAndCommitWithSemicolon()
+        {
+            var markup = @"
+using System.Collections.Generic;
+class Program
+{
+    private List<int> o = new $$
+}";
+            var expectedMark = @"
+using System.Collections.Generic;
+class Program
+{
+    private List<int> o = new List<int>();$$
+}";
+            await VerifyCustomCommitProviderAsync(markup, "List<int>", expectedMark, commitChar: ';');
+        }
     }
 }

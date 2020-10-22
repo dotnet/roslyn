@@ -10747,5 +10747,133 @@ class C
                 markup, "",
                 matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
+
+        [WpfFact]
+        public async Task CompletionWithSemicolonForMethod()
+        {
+            var markup = @"
+class Program
+{
+    private void Bar()
+    {
+        F$$
+    }
+    
+    private void Foo(int i)
+    {
+    }
+
+    private void Foo(int i, int c)
+    {
+    }
+}";
+            var expected = @"
+class Program
+{
+    private void Bar()
+    {
+        Foo($$);
+    }
+    
+    private void Foo(int i)
+    {
+    }
+
+    private void Foo(int i, int c)
+    {
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "Foo", expected, commitChar: ';');
+        }
+
+        [WpfFact]
+        public async Task CompletionWithSemicolonForVoidParameterlessMethod()
+        {
+            var markup = @"
+class Program
+{
+    private void Bar()
+    {
+        F$$
+    }
+    
+    private void Foo()
+    {
+    }
+
+    private void Foo(int i)
+    {
+    }
+}";
+            var expected = @"
+class Program
+{
+    private void Bar()
+    {
+        Foo();$$
+    }
+    
+    private void Foo()
+    {
+    }
+
+    private void Foo(int i)
+    {
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "Foo", expected, commitChar: ';');
+        }
+
+        [WpfFact]
+        public async Task CompletionWithSemicolonForParameterlessConstructor()
+        {
+            var markup = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = new P$$
+    }
+}";
+            var expected = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = new Program();$$
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "Program", expected, commitChar: ';');
+        }
+
+        [WpfFact]
+        public async Task CompletionWithSemicolonForConstructor()
+        {
+            var markup = @"
+class Program
+{
+    public Program(int i)
+    {
+    }
+
+    private static void Bar()
+    {
+        var o = new P$$
+    }
+}";
+            var expected = @"
+class Program
+{
+    public Program(int i)
+    {
+    }
+
+    private static void Bar()
+    {
+        var o = new Program($$);
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "Program", expected, commitChar: ';');
+        }
     }
 }
