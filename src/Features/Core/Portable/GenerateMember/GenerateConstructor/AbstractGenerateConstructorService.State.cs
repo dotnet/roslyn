@@ -140,44 +140,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             private bool TryInitializeDelegatedConstructor(CancellationToken cancellationToken)
             {
-                // We don't have to deal with the zero length case, since there's nothing to
-                // delegate.  It will fall out of the GenerateFieldDelegatingConstructor above.
-                for (var i = _arguments.Length; i >= 1; i--)
-                {
-                    if (InitializeDelegatedConstructor(i, cancellationToken))
-                        return true;
-                }
-
-                return false;
-            }
-
-            private bool InitializeDelegatedConstructor(int argumentCount, CancellationToken cancellationToken)
-                => InitializeDelegatedConstructor(argumentCount, TypeToGenerateIn, cancellationToken) ||
-                   InitializeDelegatedConstructor(argumentCount, TypeToGenerateIn.BaseType, cancellationToken);
-
-            private bool InitializeDelegatedConstructor(int argumentCount, INamedTypeSymbol namedType, CancellationToken cancellationToken)
-            {
-                // We can't resolve overloads across language.
-                if (_document.Project.Language != namedType.Language)
-                    return false;
-
-                // Look for constructors in this specified type that are:
-                // 1. Non-implicit.  We don't want to add `: base()` as that's just redundant for subclasses and `:
-                //    this()` won't even work as we won't have an implicit constructor once we add this new constructor.
-                // 2. Accessible.  We obviously need our constructor to be able to call that other constructor.
-                // 3. Won't cause a cycle.  i.e. if we're generating a new constructor from an existing constructor,
-                //    then we don't want it calling back into us.
-                // 4. Are compatible with the parameters we're generating for this constructor.  Compatible means there
-                //    exists an implicit conversion from the new constructor's parameter types to the existing
-                //    constructor's parameter types.
-                var parameterTypesToMatch = ParameterTypes.Take(argumentCount).ToList();
-                var delegatedConstructor = namedType.InstanceConstructors
-                    .Where(c => IsSymbolAccessible(c, _document))
-                    .Where(c => !c.IsImplicitlyDeclared)
-                    .Where(c => c.Parameters.Length == parameterTypesToMatch.Count)
-                    .Where(c => _service.CanDelegateThisConstructor(this, _document, c, cancellationToken))
-                    .Where(c => IsCompatible(c, parameterTypesToMatch))
-                    .FirstOrDefault();
+                var delegatedConstructor = GenerateConstructorHelpers.FindConstructorToDelegateTo(
+                    _document.SemanticModel.Compilation,
+                    TypeToGenerateIn,
+                    includeBaseType: true,
+                    ParameterTypes,
+                    c => _service.CanDelegateThisConstructor(this, _document, c, cancellationToken));
                 if (delegatedConstructor == null)
                     return false;
 
@@ -187,6 +155,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 // Find the names of the parameters that will follow the parameters we're
                 // delegating.
+                var argumentCount = delegatedConstructor.Parameters.Length;
                 var remainingArguments = _arguments.Skip(argumentCount).ToImmutableArray();
                 var remainingParameterNames = _service.GenerateParameterNames(
                     _document, remainingArguments,
@@ -204,28 +173,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 _delegatedConstructor = delegatedConstructor;
                 GetParameters(remainingArguments, remainingParameterTypes, remainingParameterNames, cancellationToken);
                 return true;
-            }
 
-            private bool IsCompatible(IMethodSymbol constructor, List<ITypeSymbol> parameterTypes)
-            {
-                Debug.Assert(constructor.Parameters.Length == parameterTypes.Count);
-
-                // Don't delegate to another constructor in this type. if we're generating a new constructor with the
-                // same parameter types.  Note: this can happen if we're generating the new constructor because
-                // parameter names don't match (when a user explicitly provides named parameters).
-                if (TypeToGenerateIn.Equals(constructor.ContainingType) && constructor.Parameters.Select(p => p.Type).SequenceEqual(this.ParameterTypes))
-                    return false;
-
-                var compilation = _document.SemanticModel.Compilation;
-                for (var i = 0; i < constructor.Parameters.Length; i++)
-                {
-                    var constructorParameter = constructor.Parameters[i];
-                    var conversion = compilation.ClassifyCommonConversion(parameterTypes[i], constructorParameter.Type);
-                    if (!conversion.IsIdentity && !conversion.IsImplicit)
-                        return false;
-                }
-
-                return true;
             }
 
             private bool ClashesWithExistingConstructor()

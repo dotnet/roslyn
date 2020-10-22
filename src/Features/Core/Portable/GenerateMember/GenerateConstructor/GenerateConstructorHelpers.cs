@@ -2,16 +2,134 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
     internal static class GenerateConstructorHelpers
     {
-        public static IMethodSymbol GetDelegatingConstructor(
+        public static IMethodSymbol? FindConstructorToDelegateTo(
+            Compilation compilation,
+            INamedTypeSymbol typeToGenerateIn,
+            bool includeBaseType,
+            ImmutableArray<ITypeSymbol> parameterTypes,
+            Func<IMethodSymbol, bool> canDelegateToConstructor)
+        {
+            for (var i = parameterTypes.Length; i >= 1; i--)
+            {
+                var types = parameterTypes.Take(i).ToImmutableArray();
+                var result = FindConstructorToDelegateTo(compilation, typeToGenerateIn, parameterTypes, types, typeToGenerateIn.InstanceConstructors, canDelegateToConstructor);
+                if (result != null)
+                    return result;
+
+                if (includeBaseType && typeToGenerateIn.BaseType != null)
+                {
+                    result = FindConstructorToDelegateTo(compilation, typeToGenerateIn, parameterTypes, types, typeToGenerateIn.BaseType.InstanceConstructors, canDelegateToConstructor);
+                    if (result != null)
+                        return result;
+                }
+            }
+
+            return null;
+        }
+
+        private static IMethodSymbol FindConstructorToDelegateTo(
+            Compilation compilation,
+            INamedTypeSymbol typeToGenerateIn,
+            ImmutableArray<ITypeSymbol> allParameterTypes,
+            ImmutableArray<ITypeSymbol> firstParameterTypes,
+            ImmutableArray<IMethodSymbol> constructors,
+            Func<IMethodSymbol, bool> canDelegateToConstructor)
+        {
+            // We can't resolve overloads across language.
+            //if (_document.Project.Language != namedType.Language)
+            //    return false;
+
+            // Look for constructors in this specified type that are:
+            // 1. Non-implicit.  We don't want to add `: base()` as that's just redundant for subclasses and `:
+            //    this()` won't even work as we won't have an implicit constructor once we add this new constructor.
+            // 2. Accessible.  We obviously need our constructor to be able to call that other constructor.
+            // 3. Won't cause a cycle.  i.e. if we're generating a new constructor from an existing constructor,
+            //    then we don't want it calling back into us.
+            // 4. Are compatible with the parameters we're generating for this constructor.  Compatible means there
+            //    exists an implicit conversion from the new constructor's parameter types to the existing
+            //    constructor's parameter types.
+            var delegatedConstructor = constructors
+                .Where(c => c.Parameters.Length == firstParameterTypes.Length)
+                .Where(c => IsSymbolAccessible(compilation, c))
+                .Where(c => !c.IsImplicitlyDeclared)
+                .Where(canDelegateToConstructor)
+                .Where(c => IsCompatible(compilation, typeToGenerateIn, c, allParameterTypes, firstParameterTypes))
+                .FirstOrDefault();
+
+            return delegatedConstructor;
+        }
+
+        private static bool IsSymbolAccessible(Compilation compilation, ISymbol symbol)
+        {
+            if (symbol == null)
+                return false;
+
+            if (symbol is IPropertySymbol { SetMethod: { } setMethod } property &&
+                !IsSymbolAccessible(compilation, setMethod))
+            {
+                return false;
+            }
+
+            // Public and protected constructors are accessible.  Internal constructors are
+            // accessible if we have friend access.  We can't call the normal accessibility
+            // checkers since they will think that a protected constructor isn't accessible
+            // (since we don't have the destination type that would have access to them yet).
+            switch (symbol.DeclaredAccessibility)
+            {
+                case Accessibility.ProtectedOrInternal:
+                case Accessibility.Protected:
+                case Accessibility.Public:
+                    return true;
+                case Accessibility.ProtectedAndInternal:
+                case Accessibility.Internal:
+                    return compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(symbol.ContainingAssembly);
+
+                default:
+                    return false;
+            }
+        }
+
+        private static bool IsCompatible(
+            Compilation compilation,
+            INamedTypeSymbol typeToGenerateIn,
+            IMethodSymbol constructor,
+            ImmutableArray<ITypeSymbol> allParameters,
+            ImmutableArray<ITypeSymbol> firstParameterTypes)
+        {
+            Debug.Assert(constructor.Parameters.Length == firstParameterTypes.Length);
+
+            // Don't delegate to another constructor in this type. if we're generating a new constructor with the
+            // same parameter types.  Note: this can happen if we're generating the new constructor because
+            // parameter names don't match (when a user explicitly provides named parameters).
+            if (typeToGenerateIn.Equals(constructor.ContainingType) &&
+                constructor.Parameters.Select(p => p.Type).SequenceEqual(allParameters))
+            {
+                return false;
+            }
+
+            for (var i = 0; i < constructor.Parameters.Length; i++)
+            {
+                var constructorParameter = constructor.Parameters[i];
+                var conversion = compilation.ClassifyCommonConversion(firstParameterTypes[i], constructorParameter.Type);
+                if (!conversion.IsIdentity && !conversion.IsImplicit)
+                    return false;
+            }
+
+            return true;
+        }
+
+        public static IMethodSymbol? GetDelegatingConstructor(
             SemanticDocument document,
             SymbolInfo symbolInfo,
             ISet<IMethodSymbol> candidateInstanceConstructors,
@@ -51,7 +169,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             return null;
         }
 
-        private static bool ParameterTypesMatch(SemanticDocument semanticDocument, IList<ITypeSymbol> parameterTypes, IMethodSymbol method)
+        private static bool ParameterTypesMatch(SemanticDocument semanticDocument, IList<ITypeSymbol> parameterTypes, IMethodSymbol? method)
         {
             if (method == null)
             {
