@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             public Checksum Checksum { get; }
 
             private ImmutableArray<TypeImportCompletionItemInfo> ItemInfos { get; }
+
+            /// <summary>
+            /// The number of items in this entry for types declared as public.
+            /// This is used to minimize memory allocation in case non-public items aren't needed.
+            /// </summary>
             private int PublicItemCount { get; }
 
             private CacheEntry(
