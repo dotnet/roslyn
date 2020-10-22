@@ -2298,6 +2298,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IParameterSymbol Parameter { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents the initialization of an array instance.
     /// <para>
@@ -2321,6 +2322,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IOperation> ElementValues { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a single variable declarator and initializer.
     /// </summary>
@@ -6179,53 +6181,36 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseArrayInitializerOperation : OperationOld, IArrayInitializerOperation
+    #nullable enable
+    internal sealed partial class ArrayInitializerOperation : Operation, IArrayInitializerOperation
     {
-        internal BaseArrayInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.ArrayInitializer, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract ImmutableArray<IOperation> ElementValues { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ArrayInitializerOperation(ImmutableArray<IOperation> elementValues, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            ElementValues = SetParentOperation(elementValues, this);
+        }
+        public ImmutableArray<IOperation> ElementValues { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                foreach (var child in ElementValues)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (!ElementValues.IsEmpty) builder.AddRange(ElementValues);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.ArrayInitializer;
         public override void Accept(OperationVisitor visitor) => visitor.VisitArrayInitializer(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitArrayInitializer(this, argument);
     }
-    internal sealed partial class ArrayInitializerOperation : BaseArrayInitializerOperation, IArrayInitializerOperation
-    {
-        internal ArrayInitializerOperation(ImmutableArray<IOperation> elementValues, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ElementValues = SetParentOperation(elementValues, this);
-        }
-        public override ImmutableArray<IOperation> ElementValues { get; }
-    }
-    internal abstract partial class LazyArrayInitializerOperation : BaseArrayInitializerOperation, IArrayInitializerOperation
-    {
-        private ImmutableArray<IOperation> _lazyElementValues;
-        internal LazyArrayInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract ImmutableArray<IOperation> CreateElementValues();
-        public override ImmutableArray<IOperation> ElementValues
-        {
-            get
-            {
-                if (_lazyElementValues.IsDefault)
-                {
-                    ImmutableArray<IOperation> elementValues = CreateElementValues();
-                    SetParentOperation(elementValues, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyElementValues, elementValues);
-                }
-                return _lazyElementValues;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseVariableDeclaratorOperation : OperationOld, IVariableDeclaratorOperation
     {
         internal BaseVariableDeclaratorOperation(ILocalSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8639,6 +8624,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (OmittedArgumentOperation)operation;
             return new OmittedArgumentOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, object? argument)
+        {
+            var internalOperation = (ArrayInitializerOperation)operation;
+            return new ArrayInitializerOperation(VisitArray(internalOperation.ElementValues), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, object? argument)
         {

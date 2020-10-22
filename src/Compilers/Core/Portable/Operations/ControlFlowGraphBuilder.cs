@@ -5992,7 +5992,6 @@ oneMoreTime:
             return new ArrayCreationOperation(visitedDimensions, visitedInitializer, semanticModel: null,
                                                operation.Syntax, operation.Type, IsImplicit(operation));
         }
-#nullable disable
 
         public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
         {
@@ -6037,11 +6036,10 @@ oneMoreTime:
                 }
 
                 builder.ReverseContents();
-                return new ArrayInitializerOperation(builder.ToImmutableAndFree(), semanticModel: null, initializer.Syntax, initializer.GetConstantValue(), IsImplicit(initializer));
+                return new ArrayInitializerOperation(builder.ToImmutableAndFree(), semanticModel: null, initializer.Syntax, IsImplicit(initializer));
             }
         }
 
-#nullable enable
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
             if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)

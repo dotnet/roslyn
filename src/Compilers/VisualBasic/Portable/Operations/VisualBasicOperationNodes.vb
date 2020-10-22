@@ -41,23 +41,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyArrayInitializerOperation
-        Inherits LazyArrayInitializerOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _arrayInitialization As BoundArrayInitialization
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayInitialization As BoundArrayInitialization, semanticModel As SemanticModel, syntax As SyntaxNode, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type:=Nothing, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _arrayInitialization = arrayInitialization
-        End Sub
-
-        Protected Overrides Function CreateElementValues() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_arrayInitialization.Initializers)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazySimpleAssignmentOperation
         Inherits LazySimpleAssignmentOperation
 

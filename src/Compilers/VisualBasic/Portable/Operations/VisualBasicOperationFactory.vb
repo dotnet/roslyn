@@ -846,10 +846,10 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundArrayInitializationOperation(boundArrayInitialization As BoundArrayInitialization) As IArrayInitializerOperation
+            Dim elementValues As ImmutableArray(Of IOperation) = CreateFromArray(Of BoundExpression, IOperation)(boundArrayInitialization.Initializers)
             Dim syntax As SyntaxNode = boundArrayInitialization.Syntax
-            Dim constantValue As ConstantValue = boundArrayInitialization.ConstantValueOpt
             Dim isImplicit As Boolean = boundArrayInitialization.WasCompilerGenerated
-            Return New VisualBasicLazyArrayInitializerOperation(Me, boundArrayInitialization, _semanticModel, syntax, constantValue, isImplicit)
+            Return New ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundPropertyAccessOperation(boundPropertyAccess As BoundPropertyAccess) As IPropertyReferenceOperation

@@ -1148,17 +1148,15 @@ namespace Microsoft.CodeAnalysis.Operations
                               (boundArrayCreation.InitializerOpt?.Syntax == syntax && !boundArrayCreation.InitializerOpt.WasCompilerGenerated);
             return new ArrayCreationOperation(dimensionSizes, arrayInitializer, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IArrayInitializerOperation CreateBoundArrayInitializationOperation(BoundArrayInitialization boundArrayInitialization)
         {
+            ImmutableArray<IOperation> elementValues = CreateFromArray<BoundExpression, IOperation>(boundArrayInitialization.Initializers);
             SyntaxNode syntax = boundArrayInitialization.Syntax;
-            ConstantValue constantValue = boundArrayInitialization.ConstantValue;
             bool isImplicit = boundArrayInitialization.WasCompilerGenerated;
-            return new CSharpLazyArrayInitializerOperation(this, boundArrayInitialization, _semanticModel, syntax, constantValue, isImplicit);
+            return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
         }
 
-#nullable enable
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)
         {
             SyntaxNode syntax = boundDefaultLiteral.Syntax;

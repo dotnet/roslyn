@@ -110,14 +110,6 @@ namespace Microsoft.CodeAnalysis.Operations
         { }
     }
 
-    internal sealed partial class ArrayInitializerOperation : BaseArrayInitializerOperation, IArrayInitializerOperation
-    {
-        public ArrayInitializerOperation(ImmutableArray<IOperation> elementValues, SemanticModel semanticModel, SyntaxNode syntax, ConstantValue constantValue, bool isImplicit) :
-            this(elementValues, semanticModel, syntax, type: null, constantValue, isImplicit)
-        { }
-
-    }
-
     internal abstract partial class BaseConversionOperation : OperationOld, IConversionOperation
     {
         public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
