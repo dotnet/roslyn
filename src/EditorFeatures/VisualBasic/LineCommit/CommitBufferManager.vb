@@ -128,6 +128,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     End If
 
                     Dim tree As SyntaxTree
+                    Dim startLineNumber As Integer
+                    Dim startCharIndex As Integer
+                    Dim endLineNumber As Integer
+                    Dim endCharIndex As Integer
                     Dim useSemantics = info.UseStatementSemanticFormatting AndAlso Not isExplicitFormat
                     If useSemantics AndAlso Not isExplicitFormat Then
                         ' Avoid using semantics for formatting extremely large dirty spans without an explicit request
@@ -136,10 +140,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         ' differencing in designer cases along with measurements of a pathological example demonstrated
                         ' at 14000 lines. We expect Windows Forms designer formatting operations to run in under ~15
                         ' seconds on average current hardware when nearing the threshold.
-                        Dim startLineNumber = 0
-                        Dim startCharIndex = 0
-                        Dim endLineNumber = 0
-                        Dim endCharIndex = 0
                         info.StatementSpanToSemanticFormat.GetLinesAndCharacters(startLineNumber, startCharIndex, endLineNumber, endCharIndex)
                         If endLineNumber - startLineNumber > 7000 Then
                             useSemantics = False
@@ -151,10 +151,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     useSemantics = info.UseSemantics AndAlso Not info.UseStatementSemanticFormatting
                     If useSemantics AndAlso Not isExplicitFormat Then
                         ' same comment at above
-                        Dim startLineNumber = 0
-                        Dim startCharIndex = 0
-                        Dim endLineNumber = 0
-                        Dim endCharIndex = 0
                         info.SpanToFormat.GetLinesAndCharacters(startLineNumber, startCharIndex, endLineNumber, endCharIndex)
                         If endLineNumber - startLineNumber > 7000 Then
                             useSemantics = False
