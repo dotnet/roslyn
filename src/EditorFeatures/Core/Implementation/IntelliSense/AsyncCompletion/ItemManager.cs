@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -79,6 +80,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
             => Task.FromResult(UpdateCompletionList(session, data, cancellationToken));
+
+        // We might need to handle large amount of items with import completion enabled,
+        // so use a dedicated pool to minimize/avoid array allocations (especially in LOH)
+        // Set the size of pool to 1 because we don't expect UpdateCompletionListAsync to be
+        // called concurrently, which essentially makes the pooled list a singleton,
+        // but we still use ObjectPool for concurrency handling just to be robust.
+        private static readonly ObjectPool<List<MatchResult>> s_listOfMatchResultPool
+                = new(factory: () => new(), size: 1);
 
         private FilteredCompletionModel UpdateCompletionList(
             IAsyncCompletionSession session,
@@ -175,94 +184,94 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Use a monotonically increasing integer to keep track the original alphabetical order of each item.
             var currentIndex = 0;
 
-            using var _ = ArrayBuilder<MatchResult>.GetInstance(out var builder);
-            if (KeepAllItemsInTheList(initialRoslynTriggerKind, filterText) && !needToFilterExpanded && !needToFilter)
+            var initialListOfItemsToBeIncluded = s_listOfMatchResultPool.Allocate();
+            try
             {
-                // PERF: Conditionally set the capacity of the ArrayBuilder, i.e. if we think it's likely that the filtering result
-                // would be similar in size to the initial list, in which case, setting the capacity would avoid calls to Resize later.
-                // Otherwise, don't set capacity as an attempt to avoid allocating large array which might unnecessarily end up in LOH.
-                // The trade-off of not setting capacity is when we are wrong (large amount of items post-filtering), more allocation
-                // would occur because of Resize, but in reality we believe such cost is much lower than the benefit of not allocating
-                // large array upfront everytime we refresh completion list.
-                // We say it's likely that we end up with a list of similar size after filtering if:
-                // 1. We need to show items even if they don't match filter text
-                // 2. No filter is selected
-                builder.EnsureCapacity(data.InitialSortedList.Length);
-            }
-
-            // Filter items based on the selected filters and matching.
-            foreach (var item in data.InitialSortedList)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (needToFilter && ShouldBeFilteredOutOfCompletionList(item, selectedNonExpanderFilters))
+                if (initialListOfItemsToBeIncluded.Capacity < data.InitialSortedList.Length)
                 {
-                    continue;
+                    // We never reduce the capacity so the pooled list is more likely 
+                    // be able to handle any subsequent session w/o calling resize.
+                    initialListOfItemsToBeIncluded.Capacity = data.InitialSortedList.Length;
                 }
 
-                if (needToFilterExpanded && ShouldBeFilteredOutOfExpandedCompletionList(item, unselectedExpanders))
+                // Filter items based on the selected filters and matching.
+                foreach (var item in data.InitialSortedList)
                 {
-                    continue;
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (needToFilter && ShouldBeFilteredOutOfCompletionList(item, selectedNonExpanderFilters))
+                    {
+                        continue;
+                    }
+
+                    if (needToFilterExpanded && ShouldBeFilteredOutOfExpandedCompletionList(item, unselectedExpanders))
+                    {
+                        continue;
+                    }
+
+                    if (TryCreateMatchResult(
+                        completionHelper,
+                        item,
+                        filterText,
+                        initialRoslynTriggerKind,
+                        filterReason,
+                        _recentItemsManager.RecentItems,
+                        highlightMatchingPortions: highlightMatchingPortions,
+                        ref currentIndex,
+                        out var matchResult))
+                    {
+                        initialListOfItemsToBeIncluded.Add(matchResult);
+                    }
                 }
 
-                if (TryCreateMatchResult(
-                    completionHelper,
-                    item,
+                if (initialListOfItemsToBeIncluded.Count == 0)
+                {
+                    return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
+                }
+
+                // Sort the items by pattern matching results.
+                // Note that we want to preserve the original alphabetical order for items with same pattern match score,
+                // but `List<T>.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
+                // to `MatchResult` to achieve this.
+                initialListOfItemsToBeIncluded.Sort(MatchResult.SortingComparer);
+
+                var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
+
+                var updatedFilters = showCompletionItemFilters
+                    ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
+                    : ImmutableArray<CompletionFilterWithState>.Empty;
+
+                // If this was deletion, then we control the entire behavior of deletion ourselves.
+                if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
+                {
+                    return HandleDeletionTrigger(data.Trigger.Reason, initialListOfItemsToBeIncluded, filterText, updatedFilters);
+                }
+
+                Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
+                if (completionService == null)
+                {
+                    filterMethod = (itemsWithPatternMatches, text) => CompletionService.FilterItems(completionHelper, itemsWithPatternMatches);
+                }
+                else
+                {
+                    filterMethod = (itemsWithPatternMatches, text) => completionService.FilterItems(document, itemsWithPatternMatches, text);
+                }
+
+                return HandleNormalFiltering(
+                    filterMethod,
                     filterText,
-                    initialRoslynTriggerKind,
+                    updatedFilters,
                     filterReason,
-                    _recentItemsManager.RecentItems,
-                    highlightMatchingPortions: highlightMatchingPortions,
-                    ref currentIndex,
-                    out var matchResult))
-                {
-                    builder.Add(matchResult);
-                }
+                    data.Trigger.Character,
+                    initialListOfItemsToBeIncluded,
+                    hasSuggestedItemOptions);
             }
-
-            if (builder.Count == 0)
+            finally
             {
-                return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
+                // Don't call ClearAndFree, which resets the capacity to a default value.
+                initialListOfItemsToBeIncluded.Clear();
+                s_listOfMatchResultPool.Free(initialListOfItemsToBeIncluded);
             }
-
-            // Sort the items by pattern matching results.
-            // Note that we want to preserve the original alphabetical order for items with same pattern match score,
-            // but `ArrayBuilder.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
-            // to `MatchResult` to achieve this.
-            builder.Sort(MatchResult.SortingComparer);
-
-            var initialListOfItemsToBeIncluded = builder.ToImmutable();
-
-            var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
-
-            var updatedFilters = showCompletionItemFilters
-                ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
-                : ImmutableArray<CompletionFilterWithState>.Empty;
-
-            // If this was deletion, then we control the entire behavior of deletion ourselves.
-            if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
-            {
-                return HandleDeletionTrigger(data.Trigger.Reason, initialListOfItemsToBeIncluded, filterText, updatedFilters);
-            }
-
-            Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
-            if (completionService == null)
-            {
-                filterMethod = (itemsWithPatternMatches, text) => CompletionService.FilterItems(completionHelper, itemsWithPatternMatches);
-            }
-            else
-            {
-                filterMethod = (itemsWithPatternMatches, text) => completionService.FilterItems(document, itemsWithPatternMatches, text);
-            }
-
-            return HandleNormalFiltering(
-                filterMethod,
-                filterText,
-                updatedFilters,
-                filterReason,
-                data.Trigger.Character,
-                initialListOfItemsToBeIncluded,
-                hasSuggestedItemOptions);
 
             static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> activeNonExpanderFilters)
             {
@@ -310,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ImmutableArray<CompletionFilterWithState> filters,
             CompletionFilterReason filterReason,
             char typeChar,
-            ImmutableArray<MatchResult> itemsInList,
+            List<MatchResult> itemsInList,
             bool hasSuggestedItemOptions)
         {
             // Not deletion.  Defer to the language to decide which item it thinks best
@@ -334,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 var longestCommonPrefixLength = bestOrFirstMatchResult.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(filterText);
 
-                for (var i = 1; i < itemsInList.Length; ++i)
+                for (var i = 1; i < itemsInList.Count; ++i)
                 {
                     var item = itemsInList[i];
                     var commonPrefixLength = item.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(filterText);
@@ -396,11 +405,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private static FilteredCompletionModel HandleDeletionTrigger(
             CompletionTriggerReason filterTriggerKind,
-            ImmutableArray<MatchResult> matchResults,
+            List<MatchResult> matchResults,
             string filterText,
             ImmutableArray<CompletionFilterWithState> filters)
         {
-            var matchingItems = matchResults.WhereAsArray(r => r.MatchedFilterText);
+            var matchingItems = matchResults.Where(r => r.MatchedFilterText);
             if (filterTriggerKind == CompletionTriggerReason.Insertion &&
                 !matchingItems.Any())
             {
@@ -468,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 uniqueItem: moreThanOneMatchWithSamePriority ? null : bestMatchResult.GetValueOrDefault().VSCompletionItem);
         }
 
-        private static ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(ImmutableArray<MatchResult> matchResults)
+        private static ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(List<MatchResult> matchResults)
             => matchResults.SelectAsArray(matchResult =>
             new CompletionItemWithHighlight(matchResult.VSCompletionItem, matchResult.HighlightedSpans));
 
@@ -503,11 +512,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         private static ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(
-            ImmutableArray<MatchResult> filteredList,
+            List<MatchResult> filteredList,
             ImmutableArray<CompletionFilterWithState> filters)
         {
             // See which filters might be enabled based on the typed code
-            var textFilteredFilters = filteredList.SelectMany(n => n.VSCompletionItem.Filters).ToImmutableHashSet();
+            var textFilteredFilters = filteredList.SelectMany(n => n.VSCompletionItem.Filters).ToHashSet();
 
             // When no items are available for a given filter, it becomes unavailable.
             // Expanders always appear available as long as it's presented.
