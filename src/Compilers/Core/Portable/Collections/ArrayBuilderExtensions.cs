@@ -163,13 +163,13 @@ namespace Microsoft.CodeAnalysis
 
         public static bool TryPop<T>(this ArrayBuilder<T> builder, [MaybeNullWhen(false)] out T result)
         {
-            result = default;
             if (builder.Count > 0)
             {
                 result = builder.Pop();
                 return true;
             }
 
+            result = default;
             return false;
         }
 

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
@@ -80,9 +81,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                             //      (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
                             //
                             // recurse on the value we're calling GetHashCode on.
-                            Debug.Assert(invocation.Instance is not null);
-                            // Need the suppression for codestyle, which doesn't respect the above assertion
-                            return TryAddHashedSymbol(invocation.Instance!, seenHash: true);
+                            RoslynDebug.Assert(invocation.Instance is not null);
+                            return TryAddHashedSymbol(invocation.Instance, seenHash: true);
                         }
 
                         if (targetMethod.Name == nameof(GetHashCode) &&
@@ -109,9 +109,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                             if (binary.OperatorKind == BinaryOperatorKind.Equals)
                             {
                                 // (StringProperty == null ? 0 : StringProperty.GetHashCode())
-                                Debug.Assert(conditional.WhenFalse is not null);
-                                // Need the suppression for codestyle, which doesn't respect the above assertion
-                                return TryAddHashedSymbol(conditional.WhenFalse!, seenHash: true);
+                                RoslynDebug.Assert(conditional.WhenFalse is not null);
+                                return TryAddHashedSymbol(conditional.WhenFalse, seenHash: true);
                             }
                             else if (binary.OperatorKind == BinaryOperatorKind.NotEquals)
                             {

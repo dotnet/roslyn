@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ILocalFunctionOperation CreateBoundLocalFunctionStatementOperation(BoundLocalFunctionStatement boundLocalFunctionStatement)
         {
             IBlockOperation? body = (IBlockOperation?)Create(boundLocalFunctionStatement.Body);
-            IBlockOperation? ignoredBody = boundLocalFunctionStatement is { BlockBody: not null, ExpressionBody: { } exprBody }
+            IBlockOperation? ignoredBody = boundLocalFunctionStatement is { BlockBody: { }, ExpressionBody: { } exprBody }
                 ? (IBlockOperation?)Create(exprBody)
                 : null;
             IMethodSymbol symbol = boundLocalFunctionStatement.Symbol.GetPublicSymbol();
@@ -1332,8 +1332,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 IOperation right = Create(currentBinary.Right);
                 left = currentBinary switch
                 {
-                    BoundBinaryOperator binaryOp => CreateBoundBinaryOperatorOperation(binaryOp, left, right),
-                    BoundUserDefinedConditionalLogicalOperator logicalOp => CreateBoundUserDefinedConditionalLogicalOperator(logicalOp, left, right),
+                    BoundBinaryOperator binaryOp => createBoundBinaryOperatorOperation(binaryOp, left, right),
+                    BoundUserDefinedConditionalLogicalOperator logicalOp => createBoundUserDefinedConditionalLogicalOperator(logicalOp, left, right),
                     { Kind: var kind } => throw ExceptionUtilities.UnexpectedValue(kind)
                 };
             }
@@ -1342,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.Operations
             stack.Free();
             return left;
 
-            IBinaryOperation CreateBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator, IOperation left, IOperation right)
+            IBinaryOperation createBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator, IOperation left, IOperation right)
             {
                 BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
                 IMethodSymbol? operatorMethod = boundBinaryOperator.MethodOpt.GetPublicSymbol();
@@ -1368,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                            _semanticModel, syntax, type, constantValue, isImplicit);
             }
 
-            IBinaryOperation CreateBoundUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator boundBinaryOperator, IOperation left, IOperation right)
+            IBinaryOperation createBoundUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator boundBinaryOperator, IOperation left, IOperation right)
             {
                 BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
                 IMethodSymbol operatorMethod = boundBinaryOperator.LogicalOperator.GetPublicSymbol();
