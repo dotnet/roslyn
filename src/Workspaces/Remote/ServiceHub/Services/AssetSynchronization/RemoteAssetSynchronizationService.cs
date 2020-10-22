@@ -12,8 +12,14 @@ using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal class RemoteAssetSynchronizationService : BrokeredServiceBase, IRemoteAssetSynchronizationService
+    internal sealed class RemoteAssetSynchronizationService : BrokeredServiceBase, IRemoteAssetSynchronizationService
     {
+        internal sealed class Factory : FactoryBase<IRemoteAssetSynchronizationService>
+        {
+            protected override IRemoteAssetSynchronizationService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteAssetSynchronizationService(in arguments);
+        }
+
         public RemoteAssetSynchronizationService(in ServiceConstructionArguments arguments)
             : base(in arguments)
         {
@@ -26,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
                     var workspace = GetWorkspace();
-                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, WorkspaceManager.GetAssetSource());
+                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
                     await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
@@ -95,12 +101,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     return await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
-        }
-
-        internal sealed class Factory : FactoryBase<IRemoteAssetSynchronizationService>
-        {
-            protected override IRemoteAssetSynchronizationService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteAssetSynchronizationService(in arguments);
         }
     }
 }
