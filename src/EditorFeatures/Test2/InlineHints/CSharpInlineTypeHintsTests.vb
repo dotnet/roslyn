@@ -36,7 +36,7 @@ class A
 {
     void Main() 
     {
-        var {|int:|}i = 0;
+        var {|int :|}i = 0;
     }
 }
                     </Document>
@@ -76,7 +76,7 @@ class A
 {
     void Main() 
     {
-        var ({|int:|}i, {|string:|}j) = (0, "");
+        var ({|int :|}i, {|string :|}j) = (0, "");
     }
 }
                     </Document>
@@ -96,7 +96,7 @@ class A
 {
     void Main(string[] args) 
     {
-        foreach (var {|string:|}j in args) {}
+        foreach (var {|string :|}j in args) {}
     }
 }
                     </Document>
@@ -156,7 +156,7 @@ class A
 {
     void Main(string[] args) 
     {
-        if (args is { Length: var {|int:|}goo }) { }
+        if (args is { Length: var {|int :|}goo }) { }
     }
 }
                     </Document>
@@ -217,7 +217,7 @@ class A
 {
     void Main(string[] args) 
     {
-        args.Where({|string:|}a => a.Length > 0);
+        args.Where({|string :|}a => a.Length > 0);
     }
 }
                     </Document>
@@ -238,7 +238,7 @@ class A
 {
     void Main(string[] args) 
     {
-        args.Where(({|string:|}a) => a.Length > 0);
+        args.Where(({|string :|}a) => a.Length > 0);
     }
 }
                     </Document>
@@ -279,7 +279,7 @@ class A
 {
     void Main(string[] args) 
     {
-        if (int.TryParse("", out var {|int:|}x))
+        if (int.TryParse("", out var {|int :|}x))
         {
         }
     }
