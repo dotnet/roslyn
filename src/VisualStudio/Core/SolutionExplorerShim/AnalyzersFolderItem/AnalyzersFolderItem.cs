@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
@@ -18,9 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
     internal partial class AnalyzersFolderItem : BaseItem
     {
-        private readonly Workspace _workspace;
-        private readonly ProjectId _projectId;
-        private readonly IVsHierarchyItem _parentItem;
         private readonly IContextMenuController _contextMenuController;
 
         public AnalyzersFolderItem(
@@ -30,42 +26,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             IContextMenuController contextMenuController)
             : base(SolutionExplorerShim.Analyzers)
         {
-            _workspace = workspace;
-            _projectId = projectId;
-            _parentItem = parentItem;
+            Workspace = workspace;
+            ProjectId = projectId;
+            ParentItem = parentItem;
             _contextMenuController = contextMenuController;
         }
 
-        public override ImageMoniker IconMoniker
-        {
-            get
-            {
-                return KnownMonikers.CodeInformation;
-            }
-        }
+        public override ImageMoniker IconMoniker => KnownMonikers.CodeInformation;
+        public override ImageMoniker ExpandedIconMoniker => KnownMonikers.CodeInformation;
 
-        public override ImageMoniker ExpandedIconMoniker
-        {
-            get
-            {
-                return KnownMonikers.CodeInformation;
-            }
-        }
+        public Workspace Workspace { get; }
 
-        public Workspace Workspace
-        {
-            get { return _workspace; }
-        }
+        public ProjectId ProjectId { get; }
 
-        public ProjectId ProjectId
-        {
-            get { return _projectId; }
-        }
-
-        public IVsHierarchyItem ParentItem
-        {
-            get { return _parentItem; }
-        }
+        public IVsHierarchyItem ParentItem { get; }
 
         public override object GetBrowseObject()
         {
@@ -82,13 +56,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// </summary>
         private VSProject3? GetVSProject()
         {
-            var vsWorkspace = _workspace as VisualStudioWorkspace;
+            var vsWorkspace = Workspace as VisualStudioWorkspace;
             if (vsWorkspace == null)
             {
                 return null;
             }
 
-            var hierarchy = vsWorkspace.GetHierarchy(_projectId);
+            var hierarchy = vsWorkspace.GetHierarchy(ProjectId);
             if (hierarchy == null)
             {
                 return null;
