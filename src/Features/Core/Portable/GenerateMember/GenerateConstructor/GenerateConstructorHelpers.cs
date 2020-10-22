@@ -17,19 +17,19 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             Compilation compilation,
             INamedTypeSymbol typeToGenerateIn,
             bool includeBaseType,
-            ImmutableArray<ITypeSymbol> parameterTypes,
+            ImmutableArray<IParameterSymbol> allParameters,
             Func<IMethodSymbol, bool> canDelegateToConstructor)
         {
-            for (var i = parameterTypes.Length; i >= 0; i--)
+            for (var i = allParameters.Length; i >= 0; i--)
             {
-                var types = parameterTypes.Take(i).ToImmutableArray();
-                var result = FindConstructorToDelegateTo(compilation, typeToGenerateIn, parameterTypes, types, typeToGenerateIn.InstanceConstructors, canDelegateToConstructor);
+                var parameters = allParameters.Take(i).ToImmutableArray();
+                var result = FindConstructorToDelegateTo(compilation, parameters, typeToGenerateIn.InstanceConstructors, canDelegateToConstructor);
                 if (result != null)
                     return result;
 
                 if (includeBaseType && typeToGenerateIn.BaseType != null)
                 {
-                    result = FindConstructorToDelegateTo(compilation, typeToGenerateIn, parameterTypes, types, typeToGenerateIn.BaseType.InstanceConstructors, canDelegateToConstructor);
+                    result = FindConstructorToDelegateTo(compilation, parameters, typeToGenerateIn.BaseType.InstanceConstructors, canDelegateToConstructor);
                     if (result != null)
                         return result;
                 }
@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
         private static IMethodSymbol FindConstructorToDelegateTo(
             Compilation compilation,
-            INamedTypeSymbol typeToGenerateIn,
-            ImmutableArray<ITypeSymbol> allParameterTypes,
-            ImmutableArray<ITypeSymbol> firstParameterTypes,
+            ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<IMethodSymbol> constructors,
             Func<IMethodSymbol, bool> canDelegateToConstructor)
         {
@@ -56,11 +54,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             //    exists an implicit conversion from the new constructor's parameter types to the existing
             //    constructor's parameter types.
             var delegatedConstructor = constructors
-                .Where(c => c.Parameters.Length == firstParameterTypes.Length)
+                .Where(c => c.Parameters.Length == parameters.Length)
+                .Where(c => c.Parameters.SequenceEqual(parameters, (p1, p2) => p1.RefKind == p2.RefKind))
                 .Where(c => IsSymbolAccessible(compilation, c))
                 .Where(c => !c.IsImplicitlyDeclared)
                 .Where(canDelegateToConstructor)
-                .Where(c => IsCompatible(compilation, typeToGenerateIn, c, allParameterTypes, firstParameterTypes))
+                .Where(c => IsCompatible(compilation, c, parameters))
                 .FirstOrDefault();
 
             return delegatedConstructor;
@@ -98,17 +97,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
         private static bool IsCompatible(
             Compilation compilation,
-            INamedTypeSymbol typeToGenerateIn,
             IMethodSymbol constructor,
-            ImmutableArray<ITypeSymbol> allParameters,
-            ImmutableArray<ITypeSymbol> firstParameterTypes)
+            ImmutableArray<IParameterSymbol> parameters)
         {
-            Debug.Assert(constructor.Parameters.Length == firstParameterTypes.Length);
+            Debug.Assert(constructor.Parameters.Length == parameters.Length);
 
             for (var i = 0; i < constructor.Parameters.Length; i++)
             {
                 var constructorParameter = constructor.Parameters[i];
-                var conversion = compilation.ClassifyCommonConversion(firstParameterTypes[i], constructorParameter.Type);
+                var conversion = compilation.ClassifyCommonConversion(parameters[i].Type, constructorParameter.Type);
                 if (!conversion.IsIdentity && !conversion.IsImplicit)
                     return false;
             }

@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                             If nameOrMemberAccessExpression.Parent IsNot Nothing AndAlso TypeOf nameOrMemberAccessExpression.Parent Is QualifiedNameSyntax Then
                                 Return True
                             Else
-                                throw ExceptionUtilities.Unreachable
+                                Throw ExceptionUtilities.Unreachable
                             End If
                         Else
                             ' Case : NSOrSomething.GenType
@@ -717,15 +717,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
             propertySymbol = GenerateProperty(propertyName, typeSymbol)
             Return propertySymbol IsNot Nothing
-        End Function
-
-        Private Shared Function GetSpeculativeArgumentTypes(model As SemanticModel, newObjectCreation As ObjectCreationExpressionSyntax) As IList(Of ITypeSymbol)
-            Return If(newObjectCreation.ArgumentList Is Nothing,
-                      SpecializedCollections.EmptyList(Of ITypeSymbol),
-                      newObjectCreation.ArgumentList.Arguments.Select(
-                          Function(a)
-                              Return If(a.GetExpression() Is Nothing, Nothing, model.GetTypeInfo(a.GetExpression()).ConvertedType)
-                          End Function).ToList())
         End Function
     End Class
 End Namespace

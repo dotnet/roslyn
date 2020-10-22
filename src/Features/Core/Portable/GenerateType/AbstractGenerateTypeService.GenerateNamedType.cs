@@ -142,11 +142,16 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         return;
                     }
 
+                    var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                    var refKinds = argumentList.SelectAsArray(a => syntaxFacts.GetRefKindOfArgument(a));
+                    var parameters = parameterTypes.Zip(refKinds,
+                        (t, r) => CodeGenerationSymbolFactory.CreateParameterSymbol(r, t, name: "")).ToImmutableArray();
+
                     var delegatedConstructor = GenerateConstructorHelpers.FindConstructorToDelegateTo(
                         _semanticDocument.SemanticModel.Compilation,
                         _state.BaseTypeOrInterfaceOpt,
                         includeBaseType: false,
-                        parameterTypes,
+                        parameters,
                         _ => true);
 
                     if (delegatedConstructor != null)
