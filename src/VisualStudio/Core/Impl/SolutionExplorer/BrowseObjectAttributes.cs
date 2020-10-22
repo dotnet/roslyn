@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using Microsoft.VisualStudio.LanguageServices.SolutionExplorer;
 using System;
 using System.ComponentModel;
 using System.Globalization;

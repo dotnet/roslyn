@@ -8,7 +8,6 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.SolutionExplorer;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
