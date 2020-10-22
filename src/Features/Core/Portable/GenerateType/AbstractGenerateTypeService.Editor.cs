@@ -559,6 +559,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return types.SelectAsArray(FixType);
             }
 
+            private ImmutableArray<TExpressionSyntax> GetArgumentExpressions(IList<TArgumentSyntax> argumentList)
+            {
+                var syntaxFacts = _semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                return argumentList.SelectAsArray(a => (TExpressionSyntax)syntaxFacts.GetExpressionOfArgument(a));
+            }
+
             private ITypeSymbol FixType(
                 ITypeSymbol typeSymbol)
             {

@@ -7,29 +7,35 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
     internal static class GenerateConstructorHelpers
     {
-        public static IMethodSymbol? FindConstructorToDelegateTo(
-            Compilation compilation,
+        public static IMethodSymbol? FindConstructorToDelegateTo<TExpressionSyntax>(
+            SemanticDocument document,
             INamedTypeSymbol typeToGenerateIn,
             bool includeBaseType,
             ImmutableArray<IParameterSymbol> allParameters,
+            ImmutableArray<TExpressionSyntax> allExpressions,
             Func<IMethodSymbol, bool> canDelegateToConstructor)
+            where TExpressionSyntax : SyntaxNode
         {
             for (var i = allParameters.Length; i >= 0; i--)
             {
                 var parameters = allParameters.Take(i).ToImmutableArray();
-                var result = FindConstructorToDelegateTo(compilation, parameters, typeToGenerateIn.InstanceConstructors, canDelegateToConstructor);
+                var expressions = allExpressions.Take(i).ToImmutableArray();
+                var result = FindConstructorToDelegateTo(
+                    document, parameters, expressions, typeToGenerateIn.InstanceConstructors, canDelegateToConstructor);
                 if (result != null)
                     return result;
 
                 if (includeBaseType && typeToGenerateIn.BaseType != null)
                 {
-                    result = FindConstructorToDelegateTo(compilation, parameters, typeToGenerateIn.BaseType.InstanceConstructors, canDelegateToConstructor);
+                    result = FindConstructorToDelegateTo(
+                        document, parameters, expressions, typeToGenerateIn.BaseType.InstanceConstructors, canDelegateToConstructor);
                     if (result != null)
                         return result;
                 }
@@ -38,11 +44,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             return null;
         }
 
-        private static IMethodSymbol FindConstructorToDelegateTo(
-            Compilation compilation,
+        private static IMethodSymbol FindConstructorToDelegateTo<TExpressionSyntax>(
+            SemanticDocument document,
             ImmutableArray<IParameterSymbol> parameters,
+            ImmutableArray<TExpressionSyntax> expressions,
             ImmutableArray<IMethodSymbol> constructors,
             Func<IMethodSymbol, bool> canDelegateToConstructor)
+            where TExpressionSyntax : SyntaxNode
         {
             // Look for constructors in this specified type that are:
             // 1. Non-implicit.  We don't want to add `: base()` as that's just redundant for subclasses and `:
@@ -53,13 +61,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             // 4. Are compatible with the parameters we're generating for this constructor.  Compatible means there
             //    exists an implicit conversion from the new constructor's parameter types to the existing
             //    constructor's parameter types.
+            var semanticFacts = document.Document.GetRequiredLanguageService<ISemanticFactsService>();
+            var semanticModel = document.SemanticModel;
+            var compilation = semanticModel.Compilation;
+
             var delegatedConstructor = constructors
                 .Where(c => c.Parameters.Length == parameters.Length)
                 .Where(c => c.Parameters.SequenceEqual(parameters, (p1, p2) => p1.RefKind == p2.RefKind))
                 .Where(c => IsSymbolAccessible(compilation, c))
                 .Where(c => !c.IsImplicitlyDeclared)
                 .Where(canDelegateToConstructor)
-                .Where(c => IsCompatible(compilation, c, parameters))
+                .Where(c => IsCompatible(semanticFacts, semanticModel, c, expressions))
                 .FirstOrDefault();
 
             return delegatedConstructor;
@@ -95,17 +107,19 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             }
         }
 
-        private static bool IsCompatible(
-            Compilation compilation,
+        private static bool IsCompatible<TExpressionSyntax>(
+            ISemanticFactsService semanticFacts,
+            SemanticModel semanticModel,
             IMethodSymbol constructor,
-            ImmutableArray<IParameterSymbol> parameters)
+            ImmutableArray<TExpressionSyntax> expressions)
+            where TExpressionSyntax : SyntaxNode
         {
-            Debug.Assert(constructor.Parameters.Length == parameters.Length);
+            Debug.Assert(constructor.Parameters.Length == expressions.Length);
 
             for (var i = 0; i < constructor.Parameters.Length; i++)
             {
                 var constructorParameter = constructor.Parameters[i];
-                var conversion = compilation.ClassifyCommonConversion(parameters[i].Type, constructorParameter.Type);
+                var conversion = semanticFacts.ClassifyConversion(semanticModel, expressions[i], constructorParameter.Type);
                 if (!conversion.IsIdentity && !conversion.IsImplicit)
                     return false;
             }

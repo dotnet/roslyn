@@ -147,11 +147,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     var parameters = parameterTypes.Zip(refKinds,
                         (t, r) => CodeGenerationSymbolFactory.CreateParameterSymbol(r, t, name: "")).ToImmutableArray();
 
+                    var expressions = GetArgumentExpressions(argumentList);
                     var delegatedConstructor = GenerateConstructorHelpers.FindConstructorToDelegateTo(
-                        _semanticDocument.SemanticModel.Compilation,
+                        _semanticDocument,
                         _state.BaseTypeOrInterfaceOpt,
                         includeBaseType: false,
                         parameters,
+                        expressions,
                         _ => true);
 
                     if (delegatedConstructor != null)
