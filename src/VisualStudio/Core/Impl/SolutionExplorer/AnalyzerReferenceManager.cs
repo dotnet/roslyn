@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -11,6 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 using VSLangProj140;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -23,17 +22,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     internal class AnalyzerReferenceManager : IVsReferenceManagerUser
     {
         private readonly IServiceProvider _serviceProvider;
-        private IVsReferenceManager _referenceManager;
-
-        [Import]
-        private readonly AnalyzerItemsTracker _tracker = null;
+        private IVsReferenceManager? _referenceManager;
+        private readonly AnalyzerItemsTracker _tracker;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzerReferenceManager(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            AnalyzerItemsTracker analyzerItemsTracker)
         {
             _serviceProvider = serviceProvider;
+            _tracker = analyzerItemsTracker;
         }
 
         /// <summary>
@@ -62,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             // The items selected in Solution Explorer should correspond to exactly one
             // IVsHierarchy, otherwise we shouldn't have even tried to show the dialog.
-            Debug.Assert(_tracker.SelectedHierarchy != null);
+            Contract.ThrowIfNull(_tracker.SelectedHierarchy);
             if (_tracker.SelectedHierarchy.TryGetProject(out var project))
             {
 
@@ -94,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public Array GetProviderContexts()
         {
             // Return just the File provider context so that just the browse tab shows up.
-            var context = GetReferenceManager().CreateProviderContext(VSConstants.FileReferenceProvider_Guid) as IVsFileReferenceProviderContext;
+            var context = (IVsFileReferenceProviderContext)GetReferenceManager().CreateProviderContext(VSConstants.FileReferenceProvider_Guid);
             context.BrowseFilter = string.Format("{0} (*.dll)\0*.dll\0", SolutionExplorerShim.Analyzer_Files);
             return new[] { context };
         }
@@ -104,6 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             if (_referenceManager == null)
             {
                 _referenceManager = _serviceProvider.GetService(typeof(SVsReferenceManager)) as IVsReferenceManager;
+                Assumes.Present(_referenceManager);
             }
 
             return _referenceManager;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -23,10 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     internal class AnalyzerItemsTracker : IVsSelectionEvents
     {
         private readonly IServiceProvider _serviceProvider;
-        private IVsMonitorSelection _vsMonitorSelection = null;
+        private IVsMonitorSelection? _vsMonitorSelection = null;
         private uint _selectionEventsCookie = 0;
 
-        public event EventHandler SelectedHierarchyItemChanged;
+        public event EventHandler? SelectedHierarchyItemChanged;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -56,9 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        public IVsHierarchy SelectedHierarchy { get; private set; }
+        public IVsHierarchy? SelectedHierarchy { get; private set; }
         public uint SelectedItemId { get; private set; } = VSConstants.VSITEMID_NIL;
-        public AnalyzersFolderItem SelectedFolder { get; private set; }
+        public AnalyzersFolderItem? SelectedFolder { get; private set; }
         public ImmutableArray<AnalyzerItem> SelectedAnalyzerItems { get; private set; } = ImmutableArray<AnalyzerItem>.Empty;
         public ImmutableArray<BaseDiagnosticItem> SelectedDiagnosticItems { get; private set; } = ImmutableArray<BaseDiagnosticItem>.Empty;
 
@@ -114,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return VSConstants.S_OK;
         }
 
-        private object[] GetSelectedObjects(ISelectionContainer selectionContainer)
+        private object[] GetSelectedObjects(ISelectionContainer? selectionContainer)
         {
             if (selectionContainer == null)
             {
@@ -135,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return selectedObjects;
         }
 
-        private IVsMonitorSelection GetMonitorSelection()
+        private IVsMonitorSelection? GetMonitorSelection()
         {
             if (_vsMonitorSelection == null)
             {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel;
 using System.Threading;
@@ -24,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public DiagnosticDescriptor Descriptor { get; }
         public ReportDiagnostic EffectiveSeverity { get; private set; }
 
-        public override event PropertyChangedEventHandler PropertyChanged;
+        public override event PropertyChangedEventHandler? PropertyChanged;
 
         public BaseDiagnosticItem(DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, string language)
             : base(descriptor.Id + ": " + descriptor.Title)

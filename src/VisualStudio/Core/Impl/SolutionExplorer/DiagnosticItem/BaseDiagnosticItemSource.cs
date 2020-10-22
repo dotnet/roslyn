@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -24,9 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
-        private BulkObservableCollection<BaseDiagnosticItem> _diagnosticItems;
+        private BulkObservableCollection<BaseDiagnosticItem>? _diagnosticItems;
         private ReportDiagnostic _generalDiagnosticOption;
-        private ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
+        private ImmutableDictionary<string, ReportDiagnostic>? _specificDiagnosticOptions;
         private AnalyzerConfigOptionsResult? _analyzerConfigOptions;
 
         public BaseDiagnosticItemSource(Workspace workspace, ProjectId projectId, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
@@ -41,11 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public ProjectId ProjectId { get; }
         protected IAnalyzersCommandHandler CommandHandler { get; }
 
-        public abstract AnalyzerReference AnalyzerReference { get; }
+        public abstract AnalyzerReference? AnalyzerReference { get; }
         protected abstract BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity, string language);
 
         public abstract object SourceItem { get; }
 
+        [MemberNotNullWhen(true, nameof(AnalyzerReference))]
         public bool HasItems
         {
             get
@@ -61,6 +62,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
 
                 var project = Workspace.CurrentSolution.GetProject(ProjectId);
+
+                if (project == null)
+                {
+                    return false;
+                }
+
                 return AnalyzerReference.GetAnalyzers(project.Language).Length > 0;
             }
         }
@@ -71,9 +78,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 if (_diagnosticItems == null)
                 {
-                    var project = Workspace.CurrentSolution.GetProject(ProjectId);
-                    _generalDiagnosticOption = project.CompilationOptions.GeneralDiagnosticOption;
-                    _specificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions;
+                    var project = Workspace.CurrentSolution.GetRequiredProject(ProjectId);
+                    _generalDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
+                    _specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
                     _analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
                     _diagnosticItems = new BulkObservableCollection<BaseDiagnosticItem>();
@@ -100,6 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             // descriptions or messages, and it would be strange if the node's name changed from one run of
             // VS to another. So we group the diagnostics by ID, sort them within a group, and take the first
             // one.
+
+            Contract.ThrowIfFalse(HasItems);
 
             return AnalyzerReference.GetAnalyzers(language)
                 .SelectMany(a => _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
@@ -150,9 +159,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             // Local functions.
             void OnProjectConfigurationChanged()
             {
-                var project = e.NewSolution.GetProject(ProjectId);
-                var newGeneralDiagnosticOption = project.CompilationOptions.GeneralDiagnosticOption;
-                var newSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions;
+                var project = e.NewSolution.GetRequiredProject(ProjectId);
+                var newGeneralDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
+                var newSpecificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
                 var newAnalyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
                 if (newGeneralDiagnosticOption != _generalDiagnosticOption ||
@@ -163,6 +172,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     _generalDiagnosticOption = newGeneralDiagnosticOption;
                     _specificDiagnosticOptions = newSpecificDiagnosticOptions;
                     _analyzerConfigOptions = newAnalyzerConfigOptions;
+
+                    Contract.ThrowIfNull(_diagnosticItems, "We only subscribe to events after we create the items, so this should not be null.");
 
                     foreach (var item in _diagnosticItems)
                     {

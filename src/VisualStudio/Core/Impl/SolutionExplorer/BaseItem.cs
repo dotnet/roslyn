@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -44,111 +42,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _name = name;
         }
 
-        public IEnumerable<string> Children
-        {
-            get
-            {
-                return SpecializedCollections.EmptyEnumerable<string>();
-            }
-        }
+        public IEnumerable<string> Children => SpecializedCollections.EmptyEnumerable<string>();
 
-        public bool IsExpandable
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool IsExpandable => true;
 
-        public FontStyle FontStyle
-        {
-            get { return FontStyles.Normal; }
-        }
+        public FontStyle FontStyle => FontStyles.Normal;
+        public FontWeight FontWeight => FontWeights.Normal;
 
-        public FontWeight FontWeight
-        {
-            get { return FontWeights.Normal; }
-        }
+        public virtual ImageSource? Icon => null;
+        public virtual ImageMoniker IconMoniker => default;
+        public virtual ImageSource? ExpandedIcon => null;
+        public virtual ImageMoniker ExpandedIconMoniker => default;
 
-        public virtual ImageSource Icon
-        {
-            get { return null; }
-        }
-
-        public virtual ImageMoniker IconMoniker
-        {
-            get { return default; }
-        }
-
-        public virtual ImageSource ExpandedIcon
-        {
-            get { return null; }
-        }
-
-        public virtual ImageMoniker ExpandedIconMoniker
-        {
-            get { return default; }
-        }
-
-        public bool AllowIconTheming
-        {
-            get { return true; }
-        }
-
-        public bool AllowExpandedIconTheming
-        {
-            get { return true; }
-        }
-
-        public bool IsCut
-        {
-            get { return false; }
-        }
-
-        public ImageSource OverlayIcon
-        {
-            get { return null; }
-        }
-
-        public virtual ImageMoniker OverlayIconMoniker
-        {
-            get { return default; }
-        }
-
-        public ImageSource StateIcon
-        {
-            get { return null; }
-        }
-
-        public virtual ImageMoniker StateIconMoniker
-        {
-            get { return default; }
-        }
-
-        public string StateToolTipText
-        {
-            get { return null; }
-        }
-
-        public override string ToString()
-        {
-            return Text;
-        }
-
-        public string Text
-        {
-            get { return _name; }
-        }
-
-        public object ToolTipContent
-        {
-            get { return null; }
-        }
-
-        public string ToolTipText
-        {
-            get { return _name; }
-        }
+        public bool AllowIconTheming => true;
+        public bool AllowExpandedIconTheming => true;
+        public bool IsCut => false;
+        public ImageSource? OverlayIcon => null;
+        public virtual ImageMoniker OverlayIconMoniker => default;
+        public ImageSource? StateIcon => null;
+        public virtual ImageMoniker StateIconMoniker => default;
+        public string? StateToolTipText => null;
+        public override string ToString() => Text;
+        public string Text => _name;
+        public object? ToolTipContent => null;
+        public string ToolTipText => _name;
 
         private static readonly HashSet<Type> s_supportedPatterns = new HashSet<Type>()
         {
@@ -163,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             typeof(ISupportDisposalNotification)
         };
 
-        public TPattern GetPattern<TPattern>() where TPattern : class
+        public TPattern? GetPattern<TPattern>() where TPattern : class
         {
             if (!IsDisposed)
             {
@@ -188,49 +105,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return null;
         }
 
-        public bool CanPreview
-        {
-            get { return false; }
-        }
+        public bool CanPreview => false;
 
-        public virtual IInvocationController InvocationController
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public virtual IInvocationController? InvocationController => null;
 
-        public virtual IContextMenuController ContextMenuController
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public virtual IContextMenuController? ContextMenuController => null;
 
-        public IDragDropSourceController DragDropSourceController
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public IDragDropSourceController? DragDropSourceController => null;
 
         public virtual object GetBrowseObject()
         {
             return this;
         }
 
-        public bool IsDisposed
-        {
-            get { return false; }
-        }
-
-        public int Priority
-        {
-            get { return 0; }
-        }
+        public bool IsDisposed => false;
+        public int Priority => 0;
 
         public int CompareTo(object obj)
         {

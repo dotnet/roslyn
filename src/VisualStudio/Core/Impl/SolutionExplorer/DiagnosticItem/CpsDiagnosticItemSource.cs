@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -20,9 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly IVsHierarchyItem _item;
         private readonly string _projectDirectoryPath;
 
-        private AnalyzerReference _analyzerReference;
+        private AnalyzerReference? _analyzerReference;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public CpsDiagnosticItemSource(Workspace workspace, string projectPath, ProjectId projectId, IVsHierarchyItem item, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService analyzerService)
             : base(workspace, projectId, commandHandler, analyzerService)
@@ -43,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public override object SourceItem => _item;
 
-        public override AnalyzerReference AnalyzerReference => _analyzerReference;
+        public override AnalyzerReference? AnalyzerReference => _analyzerReference;
 
         protected override BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity, string language)
         {
@@ -88,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private AnalyzerReference TryGetAnalyzerReference(Solution solution)
+        private AnalyzerReference? TryGetAnalyzerReference(Solution solution)
         {
             var project = solution.GetProject(ProjectId);
 
@@ -105,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return null;
             }
 
-            return project.AnalyzerReferences.FirstOrDefault(r => r.FullPath.Equals(analyzerFilePath, StringComparison.OrdinalIgnoreCase));
+            return project.AnalyzerReferences.FirstOrDefault(r => string.Equals(r.FullPath, analyzerFilePath, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
