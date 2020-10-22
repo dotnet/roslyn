@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             {
                 // Insert a newline if not already present
                 var lines = result.Lines;
-                var lastLine = lines.Count > 0 ? lines[lines.Count - 1] : default;
+                var lastLine = lines.Count > 0 ? lines[^1] : default;
                 var prefix = string.Empty;
                 if (lastLine.ToString().Trim().Length != 0)
                 {
