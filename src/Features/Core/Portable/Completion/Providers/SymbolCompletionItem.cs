@@ -74,15 +74,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
         }
 
-        public static CompletionItem AddShouldPutCaretBetweenParenthesis(CompletionItem item, bool hasParameter)
-            => item.AddProperty("ShouldPutCaretBetweenParenthesis", hasParameter.ToString());
+        public static CompletionItem AddPutCaretBetweenParenthesis(CompletionItem item, bool hasParameter)
+            => item.AddProperty("PutCaretBetweenParenthesis", hasParameter.ToString());
 
-        public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item, bool shouldProvideParenthesisCompletion)
-            => item.AddProperty("ShouldProvideParenthesisCompletion", shouldProvideParenthesisCompletion.ToString());
+        public static CompletionItem AddProvideParenthesisCompletion(CompletionItem item, bool shouldProvideParenthesisCompletion)
+            => item.AddProperty("ProvideParenthesisCompletion", shouldProvideParenthesisCompletion.ToString());
 
-        public static bool GetShouldPutCaretBetweenParenthesis(CompletionItem item)
+        public static bool GetPutCaretBetweenParenthesis(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("ShouldPutCaretBetweenParenthesis", out var value)
+            if (item.Properties.TryGetValue("PutCaretBetweenParenthesis", out var value)
                 && bool.TryParse(value, out var result))
             {
                 return result;
@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return false;
         }
 
-        public static bool GetShouldProvideParenthesisCompletion(CompletionItem item)
+        public static bool GetProvideParenthesisCompletion(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("ShouldProvideParenthesisCompletion", out var value)
+            if (item.Properties.TryGetValue("ProvideParenthesisCompletion", out var value)
                 && bool.TryParse(value, out var result))
             {
                 return result;

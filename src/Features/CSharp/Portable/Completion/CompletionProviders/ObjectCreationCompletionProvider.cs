@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var endOfInsertionText = item.Span.Start + insertionText.Length;
                 var textChange = new TextChange(item.Span,insertionText + "();");
                 var completionChange = CompletionChange.Create(textChange,
-                    SymbolCompletionItem.GetShouldPutCaretBetweenParenthesis(item)
+                    SymbolCompletionItem.GetPutCaretBetweenParenthesis(item)
                      ? endOfInsertionText + 1
                      : endOfInsertionText + 3, includesCommitCharacter: true);
                 return Task.FromResult(completionChange);
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                context, preselect,
                supportedPlatformData);
 
-            return SymbolCompletionItem.AddShouldPutCaretBetweenParenthesis(
+            return SymbolCompletionItem.AddPutCaretBetweenParenthesis(
                 item,
                 symbols.All(ShouldPutCaretBetweenParenthesis));
         }
