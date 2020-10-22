@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             if (value.Length >= 2 && value[1] == ':')
             {
-                value = value.Substring(startIndex: 2);
+                value = value[2..];
             }
 
             return value;

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             AddLineBreaks(lines, newLine);
 
             // Shave off initial three slashes
-            lines[0] = lines[0].Substring(3);
+            lines[0] = lines[0][3..];
 
             // Add indents
             var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             Debug.Assert(trimmedPreviousLine.StartsWith(ExteriorTriviaText), "Unexpected: previous line does not begin with doc comment exterior trivia.");
 
             // skip exterior trivia.
-            trimmedPreviousLine = trimmedPreviousLine.Substring(3);
+            trimmedPreviousLine = trimmedPreviousLine[3..];
 
             var firstNonWhitespaceOffsetInPreviousXmlText = trimmedPreviousLine.GetFirstNonWhitespaceOffset();
 

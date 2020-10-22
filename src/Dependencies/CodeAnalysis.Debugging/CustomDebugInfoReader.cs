@@ -516,7 +516,7 @@ RETRY:
                 var ch1 = importString[1];
                 if ('0' <= ch1 && ch1 <= '9')
                 {
-                    if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out var tempMethodToken))
+                    if (int.TryParse(importString[1..], NumberStyles.None, CultureInfo.InvariantCulture, out var tempMethodToken))
                     {
                         importStrings = getMethodImportStrings(tempMethodToken, arg);
                         Debug.Assert(!importStrings.IsDefault);
@@ -609,7 +609,7 @@ RETRY:
                 case 'U': // C# (namespace) using
                     alias = null;
                     externAlias = null;
-                    target = import.Substring(1);
+                    target = import[1..];
                     kind = ImportTargetKind.Namespace;
                     return true;
 
@@ -628,7 +628,7 @@ RETRY:
                 case 'T': // C# (type) using
                     alias = null;
                     externAlias = null;
-                    target = import.Substring(1);
+                    target = import[1..];
                     kind = ImportTargetKind.Type;
                     return true;
 
@@ -642,13 +642,13 @@ RETRY:
                     {
                         case 'U':
                             kind = ImportTargetKind.Namespace;
-                            target = target.Substring(1);
+                            target = target[1..];
                             externAlias = null;
                             return true;
 
                         case 'T':
                             kind = ImportTargetKind.Type;
-                            target = target.Substring(1);
+                            target = target[1..];
                             externAlias = null;
                             return true;
 
@@ -667,7 +667,7 @@ RETRY:
 
                 case 'X': // C# extern alias (in file)
                     externAlias = null;
-                    alias = import.Substring(1); // For consistency with the portable format, store it in alias, rather than externAlias.
+                    alias = import[1..]; // For consistency with the portable format, store it in alias, rather than externAlias.
                     target = null;
                     kind = ImportTargetKind.Assembly;
                     return true;
@@ -733,7 +733,7 @@ RETRY:
                     // see PEBuilder.cpp in vb\language\CodeGen
                     pos++;
                     alias = null;
-                    target = import.Substring(pos);
+                    target = import[pos..];
                     kind = ImportTargetKind.DefaultNamespace;
                     scope = VBImportScopeKind.Unspecified;
                     return true;
@@ -812,20 +812,20 @@ RETRY:
                             pos++;
 
                             alias = null;
-                            target = import.Substring(pos);
+                            target = import[pos..];
                             kind = ImportTargetKind.Type;
                             return true;
 
                         case ':':
                             pos++;
                             alias = null;
-                            target = import.Substring(pos);
+                            target = import[pos..];
                             kind = ImportTargetKind.Namespace;
                             return true;
 
                         default:
                             alias = null;
-                            target = import.Substring(pos);
+                            target = import[pos..];
                             kind = ImportTargetKind.MethodToken;
                             return true;
                     }
@@ -848,10 +848,10 @@ RETRY:
             // Allow zero-length after for an XML alias in VB ("@PX:=").  Not sure what it means.
             if (offset <= separatorPos && separatorPos < input.Length)
             {
-                before = input.Substring(offset, separatorPos - offset);
+                before = input[offset..separatorPos];
                 after = separatorPos + 1 == input.Length
                     ? ""
-                    : input.Substring(separatorPos + 1);
+                    : input[(separatorPos + 1)..];
                 return true;
             }
 
