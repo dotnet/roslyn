@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     // Enqueue re-analysis of open documents.
-                    AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds());
+                    AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds(), highPriority: true);
                 }
             }
         }
