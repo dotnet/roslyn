@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -82,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// <summary>
         /// Get the DTE object for the Project.
         /// </summary>
-        private VSProject3 GetVSProject()
+        private VSProject3? GetVSProject()
         {
             var vsWorkspace = _workspace as VisualStudioWorkspace;
             if (vsWorkspace == null)
