@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // Either the timebox is not enabled, so we need to wait until the operation for complete,
                     // or there's no timeout, and we now have all completion items ready.
                     var items = await getItemsTask.ConfigureAwait(false);
-                    nestedTokenSource.Cancel();
 
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
                     completionContext.AddItems(items.Select(i => Convert(i, receiverTypeKey)));
