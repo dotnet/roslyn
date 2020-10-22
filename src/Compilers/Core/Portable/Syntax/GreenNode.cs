@@ -903,12 +903,12 @@ namespace Microsoft.CodeAnalysis
 
         public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
-        
+
         /*
          * There are 3 overloads of this, because most callers already know what they have is a List<T> and only transform it.
          * In those cases List<TFrom> performs much better.
          * In other cases, the type is unknown / is IEnumerable<T>, where we try to find the best match.
-         * There is another overload for IROList, since most collections already implement this, so checking for it will
+         * There is another overload for IReadOnlyList, since most collections already implement this, so checking for it will
          * perform better then copying to a List<T>, though not as good as List<T> directly.
          */
         public static GreenNode? CreateList<TFrom>(IEnumerable<TFrom>? enumerable, Func<TFrom, GreenNode> select)
@@ -933,15 +933,15 @@ namespace Microsoft.CodeAnalysis
                 case 3:
                     return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
                 default:
-                {
-                    var array = new ArrayElement<GreenNode>[list.Count];
-                    for (int i = 0; i < array.Length; i++)
-                        array[i].Value = select(list[i]);
-                    return SyntaxList.List(array);
-                }
+                    {
+                        var array = new ArrayElement<GreenNode>[list.Count];
+                        for (int i = 0; i < array.Length; i++)
+                            array[i].Value = select(list[i]);
+                        return SyntaxList.List(array);
+                    }
             }
         }
-        
+
         public static GreenNode? CreateList<TFrom>(IReadOnlyList<TFrom> list, Func<TFrom, GreenNode> select)
         {
             switch (list.Count)
@@ -955,12 +955,12 @@ namespace Microsoft.CodeAnalysis
                 case 3:
                     return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
                 default:
-                {
-                    var array = new ArrayElement<GreenNode>[list.Count];
-                    for (int i = 0; i < array.Length; i++)
-                        array[i].Value = select(list[i]);
-                    return SyntaxList.List(array);
-                }
+                    {
+                        var array = new ArrayElement<GreenNode>[list.Count];
+                        for (int i = 0; i < array.Length; i++)
+                            array[i].Value = select(list[i]);
+                        return SyntaxList.List(array);
+                    }
             }
         }
 
