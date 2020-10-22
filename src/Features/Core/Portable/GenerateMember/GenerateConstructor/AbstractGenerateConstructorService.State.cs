@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 ImmutableArray<TExpressionSyntax> allExpressions,
                 CancellationToken cancellationToken)
             {
-                for (var i = allParameters.Length; i >= 0; i--)
+                for (var i = allParameters.Length; i > 0; i--)
                 {
                     var parameters = allParameters.Take(i).ToImmutableArray();
                     var expressions = allExpressions.Take(i).ToImmutableArray();
@@ -207,37 +207,29 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 foreach (var constructor in constructors)
                 {
+                    // Don't bother delegating to an implicit constructor. We don't want to add `: base()` as that's just
+                    // redundant for subclasses and `: this()` won't even work as we won't have an implicit constructor once
+                    // we add this new constructor.
+                    if (constructor.IsImplicitlyDeclared)
+                        continue;
+
+                    // Don't delegate to another constructor in this type if it's got the same parameter types as the
+                    // one we're generating. This can happen if we're generating the new constructor because parameter
+                    // names don't match (when a user explicitly provides named parameters).
+                    if (TypeToGenerateIn.Equals(constructor.ContainingType) &&
+                        constructor.Parameters.Select(p => p.Type).SequenceEqual(ParameterTypes))
+                    {
+                        continue;
+                    }
+
                     if (GenerateConstructorHelpers.CanDelegateTo(_document, parameters, expressions, constructor) &&
-                        CanDelegateThisConstructor(constructor, cancellationToken))
+                        !_service.WillCauseConstructorCycle(this, _document, constructor, cancellationToken))
                     {
                         return constructor;
                     }
                 }
 
                 return null;
-            }
-
-            private bool CanDelegateThisConstructor(IMethodSymbol constructor, CancellationToken cancellationToken)
-            {
-                // Don't bother delegating to an implicit constructor. We don't want to add `: base()` as that's just
-                // redundant for subclasses and `: this()` won't even work as we won't have an implicit constructor once
-                // we add this new constructor.
-                if (constructor.IsImplicitlyDeclared)
-                    return false;
-
-                if (constructor.Parameters.Length == 0)
-                    return false;
-
-                // Don't delegate to another constructor in this type. if we're generating a new constructor with the
-                // same parameter types.  Note: this can happen if we're generating the new constructor because
-                // parameter names don't match (when a user explicitly provides named parameters).
-                if (TypeToGenerateIn.Equals(constructor.ContainingType) &&
-                    constructor.Parameters.Select(p => p.Type).SequenceEqual(ParameterTypes))
-                {
-                    return false;
-                }
-
-                return _service.CanDelegateThisConstructor(this, _document, constructor, cancellationToken);
             }
 
             private bool ClashesWithExistingConstructor()
