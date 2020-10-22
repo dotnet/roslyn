@@ -430,47 +430,52 @@ namespace Microsoft.CodeAnalysis.Completion
             TextSpan defaultSpan,
             bool isExclusive)
         {
-            // See if any contexts changed the completion list span.  If so, the first context that
-            // changed it 'wins' and picks the span that will be used for all items in the completion
-            // list.  If no contexts changed it, then just use the default span provided by the service.
-            var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
-
-            var itemsCount = completionContexts.Sum(context => context.Items.Count);
-            var displayNameToItemsMap = new DisplayNameToItemsMap(this, itemsCount);
-            CompletionItem suggestionModeItem = null;
-
-            foreach (var context in completionContexts)
+            DisplayNameToItemsMap displayNameToItemsMap = null;
+            try
             {
-                Debug.Assert(context != null);
+                // See if any contexts changed the completion list span.  If so, the first context that
+                // changed it 'wins' and picks the span that will be used for all items in the completion
+                // list.  If no contexts changed it, then just use the default span provided by the service.
+                var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
+                var itemsCount = completionContexts.Sum(context => context.Items.Count);
+                displayNameToItemsMap = new DisplayNameToItemsMap(this, itemsCount);
+                CompletionItem suggestionModeItem = null;
 
-                foreach (var item in context.Items)
+                foreach (var context in completionContexts)
                 {
-                    Debug.Assert(item != null);
-                    displayNameToItemsMap.Add(item);
+                    Debug.Assert(context != null);
+
+                    foreach (var item in context.Items)
+                    {
+                        Debug.Assert(item != null);
+                        displayNameToItemsMap.Add(item);
+                    }
+
+                    // first one wins
+                    suggestionModeItem ??= context.SuggestionModeItem;
                 }
 
-                // first one wins
-                suggestionModeItem ??= context.SuggestionModeItem;
-            }
+                if (displayNameToItemsMap.IsEmpty)
+                {
+                    return CompletionList.Empty;
+                }
 
-            if (displayNameToItemsMap.IsEmpty)
+                // TODO(DustinCa): Revisit performance of this.
+                using var _ = ArrayBuilder<CompletionItem>.GetInstance(itemsCount, out var builder);
+                builder.AddRange(displayNameToItemsMap);
+                builder.Sort();
+
+                return CompletionList.Create(
+                    finalCompletionListSpan,
+                    builder.ToImmutable(),
+                    GetRules(),
+                    suggestionModeItem,
+                    isExclusive);
+            }
+            finally
             {
-                return CompletionList.Empty;
+                displayNameToItemsMap?.Free();
             }
-
-            // TODO(DustinCa): Revisit performance of this.
-            using var _ = ArrayBuilder<CompletionItem>.GetInstance(itemsCount, out var builder);
-            builder.AddRange(displayNameToItemsMap);
-            builder.Sort();
-
-            displayNameToItemsMap.Free();
-
-            return CompletionList.Create(
-                finalCompletionListSpan,
-                builder.ToImmutable(),
-                GetRules(),
-                suggestionModeItem,
-                isExclusive);
         }
 
         /// <summary>
