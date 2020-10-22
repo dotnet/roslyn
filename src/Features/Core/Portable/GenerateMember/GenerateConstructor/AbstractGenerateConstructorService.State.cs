@@ -180,20 +180,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 for (var i = allParameters.Length; i > 0; i--)
                 {
-                    var parameters = allParameters.Take(i).ToImmutableArray();
-                    var expressions = allExpressions.Take(i).ToImmutableArray();
-                    var result = FindConstructorToDelegateTo(
-                        parameters, expressions, TypeToGenerateIn.InstanceConstructors, cancellationToken);
+                    var parameters = allParameters.TakeAsArray(i);
+                    var expressions = allExpressions.TakeAsArray(i);
+                    var result = FindConstructorToDelegateTo(parameters, expressions, TypeToGenerateIn.InstanceConstructors, cancellationToken) ??
+                                 FindConstructorToDelegateTo(parameters, expressions, TypeToGenerateIn.BaseType.InstanceConstructors, cancellationToken);
                     if (result != null)
                         return result;
-
-                    if (TypeToGenerateIn.BaseType != null)
-                    {
-                        result = FindConstructorToDelegateTo(
-                            parameters, expressions, TypeToGenerateIn.BaseType.InstanceConstructors, cancellationToken);
-                        if (result != null)
-                            return result;
-                    }
                 }
 
                 return null;
