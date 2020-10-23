@@ -274,8 +274,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var currentSolution = CurrentSolution;
             if (base.TryApplyChanges(newSolution, progressTracker))
             {
-                var threadingContext = ExportProvider.GetExportedValue<IThreadingContext>();
-                _refactorNotifyServices.TryNotifyChangesSynchronously(this, newSolution, currentSolution, threadingContext);
+                // Tests are not required to have a threading context in the exports, so
+                // check if one is available. RefactorNotify tests require that one is available
+                var threadingContextExports = ExportProvider.GetExports<IThreadingContext>();
+                var threadingContext = threadingContextExports.SingleOrDefault();
+                if (threadingContext?.Value is not null)
+                {
+                    _refactorNotifyServices.TryNotifyChangesSynchronously(this, newSolution, currentSolution, threadingContext.Value);
+                }
+
                 return true;
             }
 

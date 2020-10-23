@@ -428,7 +428,7 @@ namespace Test
     }
 }",
         path: @"Test\C2.cs",
-        name: @"C.cs");
+        name: @"C2.cs");
 
             return TestRenameDocument(
                    originalDocuments,

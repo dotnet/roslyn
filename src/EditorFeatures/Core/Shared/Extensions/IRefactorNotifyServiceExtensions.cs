@@ -32,10 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             IThreadingContext threadContext,
             CancellationToken cancellationToken = default)
         {
-            // TryOn{Before, After}GlobalSymbolRenamed requires calls from the foreground thread. Check that the
-            // caller is calling from the right thread before doing any work.
-            threadContext.ThrowIfNotOnUIThread();
-
             try
             {
                 var refactorNotifyTask = refactorNotifyServices.TryNotifyChangesAsync(workspace, newSolution, oldSolution, threadContext, cancellationToken);
@@ -91,7 +87,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
 
             // TryOn{Before, After}GlobalSymbolRenamed requires calls from the foreground thread. 
-            await threadContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (threadContext.HasMainThread)
+            {
+                await threadContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            }
 
             foreach (var (oldSymbol, newSymbol) in changedSymbols)
             {
