@@ -82,7 +82,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             TextSpan? span,
             CompilationWithAnalyzers compilationWithAnalyzers,
             Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnostics,
-            Func<DiagnosticAnalyzer, bool> getIsCompilationEndAnalyzer,
             Action<Diagnostic> reportDiagnostic,
             CancellationToken cancellationToken)
         {
@@ -182,7 +181,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // Compute all the reported compiler and analyzer diagnostics for diagnostic IDs corresponding to pragmas in the tree.
             var (diagnostics, unhandledIds) = await GetReportedDiagnosticsForIdsAsync(
                 idsToAnalyze, root, semanticModel, compilationWithAnalyzers,
-                getSupportedDiagnostics, getIsCompilationEndAnalyzer, compilerDiagnosticIds, cancellationToken).ConfigureAwait(false);
+                getSupportedDiagnostics, compilerDiagnosticIds, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -390,7 +389,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             SemanticModel semanticModel,
             CompilationWithAnalyzers compilationWithAnalyzers,
             Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnostics,
-            Func<DiagnosticAnalyzer, bool> getIsCompilationEndAnalyzer,
             PooledHashSet<string> compilerDiagnosticIds,
             CancellationToken cancellationToken)
         {
@@ -428,7 +426,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                             continue;
                         }
 
-                        lazyIsUnhandledAnalyzer ??= getIsCompilationEndAnalyzer(analyzer) || analyzer is IPragmaSuppressionsAnalyzer;
+                        lazyIsUnhandledAnalyzer ??= descriptor.IsCompilationEnd() || analyzer is IPragmaSuppressionsAnalyzer;
                         if (lazyIsUnhandledAnalyzer.Value)
                         {
                             unhandledIds.Add(descriptor.Id);
