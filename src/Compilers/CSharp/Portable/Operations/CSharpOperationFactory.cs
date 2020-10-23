@@ -1937,8 +1937,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     isAsynchronous: usingDecl.AwaitOpt is object,
                     _semanticModel,
                     declarationGroupSyntax,
-                    type: null,
-                    constantValue: null,
                     isImplicit: boundMultipleLocalDeclarations.WasCompilerGenerated);
             }
 

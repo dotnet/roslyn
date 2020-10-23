@@ -1369,7 +1369,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             return result ?? MakeInvalidOperation(originalOperation.Syntax, originalOperation.Type, ImmutableArray<IOperation>.Empty);
         }
-#nullable disable
 
         private void VisitStatements(ImmutableArray<IOperation> statements)
         {
@@ -1394,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// When traversing down a set of labels, we set operation to the label.Operation and recurse, but statements[startIndex] still refers to the original parent label 
         /// as we haven't actually moved down the original statement list
         /// </remarks>
-        private bool VisitStatementsOneOrAll(IOperation operation, ImmutableArray<IOperation> statements, int startIndex)
+        private bool VisitStatementsOneOrAll(IOperation? operation, ImmutableArray<IOperation> statements, int startIndex)
         {
             switch (operation)
             {
@@ -1409,7 +1408,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     return false;
             }
 
-#nullable enable
             bool visitPossibleUsingDeclarationInLabel(ILabeledOperation labelOperation)
             {
                 var savedCurrentStatement = _currentStatement;

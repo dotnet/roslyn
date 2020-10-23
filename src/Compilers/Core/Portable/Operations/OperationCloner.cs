@@ -269,11 +269,6 @@ namespace Microsoft.CodeAnalysis.Operations
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, object argument)
-        {
-            return new UsingDeclarationOperation(Visit(operation.DeclarationGroup), operation.IsAsynchronous, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitWith(IWithOperation operation, object argument)
         {
             return new WithOperation(Visit(operation.Operand), operation.CloneMethod, Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

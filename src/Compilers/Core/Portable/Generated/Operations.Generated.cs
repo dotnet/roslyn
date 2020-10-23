@@ -3298,6 +3298,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Value { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents using variable declaration, with scope spanning across the parent <see cref="IBlockOperation" />.
     /// <para>
@@ -3325,6 +3326,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         bool IsAsynchronous { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a negated pattern.
     /// <para>
@@ -7635,54 +7637,38 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitWithStatement(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseUsingDeclarationOperation : OperationOld, IUsingDeclarationOperation
+    #nullable enable
+    internal sealed partial class UsingDeclarationOperation : Operation, IUsingDeclarationOperation
     {
-        internal BaseUsingDeclarationOperation(bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.UsingDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal UsingDeclarationOperation(IVariableDeclarationGroupOperation declarationGroup, bool isAsynchronous, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            DeclarationGroup = SetParentOperation(declarationGroup, this);
             IsAsynchronous = isAsynchronous;
         }
-        public abstract IVariableDeclarationGroupOperation DeclarationGroup { get; }
+        public IVariableDeclarationGroupOperation DeclarationGroup { get; }
         public bool IsAsynchronous { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (DeclarationGroup is object) yield return DeclarationGroup;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (DeclarationGroup is not null) builder.Add(DeclarationGroup);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.UsingDeclaration;
         public override void Accept(OperationVisitor visitor) => visitor.VisitUsingDeclaration(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitUsingDeclaration(this, argument);
     }
-    internal sealed partial class UsingDeclarationOperation : BaseUsingDeclarationOperation, IUsingDeclarationOperation
-    {
-        internal UsingDeclarationOperation(IVariableDeclarationGroupOperation declarationGroup, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(isAsynchronous, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            DeclarationGroup = SetParentOperation(declarationGroup, this);
-        }
-        public override IVariableDeclarationGroupOperation DeclarationGroup { get; }
-    }
-    internal abstract partial class LazyUsingDeclarationOperation : BaseUsingDeclarationOperation, IUsingDeclarationOperation
-    {
-        private IVariableDeclarationGroupOperation _lazyDeclarationGroup = s_unsetVariableDeclarationGroup;
-        internal LazyUsingDeclarationOperation(bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(isAsynchronous, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IVariableDeclarationGroupOperation CreateDeclarationGroup();
-        public override IVariableDeclarationGroupOperation DeclarationGroup
-        {
-            get
-            {
-                if (_lazyDeclarationGroup == s_unsetVariableDeclarationGroup)
-                {
-                    IVariableDeclarationGroupOperation declarationGroup = CreateDeclarationGroup();
-                    SetParentOperation(declarationGroup, this);
-                    Interlocked.CompareExchange(ref _lazyDeclarationGroup, declarationGroup, s_unsetVariableDeclarationGroup);
-                }
-                return _lazyDeclarationGroup;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseNegatedPatternOperation : BasePatternOperation, INegatedPatternOperation
     {
         internal BaseNegatedPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8273,6 +8259,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (WithStatementOperation)operation;
             return new WithStatementOperation(Visit(internalOperation.Body), Visit(internalOperation.Value), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, object? argument)
+        {
+            var internalOperation = (UsingDeclarationOperation)operation;
+            return new UsingDeclarationOperation(Visit(internalOperation.DeclarationGroup), internalOperation.IsAsynchronous, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
     }
     #nullable disable
