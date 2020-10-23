@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using MessagePack;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Framework;
 
@@ -24,5 +25,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         /// </summary>
         public ServiceJsonRpcDescriptor GetDescriptorForServiceFactory(Type serviceInterface)
             => UnderlyingObject.GetServiceDescriptor(serviceInterface, isRemoteHost64Bit: IntPtr.Size == 8);
+
+        public static MessagePackSerializerOptions MessagePackOptions
+            => ServiceDescriptor.Options;
     }
 }
