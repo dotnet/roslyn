@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializer.Version == entry.Version)
                 {
-                    return new ValueTask<ImmutableArray<DiagnosticData>>(entry.Diagnostics);
+                    return ValueTaskFactory.FromResult(entry.Diagnostics);
                 }
 
                 return serializer.DeserializeAsync(persistentService, project, document, stateKey, cancellationToken);

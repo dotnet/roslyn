@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // When we are asked to flush, go actually acquire the write-scheduler and perform the actual writes from
             // it. Note: this is only called max every FlushAllDelayMS.  So we don't bother trying to avoid the delegate
             // allocation here.
-            return this.PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
+            return PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
         }
 
         private void FlushWritesOnClose()
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // cancellation.  If it runs after us, then it sees this.  If it runs before us, then we just
                     // block until it finishes.
                     //
-                    // We don't have to worry about reads/writes getting connections either.  
+                    // We don't have to worry about reads/writes getting connections either.
                     // The only way we can get disposed in the first place is if every user of this storage instance
                     // has released their ref on us. In that case, it would be an error on their part to ever try to
                     // read/write after releasing us.
@@ -69,14 +67,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private void FlushInMemoryDataToDisk()
         {
             // We're writing.  This better always be under the exclusive scheduler.
-            Contract.ThrowIfFalse(TaskScheduler.Current == _readerWriterLock.ExclusiveScheduler);
+            Contract.ThrowIfFalse(TaskScheduler.Current == _connectionPoolService.Scheduler.ExclusiveScheduler);
 
             // Don't flush from a bg task if we've been asked to shutdown.  The shutdown logic in the storage service
             // will take care of the final writes to the main db.
             if (_shutdownTokenSource.IsCancellationRequested)
                 return;
 
-            using var _ = GetPooledConnection(out var connection);
+            using var _ = _connectionPool.Target.GetPooledConnection(out var connection);
 
             // Dummy value for RunInTransaction signature.
             var unused = true;

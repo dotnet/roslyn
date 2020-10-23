@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans>(
                    document.Project.Solution,
                    (service, solutionInfo, cancellationToken) => service.GetSemanticClassificationsAsync(solutionInfo, document.Id, textSpan, cancellationToken),
-                   callbackTarget: null,
                    cancellationToken).ConfigureAwait(false);
 
                 // if the remote call fails do nothing (error has already been reported)

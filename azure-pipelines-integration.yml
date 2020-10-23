@@ -18,7 +18,7 @@ jobs:
 - job: VS_Integration
   pool:
     name: NetCorePublic-Pool
-    queue: buildpool.windows.10.amd64.vs2019.pre.open
+    queue: $(queueName)
   strategy:
     maxParallel: 4
     matrix:
@@ -37,8 +37,11 @@ jobs:
   timeoutInMinutes: 135
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testVsi -oop64bit:$$(_oop64bit)
+    - task: PowerShell@2
       displayName: Build and Test
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -restore -build -pack -sign -publish -binaryLog -configuration $(_configuration) -prepareMachine -testVsi -oop64bit:$$(_oop64bit)
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results

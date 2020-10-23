@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return Task.FromResult(project.Documents.ToImmutableArray());
         }
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,

@@ -2749,7 +2749,7 @@ namespace A
 
             var compilation = CSharpCompilation.Create(
                 assemblyName: "Test",
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("Script"),
+                options: TestOptions.DebugExe.WithScriptClassName("Script"),
                 syntaxTrees: new[] { tree },
                 references: new[] { MscorlibRef });
 

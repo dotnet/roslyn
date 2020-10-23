@@ -1497,5 +1497,24 @@ Test
 
             CompileAndVerify(compilation, expectedOutput: "---");
         }
+
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        public void DefiniteAssignment_UnconvertedConditionalOperator()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        _ = new(bad) ? null : new object();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0103: The name 'bad' does not exist in the current context
+                //         _ = new(bad) ? null : new object();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(5, 17)
+            );
+        }
     }
 }

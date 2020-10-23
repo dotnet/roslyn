@@ -1,12 +1,6 @@
-trigger: none
+trigger:
+- master
 pr: none
-
-schedules:
-- cron: "0 0 * * *"
-  displayName: Daily midnight (UTC) RichNav indexer run
-  branches:
-    include:
-    - master
 
 jobs:
 - job: RichCodeNav_Indexing
@@ -18,8 +12,11 @@ jobs:
   timeoutInMinutes: 200
 
   steps:
-    - script: eng/cibuild.cmd -configuration Debug -prepareMachine
+    - task: PowerShell@2
       displayName: Build
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -restore -build -binaryLog -configuration Debug -prepareMachine
 
     - task: RichCodeNavIndexer@0
       displayName: RichCodeNav Upload

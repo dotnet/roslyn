@@ -33,8 +33,7 @@ End Class", TestHost.InProcess)
         End Function
 
         <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-        <Theory>
-        <CombinatorialData>
+        <Fact>
         Public Async Function TestUnknownIdentifierGenericName() As Task
             Await TestAsync(
 "Class C
@@ -54,8 +53,7 @@ End Class", TestHost.InProcess)
         End Function
 
         <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-        <Theory>
-        <CombinatorialData>
+        <Fact>
         Public Async Function TestUnknownIdentifierAddNamespaceImport() As Task
             Await TestAsync(
 "Class Class1
@@ -69,8 +67,7 @@ End Class", TestHost.InProcess)
         End Function
 
         <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-        <Theory>
-        <CombinatorialData>
+        <Fact>
         Public Async Function TestUnknownAttributeInModule() As Task
             Await TestAsync(
 "Module Goo
@@ -108,8 +105,7 @@ Class MultiDictionary(Of K, V)
 End Class")
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Fact>
         <WorkItem(1744, "https://github.com/dotnet/roslyn/issues/1744")>
         Public Async Function TestImportIncompleteSub() As Task
             Await TestAsync(
@@ -140,8 +136,7 @@ End Namespace", TestHost.InProcess)
         End Function
 
         <WorkItem(1239, "https://github.com/dotnet/roslyn/issues/1239")>
-        <Theory>
-        <CombinatorialData>
+        <Fact>
         Public Async Function TestImportIncompleteSub2() As Task
             Await TestAsync(
 "Imports System.Linq
