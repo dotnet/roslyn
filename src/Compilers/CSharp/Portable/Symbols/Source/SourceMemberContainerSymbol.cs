@@ -3417,6 +3417,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         SynthesizedRecordEqualityContractProperty.VerifyOverridesEqualityContractFromBase(equalityContract, diagnostics);
                     }
 
+                    if (equalityContract.GetMethod is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_EqualityContractRequiresGetter, equalityContract.Locations[0], equalityContract);
+                    }
+
                     reportStaticOrNotOverridableAPIInRecord(equalityContract, diagnostics);
                 }
 
