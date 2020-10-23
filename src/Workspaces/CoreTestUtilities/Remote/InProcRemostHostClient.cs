@@ -243,7 +243,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 ServiceBrokerClient = new ServiceBrokerClient(ServiceBroker);
 #pragma warning restore
 
+#pragma warning disable CS0618 // Type or member is obsolete
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
+#pragma warning restore
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
                 RegisterRemoteBrokeredService(new RemoteAssetSynchronizationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteAsynchronousOperationListenerService.Factory());
