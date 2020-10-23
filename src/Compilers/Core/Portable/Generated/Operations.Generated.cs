@@ -3095,6 +3095,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IDiscardPatternOperation : IPatternOperation
     {
     }
+    #nullable enable
     /// <summary>
     /// Represents a switch expression.
     /// <para>
@@ -3121,6 +3122,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents one arm of a switch expression.
     /// </summary>
@@ -7363,72 +7365,40 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitDiscardPattern(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDiscardPattern(this, argument);
     }
-    internal abstract partial class BaseSwitchExpressionOperation : OperationOld, ISwitchExpressionOperation
+    #nullable enable
+    internal sealed partial class SwitchExpressionOperation : Operation, ISwitchExpressionOperation
     {
-        internal BaseSwitchExpressionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.SwitchExpression, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Value { get; }
-        public abstract ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal SwitchExpressionOperation(IOperation value, ImmutableArray<ISwitchExpressionArmOperation> arms, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Value = SetParentOperation(value, this);
+            Arms = SetParentOperation(arms, this);
+            Type = type;
+        }
+        public IOperation Value { get; }
+        public ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Value is object) yield return Value;
-                foreach (var child in Arms)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Value is not null) builder.Add(Value);
+                    if (!Arms.IsEmpty) builder.AddRange(Arms);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.SwitchExpression;
         public override void Accept(OperationVisitor visitor) => visitor.VisitSwitchExpression(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitSwitchExpression(this, argument);
     }
-    internal sealed partial class SwitchExpressionOperation : BaseSwitchExpressionOperation, ISwitchExpressionOperation
-    {
-        internal SwitchExpressionOperation(IOperation value, ImmutableArray<ISwitchExpressionArmOperation> arms, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-            Arms = SetParentOperation(arms, this);
-        }
-        public override IOperation Value { get; }
-        public override ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
-    }
-    internal abstract partial class LazySwitchExpressionOperation : BaseSwitchExpressionOperation, ISwitchExpressionOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        private ImmutableArray<ISwitchExpressionArmOperation> _lazyArms;
-        internal LazySwitchExpressionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-        protected abstract ImmutableArray<ISwitchExpressionArmOperation> CreateArms();
-        public override ImmutableArray<ISwitchExpressionArmOperation> Arms
-        {
-            get
-            {
-                if (_lazyArms.IsDefault)
-                {
-                    ImmutableArray<ISwitchExpressionArmOperation> arms = CreateArms();
-                    SetParentOperation(arms, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArms, arms);
-                }
-                return _lazyArms;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseSwitchExpressionArmOperation : OperationOld, ISwitchExpressionArmOperation
     {
         internal BaseSwitchExpressionArmOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8475,6 +8445,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ReDimClauseOperation)operation;
             return new ReDimClauseOperation(Visit(internalOperation.Operand), VisitArray(internalOperation.DimensionSizes), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, object? argument)
+        {
+            var internalOperation = (SwitchExpressionOperation)operation;
+            return new SwitchExpressionOperation(Visit(internalOperation.Value), VisitArray(internalOperation.Arms), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, object? argument)
         {

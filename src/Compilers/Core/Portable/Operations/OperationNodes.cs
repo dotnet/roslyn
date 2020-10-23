@@ -749,19 +749,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed partial class SwitchExpressionOperation : BaseSwitchExpressionOperation
-    {
-        public SwitchExpressionOperation(
-            ITypeSymbol type,
-            IOperation value,
-            ImmutableArray<ISwitchExpressionArmOperation> arms,
-            SemanticModel semanticModel,
-            SyntaxNode syntax,
-            bool isImplicit) :
-            this(value, arms, semanticModel, syntax, type, constantValue: null, isImplicit)
-        { }
-    }
-
     internal sealed partial class SwitchExpressionArmOperation : BaseSwitchExpressionArmOperation
     {
         public SwitchExpressionArmOperation(

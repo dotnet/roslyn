@@ -275,11 +275,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DiscardPatternOperation(operation.InputType, operation.NarrowedType, operation.SemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
-        public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, object argument)
-        {
-            return new SwitchExpressionOperation(operation.Type, Visit(operation.Value), VisitArray(operation.Arms), operation.SemanticModel, operation.Syntax, operation.IsImplicit);
-        }
-
         public override IOperation VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation, object argument)
         {
             return new SwitchExpressionArmOperation(operation.Locals, Visit(operation.Pattern), Visit(operation.Guard), Visit(operation.Value), operation.SemanticModel, operation.Syntax, operation.IsImplicit);

@@ -2143,12 +2143,20 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return new SwitchCaseOperation(clauses, body, locals, condition: null, _semanticModel, boundSwitchSection.Syntax, isImplicit: boundSwitchSection.WasCompilerGenerated);
         }
-#nullable disable
 
         private ISwitchExpressionOperation CreateBoundSwitchExpressionOperation(BoundSwitchExpression boundSwitchExpression)
         {
-            return new CSharpLazySwitchExpressionOperation(this, boundSwitchExpression, _semanticModel);
+            IOperation value = Create(boundSwitchExpression.Expression);
+            ImmutableArray<ISwitchExpressionArmOperation> arms = CreateFromArray<BoundSwitchExpressionArm, ISwitchExpressionArmOperation>(boundSwitchExpression.SwitchArms);
+            return new SwitchExpressionOperation(
+                value,
+                arms,
+                _semanticModel,
+                boundSwitchExpression.Syntax,
+                boundSwitchExpression.GetPublicTypeSymbol(),
+                boundSwitchExpression.WasCompilerGenerated);
         }
+#nullable disable
 
         private ISwitchExpressionArmOperation CreateBoundSwitchExpressionArmOperation(BoundSwitchExpressionArm boundSwitchExpressionArm)
         {

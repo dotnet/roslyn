@@ -2755,7 +2755,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="ISwitchExpressionOperation" Base="IOperation" ChildrenOrder="Value,Arms">
+  <Node Name="ISwitchExpressionOperation" Base="IOperation" ChildrenOrder="Value,Arms" HasType="true">
     <Comments>
       <summary>
         Represents a switch expression.
