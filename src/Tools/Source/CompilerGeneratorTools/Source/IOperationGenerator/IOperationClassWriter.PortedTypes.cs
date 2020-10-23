@@ -79,6 +79,7 @@ namespace IOperationGenerator
             "IAggregateQueryOperation",
             "IFixedOperation",
             "INoPiaObjectCreationOperation",
+            "IPointerIndirectionReferenceOperation",
         };
     }
 }

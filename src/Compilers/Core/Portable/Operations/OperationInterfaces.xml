@@ -2876,7 +2876,7 @@
     </Comments>
     <Property Name="PlaceholderKind" Type="PlaceholderKind" />
   </Node>
-  <Node Name="IPointerIndirectionReferenceOperation" Base="IOperation" Internal="true">
+  <Node Name="IPointerIndirectionReferenceOperation" Base="IOperation" SkipClassGeneration="true" Internal="true" HasType="true">
     <Comments>
       <summary>
         Represents a reference through a pointer.

@@ -3254,6 +3254,7 @@ namespace Microsoft.CodeAnalysis.Operations
         PlaceholderKind PlaceholderKind { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a reference through a pointer.
     /// <para>
@@ -3272,6 +3273,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Pointer { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a <see cref="Body" /> of operations that are executed with implicit reference to the <see cref="Value" /> for member references.
     /// <para>
@@ -7598,50 +7600,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPlaceholder(this, argument);
     }
     #nullable disable
-    internal abstract partial class BasePointerIndirectionReferenceOperation : OperationOld, IPointerIndirectionReferenceOperation
-    {
-        internal BasePointerIndirectionReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Pointer { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                if (Pointer is object) yield return Pointer;
-            }
-        }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitPointerIndirectionReference(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPointerIndirectionReference(this, argument);
-    }
-    internal sealed partial class PointerIndirectionReferenceOperation : BasePointerIndirectionReferenceOperation, IPointerIndirectionReferenceOperation
-    {
-        internal PointerIndirectionReferenceOperation(IOperation pointer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Pointer = SetParentOperation(pointer, this);
-        }
-        public override IOperation Pointer { get; }
-    }
-    internal abstract partial class LazyPointerIndirectionReferenceOperation : BasePointerIndirectionReferenceOperation, IPointerIndirectionReferenceOperation
-    {
-        private IOperation _lazyPointer = s_unset;
-        internal LazyPointerIndirectionReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreatePointer();
-        public override IOperation Pointer
-        {
-            get
-            {
-                if (_lazyPointer == s_unset)
-                {
-                    IOperation pointer = CreatePointer();
-                    SetParentOperation(pointer, this);
-                    Interlocked.CompareExchange(ref _lazyPointer, pointer, s_unset);
-                }
-                return _lazyPointer;
-            }
-        }
-    }
     internal abstract partial class BaseWithStatementOperation : OperationOld, IWithStatementOperation
     {
         internal BaseWithStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
