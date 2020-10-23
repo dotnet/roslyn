@@ -127,38 +127,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         Return
                     End If
 
-                    Dim tree As SyntaxTree
-                    Dim startLineNumber As Integer
-                    Dim startCharIndex As Integer
-                    Dim endLineNumber As Integer
-                    Dim endCharIndex As Integer
-                    Dim useSemantics = info._useStatementSemanticFormatting AndAlso Not isExplicitFormat
-                    If useSemantics AndAlso Not isExplicitFormat Then
-                        ' Avoid using semantics for formatting extremely large dirty spans without an explicit request
-                        ' from the user. The "large span threshold" is 7000 lines. The 7000 line threshold is an
-                        ' estimated value accounting for a lower-bound of the algorithmic complexity of text
-                        ' differencing in designer cases along with measurements of a pathological example demonstrated
-                        ' at 14000 lines. We expect Windows Forms designer formatting operations to run in under ~15
-                        ' seconds on average current hardware when nearing the threshold.
-                        info._statementSpanToSemanticFormat.GetLinesAndCharacters(startLineNumber, startCharIndex, endLineNumber, endCharIndex)
-                        If endLineNumber - startLineNumber > 7000 Then
-                            useSemantics = False
-                        End If
-                        tree = _dirtyState.BaseDocument.GetSyntaxTreeSynchronously(cancellationToken)
-                        _commitFormatter.CommitRegion(info._statementSpanToSemanticFormat, isExplicitFormat, useSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken)
+                    If info.UseSemanticStatementFormatting Then
+                        FormatSpan(isExplicitFormat:=False, dirtyRegion, info.SpanToSemanticFormat, useSemantics:=True, info.SpanToSemanticFormat, cancellationToken)
                     End If
 
-                    useSemantics = info._useSemantics AndAlso Not info._useStatementSemanticFormatting
-                    If useSemantics AndAlso Not isExplicitFormat Then
-                        ' same comment at above
-                        info._spanToFormat.GetLinesAndCharacters(startLineNumber, startCharIndex, endLineNumber, endCharIndex)
-                        If endLineNumber - startLineNumber > 7000 Then
-                            useSemantics = False
-                        End If
-                    End If
-
-                    tree = _dirtyState.BaseDocument.GetSyntaxTreeSynchronously(cancellationToken)
-                    _commitFormatter.CommitRegion(info._spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken)
+                    FormatSpan(isExplicitFormat, dirtyRegion, info.SpanToFormat, info.UseSemantics, info.SpanToFormat, cancellationToken)
                 End Using
             Finally
                 ' We may have tracked a dirty region while committing or it may have been aborted.
@@ -168,11 +141,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Sub
 
         Private Structure FormattingInfo
-            Public _useSemantics As Boolean
-            Public _useStatementSemanticFormatting As Boolean
-            Public _spanToFormat As SnapshotSpan
-            Public _statementSpanToSemanticFormat As SnapshotSpan
+            ' This is the original flag to enable semantic formating on a span
+            Public UseSemantics As Boolean
+            ' This is new flag that allows semantic formating of a single statement
+            Public UseSemanticStatementFormatting As Boolean
+            ' This is the total span to format, the span may or may not be semantically formated
+            Public SpanToFormat As SnapshotSpan
+            ' This is a span that will always be semantically formated
+            Public SpanToSemanticFormat As SnapshotSpan
         End Structure
+
+        Private Sub FormatSpan(isExplicitFormat As Boolean, dirtyRegion As SnapshotSpan, spanToFormat As SnapshotSpan, useSemantics As Boolean, snapshot As SnapshotSpan, cancellationToken As CancellationToken)
+            Dim startLineNumber As Integer
+            Dim startCharIndex As Integer
+            Dim endLineNumber As Integer
+            Dim endCharIndex As Integer
+            ' Avoid using semantics for formatting extremely large dirty spans without an explicit request
+            ' from the user. The "large span threshold" is 7000 lines. The 7000 line threshold is an
+            ' estimated value accounting for a lower-bound of the algorithmic complexity of text
+            ' differencing in designer cases along with measurements of a pathological example demonstrated
+            ' at 14000 lines. We expect Windows Forms designer formatting operations to run in under ~15
+            ' seconds on average current hardware when nearing the threshold.
+            snapshot.GetLinesAndCharacters(startLineNumber, startCharIndex, endLineNumber, endCharIndex)
+            If endLineNumber - startLineNumber > 7000 Then
+                useSemantics = False
+            End If
+            Dim tree = _dirtyState.BaseDocument.GetSyntaxTreeSynchronously(cancellationToken)
+            _commitFormatter.CommitRegion(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken)
+        End Sub
 
         Public Sub ExpandDirtyRegion(snapshotSpan As SnapshotSpan)
             If _dirtyState Is Nothing Then
@@ -191,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Return False
             End If
 
-            formattingInfo._useSemantics = True
+            formattingInfo.UseSemantics = True
             Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
 
             ' No matter what, we will always include the dirty span
@@ -207,12 +203,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                 If startingStatementInfo.MatchingBlockConstruct IsNot Nothing Then
                     ' If we're expanding backwards because of editing an end construct, we don't wan to run
-                    ' expensive semantic formatting checks.  We really just want to fix up indentation unless we are in a VB block.
-                    ' In VB some constructs are not "Blocks" in the same way that they are in C#, IsExecutableBlock maps the semantics
-                    ' of VB to match C# Block.
-                    formattingInfo._useSemantics = finalSpanStart <= startingStatementInfo.MatchingBlockConstruct.SpanStart
-                    formattingInfo._useStatementSemanticFormatting = Not formattingInfo._useSemantics AndAlso startingStatementInfo.MatchingBlockConstruct.Parent.IsExecutableBlock
-                    semanticSpanStart = dirtySpan.Start.Position
+                    ' expensive semantic formatting, we really just want to fix up indentation. However in VB it is
+                    ' possible that there is semantic content in this block.
+                    ' In VB some constructs are not "Blocks"  in the same way that they are in C#, but can contain multiple statements.
+                    ' IsExecutableBlock maps the semantics of VB to match C# Block.
+                    ' If we are in what C# would define as a block we want to do semantic formatting
+
+                    ' Below defines the entire scope of the edit that possibility needs indenting changed
+                    formattingInfo.UseSemantics = finalSpanStart <= startingStatementInfo.MatchingBlockConstruct.SpanStart
+                    ' This is the possibly smaller section that requires Semantic Formatting, if we are already doing semantic formating we don't do it twice
+                    formattingInfo.UseSemanticStatementFormatting = Not formattingInfo.UseSemantics AndAlso startingStatementInfo.MatchingBlockConstruct.Parent.IsExecutableBlock
                     finalSpanStart = Math.Min(finalSpanStart, startingStatementInfo.MatchingBlockConstruct.SpanStart)
                 End If
             End If
@@ -235,20 +235,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' We want to include the line break into the line before
                 finalSpanStart = dirtySpan.Snapshot.GetLineFromLineNumber(startingLine.LineNumber - 1).End
             End If
-            If formattingInfo._useStatementSemanticFormatting Then
-                Dim hyridStartingLine = dirtySpan.Snapshot.GetLineFromPosition(semanticSpanStart)
-                If hyridStartingLine.LineNumber = 0 Then
-                    semanticSpanStart = 0
-                Else
-                    ' We want to include the line break into the line before
-                    semanticSpanStart = dirtySpan.Snapshot.GetLineFromLineNumber(hyridStartingLine.LineNumber - 1).End
-                End If
-                formattingInfo._statementSpanToSemanticFormat = New SnapshotSpan(dirtySpan.Snapshot, Span.FromBounds(semanticSpanStart, semanticSpanEnd))
+
+            Dim semanticFormattingStartingLine = dirtySpan.Snapshot.GetLineFromPosition(semanticSpanStart)
+            If semanticFormattingStartingLine.LineNumber = 0 Then
+                semanticSpanStart = 0
+            Else
+                ' We want to include the line break into the line before
+                semanticSpanStart = dirtySpan.Snapshot.GetLineFromLineNumber(semanticFormattingStartingLine.LineNumber - 1).End
             End If
+            formattingInfo.SpanToSemanticFormat = New SnapshotSpan(dirtySpan.Snapshot, Span.FromBounds(semanticSpanStart, semanticSpanEnd))
+            ' We don't want to format the whole span twice, if the two sections needing formatting
+            ' are identical just do it once
             If semanticSpanStart = finalSpanStart AndAlso semanticSpanEnd = finalSpanEnd Then
-                formattingInfo._useStatementSemanticFormatting = False
+                formattingInfo.UseSemanticStatementFormatting = False
             End If
-            formattingInfo._spanToFormat = New SnapshotSpan(dirtySpan.Snapshot, Span.FromBounds(finalSpanStart, finalSpanEnd))
+            formattingInfo.SpanToFormat = New SnapshotSpan(dirtySpan.Snapshot, Span.FromBounds(finalSpanStart, finalSpanEnd))
             Return True
         End Function
 

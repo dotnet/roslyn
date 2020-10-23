@@ -1145,7 +1145,6 @@ Class C
     Sub S()
         Dim Test = 1
         Do
-            ' While fixed but Test not
         Loop while test = 1$$
     End Sub
 End Class
@@ -1160,7 +1159,6 @@ Class C
     Sub S()
         Dim Test = 1
         Do
-            ' While fixed but Test not
         Loop While Test = 1
 
     End Sub
@@ -1180,7 +1178,7 @@ End Class
 Class C
     Sub S()
         Dim Test = 1
-        If Test = 1 Then
+           If test = 1 Then ' test should not be fixed but indenting should be fixed
 
         ElseIf test = 2 Then$$
         End If
@@ -1196,7 +1194,7 @@ End Class
 Class C
     Sub S()
         Dim Test = 1
-        If Test = 1 Then
+        If test = 1 Then ' test should not be fixed but indenting should be fixed
 
         ElseIf Test = 2 Then
 
@@ -1291,7 +1289,6 @@ Class C
     Sub S()
         Dim Test = 1
         Try
-            ' When fixed but Test not
         Catch ex As Exception when test = 1$$
         End Try
     End Sub
@@ -1307,7 +1304,6 @@ Class C
     Sub S()
         Dim Test = 1
         Try
-            ' When fixed but Test not
         Catch ex As Exception When Test = 1
 
         End Try
@@ -1317,7 +1313,5 @@ End Class
                 Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
-
     End Class
 End Namespace
-
