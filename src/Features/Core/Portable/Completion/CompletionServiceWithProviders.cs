@@ -640,9 +640,6 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 _service = service;
                 _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
-#if NETCOREAPP
-                _displayNameToItemsMap.EnsureCapacity(capacity);
-#endif
             }
 
             public void Dispose()

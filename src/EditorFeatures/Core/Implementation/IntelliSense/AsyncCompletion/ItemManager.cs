@@ -187,13 +187,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var initialListOfItemsToBeIncluded = s_listOfMatchResultPool.Allocate();
             try
             {
-                if (initialListOfItemsToBeIncluded.Capacity < data.InitialSortedList.Length)
-                {
-                    // We never reduce the capacity so the pooled list is more likely 
-                    // be able to handle any subsequent session w/o calling resize.
-                    initialListOfItemsToBeIncluded.Capacity = data.InitialSortedList.Length;
-                }
-
                 // Filter items based on the selected filters and matching.
                 foreach (var item in data.InitialSortedList)
                 {
