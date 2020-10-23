@@ -1660,6 +1660,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundReDimOperation(boundRedimStatement As BoundRedimStatement) As IReDimOperation
+            Dim clauses As ImmutableArray(Of IReDimClauseOperation) = CreateFromArray(Of BoundRedimClause, IReDimClauseOperation)(boundRedimStatement.Clauses)
             Dim preserve As Boolean = boundRedimStatement.Syntax.Kind = SyntaxKind.ReDimPreserveStatement
 #If DEBUG Then
             For Each clause In boundRedimStatement.Clauses
@@ -1667,10 +1668,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             Next
 #End If
             Dim syntax As SyntaxNode = boundRedimStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundRedimStatement.WasCompilerGenerated
-            Return New VisualBasicLazyReDimOperation(Me, boundRedimStatement, preserve, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ReDimOperation(clauses, preserve, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundReDimClauseOperation(boundRedimClause As BoundRedimClause) As IReDimClauseOperation

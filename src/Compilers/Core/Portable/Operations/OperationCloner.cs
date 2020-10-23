@@ -310,11 +310,6 @@ namespace Microsoft.CodeAnalysis.Operations
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitReDim(IReDimOperation operation, object argument)
-        {
-            return new ReDimOperation(VisitArray(operation.Clauses), operation.Preserve, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitReDimClause(IReDimClauseOperation operation, object argument)
         {
             return new ReDimClauseOperation(Visit(operation.Operand), VisitArray(operation.DimensionSizes), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

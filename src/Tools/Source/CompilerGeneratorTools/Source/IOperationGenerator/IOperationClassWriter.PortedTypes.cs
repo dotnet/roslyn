@@ -71,6 +71,7 @@ namespace IOperationGenerator
             "ISwitchCaseOperation",
             "ITupleBinaryOperation",
             "IRangeOperation",
+            "IReDimOperation",
         };
     }
 }

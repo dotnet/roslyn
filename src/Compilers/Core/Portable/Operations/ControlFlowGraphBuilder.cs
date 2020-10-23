@@ -6731,7 +6731,8 @@ oneMoreTime:
             }
         }
 
-        public override IOperation VisitReDim(IReDimOperation operation, int? argument)
+#nullable enable
+        public override IOperation? VisitReDim(IReDimOperation operation, int? argument)
         {
             StartVisitingStatement(operation);
 
@@ -6746,7 +6747,7 @@ oneMoreTime:
                 EvalStackFrame frame = PushStackFrame();
                 var visitedReDimClause = visitReDimClause(clause);
                 var visitedReDimOperation = new ReDimOperation(ImmutableArray.Create(visitedReDimClause), operation.Preserve,
-                    semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), isImplicit);
+                    semanticModel: null, operation.Syntax, isImplicit);
                 AddStatement(visitedReDimOperation);
                 PopStackFrameAndLeaveRegion(frame);
             }
@@ -6768,7 +6769,6 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
-#nullable enable
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
         {
             return new TranslatedQueryOperation(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));

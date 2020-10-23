@@ -533,23 +533,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyReDimOperation
-        Inherits LazyReDimOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _redimStatement As BoundRedimStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, redimStatement As BoundRedimStatement, preserve As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(preserve, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _redimStatement = redimStatement
-        End Sub
-
-        Protected Overrides Function CreateClauses() As ImmutableArray(Of IReDimClauseOperation)
-            Return _operationFactory.CreateFromArray(Of BoundRedimClause, IReDimClauseOperation)(_redimStatement.Clauses)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyReDimClauseOperation
         Inherits LazyReDimClauseOperation
 
