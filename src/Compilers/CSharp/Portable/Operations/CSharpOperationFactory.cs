@@ -2239,20 +2239,21 @@ namespace Microsoft.CodeAnalysis.Operations
                 constantValue: null,
                 isImplicit: boundIndex.WasCompilerGenerated);
         }
-#nullable disable
 
         private IOperation CreateRangeExpressionOperation(BoundRangeExpression boundRange)
         {
-            return new CSharpLazyRangeOperation(
-                operationFactory: this,
-                boundRange,
+            IOperation? left = Create(boundRange.LeftOperandOpt);
+            IOperation? right = Create(boundRange.RightOperandOpt);
+            return new RangeOperation(
+                left, right,
                 isLifted: boundRange.Type.IsNullableType(),
+                boundRange.MethodOpt.GetPublicSymbol(),
                 _semanticModel,
                 boundRange.Syntax,
                 boundRange.GetPublicTypeSymbol(),
-                boundRange.MethodOpt.GetPublicSymbol(),
                 isImplicit: boundRange.WasCompilerGenerated);
         }
+#nullable disable
 
         private IOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundNode)
         {

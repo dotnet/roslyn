@@ -70,6 +70,7 @@ namespace IOperationGenerator
             "ICatchClauseOperation",
             "ISwitchCaseOperation",
             "ITupleBinaryOperation",
+            "IRangeOperation",
         };
     }
 }

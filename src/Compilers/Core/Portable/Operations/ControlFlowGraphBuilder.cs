@@ -6880,7 +6880,6 @@ oneMoreTime:
             return new DelegateCreationOperation(Visit(operation.Target), semanticModel: null,
                 operation.Syntax, operation.Type, IsImplicit(operation));
         }
-#nullable disable
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)
         {
@@ -6889,18 +6888,17 @@ oneMoreTime:
                 PushOperand(Visit(operation.LeftOperand));
             }
 
-            IOperation visitedRightOperand = null;
+            IOperation? visitedRightOperand = null;
             if (operation.RightOperand is object)
             {
                 visitedRightOperand = Visit(operation.RightOperand);
             }
 
-            IOperation visitedLeftOperand = operation.LeftOperand is null ? null : PopOperand();
+            IOperation? visitedLeftOperand = operation.LeftOperand is null ? null : PopOperand();
 
-            return new RangeOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method, isImplicit: IsImplicit(operation));
+            return new RangeOperation(visitedLeftOperand, visitedRightOperand, operation.IsLifted, operation.Method, semanticModel: null, operation.Syntax, operation.Type, isImplicit: IsImplicit(operation));
         }
 
-#nullable enable
         public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, int? captureIdForResult)
         {
             // expression switch { pat1 when g1 => e1, pat2 when g2 => e2 }

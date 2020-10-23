@@ -2946,6 +2946,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface ICoalesceAssignmentOperation : IAssignmentOperation
     {
     }
+    #nullable enable
     /// <summary>
     /// Represents a range operation.
     /// <para>
@@ -2966,11 +2967,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Left operand.
         /// </summary>
-        IOperation LeftOperand { get; }
+        IOperation? LeftOperand { get; }
         /// <summary>
         /// Right operand.
         /// </summary>
-        IOperation RightOperand { get; }
+        IOperation? RightOperand { get; }
         /// <summary>
         /// <code>true</code> if this is a 'lifted' range operation.  When there is an
         /// operator that is defined to work on a value type, 'lifted' operators are
@@ -2982,8 +2983,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Factory method used to create this Range value. Can be null if appropriate
         /// symbol was not found.
         /// </summary>
-        IMethodSymbol Method { get; }
+        IMethodSymbol? Method { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents the ReDim operation to re-allocate storage space for array variables.
     /// <para>
@@ -7169,75 +7171,44 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseRangeOperation : OperationOld, IRangeOperation
+    #nullable enable
+    internal sealed partial class RangeOperation : Operation, IRangeOperation
     {
-        internal BaseRangeOperation(bool isLifted, IMethodSymbol method, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Range, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal RangeOperation(IOperation? leftOperand, IOperation? rightOperand, bool isLifted, IMethodSymbol? method, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            LeftOperand = SetParentOperation(leftOperand, this);
+            RightOperand = SetParentOperation(rightOperand, this);
             IsLifted = isLifted;
             Method = method;
+            Type = type;
         }
-        public abstract IOperation LeftOperand { get; }
-        public abstract IOperation RightOperand { get; }
+        public IOperation? LeftOperand { get; }
+        public IOperation? RightOperand { get; }
         public bool IsLifted { get; }
-        public IMethodSymbol Method { get; }
+        public IMethodSymbol? Method { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (LeftOperand is object) yield return LeftOperand;
-                if (RightOperand is object) yield return RightOperand;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (LeftOperand is not null) builder.Add(LeftOperand);
+                    if (RightOperand is not null) builder.Add(RightOperand);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Range;
         public override void Accept(OperationVisitor visitor) => visitor.VisitRangeOperation(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitRangeOperation(this, argument);
     }
-    internal sealed partial class RangeOperation : BaseRangeOperation, IRangeOperation
-    {
-        internal RangeOperation(IOperation leftOperand, IOperation rightOperand, bool isLifted, IMethodSymbol method, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(isLifted, method, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            LeftOperand = SetParentOperation(leftOperand, this);
-            RightOperand = SetParentOperation(rightOperand, this);
-        }
-        public override IOperation LeftOperand { get; }
-        public override IOperation RightOperand { get; }
-    }
-    internal abstract partial class LazyRangeOperation : BaseRangeOperation, IRangeOperation
-    {
-        private IOperation _lazyLeftOperand = s_unset;
-        private IOperation _lazyRightOperand = s_unset;
-        internal LazyRangeOperation(bool isLifted, IMethodSymbol method, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(isLifted, method, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateLeftOperand();
-        public override IOperation LeftOperand
-        {
-            get
-            {
-                if (_lazyLeftOperand == s_unset)
-                {
-                    IOperation leftOperand = CreateLeftOperand();
-                    SetParentOperation(leftOperand, this);
-                    Interlocked.CompareExchange(ref _lazyLeftOperand, leftOperand, s_unset);
-                }
-                return _lazyLeftOperand;
-            }
-        }
-        protected abstract IOperation CreateRightOperand();
-        public override IOperation RightOperand
-        {
-            get
-            {
-                if (_lazyRightOperand == s_unset)
-                {
-                    IOperation rightOperand = CreateRightOperand();
-                    SetParentOperation(rightOperand, this);
-                    Interlocked.CompareExchange(ref _lazyRightOperand, rightOperand, s_unset);
-                }
-                return _lazyRightOperand;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseReDimOperation : OperationOld, IReDimOperation
     {
         internal BaseReDimOperation(bool preserve, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8537,6 +8508,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (DiscardOperation)operation;
             return new DiscardOperation(internalOperation.DiscardSymbol, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitRangeOperation(IRangeOperation operation, object? argument)
+        {
+            var internalOperation = (RangeOperation)operation;
+            return new RangeOperation(Visit(internalOperation.LeftOperand), Visit(internalOperation.RightOperand), internalOperation.IsLifted, internalOperation.Method, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, object? argument)
         {

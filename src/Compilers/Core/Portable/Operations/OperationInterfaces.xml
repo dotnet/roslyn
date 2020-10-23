@@ -2630,7 +2630,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IRangeOperation" Base="IOperation" VisitorName="VisitRangeOperation" ChildrenOrder="LeftOperand,RightOperand">
+  <Node Name="IRangeOperation" Base="IOperation" VisitorName="VisitRangeOperation" ChildrenOrder="LeftOperand,RightOperand" HasType="true">
     <Comments>
       <summary>
         Represents a range operation.
@@ -2640,12 +2640,12 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="LeftOperand" Type="IOperation">
+    <Property Name="LeftOperand" Type="IOperation?">
       <Comments>
         <summary>Left operand.</summary>
       </Comments>
     </Property>
-    <Property Name="RightOperand" Type="IOperation">
+    <Property Name="RightOperand" Type="IOperation?">
       <Comments>
         <summary>Right operand.</summary>
       </Comments>
@@ -2660,7 +2660,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="Method" Type="IMethodSymbol">
+    <Property Name="Method" Type="IMethodSymbol?">
       <Comments>
         <summary>
           Factory method used to create this Range value. Can be null if appropriate

@@ -1018,27 +1018,4 @@ namespace Microsoft.CodeAnalysis.Operations
             return (IObjectOrCollectionInitializerOperation)_operationFactory.Create(_initializer);
         }
     }
-
-    internal sealed class CSharpLazyRangeOperation : LazyRangeOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundRangeExpression _rangeExpression;
-
-        internal CSharpLazyRangeOperation(CSharpOperationFactory operationFactory, BoundRangeExpression rangeExpression, bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
-            base(isLifted, symbol, semanticModel, syntax, type, constantValue: null, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _rangeExpression = rangeExpression;
-        }
-
-        protected override IOperation CreateLeftOperand()
-        {
-            return _operationFactory.Create(_rangeExpression.LeftOperandOpt);
-        }
-
-        protected override IOperation CreateRightOperand()
-        {
-            return _operationFactory.Create(_rangeExpression.RightOperandOpt);
-        }
-    }
 }

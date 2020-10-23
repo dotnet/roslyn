@@ -890,11 +890,4 @@ namespace Microsoft.CodeAnalysis.Operations
         { }
 
     }
-
-    internal sealed partial class RangeOperation : BaseRangeOperation
-    {
-        public RangeOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand, IMethodSymbol symbol, bool isImplicit) :
-            this(leftOperand, rightOperand, isLifted, method: symbol, semanticModel, syntax, type, constantValue: null, isImplicit)
-        { }
-    }
 }
