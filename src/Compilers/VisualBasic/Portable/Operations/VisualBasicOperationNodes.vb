@@ -473,25 +473,4 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
             Return _operationFactory.Create(_conditionalLoop.IgnoredCondition)
         End Function
     End Class
-
-    Friend NotInheritable Class VisualBasicLazyWithStatementOperation
-        Inherits LazyWithStatementOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _withStatement As BoundWithStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, withStatement As BoundWithStatement, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _withStatement = withStatement
-        End Sub
-
-        Protected Overrides Function CreateBody() As IOperation
-            Return _operationFactory.Create(_withStatement.Body)
-        End Function
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_withStatement.OriginalExpression)
-        End Function
-    End Class
 End Namespace

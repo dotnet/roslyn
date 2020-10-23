@@ -1428,11 +1428,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundWithStatementOperation(boundWithStatement As BoundWithStatement) As IWithStatementOperation
+            Dim value As IOperation = Create(boundWithStatement.OriginalExpression)
+            Dim body As IOperation = Create(boundWithStatement.Body)
             Dim syntax As SyntaxNode = boundWithStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundWithStatement.WasCompilerGenerated
-            Return New VisualBasicLazyWithStatementOperation(Me, boundWithStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New WithStatementOperation(body, value, _semanticModel, syntax, isImplicit)
         End Function
 
         Friend Function CreateBoundUsingStatementResources(boundUsingStatement As BoundUsingStatement) As IOperation

@@ -1423,10 +1423,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 _currentStatement = savedCurrentStatement;
                 return visitedAll;
             }
-#nullable disable
         }
 
-        internal override IOperation VisitWithStatement(IWithStatementOperation operation, int? captureIdForResult)
+        internal override IOperation? VisitWithStatement(IWithStatementOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -1438,6 +1437,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             _currentImplicitInstance = previousInitializedInstance;
             return FinishVisitingStatement(operation);
         }
+#nullable disable
 
         public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)
         {

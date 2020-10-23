@@ -80,6 +80,7 @@ namespace IOperationGenerator
             "IFixedOperation",
             "INoPiaObjectCreationOperation",
             "IPointerIndirectionReferenceOperation",
+            "IWithStatementOperation",
         };
     }
 }

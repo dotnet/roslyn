@@ -3274,6 +3274,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Pointer { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a <see cref="Body" /> of operations that are executed with implicit reference to the <see cref="Value" /> for member references.
     /// <para>
@@ -3296,6 +3297,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Value { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents using variable declaration, with scope spanning across the parent <see cref="IBlockOperation" />.
     /// <para>
@@ -7600,69 +7602,39 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPlaceholder(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseWithStatementOperation : OperationOld, IWithStatementOperation
+    #nullable enable
+    internal sealed partial class WithStatementOperation : Operation, IWithStatementOperation
     {
-        internal BaseWithStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Body { get; }
-        public abstract IOperation Value { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                if (Value is object) yield return Value;
-                if (Body is object) yield return Body;
-            }
-        }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitWithStatement(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitWithStatement(this, argument);
-    }
-    internal sealed partial class WithStatementOperation : BaseWithStatementOperation, IWithStatementOperation
-    {
-        internal WithStatementOperation(IOperation body, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal WithStatementOperation(IOperation body, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Body = SetParentOperation(body, this);
             Value = SetParentOperation(value, this);
         }
-        public override IOperation Body { get; }
-        public override IOperation Value { get; }
-    }
-    internal abstract partial class LazyWithStatementOperation : BaseWithStatementOperation, IWithStatementOperation
-    {
-        private IOperation _lazyBody = s_unset;
-        private IOperation _lazyValue = s_unset;
-        internal LazyWithStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateBody();
-        public override IOperation Body
+        public IOperation Body { get; }
+        public IOperation Value { get; }
+        public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (_lazyBody == s_unset)
+                if (_lazyChildren is null)
                 {
-                    IOperation body = CreateBody();
-                    SetParentOperation(body, this);
-                    Interlocked.CompareExchange(ref _lazyBody, body, s_unset);
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Value is not null) builder.Add(Value);
+                    if (Body is not null) builder.Add(Body);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                return _lazyBody;
+                return _lazyChildren;
             }
         }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.None;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitWithStatement(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitWithStatement(this, argument);
     }
+    #nullable disable
     internal abstract partial class BaseUsingDeclarationOperation : OperationOld, IUsingDeclarationOperation
     {
         internal BaseUsingDeclarationOperation(bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8296,6 +8268,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (PlaceholderOperation)operation;
             return new PlaceholderOperation(internalOperation.PlaceholderKind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        internal override IOperation VisitWithStatement(IWithStatementOperation operation, object? argument)
+        {
+            var internalOperation = (WithStatementOperation)operation;
+            return new WithStatementOperation(Visit(internalOperation.Body), Visit(internalOperation.Value), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
     }
     #nullable disable
