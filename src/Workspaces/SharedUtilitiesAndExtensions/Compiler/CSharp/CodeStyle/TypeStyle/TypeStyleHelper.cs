@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             CancellationToken cancellationToken)
         {
             // tuple literals
-            if (initializerExpression.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tuple))
+            if (initializerExpression.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax? tuple))
             {
                 if (typeInDeclaration == null || !typeInDeclaration.IsTupleType)
                 {
@@ -134,6 +134,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             var containingType = semanticModel.GetTypeInfo(containingTypeName, cancellationToken).Type;
 
+            // The containing type was determined from an expression of the form ContainingType.MemberName, and the
+            // caller verifies that MemberName resolves to a method symbol.
+            Contract.ThrowIfNull(containingType);
+
             return IsPossibleCreationMethod(methodSymbol, typeInDeclaration, containingType)
                 || IsPossibleConversionMethod(methodSymbol);
         }
@@ -191,7 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             }
         }
 
-        private static ITypeSymbol UnwrapTupleType(ITypeSymbol symbol)
+        [return: NotNullIfNotNull("symbol")]
+        private static ITypeSymbol? UnwrapTupleType(ITypeSymbol? symbol)
         {
             if (symbol is null)
                 return null;
