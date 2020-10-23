@@ -562,6 +562,11 @@
         <target state="translated">Nigdy, jeśli niepotrzebne</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_Type_Name_colon">
+        <source>New Type Name:</source>
+        <target state="new">New Type Name:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">Metody niepubliczne</target>
