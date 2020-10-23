@@ -6759,8 +6759,7 @@ oneMoreTime:
                 PushOperand(Visit(clause.Operand));
                 var visitedDimensionSizes = VisitArray(clause.DimensionSizes);
                 var visitedOperand = PopOperand();
-                return new ReDimClauseOperation(visitedOperand, visitedDimensionSizes, semanticModel: null,
-                    clause.Syntax, clause.Type, clause.GetConstantValue(), IsImplicit(clause));
+                return new ReDimClauseOperation(visitedOperand, visitedDimensionSizes, semanticModel: null, clause.Syntax, IsImplicit(clause));
             }
         }
 

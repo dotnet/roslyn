@@ -532,25 +532,4 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
             Return DirectCast(_operationFactory.Create(_initializer), IObjectOrCollectionInitializerOperation)
         End Function
     End Class
-
-    Friend NotInheritable Class VisualBasicLazyReDimClauseOperation
-        Inherits LazyReDimClauseOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _redimClause As BoundRedimClause
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, redimClause As BoundRedimClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _redimClause = redimClause
-        End Sub
-
-        Protected Overrides Function CreateOperand() As IOperation
-            Return _operationFactory.Create(_redimClause.Operand)
-        End Function
-
-        Protected Overrides Function CreateDimensionSizes() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_redimClause.Indices)
-        End Function
-    End Class
 End Namespace

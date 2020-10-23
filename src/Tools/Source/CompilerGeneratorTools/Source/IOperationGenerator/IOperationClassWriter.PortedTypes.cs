@@ -72,6 +72,7 @@ namespace IOperationGenerator
             "ITupleBinaryOperation",
             "IRangeOperation",
             "IReDimOperation",
+            "IReDimClauseOperation",
         };
     }
 }

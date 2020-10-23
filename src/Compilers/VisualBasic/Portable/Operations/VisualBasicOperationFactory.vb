@@ -1673,11 +1673,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundReDimClauseOperation(boundRedimClause As BoundRedimClause) As IReDimClauseOperation
+            Dim operand As IOperation = Create(boundRedimClause.Operand)
+            Dim dimensionSizes As ImmutableArray(Of IOperation) = CreateFromArray(Of BoundExpression, IOperation)(boundRedimClause.Indices)
             Dim syntax As SyntaxNode = boundRedimClause.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundRedimClause.WasCompilerGenerated
-            Return New VisualBasicLazyReDimClauseOperation(Me, boundRedimClause, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ReDimClauseOperation(operand, dimensionSizes, _semanticModel, syntax, isImplicit)
         End Function
     End Class
 End Namespace

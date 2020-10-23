@@ -3014,6 +3014,7 @@ namespace Microsoft.CodeAnalysis.Operations
         bool Preserve { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an individual clause of an <see cref="IReDimOperation" /> to re-allocate storage space for a single array variable.
     /// <para>
@@ -3040,6 +3041,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IOperation> DimensionSizes { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a C# recursive pattern.
     /// </summary>
@@ -7243,72 +7245,39 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitReDim(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseReDimClauseOperation : OperationOld, IReDimClauseOperation
+    #nullable enable
+    internal sealed partial class ReDimClauseOperation : Operation, IReDimClauseOperation
     {
-        internal BaseReDimClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.ReDimClause, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Operand { get; }
-        public abstract ImmutableArray<IOperation> DimensionSizes { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                if (Operand is object) yield return Operand;
-                foreach (var child in DimensionSizes)
-                {
-                    if (child is object) yield return child;
-                }
-            }
-        }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitReDimClause(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitReDimClause(this, argument);
-    }
-    internal sealed partial class ReDimClauseOperation : BaseReDimClauseOperation, IReDimClauseOperation
-    {
-        internal ReDimClauseOperation(IOperation operand, ImmutableArray<IOperation> dimensionSizes, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ReDimClauseOperation(IOperation operand, ImmutableArray<IOperation> dimensionSizes, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Operand = SetParentOperation(operand, this);
             DimensionSizes = SetParentOperation(dimensionSizes, this);
         }
-        public override IOperation Operand { get; }
-        public override ImmutableArray<IOperation> DimensionSizes { get; }
-    }
-    internal abstract partial class LazyReDimClauseOperation : BaseReDimClauseOperation, IReDimClauseOperation
-    {
-        private IOperation _lazyOperand = s_unset;
-        private ImmutableArray<IOperation> _lazyDimensionSizes;
-        internal LazyReDimClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateOperand();
-        public override IOperation Operand
+        public IOperation Operand { get; }
+        public ImmutableArray<IOperation> DimensionSizes { get; }
+        public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (_lazyOperand == s_unset)
+                if (_lazyChildren is null)
                 {
-                    IOperation operand = CreateOperand();
-                    SetParentOperation(operand, this);
-                    Interlocked.CompareExchange(ref _lazyOperand, operand, s_unset);
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Operand is not null) builder.Add(Operand);
+                    if (!DimensionSizes.IsEmpty) builder.AddRange(DimensionSizes);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                return _lazyOperand;
+                return _lazyChildren;
             }
         }
-        protected abstract ImmutableArray<IOperation> CreateDimensionSizes();
-        public override ImmutableArray<IOperation> DimensionSizes
-        {
-            get
-            {
-                if (_lazyDimensionSizes.IsDefault)
-                {
-                    ImmutableArray<IOperation> dimensionSizes = CreateDimensionSizes();
-                    SetParentOperation(dimensionSizes, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDimensionSizes, dimensionSizes);
-                }
-                return _lazyDimensionSizes;
-            }
-        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.ReDimClause;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitReDimClause(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitReDimClause(this, argument);
     }
+    #nullable disable
     internal abstract partial class BaseRecursivePatternOperation : BasePatternOperation, IRecursivePatternOperation
     {
         internal BaseRecursivePatternOperation(ITypeSymbol matchedType, ISymbol deconstructSymbol, ISymbol declaredSymbol, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8501,6 +8470,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (ReDimOperation)operation;
             return new ReDimOperation(VisitArray(internalOperation.Clauses), internalOperation.Preserve, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitReDimClause(IReDimClauseOperation operation, object? argument)
+        {
+            var internalOperation = (ReDimClauseOperation)operation;
+            return new ReDimClauseOperation(Visit(internalOperation.Operand), VisitArray(internalOperation.DimensionSizes), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, object? argument)
         {
