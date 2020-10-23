@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         {
                             // Can change the parameter name, so do so.  
                             // But first remove any prefix added due to field naming styles
-                            var fieldNameMinusPrefix = newFieldName.Substring(_fieldNamingRule.NamingStyle.Prefix.Length);
+                            var fieldNameMinusPrefix = newFieldName[_fieldNamingRule.NamingStyle.Prefix.Length..];
                             var newParameterName = new ParameterName(fieldNameMinusPrefix, isFixed: false, _parameterNamingRule);
                             parameterName = newParameterName;
 
