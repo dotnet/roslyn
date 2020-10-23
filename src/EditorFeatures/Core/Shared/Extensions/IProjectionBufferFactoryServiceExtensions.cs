@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -32,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         [Name(RoslynPreviewContentType)]
         [BaseDefinition("text")]
         [BaseDefinition("projection")]
-        public static readonly ContentTypeDefinition RoslynPreviewContentTypeDefinition;
+        public static readonly ContentTypeDefinition? RoslynPreviewContentTypeDefinition;
 
         public static IProjectionBuffer CreateProjectionBufferWithoutIndentation(
             this IProjectionBufferFactoryService factoryService,
             IEditorOptions editorOptions,
-            IContentType contentType = null,
+            IContentType? contentType = null,
             params SnapshotSpan[] exposedSpans)
         {
             return factoryService.CreateProjectionBufferWithoutIndentation(
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static IProjectionBuffer CreateProjectionBufferWithoutIndentation(
             this IProjectionBufferFactoryService factoryService,
             IEditorOptions editorOptions,
-            IContentType contentType,
+            IContentType? contentType,
             IEnumerable<SnapshotSpan> exposedSpans)
         {
             var spans = new NormalizedSnapshotSpanCollection(exposedSpans);
@@ -206,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             IEditorOptions editorOptions,
             ITextSnapshot snapshot,
             string separator,
-            object suffixOpt,
+            object? suffixOpt,
             params LineSpan[] exposedLineSpans)
         {
             return CreateProjectionBuffer(
@@ -238,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             IEditorOptions editorOptions,
             ITextSnapshot snapshot,
             string separator,
-            object suffixOpt,
+            object? suffixOpt,
             bool trim,
             params LineSpan[] exposedLineSpans)
         {

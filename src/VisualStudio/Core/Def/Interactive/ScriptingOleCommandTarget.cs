@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         {
         }
 
-        protected override ITextBuffer GetSubjectBufferContainingCaret()
+        protected override ITextBuffer? GetSubjectBufferContainingCaret()
         {
             var result = WpfTextView.GetBufferContainingCaret(contentType: ContentTypeNames.RoslynContentType);
 

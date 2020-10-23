@@ -77,11 +77,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 {
                     Change = TextDocumentSyncKind.None
                 },
+
                 // Always support hover - if any LSP client for a content type advertises support,
                 // then the liveshare provider is disabled.  So we must provide for both C# and razor
                 // until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/ is fixed
                 // or we have different content types.
                 HoverProvider = true,
+
+                // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
+                SupportsDiagnosticRequests = false,
             };
         }
     }

@@ -821,7 +821,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
 
-            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, reportSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
+            Public Function GetDiagnostics(
+                    workspace As Workspace,
+                    projectId As ProjectId,
+                    documentId As DocumentId,
+                    id As Object,
+                    reportSuppressedDiagnostics As Boolean,
+                    forPullDiagnostics As Boolean,
+                    CancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
                 Assert.NotNull(workspace)
 
                 Dim diagnostics As ImmutableArray(Of DiagnosticData)
@@ -841,7 +848,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnostics
             End Function
 
-            Public Function GetDiagnosticsArgs(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetDiagnosticBuckets
+            Public Function GetDiagnosticsArgs(
+                    workspace As Workspace,
+                    projectId As ProjectId,
+                    documentId As DocumentId,
+                    forPullDiagnostics As Boolean,
+                    cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetDiagnosticBuckets
                 Assert.NotNull(workspace)
 
                 Dim diagnosticsArgs As ImmutableArray(Of DiagnosticBucket)

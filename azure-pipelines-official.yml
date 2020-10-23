@@ -21,16 +21,20 @@ variables:
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
+  # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-GitHub-Versions-Repo-Write
   - ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+    - group: DotNet-GitHub-Versions-Repo-Write
     - name: _DevDivDropAccessToken
       value: $(System.AccessToken)
   # If the pipeline is running in dnceng:
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw from DotNet-VSTS-Infra-Access
   # Get $dotnetfeed-storage-access-key-1 from DotNet-Blob-Feed
   # Get $microsoft-symbol-server-pat and $symweb-symbol-server-pat from DotNet-Symbol-Server-Pats
+  # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
   - ${{ if eq(variables['System.TeamProject'], 'internal') }}:
     - group: DotNet-Blob-Feed
     - group: DotNet-Symbol-Server-Pats
+    - group: DotNet-Versions-Publish
     - group: DotNet-VSTS-Infra-Access
     - name: _DevDivDropAccessToken
       value: $(dn-bot-devdiv-drop-rw-code-rw)
@@ -162,11 +166,14 @@ stages:
       displayName: Publish Assets
       inputs:
         filePath: 'eng\publish-assets.ps1'
-        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(AccessToken-dotnet-build-bot-public-repo) -gitHubEmail $(Roslyn.GitHubEmail)'
       condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
     # Publish OptProf configuration files
+    # The env variable is required to enable cross account access using PAT (dnceng -> devdiv)
     - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+      env:
+        ARTIFACTSERVICES_DROP_PAT: $(_DevDivDropAccessToken)
       inputs:
         dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
         buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
@@ -220,6 +227,7 @@ stages:
       inputs:
         DropName: $(VisualStudio.DropName)
         DropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
+        AccessToken: $(_DevDivDropAccessToken)
       condition: succeeded()
 
     # Publish insertion packages to CoreXT store.
@@ -227,10 +235,14 @@ stages:
       displayName: Publish CoreXT Packages 
       inputs:
         command: push
-        feedsToUse: config
         packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
-        publishVstsFeed: '97a41293-2972-4f48-8c0e-05493ae82010'
         allowPackageConflicts: true
+        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+          feedsToUse: config
+          publishVstsFeed: '97a41293-2972-4f48-8c0e-05493ae82010'
+        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+          nuGetFeedType: external
+          publishFeedCredentials: 'DevDiv - VS package feed'
       condition: succeeded()
 
     # Publish an artifact that the RoslynInsertionTool is able to find by its name.
@@ -268,8 +280,12 @@ stages:
       publishUsingPipelines: true
       dependsOn:	
         - OfficialBuild
-      queue:
-        name: Hosted VS2017
+      ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+        queue:
+          name: Hosted VS2017
+      ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+        pool:
+          vmImage: vs2017-win2016
 
 # We need to skip post-build stages for PR validation build, but it can only be identified by 
 # the runtime variable 'PRNumber', thus this dummy stage. Also the dummy job is required

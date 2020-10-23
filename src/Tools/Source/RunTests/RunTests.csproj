@@ -18,5 +18,6 @@
     <PackageReference Include="RestSharp" Version="$(RestSharpVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
+    <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
   </ItemGroup>
 </Project>

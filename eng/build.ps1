@@ -352,12 +352,12 @@ function TestUsingOptimizedRunner() {
     ExitWithExitCode 1
   }
 
-  $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net472"
-  $args = "`"$xunitDir`""
-  $args += " `"-out:$testResultsDir`""
-  $args += " `"-logs:$LogDir`""
-  $args += " `"-secondaryLogs:$secondaryLogDir`""
-  $args += " -tfm:net472"
+  $dotnetExe = Join-Path $dotnet "dotnet.exe"
+  $args += " --dotnet `"$dotnetExe`""
+  $args += " --out `"$testResultsDir`""
+  $args += " --logs `"$LogDir`""
+  $args += " --secondaryLogs `"$secondaryLogDir`""
+  $args += " --tfm net472"
 
   if ($testDesktop -or $testIOperation) {
     if ($test32) {
@@ -370,13 +370,14 @@ function TestUsingOptimizedRunner() {
     # integration tests in CI.
     if ($ci) {
       $dlls += @(Get-Item (GetProjectOutputBinary "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
+      $args += " --retry"
     }
 
     $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
-    $args += " -testVsi"
+    $args += " --testVsi"
   } else {
     $dlls = Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir
-    $args += " -trait:Feature=NetCore"
+    $args += " --trait:Feature=NetCore"
   }
 
   # Exclude out the multi-targetted netcore app projects
@@ -396,26 +397,28 @@ function TestUsingOptimizedRunner() {
   $dlls = $dlls | ?{ -not (($_.FullName -match ".*\\$excludedConfiguration\\.*") -or ($_.FullName -match ".*/$excludedConfiguration/.*")) }
 
   if ($ci) {
-    $args += " -xml"
     if ($testVsi) {
-      $args += " -timeout:110"
+      $args += " --timeout 110"
     } else {
-      $args += " -timeout:90"
+      $args += " --timeout 90"
     }
   }
 
-  $procdumpPath = Ensure-ProcDump
-  $args += " -procdumppath:$procDumpPath"
   if ($procdump) {
-    $args += " -useprocdump";
+    $procdumpFilePath = Ensure-ProcDump
+    $args += " --procdumppath $procDumpFilePath"
+    $args += " --useprocdump";
   }
 
   if ($test64) {
-    $args += " -test64"
+    $args += " --platform x64"
+  }
+  else {
+    $args += " --platform x86"
   }
 
   if ($sequential) {
-    $args += " -sequential"
+    $args += " --sequential"
   }
 
   foreach ($dll in $dlls) {
@@ -525,7 +528,7 @@ function Ensure-ProcDump() {
     Unzip $zipFilePath $outDir
   }
 
-  return $outDir
+  return $filePath
 }
 
 # Setup the CI machine for running our integration tests.
@@ -578,6 +581,7 @@ function Prepare-TempDir() {
   $env:TMP=$TempDir
 
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
+  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\global.json") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.rsp") $TempDir

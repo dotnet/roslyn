@@ -15,12 +15,15 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
+    [UseExportProvider]
     public class ServiceDescriptorTests
     {
         public static IEnumerable<object[]> ServiceTypes
@@ -164,6 +167,17 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public void GetFeatureName(Type serviceType)
         {
             Assert.NotEmpty(ServiceDescriptors.GetFeatureName(serviceType));
+        }
+
+        [Fact]
+        public void CallbackDispatchers()
+        {
+            var hostServices = FeaturesTestCompositions.Features.WithTestHostParts(Testing.TestHost.OutOfProcess).GetHostServices();
+            var callbackDispatchers = ((IMefHostExportProvider)hostServices).GetExports<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>();
+
+            var descriptorsWithCallbackServiceTypes = ServiceDescriptors.Descriptors.Where(d => d.Value.descriptor32.ClientInterface != null).Select(d => d.Key);
+            var callbackDispatcherServiceTypes = callbackDispatchers.Select(d => d.Metadata.ServiceInterface);
+            AssertEx.SetEqual(descriptorsWithCallbackServiceTypes, callbackDispatcherServiceTypes);
         }
     }
 }

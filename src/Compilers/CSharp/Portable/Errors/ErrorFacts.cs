@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInfo(code) || IsHidden(code))
             {
-                // Info and hidden diagnostics have default warning level.
-                return Diagnostic.DefaultWarningLevel;
+                // Info and hidden diagnostics should always be produced because some analyzers depend on them.
+                return Diagnostic.InfoAndHiddenWarningLevel;
             }
 
             switch (code)
