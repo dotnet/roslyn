@@ -3016,7 +3016,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IWithOperation" Base="IOperation" ChildrenOrder="Operand,Initializer">
+  <Node Name="IWithOperation" Base="IOperation" ChildrenOrder="Operand,Initializer" HasType="true">
     <Comments>
       <summary>
         Represents cloning of an object instance.
@@ -3031,9 +3031,9 @@
         <summary>Operand to be cloned.</summary>
       </Comments>
     </Property>
-    <Property Name="CloneMethod" Type="IMethodSymbol">
+    <Property Name="CloneMethod" Type="IMethodSymbol?">
       <Comments>
-        <summary>Clone method to be invoked on the value.</summary>
+        <summary>Clone method to be invoked on the value. This can be null in error scenarios.</summary>
       </Comments>
     </Property>
     <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">

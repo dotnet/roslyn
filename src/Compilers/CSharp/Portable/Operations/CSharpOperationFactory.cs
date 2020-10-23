@@ -699,17 +699,18 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return new ObjectCreationOperation(constructor.GetPublicSymbol(), initializer, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
-#nullable disable
 
         private IOperation CreateBoundWithExpressionOperation(BoundWithExpression boundWithExpression)
         {
-            MethodSymbol constructor = boundWithExpression.CloneMethod;
+            IOperation operand = Create(boundWithExpression.Receiver);
+            IObjectOrCollectionInitializerOperation initializer = (IObjectOrCollectionInitializerOperation)Create(boundWithExpression.InitializerExpression);
+            MethodSymbol? constructor = boundWithExpression.CloneMethod;
             SyntaxNode syntax = boundWithExpression.Syntax;
-            ITypeSymbol type = boundWithExpression.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundWithExpression.ConstantValue;
+            ITypeSymbol? type = boundWithExpression.GetPublicTypeSymbol();
             bool isImplicit = boundWithExpression.WasCompilerGenerated;
-            return new CSharpLazyWithExpressionOperation(this, boundWithExpression, constructor.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
+            return new WithOperation(operand, constructor.GetPublicSymbol(), initializer, _semanticModel, syntax, type, isImplicit);
         }
+#nullable disable
 
         private IDynamicObjectCreationOperation CreateBoundDynamicObjectCreationExpressionOperation(BoundDynamicObjectCreationExpression boundDynamicObjectCreationExpression)
         {

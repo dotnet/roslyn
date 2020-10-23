@@ -3427,6 +3427,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Value { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents cloning of an object instance.
     /// <para>
@@ -3449,14 +3450,15 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Operand { get; }
         /// <summary>
-        /// Clone method to be invoked on the value.
+        /// Clone method to be invoked on the value. This can be null in error scenarios.
         /// </summary>
-        IMethodSymbol CloneMethod { get; }
+        IMethodSymbol? CloneMethod { get; }
         /// <summary>
         /// With collection initializer.
         /// </summary>
         IObjectOrCollectionInitializerOperation Initializer { get; }
     }
+    #nullable disable
     #endregion
 
     #region Implementations
@@ -7840,73 +7842,42 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseWithOperation : OperationOld, IWithOperation
+    #nullable enable
+    internal sealed partial class WithOperation : Operation, IWithOperation
     {
-        internal BaseWithOperation(IMethodSymbol cloneMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.With, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal WithOperation(IOperation operand, IMethodSymbol? cloneMethod, IObjectOrCollectionInitializerOperation initializer, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            Operand = SetParentOperation(operand, this);
             CloneMethod = cloneMethod;
+            Initializer = SetParentOperation(initializer, this);
+            Type = type;
         }
-        public abstract IOperation Operand { get; }
-        public IMethodSymbol CloneMethod { get; }
-        public abstract IObjectOrCollectionInitializerOperation Initializer { get; }
+        public IOperation Operand { get; }
+        public IMethodSymbol? CloneMethod { get; }
+        public IObjectOrCollectionInitializerOperation Initializer { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Operand is object) yield return Operand;
-                if (Initializer is object) yield return Initializer;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Operand is not null) builder.Add(Operand);
+                    if (Initializer is not null) builder.Add(Initializer);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.With;
         public override void Accept(OperationVisitor visitor) => visitor.VisitWith(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitWith(this, argument);
     }
-    internal sealed partial class WithOperation : BaseWithOperation, IWithOperation
-    {
-        internal WithOperation(IOperation operand, IMethodSymbol cloneMethod, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(cloneMethod, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operand = SetParentOperation(operand, this);
-            Initializer = SetParentOperation(initializer, this);
-        }
-        public override IOperation Operand { get; }
-        public override IObjectOrCollectionInitializerOperation Initializer { get; }
-    }
-    internal abstract partial class LazyWithOperation : BaseWithOperation, IWithOperation
-    {
-        private IOperation _lazyOperand = s_unset;
-        private IObjectOrCollectionInitializerOperation _lazyInitializer = s_unsetObjectOrCollectionInitializer;
-        internal LazyWithOperation(IMethodSymbol cloneMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(cloneMethod, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateOperand();
-        public override IOperation Operand
-        {
-            get
-            {
-                if (_lazyOperand == s_unset)
-                {
-                    IOperation operand = CreateOperand();
-                    SetParentOperation(operand, this);
-                    Interlocked.CompareExchange(ref _lazyOperand, operand, s_unset);
-                }
-                return _lazyOperand;
-            }
-        }
-        protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
-        public override IObjectOrCollectionInitializerOperation Initializer
-        {
-            get
-            {
-                if (_lazyInitializer == s_unsetObjectOrCollectionInitializer)
-                {
-                    IObjectOrCollectionInitializerOperation initializer = CreateInitializer();
-                    SetParentOperation(initializer, this);
-                    Interlocked.CompareExchange(ref _lazyInitializer, initializer, s_unsetObjectOrCollectionInitializer);
-                }
-                return _lazyInitializer;
-            }
-        }
-    }
+    #nullable disable
     #endregion
     #region Cloner
     #nullable enable
@@ -8264,6 +8235,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (UsingDeclarationOperation)operation;
             return new UsingDeclarationOperation(Visit(internalOperation.DeclarationGroup), internalOperation.IsAsynchronous, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitWith(IWithOperation operation, object? argument)
+        {
+            var internalOperation = (WithOperation)operation;
+            return new WithOperation(Visit(internalOperation.Operand), internalOperation.CloneMethod, Visit(internalOperation.Initializer), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #nullable disable

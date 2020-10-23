@@ -82,6 +82,7 @@ namespace IOperationGenerator
             "IPointerIndirectionReferenceOperation",
             "IWithStatementOperation",
             "IUsingDeclarationOperation",
+            "IWithOperation",
         };
     }
 }
