@@ -434,8 +434,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // changed it 'wins' and picks the span that will be used for all items in the completion
             // list.  If no contexts changed it, then just use the default span provided by the service.
             var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
-            var itemsCount = completionContexts.Sum(context => context.Items.Count);
-            using var displayNameToItemsMap = new DisplayNameToItemsMap(this, itemsCount);
+            using var displayNameToItemsMap = new DisplayNameToItemsMap(this);
             CompletionItem suggestionModeItem = null;
 
             foreach (var context in completionContexts)
@@ -458,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // TODO(DustinCa): Revisit performance of this.
-            using var _ = ArrayBuilder<CompletionItem>.GetInstance(itemsCount, out var builder);
+            using var _ = ArrayBuilder<CompletionItem>.GetInstance(displayNameToItemsMap.Count, out var builder);
             builder.AddRange(displayNameToItemsMap);
             builder.Sort();
 
@@ -636,13 +635,12 @@ namespace Microsoft.CodeAnalysis.Completion
             private readonly Dictionary<string, object> _displayNameToItemsMap;
             private readonly CompletionServiceWithProviders _service;
 
-            public DisplayNameToItemsMap(CompletionServiceWithProviders service, int capacity)
+            public int Count { get; private set; }
+
+            public DisplayNameToItemsMap(CompletionServiceWithProviders service)
             {
                 _service = service;
                 _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
-#if NETCOREAPP
-                _displayNameToItemsMap.EnsureCapacity(capacity);
-#endif
             }
 
             public void Dispose()
@@ -659,6 +657,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 if (!_displayNameToItemsMap.TryGetValue(entireDisplayText, out var value))
                 {
+                    Count++;
                     _displayNameToItemsMap.Add(entireDisplayText, item);
                     return;
                 }
@@ -673,6 +672,8 @@ namespace Microsoft.CodeAnalysis.Completion
                         return;
                     }
 
+                    Count++;
+                    // Matching items should be rare, no need to use object pool for this.
                     _displayNameToItemsMap[entireDisplayText] = new List<CompletionItem>() { sameNamedItem, item };
                 }
                 else if (value is List<CompletionItem> sameNamedItems)
@@ -687,6 +688,7 @@ namespace Microsoft.CodeAnalysis.Completion
                         }
                     }
 
+                    Count++;
                     sameNamedItems.Add(item);
                 }
             }
