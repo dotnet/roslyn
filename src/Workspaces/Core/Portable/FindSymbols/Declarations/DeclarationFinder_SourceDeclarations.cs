@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.FindSolutionSourceDeclarationsWithNormalQueryAsync(solutionInfo, name, ignoreCase, criteria, cancellationToken),
-                    callbackTarget: SymbolFinder.EmptyServerCallback.Instance,
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -88,7 +87,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
                     project.Solution,
                     (service, solutionInfo, cancellationToken) => service.FindProjectSourceDeclarationsWithNormalQueryAsync(solutionInfo, project.Id, name, ignoreCase, criteria, cancellationToken),
-                    callbackTarget: SymbolFinder.EmptyServerCallback.Instance,
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -122,7 +120,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.FindSolutionSourceDeclarationsWithPatternAsync(solutionInfo, pattern, criteria, cancellationToken),
-                    callbackTarget: SymbolFinder.EmptyServerCallback.Instance,
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -156,7 +153,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
                     project.Solution,
                     (service, solutionInfo, cancellationToken) => service.FindProjectSourceDeclarationsWithPatternAsync(solutionInfo, project.Id, pattern, criteria, cancellationToken),
-                    callbackTarget: SymbolFinder.EmptyServerCallback.Instance,
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)

@@ -11,6 +11,16 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public override void Fail(string message, string detailMessage)
         {
+            var stackTrace = new StackTrace();
+            foreach (var frame in stackTrace.GetFrames())
+            {
+                if (frame?.GetMethod()?.DeclaringType?.FullName?.Contains("ChangedText") ?? false)
+                {
+                    // 😢 https://github.com/dotnet/roslyn/issues/47234
+                    return;
+                }
+            }
+
             throw new InvalidOperationException(message + Environment.NewLine + detailMessage);
         }
 

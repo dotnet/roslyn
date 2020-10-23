@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 
                 subjectBuffer.Replace(result.Value.replacementSpan, result.Value.replacementText);
 
-                transaction.Complete();
+                transaction?.Complete();
                 return true;
             }
         }

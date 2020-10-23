@@ -45,13 +45,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             lock (_gate)
             {
-                var result = ArrayBuilder<ReferencedSymbol>.GetInstance();
+                using var _ = ArrayBuilder<ReferencedSymbol>.GetInstance(out var result);
                 foreach (var kvp in _symbolToLocations)
-                {
-                    result.Add(new ReferencedSymbol(kvp.Key, kvp.Value.ToList()));
-                }
+                    result.Add(new ReferencedSymbol(kvp.Key, kvp.Value.ToImmutableArray()));
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
         }
 

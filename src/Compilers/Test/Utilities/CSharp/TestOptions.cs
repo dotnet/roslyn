@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
@@ -49,23 +48,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions RegularWithoutPatternCombinators = Regular8;
         public static readonly CSharpParseOptions RegularWithPatternCombinators = RegularPreview;
 
-        public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
-        public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release);
+        public static readonly CSharpCompilationOptions ReleaseDll = CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, OptimizationLevel.Release);
+        public static readonly CSharpCompilationOptions ReleaseExe = CreateTestOptions(OutputKind.ConsoleApplication, OptimizationLevel.Release);
 
-        public static readonly CSharpCompilationOptions ReleaseDebugDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release).
-            WithDebugPlusMode(true);
+        public static readonly CSharpCompilationOptions ReleaseDebugDll = ReleaseDll.WithDebugPlusMode(true);
 
-        public static readonly CSharpCompilationOptions ReleaseDebugExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release).
-            WithDebugPlusMode(true);
+        public static readonly CSharpCompilationOptions ReleaseDebugExe = ReleaseExe.WithDebugPlusMode(true);
 
-        public static readonly CSharpCompilationOptions DebugDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug);
-        public static readonly CSharpCompilationOptions DebugExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug);
+        public static readonly CSharpCompilationOptions DebugDll = CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, OptimizationLevel.Debug);
+        public static readonly CSharpCompilationOptions DebugExe = CreateTestOptions(OutputKind.ConsoleApplication, OptimizationLevel.Debug);
 
-        public static readonly CSharpCompilationOptions ReleaseWinMD = new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata, optimizationLevel: OptimizationLevel.Release);
-        public static readonly CSharpCompilationOptions DebugWinMD = new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata, optimizationLevel: OptimizationLevel.Debug);
+        public static readonly CSharpCompilationOptions ReleaseWinMD = CreateTestOptions(OutputKind.WindowsRuntimeMetadata, OptimizationLevel.Release);
+        public static readonly CSharpCompilationOptions DebugWinMD = CreateTestOptions(OutputKind.WindowsRuntimeMetadata, OptimizationLevel.Debug);
 
-        public static readonly CSharpCompilationOptions ReleaseModule = new CSharpCompilationOptions(OutputKind.NetModule, optimizationLevel: OptimizationLevel.Release);
-        public static readonly CSharpCompilationOptions DebugModule = new CSharpCompilationOptions(OutputKind.NetModule, optimizationLevel: OptimizationLevel.Debug);
+        public static readonly CSharpCompilationOptions ReleaseModule = CreateTestOptions(OutputKind.NetModule, OptimizationLevel.Release);
+        public static readonly CSharpCompilationOptions DebugModule = CreateTestOptions(OutputKind.NetModule, OptimizationLevel.Debug);
 
         public static readonly CSharpCompilationOptions UnsafeReleaseDll = ReleaseDll.WithAllowUnsafe(true);
         public static readonly CSharpCompilationOptions UnsafeReleaseExe = ReleaseExe.WithAllowUnsafe(true);
@@ -77,8 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpCompilationOptions SigningReleaseExe = ReleaseExe.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider);
         public static readonly CSharpCompilationOptions SigningReleaseModule = ReleaseModule.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider);
         public static readonly CSharpCompilationOptions SigningDebugDll = DebugDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider);
-
-        public static readonly CSharpCompilationOptions ReleaseDllWithWarningLevel5 = ReleaseDll.WithWarningLevel(5);
 
         public static readonly EmitOptions NativePdbEmit = EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb);
 
@@ -147,6 +142,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return options.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(key1, value).Add(key2, value));
         }
+
+        /// <summary>
+        /// Create <see cref="CSharpCompilationOptions"/> with the maximum warning level.
+        /// </summary>
+        /// <param name="outputKind">The output kind of the created compilation options.</param>
+        /// <param name="optimizationLevel">The optimization level of the created compilation options.</param>
+        /// <param name="allowUnsafe">A boolean specifying whether to allow unsafe code. Defaults to false.</param>
+        /// <returns>A CSharpCompilationOptions with the specified <paramref name="outputKind"/>, <paramref name="optimizationLevel"/>, and <paramref name="allowUnsafe"/>.</returns>
+        internal static CSharpCompilationOptions CreateTestOptions(OutputKind outputKind, OptimizationLevel optimizationLevel, bool allowUnsafe = false)
+            => new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel, warningLevel: Diagnostic.MaxWarningLevel, allowUnsafe: allowUnsafe);
     }
 }
 

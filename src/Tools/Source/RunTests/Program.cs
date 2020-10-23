@@ -40,7 +40,6 @@ namespace RunTests
             var options = Options.Parse(args);
             if (options == null)
             {
-                Options.PrintUsage();
                 return ExitFailure;
             }
 
@@ -107,7 +106,7 @@ namespace RunTests
             var start = DateTime.Now;
             var assemblyInfoList = GetAssemblyList(options);
 
-            ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpDirectory}");
+            ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
             ConsoleUtil.WriteLine($"Running {options.Assemblies.Count} test assemblies in {assemblyInfoList.Count} partitions");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
@@ -157,7 +156,7 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            var logFilePath = Path.Combine(options.LogFilesOutputDirectory, "runtests.log");
+            var logFilePath = Path.Combine(options.LogFilesDirectory, "runtests.log");
             try
             {
                 using (var writer = new StreamWriter(logFilePath, append: false))
@@ -245,9 +244,9 @@ namespace RunTests
 
         private static ProcDumpInfo? GetProcDumpInfo(Options options)
         {
-            if (!string.IsNullOrEmpty(options.ProcDumpDirectory))
+            if (!string.IsNullOrEmpty(options.ProcDumpFilePath))
             {
-                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.LogFilesOutputDirectory, options.LogFilesSecondaryOutputDirectory);
+                return new ProcDumpInfo(options.ProcDumpFilePath, options.LogFilesDirectory, options.LogFilesSecondaryDirectory);
             }
 
             return null;
@@ -290,7 +289,7 @@ namespace RunTests
 
             foreach (var assemblyPath in options.Assemblies.OrderByDescending(x => new FileInfo(x).Length))
             {
-                list.AddRange(scheduler.Schedule(assemblyPath));
+                list.AddRange(scheduler.Schedule(assemblyPath).Select(x => new AssemblyInfo(x, options.TargetFramework, options.Platform)));
             }
 
             return list;
@@ -327,14 +326,14 @@ namespace RunTests
         private static ProcessTestExecutor CreateTestExecutor(Options options)
         {
             var testExecutionOptions = new TestExecutionOptions(
-                xunitPath: options.XunitPath,
+                dotnetFilePath: options.DotnetFilePath,
                 procDumpInfo: options.UseProcDump ? GetProcDumpInfo(options) : null,
-                outputDirectory: options.TestResultXmlOutputDirectory,
+                testResultsDirectory: options.TestResultsDirectory,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 includeHtml: options.IncludeHtml,
-                test64: options.Test64,
-                testVsi: options.TestVsi);
+                testVsi: options.TestVsi,
+                retry: options.Retry);
             return new ProcessTestExecutor(testExecutionOptions);
         }
 
