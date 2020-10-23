@@ -2881,6 +2881,16 @@
         <target state="needs-review-translation">Není inicializované pole, které nemůže mít hodnotu null. Zvažte možnost deklarovat ho jako typ s možnou hodnotou null.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnusedRecordParameter">
+        <source>Parameter '{0}' is unused. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter '{0}' is unused. Did you forget to use it to initialize the property with that name?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnusedRecordParameter_Title">
+        <source>Parameter is unused. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter is unused. Did you forget to use it to initialize the property with that name?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
         <source>Use of unassigned local variable '{0}'</source>
         <target state="new">Use of unassigned local variable '{0}'</target>

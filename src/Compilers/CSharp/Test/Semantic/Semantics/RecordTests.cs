@@ -636,7 +636,11 @@ record C(int X, int Y)
 }";
             CompileAndVerify(src, expectedOutput: @"
 0
-2").VerifyDiagnostics();
+2").VerifyDiagnostics(
+                // (3,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(3, 14)
+                );
         }
 
         [Fact]
@@ -657,7 +661,11 @@ record C(int X, int Y)
 }";
             CompileAndVerify(src, expectedOutput: @"
 3
-2").VerifyDiagnostics();
+2").VerifyDiagnostics(
+                // (3,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(3, 14)
+                );
         }
 
         [Fact]
@@ -808,6 +816,23 @@ record C1(object O1)
                 // (3,15): error CS0102: The type 'C' already contains a definition for 'P'
                 //     const int P = 4;
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(3, 15)
+                );
+        }
+
+        [Fact, WorkItem(48584, "https://github.com/dotnet/roslyn/issues/48584")]
+        public void RecordProperties_11_UnusedPositionalParameter()
+        {
+            var comp = CreateCompilation(@"
+record C1(object O1, object O2)
+{
+    public object O1 { get; init; }
+    public object O2 { get; init; } = M(O2);
+    private static object M(object o) => o;
+}");
+            comp.VerifyDiagnostics(
+                // (2,18): warning CS8907: Parameter 'O1' is unused. Did you forget to use it to initialize the property with that name?
+                // record C1(object O1, object O2)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "O1").WithArguments("O1").WithLocation(2, 18)
                 );
         }
 
@@ -8711,7 +8736,23 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
 {
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(11, 17),
+                // (11,28): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(11, 28),
+                // (11,39): warning CS8907: Parameter 'P3' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P3").WithArguments("P3").WithLocation(11, 39),
+                // (11,50): warning CS8907: Parameter 'P4' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P4").WithArguments("P4").WithLocation(11, 50),
+                // (11,61): warning CS8907: Parameter 'P5' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P5").WithArguments("P5").WithLocation(11, 61)
+                );
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -8736,7 +8777,14 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,29): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                //     private record B(object P1, object P2) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(6, 29),
+                // (6,40): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                //     private record B(object P1, object P2) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(6, 40)
+                );
             var actualMembers = GetProperties(comp, "A.B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type A.B.EqualityContract { get; }" }, actualMembers);
         }
@@ -8769,7 +8817,11 @@ record C1(object P, object Q) : B
 {
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (1,28): warning CS8907: Parameter 'Q' is unused. Did you forget to use it to initialize the property with that name?
+                // record C2(object P, object Q) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Q").WithArguments("Q").WithLocation(1, 28)
+                );
             AssertEx.Equal(new[] { "System.Type C2.EqualityContract { get; }", "System.Object C2.P { get; init; }" }, GetProperties(comp, "C2").ToTestDisplayStrings());
         }
 
@@ -8794,12 +8846,33 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6, objec
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (12,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(12, 17),
+                // (12,28): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(12, 28),
+                // (12,39): warning CS8907: Parameter 'P3' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P3").WithArguments("P3").WithLocation(12, 39),
                 // (12,50): error CS8866: Record member 'A.P4' must be a readable instance property of type 'object' to match positional parameter 'P4'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "object", "P4").WithLocation(12, 50),
+                // (12,50): warning CS8907: Parameter 'P4' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P4").WithArguments("P4").WithLocation(12, 50),
+                // (12,61): warning CS8907: Parameter 'P5' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P5").WithArguments("P5").WithLocation(12, 61),
                 // (12,72): error CS8866: Record member 'A.P6' must be a readable instance property of type 'object' to match positional parameter 'P6'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(12, 72));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(12, 72),
+                // (12,72): warning CS8907: Parameter 'P6' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P6").WithArguments("P6").WithLocation(12, 72),
+                // (12,83): warning CS8907: Parameter 'P7' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P7").WithArguments("P7").WithLocation(12, 83));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
@@ -8822,9 +8895,15 @@ record B(int P1, object P2) : A
                 // (7,14): error CS8866: Record member 'A.P1' must be a readable instance property of type 'int' to match positional parameter 'P1'.
                 // record B(int P1, object P2) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "int", "P1").WithLocation(7, 14),
+                // (7,14): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(int P1, object P2) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(7, 14),
                 // (7,25): error CS8866: Record member 'A.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
                 // record B(int P1, object P2) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "object", "P2").WithLocation(7, 25));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "object", "P2").WithLocation(7, 25),
+                // (7,25): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(int P1, object P2) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(7, 25));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
@@ -8857,12 +8936,21 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (7,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(int X, int Y, int Z) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(7, 14),
                 // (7,21): error CS8866: Record member 'A.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
                 // record B(int X, int Y, int Z) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("A.Y", "int", "Y").WithLocation(7, 21),
+                // (7,21): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(int X, int Y, int Z) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(7, 21),
                 // (7,28): error CS8866: Record member 'A.Z' must be a readable instance property of type 'int' to match positional parameter 'Z'.
                 // record B(int X, int Y, int Z) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Z").WithArguments("A.Z", "int", "Z").WithLocation(7, 28));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Z").WithArguments("A.Z", "int", "Z").WithLocation(7, 28),
+                // (7,28): warning CS8907: Parameter 'Z' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(int X, int Y, int Z) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Z").WithArguments("Z").WithLocation(7, 28));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
@@ -8888,9 +8976,15 @@ record B2(int X, int Y) : A
                 // (6,24): error CS0546: 'B1.X.init': cannot override because 'A.X' does not have an overridable set accessor
                 // abstract record B1(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "X").WithArguments("B1.X.init", "A.X").WithLocation(6, 24),
+                // (6,31): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // abstract record B1(int X, int Y) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(6, 31),
                 // (9,15): error CS0546: 'B2.X.init': cannot override because 'A.X' does not have an overridable set accessor
                 // record B2(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_NoSetToOverride, "X").WithArguments("B2.X.init", "A.X").WithLocation(9, 15));
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "X").WithArguments("B2.X.init", "A.X").WithLocation(9, 15),
+                // (9,22): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // record B2(int X, int Y) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(9, 22));
 
             AssertEx.Equal(new[] { "System.Type B1.EqualityContract { get; }", "System.Int32 B1.X { get; init; }" }, GetProperties(comp, "B1").ToTestDisplayStrings());
             AssertEx.Equal(new[] { "System.Type B2.EqualityContract { get; }", "System.Int32 B2.X { get; init; }" }, GetProperties(comp, "B2").ToTestDisplayStrings());
@@ -8925,7 +9019,10 @@ record C(int X, int Y, int Z) : B
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "X").WithArguments("C.X.init", "A.X").WithLocation(11, 14),
                 // (11,21): error CS0546: 'C.Y.init': cannot override because 'B.Y' does not have an overridable set accessor
                 // record C(int X, int Y, int Z) : B
-                Diagnostic(ErrorCode.ERR_NoSetToOverride, "Y").WithArguments("C.Y.init", "B.Y").WithLocation(11, 21));
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "Y").WithArguments("C.Y.init", "B.Y").WithLocation(11, 21),
+                // (11,28): warning CS8907: Parameter 'Z' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int X, int Y, int Z) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Z").WithArguments("Z").WithLocation(11, 28));
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }", "System.Int32 C.X { get; init; }", "System.Int32 C.Y { get; init; }" }, actualMembers);
@@ -8941,7 +9038,14 @@ record C(int X, int Y, int Z) : B
     public virtual int Y { get; }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (1,23): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // abstract record C(int X, int Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(1, 23),
+                // (1,30): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // abstract record C(int X, int Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(1, 30)
+                );
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -9040,6 +9144,12 @@ record B(object X, object Y) : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (6,17): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object X, object Y) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(6, 17),
+                // (6,27): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object X, object Y) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(6, 27),
                 // (8,19): warning CS0108: 'B.X' hides inherited member 'A.X'. Use the new keyword if hiding was intended.
                 //     public object X { get; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "X").WithArguments("B.X", "A.X").WithLocation(8, 19),
@@ -9071,6 +9181,12 @@ record B(object X, object Y) : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (5,17): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object X, object Y) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(5, 17),
+                // (5,27): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object X, object Y) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(5, 27),
                 // (7,19): warning CS0108: 'B.X' hides inherited member 'A.X'. Use the new keyword if hiding was intended.
                 //     public object X { get; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "X").WithArguments("B.X", "A.X").WithLocation(7, 19),
@@ -9111,9 +9227,21 @@ record C(object P1, int P2, object P3, int P4) : B
                 // (13,17): error CS8866: Record member 'B.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
                 // record C(object P1, int P2, object P3, int P4) : B
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("B.P1", "object", "P1").WithLocation(13, 17),
+                // (13,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, int P2, object P3, int P4) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(13, 17),
+                // (13,25): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, int P2, object P3, int P4) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(13, 25),
+                // (13,36): warning CS8907: Parameter 'P3' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, int P2, object P3, int P4) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P3").WithArguments("P3").WithLocation(13, 36),
                 // (13,44): error CS8866: Record member 'A.P4' must be a readable instance property of type 'int' to match positional parameter 'P4'.
                 // record C(object P1, int P2, object P3, int P4) : B
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "int", "P4").WithLocation(13, 44));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "int", "P4").WithLocation(13, 44),
+                // (13,44): warning CS8907: Parameter 'P4' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, int P2, object P3, int P4) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P4").WithArguments("P4").WithLocation(13, 44));
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
@@ -9132,9 +9260,15 @@ record C(object P1, int P2, object P3, int P4) : B
                 // (1,14): error CS8866: Record member 'C.P1' must be a readable instance property of type 'int' to match positional parameter 'P1'.
                 // record C(int P1, object P2)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("C.P1", "int", "P1").WithLocation(1, 14),
+                // (1,14): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int P1, object P2)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(1, 14),
                 // (1,25): error CS8866: Record member 'C.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
                 // record C(int P1, object P2)
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("C.P2", "object", "P2").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("C.P2", "object", "P2").WithLocation(1, 25),
+                // (1,25): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int P1, object P2)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(1, 25));
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -9163,12 +9297,24 @@ record B(object P1, int P2, object P3, int P4) : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (8,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(8, 17),
                 // (8,25): error CS8866: Record member 'B.P2' must be a readable instance property of type 'int' to match positional parameter 'P2'.
                 // record B(object P1, int P2, object P3, int P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("B.P2", "int", "P2").WithLocation(8, 25),
+                // (8,25): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(8, 25),
                 // (8,36): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
                 // record B(object P1, int P2, object P3, int P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(8, 36));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(8, 36),
+                // (8,36): warning CS8907: Parameter 'P3' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P3").WithArguments("P3").WithLocation(8, 36),
+                // (8,44): warning CS8907: Parameter 'P4' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P4").WithArguments("P4").WithLocation(8, 44));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -9200,9 +9346,21 @@ record B(object P1, int P2, object P3, int P4) : A
                 // (8,17): error CS8866: Record member 'B.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, int P2, object P3, int P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("B.P1", "object", "P1").WithLocation(8, 17),
+                // (8,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(8, 17),
+                // (8,25): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(8, 25),
+                // (8,36): warning CS8907: Parameter 'P3' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P3").WithArguments("P3").WithLocation(8, 36),
                 // (8,44): error CS8866: Record member 'A.P4' must be a readable instance property of type 'int' to match positional parameter 'P4'.
                 // record B(object P1, int P2, object P3, int P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "int", "P4").WithLocation(8, 44));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "int", "P4").WithLocation(8, 44),
+                // (8,44): warning CS8907: Parameter 'P4' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P4").WithArguments("P4").WithLocation(8, 44));
 
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -9228,12 +9386,27 @@ record B(object P1, int P2, object P3, int P4) : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (1,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2, object P3, object P4, object P5)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(1, 17),
+                // (1,28): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2, object P3, object P4, object P5)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(1, 28),
                 // (1,39): error CS8866: Record member 'C.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
                 // record C(object P1, object P2, object P3, object P4, object P5)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("C.P3", "object", "P3").WithLocation(1, 39),
+                // (1,39): warning CS8907: Parameter 'P3' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2, object P3, object P4, object P5)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P3").WithArguments("P3").WithLocation(1, 39),
                 // (1,50): error CS8866: Record member 'C.P4' must be a readable instance property of type 'object' to match positional parameter 'P4'.
                 // record C(object P1, object P2, object P3, object P4, object P5)
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("C.P4", "object", "P4").WithLocation(1, 50));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("C.P4", "object", "P4").WithLocation(1, 50),
+                // (1,50): warning CS8907: Parameter 'P4' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2, object P3, object P4, object P5)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P4").WithArguments("P4").WithLocation(1, 50),
+                // (1,61): warning CS8907: Parameter 'P5' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2, object P3, object P4, object P5)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P5").WithArguments("P5").WithLocation(1, 61));
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -9270,7 +9443,32 @@ record B(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X
 {
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (15,18): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(15, 18),
+                // (15,31): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(15, 31),
+                // (15,42): warning CS8907: Parameter 'P3' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P3").WithArguments("P3").WithLocation(15, 42),
+                // (15,56): warning CS8907: Parameter 'P4' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P4").WithArguments("P4").WithLocation(15, 56),
+                // (15,71): warning CS8907: Parameter 'P5' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P5").WithArguments("P5").WithLocation(15, 71),
+                // (15,92): warning CS8907: Parameter 'P6' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P6").WithArguments("P6").WithLocation(15, 92),
+                // (15,110): warning CS8907: Parameter 'P7' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P7").WithArguments("P7").WithLocation(15, 110),
+                // (15,122): warning CS8907: Parameter 'P8' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P8").WithArguments("P8").WithLocation(15, 122)
+                );
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
@@ -9293,7 +9491,32 @@ record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X
     public System.UIntPtr[] P8 { get; }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,18): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(3, 18),
+                // (3,31): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(3, 31),
+                // (3,42): warning CS8907: Parameter 'P3' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P3").WithArguments("P3").WithLocation(3, 42),
+                // (3,56): warning CS8907: Parameter 'P4' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P4").WithArguments("P4").WithLocation(3, 56),
+                // (3,71): warning CS8907: Parameter 'P5' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P5").WithArguments("P5").WithLocation(3, 71),
+                // (3,92): warning CS8907: Parameter 'P6' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P6").WithArguments("P6").WithLocation(3, 92),
+                // (3,110): warning CS8907: Parameter 'P7' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P7").WithArguments("P7").WithLocation(3, 110),
+                // (3,122): warning CS8907: Parameter 'P8' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P8").WithArguments("P8").WithLocation(3, 122)
+                );
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -9346,7 +9569,14 @@ class Program
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "(, )").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(, )").VerifyDiagnostics(
+                // (1,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(1, 17),
+                // (1,28): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(1, 28)
+                );
             verifier.VerifyIL("C..ctor(object, object)",
 @"{
   // Code size        7 (0x7)
@@ -9404,7 +9634,14 @@ record C(object P1, object P2) : B
 {
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(11, 17),
+                // (11,28): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(11, 28)
+                );
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
@@ -9428,9 +9665,15 @@ record C(object P1, object P2) : B
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (11,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(11, 17),
                 // (11,28): error CS8866: Record member 'B.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
                 // record C(object P1, object P2) : B
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("B.P2", "object", "P2").WithLocation(11, 28));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("B.P2", "object", "P2").WithLocation(11, 28),
+                // (11,28): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(11, 28));
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
@@ -9530,12 +9773,21 @@ record C(object P)
                 // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
+                // (1,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(1, 17),
                 // (1,28): error CS8866: Record member 'A.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "object", "P2").WithLocation(1, 28),
+                // (1,28): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(1, 28),
                 // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
                 // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39),
+                // (1,39): warning CS8907: Parameter 'P3' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P3").WithArguments("P3").WithLocation(1, 39));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -9551,9 +9803,15 @@ record C(object P)
                 // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
+                // (1,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(1, 17),
                 // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
                 // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39),
+                // (1,39): warning CS8907: Parameter 'P3' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P3").WithArguments("P3").WithLocation(1, 39));
             actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             expectedMembers = new[]
             {
@@ -9580,7 +9838,10 @@ record C(object P)
             comp.VerifyDiagnostics(
                 // (1,17): error CS8866: Record member 'A.P' must be a readable instance property of type 'object' to match positional parameter 'P'.
                 // record B(object P) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("A.P", "object", "P").WithLocation(1, 17));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("A.P", "object", "P").WithLocation(1, 17),
+                // (1,17): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(1, 17));
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
 
             comp = CreateCompilation(sourceA);
@@ -9680,6 +9941,9 @@ End Class
                 // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
+                // (1,17): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
                 // (1,32): error CS8864: Records may only inherit from object or another record
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
@@ -9745,6 +10009,12 @@ End Class
                 // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
+                // (1,17): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
+                // (1,27): warning CS8907: Parameter 'Q' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Q").WithArguments("Q").WithLocation(1, 27),
                 // (1,32): error CS8864: Records may only inherit from object or another record
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
@@ -9826,6 +10096,12 @@ End Class
                 // (1,8): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("b", "B.B(B)").WithLocation(1, 8),
+                // (1,17): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
+                // (1,27): warning CS8907: Parameter 'Q' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Q").WithArguments("Q").WithLocation(1, 27),
                 // (1,42): error CS8864: Records may only inherit from object or another record
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(1, 42)
@@ -9858,15 +10134,36 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6, objec
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (11,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(11, 17),
+                // (11,28): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(11, 28),
+                // (11,39): warning CS8907: Parameter 'P3' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P3").WithArguments("P3").WithLocation(11, 39),
+                // (11,50): warning CS8907: Parameter 'P4' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P4").WithArguments("P4").WithLocation(11, 50),
                 // (11,61): error CS8866: Record member 'A.P5' must be a readable instance property of type 'object' to match positional parameter 'P5'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P5").WithArguments("A.P5", "object", "P5").WithLocation(11, 61),
+                // (11,61): warning CS8907: Parameter 'P5' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P5").WithArguments("P5").WithLocation(11, 61),
                 // (11,72): error CS8866: Record member 'A.P6' must be a readable instance property of type 'object' to match positional parameter 'P6'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(11, 72),
+                // (11,72): warning CS8907: Parameter 'P6' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P6").WithArguments("P6").WithLocation(11, 72),
                 // (11,83): error CS8866: Record member 'A.P7' must be a readable instance property of type 'object' to match positional parameter 'P7'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P7").WithArguments("A.P7", "object", "P7").WithLocation(11, 83));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P7").WithArguments("A.P7", "object", "P7").WithLocation(11, 83),
+                // (11,83): warning CS8907: Parameter 'P7' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P7").WithArguments("P7").WithLocation(11, 83));
 
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
         }
@@ -9910,9 +10207,15 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
                 // (10,61): error CS8866: Record member 'A.P5' must be a readable instance property of type 'object' to match positional parameter 'P5'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P5").WithArguments("A.P5", "object", "P5").WithLocation(10, 61),
+                // (10,61): warning CS8907: Parameter 'P5' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P5").WithArguments("P5").WithLocation(10, 61),
                 // (10,72): error CS8866: Record member 'A.P6' must be a readable instance property of type 'object' to match positional parameter 'P6'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(10, 72));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(10, 72),
+                // (10,72): warning CS8907: Parameter 'P6' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P6").WithArguments("P6").WithLocation(10, 72));
 
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -9940,18 +10243,24 @@ record B(string P1, string P2) : A;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,8): error CS0534: 'B' does not implement inherited abstract member 'A.P1.get'
-                // record B(string P1, string P2) : A;
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P1.get").WithLocation(6, 8),
                 // (6,8): error CS0534: 'B' does not implement inherited abstract member 'A.P1.init'
                 // record B(string P1, string P2) : A;
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P1.init").WithLocation(6, 8),
+                // (6,8): error CS0534: 'B' does not implement inherited abstract member 'A.P1.get'
+                // record B(string P1, string P2) : A;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P1.get").WithLocation(6, 8),
                 // (6,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'string' to match positional parameter 'P1'.
                 // record B(string P1, string P2) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "string", "P1").WithLocation(6, 17),
+                // (6,17): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(string P1, string P2) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(6, 17),
                 // (6,28): error CS8866: Record member 'A.P2' must be a readable instance property of type 'string' to match positional parameter 'P2'.
                 // record B(string P1, string P2) : A;
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "string", "P2").WithLocation(6, 28));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "string", "P2").WithLocation(6, 28),
+                // (6,28): warning CS8907: Parameter 'P2' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(string P1, string P2) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P2").WithArguments("P2").WithLocation(6, 28));
 
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
         }
@@ -10000,7 +10309,14 @@ class Program
 @"(1, 2)
 (1, 2)
 (1, 2)
-(1, 2)").VerifyDiagnostics();
+(1, 2)").VerifyDiagnostics(
+                // (2,26): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // abstract record A(object X, object Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(2, 26),
+                // (2,36): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // abstract record A(object X, object Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(2, 36)
+                );
 
             verifier.VerifyIL("A..ctor(object, object)",
 @"{
@@ -10420,7 +10736,14 @@ class Program
 (1, 2)
 (1, 2)
 (1, 2)
-(1, 2)").VerifyDiagnostics();
+(1, 2)").VerifyDiagnostics(
+                // (2,26): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // abstract record A(object X, object Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(2, 26),
+                // (2,36): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // abstract record A(object X, object Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(2, 36)
+                );
 
             verifier.VerifyIL("A..ctor(object, object)",
 @"{
@@ -10678,24 +11001,30 @@ class Program
                 // (10,23): error CS0533: 'B.Y' hides inherited abstract member 'A.Y'
                 //     public new struct Y { }
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "Y").WithArguments("B.Y", "A.Y").WithLocation(10, 23),
+                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.Y.get'
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.Y.get").WithLocation(12, 8),
+                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.X.get'
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.X.get").WithLocation(12, 8),
                 // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.X.init'
                 // record C(object X, object Y) : B;
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.X.init").WithLocation(12, 8),
                 // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.Y.init'
                 // record C(object X, object Y) : B;
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.Y.init").WithLocation(12, 8),
-                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.X.get'
-                // record C(object X, object Y) : B;
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.X.get").WithLocation(12, 8),
-                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.Y.get'
-                // record C(object X, object Y) : B;
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.Y.get").WithLocation(12, 8),
                 // (12,17): error CS8866: Record member 'B.X' must be a readable instance property of type 'object' to match positional parameter 'X'.
                 // record C(object X, object Y) : B;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "object", "X").WithLocation(12, 17),
+                // (12,17): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(12, 17),
                 // (12,27): error CS8866: Record member 'B.Y' must be a readable instance property of type 'object' to match positional parameter 'Y'.
                 // record C(object X, object Y) : B;
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("B.Y", "object", "Y").WithLocation(12, 27));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("B.Y", "object", "Y").WithLocation(12, 27),
+                // (12,27): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(12, 27));
 
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }", }, GetProperties(comp, "C").ToTestDisplayStrings());
         }
@@ -10800,7 +11129,10 @@ record CB(object P) : B;
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "CB").WithArguments("CB", "A.P.init").WithLocation(2, 8),
                 // (2,18): error CS8866: Record member 'B.P' must be a readable instance property of type 'object' to match positional parameter 'P'.
                 // record CB(object P) : B;
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("B.P", "object", "P").WithLocation(2, 18));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("B.P", "object", "P").WithLocation(2, 18),
+                // (2,18): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record CB(object P) : B;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(2, 18));
 
             AssertEx.Equal(new[] { "System.Type CA.EqualityContract { get; }", "System.Object CA.P { get; init; }" }, GetProperties(comp, "CA").ToTestDisplayStrings());
             AssertEx.Equal(new[] { "System.Type CB.EqualityContract { get; }" }, GetProperties(comp, "CB").ToTestDisplayStrings());
@@ -11486,7 +11818,11 @@ public record C(object P1, object P2) : B(0, 1)
 }
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 0)").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 0)").VerifyDiagnostics(
+                // (1,21): warning CS8907: Parameter 'I' is unused. Did you forget to use it to initialize the property with that name?
+                // public record C(int I)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "I").WithArguments("I").WithLocation(1, 21)
+                );
             verifier.VerifyIL("C..ctor(C)", @"
 {
   // Code size        9 (0x9)
@@ -11525,7 +11861,11 @@ public record C(object P1, object P2) : B(0, 1)
 }
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 100) RAN (0, 0)").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 100) RAN (0, 0)").VerifyDiagnostics(
+                // (1,21): warning CS8907: Parameter 'I' is unused. Did you forget to use it to initialize the property with that name?
+                // public record C(int I)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "I").WithArguments("I").WithLocation(1, 21)
+                );
             verifier.VerifyIL("C..ctor(C)", @"
 {
   // Code size       20 (0x14)
@@ -12841,7 +13181,11 @@ record B(int X, int Y)
 }
 ";
             var verifier = CompileAndVerify(source, expectedOutput: "32");
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (3,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(int X, int Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(3, 14)
+                );
 
             Assert.Equal(
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
@@ -12913,7 +13257,10 @@ record C(int X, int Y) : B
             comp.VerifyDiagnostics(
                 // (7,14): error CS8866: Record member 'B.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
                 // record C(int X, int Y) : B
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "int", "X").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "int", "X").WithLocation(7, 14),
+                // (7,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int X, int Y) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(7, 14)
             );
 
             Assert.Equal(
@@ -12954,7 +13301,11 @@ record C(int X, int Y) : B
 }
 ";
             var verifier = CompileAndVerify(source, expectedOutput: "02");
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (9,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int X, int Y) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(9, 14)
+                );
 
             Assert.Equal(
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
@@ -13110,7 +13461,10 @@ record C(int X) : B
             comp.VerifyDiagnostics(
                 // (9,14): error CS8866: Record member 'B.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
                 // record C(int X) : B
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "int", "X").WithLocation(9, 14));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "int", "X").WithLocation(9, 14),
+                // (9,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int X) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(9, 14));
 
             Assert.Equal(
                 "void C.Deconstruct(out System.Int32 X)",
@@ -13323,7 +13677,14 @@ record C(int X, int Y) : B
 }
 ";
             var verifier = CompileAndVerify(source, expectedOutput: "0101");
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (9,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int X, int Y) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(9, 14),
+                // (9,21): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int X, int Y) : B
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(9, 21)
+                );
 
             var comp = verifier.Compilation;
             Assert.Equal(
@@ -13450,9 +13811,15 @@ record C(int X, int Y)
                 // (4,14): error CS8866: Record member 'C.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
                 // record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("C.X", "int", "X").WithLocation(4, 14),
+                // (4,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(4, 14),
                 // (4,21): error CS8866: Record member 'C.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
                 // record C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("C.Y", "int", "Y").WithLocation(4, 21));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("C.Y", "int", "Y").WithLocation(4, 21),
+                // (4,21): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(4, 21));
 
             Assert.Equal(
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
@@ -13489,7 +13856,14 @@ record C(string? X, string Y)
 }
 ";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,18): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(string? X, string Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(5, 18),
+                // (5,28): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(string? X, string Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(5, 28)
+                );
 
             Assert.Equal(
                 "void C.Deconstruct(out System.String? X, out System.String Y)",
@@ -13532,9 +13906,15 @@ record C(Derived X, Base Y)
                 // (7,18): error CS8866: Record member 'C.X' must be a readable instance property of type 'Derived' to match positional parameter 'X'.
                 // record C(Derived X, Base Y)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("C.X", "Derived", "X").WithLocation(7, 18),
+                // (7,18): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(Derived X, Base Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(7, 18),
                 // (7,26): error CS8866: Record member 'C.Y' must be a readable instance property of type 'Base' to match positional parameter 'Y'.
                 // record C(Derived X, Base Y)
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("C.Y", "Base", "Y").WithLocation(7, 26));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("C.Y", "Base", "Y").WithLocation(7, 26),
+                // (7,26): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(Derived X, Base Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(7, 26));
 
             Assert.Equal(
                 "void C.Deconstruct(out Derived X, out Base Y)",
@@ -14092,7 +14472,10 @@ record A(int X)
             comp.VerifyEmitDiagnostics(
                 // (2,14): error CS8866: Record member 'A.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
                 // record A(int X)
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("A.X", "int", "X").WithLocation(2, 14)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("A.X", "int", "X").WithLocation(2, 14),
+                // (2,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record A(int X)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(2, 14)
                 );
         }
 
@@ -14112,7 +14495,10 @@ record B(int X) : A;
             comp.VerifyEmitDiagnostics(
                 // (7,14): error CS8866: Record member 'A.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
                 // record B(int X) : A;
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("A.X", "int", "X").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("A.X", "int", "X").WithLocation(7, 14),
+                // (7,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(int X) : A;
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(7, 14)
                 );
         }
 
@@ -14221,7 +14607,10 @@ record B(int X, int Y)
             comp.VerifyDiagnostics(
                 // (4,21): error CS8866: Record member 'B.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
                 // record B(int X, int Y)
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("B.Y", "int", "Y").WithLocation(4, 21));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("B.Y", "int", "Y").WithLocation(4, 21),
+                // (4,21): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(int X, int Y)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(4, 21));
 
             Assert.Equal(
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
@@ -19180,9 +19569,15 @@ False False True True
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (1,17): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P, object Q)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
                 // (1,27): error CS8866: Record member 'C.Q' must be a readable instance property of type 'object' to match positional parameter 'Q'.
                 // record C(object P, object Q)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Q").WithArguments("C.Q", "object", "Q").WithLocation(1, 27),
+                // (1,27): warning CS8907: Parameter 'Q' is unused. Did you forget to use it to initialize the property with that name?
+                // record C(object P, object Q)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Q").WithArguments("Q").WithLocation(1, 27),
                 // (4,16): error CS0102: The type 'C' already contains a definition for 'P'
                 //     public int P { get; }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 16),
@@ -19223,7 +19618,10 @@ record B(object Q) : A
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("A", "P").WithLocation(4, 19),
                 // (6,16): error CS0102: The type 'A' already contains a definition for 'Q'
                 //     public int Q { get; }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Q").WithArguments("A", "Q").WithLocation(6, 16));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Q").WithArguments("A", "Q").WithLocation(6, 16),
+                // (8,17): warning CS8907: Parameter 'Q' is unused. Did you forget to use it to initialize the property with that name?
+                // record B(object Q) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Q").WithArguments("Q").WithLocation(8, 17));
 
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
@@ -21057,7 +21455,14 @@ False
 False
 False
 True
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+                // (3,15): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record B1(int P) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(3, 15),
+                // (8,15): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record B2(int P) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(8, 15)
+                );
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
@@ -21155,7 +21560,17 @@ False
 False
 False
 True
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+                // (2,14): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record A(int P)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(2, 14),
+                // (7,15): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record B1(int P) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(7, 15),
+                // (11,15): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record B2(int P) : A
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(11, 15)
+                );
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
@@ -21529,9 +21944,21 @@ False
 False
 True
 True").VerifyDiagnostics(
+    // (4,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+    // record A(int X)
+    Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(4, 14),
     // (15,25): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
     //     public virtual bool Equals(B b) => base.Equals((A)b);
-    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(15, 25)
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(15, 25),
+    // (17,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+    // record C(int X, int Y, int Z) : B
+    Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(17, 14),
+    // (17,21): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+    // record C(int X, int Y, int Z) : B
+    Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(17, 21),
+    // (17,28): warning CS8907: Parameter 'Z' is unused. Did you forget to use it to initialize the property with that name?
+    // record C(int X, int Y, int Z) : B
+    Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Z").WithArguments("Z").WithLocation(17, 28)
 );
 
             verifier.VerifyIL("A.Equals(A)",
@@ -21674,7 +22101,26 @@ True
 False
 False
 True
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+    // (2,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+    // record A(int X)
+    Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(2, 14),
+    // (7,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+    // record B(int X, int Y) : A
+    Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(7, 14),
+    // (7,21): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+    // record B(int X, int Y) : A
+    Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(7, 21),
+    // (12,14): warning CS8907: Parameter 'X' is unused. Did you forget to use it to initialize the property with that name?
+    // record C(int X, int Y, int Z) : B
+    Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "X").WithArguments("X").WithLocation(12, 14),
+    // (12,21): warning CS8907: Parameter 'Y' is unused. Did you forget to use it to initialize the property with that name?
+    // record C(int X, int Y, int Z) : B
+    Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Y").WithArguments("Y").WithLocation(12, 21),
+    // (12,28): warning CS8907: Parameter 'Z' is unused. Did you forget to use it to initialize the property with that name?
+    // record C(int X, int Y, int Z) : B
+    Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "Z").WithArguments("Z").WithLocation(12, 28)
+    );
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
@@ -23207,7 +23653,11 @@ record R(int P = 1)
 }
 ";
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,14): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record R(int P = 1)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(2, 14)
+                );
             var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
 
             verifier.VerifyIL("R..ctor(int)", @"
@@ -23240,7 +23690,11 @@ record R(int P = 42)
 }
 ";
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,14): warning CS8907: Parameter 'P' is unused. Did you forget to use it to initialize the property with that name?
+                // record R(int P = 42)
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P").WithArguments("P").WithLocation(2, 14)
+                );
             var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped /* init-only */);
 
             verifier.VerifyIL("R..ctor(int)", @"
@@ -23626,7 +24080,10 @@ public record Test(
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(27, 6),
                 // (28,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
                 //     [property: B]
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "param").WithLocation(28, 6)
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "param").WithLocation(28, 6),
+                // (31,9): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                //     int P1) : Base
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(31, 9)
                 );
 
             IEnumerable<string> getAttributeStrings(Symbol symbol)
@@ -23707,7 +24164,10 @@ public record Test(
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(27, 6),
                 // (28,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
                 //     [property: B]
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "param").WithLocation(28, 6)
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "param").WithLocation(28, 6),
+                // (31,9): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                //     int P1) : Base
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(31, 9)
                 );
 
             IEnumerable<string> getAttributeStrings(Symbol symbol)
@@ -23768,7 +24228,11 @@ public record Test(
                 verify: Verification.Skipped,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (20,9): warning CS8907: Parameter 'P1' is unused. Did you forget to use it to initialize the property with that name?
+                //     int P1) : Base
+                Diagnostic(ErrorCode.WRN_UnusedRecordParameter, "P1").WithArguments("P1").WithLocation(20, 9)
+                );
 
             IEnumerable<string> getAttributeStrings(Symbol symbol)
             {

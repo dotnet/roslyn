@@ -2881,6 +2881,16 @@
         <target state="needs-review-translation">不可为 null 的字段未初始化。请考虑声明为可以为 null。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnusedRecordParameter">
+        <source>Parameter '{0}' is unused. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter '{0}' is unused. Did you forget to use it to initialize the property with that name?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnusedRecordParameter_Title">
+        <source>Parameter is unused. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter is unused. Did you forget to use it to initialize the property with that name?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
         <source>Use of unassigned local variable '{0}'</source>
         <target state="new">Use of unassigned local variable '{0}'</target>

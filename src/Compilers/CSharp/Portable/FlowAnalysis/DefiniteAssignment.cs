@@ -49,6 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledHashSet<LocalSymbol> _usedVariables = PooledHashSet<LocalSymbol>.GetInstance();
 
+#nullable enable
+        /// <summary>
+        /// Parameters of record primary constructors that were used anywhere.
+        /// </summary>
+        private PooledHashSet<ParameterSymbol>? _usedParameters;
+#nullable disable
+
         /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
         /// unused variables.
@@ -186,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Free()
         {
             _usedVariables.Free();
+            _usedParameters?.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
@@ -506,6 +514,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 diagnostics.AddRange(this.Diagnostics);
+
+                if (CurrentSymbol is SynthesizedRecordConstructor)
+                {
+                    foreach (ParameterSymbol parameter in MethodParameters)
+                    {
+                        if (_usedParameters?.Contains(parameter) != true)
+                        {
+                            diagnostics.Add(ErrorCode.WRN_UnusedRecordParameter, parameter.Locations.FirstOrNone(), parameter.Name);
+                        }
+                    }
+                }
             }
         }
 
@@ -558,6 +577,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)local != null)
             {
                 _usedVariables.Add(local);
+            }
+
+            if (variable is ParameterSymbol parameter && CurrentSymbol is SynthesizedRecordConstructor)
+            {
+                _usedParameters ??= PooledHashSet<ParameterSymbol>.GetInstance();
+                _usedParameters.Add(parameter);
             }
 
             var localFunction = variable as LocalFunctionSymbol;
@@ -1877,6 +1902,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.WasCompilerGenerated)
             {
                 CheckAssigned(node.ParameterSymbol, node.Syntax);
+            }
+            else if (CurrentSymbol is SynthesizedRecordConstructor)
+            {
+                NoteRead(node.ParameterSymbol);
             }
 
             return null;
