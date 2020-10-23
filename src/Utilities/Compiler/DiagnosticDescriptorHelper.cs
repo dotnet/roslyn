@@ -22,6 +22,7 @@ namespace Analyzer.Utilities
             bool isDataflowRule,
             bool isEnabledByDefaultInFxCopAnalyzers = true,
             bool isEnabledByDefaultInAggressiveMode = true,
+            bool isReportedAtCompilationEnd = false,
             params string[] additionalCustomTags)
         {
             // PERF: Ensure that all DFA rules are disabled by default in NetAnalyzers package.
@@ -37,6 +38,11 @@ namespace Analyzer.Utilities
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
             var customTags = GetDefaultCustomTags(isPortedFxCopRule, isDataflowRule, isEnabledByDefaultInAggressiveMode);
+            if (isReportedAtCompilationEnd)
+            {
+                customTags = customTags.Concat(WellKnownDiagnosticTagsExtensions.CompilationEnd).ToArray();
+            }
+
             if (additionalCustomTags.Length > 0)
             {
                 customTags = customTags.Concat(additionalCustomTags).ToArray();
