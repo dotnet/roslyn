@@ -2283,14 +2283,16 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit: boundNode.WasCompilerGenerated);
         }
 
+#nullable enable
         internal IPropertySubpatternOperation CreatePropertySubpattern(BoundSubpattern subpattern, ITypeSymbol matchedType)
         {
             SyntaxNode syntax = subpattern.Syntax;
-            return new CSharpLazyPropertySubpatternOperation(this, subpattern, matchedType, syntax, _semanticModel);
+            IOperation member = CreatePropertySubpatternMember(subpattern.Symbol, matchedType, syntax);
+            IPatternOperation pattern = (IPatternOperation)Create(subpattern.Pattern);
+            return new PropertySubpatternOperation(member, pattern, _semanticModel, syntax, isImplicit: false);
         }
 
-#nullable enable
-        internal IOperation CreatePropertySubpatternMember(Symbol symbol, ITypeSymbol matchedType, SyntaxNode syntax)
+        internal IOperation CreatePropertySubpatternMember(Symbol? symbol, ITypeSymbol matchedType, SyntaxNode syntax)
         {
             var nameSyntax = (syntax is SubpatternSyntax subpatSyntax ? subpatSyntax.NameColon?.Name : null) ?? syntax;
             bool isImplicit = nameSyntax == syntax;

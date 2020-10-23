@@ -3155,6 +3155,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<ILocalSymbol> Locals { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an element of a property subpattern, which identifies a member to be matched and the
     /// pattern to match it against.
@@ -3179,6 +3180,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IPatternOperation Pattern { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a standalone VB query Aggregate operation with more than one item in Into clause.
     /// </summary>
@@ -7439,69 +7441,39 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitSwitchExpressionArm(this, argument);
     }
     #nullable disable
-    internal abstract partial class BasePropertySubpatternOperation : OperationOld, IPropertySubpatternOperation
+    #nullable enable
+    internal sealed partial class PropertySubpatternOperation : Operation, IPropertySubpatternOperation
     {
-        internal BasePropertySubpatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.PropertySubpattern, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Member { get; }
-        public abstract IPatternOperation Pattern { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                if (Member is object) yield return Member;
-                if (Pattern is object) yield return Pattern;
-            }
-        }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitPropertySubpattern(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPropertySubpattern(this, argument);
-    }
-    internal sealed partial class PropertySubpatternOperation : BasePropertySubpatternOperation, IPropertySubpatternOperation
-    {
-        internal PropertySubpatternOperation(IOperation member, IPatternOperation pattern, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal PropertySubpatternOperation(IOperation member, IPatternOperation pattern, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Member = SetParentOperation(member, this);
             Pattern = SetParentOperation(pattern, this);
         }
-        public override IOperation Member { get; }
-        public override IPatternOperation Pattern { get; }
-    }
-    internal abstract partial class LazyPropertySubpatternOperation : BasePropertySubpatternOperation, IPropertySubpatternOperation
-    {
-        private IOperation _lazyMember = s_unset;
-        private IPatternOperation _lazyPattern = s_unsetPattern;
-        internal LazyPropertySubpatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateMember();
-        public override IOperation Member
+        public IOperation Member { get; }
+        public IPatternOperation Pattern { get; }
+        public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (_lazyMember == s_unset)
+                if (_lazyChildren is null)
                 {
-                    IOperation member = CreateMember();
-                    SetParentOperation(member, this);
-                    Interlocked.CompareExchange(ref _lazyMember, member, s_unset);
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Member is not null) builder.Add(Member);
+                    if (Pattern is not null) builder.Add(Pattern);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                return _lazyMember;
+                return _lazyChildren;
             }
         }
-        protected abstract IPatternOperation CreatePattern();
-        public override IPatternOperation Pattern
-        {
-            get
-            {
-                if (_lazyPattern == s_unsetPattern)
-                {
-                    IPatternOperation pattern = CreatePattern();
-                    SetParentOperation(pattern, this);
-                    Interlocked.CompareExchange(ref _lazyPattern, pattern, s_unsetPattern);
-                }
-                return _lazyPattern;
-            }
-        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.PropertySubpattern;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitPropertySubpattern(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPropertySubpattern(this, argument);
     }
+    #nullable disable
     internal abstract partial class BaseAggregateQueryOperation : OperationOld, IAggregateQueryOperation
     {
         internal BaseAggregateQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8409,6 +8381,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (SwitchExpressionArmOperation)operation;
             return new SwitchExpressionArmOperation(Visit(internalOperation.Pattern), Visit(internalOperation.Guard), Visit(internalOperation.Value), internalOperation.Locals, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, object? argument)
+        {
+            var internalOperation = (PropertySubpatternOperation)operation;
+            return new PropertySubpatternOperation(Visit(internalOperation.Member), Visit(internalOperation.Pattern), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, object? argument)
         {

@@ -245,16 +245,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 operation.IsImplicit);
         }
 
-        public override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, object argument)
-        {
-            return new PropertySubpatternOperation(
-                Visit(operation.Member),
-                Visit(operation.Pattern),
-                semanticModel: ((Operation)operation).OwningSemanticModel,
-                syntax: operation.Syntax,
-                isImplicit: operation.IsImplicit);
-        }
-
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)
         {
             return new PatternCaseClauseOperation(operation.Label, Visit(operation.Pattern), Visit(operation.Guard), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

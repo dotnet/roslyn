@@ -6863,6 +6863,7 @@ oneMoreTime:
                 IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, int? argument)
         {
             return new PropertySubpatternOperation(
@@ -6873,7 +6874,6 @@ oneMoreTime:
                 isImplicit: IsImplicit(operation));
         }
 
-#nullable enable
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
         {
             return new DelegateCreationOperation(Visit(operation.Target), semanticModel: null,

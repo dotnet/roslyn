@@ -75,6 +75,7 @@ namespace IOperationGenerator
             "IReDimClauseOperation",
             "ISwitchExpressionOperation",
             "ISwitchExpressionArmOperation",
+            "IPropertySubpatternOperation",
         };
     }
 }

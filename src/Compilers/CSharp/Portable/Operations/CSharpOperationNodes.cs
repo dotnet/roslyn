@@ -813,35 +813,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed partial class CSharpLazyPropertySubpatternOperation : LazyPropertySubpatternOperation
-    {
-        private readonly BoundSubpattern _subpattern;
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly ITypeSymbol _matchedType;
-
-        public CSharpLazyPropertySubpatternOperation(
-            CSharpOperationFactory operationFactory,
-            BoundSubpattern subpattern,
-            ITypeSymbol matchedType,
-            SyntaxNode syntax,
-            SemanticModel semanticModel)
-            : base(semanticModel, syntax, type: null, constantValue: null, isImplicit: false)
-        {
-            _subpattern = subpattern;
-            _operationFactory = operationFactory;
-            _matchedType = matchedType;
-        }
-        protected override IOperation CreateMember()
-        {
-            return _operationFactory.CreatePropertySubpatternMember(_subpattern.Symbol, _matchedType, Syntax);
-        }
-
-        protected override IPatternOperation CreatePattern()
-        {
-            return (IPatternOperation)_operationFactory.Create(_subpattern.Pattern);
-        }
-    }
-
     /// <summary>
     /// Represents a C# recursive pattern using ITuple.
     /// </summary>

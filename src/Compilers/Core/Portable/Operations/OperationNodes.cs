@@ -647,18 +647,6 @@ namespace Microsoft.CodeAnalysis.Operations
         { }
     }
 
-    internal sealed partial class PropertySubpatternOperation : BasePropertySubpatternOperation
-    {
-        public PropertySubpatternOperation(
-            IOperation member,
-            IPatternOperation pattern,
-            SemanticModel semanticModel,
-            SyntaxNode syntax,
-            bool isImplicit) :
-            this(member, pattern, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        { }
-    }
-
     internal abstract partial class BasePatternCaseClauseOperation : BaseCaseClauseOperation, IPatternCaseClauseOperation
     {
         protected BasePatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
