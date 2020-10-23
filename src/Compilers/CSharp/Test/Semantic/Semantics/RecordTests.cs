@@ -2778,7 +2778,9 @@ abstract sealed record C1;
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
 
-            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+            var namedTypeSymbol = comp.GlobalNamespace.GetTypeMember("C1");
+            Assert.True(namedTypeSymbol.IsRecord);
+            Assert.Equal("record C1", namedTypeSymbol
                 .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
@@ -2807,7 +2809,9 @@ sealed abstract record C1;
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
 
-            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+            var namedTypeSymbol = comp.GlobalNamespace.GetTypeMember("C1");
+            Assert.True(namedTypeSymbol.IsRecord);
+            Assert.Equal("record C1", namedTypeSymbol
                 .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
@@ -2864,7 +2868,9 @@ sealed abstract record C2 : C1;
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
 
-            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+            var namedTypeSymbol = comp.GlobalNamespace.GetTypeMember("C1");
+            Assert.True(namedTypeSymbol.IsRecord);
+            Assert.Equal("record C1", namedTypeSymbol
                 .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
@@ -3064,7 +3070,9 @@ public class Program
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
 
-            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+            var namedTypeSymbol = comp.GlobalNamespace.GetTypeMember("A");
+            Assert.True(namedTypeSymbol.IsRecord);
+            Assert.Equal("class A", namedTypeSymbol
                 .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
@@ -7615,6 +7623,7 @@ record C(int X, string Y)
             var withExpr = root.DescendantNodes().OfType<WithExpressionSyntax>().Single();
             var typeInfo = model.GetTypeInfo(withExpr);
             var c = comp.GlobalNamespace.GetTypeMember("C");
+            Assert.True(c.IsRecord);
             Assert.True(c.ISymbol.Equals(typeInfo.Type));
 
             var x = c.GetMembers("X").Single();
@@ -24147,6 +24156,7 @@ public record A;
             var compRef = CreateCompilation(src).EmitToImageReference();
             var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: new[] { compRef });
             var symbol = vbComp.GlobalNamespace.GetTypeMember("A");
+            Assert.False(symbol.IsRecord);
             Assert.Equal("class A",
                 SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
