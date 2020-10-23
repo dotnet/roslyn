@@ -209,29 +209,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyFixedOperation : LazyFixedOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundFixedStatement _fixedStatement;
-
-        internal CSharpLazyFixedOperation(CSharpOperationFactory operationFactory, BoundFixedStatement fixedStatement, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _fixedStatement = fixedStatement;
-        }
-
-        protected override IVariableDeclarationGroupOperation CreateVariables()
-        {
-            return (IVariableDeclarationGroupOperation)_operationFactory.Create(_fixedStatement.Declarations);
-        }
-
-        protected override IOperation CreateBody()
-        {
-            return _operationFactory.Create(_fixedStatement.Body);
-        }
-    }
-
     internal sealed class CSharpLazyForEachLoopOperation : LazyForEachLoopOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

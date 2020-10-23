@@ -77,6 +77,7 @@ namespace IOperationGenerator
             "ISwitchExpressionArmOperation",
             "IPropertySubpatternOperation",
             "IAggregateQueryOperation",
+            "IFixedOperation",
         };
     }
 }

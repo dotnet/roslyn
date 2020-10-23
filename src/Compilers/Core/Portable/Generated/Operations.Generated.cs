@@ -3195,6 +3195,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Aggregation { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a C# fixed statement.
     /// </summary>
@@ -3217,6 +3218,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Body { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
     /// <para>
@@ -7510,73 +7512,41 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitAggregateQuery(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseFixedOperation : OperationOld, IFixedOperation
+    #nullable enable
+    internal sealed partial class FixedOperation : Operation, IFixedOperation
     {
-        internal BaseFixedOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal FixedOperation(ImmutableArray<ILocalSymbol> locals, IVariableDeclarationGroupOperation variables, IOperation body, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Locals = locals;
+            Variables = SetParentOperation(variables, this);
+            Body = SetParentOperation(body, this);
         }
         public ImmutableArray<ILocalSymbol> Locals { get; }
-        public abstract IVariableDeclarationGroupOperation Variables { get; }
-        public abstract IOperation Body { get; }
+        public IVariableDeclarationGroupOperation Variables { get; }
+        public IOperation Body { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Variables is object) yield return Variables;
-                if (Body is object) yield return Body;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Variables is not null) builder.Add(Variables);
+                    if (Body is not null) builder.Add(Body);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.None;
         public override void Accept(OperationVisitor visitor) => visitor.VisitFixed(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitFixed(this, argument);
     }
-    internal sealed partial class FixedOperation : BaseFixedOperation, IFixedOperation
-    {
-        internal FixedOperation(ImmutableArray<ILocalSymbol> locals, IVariableDeclarationGroupOperation variables, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Variables = SetParentOperation(variables, this);
-            Body = SetParentOperation(body, this);
-        }
-        public override IVariableDeclarationGroupOperation Variables { get; }
-        public override IOperation Body { get; }
-    }
-    internal abstract partial class LazyFixedOperation : BaseFixedOperation, IFixedOperation
-    {
-        private IVariableDeclarationGroupOperation _lazyVariables = s_unsetVariableDeclarationGroup;
-        private IOperation _lazyBody = s_unset;
-        internal LazyFixedOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IVariableDeclarationGroupOperation CreateVariables();
-        public override IVariableDeclarationGroupOperation Variables
-        {
-            get
-            {
-                if (_lazyVariables == s_unsetVariableDeclarationGroup)
-                {
-                    IVariableDeclarationGroupOperation variables = CreateVariables();
-                    SetParentOperation(variables, this);
-                    Interlocked.CompareExchange(ref _lazyVariables, variables, s_unsetVariableDeclarationGroup);
-                }
-                return _lazyVariables;
-            }
-        }
-        protected abstract IOperation CreateBody();
-        public override IOperation Body
-        {
-            get
-            {
-                if (_lazyBody == s_unset)
-                {
-                    IOperation body = CreateBody();
-                    SetParentOperation(body, this);
-                    Interlocked.CompareExchange(ref _lazyBody, body, s_unset);
-                }
-                return _lazyBody;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseNoPiaObjectCreationOperation : OperationOld, INoPiaObjectCreationOperation
     {
         internal BaseNoPiaObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8364,6 +8334,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (AggregateQueryOperation)operation;
             return new AggregateQueryOperation(Visit(internalOperation.Group), Visit(internalOperation.Aggregation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        internal override IOperation VisitFixed(IFixedOperation operation, object? argument)
+        {
+            var internalOperation = (FixedOperation)operation;
+            return new FixedOperation(internalOperation.Locals, Visit(internalOperation.Variables), Visit(internalOperation.Body), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, object? argument)
         {

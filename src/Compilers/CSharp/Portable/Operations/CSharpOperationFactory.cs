@@ -1785,19 +1785,17 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundCatchBlock.WasCompilerGenerated;
             return new CatchClauseOperation(exceptionDeclarationOrExpression, exceptionType, locals, filter, handler, _semanticModel, syntax, isImplicit);
         }
-#nullable disable
 
         private IFixedOperation CreateBoundFixedStatementOperation(BoundFixedStatement boundFixedStatement)
         {
+            IVariableDeclarationGroupOperation variables = (IVariableDeclarationGroupOperation)Create(boundFixedStatement.Declarations);
+            IOperation body = Create(boundFixedStatement.Body);
             ImmutableArray<ILocalSymbol> locals = boundFixedStatement.Locals.GetPublicSymbols();
             SyntaxNode syntax = boundFixedStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundFixedStatement.WasCompilerGenerated;
-            return new CSharpLazyFixedOperation(this, boundFixedStatement, locals, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new FixedOperation(locals, variables, body, _semanticModel, syntax, isImplicit);
         }
 
-#nullable enable
         private IUsingOperation CreateBoundUsingStatementOperation(BoundUsingStatement boundUsingStatement)
         {
             Debug.Assert((boundUsingStatement.DeclarationsOpt == null) != (boundUsingStatement.ExpressionOpt == null));

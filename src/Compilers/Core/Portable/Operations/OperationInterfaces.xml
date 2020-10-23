@@ -2830,6 +2830,7 @@
     <Property Name="Aggregation" Type="IOperation" />
   </Node>
   <Node Name="IFixedOperation" Base="IOperation" Internal="true" SkipInVisitor="true" ChildrenOrder="Variables,Body">
+    <!-- Making this public is tracked by https://github.com/dotnet/roslyn/issues/21281 -->
     <Comments>
       <summary>Represents a C# fixed statement.</summary>
     </Comments>

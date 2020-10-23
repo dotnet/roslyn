@@ -87,12 +87,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                             ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        // https://github.com/dotnet/roslyn/issues/21281
-        internal override IOperation VisitFixed(IFixedOperation operation, object argument)
-        {
-            return new FixedOperation(operation.Locals, Visit(operation.Variables), Visit(operation.Body), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         internal override IOperation VisitWithStatement(IWithStatementOperation operation, object argument)
         {
             return new WithStatementOperation(Visit(operation.Body), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

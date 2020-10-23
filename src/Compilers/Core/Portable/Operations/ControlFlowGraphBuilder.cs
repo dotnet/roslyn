@@ -5392,7 +5392,8 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        internal override IOperation VisitFixed(IFixedOperation operation, int? captureIdForResult)
+#nullable enable
+        internal override IOperation? VisitFixed(IFixedOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
@@ -5404,6 +5405,7 @@ oneMoreTime:
             LeaveRegion();
             return FinishVisitingStatement(operation);
         }
+#nullable disable
 
         public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
         {
