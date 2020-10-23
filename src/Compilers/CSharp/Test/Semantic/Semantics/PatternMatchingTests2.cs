@@ -2978,7 +2978,10 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (6,13): error CS1525: Invalid expression term 'switch'
                 //         _ = switch { this.F(1) => 1 };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "switch").WithArguments("switch").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "switch").WithArguments("switch").WithLocation(6, 13),
+                // (6,13): warning CS8848: Operator 'switch' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         _ = switch { this.F(1) => 1 };
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "switch").WithArguments("switch").WithLocation(6, 13)
                 );
         }
     }

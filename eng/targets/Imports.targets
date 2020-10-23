@@ -403,11 +403,4 @@
       <Reference Remove="@(Reference)" Condition=" '%(FileName)' == 'Microsoft.VisualBasic' or '%(FileName)' == 'Microsoft.VisualBasic.Core' " />
     </ItemGroup>
   </Target>
-
-  <!-- Override this to work around https://github.com/dotnet/sdk/issues/13427. The property doesn't
-       appear to be used for anything other than controlling the warning. -->
-  <PropertyGroup>
-    <_MicrosoftWindowsDesktopSdkImported>false</_MicrosoftWindowsDesktopSdkImported>
-  </PropertyGroup>
-
 </Project>

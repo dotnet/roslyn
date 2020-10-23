@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
     internal class FindUsagesLSPContext : FindUsagesContext
     {
-        private readonly IProgress<object[]> _progress;
+        private readonly IProgress<VSReferenceItem[]> _progress;
         private readonly Document _document;
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         public override CancellationToken CancellationToken { get; }
 
         public FindUsagesLSPContext(
-            IProgress<object[]> progress,
+            IProgress<VSReferenceItem[]> progress,
             Document document,
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                         Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                     };
                 }
-                catch (UriFormatException e) when (FatalError.ReportWithoutCrash(e))
+                catch (UriFormatException e) when (FatalError.ReportAndCatch(e))
                 {
                     // We might reach this point if the file path is formatted incorrectly.
                     return null;

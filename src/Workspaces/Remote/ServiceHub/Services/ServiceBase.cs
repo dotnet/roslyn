@@ -13,6 +13,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
+#pragma warning disable CS0618 // Type or member is obsolete - this should become error once we provide infra for migrating to ISB (https://github.com/dotnet/roslyn/issues/44326)
+
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return await callAsync().ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 await callAsync().ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return call();
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 call();
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

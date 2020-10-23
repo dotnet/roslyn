@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var hasGetPrefix = HasGetPrefix(methodName);
             var propertyName = hasGetPrefix
                 ? NameGenerator.GenerateUniqueName(
-                    methodName.Substring(GetPrefix.Length),
+                    methodName[GetPrefix.Length..],
                     n => !methodSymbol.ContainingType.GetMembers(n).Any())
                 : methodName;
             var nameChanged = hasGetPrefix;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private static IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
         {
             var containingType = getMethod.ContainingType;
-            var setMethodName = "Set" + getMethod.Name.Substring(GetPrefix.Length);
+            var setMethodName = "Set" + getMethod.Name[GetPrefix.Length..];
             var setMethod = containingType.GetMembers()
                                           .OfType<IMethodSymbol>()
                                           .Where(m => setMethodName.Equals(m.Name, StringComparison.OrdinalIgnoreCase))

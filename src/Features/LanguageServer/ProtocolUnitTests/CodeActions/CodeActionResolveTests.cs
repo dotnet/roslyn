@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
+                priority: PriorityLevel.Low,
+                groupName: "Roslyn1",
+                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
 
             var expectedMarkup =
@@ -51,7 +54,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
+                priority: PriorityLevel.Low,
+                groupName: "Roslyn1",
                 diagnostics: null,
+                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 edit: GenerateWorkspaceEdit(
                     locations, expectedMarkup, new LSP.Range { Start = new Position(0, 0), End = new Position(6, 1) }));
 
@@ -79,6 +85,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     locations["caret"].Single()),
+                priority: PriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
 
             var expectedMarkup =
@@ -99,6 +108,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     locations["caret"].Single()),
+                priority: PriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null,
                 edit: GenerateWorkspaceEdit(
                     locations, expectedMarkup, new LSP.Range { Start = new Position(0, 0), End = new Position(6, 1) }));

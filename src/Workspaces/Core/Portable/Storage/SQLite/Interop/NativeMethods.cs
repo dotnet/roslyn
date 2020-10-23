@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Name chosen to match SQLitePCL.raw")]
     internal static class NativeMethods
     {
-        public static SafeSqliteHandle sqlite3_open_v2(string filename, int flags, string vfs, out Result result)
+        public static SafeSqliteHandle sqlite3_open_v2(string filename, int flags, string? vfs, out Result result)
         {
             result = (Result)raw.sqlite3_open_v2(filename, out var wrapper, flags, vfs);
             if (result != Result.OK)

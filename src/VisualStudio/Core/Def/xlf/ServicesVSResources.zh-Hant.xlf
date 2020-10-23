@@ -107,6 +107,11 @@
         <target state="translated">組建 + 即時分析 (NuGet 套件)</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
+        <source>C#/Visual Basic Diagnostics Language Client</source>
+        <target state="new">C#/Visual Basic Diagnostics Language Client</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
         <source>C#/Visual Basic Language Server Client</source>
         <target state="translated">C#/Visual Basic 語言伺服器用戶端</target>
@@ -147,6 +152,11 @@
         <target state="translated">程式碼分析在解決方案完成前終止。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Color_hints">
+        <source>Color hints</source>
+        <target state="new">Color hints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">為規則運算式添加色彩</target>
@@ -177,9 +187,19 @@
         <target state="translated">目前的參數</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
+        <source>Display all hints while pressing Alt+F1</source>
+        <target state="new">Display all hints while pressing Alt+F1</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
         <target state="new">Disp_lay inline parameter name hints</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_type_hints">
+        <source>Display inline type hints</source>
+        <target state="new">Display inline type hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -205,6 +225,11 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">元素無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
+        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="new">Enable 'pull' diagnostics (experimental, requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -782,14 +807,34 @@
         <target state="new">Show hints for everything else</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_lambda_parameter_types">
+        <source>Show hints for lambda parameter types</source>
+        <target state="new">Show hints for lambda parameter types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_literals">
         <source>Show hints for literals</source>
         <target state="new">Show hints for literals</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_variables_with_inferred_types">
+        <source>Show hints for variables with inferred types</source>
+        <target state="new">Show hints for variables with inferred types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">[環境] &gt; [字型和色彩選項] 頁面中所做的變更覆寫了某些色彩配置的色彩。請選擇 [字型和色彩] 頁面中的 [使用預設] 來還原所有自訂。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="new">Suppress hints when parameter names differ only by suffix</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">

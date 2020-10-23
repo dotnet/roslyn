@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -5377,6 +5376,55 @@ global::System.Console.WriteLine(val + 1);
 }
 ",
                 TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestWithLinkedFile()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+using System.Collections.Generic;
+namespace Whatever
+{
+    public class Goo
+    {
+        public void Bar()
+        {
+            var target = new List&lt;object;gt>();
+            var [||]newItems = new List&lt;Goo&gt;();
+            target.AddRange(newItems);
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+using System.Collections.Generic;
+namespace Whatever
+{
+    public class Goo
+    {
+        public void Bar()
+        {
+            var target = new List&lt;object;gt>();
+            target.AddRange(new List&lt;Goo&gt;());
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>");
         }
     }
 }

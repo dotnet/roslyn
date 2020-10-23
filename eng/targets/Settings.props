@@ -195,7 +195,7 @@
     <When Condition="'$(Language)' == 'C#'">
       <PropertyGroup>
         <LangVersion>preview</LangVersion>
-        <WarningLevel>4</WarningLevel>
+        <WarningLevel>9999</WarningLevel>
         <ErrorReport>prompt</ErrorReport>
 
         <!-- Suppress the following warnings by default for C# projects

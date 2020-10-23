@@ -15,7 +15,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeQualityDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer_Core.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractParenthesesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiersDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AbstractAddRequiredParenthesesDiagnosticAnalyzer.cs" />

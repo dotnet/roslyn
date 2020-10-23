@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                         solution,
                         (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue && result.Value != null)
@@ -291,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 // A NullReferenceException is happening in this method, but the dumps do not
                 // contain information about this stack frame because this method is async and

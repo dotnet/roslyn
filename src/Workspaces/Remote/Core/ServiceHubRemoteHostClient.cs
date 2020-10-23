@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly IErrorReportingService? _errorReportingService;
         private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
+        private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
         private readonly ConnectionPools? _connectionPools;
 
@@ -44,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Remote
             IServiceBroker serviceBroker,
             ServiceBrokerClient serviceBrokerClient,
             HubClient hubClient,
-            Stream stream)
+            Stream stream,
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _connectionPools = new ConnectionPools(
                 connectionFactory: (serviceName, pool, cancellationToken) => CreateConnectionImplAsync(serviceName, callbackTarget: null, pool, cancellationToken),
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _serviceBroker = serviceBroker;
             _serviceBrokerClient = serviceBrokerClient;
             _hubClient = hubClient;
-
+            _callbackDispatchers = callbackDispatchers;
             _endPoint = new RemoteEndPoint(stream, hubClient.Logger, incomingCallTarget: this);
             _endPoint.Disconnected += OnDisconnected;
             _endPoint.UnexpectedExceptionThrown += OnUnexpectedExceptionThrown;
@@ -72,7 +75,12 @@ namespace Microsoft.CodeAnalysis.Remote
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
             => _errorReportingService?.ShowRemoteHostCrashedErrorInfo(unexpectedException);
 
-        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, AsynchronousOperationListenerProvider listenerProvider, IServiceBroker serviceBroker, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(
+            HostWorkspaceServices services,
+            AsynchronousOperationListenerProvider listenerProvider,
+            IServiceBroker serviceBroker,
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
+            CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
             {
@@ -87,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var remoteHostStream = await RequestServiceAsync(services, hubClient, WellKnownServiceHubService.RemoteHost, cancellationToken).ConfigureAwait(false);
 
-                var client = new ServiceHubRemoteHostClient(services, serviceBroker, serviceBrokerClient, hubClient, remoteHostStream);
+                var client = new ServiceHubRemoteHostClient(services, serviceBroker, serviceBrokerClient, hubClient, remoteHostStream, callbackDispatchers);
 
                 var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
                 var cultureLCID = CultureInfo.CurrentCulture.LCID;
@@ -98,13 +106,27 @@ namespace Microsoft.CodeAnalysis.Remote
                     new object?[] { uiCultureLCID, cultureLCID },
                     cancellationToken).ConfigureAwait(false);
 
-                await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
-                    (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
-                    callbackTarget: null,
-                    cancellationToken).ConfigureAwait(false);
+                if (AsynchronousOperationListenerProvider.IsEnabled && !IsRpsMachine())
+                {
+                    await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
+                        (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
 
                 client.Started();
                 return client;
+            }
+
+            static bool IsRpsMachine()
+            {
+                try
+                {
+                    return Environment.MachineName.StartsWith("dtl-");
+                }
+                catch
+                {
+                    return false;
+                }
             }
         }
 
@@ -146,42 +168,22 @@ namespace Microsoft.CodeAnalysis.Remote
                 // even if our cancellation token is signaled. Do not report Watson in such cases to reduce noice.
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    FatalError.ReportWithoutCrash(e);
+                    FatalError.ReportAndCatch(e);
                 }
 
                 return true;
             }
         }
 
-        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var options = default(ServiceActivationOptions);
-
-                if (callbackTarget is not null)
-                {
-                    options.ClientRpcTarget = callbackTarget;
-                }
-
-                var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), RemoteHostOptions.IsServiceHubProcess64Bit(_services));
-
-                // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-                await TaskScheduler.Default;
-
-#pragma warning disable ISB001 // Dispose of proxies - BrokeredServiceConnection takes care of disposal
-                var proxy = await _serviceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
-#pragma warning restore
-
-                Contract.ThrowIfNull(proxy, $"Brokered service not found: {descriptor.Moniker.Name}");
-
-                return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService, _shutdownCancellationService);
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
+        public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
+            => new BrokeredServiceConnection<T>(
+                callbackTarget,
+                _callbackDispatchers,
+                _serviceBrokerClient,
+                _assetStorage,
+                _errorReportingService,
+                _shutdownCancellationService,
+                isRemoteHost64Bit: RemoteHostOptions.IsServiceHubProcess64Bit(_services));
 
         public override Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -257,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     ? SpecializedTasks.True
                     : SpecializedTasks.False;
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
