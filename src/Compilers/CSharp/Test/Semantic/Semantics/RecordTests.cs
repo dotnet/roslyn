@@ -18569,19 +18569,20 @@ record R
 
         [Fact]
         [WorkItem(48723, "https://github.com/dotnet/roslyn/issues/48723")]
-        public void EqualityContract_24_GetterAndSetterOnlyProperty()
+        public void EqualityContract_24_GetterAndSetterProperty()
         {
             var src = @"
-_ = new R() == new R();
+_ = new R() == new R2();
 record R
 {
     protected virtual System.Type EqualityContract { get { System.Console.Write(""RAN ""); return GetType(); } set { } }
 }
+record R2 : R;
 ";
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "RAN RAN");
+            CompileAndVerify(comp, expectedOutput: "RAN");
         }
 
         [Fact]
@@ -18717,111 +18718,23 @@ record R : Base
 
         [Fact]
         [WorkItem(48723, "https://github.com/dotnet/roslyn/issues/48723")]
-        public void EqualityContract_27_GetterAndSetterOnlyProperty_InMetadata()
+        public void EqualityContract_27_GetterAndSetterProperty_()
         {
-            // `record Base;` with modified EqualityContract property, method bodies simplified and nullability removed
-            var il = @"
-.class public auto ansi beforefieldinit Base
-    extends [mscorlib]System.Object
-    implements class [mscorlib]System.IEquatable`1<class Base>
-{
-    .method public hidebysig virtual instance string ToString () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method family hidebysig newslot virtual instance bool PrintMembers( class [mscorlib] System.Text.StringBuilder builder ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig specialname static bool op_Inequality( class Base r1, class Base r2 ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig specialname static bool op_Equality( class Base r1, class Base r2 ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig virtual instance int32 GetHashCode () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig virtual instance bool Equals( object obj ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig newslot virtual instance bool Equals( class Base other ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig newslot virtual instance class Base '<Clone>$'() cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method family hidebysig specialname rtspecialname instance void .ctor ( class Base original ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method family hidebysig specialname newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method family hidebysig specialname newslot virtual instance void set_EqualityContract ( class [mscorlib]System.Type 'value' ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    // Property has a getter and setter
-    .property instance class [mscorlib]System.Type EqualityContract()
-    {
-        .get instance class [mscorlib]System.Type Base::get_EqualityContract()
-        .set instance void Base::set_EqualityContract(class [mscorlib]System.Type)
-    }
-}
-";
-
             var src = @"
-record R : Base;
-";
-
-            var comp = CreateCompilationWithIL(src, il);
-            comp.VerifyEmitDiagnostics();
-
-            var src2 = @"
-record R : Base
+_ = new R() == new R2();
+record R
 {
-    protected override System.Type EqualityContract => typeof(R);
+    protected virtual System.Type EqualityContract { get { System.Console.Write(""RAN ""); return GetType(); } set { } }
+}
+record R2 : R
+{
+    protected override System.Type EqualityContract { get { System.Console.Write(""RAN2 ""); return GetType(); } }
 }
 ";
 
-            var comp2 = CreateCompilationWithIL(src2, il);
-            comp2.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN RAN2");
         }
 
         [Fact]
