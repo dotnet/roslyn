@@ -27,6 +27,16 @@
         <target state="translated">Добавить "Shadows"</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Change_to_DirectCast">
+        <source>Change to 'DirectCast'</source>
+        <target state="new">Change to 'DirectCast'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_TryCast">
+        <source>Change to 'TryCast'</source>
+        <target state="new">Change to 'TryCast'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">Вставка "{0}"</target>

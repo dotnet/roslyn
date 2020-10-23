@@ -7,11 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -45,8 +47,15 @@ namespace Microsoft.CodeAnalysis.FindUsages
             CancellationToken cancellationToken);
     }
 
+    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteFindUsagesService)), Shared]
     internal sealed class FindUsagesServerCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteFindUsagesService.ICallback
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FindUsagesServerCallbackDispatcher()
+        {
+        }
+
         private new FindUsagesServerCallback GetCallback(RemoteServiceCallbackId callbackId)
             => (FindUsagesServerCallback)base.GetCallback(callbackId);
 
