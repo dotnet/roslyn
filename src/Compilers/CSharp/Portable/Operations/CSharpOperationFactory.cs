@@ -2156,12 +2156,22 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundSwitchExpression.GetPublicTypeSymbol(),
                 boundSwitchExpression.WasCompilerGenerated);
         }
-#nullable disable
 
         private ISwitchExpressionArmOperation CreateBoundSwitchExpressionArmOperation(BoundSwitchExpressionArm boundSwitchExpressionArm)
         {
-            return new CSharpLazySwitchExpressionArmOperation(this, boundSwitchExpressionArm, _semanticModel);
+            IPatternOperation pattern = (IPatternOperation)Create(boundSwitchExpressionArm.Pattern);
+            IOperation? guard = Create(boundSwitchExpressionArm.WhenClause);
+            IOperation value = Create(boundSwitchExpressionArm.Value);
+            return new SwitchExpressionArmOperation(
+                pattern,
+                guard,
+                value,
+                boundSwitchExpressionArm.Locals.GetPublicSymbols(),
+                _semanticModel,
+                boundSwitchExpressionArm.Syntax,
+                boundSwitchExpressionArm.WasCompilerGenerated);
         }
+#nullable disable
 
         private ICaseClauseOperation CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
         {

@@ -2785,7 +2785,7 @@
         <summary>The pattern to match.</summary>
       </Comments>
     </Property>
-    <Property Name="Guard" Type="IOperation">
+    <Property Name="Guard" Type="IOperation?">
       <Comments>
         <summary>Guard (when clause expression) associated with the switch arm, if any.</summary>
       </Comments>

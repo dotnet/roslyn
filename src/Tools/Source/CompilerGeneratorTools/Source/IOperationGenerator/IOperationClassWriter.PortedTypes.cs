@@ -74,6 +74,7 @@ namespace IOperationGenerator
             "IReDimOperation",
             "IReDimClauseOperation",
             "ISwitchExpressionOperation",
+            "ISwitchExpressionArmOperation",
         };
     }
 }

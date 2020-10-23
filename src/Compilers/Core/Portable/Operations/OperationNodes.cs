@@ -749,20 +749,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed partial class SwitchExpressionArmOperation : BaseSwitchExpressionArmOperation
-    {
-        public SwitchExpressionArmOperation(
-            ImmutableArray<ILocalSymbol> locals,
-            IPatternOperation pattern,
-            IOperation guard,
-            IOperation value,
-            SemanticModel semanticModel,
-            SyntaxNode syntax,
-            bool isImplicit) :
-            this(pattern, guard, value, locals, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        { }
-    }
-
     internal sealed partial class FlowCaptureReferenceOperation : OperationOld, IFlowCaptureReferenceOperation
     {
         public FlowCaptureReferenceOperation(int id, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue) :

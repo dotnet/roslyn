@@ -900,34 +900,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazySwitchExpressionArmOperation : LazySwitchExpressionArmOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundSwitchExpressionArm _switchExpressionArm;
-
-        public CSharpLazySwitchExpressionArmOperation(CSharpOperationFactory operationFactory, BoundSwitchExpressionArm boundSwitchExpressionArm, SemanticModel semanticModel)
-            : base(boundSwitchExpressionArm.Locals.GetPublicSymbols(), semanticModel, boundSwitchExpressionArm.Syntax, type: null, constantValue: null, boundSwitchExpressionArm.WasCompilerGenerated)
-        {
-            _operationFactory = operationFactory;
-            _switchExpressionArm = boundSwitchExpressionArm;
-        }
-
-        protected override IOperation CreateGuard()
-        {
-            return _operationFactory.Create(_switchExpressionArm.WhenClause);
-        }
-
-        protected override IPatternOperation CreatePattern()
-        {
-            return (IPatternOperation)_operationFactory.Create(_switchExpressionArm.Pattern);
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_switchExpressionArm.Value);
-        }
-    }
-
     internal sealed class CSharpLazyMethodBodyOperation : LazyMethodBodyOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
