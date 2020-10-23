@@ -1384,19 +1384,18 @@ namespace Microsoft.CodeAnalysis.Operations
                                            _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }
-#nullable disable
 
         private ITupleBinaryOperation CreateBoundTupleBinaryOperatorOperation(BoundTupleBinaryOperator boundTupleBinaryOperator)
         {
+            IOperation left = Create(boundTupleBinaryOperator.Left);
+            IOperation right = Create(boundTupleBinaryOperator.Right);
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundTupleBinaryOperator.OperatorKind);
             SyntaxNode syntax = boundTupleBinaryOperator.Syntax;
-            ITypeSymbol type = boundTupleBinaryOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundTupleBinaryOperator.ConstantValue;
+            ITypeSymbol? type = boundTupleBinaryOperator.GetPublicTypeSymbol();
             bool isImplicit = boundTupleBinaryOperator.WasCompilerGenerated;
-            return new CSharpLazyTupleBinaryOperation(this, boundTupleBinaryOperator, operatorKind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new TupleBinaryOperation(operatorKind, left, right, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IConditionalOperation CreateBoundConditionalOperatorOperation(BoundConditionalOperator boundConditionalOperator)
         {
             IOperation condition = Create(boundConditionalOperator.Condition);

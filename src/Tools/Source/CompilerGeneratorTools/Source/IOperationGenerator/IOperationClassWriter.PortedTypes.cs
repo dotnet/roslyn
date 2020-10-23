@@ -69,6 +69,7 @@ namespace IOperationGenerator
             "IArgumentOperation",
             "ICatchClauseOperation",
             "ISwitchCaseOperation",
+            "ITupleBinaryOperation",
         };
     }
 }

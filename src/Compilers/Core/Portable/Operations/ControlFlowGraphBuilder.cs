@@ -2097,16 +2097,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                                             operation.OperatorMethod, ((BinaryOperation)operation).UnaryOperatorMethod, semanticModel: null,
                                                             operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
         }
-#nullable disable
 
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, int? captureIdForResult)
         {
             (IOperation visitedLeft, IOperation visitedRight) = VisitPreservingTupleOperations(operation.LeftOperand, operation.RightOperand);
             return new TupleBinaryOperation(operation.OperatorKind, visitedLeft, visitedRight,
-                semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
-#nullable enable
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, int? captureIdForResult)
         {
             if (IsBooleanLogicalNot(operation))

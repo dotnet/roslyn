@@ -2420,7 +2420,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ITupleBinaryOperation" Base="IOperation" VisitorName="VisitTupleBinaryOperator" ChildrenOrder="LeftOperand,RightOperand">
+  <Node Name="ITupleBinaryOperation" Base="IOperation" VisitorName="VisitTupleBinaryOperator" ChildrenOrder="LeftOperand,RightOperand" HasType="true">
     <OperationKind>
       <Entry Name="TupleBinary" Value="0x57" />
       <Entry Name="TupleBinaryOperator" Value="0x57" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;TupleBinary&quot;/&gt; instead." />

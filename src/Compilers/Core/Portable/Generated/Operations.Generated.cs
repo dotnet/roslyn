@@ -2801,6 +2801,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ISymbol DeclaredSymbol { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents a comparison of two operands that returns a bool type.
     /// <para>
@@ -2832,6 +2833,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation RightOperand { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a method body operation.
     /// <para>
@@ -6868,73 +6870,42 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitDeclarationPattern(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDeclarationPattern(this, argument);
     }
-    internal abstract partial class BaseTupleBinaryOperation : OperationOld, ITupleBinaryOperation
+    #nullable enable
+    internal sealed partial class TupleBinaryOperation : Operation, ITupleBinaryOperation
     {
-        internal BaseTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.TupleBinary, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal TupleBinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             OperatorKind = operatorKind;
+            LeftOperand = SetParentOperation(leftOperand, this);
+            RightOperand = SetParentOperation(rightOperand, this);
+            Type = type;
         }
         public BinaryOperatorKind OperatorKind { get; }
-        public abstract IOperation LeftOperand { get; }
-        public abstract IOperation RightOperand { get; }
+        public IOperation LeftOperand { get; }
+        public IOperation RightOperand { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (LeftOperand is object) yield return LeftOperand;
-                if (RightOperand is object) yield return RightOperand;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (LeftOperand is not null) builder.Add(LeftOperand);
+                    if (RightOperand is not null) builder.Add(RightOperand);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.TupleBinary;
         public override void Accept(OperationVisitor visitor) => visitor.VisitTupleBinaryOperator(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTupleBinaryOperator(this, argument);
     }
-    internal sealed partial class TupleBinaryOperation : BaseTupleBinaryOperation, ITupleBinaryOperation
-    {
-        internal TupleBinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            LeftOperand = SetParentOperation(leftOperand, this);
-            RightOperand = SetParentOperation(rightOperand, this);
-        }
-        public override IOperation LeftOperand { get; }
-        public override IOperation RightOperand { get; }
-    }
-    internal abstract partial class LazyTupleBinaryOperation : BaseTupleBinaryOperation, ITupleBinaryOperation
-    {
-        private IOperation _lazyLeftOperand = s_unset;
-        private IOperation _lazyRightOperand = s_unset;
-        internal LazyTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateLeftOperand();
-        public override IOperation LeftOperand
-        {
-            get
-            {
-                if (_lazyLeftOperand == s_unset)
-                {
-                    IOperation leftOperand = CreateLeftOperand();
-                    SetParentOperation(leftOperand, this);
-                    Interlocked.CompareExchange(ref _lazyLeftOperand, leftOperand, s_unset);
-                }
-                return _lazyLeftOperand;
-            }
-        }
-        protected abstract IOperation CreateRightOperand();
-        public override IOperation RightOperand
-        {
-            get
-            {
-                if (_lazyRightOperand == s_unset)
-                {
-                    IOperation rightOperand = CreateRightOperand();
-                    SetParentOperation(rightOperand, this);
-                    Interlocked.CompareExchange(ref _lazyRightOperand, rightOperand, s_unset);
-                }
-                return _lazyRightOperand;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseMethodBodyBaseOperation : OperationOld, IMethodBodyBaseOperation
     {
         protected BaseMethodBodyBaseOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8556,6 +8527,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (SwitchCaseOperation)operation;
             return new SwitchCaseOperation(VisitArray(internalOperation.Clauses), VisitArray(internalOperation.Body), internalOperation.Locals, Visit(internalOperation.Condition), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, object? argument)
+        {
+            var internalOperation = (TupleBinaryOperation)operation;
+            return new TupleBinaryOperation(internalOperation.OperatorKind, Visit(internalOperation.LeftOperand), Visit(internalOperation.RightOperand), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, object? argument)
         {
