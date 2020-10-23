@@ -3070,9 +3070,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
 
-            var namedTypeSymbol = comp.GlobalNamespace.GetTypeMember("A");
-            Assert.True(namedTypeSymbol.IsRecord);
-            Assert.Equal("class A", namedTypeSymbol
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
                 .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
