@@ -3181,6 +3181,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IPatternOperation Pattern { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a standalone VB query Aggregate operation with more than one item in Into clause.
     /// </summary>
@@ -3193,6 +3194,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Group { get; }
         IOperation Aggregation { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a C# fixed statement.
     /// </summary>
@@ -7474,69 +7476,40 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPropertySubpattern(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseAggregateQueryOperation : OperationOld, IAggregateQueryOperation
+    #nullable enable
+    internal sealed partial class AggregateQueryOperation : Operation, IAggregateQueryOperation
     {
-        internal BaseAggregateQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Group { get; }
-        public abstract IOperation Aggregation { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal AggregateQueryOperation(IOperation group, IOperation aggregation, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Group = SetParentOperation(group, this);
+            Aggregation = SetParentOperation(aggregation, this);
+            Type = type;
+        }
+        public IOperation Group { get; }
+        public IOperation Aggregation { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Group is object) yield return Group;
-                if (Aggregation is object) yield return Aggregation;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Group is not null) builder.Add(Group);
+                    if (Aggregation is not null) builder.Add(Aggregation);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.None;
         public override void Accept(OperationVisitor visitor) => visitor.VisitAggregateQuery(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitAggregateQuery(this, argument);
     }
-    internal sealed partial class AggregateQueryOperation : BaseAggregateQueryOperation, IAggregateQueryOperation
-    {
-        internal AggregateQueryOperation(IOperation group, IOperation aggregation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Group = SetParentOperation(group, this);
-            Aggregation = SetParentOperation(aggregation, this);
-        }
-        public override IOperation Group { get; }
-        public override IOperation Aggregation { get; }
-    }
-    internal abstract partial class LazyAggregateQueryOperation : BaseAggregateQueryOperation, IAggregateQueryOperation
-    {
-        private IOperation _lazyGroup = s_unset;
-        private IOperation _lazyAggregation = s_unset;
-        internal LazyAggregateQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateGroup();
-        public override IOperation Group
-        {
-            get
-            {
-                if (_lazyGroup == s_unset)
-                {
-                    IOperation group = CreateGroup();
-                    SetParentOperation(group, this);
-                    Interlocked.CompareExchange(ref _lazyGroup, group, s_unset);
-                }
-                return _lazyGroup;
-            }
-        }
-        protected abstract IOperation CreateAggregation();
-        public override IOperation Aggregation
-        {
-            get
-            {
-                if (_lazyAggregation == s_unset)
-                {
-                    IOperation aggregation = CreateAggregation();
-                    SetParentOperation(aggregation, this);
-                    Interlocked.CompareExchange(ref _lazyAggregation, aggregation, s_unset);
-                }
-                return _lazyAggregation;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseFixedOperation : OperationOld, IFixedOperation
     {
         internal BaseFixedOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8386,6 +8359,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (PropertySubpatternOperation)operation;
             return new PropertySubpatternOperation(Visit(internalOperation.Member), Visit(internalOperation.Pattern), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        internal override IOperation VisitAggregateQuery(IAggregateQueryOperation operation, object? argument)
+        {
+            var internalOperation = (AggregateQueryOperation)operation;
+            return new AggregateQueryOperation(Visit(internalOperation.Group), Visit(internalOperation.Aggregation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, object? argument)
         {

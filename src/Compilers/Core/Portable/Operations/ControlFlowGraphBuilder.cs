@@ -5066,6 +5066,7 @@ oneMoreTime:
             return new FlowCaptureReferenceOperation(id, underlying.Syntax, underlying.Type, underlying.GetConstantValue());
         }
 
+#nullable enable
         internal override IOperation VisitAggregateQuery(IAggregateQueryOperation operation, int? captureIdForResult)
         {
             SpillEvalStack();
@@ -5079,7 +5080,6 @@ oneMoreTime:
             return result;
         }
 
-#nullable enable
         public override IOperation? VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);

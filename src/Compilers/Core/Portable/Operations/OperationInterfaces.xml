@@ -2822,7 +2822,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IAggregateQueryOperation" Base="IOperation" Internal="true" ChildrenOrder="Group,Aggregation">
+  <Node Name="IAggregateQueryOperation" Base="IOperation" Internal="true" ChildrenOrder="Group,Aggregation" HasType="true">
     <Comments>
       <summary>Represents a standalone VB query Aggregate operation with more than one item in Into clause.</summary>
     </Comments>

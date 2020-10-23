@@ -495,27 +495,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyAggregateQueryOperation
-        Inherits LazyAggregateQueryOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _aggregateClause As BoundAggregateClause
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, aggregateClause As BoundAggregateClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _aggregateClause = aggregateClause
-        End Sub
-
-        Protected Overrides Function CreateGroup() As IOperation
-            Return _operationFactory.Create(_aggregateClause.CapturedGroupOpt)
-        End Function
-
-        Protected Overrides Function CreateAggregation() As IOperation
-            Return _operationFactory.Create(_aggregateClause.UnderlyingExpression)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyNoPiaObjectCreationOperation
         Inherits LazyNoPiaObjectCreationOperation
 

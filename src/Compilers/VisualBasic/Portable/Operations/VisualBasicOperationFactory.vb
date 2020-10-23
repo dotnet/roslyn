@@ -1626,11 +1626,12 @@ Namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(boundAggregateClause.GroupPlaceholderOpt IsNot Nothing)
             RecordParent(boundAggregateClause.GroupPlaceholderOpt, boundAggregateClause)
 
+            Dim group As IOperation = Create(boundAggregateClause.CapturedGroupOpt)
+            Dim aggregation As IOperation = Create(boundAggregateClause.UnderlyingExpression)
             Dim syntax As SyntaxNode = boundAggregateClause.Syntax
             Dim type As ITypeSymbol = boundAggregateClause.Type
-            Dim constantValue As ConstantValue = boundAggregateClause.ConstantValueOpt
             Dim isImplicit As Boolean = boundAggregateClause.WasCompilerGenerated
-            Return New VisualBasicLazyAggregateQueryOperation(Me, boundAggregateClause, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New AggregateQueryOperation(group, aggregation, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundNullableIsTrueOperator(boundNullableIsTrueOperator As BoundNullableIsTrueOperator) As IOperation
