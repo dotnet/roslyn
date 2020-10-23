@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected override IJsonRpcMessageFormatter CreateFormatter()
             => ConfigureFormatter((MessagePackFormatter)base.CreateFormatter());
 
-        private static readonly MessagePackSerializerOptions s_options = StandardResolverAllowPrivate.Options
+        internal static readonly MessagePackSerializerOptions Options = StandardResolverAllowPrivate.Options
             .WithSecurity(MessagePackSecurity.UntrustedData.WithHashCollisionResistant(false))
             .WithResolver(CompositeResolver.Create(
                 MessagePackFormatters.GetFormatters(),
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private static MessagePackFormatter ConfigureFormatter(MessagePackFormatter formatter)
         {
             // See https://github.com/neuecc/messagepack-csharp.
-            formatter.SetMessagePackSerializerOptions(s_options);
+            formatter.SetMessagePackSerializerOptions(Options);
             return formatter;
         }
 
@@ -82,10 +82,5 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal string GetFeatureDisplayName()
             => _featureDisplayNameProvider(Moniker.Name);
-
-        internal static class TestAccessor
-        {
-            public static MessagePackSerializerOptions Options => s_options;
-        }
     }
 }
