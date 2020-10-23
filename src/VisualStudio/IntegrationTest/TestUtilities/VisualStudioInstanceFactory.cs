@@ -42,6 +42,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         private static bool _firstLaunch = true;
 
+        private static string s_logDirectory;
+
         public VisualStudioInstanceFactory()
         {
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
@@ -52,6 +54,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 16.0 and later.");
             }
+
+            // Make sure the log directory exists
+            _ = GetLogDirectory();
+        }
+
+        private static string GetLogDirectory()
+        {
+            if (s_logDirectory is null)
+            {
+                var assemblyDirectory = GetAssemblyDirectory();
+                s_logDirectory = Path.Combine(assemblyDirectory, "xUnitResults");
+                Directory.CreateDirectory(s_logDirectory);
+            }
+
+            return s_logDirectory;
         }
 
         private static void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
@@ -67,9 +84,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 s_inHandler = true;
 
-                var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
+                var logDir = Path.Combine(GetLogDirectory(), "Screenshots");
                 var baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
 
                 var maxLength = logDir.Length + 1 + baseFileName.Length + ".Watson.log".Length + 1;
