@@ -205,7 +205,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     ' possible that there is semantic content in this block.
                     ' In VB some constructs are not "Blocks"  in the same way that they are in C#, but can contain multiple statements.
                     ' IsExecutableBlock maps the semantics of VB to match C# Block.
-                    ' If we are in what C# would define as a block we want to do semantic formatting
+                    ' If we are in what C# would define as a block we want to do semantic formatting for the statement and
+                    ' syntactic formating for the rest
 
                     ' Below defines the entire scope of the edit that possibility needs indenting changed
                     formattingInfo.UseSemantics = finalSpanStart <= startingStatementInfo.MatchingBlockConstruct.SpanStart
