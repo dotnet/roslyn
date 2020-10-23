@@ -1738,9 +1738,6 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Null<Compilation>();
         }
 
-        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(ProjectState projectState, CancellationToken cancellationToken)
-            => GetCompilationTracker(projectState.Id).GetGeneratorDriverRunResultAsync(this, cancellationToken);
-
         /// <summary>
         /// Return reference completeness for the given project and all projects this references.
         /// </summary>
@@ -1751,6 +1748,16 @@ namespace Microsoft.CodeAnalysis
             return project.SupportsCompilation
                 ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
                 : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
+        }
+
+        /// <summary>
+        /// Returns the generated document states for source generated documents.
+        /// </summary>
+        public Task<ImmutableArray<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
+        {
+            return project.SupportsCompilation
+                ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
+                : SpecializedTasks.EmptyImmutableArray<SourceGeneratedDocumentState>();
         }
 
         /// <summary>

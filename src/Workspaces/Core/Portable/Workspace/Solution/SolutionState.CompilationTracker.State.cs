@@ -26,8 +26,9 @@ namespace Microsoft.CodeAnalysis
                 /// The base <see cref="State"/> that starts with everything empty.
                 /// </summary>
                 public static readonly State Empty = new(
-                    compilation: null, declarationOnlyCompilation: null,
-                    generatorDriver: new TrackedGeneratorDriver(null),
+                    compilation: null,
+                    declarationOnlyCompilation: null,
+                    generatedDocuments: ImmutableArray<SourceGeneratedDocumentState>.Empty,
                     unrootedSymbolSet: null);
 
                 /// <summary>
@@ -44,7 +45,13 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public ValueSource<Optional<Compilation>>? Compilation { get; }
 
-                public TrackedGeneratorDriver GeneratorDriver { get; }
+                /// <summary>
+                /// The best generated documents we have for the current state. If this is a final state, then this should reflect
+                /// what is actually correct for the compilation. For an in-progress state, this may represent the generated documents
+                /// prior to the compilation being forked; in that case the generated documents could still be used if we are looking
+                /// to use an in-progress compilation that isn't entirely correct, but we will need to rerun the generators eventually.
+                /// </summary>
+                public ImmutableArray<SourceGeneratedDocumentState> GeneratedDocuments { get; }
 
                 /// <summary>
                 /// Weak set of the assembly, module and dynamic symbols that this compilation tracker has created.
@@ -70,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                 protected State(
                     ValueSource<Optional<Compilation>>? compilation,
                     Compilation? declarationOnlyCompilation,
-                    TrackedGeneratorDriver generatorDriver,
+                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
                     UnrootedSymbolSet? unrootedSymbolSet)
                 {
                     // Declaration-only compilations should never have any references
@@ -78,23 +85,22 @@ namespace Microsoft.CodeAnalysis
 
                     Compilation = compilation;
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
-                    GeneratorDriver = generatorDriver;
+                    GeneratedDocuments = generatedDocuments;
                     UnrootedSymbolSet = unrootedSymbolSet;
                 }
 
                 public static State Create(
                     Compilation compilation,
-                    TrackedGeneratorDriver generatorDriver,
+                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
                     ImmutableArray<ValueTuple<ProjectState, CompilationAndGeneratorDriverTranslationAction>> intermediateProjects)
                 {
-                    Contract.ThrowIfNull(compilation);
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
 
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now.
                     return intermediateProjects.Length == 0
-                        ? new FullDeclarationState(compilation, generatorDriver)
-                        : (State)new InProgressState(compilation, generatorDriver, intermediateProjects);
+                        ? new FullDeclarationState(compilation, generatedDocuments)
+                        : (State)new InProgressState(compilation, generatedDocuments, intermediateProjects);
                 }
 
                 public static ValueSource<Optional<Compilation>> CreateValueSource(
@@ -141,11 +147,11 @@ namespace Microsoft.CodeAnalysis
 
                 public InProgressState(
                     Compilation inProgressCompilation,
-                    TrackedGeneratorDriver inProgressGeneratorDriver,
+                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
-                           generatorDriver: inProgressGeneratorDriver,
+                           generatedDocuments,
                            GetUnrootedSymbols(inProgressCompilation))
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -160,10 +166,11 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class LightDeclarationState : State
             {
-                public LightDeclarationState(Compilation declarationOnlyCompilation)
+                public LightDeclarationState(Compilation declarationOnlyCompilation,
+                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments)
                     : base(compilation: null,
-                           declarationOnlyCompilation: declarationOnlyCompilation,
-                           generatorDriver: new TrackedGeneratorDriver(null),
+                           declarationOnlyCompilation,
+                           generatedDocuments,
                            unrootedSymbolSet: null)
                 {
                 }
@@ -175,10 +182,10 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class FullDeclarationState : State
             {
-                public FullDeclarationState(Compilation declarationCompilation, TrackedGeneratorDriver generatorDriver)
+                public FullDeclarationState(Compilation declarationCompilation, ImmutableArray<SourceGeneratedDocumentState> generatedDocuments)
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
                            declarationCompilation.Clone().RemoveAllReferences(),
-                           generatorDriver,
+                           generatedDocuments,
                            GetUnrootedSymbols(declarationCompilation))
                 {
                 }
@@ -199,24 +206,24 @@ namespace Microsoft.CodeAnalysis
                 /// consumes <see cref="Compilation"/> which will avoid generators being ran a second time on a compilation that
                 /// already contains the output of other generators. If source generators are not active, this is equal to <see cref="Compilation"/>.
                 /// </summary>
-                public override ValueSource<Optional<Compilation>>? FinalCompilation { get; }
+                public override ValueSource<Optional<Compilation>> FinalCompilation { get; }
 
                 public FinalState(
                     ValueSource<Optional<Compilation>> finalCompilationSource,
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
-                    TrackedGeneratorDriver generatorDriver,
                     bool hasSuccessfullyLoaded,
+                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
                     UnrootedSymbolSet? unrootedSymbolSet)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
-                           generatorDriver,
+                           generatedDocuments,
                            unrootedSymbolSet)
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilation = finalCompilationSource;
 
-                    if (generatorDriver.GeneratorDriver == null)
+                    if (GeneratedDocuments.IsEmpty)
                     {
                         // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
                         // same Compilation, which should be compilationWithoutGeneratedFiles itself

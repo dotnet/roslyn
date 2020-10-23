@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Solution _solution;
         private readonly ProjectState _projectState;
         private ImmutableHashMap<DocumentId, Document> _idToDocumentMap = ImmutableHashMap<DocumentId, Document>.Empty;
+        private ImmutableHashMap<DocumentId, SourceGeneratedDocument> _idToSourceGeneratedDocumentMap = ImmutableHashMap<DocumentId, SourceGeneratedDocument>.Empty;
         private ImmutableHashMap<DocumentId, AdditionalDocument> _idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, AdditionalDocument>.Empty;
         private ImmutableHashMap<DocumentId, AnalyzerConfigDocument> _idToAnalyzerConfigDocumentMap = ImmutableHashMap<DocumentId, AnalyzerConfigDocument>.Empty;
 
@@ -171,7 +173,8 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<DocumentId> AdditionalDocumentIds => _projectState.AdditionalDocumentIds;
 
         /// <summary>
-        /// All the documents associated with this project.
+        /// All the regular documents associated with this project. Documents produced from source generators are returned by
+        /// <see cref="GetSourceGeneratedDocumentsAsync(CancellationToken)"/>.
         /// </summary>
         public IEnumerable<Document> Documents => _projectState.DocumentIds.Select(GetDocument)!;
 
@@ -254,6 +257,19 @@ namespace Microsoft.CodeAnalysis
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToAnalyzerConfigDocumentMap, documentId, s_createAnalyzerConfigDocumentFunction, this);
         }
 
+        public async ValueTask<IEnumerable<SourceGeneratedDocument>> GetSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
+        {
+            var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
+            using var _ = ArrayBuilder<SourceGeneratedDocument>.GetInstance(generatedDocumentStates.Length, out var builder);
+
+            foreach (var generatedDocumentState in generatedDocumentStates)
+            {
+                builder.Add(ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, generatedDocumentState.Id, s_createSourceGeneratedDocumentFunction, (generatedDocumentState, this)));
+            }
+
+            return builder.ToImmutable();
+        }
+
         internal DocumentState? GetDocumentState(DocumentId documentId)
             => _projectState.GetDocumentState(documentId);
 
@@ -300,6 +316,12 @@ namespace Microsoft.CodeAnalysis
             var state = project._projectState.GetAnalyzerConfigDocumentState(documentId);
             Contract.ThrowIfNull(state);
             return new AnalyzerConfigDocument(project, state);
+        }
+
+        private static readonly Func<DocumentId, (SourceGeneratedDocumentState, Project), SourceGeneratedDocument> s_createSourceGeneratedDocumentFunction = CreateSourceGeneratedDocument;
+        private static SourceGeneratedDocument CreateSourceGeneratedDocument(DocumentId documentId, (SourceGeneratedDocumentState, Project) stateAndProject)
+        {
+            return new SourceGeneratedDocument(stateAndProject.Item2, stateAndProject.Item1);
         }
 
         /// <summary>
@@ -614,8 +636,5 @@ namespace Microsoft.CodeAnalysis
 
         internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
             => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
-
-        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(CancellationToken cancellationToken)
-            => _solution.State.GetGeneratorDriverRunResultAsync(_projectState, cancellationToken);
     }
 }

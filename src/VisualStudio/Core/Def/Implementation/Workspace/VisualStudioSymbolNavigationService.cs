@@ -73,19 +73,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var targetDocument = project.Solution.GetDocument(sourceLocation.SourceTree);
                 if (targetDocument != null)
                 {
-                    var editorWorkspace = targetDocument.Project.Solution.Workspace;
-                    var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
-                }
-                else
-                {
-                    // This may be a file from a source generator; if so let's go to it instead
-                    var generatorRunResult = project.GetGeneratorDriverRunResultAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-                    if (generatorRunResult.TryGetGeneratorAndHint(sourceLocation.SourceTree!, out var generator, out var hintName))
+                    if (targetDocument is SourceGeneratedDocument sourceGeneratedDocument)
                     {
-                        _sourceGeneratedFileManager.NavigateToSourceGeneratedFile(project, generator, hintName, sourceLocation.SourceSpan);
-                        return true;
+                        _sourceGeneratedFileManager.NavigateToSourceGeneratedFile(project, sourceGeneratedDocument.SourceGenerator, sourceGeneratedDocument.HintName, sourceLocation.SourceSpan);
+                    }
+                    else
+                    {
+                        var editorWorkspace = targetDocument.Project.Solution.Workspace;
+                        var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
+                        return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
                     }
                 }
             }
