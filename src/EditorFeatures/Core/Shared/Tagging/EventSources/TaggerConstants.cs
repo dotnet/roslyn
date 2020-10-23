@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal static class TaggerConstants
     {
-        internal const int NearImmediateDelay = 50;
+        internal const int ImmediateDelay = 50;
         internal const int ShortDelay = 250;
         internal const int MediumDelay = 500;
         internal const int IdleDelay = 1500;
@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             switch (behavior)
             {
-                case TaggerDelay.NearImmediate:
-                    return TimeSpan.FromMilliseconds(NearImmediateDelay);
+                case TaggerDelay.Immediate:
+                    return TimeSpan.FromMilliseconds(ImmediateDelay);
                 case TaggerDelay.Short:
                     return TimeSpan.FromMilliseconds(ShortDelay);
                 case TaggerDelay.Medium:

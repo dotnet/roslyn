@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var allSpans = NormalizedSnapshotSpanCollection.Union(currentSpans, changedSpans);
                 _snapshotVersionToSpansMap[version] = allSpans;
 
-                EnqueueNotificationRequest(TaggerDelay.NearImmediate);
+                EnqueueNotificationRequest(TaggerDelay.Immediate);
             }
 
             // We may get a flurry of 'Notify' calls if we've enqueued a lot of work and it's now just
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 var currentTick = Environment.TickCount;
-                if (Math.Abs(currentTick - _lastReportTick) > TaggerDelay.NearImmediate.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds)
+                if (Math.Abs(currentTick - _lastReportTick) > TaggerDelay.Immediate.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds)
                 {
                     _lastReportTick = currentTick;
                     this.NotifyEditor();

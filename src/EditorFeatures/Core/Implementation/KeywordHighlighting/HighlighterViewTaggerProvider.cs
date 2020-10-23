@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         {
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
-                TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer, TaggerDelay.Immediate),
+                TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.Immediate));
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<KeywordHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)

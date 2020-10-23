@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private void OnCaretMoved(object? sender, EventArgs e)
         {
             AssertIsForeground();
-            StartSelectedItemUpdateTask(delay: TaggerConstants.NearImmediateDelay, updateUIWhenDone: true);
+            StartSelectedItemUpdateTask(delay: TaggerConstants.ImmediateDelay, updateUIWhenDone: true);
         }
 
         private void OnViewFocused(object? sender, EventArgs e)

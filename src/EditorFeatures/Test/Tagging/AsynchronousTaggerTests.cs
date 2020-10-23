@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         private sealed class TestTaggerEventSource : AbstractTaggerEventSource
         {
             public TestTaggerEventSource()
-                : base(delay: TaggerDelay.NearImmediate)
+                : base(delay: TaggerDelay.Immediate)
             {
             }
 

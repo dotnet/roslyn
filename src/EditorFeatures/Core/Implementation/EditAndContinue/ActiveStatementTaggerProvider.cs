@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             return TaggerEventSources.Compose(
                 new EventSource(subjectBuffer, TaggerDelay.Short),
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.Immediate),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 

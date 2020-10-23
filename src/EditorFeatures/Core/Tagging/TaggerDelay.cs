@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// expects the tag immediately after typing a character or moving the caret, then this
         /// delay should be used.
         /// </summary>
-        NearImmediate,
+        Immediate,
 
         /// <summary>
         /// Not as fast as NearImmediate.  A user typing quickly or navigating quickly should not
