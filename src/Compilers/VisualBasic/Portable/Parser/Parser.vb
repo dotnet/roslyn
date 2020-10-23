@@ -4188,8 +4188,6 @@ checkNullable:
                     Dim unexpected = ResyncAt({SyntaxKind.AsKeyword, SyntaxKind.ImplementsKeyword, SyntaxKind.EqualsToken})
                     If unexpected.Count > 0 Then
                         closeParen = closeParen.AddTrailingSyntax(unexpected, ERRID.ERR_ExpectedEOS)
-                    Else
-                        closeParen = closeParen.AddTrailingSyntax(unexpected)
                     End If
                 End If
 
