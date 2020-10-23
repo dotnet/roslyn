@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             UseVarPreference stylePreferences,
             ExpressionSyntax initializerExpression,
             SemanticModel semanticModel,
-            ITypeSymbol typeInDeclaration,
+            ITypeSymbol? typeInDeclaration,
             CancellationToken cancellationToken)
         {
             // tuple literals
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         }
 
         private static bool IsPossibleCreationOrConversionMethod(IMethodSymbol methodSymbol,
-            ITypeSymbol typeInDeclaration,
+            ITypeSymbol? typeInDeclaration,
             SemanticModel semanticModel,
             ExpressionSyntax containingTypeName,
             CancellationToken cancellationToken)
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// e.g: int.Parse, XElement.Load, Tuple.Create etc.
         /// </summary>
         private static bool IsPossibleCreationMethod(IMethodSymbol methodSymbol,
-            ITypeSymbol typeInDeclaration,
+            ITypeSymbol? typeInDeclaration,
             ITypeSymbol containingType)
         {
             if (!methodSymbol.IsStatic)
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// otherwise, we match for type equivalence
         /// </remarks>
         private static bool IsContainerTypeEqualToReturnType(IMethodSymbol methodSymbol,
-            ITypeSymbol typeInDeclaration,
+            ITypeSymbol? typeInDeclaration,
             ITypeSymbol containingType)
         {
             var returnType = UnwrapTupleType(methodSymbol.ReturnType);

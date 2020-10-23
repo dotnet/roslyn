@@ -508,6 +508,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
             {
                 var result = base.VisitInvocationExpression(node);
+                RoslynDebug.AssertNotNull(result);
+
                 if (_invocationExpressionsNeedingConflictChecks.Contains(node))
                 {
                     var renameAnnotation = GetAnnotationForInvocationExpression(node);

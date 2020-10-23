@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determines if this node or token has the specific annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             if (_token != null)
             {

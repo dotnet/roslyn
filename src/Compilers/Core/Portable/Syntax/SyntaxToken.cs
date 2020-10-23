@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if this token has the specified annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             return Node?.HasAnnotation(annotation) ?? false;
         }
