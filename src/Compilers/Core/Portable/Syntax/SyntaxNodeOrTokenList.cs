@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxNodeOrTokenList);
             }
 
-            var newGreen = GreenNode.CreateList(items, static n => n.UnderlyingNode!)!;
+            var newGreen = GreenNode.CreateList(items, static n => n.RequiredUnderlyingNode)!;
             if (newGreen.IsToken)
             {
                 newGreen = Syntax.InternalSyntax.SyntaxList.List(new[] { newGreen });

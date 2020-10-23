@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis
          * There are 3 overloads of this, because most callers already know what they have is a List<T> and only transform it.
          * In those cases List<TFrom> performs much better.
          * In other cases, the type is unknown / is IEnumerable<T>, where we try to find the best match.
-         * There is another overload for IROList, since most collections already implement this, so checking for it will
+         * There is another overload for IReadOnlyList, since most collections already implement this, so checking for it will
          * perform better then copying to a List<T>, though not as good as List<T> directly.
          */
         public static GreenNode? CreateList<TFrom>(IEnumerable<TFrom>? enumerable, Func<TFrom, GreenNode> select)
