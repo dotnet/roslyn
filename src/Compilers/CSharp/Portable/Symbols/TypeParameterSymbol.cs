@@ -688,5 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
             return new PublicModel.TypeParameterSymbol(this, nullableAnnotation);
         }
+
+        internal override bool IsRecord => false;
     }
 }

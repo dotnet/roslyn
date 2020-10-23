@@ -11,8 +11,14 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal class RemoteAsynchronousOperationListenerService : BrokeredServiceBase, IRemoteAsynchronousOperationListenerService
+    internal sealed class RemoteAsynchronousOperationListenerService : BrokeredServiceBase, IRemoteAsynchronousOperationListenerService
     {
+        internal sealed class Factory : FactoryBase<IRemoteAsynchronousOperationListenerService>
+        {
+            protected override IRemoteAsynchronousOperationListenerService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteAsynchronousOperationListenerService(in arguments);
+        }
+
         public RemoteAsynchronousOperationListenerService(in ServiceConstructionArguments arguments)
             : base(in arguments)
         {
@@ -49,12 +55,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 await listenerProvider.WaitAllAsync(workspace, featureNames.ToArray()).ConfigureAwait(false);
             }, cancellationToken);
-        }
-
-        internal sealed class Factory : FactoryBase<IRemoteAsynchronousOperationListenerService>
-        {
-            protected override IRemoteAsynchronousOperationListenerService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteAsynchronousOperationListenerService(in arguments);
         }
     }
 }

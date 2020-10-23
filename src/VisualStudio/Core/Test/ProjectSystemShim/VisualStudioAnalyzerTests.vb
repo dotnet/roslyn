@@ -58,17 +58,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, registrationService)
 
             Dim file = Path.GetTempFileName()
-            Dim eventHandler = New EventHandlers(file)
-
-            AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
 
             Using workspace = New TestWorkspace(composition:=composition)
+                Dim eventHandler = New EventHandlers(file, workspace)
+                AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
+
                 Using analyzer = New VisualStudioAnalyzer(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
                     Dim reference = analyzer.GetReference()
                     reference.GetAnalyzers(LanguageNames.VisualBasic)
 
-                    RemoveHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
-                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticRemovedTest
+                    RemoveHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf EventHandler.DiagnosticAddedTest
+                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf EventHandler.DiagnosticRemovedTest
                 End Using
 
                 IO.File.Delete(file)
@@ -77,20 +77,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         Private Class EventHandlers
             Public File As String
+            Private ReadOnly _workspace As Workspace
 
-            Public Sub New(file As String)
+            Public Sub New(file As String, workspace As Workspace)
                 Me.File = file
+                _workspace = workspace
             End Sub
 
             Public Sub DiagnosticAddedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Assert.Equal(1, e.Diagnostics.Length)
-                Dim diagnostic As DiagnosticData = e.Diagnostics.First()
+                Dim diagnostics = e.GetDiagnostics(_workspace, forPullDiagnostics:=False)
+                Assert.Equal(1, diagnostics.Length)
+                Dim diagnostic As DiagnosticData = diagnostics.First()
                 Assert.Equal("BC42378", diagnostic.Id)
                 Assert.Contains(File, diagnostic.Message, StringComparison.Ordinal)
             End Sub
 
             Public Sub DiagnosticRemovedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Assert.Equal(0, e.Diagnostics.Length)
+                Dim diagnostics = e.GetDiagnostics(_workspace, forPullDiagnostics:=False)
+                Assert.Equal(0, diagnostics.Length)
             End Sub
         End Class
 

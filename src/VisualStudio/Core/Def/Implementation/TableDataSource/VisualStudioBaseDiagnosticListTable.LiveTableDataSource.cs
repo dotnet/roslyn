@@ -159,7 +159,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
-                foreach (var bucket in diagnosticService.GetDiagnosticBuckets(workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None))
+                var diagnostics = diagnosticService.GetDiagnosticBuckets(
+                    workspace, projectId: null, documentId: null, forPullDiagnostics: false, cancellationToken: CancellationToken.None);
+
+                foreach (var bucket in diagnostics)
                 {
                     // We only need to issue an event to VS that these docs have diagnostics associated with them.  So
                     // we create a dummy notification for this.  It doesn't matter that it is 'DiagnosticsRemoved' as
@@ -172,20 +175,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(a), e, CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(_workspace, a), e, CancellationToken.None))
                 {
                     if (_workspace != e.Workspace)
                     {
                         return;
                     }
 
-                    if (e.Diagnostics.Length == 0)
+                    var diagnostics = e.GetDiagnostics(_workspace, forPullDiagnostics: false);
+                    if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
                         return;
                     }
 
-                    var count = e.Diagnostics.Where(ShouldInclude).Count();
+                    var count = diagnostics.Where(ShouldInclude).Count();
                     if (count <= 0)
                     {
                         OnDataRemoved(e);
@@ -284,7 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
                     var provider = _source._diagnosticService;
-                    var items = provider.GetDiagnostics(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, cancellationToken: CancellationToken.None)
+                    var items = provider.GetDiagnostics(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, forPullDiagnostics: false, cancellationToken: CancellationToken.None)
                                         .Where(ShouldInclude)
                                         .Select(data => DiagnosticTableItem.Create(_workspace, data));
 
@@ -563,7 +567,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 #endregion
             }
 
-            private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
+            private static string GetDiagnosticUpdatedMessage(Workspace workspace, DiagnosticsUpdatedArgs e)
             {
                 var id = e.Id.ToString();
                 if (e.Id is LiveDiagnosticUpdateArgsId live)
@@ -575,7 +579,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     id = analyzer.Analyzer.ToString();
                 }
 
-                return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, e.Diagnostics)})";
+                var diagnostics = e.GetDiagnostics(workspace, forPullDiagnostics: false);
+                return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, diagnostics)})";
             }
         }
     }

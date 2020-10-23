@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Rename
                         var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
                             solution,
                             (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, cancellationToken),
-                            callbackTarget: null,
                             cancellationToken).ConfigureAwait(false);
 
                         if (result.HasValue && result.Value != null)

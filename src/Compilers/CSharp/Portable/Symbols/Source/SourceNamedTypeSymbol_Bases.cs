@@ -183,7 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 continue;
                             }
 
+                            // InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics populates the set with interfaces that match by CLR signature.
                             Debug.Assert(!other.Equals(@interface, TypeCompareKind.ConsiderEverything));
+                            Debug.Assert(other.Equals(@interface, TypeCompareKind.CLRSignatureCompareOptions));
 
                             if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
@@ -195,6 +197,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, location, @interface, other, this);
                             }
                         }
                     }
