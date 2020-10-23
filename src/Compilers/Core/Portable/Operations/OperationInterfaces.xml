@@ -2850,7 +2850,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="INoPiaObjectCreationOperation" Base="IOperation" Internal="true">
+  <Node Name="INoPiaObjectCreationOperation" Base="IOperation" Internal="true" HasType="true">
     <Comments>
       <summary>
         Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
@@ -2861,7 +2861,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">
+    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation?">
       <Comments>
         <summary>Object or collection initializer, if any.</summary>
       </Comments>

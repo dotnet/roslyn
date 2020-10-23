@@ -3219,6 +3219,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Body { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
     /// <para>
@@ -3236,8 +3237,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Object or collection initializer, if any.
         /// </summary>
-        IObjectOrCollectionInitializerOperation Initializer { get; }
+        IObjectOrCollectionInitializerOperation? Initializer { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents a general placeholder when no more specific kind of placeholder is available.
@@ -7547,50 +7549,37 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitFixed(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseNoPiaObjectCreationOperation : OperationOld, INoPiaObjectCreationOperation
+    #nullable enable
+    internal sealed partial class NoPiaObjectCreationOperation : Operation, INoPiaObjectCreationOperation
     {
-        internal BaseNoPiaObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IObjectOrCollectionInitializerOperation Initializer { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal NoPiaObjectCreationOperation(IObjectOrCollectionInitializerOperation? initializer, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Initializer = SetParentOperation(initializer, this);
+            Type = type;
+        }
+        public IObjectOrCollectionInitializerOperation? Initializer { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Initializer is object) yield return Initializer;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Initializer is not null) builder.Add(Initializer);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.None;
         public override void Accept(OperationVisitor visitor) => visitor.VisitNoPiaObjectCreation(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitNoPiaObjectCreation(this, argument);
     }
-    internal sealed partial class NoPiaObjectCreationOperation : BaseNoPiaObjectCreationOperation, INoPiaObjectCreationOperation
-    {
-        internal NoPiaObjectCreationOperation(IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Initializer = SetParentOperation(initializer, this);
-        }
-        public override IObjectOrCollectionInitializerOperation Initializer { get; }
-    }
-    internal abstract partial class LazyNoPiaObjectCreationOperation : BaseNoPiaObjectCreationOperation, INoPiaObjectCreationOperation
-    {
-        private IObjectOrCollectionInitializerOperation _lazyInitializer = s_unsetObjectOrCollectionInitializer;
-        internal LazyNoPiaObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
-        public override IObjectOrCollectionInitializerOperation Initializer
-        {
-            get
-            {
-                if (_lazyInitializer == s_unsetObjectOrCollectionInitializer)
-                {
-                    IObjectOrCollectionInitializerOperation initializer = CreateInitializer();
-                    SetParentOperation(initializer, this);
-                    Interlocked.CompareExchange(ref _lazyInitializer, initializer, s_unsetObjectOrCollectionInitializer);
-                }
-                return _lazyInitializer;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class PlaceholderOperation : Operation, IPlaceholderOperation
     {
@@ -8339,6 +8328,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (FixedOperation)operation;
             return new FixedOperation(internalOperation.Locals, Visit(internalOperation.Variables), Visit(internalOperation.Body), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        internal override IOperation VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, object? argument)
+        {
+            var internalOperation = (NoPiaObjectCreationOperation)operation;
+            return new NoPiaObjectCreationOperation(Visit(internalOperation.Initializer), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, object? argument)
         {

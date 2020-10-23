@@ -828,12 +828,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateNoPiaObjectCreationExpressionOperation(creation As BoundNoPiaObjectCreationExpression) As INoPiaObjectCreationOperation
-            Dim initializer As BoundNode = creation.InitializerOpt
+            Dim initializer As IObjectOrCollectionInitializerOperation = DirectCast(Create(creation.InitializerOpt), IObjectOrCollectionInitializerOperation)
             Dim syntax As SyntaxNode = creation.Syntax
             Dim type As ITypeSymbol = creation.Type
-            Dim constantValue As ConstantValue = creation.ConstantValueOpt
             Dim isImplicit As Boolean = creation.WasCompilerGenerated
-            Return New VisualBasicLazyNoPiaObjectCreationOperation(Me, initializer, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New NoPiaObjectCreationOperation(initializer, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundArrayCreationOperation(boundArrayCreation As BoundArrayCreation) As IArrayCreationOperation

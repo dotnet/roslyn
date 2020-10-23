@@ -1281,19 +1281,16 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundNewT.WasCompilerGenerated;
             return new TypeParameterObjectCreationOperation(initializer, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private INoPiaObjectCreationOperation CreateNoPiaObjectCreationExpressionOperation(BoundNoPiaObjectCreationExpression creation)
         {
-            BoundNode initializer = creation.InitializerExpressionOpt;
+            IObjectOrCollectionInitializerOperation? initializer = (IObjectOrCollectionInitializerOperation?)Create(creation.InitializerExpressionOpt);
             SyntaxNode syntax = creation.Syntax;
-            ITypeSymbol type = creation.GetPublicTypeSymbol();
-            ConstantValue constantValue = creation.ConstantValue;
+            ITypeSymbol? type = creation.GetPublicTypeSymbol();
             bool isImplicit = creation.WasCompilerGenerated;
-            return new CSharpLazyNoPiaObjectCreationOperation(this, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new NoPiaObjectCreationOperation(initializer, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IUnaryOperation CreateBoundUnaryOperatorOperation(BoundUnaryOperator boundUnaryOperator)
         {
             UnaryOperatorKind unaryOperatorKind = Helper.DeriveUnaryOperatorKind(boundUnaryOperator.OperatorKind);

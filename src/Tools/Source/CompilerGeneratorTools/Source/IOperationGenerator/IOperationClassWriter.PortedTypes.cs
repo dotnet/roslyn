@@ -78,6 +78,7 @@ namespace IOperationGenerator
             "IPropertySubpatternOperation",
             "IAggregateQueryOperation",
             "IFixedOperation",
+            "INoPiaObjectCreationOperation",
         };
     }
 }
