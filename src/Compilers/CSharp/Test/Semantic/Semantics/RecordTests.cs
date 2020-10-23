@@ -18718,7 +18718,7 @@ record R : Base
 
         [Fact]
         [WorkItem(48723, "https://github.com/dotnet/roslyn/issues/48723")]
-        public void EqualityContract_27_GetterAndSetterProperty_()
+        public void EqualityContract_27_GetterAndSetterProperty_ExplicitlyOverridden()
         {
             var src = @"
 _ = new R() == new R2();
