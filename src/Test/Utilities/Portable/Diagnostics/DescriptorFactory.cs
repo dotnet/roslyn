@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
@@ -24,12 +25,14 @@ namespace Roslyn.Test.Utilities
         /// - <see cref="WellKnownDiagnosticTags.NotConfigurable"/> custom tag added in <see cref="DiagnosticDescriptor.CustomTags"/>.
         /// </remarks>
         /// <param name="id">The value for <see cref="DiagnosticDescriptor.Id"/>.</param>
+        /// <param name="additionalCustomTags">Additional custom tags</param>
         /// <returns>A <see cref="DiagnosticDescriptor"/> with specified <see cref="DiagnosticDescriptor.Id"/>.</returns>
-        public static DiagnosticDescriptor CreateSimpleDescriptor(string id)
+        public static DiagnosticDescriptor CreateSimpleDescriptor(string id, params string[] additionalCustomTags)
         {
+            var customTags = additionalCustomTags.Concat(WellKnownDiagnosticTags.NotConfigurable).AsArray();
             return new DiagnosticDescriptor(id, title: "", messageFormat: id, category: "",
                 defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: true,
-                customTags: WellKnownDiagnosticTags.NotConfigurable);
+                customTags: customTags);
         }
     }
 }
