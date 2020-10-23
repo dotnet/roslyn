@@ -50,6 +50,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         /// </summary>
         private readonly TaskQueue _taskQueue;
 
+        /// <summary>
+        /// Task queue to serialize all the post-build and post error list refresh tasks.
+        /// Error list refresh requires build/live diagnostics de-duping to complete, which happens during
+        /// <see cref="SyncBuildErrorsAndReportOnBuildCompletedAsync(DiagnosticAnalyzerService, InProgressState, CancellationToken)"/>.
+        /// Computationally expensive tasks such as writing build errors into persistent storage,
+        /// invoking background analysis on open files/solution after build completes, etc.
+        /// are added to this task queue to help ensure faster error list refresh.
+        /// </summary>
+        private readonly TaskQueue _postBuildAndErrorListRefreshTaskQueue;
+
         // Gate for concurrent access and fields guarded with this gate.
         private readonly object _gate = new();
         private InProgressState? _stateDoNotAccessDirectly;
@@ -84,6 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             // use queue to serialize work. no lock needed
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
+            _postBuildAndErrorListRefreshTaskQueue = new TaskQueue(listener, TaskScheduler.Default);
             _disposalToken = disposalToken;
 
             _workspace = workspace;
@@ -212,17 +223,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
+            // Clear relevant build-only errors on workspace events such as solution added/removed/reloaded,
+            // project added/removed/reloaded, etc.
             switch (e.Kind)
             {
                 case WorkspaceChangeKind.SolutionAdded:
-                    _taskQueue.ScheduleTask("OnSolutionAdded", async () =>
-                    {
-                        e.OldSolution.ProjectIds.Do(p => ClearBuildOnlyProjectErrors(e.OldSolution, p));
-                        if (_diagnosticService is DiagnosticAnalyzerService diagnosticAnalyzerService)
-                        {
-                            await diagnosticAnalyzerService.InitializeSynchronizationStateWithBuildAsync(e.NewSolution, _disposalToken).ConfigureAwait(false);
-                        }
-                    }, _disposalToken);
+                    _taskQueue.ScheduleTask("OnSolutionAdded", () => e.OldSolution.ProjectIds.Do(p => ClearBuildOnlyProjectErrors(e.OldSolution, p)), _disposalToken);
                     break;
 
                 case WorkspaceChangeKind.SolutionRemoved:
@@ -276,32 +282,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             // Enqueue build/live sync in the queue.
             _taskQueue.ScheduleTask("OnSolutionBuild", async () =>
             {
-                // nothing to do
-                if (inProgressState == null)
+                try
                 {
-                    return;
+                    // nothing to do
+                    if (inProgressState == null)
+                    {
+                        return;
+                    }
+
+                    // Explicitly start solution crawler if it didn't start yet. since solution crawler is lazy, 
+                    // user might have built solution before workspace fires its first event yet (which is when solution crawler is initialized)
+                    // here we give initializeLazily: false so that solution crawler is fully initialized when we do de-dup live and build errors,
+                    // otherwise, we will think none of error we have here belong to live errors since diagnostic service is not initialized yet.
+                    var registrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+                    registrationService.EnsureRegistration(_workspace, initializeLazily: false);
+
+                    // Mark the status as updated to refresh error list before we invoke 'SyncBuildErrorsAndReportAsync', which can take some time to complete.
+                    OnBuildProgressChanged(inProgressState, BuildProgress.Updated);
+
+                    // We are about to update live analyzer data using one from build.
+                    // pause live analyzer
+                    using var operation = _notificationService.Start("BuildDone");
+                    if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
+                    {
+                        await SyncBuildErrorsAndReportOnBuildCompletedAsync(diagnosticService, inProgressState, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    // Mark build as complete.
+                    OnBuildProgressChanged(inProgressState, BuildProgress.Done);
                 }
-
-                // Explicitly start solution crawler if it didn't start yet. since solution crawler is lazy, 
-                // user might have built solution before workspace fires its first event yet (which is when solution crawler is initialized)
-                // here we give initializeLazily: false so that solution crawler is fully initialized when we do de-dup live and build errors,
-                // otherwise, we will think none of error we have here belong to live errors since diagnostic service is not initialized yet.
-                var registrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                registrationService.EnsureRegistration(_workspace, initializeLazily: false);
-
-                // Mark the status as updated to refresh error list before we invoke 'SyncBuildErrorsAndReportAsync', which can take some time to complete.
-                OnBuildProgressChanged(inProgressState, BuildProgress.Updated);
-
-                // We are about to update live analyzer data using one from build.
-                // pause live analyzer
-                using var operation = _notificationService.Start("BuildDone");
-                if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
+                finally
                 {
-                    await SyncBuildErrorsAndReportOnBuildCompletedAsync(diagnosticService, inProgressState, cancellationToken).ConfigureAwait(false);
+                    await _postBuildAndErrorListRefreshTaskQueue.LastScheduledTask.ConfigureAwait(false);
                 }
-
-                // Mark build as complete.
-                OnBuildProgressChanged(inProgressState, BuildProgress.Done);
             }, cancellationToken);
         }
 
@@ -336,7 +349,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             // Report pending live errors
-            await diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, onBuildCompleted: true, cancellationToken).ConfigureAwait(false);
+            await diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, _postBuildAndErrorListRefreshTaskQueue, onBuildCompleted: true, cancellationToken).ConfigureAwait(false);
         }
 
         private void ReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
@@ -446,7 +459,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 // make those errors live errors
                 var map = ProjectErrorMap.Empty.Add(projectId, diagnostics);
-                await diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, onBuildCompleted: false, cancellationToken).ConfigureAwait(false);
+                await diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, _postBuildAndErrorListRefreshTaskQueue, onBuildCompleted: false, cancellationToken).ConfigureAwait(false);
             }
         }
 
