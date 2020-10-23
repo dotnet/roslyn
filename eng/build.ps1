@@ -573,7 +573,7 @@ function Setup-IntegrationTestRun() {
     Capture-Screenshot $screenshotPath
   }
 
-  $env:ServiceHubTraceLevel = "Information"
+  $env:ServiceHubTraceLevel = "All"
   $env:ROSLYN_OOP64BIT = "$oop64bit"
 }
 
