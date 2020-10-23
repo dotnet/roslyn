@@ -938,10 +938,12 @@ End Enum
     Public Sub ParseTrailingTextAfterPropertyWithParentheses()
         ParseAndVerify(<![CDATA[
 Class C
-    Public ReadOnly Property NumberOfResult() String Integer JohnDoe WwwIIWww Wow
+    Public ReadOnly Property NumberOfResult1() String Integer JohnDoe WwwIIWww Wow
+    Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
 End Class
 ]]>,
 <errors>
+    <error id="30205"/>
     <error id="30205"/>
 </errors>)
     End Sub
