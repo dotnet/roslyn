@@ -4600,5 +4600,92 @@ class D : B
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateWithLambda1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class A
+{
+    void M()
+    {
+        Delta d1 = new [|Delta|](x => x.Length, 3);
+    }
+}
+
+class Delta
+{
+    public Delta(Func<string, int> f)
+    {
+    }
+}",
+@"using System;
+
+class A
+{
+    void M()
+    {
+        Delta d1 = new Delta(x => x.Length, 3);
+    }
+}
+
+class Delta
+{
+    private int v;
+
+    public Delta(Func<string, int> f)
+    {
+    }
+
+    public Delta(Func<string, int> f, int v) : this(f)
+    {
+        this.v = v;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateWithLambda2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class A
+{
+    public A(Func<string, int> f) { }
+
+    void M()
+    {
+        Delta d1 = new [|Delta|](x => x.Length, 3);
+    }
+}
+
+class Delta : A
+{
+}",
+@"using System;
+
+class A
+{
+    public A(Func<string, int> f) { }
+
+    void M()
+    {
+        Delta d1 = new Delta(x => x.Length, 3);
+    }
+}
+
+class Delta : A
+{
+    private int v;
+
+    public Delta(Func<string, int> f, int v) : base(f)
+    {
+        this.v = v;
+    }
+}");
+        }
     }
 }
