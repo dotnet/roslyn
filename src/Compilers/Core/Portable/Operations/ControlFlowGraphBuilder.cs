@@ -1998,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             Debug.Assert(index >= 0 && index < args.Length);
             var originalArgument = (ArgumentOperation)args[index];
-            return new ArgumentOperation(originalArgument.ArgumentKind,originalArgument.Parameter, visitedArgument, 
+            return new ArgumentOperation(originalArgument.ArgumentKind, originalArgument.Parameter, visitedArgument,
                                          originalArgument.InConversionConvertible, originalArgument.OutConversionConvertible,
                                          semanticModel: null, originalArgument.Syntax, IsImplicit(originalArgument));
         }
