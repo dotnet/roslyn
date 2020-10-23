@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                     stream.Position = 0;
                     using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
-                    results.Add((checksum, deserializerService.Deserialize<object>(data.GetWellKnownSynchronizationKind(), reader, cancellationToken)));
+                    var asset = deserializerService.Deserialize<object>(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
+                    Contract.ThrowIfTrue(asset is null);
+                    results.Add((checksum, asset));
                 }
                 else
                 {
@@ -51,10 +53,10 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 }
             }
 
-            return new ValueTask<ImmutableArray<(Checksum, object)>>(results.ToImmutableArray());
+            return ValueTaskFactory.FromResult(results.ToImmutableArray());
         }
 
         public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => new ValueTask<bool>(false);
+            => ValueTaskFactory.FromResult(false);
     }
 }

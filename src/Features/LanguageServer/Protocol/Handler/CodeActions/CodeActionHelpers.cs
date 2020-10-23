@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -57,6 +58,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
                     if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
+                    {
+                        continue;
+                    }
+
+                    // TO-DO: Re-enable code actions involving package manager once supported by LSP.
+                    // https://github.com/dotnet/roslyn/issues/48698
+                    if (suggestedAction.OriginalCodeAction.Tags.Equals(WellKnownTagArrays.NuGet))
                     {
                         continue;
                     }

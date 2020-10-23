@@ -673,7 +673,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var eventArgs = _emitDiagnosticsUpdated.Single();
                 Assert.Null(eventArgs.DocumentId);
                 Assert.Equal(project.Id, eventArgs.ProjectId);
-                AssertEx.Equal(new[] { "ENC1001" }, eventArgs.Diagnostics.Select(d => d.Id));
+
+                var diagnostics1 = eventArgs.GetDiagnostics(workspace, forPullDiagnostics: false);
+                AssertEx.Equal(new[] { "ENC1001" }, diagnostics1.Select(d => d.Id));
                 _emitDiagnosticsUpdated.Clear();
                 _emitDiagnosticsClearedCount = 0;
 
@@ -748,8 +750,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var eventArgs = _emitDiagnosticsUpdated.Single();
             Assert.Null(eventArgs.DocumentId);
             Assert.Equal(project.Id, eventArgs.ProjectId);
+
+            var diagnostics1 = eventArgs.GetDiagnostics(workspace, forPullDiagnostics: false);
             AssertEx.Equal(new[] { "Warning ENC1006: " + string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path) },
-                eventArgs.Diagnostics.Select(d => $"{d.Severity} {d.Id}: {d.Message}"));
+                diagnostics1.Select(d => $"{d.Severity} {d.Id}: {d.Message}"));
 
             _emitDiagnosticsUpdated.Clear();
             _emitDiagnosticsClearedCount = 0;
@@ -817,8 +821,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var eventArgs = _emitDiagnosticsUpdated.Single();
             Assert.Null(eventArgs.DocumentId);
             Assert.Equal(project.Id, eventArgs.ProjectId);
+
+            var diagnostics1 = eventArgs.GetDiagnostics(workspace, forPullDiagnostics: false);
             AssertEx.Equal(new[] { "Warning ENC1006: " + string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path) },
-                eventArgs.Diagnostics.Select(d => $"{d.Severity} {d.Id}: {d.Message}"));
+                diagnostics1.Select(d => $"{d.Severity} {d.Id}: {d.Message}"));
 
             _emitDiagnosticsUpdated.Clear();
             _emitDiagnosticsClearedCount = 0;
@@ -884,9 +890,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             Assert.Empty(deltas);
 
+            var diagnostics3 = _emitDiagnosticsUpdated.Single().GetDiagnostics(workspace, forPullDiagnostics: false);
             AssertEx.Equal(
                 new[] { "ENC2123: " + string.Format(FeaturesResources.EditAndContinueDisallowedByProject, "Test", "*message*") },
-                _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
+                diagnostics3.Select(d => $"{d.Id}: {d.Message}"));
 
             service.EndEditSession();
             service.EndDebuggingSession();
@@ -961,8 +968,9 @@ class C1
                 Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
                 Assert.Empty(deltas);
 
+                var diagnostics2 = _emitDiagnosticsUpdated.Single().GetDiagnostics(workspace, forPullDiagnostics: false);
                 AssertEx.Equal(new[] { "ENC2123: " + string.Format(FeaturesResources.EditAndContinueDisallowedByProject, "Test", "*message*") },
-                    _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
+                    diagnostics2.Select(d => $"{d.Id}: {d.Message}"));
 
                 service.EndEditSession();
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
@@ -1120,9 +1128,10 @@ class C1
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
             Assert.Empty(deltas);
 
+            var diagnostics1 = _emitDiagnosticsUpdated.Single().GetDiagnostics(workspace, forPullDiagnostics: false);
             AssertEx.Equal(
                 new[] { "ENC1005: " + string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path) },
-                _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
+                diagnostics1.Select(d => $"{d.Id}: {d.Message}"));
 
             _emitDiagnosticsUpdated.Clear();
             _emitDiagnosticsClearedCount = 0;
@@ -1357,7 +1366,8 @@ class C1
 
             // TODO: https://github.com/dotnet/roslyn/issues/36061
             // Semantic errors should not be reported in emit diagnostics.
-            AssertEx.Equal(new[] { "CS0266" }, _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => d.Id));
+            var diagnostics2 = _emitDiagnosticsUpdated.Single().GetDiagnostics(workspace, forPullDiagnostics: false);
+            AssertEx.Equal(new[] { "CS0266" }, diagnostics2.Select(d => d.Id));
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             _emitDiagnosticsUpdated.Clear();
             _emitDiagnosticsClearedCount = 0;
@@ -1448,7 +1458,8 @@ class C1
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
             var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, CancellationToken.None).ConfigureAwait(false);
-            AssertEx.Equal(new[] { "CS8055" }, _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => d.Id));
+            var diagnostics2 = _emitDiagnosticsUpdated.Single().GetDiagnostics(workspace, forPullDiagnostics: false);
+            AssertEx.Equal(new[] { "CS8055" }, diagnostics2.Select(d => d.Id));
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             _emitDiagnosticsUpdated.Clear();
             _emitDiagnosticsClearedCount = 0;
@@ -1628,9 +1639,10 @@ class C1
             var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
 
+            var diagnostics1 = _emitDiagnosticsUpdated.Single().GetDiagnostics(workspace, forPullDiagnostics: false);
             AssertEx.Equal(
                 new[] { "ENC1005: " + string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path) },
-                _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
+                diagnostics1.Select(d => $"{d.Id}: {d.Message}"));
 
             _emitDiagnosticsUpdated.Clear();
             _emitDiagnosticsClearedCount = 0;
@@ -2235,7 +2247,8 @@ class C1
                 workspace.ChangeDocument(document1.Id, SourceText.From("class C1 { void M() { System.Console.WriteLine(2); } }", Encoding.UTF8));
 
                 var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, CancellationToken.None).ConfigureAwait(false);
-                AssertEx.Equal(new[] { "ENC1001" }, _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => d.Id));
+                var diagnostics1 = _emitDiagnosticsUpdated.Single().GetDiagnostics(workspace, forPullDiagnostics: false);
+                AssertEx.Equal(new[] { "ENC1001" }, diagnostics1.Select(d => d.Id));
                 Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             }
         }
@@ -2273,7 +2286,8 @@ class C1
                 workspace.ChangeDocument(document1.Id, SourceText.From("class C1 { void M() { System.Console.WriteLine(2); } }", Encoding.UTF8));
 
                 var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, CancellationToken.None).ConfigureAwait(false);
-                AssertEx.Equal(new[] { "ENC1001" }, _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => d.Id));
+                var diagnostics = _emitDiagnosticsUpdated.Single().GetDiagnostics(workspace, forPullDiagnostics: false);
+                AssertEx.Equal(new[] { "ENC1001" }, diagnostics.Select(d => d.Id));
                 Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
 
                 service.EndEditSession();

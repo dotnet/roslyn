@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -12,25 +10,25 @@ namespace RunTests
 {
     internal readonly struct TestExecutionOptions
     {
-        internal string XunitPath { get; }
+        internal string DotnetFilePath { get; }
         internal ProcDumpInfo? ProcDumpInfo { get; }
-        internal string OutputDirectory { get; }
-        internal string Trait { get; }
-        internal string NoTrait { get; }
+        internal string TestResultsDirectory { get; }
+        internal string? Trait { get; }
+        internal string? NoTrait { get; }
         internal bool IncludeHtml { get; }
-        internal bool Test64 { get; }
         internal bool TestVsi { get; }
+        internal bool Retry { get; }
 
-        internal TestExecutionOptions(string xunitPath, ProcDumpInfo? procDumpInfo, string outputDirectory, string trait, string noTrait, bool includeHtml, bool test64, bool testVsi)
+        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? trait, string? noTrait, bool includeHtml, bool testVsi, bool retry)
         {
-            XunitPath = xunitPath;
+            DotnetFilePath = dotnetFilePath;
             ProcDumpInfo = procDumpInfo;
-            OutputDirectory = outputDirectory;
+            TestResultsDirectory = testResultsDirectory;
             Trait = trait;
             NoTrait = noTrait;
             IncludeHtml = includeHtml;
-            Test64 = test64;
             TestVsi = testVsi;
+            Retry = retry;
         }
     }
 
@@ -69,7 +67,7 @@ namespace RunTests
         internal TestResultInfo TestResultInfo { get; }
         internal AssemblyInfo AssemblyInfo { get; }
         internal string CommandLine { get; }
-        internal string Diagnostics { get; }
+        internal string? Diagnostics { get; }
 
         /// <summary>
         /// Collection of processes the runner explicitly ran to get the result.
@@ -86,7 +84,7 @@ namespace RunTests
         internal string ErrorOutput => TestResultInfo.ErrorOutput;
         internal string ResultsFilePath => TestResultInfo.ResultsFilePath;
 
-        internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, ImmutableArray<ProcessResult> processResults = default, string diagnostics = null)
+        internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, ImmutableArray<ProcessResult> processResults = default, string? diagnostics = null)
         {
             AssemblyInfo = assemblyInfo;
             TestResultInfo = testResultInfo;
