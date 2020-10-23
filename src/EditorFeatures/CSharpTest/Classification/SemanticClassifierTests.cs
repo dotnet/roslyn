@@ -198,6 +198,24 @@ class C
 
         [Theory]
         [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task DynamicAsRecordName(TestHost testHost)
+        {
+            await TestAsync(
+@"record dynamic
+{
+}
+
+class C
+{
+    dynamic d;
+}",
+                testHost,
+                Record("dynamic"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task DynamicAsClassNameAndLocalVariableName(TestHost testHost)
         {
             await TestAsync(
@@ -4392,6 +4410,38 @@ class X
             Keyword("nameof"),
             Static("Method"),
             Method("Method"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task BasicRecordClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record R
+{
+    R r;
+
+    R() { }
+}",
+                testHost,
+                Record("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task ParameterizedRecordClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record R(int X, int Y);
+
+class C
+{
+    R r;
+}",
+                testHost,
+                Record("R"));
         }
     }
 }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -543,6 +542,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
             return new PublicModel.ErrorTypeSymbol(this, nullableAnnotation);
         }
+
+        internal override bool IsRecord => false;
     }
 
     internal abstract class SubstitutedErrorTypeSymbol : ErrorTypeSymbol
