@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // We handle all the three supported formats for compiler diagnostic pragmas.
 
             var idWithoutPrefix = id.StartsWith(CompilerErrorCodePrefix) && id.Length == CompilerErrorCodePrefix.Length + CompilerErrorCodeDigitCount
-                ? id.Substring(CompilerErrorCodePrefix.Length)
+                ? id[CompilerErrorCodePrefix.Length..]
                 : id;
 
             // ID without prefix should parse as an integer for compiler diagnostics.
