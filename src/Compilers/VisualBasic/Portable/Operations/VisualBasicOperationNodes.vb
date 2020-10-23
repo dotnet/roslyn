@@ -411,31 +411,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazySwitchCaseOperation
-        Inherits LazySwitchCaseOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _caseBlock As BoundCaseBlock
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, caseBlock As BoundCaseBlock, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(locals, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _caseBlock = caseBlock
-        End Sub
-
-        Protected Overrides Function CreateClauses() As ImmutableArray(Of ICaseClauseOperation)
-            Return _operationFactory.CreateBoundCaseBlockClauses(_caseBlock)
-        End Function
-
-        Protected Overrides Function CreateCondition() As IOperation
-            Return _operationFactory.CreateBoundCaseBlockCondition(_caseBlock)
-        End Function
-
-        Protected Overrides Function CreateBody() As ImmutableArray(Of IOperation)
-            Return ImmutableArray.Create(_operationFactory.Create(_caseBlock.Body))
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyDynamicInvocationOperation
         Inherits LazyDynamicInvocationOperation
 

@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Clauses, "Clauses", logElementCount: false);
             VisitArray(operation.Body, "Body", logElementCount: false);
             Unindent();
-            _ = ((BaseSwitchCaseOperation)operation).Condition;
+            _ = ((SwitchCaseOperation)operation).Condition;
         }
 
         public override void VisitWhileLoop(IWhileLoopOperation operation)

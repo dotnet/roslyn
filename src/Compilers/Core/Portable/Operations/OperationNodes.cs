@@ -285,51 +285,6 @@ namespace Microsoft.CodeAnalysis.Operations
         { }
     }
 
-    internal abstract partial class BaseSwitchCaseOperation
-    {
-        /// <summary>
-        /// Optional combined logical condition that accounts for all <see cref="Clauses"/>.
-        /// An instance of <see cref="IPlaceholderOperation"/> with kind <see cref="PlaceholderKind.SwitchOperationExpression"/>
-        /// is used to refer to the <see cref="ISwitchOperation.Value"/> in context of this expression.
-        /// It is not part of <see cref="Children"/> list and likely contains duplicate nodes for
-        /// nodes exposed by <see cref="Clauses"/>, like <see cref="ISingleValueCaseClauseOperation.Value"/>,
-        /// etc.
-        /// Never set for C# at the moment.
-        /// </summary>
-        public abstract IOperation Condition { get; }
-    }
-
-    internal sealed partial class SwitchCaseOperation : BaseSwitchCaseOperation, ISwitchCaseOperation
-    {
-        public SwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, IOperation condition, ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(clauses, body, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Condition = SetParentOperation(condition, null);
-        }
-
-        public override IOperation Condition { get; }
-    }
-
-    internal abstract partial class LazySwitchCaseOperation
-    {
-        private IOperation _lazyConditionInterlocked = s_unset;
-        protected abstract IOperation CreateCondition();
-        public override IOperation Condition
-        {
-            get
-            {
-                if (_lazyConditionInterlocked == s_unset)
-                {
-                    IOperation condition = CreateCondition();
-                    SetParentOperation(condition, null);
-                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, condition, s_unset);
-                }
-
-                return _lazyConditionInterlocked;
-            }
-        }
-    }
-
     internal abstract partial class HasDynamicArgumentsExpression : OperationOld
     {
         protected HasDynamicArgumentsExpression(OperationKind operationKind, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :

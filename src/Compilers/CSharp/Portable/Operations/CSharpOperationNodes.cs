@@ -551,34 +551,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazySwitchCaseOperation : LazySwitchCaseOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly IBoundSwitchSection _switchSection;
-
-        internal CSharpLazySwitchCaseOperation(CSharpOperationFactory operationFactory, IBoundSwitchSection switchSection, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _switchSection = switchSection;
-        }
-
-        protected override ImmutableArray<ICaseClauseOperation> CreateClauses()
-        {
-            return _operationFactory.CreateFromArray<BoundNode, ICaseClauseOperation>(_switchSection.SwitchLabels);
-        }
-
-        protected override IOperation CreateCondition()
-        {
-            return null;
-        }
-
-        protected override ImmutableArray<IOperation> CreateBody()
-        {
-            return _operationFactory.CreateFromArray<BoundStatement, IOperation>(_switchSection.Statements);
-        }
-    }
-
     internal sealed class CSharpLazyDynamicObjectCreationOperation : LazyDynamicObjectCreationOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

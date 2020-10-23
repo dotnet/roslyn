@@ -2153,7 +2153,7 @@
         <summary>Locals declared within the switch case section scoped to the section.</summary>
       </Comments>
     </Property>
-    <Property Name="Condition" Type="IOperation" Internal="true" SkipGeneration="true">
+    <Property Name="Condition" Type="IOperation?" Internal="true">
       <Comments>
         <summary>
           Optional combined logical condition that accounts for all <see cref="Clauses"/>.

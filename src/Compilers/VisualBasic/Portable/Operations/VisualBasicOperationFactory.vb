@@ -1086,15 +1086,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Friend Function CreateBoundCaseBlockCondition(boundCaseBlock As BoundCaseBlock) As IOperation
-            Return Clone().Create(boundCaseBlock.CaseStatement.ConditionOpt)
-        End Function
-
-        Private Function CreateBoundCaseBlockOperation(boundCaseBlock As BoundCaseBlock) As ISwitchCaseOperation
-            Dim syntax As SyntaxNode = boundCaseBlock.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
-            Dim isImplicit As Boolean = boundCaseBlock.WasCompilerGenerated
-
             ' Some bound nodes used by the boundCaseBlock.CaseStatement.CaseClauses are also going to be used in boundCaseBlock.CaseStatement.ConditionOpt.
             ' If we simply create another tree based on boundCaseBlock.CaseStatement.ConditionOpt, due to the caching we will end up with the same
             ' IOperation nodes in two trees, and two parents will compete for assigning itself as the parent - trouble. To avoid that, we simply use
@@ -1102,8 +1093,20 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' the nodes it contains. At the moment, it is used only by CFG builder. The builder, rewrites all nodes anyway, it is producing a "forest"
             ' of different trees. So, there is really no chance of some external consumer getting confused by multiple explicit nodes tied to the same
             ' syntax.
+            '
+            ' PROTOTYPE(iop): this can be removed when `Create` is refactored to not cache here
 
-            Return New VisualBasicLazySwitchCaseOperation(Me, boundCaseBlock, ImmutableArray(Of ILocalSymbol).Empty, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return Clone().Create(boundCaseBlock.CaseStatement.ConditionOpt)
+        End Function
+
+        Private Function CreateBoundCaseBlockOperation(boundCaseBlock As BoundCaseBlock) As ISwitchCaseOperation
+            Dim clauses As ImmutableArray(Of ICaseClauseOperation) = CreateBoundCaseBlockClauses(boundCaseBlock)
+            Dim body As ImmutableArray(Of IOperation) = ImmutableArray.Create(Create(boundCaseBlock.Body))
+            Dim condition As IOperation = CreateBoundCaseBlockCondition(boundCaseBlock)
+            Dim syntax As SyntaxNode = boundCaseBlock.Syntax
+            Dim isImplicit As Boolean = boundCaseBlock.WasCompilerGenerated
+
+            Return New SwitchCaseOperation(clauses, body, ImmutableArray(Of ILocalSymbol).Empty, condition, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundSimpleCaseClauseOperation(boundSimpleCaseClause As BoundSimpleCaseClause) As ISingleValueCaseClauseOperation

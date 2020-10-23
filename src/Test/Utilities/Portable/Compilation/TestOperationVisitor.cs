@@ -132,14 +132,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitLocals(operation.Locals);
             AssertEx.Equal(operation.Clauses.Concat(operation.Body), operation.Children);
 
-            VerifySubTree(((BaseSwitchCaseOperation)operation).Condition);
+            VerifySubTree(((SwitchCaseOperation)operation).Condition, hasNonNullParent: true);
         }
 
-        internal static void VerifySubTree(IOperation root)
+        internal static void VerifySubTree(IOperation root, bool hasNonNullParent = false)
         {
             if (root != null)
             {
-                Assert.Null(root.Parent);
+                if (hasNonNullParent)
+                {
+                    // This is only ever true for ISwitchCaseOperation.Condition.
+                    Assert.NotNull(root.Parent);
+                    Assert.Same(root, ((SwitchCaseOperation)root.Parent).Condition);
+                }
+                else
+                {
+                    Assert.Null(root.Parent);
+                }
+
                 var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
 
                 foreach (IOperation descendant in root.DescendantsAndSelf())

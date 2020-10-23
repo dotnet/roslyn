@@ -5129,7 +5129,7 @@ oneMoreTime:
                 var body = new BasicBlockBuilder(BasicBlockKind.Block);
                 var nextSection = new BasicBlockBuilder(BasicBlockKind.Block);
 
-                IOperation condition = ((BaseSwitchCaseOperation)section).Condition;
+                IOperation? condition = ((SwitchCaseOperation)section).Condition;
                 if (condition != null)
                 {
                     Debug.Assert(section.Clauses.All(c => c.Label == null));

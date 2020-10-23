@@ -2495,6 +2495,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IBlockOperation Handler { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a switch case section with one or more case clauses to match and one or more operations to execute within the section.
     /// <para>
@@ -2526,6 +2527,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<ILocalSymbol> Locals { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a case clause.
     /// <para>
@@ -6453,79 +6455,43 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitCatchClause(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseSwitchCaseOperation : OperationOld, ISwitchCaseOperation
+    #nullable enable
+    internal sealed partial class SwitchCaseOperation : Operation, ISwitchCaseOperation
     {
-        internal BaseSwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.SwitchCase, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal SwitchCaseOperation(ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, ImmutableArray<ILocalSymbol> locals, IOperation? condition, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            Clauses = SetParentOperation(clauses, this);
+            Body = SetParentOperation(body, this);
             Locals = locals;
+            Condition = SetParentOperation(condition, this);
         }
-        public abstract ImmutableArray<ICaseClauseOperation> Clauses { get; }
-        public abstract ImmutableArray<IOperation> Body { get; }
+        public ImmutableArray<ICaseClauseOperation> Clauses { get; }
+        public ImmutableArray<IOperation> Body { get; }
         public ImmutableArray<ILocalSymbol> Locals { get; }
+        public IOperation? Condition { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                foreach (var child in Clauses)
+                if (_lazyChildren is null)
                 {
-                    if (child is object) yield return child;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (!Clauses.IsEmpty) builder.AddRange(Clauses);
+                    if (!Body.IsEmpty) builder.AddRange(Body);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                foreach (var child in Body)
-                {
-                    if (child is object) yield return child;
-                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.SwitchCase;
         public override void Accept(OperationVisitor visitor) => visitor.VisitSwitchCase(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitSwitchCase(this, argument);
     }
-    internal sealed partial class SwitchCaseOperation : BaseSwitchCaseOperation, ISwitchCaseOperation
-    {
-        internal SwitchCaseOperation(ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Clauses = SetParentOperation(clauses, this);
-            Body = SetParentOperation(body, this);
-        }
-        public override ImmutableArray<ICaseClauseOperation> Clauses { get; }
-        public override ImmutableArray<IOperation> Body { get; }
-    }
-    internal abstract partial class LazySwitchCaseOperation : BaseSwitchCaseOperation, ISwitchCaseOperation
-    {
-        private ImmutableArray<ICaseClauseOperation> _lazyClauses;
-        private ImmutableArray<IOperation> _lazyBody;
-        internal LazySwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract ImmutableArray<ICaseClauseOperation> CreateClauses();
-        public override ImmutableArray<ICaseClauseOperation> Clauses
-        {
-            get
-            {
-                if (_lazyClauses.IsDefault)
-                {
-                    ImmutableArray<ICaseClauseOperation> clauses = CreateClauses();
-                    SetParentOperation(clauses, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyClauses, clauses);
-                }
-                return _lazyClauses;
-            }
-        }
-        protected abstract ImmutableArray<IOperation> CreateBody();
-        public override ImmutableArray<IOperation> Body
-        {
-            get
-            {
-                if (_lazyBody.IsDefault)
-                {
-                    ImmutableArray<IOperation> body = CreateBody();
-                    SetParentOperation(body, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyBody, body);
-                }
-                return _lazyBody;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseCaseClauseOperation : OperationOld, ICaseClauseOperation
     {
         protected BaseCaseClauseOperation(CaseKind caseKind, ILabelSymbol label, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -8585,6 +8551,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (CatchClauseOperation)operation;
             return new CatchClauseOperation(Visit(internalOperation.ExceptionDeclarationOrExpression), internalOperation.ExceptionType, internalOperation.Locals, Visit(internalOperation.Filter), Visit(internalOperation.Handler), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, object? argument)
+        {
+            var internalOperation = (SwitchCaseOperation)operation;
+            return new SwitchCaseOperation(VisitArray(internalOperation.Clauses), VisitArray(internalOperation.Body), internalOperation.Locals, Visit(internalOperation.Condition), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, object? argument)
         {

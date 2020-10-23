@@ -2135,14 +2135,16 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundSwitchStatement.WasCompilerGenerated;
             return new SwitchOperation(locals, value, cases, exitLabel, _semanticModel, syntax, isImplicit);
         }
-#nullable disable
 
         private ISwitchCaseOperation CreateBoundSwitchSectionOperation(BoundSwitchSection boundSwitchSection)
         {
+            ImmutableArray<ICaseClauseOperation> clauses = CreateFromArray<BoundSwitchLabel, ICaseClauseOperation>(boundSwitchSection.SwitchLabels);
+            ImmutableArray<IOperation> body = CreateFromArray<BoundStatement, IOperation>(boundSwitchSection.Statements);
             ImmutableArray<ILocalSymbol> locals = boundSwitchSection.Locals.GetPublicSymbols();
 
-            return new CSharpLazySwitchCaseOperation(this, boundSwitchSection, locals, _semanticModel, boundSwitchSection.Syntax, type: null, constantValue: null, isImplicit: boundSwitchSection.WasCompilerGenerated);
+            return new SwitchCaseOperation(clauses, body, locals, condition: null, _semanticModel, boundSwitchSection.Syntax, isImplicit: boundSwitchSection.WasCompilerGenerated);
         }
+#nullable disable
 
         private ISwitchExpressionOperation CreateBoundSwitchExpressionOperation(BoundSwitchExpression boundSwitchExpression)
         {

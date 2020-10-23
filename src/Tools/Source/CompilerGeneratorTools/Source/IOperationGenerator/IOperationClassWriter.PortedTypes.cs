@@ -68,6 +68,7 @@ namespace IOperationGenerator
             "IArrayInitializerOperation",
             "IArgumentOperation",
             "ICatchClauseOperation",
+            "ISwitchCaseOperation",
         };
     }
 }
