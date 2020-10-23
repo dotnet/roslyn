@@ -13,13 +13,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     internal enum TaggerDelay
     {
         /// <summary>
-        /// Indicates that the tagger should retag after a short, but imperceptible delay.  This is
-        /// for features that want to appear instantaneous to the user, but which can wait a short
-        /// while until a batch of changes has occurred before processing.  Specifically, if a user
-        /// expects the tag immediately after typing a character or moving the caret, then this
-        /// delay should be used.
+        /// Indicates that the tagger should retag after a short, but user imperceptible delay.  This is for features
+        /// that want to appear instantaneous to the user, but which can wait a short while until a batch of changes has
+        /// occurred before processing.  Specifically, if a user expects the tag immediately after typing a character or
+        /// moving the caret, then this delay should be used.
         /// </summary>
         Immediate,
+
+        /// <summary>
+        /// Indicates that the tagger should retag very quickly, but with a slightly perceptible delay.  A user typing
+        /// quickly should not trigger this.  But it also shouldn't feel like they have to wait a long time if they
+        /// explicitly want to see these tags.
+        /// </summary>
+        NearImmediate,
 
         /// <summary>
         /// Not as fast as NearImmediate.  A user typing quickly or navigating quickly should not

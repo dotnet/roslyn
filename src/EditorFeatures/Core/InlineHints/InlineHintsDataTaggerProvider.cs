@@ -61,7 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt, textChangeDelay: TaggerDelay.Short, scrollChangeDelay: TaggerDelay.Immediate),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.Immediate, _listener),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.DisplayAllOverride, TaggerDelay.Immediate),
+                // Ctrl-alt is the initial trigger for a lot of features (like ctrl-alt-p, attach to debugger). So bring
+                // this up not quite immediately so that users don't get flashes of this appearing when running other
+                // commands.
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.DisplayAllOverride, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForParameters, TaggerDelay.Immediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLiteralParameters, TaggerDelay.Immediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForObjectCreationParameters, TaggerDelay.Immediate),
