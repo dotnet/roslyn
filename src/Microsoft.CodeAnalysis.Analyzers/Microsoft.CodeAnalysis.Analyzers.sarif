@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.Analyzers",
-        "version": "2.9.9",
+        "version": "2.9.12",
         "language": "en-US"
       },
       "rules": {
@@ -146,6 +146,7 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -200,6 +201,7 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -236,6 +238,7 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -299,7 +302,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.Analyzers",
-        "version": "2.9.9",
+        "version": "2.9.12",
         "language": "en-US"
       },
       "rules": {
@@ -452,6 +455,7 @@
               "C#"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -479,7 +483,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.VisualBasic.Analyzers",
-        "version": "2.9.9",
+        "version": "2.9.12",
         "language": "en-US"
       },
       "rules": {
@@ -615,6 +619,7 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }

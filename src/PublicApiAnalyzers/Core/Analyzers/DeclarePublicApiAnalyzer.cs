@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             isEnabledByDefault: true,
             description: PublicApiAnalyzerResources.RemoveDeletedApiDescription,
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         internal static readonly DiagnosticDescriptor ExposedNoninstantiableType = new DiagnosticDescriptor(
             id: DiagnosticIds.ExposedNoninstantiableTypeRuleId,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         internal static readonly DiagnosticDescriptor DuplicateSymbolInApiFiles = new DiagnosticDescriptor(
             id: DiagnosticIds.DuplicatedSymbolInPublicApiFiles,
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         internal static readonly DiagnosticDescriptor AvoidMultipleOverloadsWithOptionalParameters = new DiagnosticDescriptor(
             id: DiagnosticIds.AvoidMultipleOverloadsWithOptionalParameters,

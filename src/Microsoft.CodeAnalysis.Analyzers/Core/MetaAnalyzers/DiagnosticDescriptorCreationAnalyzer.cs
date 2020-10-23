@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableUseUniqueDiagnosticIdDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         public static readonly DiagnosticDescriptor UseCategoriesFromSpecifiedRangeRule = new DiagnosticDescriptor(
             DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId,
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableAnalyzerCategoryAndIdRangeFileInvalidDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             UseLocalizableStringsInDescriptorRule,

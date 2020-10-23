@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             DiagnosticSeverity.Warning,
             description: s_localizableOverrideGetFixAllProviderDescription,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(CreateCodeActionEquivalenceKeyRule, OverrideCodeActionEquivalenceKeyRule, OverrideGetFixAllProviderRule);
