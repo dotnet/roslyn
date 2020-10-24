@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             var comparer = GetComparer(ignoreCase);
-            var results = ArrayBuilder<ISymbol>.GetInstance();
+            ArrayBuilder<ISymbol>? results = null;
             IAssemblySymbol? assemblySymbol = null;
 
             foreach (var node in FindNodeIndices(name, comparer))
@@ -230,10 +231,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
                 assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-                Bind(node, assemblySymbol.GlobalNamespace, results, cancellationToken);
+                Bind(node, assemblySymbol.GlobalNamespace, ref results, cancellationToken);
             }
 
-            return results.ToImmutableAndFree();
+            return results?.ToImmutableAndFree() ?? ImmutableArray<ISymbol>.Empty;
         }
 
         private static StringSliceComparer GetComparer(bool ignoreCase)
@@ -458,7 +459,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         // returns all the symbols in the container corresponding to the node
         private void Bind(
-            int index, INamespaceOrTypeSymbol rootContainer, ArrayBuilder<ISymbol> results, CancellationToken cancellationToken)
+            int index, INamespaceOrTypeSymbol rootContainer, [NotNullIfNotNull("results")] ref ArrayBuilder<ISymbol>? results, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -470,22 +471,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (_nodes[node.ParentIndex].IsRoot)
             {
-                results.AddRange(rootContainer.GetMembers(GetName(node)));
+                var members = rootContainer.GetMembers(GetName(node));
+                if (!members.IsEmpty)
+                {
+                    results ??= ArrayBuilder<ISymbol>.GetInstance();
+                    results.AddRange(members);
+                }
             }
             else
             {
-                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var containerSymbols);
-
-                Bind(node.ParentIndex, rootContainer, containerSymbols, cancellationToken);
-
-                foreach (var containerSymbol in containerSymbols)
+                ArrayBuilder<ISymbol>? containerSymbols = null;
+                try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    if (containerSymbol is INamespaceOrTypeSymbol nsOrType)
+                    Bind(node.ParentIndex, rootContainer, ref containerSymbols, cancellationToken);
+                    if (containerSymbols is not null)
                     {
-                        results.AddRange(nsOrType.GetMembers(GetName(node)));
+                        foreach (var containerSymbol in containerSymbols)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            if (containerSymbol is INamespaceOrTypeSymbol nsOrType)
+                            {
+                                var members = nsOrType.GetMembers(GetName(node));
+                                if (!members.IsEmpty)
+                                {
+                                    results ??= ArrayBuilder<ISymbol>.GetInstance();
+                                    results.AddRange(members);
+                                }
+                            }
+                        }
                     }
+                }
+                finally
+                {
+                    containerSymbols?.Free();
                 }
             }
         }
@@ -580,24 +599,35 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var baseTypeNameIndex = BinarySearch(baseTypeName);
             var derivedTypeIndices = _inheritanceMap[baseTypeNameIndex];
 
-            var builder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var tempBuilder);
-
-            foreach (var derivedTypeIndex in derivedTypeIndices)
+            ArrayBuilder<INamedTypeSymbol>? builder = null;
+            ArrayBuilder<ISymbol>? tempBuilder = null;
+            try
             {
-                tempBuilder.Clear();
-
-                Bind(derivedTypeIndex, compilation.GlobalNamespace, tempBuilder, cancellationToken);
-                foreach (var symbol in tempBuilder)
+                foreach (var derivedTypeIndex in derivedTypeIndices)
                 {
-                    if (symbol is INamedTypeSymbol namedType)
+                    tempBuilder?.Clear();
+
+                    Bind(derivedTypeIndex, compilation.GlobalNamespace, ref tempBuilder, cancellationToken);
+                    if (tempBuilder is not null)
                     {
-                        builder.Add(namedType);
+                        foreach (var symbol in tempBuilder)
+                        {
+                            if (symbol is INamedTypeSymbol namedType)
+                            {
+                                builder ??= ArrayBuilder<INamedTypeSymbol>.GetInstance();
+                                builder.Add(namedType);
+                            }
+                        }
                     }
                 }
-            }
 
-            return builder.ToImmutableAndFree();
+                return builder?.ToImmutable() ?? ImmutableArray<INamedTypeSymbol>.Empty;
+            }
+            finally
+            {
+                tempBuilder?.Free();
+                builder?.Free();
+            }
         }
     }
 }

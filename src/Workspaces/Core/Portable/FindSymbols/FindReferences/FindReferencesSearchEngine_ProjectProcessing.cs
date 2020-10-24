@@ -2,18 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using DocumentMap = MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>;
+    using DocumentMap = Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>;
 
     internal partial class FindReferencesSearchEngine
     {
