@@ -381,7 +381,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             if (token.IsKind(SyntaxKind.UsingKeyword) && token.Parent is UsingStatementSyntax)
             {
-                text = Keyword("usingstatement");
+                text = Keyword("using-statement");
                 return true;
             }
 

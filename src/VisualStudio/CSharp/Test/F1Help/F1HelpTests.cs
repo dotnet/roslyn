@@ -1120,7 +1120,7 @@ class C
         {
         }
     }
-}", "usingstatement");
+}", "using-statement");
         }
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
