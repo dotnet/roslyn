@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Simplify_conditional_expression">
         <source>Simplify conditional expression</source>
-        <target state="new">Simplify conditional expression</target>
+        <target state="translated">Zjednodušit podmíněný výraz</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">

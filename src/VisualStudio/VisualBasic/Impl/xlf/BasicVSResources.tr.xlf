@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
         <source>Prefer 'IsNot' expression</source>
-        <target state="new">Prefer 'IsNot' expression</target>
+        <target state="translated">'IsNot' ifadesini tercih edin</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
