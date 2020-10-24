@@ -187,9 +187,9 @@
         <target state="translated">当前参数</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_all_hints_while_pressing_Ctrl_Alt">
-        <source>Display all hints while pressing Ctrl+Alt</source>
-        <target state="new">Display all hints while pressing Ctrl+Alt</target>
+      <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
+        <source>Display all hints while pressing Alt+F1</source>
+        <target state="new">Display all hints while pressing Alt+F1</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -560,6 +560,11 @@
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">从不(若无必要)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Type_Name_colon">
+        <source>New Type Name:</source>
+        <target state="new">New Type Name:</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">

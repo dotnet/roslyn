@@ -31,6 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.ClassName);
 
         [DebuggerStepThrough]
+        public static FormattedClassification Record(string text)
+            => New(text, ClassificationTypeNames.RecordName);
+
+        [DebuggerStepThrough]
         public static FormattedClassification Delegate(string text)
             => New(text, ClassificationTypeNames.DelegateName);
 
