@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1104,6 +1104,23 @@ static class C
 
     static void Method() {}
 }", "using");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUsingStatement()
+        {
+            await Test_KeywordAsync(
+@"using namespace.Class;
+
+class C
+{ 
+    void Method(String someString) {
+        us[||]ing (var reader = new StringReader(someString))
+        {
+        }
+    }
+}", "usingstatement");
         }
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
