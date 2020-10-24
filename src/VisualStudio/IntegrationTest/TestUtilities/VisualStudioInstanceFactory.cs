@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// The instance that has already been launched by this factory and can be reused.
         /// </summary>
-        private VisualStudioInstance _currentlyRunningInstance;
+        private static VisualStudioInstance s_currentlyRunningInstance;
 
         /// <summary>
         /// Identifies the first time a Visual Studio instance is launched during an integration test run.
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 File.WriteAllText(Path.Combine(logDir, $"{baseFileName}.log"), eventArgs.Exception.ToString());
 
-                ActivityLogCollector.TryWriteActivityLogToFile(Path.Combine(logDir, $"{baseFileName}.Actvty.log"));
+                ActivityLogCollector.TryWriteActivityLogToFile(s_currentlyRunningInstance, Path.Combine(logDir, $"{baseFileName}.Actvty.log"));
                 EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
                 EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
 
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
                 await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(true);
 
-                return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
+                return new VisualStudioInstanceContext(s_currentlyRunningInstance, this);
             }
             catch
             {
@@ -155,8 +155,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             if (!canReuse)
             {
-                _currentlyRunningInstance?.Close();
-                _currentlyRunningInstance = null;
+                s_currentlyRunningInstance?.Close();
+                s_currentlyRunningInstance = null;
             }
         }
 
@@ -167,9 +167,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             //  * The current instance does not support all the required packages -or-
             //  * The current instance is no longer running
 
-            return _currentlyRunningInstance == null
-                || (!requiredPackageIds.All(id => _currentlyRunningInstance.SupportedPackageIds.Contains(id)))
-                || !_currentlyRunningInstance.IsRunning;
+            return s_currentlyRunningInstance == null
+                || (!requiredPackageIds.All(id => s_currentlyRunningInstance.SupportedPackageIds.Contains(id)))
+                || !s_currentlyRunningInstance.IsRunning;
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (shouldStartNewInstance)
             {
                 // We are starting a new instance, so ensure we close the currently running instance, if it exists
-                _currentlyRunningInstance?.Close();
+                s_currentlyRunningInstance?.Close();
 
                 var instance = LocateVisualStudioInstance(requiredPackageIds) as ISetupInstance2;
                 supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
@@ -213,17 +213,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // We create a new DTE instance in the current context since the COM object could have been separated
                 // from its RCW during the previous test.
 
-                Debug.Assert(_currentlyRunningInstance != null);
+                Debug.Assert(s_currentlyRunningInstance != null);
 
-                hostProcess = _currentlyRunningInstance.HostProcess;
+                hostProcess = s_currentlyRunningInstance.HostProcess;
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
-                supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
-                installationPath = _currentlyRunningInstance.InstallationPath;
+                supportedPackageIds = s_currentlyRunningInstance.SupportedPackageIds;
+                installationPath = s_currentlyRunningInstance.InstallationPath;
 
-                _currentlyRunningInstance.Close(exitHostProcess: false);
+                s_currentlyRunningInstance.Close(exitHostProcess: false);
             }
 
-            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
+            s_currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
         }
 
         private static IEnumerable<ISetupInstance> EnumerateVisualStudioInstances()
@@ -417,8 +417,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public void Dispose()
         {
-            _currentlyRunningInstance?.Close();
-            _currentlyRunningInstance = null;
+            s_currentlyRunningInstance?.Close();
+            s_currentlyRunningInstance = null;
 
             AppDomain.CurrentDomain.FirstChanceException -= FirstChanceExceptionHandler;
             AppDomain.CurrentDomain.AssemblyResolve -= AssemblyResolveHandler;

@@ -285,6 +285,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
+        public string GetInMemoryActivityLog()
+        {
+            return _inProc.GetInMemoryActivityLog();
+        }
+
         private void CloseRemotingService(bool allowInProcCalls)
         {
             try

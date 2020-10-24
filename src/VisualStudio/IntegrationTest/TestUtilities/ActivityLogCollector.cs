@@ -10,25 +10,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     internal static class ActivityLogCollector
     {
-        internal static void TryWriteActivityLogToFile(string filePath)
+        internal static void TryWriteActivityLogToFile(VisualStudioInstance instance, string filePath)
         {
             var vsAppDataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "VisualStudio");
             if (!Directory.Exists(vsAppDataDirectory))
                 return;
 
             var content = new StringBuilder();
-            foreach (var folder in Directory.GetDirectories(vsAppDataDirectory, $"{Settings.Default.VsProductVersion}*{Settings.Default.VsRootSuffix}"))
+            if (instance?.GetInMemoryActivityLog() is { } inMemoryLog)
             {
-                var activityLog = Path.Combine(folder, "ActivityLog.xml");
-                if (File.Exists(activityLog))
+                content.AppendLine(inMemoryLog);
+            }
+            else
+            {
+                foreach (var folder in Directory.GetDirectories(vsAppDataDirectory, $"{Settings.Default.VsProductVersion}*{Settings.Default.VsRootSuffix}"))
                 {
-                    try
+                    var activityLog = Path.Combine(folder, "ActivityLog.xml");
+                    if (File.Exists(activityLog))
                     {
-                        content.AppendLine(File.ReadAllText(activityLog));
-                    }
-                    catch (Exception e)
-                    {
-                        content.AppendLine(e.ToString());
+                        try
+                        {
+                            content.AppendLine(File.ReadAllText(activityLog));
+                        }
+                        catch (Exception e)
+                        {
+                            content.AppendLine(e.ToString());
+                        }
                     }
                 }
             }

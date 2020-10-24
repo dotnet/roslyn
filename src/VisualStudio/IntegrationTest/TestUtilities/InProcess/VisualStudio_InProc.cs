@@ -7,8 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -110,5 +113,36 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Quit()
             => GetDTE().Quit();
+
+        public string GetInMemoryActivityLog()
+        {
+            return InvokeOnUIThread(cancellationToken =>
+            {
+                // We get an IVsActivityLogDumper interface by getting the SVsActivityLogService and type casting it to IVSActivityLogDumper
+                var vsActivityLogDumper = GetGlobalService<SVsActivityLog, IVsActivityLogDumper>();
+                if (vsActivityLogDumper == null)
+                {
+                    return null;
+                }
+
+                // And then using it, get a string that contains the VS in-memory activity log.
+                // NOTE: this will return empty if the user explicitly enabled logging (in that case there is no in-memory activity log as it's written to a file)
+                ErrorHandler.ThrowOnFailure(vsActivityLogDumper.GetActivityLogBuffer(out var vsActivityLogContents));
+                if (string.IsNullOrWhiteSpace(vsActivityLogContents))
+                {
+                    return null;
+                }
+
+                // The API returns the log with some 0x0 characters at the end that make it not a valid xml file
+                var lastIndexOfClosingBracket = vsActivityLogContents.LastIndexOf('>');
+                var vsActivityLogBuilder = new StringBuilder(vsActivityLogContents.Remove(lastIndexOfClosingBracket + 1, vsActivityLogContents.Length - lastIndexOfClosingBracket - 1));
+
+                // We need to add a root element so that the it's valid xml and can easily be consumed using Xml.Linq
+                vsActivityLogBuilder.Insert(0, $"<entries>");
+                vsActivityLogBuilder.AppendLine($"</entries>");
+
+                return vsActivityLogBuilder.ToString();
+            });
+        }
     }
 }
