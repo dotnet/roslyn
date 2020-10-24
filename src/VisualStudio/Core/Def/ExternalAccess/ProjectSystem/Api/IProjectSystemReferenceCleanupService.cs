@@ -12,15 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
     internal interface IProjectSystemReferenceCleanupService
     {
         /// <summary>
-        /// For the given project, returns the full path to the project.assets.json file
-        /// generated in the intermediate output path by a NuGet restore.
-        /// </summary>
-        Task<string> GetProjectAssetsFilePathAsync(
-            string projectPath,
-            CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Return the set of direct Project and Package References for the given project. This 
+        /// Return the set of direct Project and Package References for the given project. This
         /// is used to get the initial state of the TreatAsUsed attribute for each reference.
         /// </summary>
         Task<ImmutableArray<ProjectSystemReferenceInfo>> GetProjectReferencesAsync(

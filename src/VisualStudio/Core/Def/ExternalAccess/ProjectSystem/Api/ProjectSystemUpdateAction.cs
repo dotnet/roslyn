@@ -7,19 +7,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
     internal enum ProjectSystemUpdateAction
     {
         /// <summary>
-        /// No action needs to be performed.
+        /// Indicates the reference should be updated with `TreatAsUsed="true"`
         /// </summary>
-        None,
+        SetTreatAsUsed,
 
         /// <summary>
-        /// Indicates the reference should be marked as used.
+        /// Indicates the reference should be updated with `TreatAsUsed="false"`
         /// </summary>
-        TreatAsUsed,
-
-        /// <summary>
-        /// Indicates the reference should be marked as unused
-        /// </summary>
-        TreatAsUnused,
+        UnsetTreatAsUsed,
 
         /// <summary>
         /// Indicates the reference should be removed from the project.

@@ -25,5 +25,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         /// Project reference `&lt;ProjectReference ... /&gt;`
         /// </summary>
         Project,
+
+        /// <summary>
+        /// SDK reference
+        /// </summary>
+        SDK,
     }
 }
