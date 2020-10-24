@@ -1438,7 +1438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultValue = new BoundObjectCreationExpression(
                     syntax,
                     UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor, compilation, diagnostics),
-                    null,
+                    binder,
                     defaultValue)
                 { WasCompilerGenerated = true };
             }

@@ -68,24 +68,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyNameOfOperation : LazyNameOfOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _argument;
-
-        internal CSharpLazyNameOfOperation(CSharpOperationFactory operationFactory, BoundNode argument, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _argument = argument;
-        }
-
-        protected override IOperation CreateArgument()
-        {
-            return _operationFactory.Create(_argument);
-        }
-    }
-
     internal sealed class CSharpLazyThrowOperation : LazyThrowOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -119,69 +101,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateValue()
         {
             return _operationFactory.Create(_value);
-        }
-    }
-
-    internal sealed class CSharpLazyArrayCreationOperation : LazyArrayCreationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundArrayCreation _arrayCreation;
-
-        internal CSharpLazyArrayCreationOperation(CSharpOperationFactory operationFactory, BoundArrayCreation arrayCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _arrayCreation = arrayCreation;
-        }
-
-        protected override ImmutableArray<IOperation> CreateDimensionSizes()
-        {
-            return _operationFactory.CreateFromArray<BoundExpression, IOperation>(_arrayCreation.Bounds);
-        }
-
-        protected override IArrayInitializerOperation CreateInitializer()
-        {
-            return (IArrayInitializerOperation)_operationFactory.Create(_arrayCreation.InitializerOpt);
-        }
-    }
-
-    internal sealed class CSharpLazyArrayElementReferenceOperation : LazyArrayElementReferenceOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundArrayAccess _arrayAccess;
-
-        internal CSharpLazyArrayElementReferenceOperation(CSharpOperationFactory operationFactory, BoundArrayAccess arrayAccess, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _arrayAccess = arrayAccess;
-        }
-
-        protected override IOperation CreateArrayReference()
-        {
-            // The compiler will dedupe the _arrayAccess.Expression between different array references. Some example code:
-            //
-            // class C
-            // {
-            //     int[] a;
-
-            //     static void Main()
-            //     {
-            //         // Compiler dedupes the array access receiver for [0] and [1]
-            //         var a = new C { a = { [0] = 1, [1] = 2 } };
-            //     }
-            // }
-            //
-            // In order to prevent parent pointer from having an issue with this, we intentionally create a new IOperation node every time
-            // we encounter an array access. Since we create from the top down, it should be impossible for us to see the node in
-            // boundArrayAccess.Expression before seeing the boundArrayAccess itself, so this should not create any other parent pointer
-            // issues.
-            return _operationFactory.CreateInternal(_arrayAccess.Expression);
-        }
-
-        protected override ImmutableArray<IOperation> CreateIndices()
-        {
-            return _operationFactory.CreateFromArray<BoundExpression, IOperation>(_arrayAccess.Indices);
         }
     }
 
@@ -286,47 +205,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyAwaitOperation : LazyAwaitOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _operation;
-
-        internal CSharpLazyAwaitOperation(CSharpOperationFactory operationFactory, BoundNode operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _operation = operation;
-        }
-
-        protected override IOperation CreateOperation()
-        {
-            return _operationFactory.Create(_operation);
-        }
-    }
-
-    internal sealed class CSharpLazyBinaryOperation : LazyBinaryOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundBinaryOperatorBase _binaryOperator;
-
-        internal CSharpLazyBinaryOperation(CSharpOperationFactory operationFactory, BoundBinaryOperatorBase binaryOperator, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _binaryOperator = binaryOperator;
-        }
-
-        protected override IOperation CreateLeftOperand()
-        {
-            return _operationFactory.Create(_binaryOperator.Left);
-        }
-
-        protected override IOperation CreateRightOperand()
-        {
-            return _operationFactory.Create(_binaryOperator.Right);
-        }
-    }
-
     internal sealed class CSharpLazyTupleBinaryOperation : LazyTupleBinaryOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -403,57 +281,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyConditionalAccessOperation : LazyConditionalAccessOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundConditionalAccess _conditionalAccess;
-
-        internal CSharpLazyConditionalAccessOperation(CSharpOperationFactory operationFactory, BoundConditionalAccess conditionalAccess, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _conditionalAccess = conditionalAccess;
-        }
-
-        protected override IOperation CreateOperation()
-        {
-            return _operationFactory.Create(_conditionalAccess.Receiver);
-        }
-
-        protected override IOperation CreateWhenNotNull()
-        {
-            return _operationFactory.Create(_conditionalAccess.AccessExpression);
-        }
-    }
-
-    internal sealed class CSharpLazyConditionalOperation : LazyConditionalOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly IBoundConditional _boundConditional;
-
-        internal CSharpLazyConditionalOperation(CSharpOperationFactory operationFactory, IBoundConditional boundConditional, bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _boundConditional = boundConditional;
-        }
-
-        protected override IOperation CreateCondition()
-        {
-            return _operationFactory.Create(_boundConditional.Condition);
-        }
-
-        protected override IOperation CreateWhenTrue()
-        {
-            return _operationFactory.Create(_boundConditional.Consequence);
-        }
-
-        protected override IOperation CreateWhenFalse()
-        {
-            return _operationFactory.Create(_boundConditional.AlternativeOpt);
-        }
-    }
-
     internal sealed class CSharpLazyConversionOperation : LazyConversionOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -472,29 +299,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyEventAssignmentOperation : LazyEventAssignmentOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundEventAssignmentOperator _eventAssignmentOperator;
-
-        internal CSharpLazyEventAssignmentOperation(CSharpOperationFactory operationFactory, BoundEventAssignmentOperator eventAssignmentOperator, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(adds, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _eventAssignmentOperator = eventAssignmentOperator;
-        }
-
-        protected override IOperation CreateEventReference()
-        {
-            return _operationFactory.CreateBoundEventAccessOperation(_eventAssignmentOperator);
-        }
-
-        protected override IOperation CreateHandlerValue()
-        {
-            return _operationFactory.Create(_eventAssignmentOperator.Argument);
-        }
-    }
-
     internal sealed class CSharpLazyEventReferenceOperation : LazyEventReferenceOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -510,24 +314,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateInstance()
         {
             return _operationFactory.CreateReceiverOperation(_instance, Event.GetSymbol());
-        }
-    }
-
-    internal sealed class CSharpLazyExpressionStatementOperation : LazyExpressionStatementOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _operation;
-
-        internal CSharpLazyExpressionStatementOperation(CSharpOperationFactory operationFactory, BoundNode operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _operation = operation;
-        }
-
-        protected override IOperation CreateOperation()
-        {
-            return _operationFactory.Create(_operation);
         }
     }
 
@@ -697,24 +483,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyInterpolatedStringOperation : LazyInterpolatedStringOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundInterpolatedString _interpolatedString;
-
-        internal CSharpLazyInterpolatedStringOperation(CSharpOperationFactory operationFactory, BoundInterpolatedString interpolatedString, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _interpolatedString = interpolatedString;
-        }
-
-        protected override ImmutableArray<IInterpolatedStringContentOperation> CreateParts()
-        {
-            return _operationFactory.CreateBoundInterpolatedStringContentOperation(_interpolatedString.Parts);
-        }
-    }
-
     internal sealed class CSharpLazyInterpolatedStringTextOperation : LazyInterpolatedStringTextOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -779,106 +547,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyInvocationOperation : LazyInvocationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundExpression _invocableExpression;
-
-        internal CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundCall invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(operationFactory, (BoundExpression)invocableExpression, targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        internal CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundCollectionElementInitializer invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(operationFactory, (BoundExpression)invocableExpression, targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        private CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundExpression invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _invocableExpression = invocableExpression;
-        }
-
-        protected override IOperation CreateInstance()
-        {
-            BoundExpression receiver;
-            switch (_invocableExpression)
-            {
-                case BoundCall call:
-                    receiver = call.ReceiverOpt;
-                    break;
-                case BoundCollectionElementInitializer initializer:
-                    receiver = initializer.ImplicitReceiverOpt;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(_invocableExpression.Kind);
-            }
-
-            return _operationFactory.CreateReceiverOperation(receiver, TargetMethod.GetSymbol());
-        }
-
-        protected override ImmutableArray<IArgumentOperation> CreateArguments()
-        {
-            return _operationFactory.DeriveArguments(_invocableExpression);
-        }
-    }
-
-    internal sealed class CSharpLazyIsTypeOperation : LazyIsTypeOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _valueOperand;
-
-        internal CSharpLazyIsTypeOperation(CSharpOperationFactory operationFactory, BoundNode valueOperand, ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _valueOperand = valueOperand;
-        }
-
-        protected override IOperation CreateValueOperand()
-        {
-            return _operationFactory.Create(_valueOperand);
-        }
-    }
-
-    internal sealed class CSharpLazyAnonymousFunctionOperation : LazyAnonymousFunctionOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _body;
-
-        internal CSharpLazyAnonymousFunctionOperation(CSharpOperationFactory operationFactory, BoundNode body, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _body = body;
-        }
-
-        protected override IBlockOperation CreateBody()
-        {
-            return (IBlockOperation)_operationFactory.Create(_body);
-        }
-    }
-
-    internal sealed class CSharpLazyDelegateCreationOperation : LazyDelegateCreationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _delegateNode;
-
-        internal CSharpLazyDelegateCreationOperation(CSharpOperationFactory operationFactory, BoundNode delegateNode, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _delegateNode = delegateNode;
-        }
-
-        protected override IOperation CreateTarget()
-        {
-            return _operationFactory.CreateDelegateTargetOperation(_delegateNode);
-        }
-    }
-
     internal sealed class CSharpLazyDynamicMemberReferenceOperation : LazyDynamicMemberReferenceOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -915,29 +583,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyCoalesceOperation : LazyCoalesceOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNullCoalescingOperator _nullCoalescingOperator;
-
-        internal CSharpLazyCoalesceOperation(CSharpOperationFactory operationFactory, BoundNullCoalescingOperator nullCoalescingOperator, IConvertibleConversion convertibleValueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _nullCoalescingOperator = nullCoalescingOperator;
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_nullCoalescingOperator.LeftOperand);
-        }
-
-        protected override IOperation CreateWhenNull()
-        {
-            return _operationFactory.Create(_nullCoalescingOperator.RightOperand);
-        }
-    }
-
     internal sealed class CSharpLazyCoalesceAssignmentOperation : LazyCoalesceAssignmentOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -961,29 +606,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyObjectCreationOperation : LazyObjectCreationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundObjectCreationExpression _objectCreation;
-
-        internal CSharpLazyObjectCreationOperation(CSharpOperationFactory operationFactory, BoundObjectCreationExpression objectCreation, IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _objectCreation = objectCreation;
-        }
-
-        protected override IObjectOrCollectionInitializerOperation CreateInitializer()
-        {
-            return (IObjectOrCollectionInitializerOperation)_operationFactory.Create(_objectCreation.InitializerExpressionOpt);
-        }
-
-        protected override ImmutableArray<IArgumentOperation> CreateArguments()
-        {
-            return _operationFactory.DeriveArguments(_objectCreation);
-        }
-    }
-
     internal sealed class CSharpLazyWithExpressionOperation : LazyWithOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -1004,51 +626,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateOperand()
         {
             return _operationFactory.Create(_withExpression.Receiver);
-        }
-    }
-
-    internal sealed class CSharpLazyAnonymousObjectCreationOperation : LazyAnonymousObjectCreationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundExpression _anonymousObjectCreation;
-
-        internal CSharpLazyAnonymousObjectCreationOperation(CSharpOperationFactory operationFactory, BoundAnonymousObjectCreationExpression anonymousObjectCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(operationFactory, (BoundExpression)anonymousObjectCreation, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        internal CSharpLazyAnonymousObjectCreationOperation(CSharpOperationFactory operationFactory, BoundObjectCreationExpression anonymousObjectCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(operationFactory, (BoundExpression)anonymousObjectCreation, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        private CSharpLazyAnonymousObjectCreationOperation(CSharpOperationFactory operationFactory, BoundExpression anonymousObjectCreation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _anonymousObjectCreation = anonymousObjectCreation;
-        }
-
-        protected override ImmutableArray<IOperation> CreateInitializers()
-        {
-            ImmutableArray<BoundExpression> arguments;
-            ImmutableArray<BoundAnonymousPropertyDeclaration> declarations;
-
-            switch (_anonymousObjectCreation)
-            {
-                case BoundAnonymousObjectCreationExpression anonymousObjectCreationExpression:
-                    arguments = anonymousObjectCreationExpression.Arguments;
-                    declarations = anonymousObjectCreationExpression.Declarations;
-                    break;
-                case BoundObjectCreationExpression objectCreationExpression:
-                    arguments = objectCreationExpression.Arguments;
-                    declarations = ImmutableArray<BoundAnonymousPropertyDeclaration>.Empty;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(_anonymousObjectCreation.Kind);
-            }
-
-            return _operationFactory.GetAnonymousObjectCreationInitializers(arguments, declarations, Syntax, Type, IsImplicit);
         }
     }
 
@@ -1159,42 +736,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyTupleOperation : LazyTupleOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundTupleExpression _tupleExpression;
-
-        internal CSharpLazyTupleOperation(CSharpOperationFactory operationFactory, BoundTupleExpression tupleExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ITypeSymbol naturalType, ConstantValue constantValue, bool isImplicit) :
-            base(naturalType, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _tupleExpression = tupleExpression;
-        }
-
-        protected override ImmutableArray<IOperation> CreateElements()
-        {
-            return _operationFactory.CreateFromArray<BoundExpression, IOperation>(_tupleExpression.Arguments);
-        }
-    }
-
-    internal sealed class CSharpLazyTypeParameterObjectCreationOperation : LazyTypeParameterObjectCreationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _initializer;
-
-        internal CSharpLazyTypeParameterObjectCreationOperation(CSharpOperationFactory operationFactory, BoundNode initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _initializer = initializer;
-        }
-
-        protected override IObjectOrCollectionInitializerOperation CreateInitializer()
-        {
-            return (IObjectOrCollectionInitializerOperation)_operationFactory.Create(_initializer);
-        }
-    }
-
     internal sealed class CSharpLazyDynamicObjectCreationOperation : LazyDynamicObjectCreationOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -1261,47 +802,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IOperation> CreateArguments()
         {
             return _operationFactory.CreateBoundDynamicIndexerAccessArguments(_indexer);
-        }
-    }
-
-    internal sealed class CSharpLazyUnaryOperation : LazyUnaryOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _operand;
-
-        internal CSharpLazyUnaryOperation(CSharpOperationFactory operationFactory, BoundNode operand, UnaryOperatorKind unaryOperationKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _operand = operand;
-        }
-
-        protected override IOperation CreateOperand()
-        {
-            return _operationFactory.Create(_operand);
-        }
-    }
-
-    internal sealed class CSharpLazyUsingOperation : LazyUsingOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundUsingStatement _usingStatement;
-
-        internal CSharpLazyUsingOperation(CSharpOperationFactory operationFactory, BoundUsingStatement usingStatement, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(locals, usingStatement.AwaitOpt != null, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _usingStatement = usingStatement;
-        }
-
-        protected override IOperation CreateResources()
-        {
-            return _operationFactory.Create((BoundNode)_usingStatement.DeclarationsOpt ?? _usingStatement.ExpressionOpt);
-        }
-
-        protected override IOperation CreateBody()
-        {
-            return _operationFactory.Create(_usingStatement.Body);
         }
     }
 
@@ -1381,31 +881,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateIgnoredCondition()
         {
             return null;
-        }
-    }
-
-    internal sealed class CSharpLazyLocalFunctionOperation : LazyLocalFunctionOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundLocalFunctionStatement _localFunctionStatement;
-
-        internal CSharpLazyLocalFunctionOperation(CSharpOperationFactory operationFactory, BoundLocalFunctionStatement localFunctionStatement, IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _localFunctionStatement = localFunctionStatement;
-        }
-
-        protected override IBlockOperation CreateBody()
-        {
-            return (IBlockOperation)_operationFactory.Create(_localFunctionStatement.Body);
-        }
-
-        protected override IBlockOperation CreateIgnoredBody()
-        {
-            return _localFunctionStatement.BlockBody != null && _localFunctionStatement.ExpressionBody != null ?
-                        (IBlockOperation)_operationFactory.Create(_localFunctionStatement.ExpressionBody) :
-                        null;
         }
     }
 
@@ -1703,65 +1178,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateValue()
         {
             return _operationFactory.Create(_switchExpressionArm.Value);
-        }
-    }
-
-    internal sealed class CSharpLazyObjectOrCollectionInitializerOperation : LazyObjectOrCollectionInitializerOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundExpression _initializer;
-
-        internal CSharpLazyObjectOrCollectionInitializerOperation(CSharpOperationFactory operationFactory, BoundExpression initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _initializer = initializer;
-        }
-
-        protected override ImmutableArray<IOperation> CreateInitializers()
-        {
-            return _operationFactory.CreateFromArray<BoundExpression, IOperation>(BoundObjectCreationExpression.GetChildInitializers(_initializer));
-        }
-    }
-
-    internal sealed class CSharpLazyMemberInitializerOperation : LazyMemberInitializerOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundAssignmentOperator _assignmentOperator;
-
-        internal CSharpLazyMemberInitializerOperation(CSharpOperationFactory operationFactory, BoundAssignmentOperator assignmentOperator, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _assignmentOperator = assignmentOperator;
-        }
-
-        protected override IOperation CreateInitializedMember()
-        {
-            return _operationFactory.CreateMemberInitializerInitializedMember(_assignmentOperator.Left);
-        }
-
-        protected override IObjectOrCollectionInitializerOperation CreateInitializer()
-        {
-            return (IObjectOrCollectionInitializerOperation)_operationFactory.Create(_assignmentOperator.Right);
-        }
-    }
-
-    internal sealed class CSharpLazyTranslatedQueryOperation : LazyTranslatedQueryOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _operation;
-
-        internal CSharpLazyTranslatedQueryOperation(CSharpOperationFactory operationFactory, BoundNode operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _operation = operation;
-        }
-
-        protected override IOperation CreateOperation()
-        {
-            return _operationFactory.Create(_operation);
         }
     }
 

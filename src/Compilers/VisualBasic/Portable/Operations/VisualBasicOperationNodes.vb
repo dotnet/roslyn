@@ -24,23 +24,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyNameOfOperation
-        Inherits LazyNameOfOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _argument As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, argument As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _argument = argument
-        End Sub
-
-        Protected Overrides Function CreateArgument() As IOperation
-            Return _operationFactory.Create(_argument)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyThrowOperation
         Inherits LazyThrowOperation
 
@@ -72,48 +55,6 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Protected Overrides Function CreateValue() As IOperation
             Return _operationFactory.Create(_value)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyArrayCreationOperation
-        Inherits LazyArrayCreationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _arrayCreation As BoundArrayCreation
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayCreation As BoundArrayCreation, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _arrayCreation = arrayCreation
-        End Sub
-
-        Protected Overrides Function CreateDimensionSizes() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_arrayCreation.Bounds)
-        End Function
-
-        Protected Overrides Function CreateInitializer() As IArrayInitializerOperation
-            Return DirectCast(_operationFactory.Create(_arrayCreation.InitializerOpt), IArrayInitializerOperation)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyArrayElementReferenceOperation
-        Inherits LazyArrayElementReferenceOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _arrayAccess As BoundArrayAccess
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayAccess As BoundArrayAccess, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _arrayAccess = arrayAccess
-        End Sub
-
-        Protected Overrides Function CreateArrayReference() As IOperation
-            Return _operationFactory.Create(_arrayAccess.Expression)
-        End Function
-
-        Protected Overrides Function CreateIndices() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_arrayAccess.Indices)
         End Function
     End Class
 
@@ -152,44 +93,6 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Protected Overrides Function CreateValue() As IOperation
             Return _operationFactory.Create(_assignment.Right)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyAwaitOperation
-        Inherits LazyAwaitOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operation As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operation = operation
-        End Sub
-
-        Protected Overrides Function CreateOperation() As IOperation
-            Return _operationFactory.Create(_operation)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyBinaryOperation
-        Inherits LazyBinaryOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operator As BoundExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, [operator] As BoundExpression, operatorKind As BinaryOperatorKind, isLifted As Boolean, isChecked As Boolean, isCompareText As Boolean, operatorMethod As IMethodSymbol, unaryOperatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operator = [operator]
-        End Sub
-
-        Protected Overrides Function CreateLeftOperand() As IOperation
-            Return _operationFactory.CreateBoundBinaryOperatorChild(_operator, isLeft:=True)
-        End Function
-
-        Protected Overrides Function CreateRightOperand() As IOperation
-            Return _operationFactory.CreateBoundBinaryOperatorChild(_operator, isLeft:=False)
         End Function
     End Class
 
@@ -239,73 +142,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyConditionalAccessOperation
-        Inherits LazyConditionalAccessOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _conditionalAccess As BoundConditionalAccess
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalAccess As BoundConditionalAccess, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _conditionalAccess = conditionalAccess
-        End Sub
-
-        Protected Overrides Function CreateOperation() As IOperation
-            Return _operationFactory.Create(_conditionalAccess.Receiver)
-        End Function
-
-        Protected Overrides Function CreateWhenNotNull() As IOperation
-            Return _operationFactory.Create(_conditionalAccess.AccessExpression)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyConditionalOperation
-        Inherits LazyConditionalOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _conditional As IBoundConditional
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditional As IBoundConditional, isRef As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(isRef, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _conditional = conditional
-        End Sub
-
-        Protected Overrides Function CreateCondition() As IOperation
-            Return _operationFactory.Create(_conditional.Condition)
-        End Function
-
-        Protected Overrides Function CreateWhenTrue() As IOperation
-            Return _operationFactory.Create(_conditional.WhenTrue)
-        End Function
-
-        Protected Overrides Function CreateWhenFalse() As IOperation
-            Return _operationFactory.Create(_conditional.WhenFalseOpt)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyEventAssignmentOperation
-        Inherits LazyEventAssignmentOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _addRemoveHandlerStatement As BoundAddRemoveHandlerStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, addRemoveHandlerStatement As BoundAddRemoveHandlerStatement, adds As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(adds, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _addRemoveHandlerStatement = addRemoveHandlerStatement
-        End Sub
-
-        Protected Overrides Function CreateEventReference() As IOperation
-            Return _operationFactory.Create(_addRemoveHandlerStatement.EventAccess)
-        End Function
-
-        Protected Overrides Function CreateHandlerValue() As IOperation
-            Return _operationFactory.Create(_addRemoveHandlerStatement.Handler)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyEventReferenceOperation
         Inherits LazyEventReferenceOperation
 
@@ -320,23 +156,6 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Protected Overrides Function CreateInstance() As IOperation
             Return _operationFactory.CreateReceiverOperation(_instance, [Event])
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyExpressionStatementOperation
-        Inherits LazyExpressionStatementOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operation As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operation = operation
-        End Sub
-
-        Protected Overrides Function CreateOperation() As IOperation
-            Return _operationFactory.Create(_operation)
         End Function
     End Class
 
@@ -463,23 +282,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyInterpolatedStringOperation
-        Inherits LazyInterpolatedStringOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _interpolatedStringExpression As BoundInterpolatedStringExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, interpolatedStringExpression As BoundInterpolatedStringExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _interpolatedStringExpression = interpolatedStringExpression
-        End Sub
-
-        Protected Overrides Function CreateParts() As ImmutableArray(Of IInterpolatedStringContentOperation)
-            Return _operationFactory.CreateBoundInterpolatedStringContentOperation(_interpolatedStringExpression.Contents)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyInterpolatedStringTextOperation
         Inherits LazyInterpolatedStringTextOperation
 
@@ -539,120 +341,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyInvocationOperation
-        Inherits LazyInvocationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _invocable As BoundExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundCall, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            Me.New(operationFactory, DirectCast(invocable, BoundExpression), targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        End Sub
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundNullableIsTrueOperator, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            Me.New(operationFactory, DirectCast(invocable, BoundExpression), targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        End Sub
-
-        Private Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundExpression, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _invocable = invocable
-        End Sub
-
-        Protected Overrides Function CreateInstance() As IOperation
-            Dim receiver As BoundExpression
-            Select Case _invocable.Kind
-                Case BoundKind.Call
-                    Dim [call] = DirectCast(_invocable, BoundCall)
-                    receiver = If([call].ReceiverOpt, [call].MethodGroupOpt?.ReceiverOpt)
-                Case BoundKind.NullableIsTrueOperator
-                    receiver = DirectCast(_invocable, BoundNullableIsTrueOperator).Operand
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(_invocable.Kind)
-            End Select
-            Return _operationFactory.CreateReceiverOperation(receiver, TargetMethod)
-        End Function
-
-        Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            If _invocable.Kind = BoundKind.NullableIsTrueOperator Then
-                Return ImmutableArray(Of IArgumentOperation).Empty
-            End If
-            Return _operationFactory.DeriveArguments(_invocable)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyRaiseEventOperation
-        Inherits LazyRaiseEventOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _raiseEventStatement As BoundRaiseEventStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, raiseEventStatement As BoundRaiseEventStatement, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _raiseEventStatement = raiseEventStatement
-        End Sub
-
-        Protected Overrides Function CreateEventReference() As IEventReferenceOperation
-            Return _operationFactory.CreateBoundRaiseEventStatementEventReference(_raiseEventStatement)
-        End Function
-
-        Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            Return _operationFactory.DeriveArguments(_raiseEventStatement)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyIsTypeOperation
-        Inherits LazyIsTypeOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _valueOperand As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, valueOperand As BoundNode, isType As ITypeSymbol, isNotTypeExpression As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _valueOperand = valueOperand
-        End Sub
-
-        Protected Overrides Function CreateValueOperand() As IOperation
-            Return _operationFactory.Create(_valueOperand)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyAnonymousFunctionOperation
-        Inherits LazyAnonymousFunctionOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _body As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, body As BoundNode, symbol As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(symbol, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _body = body
-        End Sub
-
-        Protected Overrides Function CreateBody() As IBlockOperation
-            Return DirectCast(_operationFactory.Create(_body), IBlockOperation)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyDelegateCreationOperation
-        Inherits LazyDelegateCreationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _delegateCreation As BoundDelegateCreationExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, delegateCreation As BoundDelegateCreationExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _delegateCreation = delegateCreation
-        End Sub
-
-        Protected Overrides Function CreateTarget() As IOperation
-            Return _operationFactory.CreateBoundDelegateCreationExpressionChildOperation(_delegateCreation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyDynamicMemberReferenceOperation
         Inherits LazyDynamicMemberReferenceOperation
 
@@ -687,65 +375,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyCoalesceOperation
-        Inherits LazyCoalesceOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _conditionalExpression As BoundBinaryConditionalExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalExpression As BoundBinaryConditionalExpression, convertibleValueConversion As IConvertibleConversion, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _conditionalExpression = conditionalExpression
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_conditionalExpression.TestExpression)
-        End Function
-
-        Protected Overrides Function CreateWhenNull() As IOperation
-            Return _operationFactory.Create(_conditionalExpression.ElseExpression)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyObjectCreationOperation
-        Inherits LazyObjectCreationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _objectCreation As BoundObjectCreationExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, objectCreation As BoundObjectCreationExpression, constructor As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(constructor, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _objectCreation = objectCreation
-        End Sub
-
-        Protected Overrides Function CreateInitializer() As IObjectOrCollectionInitializerOperation
-            Return DirectCast(_operationFactory.Create(_objectCreation.InitializerOpt), IObjectOrCollectionInitializerOperation)
-        End Function
-
-        Protected Overrides Function CreateArguments() As ImmutableArray(Of IArgumentOperation)
-            Return _operationFactory.DeriveArguments(_objectCreation)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyAnonymousObjectCreationOperation
-        Inherits LazyAnonymousObjectCreationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _anonymousTypeCreation As BoundAnonymousTypeCreationExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, anonymousTypeCreation As BoundAnonymousTypeCreationExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _anonymousTypeCreation = anonymousTypeCreation
-        End Sub
-
-        Protected Overrides Function CreateInitializers() As ImmutableArray(Of IOperation)
-            Return _operationFactory.GetAnonymousTypeCreationInitializers(_anonymousTypeCreation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyParameterInitializerOperation
         Inherits LazyParameterInitializerOperation
 
@@ -760,23 +389,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
 
         Protected Overrides Function CreateValue() As IOperation
             Return _operationFactory.Create(_value)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyParenthesizedOperation
-        Inherits LazyParenthesizedOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operand As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operand As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operand = operand
-        End Sub
-
-        Protected Overrides Function CreateOperand() As IOperation
-            Return _operationFactory.Create(_operand)
         End Function
     End Class
 
@@ -900,40 +512,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyTupleOperation
-        Inherits LazyTupleOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _tupleExpression As BoundTupleExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, tupleExpression As BoundTupleExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, naturalType As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(naturalType, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _tupleExpression = tupleExpression
-        End Sub
-
-        Protected Overrides Function CreateElements() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_tupleExpression.Arguments)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyTypeParameterObjectCreationOperation
-        Inherits LazyTypeParameterObjectCreationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _initializer As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, initializer As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _initializer = initializer
-        End Sub
-
-        Protected Overrides Function CreateInitializer() As IObjectOrCollectionInitializerOperation
-            Return DirectCast(_operationFactory.Create(_initializer), IObjectOrCollectionInitializerOperation)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyDynamicInvocationOperation
         Inherits LazyDynamicInvocationOperation
 
@@ -952,44 +530,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
 
         Protected Overrides Function CreateArguments() As ImmutableArray(Of IOperation)
             Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_lateInvocation.ArgumentsOpt)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyUnaryOperation
-        Inherits LazyUnaryOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operator As BoundExpression
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, [operator] As BoundExpression, unaryOperationKind As UnaryOperatorKind, isLifted As Boolean, isChecked As Boolean, operatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operator = [operator]
-        End Sub
-
-        Protected Overrides Function CreateOperand() As IOperation
-            Return _operationFactory.CreateBoundUnaryOperatorChild(_operator)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyUsingOperation
-        Inherits LazyUsingOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _boundUsingStatement As BoundUsingStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundUsingStatement As BoundUsingStatement, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(locals, isAsynchronous:=False, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _boundUsingStatement = boundUsingStatement
-        End Sub
-
-        Protected Overrides Function CreateResources() As IOperation
-            Return _operationFactory.CreateBoundUsingStatementResources(_boundUsingStatement)
-        End Function
-
-        Protected Overrides Function CreateBody() As IOperation
-            Return _operationFactory.Create(_boundUsingStatement.Body)
         End Function
     End Class
 
@@ -1053,40 +593,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
 
         Protected Overrides Function CreateValue() As IOperation
             Return _operationFactory.Create(_withStatement.OriginalExpression)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyObjectOrCollectionInitializerOperation
-        Inherits LazyObjectOrCollectionInitializerOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _objectOrCollectionInitializer As BoundObjectInitializerExpressionBase
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, objectOrCollectionInitializer As BoundObjectInitializerExpressionBase, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _objectOrCollectionInitializer = objectOrCollectionInitializer
-        End Sub
-
-        Protected Overrides Function CreateInitializers() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_objectOrCollectionInitializer.Initializers)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyTranslatedQueryOperation
-        Inherits LazyTranslatedQueryOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _operation As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _operation = operation
-        End Sub
-
-        Protected Overrides Function CreateOperation() As IOperation
-            Return _operationFactory.Create(_operation)
         End Function
     End Class
 

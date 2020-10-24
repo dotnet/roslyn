@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var argumentExpressionOperation = argumentOperation.Value;
             if (argumentOperation.ArgumentKind == ArgumentKind.ParamArray
                 && parameterSymbol.Type is IArrayTypeSymbol paramArrayParameter
-                && argumentExpressionOperation is IArrayCreationOperation arrayCreationOperation
+                && argumentExpressionOperation is IArrayCreationOperation { Initializer: { } initializer }
                 && argumentOperation.IsImplicit)
             {
                 // if this argument is a param array & the array creation operation is implicitly generated,
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return (TExpressionSyntax)syntaxGenerator.AddParentheses(
                     syntaxGenerator.ArrayCreationExpression(
                         GenerateTypeSyntax(paramArrayParameter.ElementType, allowVar: false),
-                        arrayCreationOperation.Initializer.ElementValues.SelectAsArray(op => op.Syntax)));
+                        initializer.ElementValues.SelectAsArray(op => op.Syntax)));
             }
 
             // In all the other cases, one parameter should only maps to one argument.

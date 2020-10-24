@@ -449,17 +449,37 @@ namespace IOperationGenerator
 
             if (node != null)
             {
-                if (publicIOperationProps.Count > 0)
+                if (publicIOperationProps.Count > 0 && !node.SkipChildrenGeneration)
                 {
                     WriteLine("public override IEnumerable<IOperation> Children");
                     Brace();
                     WriteLine("get");
                     Brace();
 
+                    // PROTOTYPE(iop): Look at making this a better generated impl
                     WriteLine($"if ({lazyChildren} is null)");
                     Brace();
                     WriteLine($"var builder = ArrayBuilder<IOperation>.GetInstance({publicIOperationProps.Count});");
-                    foreach (var prop in publicIOperationProps)
+
+                    var orderedProperties = new List<Property>();
+
+                    if (publicIOperationProps.Count == 1)
+                    {
+                        orderedProperties.Add(publicIOperationProps.Single());
+                    }
+                    else
+                    {
+                        Debug.Assert(node.ChildrenOrder != null, $"Encountered null children order for {type.Name}, should have been caught in verifier!");
+                        var childrenOrdered = GetPropertyOrder(node);
+
+                        foreach (var childName in childrenOrdered)
+                        {
+                            orderedProperties.Add(publicIOperationProps.Find(p => p.Name == childName) ??
+                                throw new InvalidOperationException($"Cannot find property for {childName}"));
+                        }
+                    }
+
+                    foreach (var prop in orderedProperties)
                     {
                         if (IsImmutableArray(prop.Type, out _))
                         {
@@ -1019,7 +1039,7 @@ namespace IOperationGenerator
             {
                 const string internalName = "internalOperation";
 
-                if (!PortedTypes.Contains(node.Name))
+                if (!PortedTypes.Contains(node.Name) || node.SkipClassGeneration)
                 {
                     continue;
                 }
@@ -1036,6 +1056,10 @@ namespace IOperationGenerator
                     {
                         Write(IsImmutableArray(prop.Type, out _) ? "VisitArray" : "Visit");
                         Write($"({internalName}.{prop.Name}), ");
+                    }
+                    else if (prop.Type == "CommonConversion")
+                    {
+                        Write($"{internalName}.{prop.Name}Convertible, ");
                     }
                     else
                     {

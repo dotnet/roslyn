@@ -518,12 +518,13 @@
         <summary>Local function symbol.</summary>
       </Comments>
     </Property>
-    <Property Name="Body" Type="IBlockOperation">
+    <Property Name="Body" Type="IBlockOperation?">
       <Comments>
         <summary>Body of the local function.</summary>
+        <remarks>This can be null in error scenarios, or when the method is an extern method.</remarks>
       </Comments>
     </Property>
-    <Property Name="IgnoredBody" Type="IBlockOperation">
+    <Property Name="IgnoredBody" Type="IBlockOperation?">
       <Comments>
         <summary>An extra body for the local function, if both a block body and expression body are specified in source.</summary>
         <remarks>This is only ever non-null in error situations.</remarks>
@@ -634,7 +635,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IInvocationOperation" Base="IOperation" ChildrenOrder="Instance,Arguments">
+  <Node Name="IInvocationOperation" Base="IOperation" ChildrenOrder="Instance,Arguments" HasType="true">
     <Comments>
       <summary>
         Represents an invocation of a method.
@@ -657,7 +658,7 @@
         <summary>Method to be invoked.</summary>
       </Comments>
     </Property>
-    <Property Name="Instance" Type="IOperation">
+    <Property Name="Instance" Type="IOperation?">
       <Comments>
         <summary>'This' or 'Me' instance to be supplied to the method, or null if the method is static.</summary>
       </Comments>
@@ -677,7 +678,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IArrayElementReferenceOperation" Base="IOperation" ChildrenOrder="ArrayReference,Indices">
+  <Node Name="IArrayElementReferenceOperation" Base="IOperation" ChildrenOrder="ArrayReference,Indices" HasType="true">
     <Comments>
       <summary>
         Represents a reference to an array element.
@@ -854,7 +855,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IUnaryOperation" Base="IOperation" VisitorName="VisitUnaryOperator">
+  <Node Name="IUnaryOperation" Base="IOperation" VisitorName="VisitUnaryOperator" HasType="true" HasConstantValue="true">
     <OperationKind>
       <Entry Name="Unary" Value="0x1f" />
       <Entry Name="UnaryOperator" Value="0x1f" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;Unary&quot;/&gt; instead." />
@@ -896,13 +897,13 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="OperatorMethod" Type="IMethodSymbol">
+    <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>
     </Property>
   </Node>
-  <Node Name="IBinaryOperation" Base="IOperation" VisitorName="VisitBinaryOperator" ChildrenOrder="LeftOperand,RightOperand">
+  <Node Name="IBinaryOperation" Base="IOperation" VisitorName="VisitBinaryOperator" ChildrenOrder="LeftOperand,RightOperand" HasType="true" HasConstantValue="true">
     <OperationKind>
       <Entry Name="Binary" Value="0x20" />
       <Entry Name="BinaryOperator" Value="0x20" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;Binary&quot;/&gt; instead." />
@@ -956,12 +957,12 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="OperatorMethod" Type="IMethodSymbol">
+    <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>
     </Property>
-    <Property Name="UnaryOperatorMethod" Type="IMethodSymbol" Internal="true">
+    <Property Name="UnaryOperatorMethod" Type="IMethodSymbol?" Internal="true">
       <Comments>
         <summary>
           True/False operator method used for short circuiting.
@@ -970,7 +971,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IConditionalOperation" Base="IOperation" ChildrenOrder="Condition,WhenTrue,WhenFalse">
+  <Node Name="IConditionalOperation" Base="IOperation" ChildrenOrder="Condition,WhenTrue,WhenFalse" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a conditional operation with:
@@ -996,7 +997,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="WhenFalse" Type="IOperation">
+    <Property Name="WhenFalse" Type="IOperation?">
       <Comments>
         <summary>
           Operation to be executed if the <see cref="Condition" /> is false.
@@ -1009,7 +1010,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICoalesceOperation" Base="IOperation" ChildrenOrder="Value,WhenNull">
+  <Node Name="ICoalesceOperation" Base="IOperation" ChildrenOrder="Value,WhenNull" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a coalesce operation with two operands:
@@ -1047,6 +1048,10 @@
     </Property>
   </Node>
   <Node Name="IAnonymousFunctionOperation" Base="IOperation">
+    <!--
+      IAnonymousFunctionOperations do not have a type, users must look at the IConversionOperation
+      on top of this node to get the type of lambda, matching SemanticModel.GetType behavior.
+    -->
     <Comments>
       <summary>
         Represents an anonymous function operation.
@@ -1068,7 +1073,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IObjectCreationOperation" Base="IOperation" ChildrenOrder="Arguments,Initializer">
+  <Node Name="IObjectCreationOperation" Base="IOperation" ChildrenOrder="Arguments,Initializer" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents creation of an object instance.
@@ -1079,12 +1084,12 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Constructor" Type="IMethodSymbol">
+    <Property Name="Constructor" Type="IMethodSymbol?">
       <Comments>
         <summary>Constructor to be invoked on the created instance.</summary>
       </Comments>
     </Property>
-    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">
+    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation?">
       <Comments>
         <summary>Object or collection initializer, if any.</summary>
       </Comments>
@@ -1099,7 +1104,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ITypeParameterObjectCreationOperation" Base="IOperation">
+  <Node Name="ITypeParameterObjectCreationOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a creation of a type parameter object, i.e. new T(), where T is a type parameter with new constraint.
@@ -1110,13 +1115,13 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">
+    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation?">
       <Comments>
         <summary>Object or collection initializer, if any.</summary>
       </Comments>
     </Property>
   </Node>
-  <Node Name="IArrayCreationOperation" Base="IOperation" ChildrenOrder="DimensionSizes,Initializer">
+  <Node Name="IArrayCreationOperation" Base="IOperation" ChildrenOrder="DimensionSizes,Initializer" HasType="true">
     <Comments>
       <summary>
         Represents the creation of an array instance.
@@ -1132,7 +1137,7 @@
         <summary>Sizes of the dimensions of the created array instance.</summary>
       </Comments>
     </Property>
-    <Property Name="Initializer" Type="IArrayInitializerOperation">
+    <Property Name="Initializer" Type="IArrayInitializerOperation?">
       <Comments>
         <summary>Values of elements of the created array instance.</summary>
       </Comments>
@@ -1157,7 +1162,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IIsTypeOperation" Base="IOperation">
+  <Node Name="IIsTypeOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an operation that tests if a value is of a specific type.
@@ -1188,7 +1193,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IAwaitOperation" Base="IOperation">
+  <Node Name="IAwaitOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an await operation.
@@ -1295,7 +1300,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IParenthesizedOperation" Base="IOperation">
+  <Node Name="IParenthesizedOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a parenthesized operation.
@@ -1311,7 +1316,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IEventAssignmentOperation" Base="IOperation" ChildrenOrder="EventReference,HandlerValue">
+  <Node Name="IEventAssignmentOperation" Base="IOperation" ChildrenOrder="EventReference,HandlerValue" HasType="true">
     <Comments>
       <summary>
         Represents a binding of an event.
@@ -1338,7 +1343,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IConditionalAccessOperation" Base="IOperation" ChildrenOrder="Operation,WhenNotNull">
+  <Node Name="IConditionalAccessOperation" Base="IOperation" ChildrenOrder="Operation,WhenNotNull" HasType="true">
     <Comments>
       <summary>
         Represents a conditionally accessed operation. Note that <see cref="IConditionalAccessInstanceOperation" /> is used to refer to the value
@@ -1377,7 +1382,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IInterpolatedStringOperation" Base="IOperation">
+  <Node Name="IInterpolatedStringOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents an interpolated string.
@@ -1396,7 +1401,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IAnonymousObjectCreationOperation" Base="IOperation">
+  <Node Name="IAnonymousObjectCreationOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a creation of anonymous object.
@@ -1417,7 +1422,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IObjectOrCollectionInitializerOperation" Base="IOperation">
+  <Node Name="IObjectOrCollectionInitializerOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an initialization for an object or collection creation.
@@ -1436,7 +1441,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IMemberInitializerOperation" Base="IOperation" ChildrenOrder="InitializedMember,Initializer">
+  <Node Name="IMemberInitializerOperation" Base="IOperation" ChildrenOrder="InitializedMember,Initializer" HasType="true">
     <Comments>
       <summary>
         Represents an initialization of member within an object initializer with a nested object or collection initializer.
@@ -1477,7 +1482,7 @@
     <Property Name="Arguments" Type="ImmutableArray&lt;IOperation&gt;" />
     <Property Name="IsDynamic" Type="bool" />
   </Node>
-  <Node Name="INameOfOperation" Base="IOperation">
+  <Node Name="INameOfOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents an operation that gets a string value for the <see cref="Argument" /> name.
@@ -1494,7 +1499,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ITupleOperation" Base="IOperation">
+  <Node Name="ITupleOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a tuple with one or more elements.
@@ -1510,7 +1515,7 @@
         <summary>Tuple elements.</summary>
       </Comments>
     </Property>
-    <Property Name="NaturalType" Type="ITypeSymbol">
+    <Property Name="NaturalType" Type="ITypeSymbol?">
       <Comments>
         <summary>
           Natural type of the tuple, or null if tuple doesn't have a natural type.
@@ -1626,7 +1631,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ITranslatedQueryOperation" Base="IOperation">
+  <Node Name="ITranslatedQueryOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an unrolled/lowered query operation.
@@ -1648,7 +1653,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDelegateCreationOperation" Base="IOperation">
+  <Node Name="IDelegateCreationOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a delegate creation. This is created whenever a new delegate is created.

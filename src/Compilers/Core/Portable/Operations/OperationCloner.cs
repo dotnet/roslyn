@@ -97,11 +97,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CatchClauseOperation(Visit(operation.ExceptionDeclarationOrExpression), operation.ExceptionType, operation.Locals, Visit(operation.Filter), Visit(operation.Handler), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitUsing(IUsingOperation operation, object argument)
-        {
-            return new UsingOperation(Visit(operation.Resources), Visit(operation.Body), operation.Locals, operation.IsAsynchronous, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         // https://github.com/dotnet/roslyn/issues/21281
         internal override IOperation VisitFixed(IFixedOperation operation, object argument)
         {
@@ -113,30 +108,15 @@ namespace Microsoft.CodeAnalysis.Operations
             return new AggregateQueryOperation(Visit(operation.Group), Visit(operation.Aggregation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitExpressionStatement(IExpressionStatementOperation operation, object argument)
-        {
-            return new ExpressionStatementOperation(Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         internal override IOperation VisitWithStatement(IWithStatementOperation operation, object argument)
         {
             return new WithStatementOperation(Visit(operation.Body), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitInvocation(IInvocationOperation operation, object argument)
-        {
-            return new InvocationOperation(operation.TargetMethod, Visit(operation.Instance), operation.IsVirtual, VisitArray(operation.Arguments), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitArgument(IArgumentOperation operation, object argument)
         {
             var baseArgument = (BaseArgumentOperation)operation;
             return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
-        }
-
-        public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, object argument)
-        {
-            return new ArrayElementReferenceOperation(Visit(operation.ArrayReference), VisitArray(operation.Indices), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitFieldReference(IFieldReferenceOperation operation, object argument)
@@ -159,29 +139,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new EventReferenceOperation(operation.Event, Visit(operation.Instance), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, object argument)
-        {
-            return new EventAssignmentOperation(Visit(operation.EventReference), Visit(operation.HandlerValue), operation.Adds, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitConditionalAccess(IConditionalAccessOperation operation, object argument)
-        {
-            return new ConditionalAccessOperation(Visit(operation.WhenNotNull), Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitUnaryOperator(IUnaryOperation operation, object argument)
-        {
-            return new UnaryOperation(operation.OperatorKind, Visit(operation.Operand), operation.IsLifted, operation.IsChecked, operation.OperatorMethod, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitBinaryOperator(IBinaryOperation operation, object argument)
-        {
-            return new BinaryOperation(operation.OperatorKind, Visit(operation.LeftOperand), Visit(operation.RightOperand),
-                                                operation.IsLifted, operation.IsChecked, operation.IsCompareText, operation.OperatorMethod,
-                                                ((BaseBinaryOperation)operation).UnaryOperatorMethod, ((Operation)operation).OwningSemanticModel,
-                                                operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, object argument)
         {
             return new TupleBinaryOperation(operation.OperatorKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
@@ -193,52 +150,15 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CompoundAssignmentOperation(compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible, operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, Visit(operation.Target), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitConditional(IConditionalOperation operation, object argument)
-        {
-            return new ConditionalOperation(Visit(operation.Condition), Visit(operation.WhenTrue), Visit(operation.WhenFalse), operation.IsRef, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitCoalesce(ICoalesceOperation operation, object argument)
-        {
-            var coalesceOperation = (BaseCoalesceOperation)operation;
-            return new CoalesceOperation(Visit(operation.Value), Visit(operation.WhenNull), coalesceOperation.ValueConversionConvertible, coalesceOperation.OwningSemanticModel,
-                                          operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, object argument)
         {
             return new CoalesceAssignmentOperation(Visit(operation.Target), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitIsType(IIsTypeOperation operation, object argument)
-        {
-            return new IsTypeOperation(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, object argument)
-        {
-            return new AnonymousFunctionOperation(operation.Symbol, Visit(operation.Body), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object argument)
         {
             var anonymous = (FlowAnonymousFunctionOperation)operation;
             return new FlowAnonymousFunctionOperation(in anonymous.Context, anonymous.Original, operation.IsImplicit);
-        }
-
-        public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, object argument)
-        {
-            return new DelegateCreationOperation(Visit(operation.Target), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitAwait(IAwaitOperation operation, object argument)
-        {
-            return new AwaitOperation(Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitNameOf(INameOfOperation operation, object argument)
-        {
-            return new NameOfOperation(Visit(operation.Argument), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitThrow(IThrowOperation operation, object argument)
@@ -249,26 +169,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitAddressOf(IAddressOfOperation operation, object argument)
         {
             return new AddressOfOperation(Visit(operation.Reference), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitObjectCreation(IObjectCreationOperation operation, object argument)
-        {
-            return new ObjectCreationOperation(operation.Constructor, Visit(operation.Initializer), VisitArray(operation.Arguments), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, object argument)
-        {
-            return new AnonymousObjectCreationOperation(VisitArray(operation.Initializers), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, object argument)
-        {
-            return new ObjectOrCollectionInitializerOperation(VisitArray(operation.Initializers), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitMemberInitializer(IMemberInitializerOperation operation, object argument)
-        {
-            return new MemberInitializerOperation(Visit(operation.InitializedMember), Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, object argument)
@@ -289,11 +189,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, object argument)
         {
             return new ParameterInitializerOperation(operation.Parameter, operation.Locals, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitArrayCreation(IArrayCreationOperation operation, object argument)
-        {
-            return new ArrayCreationOperation(VisitArray(operation.DimensionSizes), Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, object argument)
@@ -321,11 +216,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new IncrementOrDecrementOperation(operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod, operation.Kind, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitParenthesized(IParenthesizedOperation operation, object argument)
-        {
-            return new ParenthesizedOperation(Visit(operation.Operand), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation, object argument)
         {
             return new DynamicMemberReferenceOperation(Visit(operation.Instance), operation.MemberName, operation.TypeArguments, operation.ContainingType, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
@@ -346,11 +236,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DynamicIndexerAccessOperation(Visit(operation.Operation), VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, object argument)
-        {
-            return new TypeParameterObjectCreationOperation(Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         internal override IOperation VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, object argument)
         {
             return new NoPiaObjectCreationOperation(Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
@@ -359,16 +244,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitInvalid(IInvalidOperation operation, object argument)
         {
             return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, object argument)
-        {
-            return new LocalFunctionOperation(operation.Symbol, Visit(operation.Body), Visit(operation.IgnoredBody), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, object argument)
-        {
-            return new InterpolatedStringOperation(VisitArray(operation.Parts), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, object argument)
@@ -434,21 +309,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)
         {
             return new PatternCaseClauseOperation(operation.Label, Visit(operation.Pattern), Visit(operation.Guard), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitTuple(ITupleOperation operation, object argument)
-        {
-            return new TupleOperation(VisitArray(operation.Elements), operation.NaturalType, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, object argument)
-        {
-            return new TranslatedQueryOperation(Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, object argument)
-        {
-            return new RaiseEventOperation(Visit(operation.EventReference), VisitArray(operation.Arguments), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, object argument)
