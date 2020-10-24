@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1093,7 +1093,7 @@ static class C
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestNormalUsing()
+        public async Task TestNormalUsingDirective()
         {
             await Test_KeywordAsync(
 @"us[||]ing namespace.Class;
