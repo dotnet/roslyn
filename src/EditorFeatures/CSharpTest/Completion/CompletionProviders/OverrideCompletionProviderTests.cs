@@ -2910,7 +2910,7 @@ namespace ClassLibrary7
 
             // CompilationExtensions is in the Microsoft.CodeAnalysis.Test.Utilities namespace 
             // which has a "Traits" type that conflicts with the one in Roslyn.Test.Utilities
-            var reference = MetadataReference.CreateFromImage(Test.Utilities.CompilationExtensions.EmitToArray(compilation));
+            var reference = MetadataReference.CreateFromImage(compilation.EmitToArray());
             var p1 = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
             var updatedP1 = p1.AddMetadataReference(reference);
             workspace.ChangeSolution(updatedP1.Solution);
@@ -2963,7 +2963,7 @@ public class SomeClass : Base
             var origComp = await workspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None);
             var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
             var libComp = origComp.RemoveAllSyntaxTrees().AddSyntaxTrees(CSharpSyntaxTree.ParseText(before, options: options));
-            var libRef = MetadataReference.CreateFromImage(Test.Utilities.CompilationExtensions.EmitToArray(libComp));
+            var libRef = MetadataReference.CreateFromImage(libComp.EmitToArray());
 
             var project = workspace.CurrentSolution.Projects.Single();
             var updatedProject = project.AddMetadataReference(libRef);
@@ -3101,11 +3101,11 @@ record Program : Base
         [WorkItem(48640, "https://github.com/dotnet/roslyn/issues/48640")]
         public async Task ObjectEqualsInClass()
         {
-            await VerifyItemIsAbsentAsync(@"
+            await VerifyItemExistsAsync(@"
 class Program 
 {
     override $$
-}", "Equals(object)");
+}", "Equals(object obj)");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -3116,7 +3116,14 @@ class Program
 record Program 
 {
     override $$
-}", "Equals(object)");
+}", "Equals(object obj)");
+
+            await VerifyItemExistsAsync(@"
+record Program 
+{
+    override $$
+}", "ToString()");
+
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -3129,7 +3136,15 @@ record Base();
 record Program : Base
 {
     override $$
-}", "Equals(object)");
+}", "Equals(object obj)");
+
+            await VerifyItemExistsAsync(@"
+record Base();
+
+record Program : Base
+{
+    override $$
+}", "ToString()");
         }
     }
 }
