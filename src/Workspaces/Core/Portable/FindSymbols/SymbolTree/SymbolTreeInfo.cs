@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // find any node that matches case-insensitively
             var startingPosition = BinarySearch(nodes, name);
-            var nameSlice = new StringSlice(name);
+            var nameSlice = name.AsMemory();
 
             if (startingPosition != -1)
             {
@@ -281,10 +281,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static StringSlice GetNameSlice(
+        private static ReadOnlyMemory<char> GetNameSlice(
             ImmutableArray<Node> nodes, int nodeIndex)
         {
-            return new StringSlice(nodes[nodeIndex].Name);
+            return nodes[nodeIndex].Name.AsMemory();
         }
 
         private int BinarySearch(string name)
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static int BinarySearch(ImmutableArray<Node> nodes, string name)
         {
-            var nameSlice = new StringSlice(name);
+            var nameSlice = name.AsMemory();
             var max = nodes.Length - 1;
             var min = 0;
 
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Checksum checksum, ImmutableArray<Node> sortedNodes)
         {
             return Task.FromResult(new SpellChecker(
-                checksum, sortedNodes.Select(n => new StringSlice(n.Name))));
+                checksum, sortedNodes.Select(n => n.Name.AsMemory())));
         }
 
         private static void SortNodes(

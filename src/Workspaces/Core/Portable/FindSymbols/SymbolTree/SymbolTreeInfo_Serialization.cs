@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ObjectReader reader, Checksum checksum)
             {
                 return TryReadSymbolTreeInfo(reader, checksum,
-                    nodes => Task.FromResult(new SpellChecker(checksum, nodes.Select(n => new StringSlice(n.Name)))));
+                    nodes => Task.FromResult(new SpellChecker(checksum, nodes.Select(n => n.Name.AsMemory()))));
             }
         }
     }
