@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
@@ -23,8 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public XamlInProcLanguageClient(XamlLanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService, IAsynchronousOperationListenerProvider listenerProvider, XamlSolutionProvider solutionProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
+        public XamlInProcLanguageClient(
+            XamlLanguageServerProtocol languageServerProtocol,
+            VisualStudioWorkspace workspace,
+            IAsynchronousOperationListenerProvider listenerProvider,
+            XamlSolutionProvider solutionProvider)
+            : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
         }
 
@@ -32,5 +37,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
         public override string Name => Resources.Xaml_Language_Server_Client;
+
+        protected internal override VSServerCapabilities GetCapabilities()
+            => new VSServerCapabilities
+            {
+                CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" } },
+                HoverProvider = true,
+                FoldingRangeProvider = new FoldingRangeOptions { },
+                DocumentFormattingProvider = true,
+                DocumentRangeFormattingProvider = true,
+                DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">", MoreTriggerCharacter = new string[] { "\n" } },
+                OnAutoInsertProvider = new DocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/", ">" } },
+                TextDocumentSync = new TextDocumentSyncOptions
+                {
+                    Change = TextDocumentSyncKind.None
+                },
+            };
     }
 }

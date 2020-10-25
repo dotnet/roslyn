@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (lastDotIndex >= 0)
             {
                 var afterDotPosition = lastDotIndex + 1;
-                var textAfterLastDot = completionItemText.Substring(afterDotPosition);
+                var textAfterLastDot = completionItemText[afterDotPosition..];
 
                 var match = GetMatchWorker(textAfterLastDot, pattern, culture, includeMatchSpans);
                 if (match != null)

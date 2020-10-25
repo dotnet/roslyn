@@ -148,13 +148,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 {
                     var isCompleted = await remoteHostClient.TryInvokeAsync<IRemoteAsynchronousOperationListenerService, bool>(
                         (service, cancellationToken) => service.IsCompletedAsync(featureNames.ToImmutableArrayOrEmpty(), cancellationToken),
-                        callbackTarget: null,
                         CancellationToken.None).ConfigureAwait(false);
                     if (isCompleted.HasValue && !isCompleted.Value)
                     {
                         tasks.Add(remoteHostClient.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
                             (service, cancellationToken) => service.ExpeditedWaitAsync(featureNames.ToImmutableArrayOrEmpty(), cancellationToken),
-                            callbackTarget: null,
                             CancellationToken.None).AsTask());
                     }
                 }
@@ -180,8 +178,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     eventProcessingAction?.Invoke();
 
                     // in unit test where it uses fake foreground task scheduler such as StaTaskScheduler
-                    // we need to yield for the scheduler to run inlined tasks
-                    await Task.Yield();
+                    // we need to yield for the scheduler to run inlined tasks. If we are not processing events, we
+                    // switch to the thread pool for the continuations since the yield will only let operations at the
+                    // same or higher priority to execute prior to the continuation.
+                    var continueOnCapturedContext = eventProcessingAction is object;
+                    await Task.Yield().ConfigureAwait(continueOnCapturedContext);
 
                     if (startTime.Elapsed > timeout && timeout != Timeout.InfiniteTimeSpan)
                     {

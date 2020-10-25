@@ -196,8 +196,8 @@
             <GroupBox x:Uid="InlineHintsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints_experimental}">
                 <StackPanel>
-                    <CheckBox x:Name="DisplayAllHintsWhilePressingCtrlAlt"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_all_hints_while_pressing_Ctrl_Alt}" />
+                    <CheckBox x:Name="DisplayAllHintsWhilePressingAltF1"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_all_hints_while_pressing_Alt_F1}" />
 
                     <CheckBox x:Name="ColorHints"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_hints}" />

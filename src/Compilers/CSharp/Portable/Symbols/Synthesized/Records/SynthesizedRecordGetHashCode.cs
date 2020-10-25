@@ -53,6 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
+                    if (_equalityContract.GetMethod is null)
+                    {
+                        // The equality contract isn't usable, an error was reported elsewhere
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
                     if (_equalityContract.IsStatic)
                     {
                         F.CloseMethod(F.ThrowNull());

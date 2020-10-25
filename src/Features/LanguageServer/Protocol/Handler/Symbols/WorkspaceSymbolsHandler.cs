@@ -32,11 +32,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var solution = context.Solution;
 
             var searchTasks = Task.WhenAll(solution.Projects.Select(project => SearchProjectAsync(project, request, cancellationToken)));
-            return (await searchTasks.ConfigureAwait(false)).SelectMany(s => s).ToArray();
+            var result = await searchTasks.ConfigureAwait(false);
+            return result.WhereNotNull().SelectMany(a => a).ToArray();
 
             // local functions
-            static async Task<ImmutableArray<SymbolInformation>> SearchProjectAsync(Project project, WorkspaceSymbolParams request, CancellationToken cancellationToken)
+            static async Task<SymbolInformation[]?> SearchProjectAsync(Project project, WorkspaceSymbolParams request, CancellationToken cancellationToken)
             {
+                using var progress = BufferedProgress.Create(request.PartialResultToken);
+
                 var searchService = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
                 if (searchService != null)
                 {
@@ -48,22 +51,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         request.Query,
                         searchService.KindsProvided,
                         cancellationToken).ConfigureAwait(false);
-                    var projectSymbolsTasks = Task.WhenAll(items.Select(item => CreateSymbolInformation(item, cancellationToken)));
-                    return (await projectSymbolsTasks.ConfigureAwait(false)).ToImmutableArray();
+                    await Task.WhenAll(items.Select(item => ReportSymbolInformation(progress, item, cancellationToken))).ConfigureAwait(false);
                 }
 
-                return ImmutableArray.Create<SymbolInformation>();
+                return progress.GetValues();
 
-                static async Task<SymbolInformation> CreateSymbolInformation(INavigateToSearchResult result, CancellationToken cancellationToken)
+                static async Task ReportSymbolInformation(IProgress<SymbolInformation> progress, INavigateToSearchResult result, CancellationToken cancellationToken)
                 {
                     var location = await ProtocolConversions.TextSpanToLocationAsync(result.NavigableItem.Document, result.NavigableItem.SourceSpan, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfNull(location);
-                    return new SymbolInformation
+                    progress.Report(new SymbolInformation
                     {
                         Name = result.Name,
                         Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
                         Location = location,
-                    };
+                    });
                 }
             }
         }

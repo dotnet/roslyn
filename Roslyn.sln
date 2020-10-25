@@ -181,8 +181,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Lang
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.Implementation", "src\VisualStudio\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj", "{C0E80510-4FBE-4B0C-AF2C-4F473787722C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.SolutionExplorer", "src\VisualStudio\Core\SolutionExplorerShim\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.csproj", "{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}"
-EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.VisualStudio.LanguageServices.VisualBasic", "src\VisualStudio\VisualBasic\Impl\Microsoft.VisualStudio.LanguageServices.VisualBasic.vbproj", "{D49439D7-56D2-450F-A4F0-74CB95D620E6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.CSharp", "src\VisualStudio\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj", "{5DEFADBD-44EB-47A2-A53E-F1282CC9E4E9}"
@@ -241,7 +239,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Resu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vbc", "src\Compilers\VisualBasic\vbc\vbc.csproj", "{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Test.Utilities", "src\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj", "{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Test.Utilities", "src\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj", "{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests", "src\Scripting\CoreTest.Desktop\Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests.csproj", "{6FD1CC3E-6A99-4736-9B8D-757992DDE75D}"
 EndProject
@@ -808,10 +806,6 @@ Global
 		{C0E80510-4FBE-4B0C-AF2C-4F473787722C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0E80510-4FBE-4B0C-AF2C-4F473787722C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C0E80510-4FBE-4B0C-AF2C-4F473787722C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D49439D7-56D2-450F-A4F0-74CB95D620E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D49439D7-56D2-450F-A4F0-74CB95D620E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D49439D7-56D2-450F-A4F0-74CB95D620E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1305,7 +1299,6 @@ Global
 		{6E62A0FF-D0DC-4109-9131-AB8E60CDFF7B} = {5CA5F70E-0FDB-467B-B22C-3CD5994F0087}
 		{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{C0E80510-4FBE-4B0C-AF2C-4F473787722C} = {8DBA5174-B0AA-4561-82B1-A46607697753}
-		{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{D49439D7-56D2-450F-A4F0-74CB95D620E6} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{5DEFADBD-44EB-47A2-A53E-F1282CC9E4E9} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{91C574AD-0352-47E9-A019-EE02CC32A396} = {8DBA5174-B0AA-4561-82B1-A46607697753}
