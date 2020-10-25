@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
@@ -22,8 +24,15 @@ namespace Microsoft.CodeAnalysis.AddImport
     /// back to VS, which will then bounce back out to OOP to perform the Nuget/ReferenceAssembly
     /// portion of the search.  Ideally we could keep this all OOP.
     /// </summary>
+    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteMissingImportDiscoveryService)), Shared]
     internal sealed class RemoteMissingImportDiscoveryServiceCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteMissingImportDiscoveryService.ICallback
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RemoteMissingImportDiscoveryServiceCallbackDispatcher()
+        {
+        }
+
         private ISymbolSearchService GetService(RemoteServiceCallbackId callbackId)
             => (ISymbolSearchService)GetCallback(callbackId);
 

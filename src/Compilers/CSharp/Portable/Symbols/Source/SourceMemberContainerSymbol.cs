@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsRecord
+        internal override bool IsRecord
         {
             get
             {
@@ -3415,6 +3415,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         SynthesizedRecordEqualityContractProperty.VerifyOverridesEqualityContractFromBase(equalityContract, diagnostics);
+                    }
+
+                    if (equalityContract.GetMethod is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_EqualityContractRequiresGetter, equalityContract.Locations[0], equalityContract);
                     }
 
                     reportStaticOrNotOverridableAPIInRecord(equalityContract, diagnostics);

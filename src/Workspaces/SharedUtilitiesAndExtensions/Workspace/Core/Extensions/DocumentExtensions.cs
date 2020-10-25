@@ -64,6 +64,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
         }
 
+#if !CODE_STYLE
+        public static SyntaxNode GetRequiredSyntaxRootSynchronously(this Document document, CancellationToken cancellationToken)
+        {
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+        }
+#endif
+
         public static bool IsOpen(this TextDocument document)
         {
             var workspace = document.Project.Solution.Workspace as Workspace;
