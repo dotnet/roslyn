@@ -369,7 +369,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             // Triggers language server to send notifications.
             foreach (var document in documentsToPublish)
-                await languageServer.PublishDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
+                await languageServer.PublishDiagnosticsAsync(diagnosticService, document, CancellationToken.None).ConfigureAwait(false);
 
             // Waits for all notifications to be received.
             await callback.CallbackCompletedTask.Task.ConfigureAwait(false);
