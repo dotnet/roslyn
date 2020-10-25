@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(object? obj) => false;
 
-        public override int GetHashCode() => _item.GetHashCode();
+        public override int GetHashCode() => RuntimeHelpers.GetHashCode(_item);
 
         public override string ToString() => _item.ToString() ?? "null";
     }
