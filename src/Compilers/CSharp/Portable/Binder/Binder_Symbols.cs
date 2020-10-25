@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a layer on top of the Compilation version that generates a diagnostic if the special
         /// member isn't found.
         /// </summary>
-        internal Symbol? GetSpecialTypeMember(SpecialMember member, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal Symbol GetSpecialTypeMember(SpecialMember member, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
             return TryGetSpecialTypeMember<Symbol>(this.Compilation, member, syntax, diagnostics, out var memberSymbol)
                 ? memberSymbol
@@ -1478,7 +1478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, SyntaxNode syntax, DiagnosticBag diagnostics, out TSymbol symbol)
             where TSymbol : Symbol
         {
-            symbol = (TSymbol?)compilation.GetSpecialTypeMember(specialMember);
+            symbol = (TSymbol)compilation.GetSpecialTypeMember(specialMember);
             if (symbol is null)
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
