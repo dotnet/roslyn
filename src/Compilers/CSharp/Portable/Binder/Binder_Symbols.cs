@@ -1464,8 +1464,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeSymbol;
         }
 
-#nullable enable
-
         /// <summary>
         /// This is a layer on top of the Compilation version that generates a diagnostic if the special
         /// member isn't found.
@@ -1477,7 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
         }
 
-        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, SyntaxNode syntax, DiagnosticBag diagnostics, [MaybeNullWhen(false)] out TSymbol symbol)
+        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, SyntaxNode syntax, DiagnosticBag diagnostics, out TSymbol symbol)
             where TSymbol : Symbol
         {
             symbol = (TSymbol?)compilation.GetSpecialTypeMember(specialMember);
@@ -1496,6 +1494,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+
+#nullable enable
 
         /// <summary>
         /// This is a layer on top of the Compilation version that generates a diagnostic if the special
