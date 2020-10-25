@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -215,19 +216,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var comparer = GetComparer(ignoreCase);
             IAssemblySymbol? assemblySymbol = null;
 
-            // PERF: Only allocate on first usage to avoid taking an object from the pool on this hot path that never
-            // gets used.
-            ArrayBuilder<ISymbol>? results = null;
-
+            using var results = TemporaryArray<ISymbol>.Empty;
             foreach (var node in FindNodeIndices(name, comparer))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-                Bind(node, assemblySymbol.GlobalNamespace, ref results, cancellationToken);
+                Bind(node, assemblySymbol.GlobalNamespace, ref Unsafe.AsRef(in results), cancellationToken);
             }
 
-            return results?.ToImmutableAndFree() ?? ImmutableArray<ISymbol>.Empty;
+            return results.ToImmutableAndClear();
         }
 
         private static StringSliceComparer GetComparer(bool ignoreCase)
@@ -446,7 +444,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         // returns all the symbols in the container corresponding to the node
         private void Bind(
-            int index, INamespaceOrTypeSymbol rootContainer, [NotNullIfNotNull("results")] ref ArrayBuilder<ISymbol>? results, CancellationToken cancellationToken)
+            int index, INamespaceOrTypeSymbol rootContainer, ref TemporaryArray<ISymbol> results, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -459,41 +457,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (_nodes[node.ParentIndex].IsRoot)
             {
                 var members = rootContainer.GetMembers(node.Name);
-                if (!members.IsEmpty)
-                {
-                    results ??= ArrayBuilder<ISymbol>.GetInstance();
-                    results.AddRange(members);
-                }
+                results.AddRange(members);
             }
             else
             {
-                // PERF: Only allocate on first usage to avoid taking an object from the pool on this hot path that
-                // never gets used.
-                ArrayBuilder<ISymbol>? containerSymbols = null;
-                try
+                using var containerSymbols = TemporaryArray<ISymbol>.Empty;
+                Bind(node.ParentIndex, rootContainer, ref Unsafe.AsRef(in containerSymbols), cancellationToken);
+#pragma warning disable RS0042 // Do not copy value
+                foreach (var containerSymbol in containerSymbols)
+#pragma warning restore RS0042 // Do not copy value
                 {
-                    Bind(node.ParentIndex, rootContainer, ref containerSymbols, cancellationToken);
-                    if (containerSymbols is not null)
-                    {
-                        foreach (var containerSymbol in containerSymbols)
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                            if (containerSymbol is INamespaceOrTypeSymbol nsOrType)
-                            {
-                                var members = nsOrType.GetMembers(node.Name);
-                                if (!members.IsEmpty)
-                                {
-                                    results ??= ArrayBuilder<ISymbol>.GetInstance();
-                                    results.AddRange(members);
-                                }
-                            }
-                        }
+                    if (containerSymbol is INamespaceOrTypeSymbol nsOrType)
+                    {
+                        var members = nsOrType.GetMembers(node.Name);
+                        results.AddRange(members);
                     }
-                }
-                finally
-                {
-                    containerSymbols?.Free();
                 }
             }
         }
@@ -574,37 +554,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var baseTypeNameIndex = BinarySearch(baseTypeName);
             var derivedTypeIndices = _inheritanceMap[baseTypeNameIndex];
 
-            // PERF: Only allocate on first usage to avoid taking objects from the pool on this hot path that never get
-            // used.
-            ArrayBuilder<INamedTypeSymbol>? builder = null;
-            ArrayBuilder<ISymbol>? tempBuilder = null;
-            try
-            {
-                foreach (var derivedTypeIndex in derivedTypeIndices)
-                {
-                    tempBuilder?.Clear();
+            using var builder = TemporaryArray<INamedTypeSymbol>.Empty;
+            using var tempBuilder = TemporaryArray<ISymbol>.Empty;
 
-                    Bind(derivedTypeIndex, compilation.GlobalNamespace, ref tempBuilder, cancellationToken);
-                    if (tempBuilder is not null)
+            foreach (var derivedTypeIndex in derivedTypeIndices)
+            {
+                tempBuilder.Clear();
+
+                Bind(derivedTypeIndex, compilation.GlobalNamespace, ref Unsafe.AsRef(in tempBuilder), cancellationToken);
+#pragma warning disable RS0042 // Do not copy value
+                foreach (var symbol in tempBuilder)
+#pragma warning restore RS0042 // Do not copy value
+                {
+                    if (symbol is INamedTypeSymbol namedType)
                     {
-                        foreach (var symbol in tempBuilder)
-                        {
-                            if (symbol is INamedTypeSymbol namedType)
-                            {
-                                builder ??= ArrayBuilder<INamedTypeSymbol>.GetInstance();
-                                builder.Add(namedType);
-                            }
-                        }
+                        builder.Add(namedType);
                     }
                 }
+            }
 
-                return builder?.ToImmutable() ?? ImmutableArray<INamedTypeSymbol>.Empty;
-            }
-            finally
-            {
-                tempBuilder?.Free();
-                builder?.Free();
-            }
+            return builder.ToImmutableAndClear();
         }
     }
 }
