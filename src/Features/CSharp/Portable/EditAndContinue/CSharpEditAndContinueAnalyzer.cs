@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        private readonly static SyntaxKind[] s_ignoredMemberModifiers = { SyntaxKind.UnsafeKeyword, SyntaxKind.AsyncKeyword };
+        private static readonly SyntaxKind[] s_ignoredMemberModifiers = { SyntaxKind.UnsafeKeyword, SyntaxKind.AsyncKeyword };
 
         // Public for testing purposes
         public CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null)
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override bool AreEquivalent(SyntaxNode left, SyntaxNode right)
             => SyntaxFactory.AreEquivalent(left, right);
 
-        private static bool AreEquivalentModifiersIgnoringGivenModifier(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers, SyntaxKind[] ignoredModiferKinds)
+        private static bool AreEquivalentModifiersIgnoringGivenModifier(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers, SyntaxKind[] ignoredModifierKinds)
         {
             foreach (var modifierKind in ignoredModifierKinds)
             {
