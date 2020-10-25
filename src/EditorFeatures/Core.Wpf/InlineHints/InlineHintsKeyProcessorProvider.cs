@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
     /// <summary>
-    /// Key processor that allows us to toggle inline hints when a user hits ctrl-alt.
+    /// Key processor that allows us to toggle inline hints when a user hits Alt+F1
     /// </summary>
     [Export(typeof(IKeyProcessorProvider))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
@@ -50,8 +50,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 _view.LostAggregateFocus += OnLostFocus;
             }
 
-            private static bool IsCtrlOrAlt(KeyEventArgs args)
-                => args.Key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt;
+            private static bool IsAltOrF1(KeyEventArgs args)
+                => IsAltOrF1(args.SystemKey) || IsAltOrF1(args.Key);
+
+            private static bool IsAltOrF1(Key key)
+                => key is Key.LeftAlt or Key.RightAlt or Key.F1;
 
             private void OnViewClosed(object sender, EventArgs e)
             {
@@ -65,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
             private void OnLostFocus(object sender, EventArgs e)
             {
-                // if focus is lost (which can happen for shortcuts that include ctrl-alt...) then go back to normal
-                // inline-hint processing.
+                // if focus is lost then go back to normal inline-hint processing.
                 ToggleOff();
             }
 
@@ -74,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 base.KeyDown(args);
 
-                // if this is either the ctrl or alt key, and only ctrl-alt is down, then toggle on. 
+                // if this is either of the keys, and only our chord is down, then toggle on. 
                 // otherwise toggle off if anything else is pressed down.
-                if (IsCtrlOrAlt(args))
+                if (IsAltOrF1(args))
                 {
-                    if (args.KeyboardDevice.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
+                    if (args.KeyboardDevice.Modifiers == ModifierKeys.Alt)
                     {
                         ToggleOn();
                         return;
@@ -92,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 base.KeyUp(args);
 
-                // If we've lifted a key up from ctrl/alt, then turn off the inline hints.
-                if (IsCtrlOrAlt(args))
+                // If we've lifted a key up from our chord, then turn off the inline hints.
+                if (IsAltOrF1(args))
                     ToggleOff();
             }
 
@@ -110,9 +112,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 if (state == on)
                     return;
 
-                // We can only enter the on-state if the user has the ctrl-alt feature enabled.  We can always enter the
+                // We can only enter the on-state if the user has the chord feature enabled.  We can always enter the
                 // off state though.
-                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt);
+                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingAltF1);
                 _globalOptionService.RefreshOption(new OptionKey(InlineHintsOptions.DisplayAllOverride), on);
             }
         }

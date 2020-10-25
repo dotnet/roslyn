@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                 // Eliminate any blank lines at the end.
                 while (formattedCommentLinesBuilder.Count > 0 &&
-                       formattedCommentLinesBuilder[formattedCommentLinesBuilder.Count - 1].Length == 0)
+                       formattedCommentLinesBuilder[^1].Length == 0)
                 {
                     formattedCommentLinesBuilder.RemoveAt(formattedCommentLinesBuilder.Count - 1);
                 }

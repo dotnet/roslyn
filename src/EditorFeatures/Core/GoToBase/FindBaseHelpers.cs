@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToBase
 {
@@ -21,18 +22,17 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                 namedTypeSymbol.TypeKind == TypeKind.Interface ||
                 namedTypeSymbol.TypeKind == TypeKind.Struct))
             {
-                return new ValueTask<ImmutableArray<ISymbol>>(BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol));
+                return ValueTaskFactory.FromResult(BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol));
             }
-            else if (symbol.Kind == SymbolKind.Property ||
+
+            if (symbol.Kind == SymbolKind.Property ||
                 symbol.Kind == SymbolKind.Method ||
                 symbol.Kind == SymbolKind.Event)
             {
                 return BaseTypeFinder.FindOverriddenAndImplementedMembersAsync(symbol, solution, cancellationToken);
             }
-            else
-            {
-                return new ValueTask<ImmutableArray<ISymbol>>(ImmutableArray<ISymbol>.Empty);
-            }
+
+            return ValueTaskFactory.FromResult(ImmutableArray<ISymbol>.Empty);
         }
     }
 }

@@ -64,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
+                    if (_equalityContract.GetMethod is null)
+                    {
+                        // The equality contract isn't usable, an error was reported elsewhere
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
                     if (_equalityContract.IsStatic || !_equalityContract.Type.Equals(DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptions))
                     {
                         // There is a signature mismatch, an error was reported elsewhere

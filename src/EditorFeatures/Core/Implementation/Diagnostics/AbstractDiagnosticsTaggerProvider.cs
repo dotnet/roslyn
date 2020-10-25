@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
             var buckets = _diagnosticService.GetDiagnosticBuckets(
-                workspace, document.Project.Id, document.Id, context.CancellationToken);
+                workspace, document.Project.Id, document.Id, forPullDiagnostics: false, context.CancellationToken);
 
             foreach (var bucket in buckets)
             {
@@ -171,7 +171,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 var id = bucket.Id;
                 var diagnostics = _diagnosticService.GetDiagnostics(
-                    workspace, document.Project.Id, document.Id, id, includeSuppressedDiagnostics: false, cancellationToken);
+                    workspace, document.Project.Id, document.Id, id,
+                    includeSuppressedDiagnostics: false, forPullDiagnostics: false, cancellationToken);
 
                 var isLiveUpdate = id is ISupportLiveUpdate;
 
