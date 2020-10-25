@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1463,23 +1464,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeSymbol;
         }
 
+#nullable enable
+
         /// <summary>
         /// This is a layer on top of the Compilation version that generates a diagnostic if the special
         /// member isn't found.
         /// </summary>
-        internal Symbol GetSpecialTypeMember(SpecialMember member, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal Symbol? GetSpecialTypeMember(SpecialMember member, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            Symbol memberSymbol;
-            return TryGetSpecialTypeMember(this.Compilation, member, syntax, diagnostics, out memberSymbol)
+            return TryGetSpecialTypeMember<Symbol>(this.Compilation, member, syntax, diagnostics, out var memberSymbol)
                 ? memberSymbol
                 : null;
         }
 
-        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, SyntaxNode syntax, DiagnosticBag diagnostics, out TSymbol symbol)
+        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, SyntaxNode syntax, DiagnosticBag diagnostics, [MaybeNullWhen(false)] out TSymbol symbol)
             where TSymbol : Symbol
         {
-            symbol = (TSymbol)compilation.GetSpecialTypeMember(specialMember);
-            if ((object)symbol == null)
+            symbol = (TSymbol?)compilation.GetSpecialTypeMember(specialMember);
+            if (symbol is null)
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
                 diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
@@ -1499,18 +1501,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a layer on top of the Compilation version that generates a diagnostic if the special
         /// member isn't found.
         /// </summary>
-        internal Symbol GetWellKnownTypeMember(WellKnownMember member, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal Symbol? GetWellKnownTypeMember(WellKnownMember member, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            return TryGetWellKnownTypeMember(this.Compilation, member, syntax, diagnostics, out Symbol memberSymbol)
+            return TryGetWellKnownTypeMember<Symbol>(this.Compilation, member, syntax, diagnostics, out var memberSymbol)
                 ? memberSymbol
                 : null;
         }
 
-        internal static bool TryGetWellKnownTypeMember<TSymbol>(CSharpCompilation compilation, WellKnownMember wellKnownMember, SyntaxNode syntax, DiagnosticBag diagnostics, out TSymbol symbol)
+        internal static bool TryGetWellKnownTypeMember<TSymbol>(CSharpCompilation compilation, WellKnownMember wellKnownMember, SyntaxNode syntax, DiagnosticBag diagnostics, [MaybeNullWhen(false)] out TSymbol symbol)
             where TSymbol : Symbol
         {
-            symbol = (TSymbol)compilation.GetWellKnownTypeMember(wellKnownMember);
-            if ((object)symbol == null)
+            symbol = (TSymbol?)compilation.GetWellKnownTypeMember(wellKnownMember);
+            if (symbol is null)
             {
                 MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(wellKnownMember);
                 diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
@@ -1525,6 +1527,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+
+#nullable disable
 
         /// <summary>
         /// Reports use-site diagnostics for the specified symbol.
