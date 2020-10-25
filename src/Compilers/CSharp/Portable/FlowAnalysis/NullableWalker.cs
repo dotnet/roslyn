@@ -1369,12 +1369,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private SharedWalkerState SaveSharedState() =>
-            new SharedWalkerState(
+#if REPORT_MAX
+        private static (Symbol, int) _maxSlots;
+#endif
+
+        private SharedWalkerState SaveSharedState()
+        {
+#if REPORT_MAX
+            int slots = _variableSlot.Count;
+            if (slots > _maxSlots.Item2)
+            {
+                _maxSlots = (_symbol, slots);
+                Debug.WriteLine("{0}: {1}", slots, _symbol);
+            }
+#endif
+            return new SharedWalkerState(
                 _variableSlot.ToImmutableDictionary(),
                 ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
                 _variableTypes.ToImmutableDictionary(),
                 CurrentSymbol);
+        }
 
         private void TakeIncrementalSnapshot(BoundNode? node)
         {
@@ -1656,12 +1670,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
+        protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false, bool createIfMissing = true)
         {
             if (containingSlot > 0 && !IsSlotMember(containingSlot, symbol))
                 return -1;
 
-            return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty);
+            return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty, createIfMissing);
         }
 
         private void VisitAndUnsplitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
@@ -3990,7 +4004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     member.RequiresInstanceReceiver() &&
                     (containingType is null || AccessCheck.IsSymbolAccessible(member, containingType, ref discardedUseSiteDiagnostics)))
                 {
-                    int childSlot = GetOrCreateSlot(member, slot, true);
+                    int childSlot = GetOrCreateSlot(member, slot, forceSlotEvenIfEmpty: true, createIfMissing: false);
                     if (childSlot > 0)
                     {
                         state[childSlot] = NullableFlowState.NotNull;
