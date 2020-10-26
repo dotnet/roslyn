@@ -17,7 +17,7 @@ A switch that causes all of git history to be squashed to just one initial commi
 Param(
     [Parameter(Mandatory=$true)]
     [string]$LibraryName,
-    [Parameter(Mandatory=$true)]
+    [Parameter()]
     [string]$Author = "Microsoft Corporation",
     [Parameter()]
     [string]$CodeCovToken,
@@ -127,20 +127,9 @@ try {
     # Replace placeholders in source files
     Replace-Placeholders -Path "src/$LibraryName/Calculator.cs" -Replacements @{
         'Library'=$LibraryName
-        'COMPANY-PLACEHOLDER'=$Author
     }
     Replace-Placeholders -Path "test/$LibraryName.Tests/CalculatorTests.cs" -Replacements @{
         'Library'=$LibraryName
-        'COMPANY-PLACEHOLDER'=$Author
-    }
-    Replace-Placeholders -Path "LICENSE" -Replacements @{
-        'COMPANY-PLACEHOLDER'=$Author
-    }
-    Replace-Placeholders -Path "stylecop.json" -Replacements @{
-        'COMPANY-PLACEHOLDER'=$Author
-    }
-    Replace-Placeholders -Path "Directory.Build.props" -Replacements @{
-        'COMPANY-PLACEHOLDER'=$Author
     }
     Replace-Placeholders -Path "README.md" -Replacements @{
         "(?m)^.*\[NuGet package\][^`r`n]*"="[![NuGet package](https://img.shields.io/nuget/v/$LibraryName.svg)](https://nuget.org/packages/$LibraryName)"
