@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                             var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
-                            var overriddenSymbol = relevantSymbol?.symbol.OverriddenMember();
+                            var overriddenSymbol = relevantSymbol?.symbol.GetOverriddenMember();
 
                             while (overriddenSymbol != null)
                             {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                                 // try getting the next one
-                                overriddenSymbol = overriddenSymbol.OverriddenMember();
+                                overriddenSymbol = overriddenSymbol.GetOverriddenMember();
                             }
                         }
                         finally
