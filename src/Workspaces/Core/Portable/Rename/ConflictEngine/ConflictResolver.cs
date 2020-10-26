@@ -215,7 +215,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             try
             {
                 var projectOpt = conflictResolution.CurrentSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
-                if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType))
+
+                // For tuple fields the ContainingAssembly is System.ValueTuple, so we can't get a project
+                // but fortunately we know there are no methods or parameterized properties either
+                if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType) && !renamedSymbol.IsTupleField())
                 {
                     Contract.ThrowIfNull(projectOpt);
                     var otherThingsNamedTheSame = renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name)
@@ -267,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
 
                 // Some types of symbols (namespaces, cref stuff, etc) might not have ContainingAssemblies
-                if (renamedSymbol.ContainingAssembly != null)
+                if (renamedSymbol.ContainingAssembly != null && !renamedSymbol.IsTupleField())
                 {
                     Contract.ThrowIfNull(projectOpt);
                     // There also might be language specific rules we need to include

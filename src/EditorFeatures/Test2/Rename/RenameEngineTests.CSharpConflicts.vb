@@ -3657,6 +3657,28 @@ class C
                 result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictWhenRenamingTupleField(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void M()
+    {
+        var x = ({|conflict:$$a|}: 1, {|conflict:b|});
+    }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="b")
+
+                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
     End Class
 End Namespace
 
