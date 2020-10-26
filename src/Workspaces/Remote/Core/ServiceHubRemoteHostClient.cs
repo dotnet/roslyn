@@ -84,7 +84,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
             {
-                Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = RemoteHostOptions.IsServiceHubProcess64Bit(services)));
+                Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(
+                    LogType.Trace,
+                    m =>
+                    {
+                        m["64bit"] = RemoteHostOptions.IsServiceHubProcess64Bit(services);
+                        m["ServerGC"] = RemoteHostOptions.IsServiceHubProcessServerGC(services);
+                    }));
 
 #pragma warning disable ISB001    // Dispose of proxies
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
@@ -137,11 +143,12 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken cancellationToken)
         {
             var is64bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
+            var isServerGC = RemoteHostOptions.IsServiceHubProcessServerGC(services);
 
             // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
             await TaskScheduler.Default;
 
-            var descriptor = new ServiceHub.Client.ServiceDescriptor(serviceName.ToString(is64bit));
+            var descriptor = new ServiceHub.Client.ServiceDescriptor(serviceName.ToString(is64bit, isServerGC));
             try
             {
                 return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
@@ -183,7 +190,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 _assetStorage,
                 _errorReportingService,
                 _shutdownCancellationService,
-                isRemoteHost64Bit: RemoteHostOptions.IsServiceHubProcess64Bit(_services));
+                isRemoteHost64Bit: RemoteHostOptions.IsServiceHubProcess64Bit(_services),
+                isRemoteHostServerGC: RemoteHostOptions.IsServiceHubProcessServerGC(_services));
 
         public override Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {

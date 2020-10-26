@@ -43,10 +43,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         public RazorInProcLanguageClient(
             LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
+            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider)
-            : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, ClientName)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, ClientName)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
