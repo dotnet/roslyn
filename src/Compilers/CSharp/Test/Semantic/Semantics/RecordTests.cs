@@ -811,6 +811,68 @@ record C1(object O1)
                 );
         }
 
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        public void RestrictedTypesAndPointerTypes()
+        {
+            var src = @"
+class C<T> { }
+static class C2 { }
+ref struct RefLike{}
+
+unsafe record C( // 1
+    int* P1, // 2
+    int*[] P2,
+    C<int*[]> P3,
+    delegate*<int, int> P4, // 3
+    void P5, // 4
+    C2 P6, // 5, 6
+    System.ArgIterator P7, // 7, 8
+    System.TypedReference P8, // 9, 10
+    RefLike P9); // 11, 12
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0721: 'C2': static types cannot be used as parameters
+                // unsafe record C( // 1
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C2").WithLocation(6, 15),
+                // (7,10): error CS8908: The type 'int*' may not be used for a positional parameter of a record.
+                //     int* P1, // 2
+                Diagnostic(ErrorCode.ERR_BadParameterTypeInRecord, "P1").WithArguments("int*").WithLocation(7, 10),
+                // (10,25): error CS8908: The type 'delegate*<int, int>' may not be used for a positional parameter of a record.
+                //     delegate*<int, int> P4, // 3
+                Diagnostic(ErrorCode.ERR_BadParameterTypeInRecord, "P4").WithArguments("delegate*<int, int>").WithLocation(10, 25),
+                // (11,5): error CS1536: Invalid parameter type 'void'
+                //     void P5, // 4
+                Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
+                // (12,8): error CS0722: 'C2': static types cannot be used as return types
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
+                // (12,8): error CS0721: 'C2': static types cannot be used as parameters
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
+                // (13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //     System.ArgIterator P7, // 7, 8
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(13, 5),
+                // (13,24): error CS8908: The type 'ArgIterator' may not be used for a positional parameter of a record.
+                //     System.ArgIterator P7, // 7, 8
+                Diagnostic(ErrorCode.ERR_BadParameterTypeInRecord, "P7").WithArguments("System.ArgIterator").WithLocation(13, 24),
+                // (14,5): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     System.TypedReference P8, // 9, 10
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
+                // (14,27): error CS8908: The type 'TypedReference' may not be used for a positional parameter of a record.
+                //     System.TypedReference P8, // 9, 10
+                Diagnostic(ErrorCode.ERR_BadParameterTypeInRecord, "P8").WithArguments("System.TypedReference").WithLocation(14, 27),
+                // (15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
+                //     RefLike P9); // 11, 12
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5),
+                // (15,13): error CS8908: The type 'RefLike' may not be used for a positional parameter of a record.
+                //     RefLike P9); // 11, 12
+                Diagnostic(ErrorCode.ERR_BadParameterTypeInRecord, "P9").WithArguments("RefLike").WithLocation(15, 13)
+                );
+        }
+
         [Fact]
         public void EmptyRecord_01()
         {

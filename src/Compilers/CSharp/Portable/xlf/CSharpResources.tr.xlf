@@ -137,6 +137,11 @@
         <target state="new">Operator '{0}' cannot be applied to operand '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadParameterTypeInRecord">
+        <source>The type '{0}' may not be used for a positional parameter of a record.</source>
+        <target state="new">The type '{0}' may not be used for a positional parameter of a record.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Desen eşleşmesi için işlenen geçersiz. Değer gerekiyordu ancak '{0}' bulundu.</target>
