@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return AddError(node, position, 0, ErrorCode.ERR_InsufficientStack);
         }
 
-        private NamespaceDeclarationSyntax ParseNamespaceDeclaration(
+        private BaseNamespaceDeclarationSyntax ParseNamespaceDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxListBuilder modifiers)
         {
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        private NamespaceDeclarationSyntax ParseNamespaceDeclarationCore(
+        private BaseNamespaceDeclarationSyntax ParseNamespaceDeclarationCore(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxListBuilder modifiers)
         {
@@ -259,8 +259,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var name = this.ParseQualifiedName();
 
-            SyntaxToken openBrace;
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || IsPossibleNamespaceMemberDeclaration())
+            SyntaxToken openBrace = null;
+            SyntaxToken semicolon = null;
+
+            if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+            {
+                semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+            }
+            else if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || IsPossibleNamespaceMemberDeclaration())
             {
                 //either we see the brace we expect here or we see something that could come after a brace
                 //so we insert a missing one
@@ -274,19 +280,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 openBrace = this.ConvertToMissingWithTrailingTrivia(openBrace, SyntaxKind.OpenBraceToken);
             }
 
+            Debug.Assert(semicolon != null || openBrace != null);
+
             var body = new NamespaceBodyBuilder(_pool);
             SyntaxListBuilder initialBadNodes = null;
             try
             {
                 this.ParseNamespaceBody(ref openBrace, ref body, ref initialBadNodes, SyntaxKind.NamespaceDeclaration);
-
-                var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-                var semicolon = this.TryEatToken(SyntaxKind.SemicolonToken);
-
                 Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to open brace...
-                return _syntaxFactory.NamespaceDeclaration(
-                    attributeLists, modifiers.ToList(),
-                    namespaceToken, name, openBrace, body.Externs, body.Usings, body.Members, closeBrace, semicolon);
+
+                if (openBrace == null)
+                {
+                    Debug.Assert(semicolon != null);
+
+                    namespaceToken = CheckFeatureAvailability(namespaceToken, MessageID.IDS_SingleLineNamespace);
+
+                    return _syntaxFactory.SingleLineNamespaceDeclaration(
+                        attributeLists,
+                        modifiers.ToList(),
+                        namespaceToken,
+                        name,
+                        semicolon,
+                        body.Externs,
+                        body.Usings,
+                        body.Members);
+                }
+                else
+                {
+                    return _syntaxFactory.NamespaceDeclaration(
+                        attributeLists,
+                        modifiers.ToList(),
+                        namespaceToken,
+                        name,
+                        openBrace,
+                        body.Externs,
+                        body.Usings,
+                        body.Members,
+                        this.EatToken(SyntaxKind.CloseBraceToken),
+                        this.TryEatToken(SyntaxKind.SemicolonToken));
+                }
             }
             finally
             {
