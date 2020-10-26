@@ -829,7 +829,12 @@ record C1(object O1, object O2, object O3)
     public object O2 { get; init; } = M(O2);
     public object O3 { get; init; } = M(O3 = null);
     private static object M(object o) => o;
-}");
+}
+record C2(object O4) : C1(O4, O4, O4) // we didn't complain because the parameter is read
+{
+    public object O4 { get; init; }
+}
+");
             comp.VerifyDiagnostics(
                     // (2,18): warning CS8907: Parameter 'O1' is unread. Did you forget to use it to initialize the property with that name?
                     // record C1(object O1, object O2, object O3)
