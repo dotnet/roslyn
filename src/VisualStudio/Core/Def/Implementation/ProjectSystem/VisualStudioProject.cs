@@ -212,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
-        /// Reports a telemetry event if compilation information is being thrown away after being previous computed
+        /// Reports a telemetry event if compilation information is being thrown away after being previously computed
         /// </summary>
         private static void TryReportCompilationThrownAway(SolutionState solutionState, ProjectId projectId)
         {
