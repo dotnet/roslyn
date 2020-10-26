@@ -96,6 +96,8 @@ try {
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 
+    git config core.safecrlf false # Avoid warnings when adding files with mangled line endings
+
     # Rename project directories and solution
     git mv Library.sln "$LibraryName.sln"
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -204,6 +206,7 @@ try {
     }
 
 } finally {
+    git config --local --unset core.safecrlf
     Pop-Location
 }
 
