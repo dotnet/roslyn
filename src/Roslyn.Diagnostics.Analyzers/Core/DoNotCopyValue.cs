@@ -364,9 +364,14 @@ namespace Roslyn.Diagnostics.Analyzers
                         return false;
                     }
 
-                    if (Acquire(operation.Operand) == RefKind.None)
+                    switch (Acquire(operation.Operand))
                     {
-                        return true;
+                        case RefKind.None:
+                        case RefKind.Ref when operation.Conversion.IsIdentity:
+                            return true;
+
+                        default:
+                            break;
                     }
 
                     return false;
@@ -539,6 +544,21 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     CheckLocalSymbolInUnsupportedContext(operation, local);
                 }
+
+                var instance = operation.Collection;
+                var instance2 = (operation.Collection as IConversionOperation)?.Operand;
+                if (Acquire(operation.Collection) != RefKind.Ref)
+                {
+                    instance = null;
+                    instance2 = null;
+                }
+                else if (Acquire(instance2) != RefKind.Ref)
+                {
+                    instance2 = null;
+                }
+
+                using var releaser = TryAddForVisit(_handledOperations, instance, out _);
+                using var releaser2 = TryAddForVisit(_handledOperations, instance2, out _);
 
                 CheckTypeInUnsupportedContext(operation);
                 base.VisitForEachLoop(operation);
