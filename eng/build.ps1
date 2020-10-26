@@ -356,7 +356,7 @@ function TestUsingOptimizedRunner() {
   $args += " --dotnet `"$dotnetExe`""
   $args += " --out `"$testResultsDir`""
   $args += " --logs `"$LogDir`""
-  $args += " --secondaryLogs `"$secondaryLogDir`""
+  $args += " --secondarylogs `"$secondaryLogDir`""
   $args += " --tfm net472"
 
   if ($testDesktop -or $testIOperation) {
@@ -406,8 +406,8 @@ function TestUsingOptimizedRunner() {
 
   if ($procdump) {
     $procdumpFilePath = Ensure-ProcDump
-    $args += " --procDumpPath $procDumpFilePath"
-    $args += " --useProDdump";
+    $args += " --procdumppath $procDumpFilePath"
+    $args += " --useprocdump";
   }
 
   if ($test64) {
