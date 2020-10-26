@@ -602,6 +602,11 @@
         <target state="new">Only a single record partial declaration may have a parameter list</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleSingleLineNamespace">
+        <source>Source file can only contain one single-line namespace declaration.</source>
+        <target state="new">Source file can only contain one single-line namespace declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Non è possibile usare il vincolo 'new()' con il vincolo 'unmanaged'</target>
@@ -840,6 +845,16 @@
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Per risolvere le ambiguità, è necessario usare una sintassi diversa per il criterio di decostruzione di singoli elementi. È consigliabile aggiungere un indicatore di rimozione '_' dopo la parentesi di chiusura ')'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleLineAndNormalNamespace">
+        <source>Source file can only contain single-line and normal namespace declarations.</source>
+        <target state="new">Source file can only contain single-line and normal namespace declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleLineNamespaceNotBeforeAllMembers">
+        <source>Single-line namespace must precede all other members in a file.</source>
+        <target state="new">Single-line namespace must precede all other members in a file.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
