@@ -758,16 +758,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             if (newSymbol.IsOverride)
             {
-                var overriddenMember = newSymbol.OverriddenMember();
-
-                while (overriddenMember != null)
+                for (var overriddenMember = newSymbol.GetOverriddenMember(); overriddenMember != null; overriddenMember = overriddenMember.GetOverriddenMember())
                 {
                     if (symbol.Equals(overriddenMember))
-                    {
                         return !SymbolsHaveCompatibleParameterLists(symbol, newSymbol, expression);
-                    }
-
-                    overriddenMember = overriddenMember.OverriddenMember();
                 }
             }
 

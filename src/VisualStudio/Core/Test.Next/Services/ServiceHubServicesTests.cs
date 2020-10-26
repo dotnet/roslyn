@@ -42,6 +42,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             => solution.WithChangedOptionsFrom(remoteWorkpace.Options);
 
         [Fact]
+        [Obsolete]
         public void TestRemoteHostCreation()
         {
             var remoteLogger = new TraceSource("inprocRemoteClient");
@@ -101,7 +102,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // sync
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                 (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText), cancellationToken),
-                callbackTarget: null,
                 CancellationToken.None);
 
             // apply change to solution
@@ -136,10 +136,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsDiscoveryService>(callback, cancellationTokenSource.Token);
+            using var connection = client.CreateConnection<IRemoteTodoCommentsDiscoveryService>(callback);
 
             var invokeTask = connection.TryInvokeAsync(
-                (service, cancellationToken) => service.ComputeTodoCommentsAsync(cancellationToken),
+                (service, callbackId, cancellationToken) => service.ComputeTodoCommentsAsync(callbackId, cancellationToken),
                 cancellationTokenSource.Token);
 
             var data = await callback.Data;
@@ -165,14 +165,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class TodoCommentsListener : ITodoCommentsListener
         {
-            private readonly TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)> _dataSource
-                = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            private readonly TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)> _dataSource = new();
+
             public Task<(DocumentId, ImmutableArray<TodoCommentData>)> Data => _dataSource.Task;
 
             public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
             {
                 _dataSource.SetResult((documentId, data));
-                return new ValueTask();
+                return ValueTaskFactory.CompletedTask;
             }
         }
 
@@ -212,10 +212,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var callback = new DesignerAttributeListener();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeDiscoveryService>(callback, cancellationTokenSource.Token);
+            using var connection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callback);
 
             var invokeTask = connection.TryInvokeAsync(
-                (service, cancellationToken) => service.StartScanningForDesignerAttributesAsync(cancellationToken),
+                (service, callbackId, cancellationToken) => service.StartScanningForDesignerAttributesAsync(callbackId, cancellationToken),
                 cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
@@ -232,17 +232,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class DesignerAttributeListener : IDesignerAttributeListener
         {
-            private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource
-                = new TaskCompletionSource<ImmutableArray<DesignerAttributeData>>();
+            private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource = new();
+
             public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
             public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-                => new ValueTask();
+                => ValueTaskFactory.CompletedTask;
 
             public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
                 _infosSource.SetResult(infos);
-                return new ValueTask();
+                return ValueTaskFactory.CompletedTask;
             }
         }
 
@@ -458,7 +458,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                 solution,
                 async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, checksum, _solutionVersion++, cancellationToken),
-                callbackTarget: null,
                 CancellationToken.None);
         }
 

@@ -2791,8 +2791,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            // Not if the position is *within* a numeric literal
-            if (token.IsKind(SyntaxKind.NumericLiteralToken) && token.Span.Contains(position))
+            // Not if the position is a numeric literal
+            if (token.IsKind(SyntaxKind.NumericLiteralToken))
             {
                 return false;
             }

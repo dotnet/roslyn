@@ -1584,7 +1584,16 @@ I agree to all of the foregoing:</value>
   <data name="Color_hints" xml:space="preserve">
     <value>Color hints</value>
   </data>
-  <data name="Display_all_hints_while_pressing_Ctrl_Alt" xml:space="preserve">
-    <value>Display all hints while pressing Ctrl+Alt</value>
+  <data name="Display_all_hints_while_pressing_Alt_F1" xml:space="preserve">
+    <value>Display all hints while pressing Alt+F1</value>
+  </data>
+  <data name="Enable_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
+    <value>Enable 'pull' diagnostics (experimental, requires restart)</value>
+  </data>
+  <data name="CSharp_Visual_Basic_Diagnostics_Language_Client" xml:space="preserve">
+    <value>C#/Visual Basic Diagnostics Language Client</value>
+  </data>
+  <data name="New_Type_Name_colon" xml:space="preserve">
+    <value>New Type Name:</value>
   </data>
 </root>

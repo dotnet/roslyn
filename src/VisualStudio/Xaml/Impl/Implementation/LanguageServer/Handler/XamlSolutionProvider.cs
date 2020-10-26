@@ -34,10 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public ImmutableArray<Document> GetDocuments(Uri documentUri)
         {
-            if (documentUri.IsAbsoluteUri)
-            {
+            if (documentUri.IsAbsoluteUri == true)
                 _projectService.TrackOpenDocument(documentUri.LocalPath);
-            }
 
             return _solutionProvider.GetDocuments(documentUri);
         }

@@ -107,6 +107,11 @@
         <target state="translated">Compilación y análisis en directo (paquete NuGet)</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
+        <source>C#/Visual Basic Diagnostics Language Client</source>
+        <target state="new">C#/Visual Basic Diagnostics Language Client</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
         <source>C#/Visual Basic Language Server Client</source>
         <target state="translated">Cliente de servidor del lenguaje C#/Visual Basic</target>
@@ -182,9 +187,9 @@
         <target state="translated">Parámetro actual</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_all_hints_while_pressing_Ctrl_Alt">
-        <source>Display all hints while pressing Ctrl+Alt</source>
-        <target state="new">Display all hints while pressing Ctrl+Alt</target>
+      <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
+        <source>Display all hints while pressing Alt+F1</source>
+        <target state="new">Display all hints while pressing Alt+F1</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -220,6 +225,11 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">El elemento no es válido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
+        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="new">Enable 'pull' diagnostics (experimental, requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -550,6 +560,11 @@
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Nunca si es innecesario</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Type_Name_colon">
+        <source>New Type Name:</source>
+        <target state="new">New Type Name:</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">

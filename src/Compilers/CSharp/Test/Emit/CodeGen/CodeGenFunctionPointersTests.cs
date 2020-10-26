@@ -9524,6 +9524,9 @@ class D
                 // (11,25): error CS8894: Cannot use 'Task' as a return type on a method attributed with 'UnmanagedCallersOnly'.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
+                // (11,30): warning CS8892: Method 'D.Main()' will not be used as an entry point because a synchronous entry point 'C.Main()' was found.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("D.Main()", "C.Main()").WithLocation(11, 30),
                 // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)

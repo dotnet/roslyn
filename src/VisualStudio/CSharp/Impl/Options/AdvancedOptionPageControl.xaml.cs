@@ -6,6 +6,7 @@
 
 using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
@@ -42,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.CSharp);
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp);
             BindToOption(Enable_navigation_to_decompiled_sources, FeatureOnOffOptions.NavigateToDecompiledSources);
+            BindToOption(Enable_pull_diagnostics_experimental_requires_restart, InternalDiagnosticsOptions.LspPullDiagnostics);
             BindToOption(Use_64bit_analysis_process, RemoteHostOptions.OOP64Bit);
 
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp);
@@ -89,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme);
 
-            BindToOption(DisplayAllHintsWhilePressingCtrlAlt, InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt);
+            BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsOptions.DisplayAllHintsWhilePressingAltF1);
             BindToOption(ColorHints, InlineHintsOptions.ColorHints, LanguageNames.CSharp);
 
             BindToOption(DisplayInlineParameterNameHints, InlineHintsOptions.EnabledForParameters, LanguageNames.CSharp);
