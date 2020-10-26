@@ -848,8 +848,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleLineAndNormalNamespace">
-        <source>Source file can only contain single-line and normal namespace declarations.</source>
-        <target state="new">Source file can only contain single-line and normal namespace declarations.</target>
+        <source>Source file can not contain both single-line and normal namespace declarations.</source>
+        <target state="new">Source file can not contain both single-line and normal namespace declarations.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleLineNamespaceNotBeforeAllMembers">

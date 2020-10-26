@@ -173,11 +173,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (unit.Kind())
             {
+                case SyntaxKind.SingleLineNamespaceDeclaration:
                 case SyntaxKind.NamespaceDeclaration:
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Initialize(0, null, null);
-                        Binder result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: inUsing);
+                        Binder result = visitor.VisitNamespaceDeclaration((BaseNamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: inUsing);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }

@@ -471,5 +471,129 @@ namespace N { }
                 // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
                 Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "[System.Obsolete]").WithLocation(1, 1));
         }
+
+        private static readonly CSharpParseOptions s_previewOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+
+        [Fact]
+        public void NamespaceWithSemicolon1()
+        {
+            var test =
+@"namespace A;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NamespaceWithSemicolon3()
+        {
+            var test =
+@"namespace A.B;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MultipleSingleLineNamespaces()
+        {
+            var test =
+@"namespace A;
+namespace B;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics(
+                // (2,11): error CS8907: Source file can only contain one single-line namespace declaration.
+                // namespace B;
+                Diagnostic(ErrorCode.ERR_MultipleSingleLineNamespace, "B").WithLocation(2, 11));
+        }
+
+        [Fact]
+        public void SingleLineNamespaceNestedInNormalNamespace()
+        {
+            var test =
+@"namespace A
+{
+    namespace B;
+}";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics(
+                // (3,15): error CS8908: Source file can not contain both single-line and normal namespace declarations.
+                //     namespace B;
+                Diagnostic(ErrorCode.ERR_SingleLineAndNormalNamespace, "B").WithLocation(3, 15));
+        }
+
+        [Fact]
+        public void NormalAndSingleLineNamespace1()
+        {
+            var test =
+@"namespace A;
+namespace B
+{
+}";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics(
+                // (2,11): error CS8908: Source file can only contain single-line and normal namespace declarations.
+                // namespace B
+                Diagnostic(ErrorCode.ERR_SingleLineAndNormalNamespace, "B").WithLocation(2, 11));
+        }
+
+        [Fact]
+        public void NormalAndSingleLineNamespace2()
+        {
+            var test =
+@"namespace A
+{
+}
+namespace B;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics(
+                // (4,11): error CS8909: Single-line namespace must precede all other members in a file.
+                // namespace B;
+                Diagnostic(ErrorCode.ERR_SingleLineNamespaceNotBeforeAllMembers, "B").WithLocation(4, 11));
+        }
+
+        [Fact]
+        public void NamespaceWithPrecedingUsing()
+        {
+            var test =
+@"using System;
+namespace A;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void NamespaceWithFollowingUsing()
+        {
+            var test =
+@"namespace X;
+using System;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NamespaceWithPrecedingType()
+        {
+            var test =
+@"class X { }
+namespace System;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics(
+                // (2,11): error CS8909: Single-line namespace must precede all other members in a file.
+                // namespace System;
+                Diagnostic(ErrorCode.ERR_SingleLineNamespaceNotBeforeAllMembers, "System").WithLocation(2, 11));
+        }
+
+        [Fact]
+        public void NamespaceWithFollowingType()
+        {
+            var test =
+@"namespace System;
+class X { }";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics();
+        }
     }
 }

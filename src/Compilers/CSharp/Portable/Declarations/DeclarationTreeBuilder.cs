@@ -43,7 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxList<MemberDeclarationSyntax> members,
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
         {
-            Debug.Assert(node.Kind() == SyntaxKind.NamespaceDeclaration || (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
+            Debug.Assert(
+                node.Kind() == SyntaxKind.NamespaceDeclaration ||
+                node.Kind() == SyntaxKind.SingleLineNamespaceDeclaration ||
+                (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
             if (members.Count == 0)
             {

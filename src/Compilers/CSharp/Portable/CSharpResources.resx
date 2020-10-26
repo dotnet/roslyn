@@ -6586,7 +6586,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Source file can only contain one single-line namespace declaration.</value>
   </data>
   <data name="ERR_SingleLineAndNormalNamespace" xml:space="preserve">
-    <value>Source file can only contain single-line and normal namespace declarations.</value>
+    <value>Source file can not contain both single-line and normal namespace declarations.</value>
   </data>
   <data name="ERR_SingleLineNamespaceNotBeforeAllMembers" xml:space="preserve">
     <value>Single-line namespace must precede all other members in a file.</value>

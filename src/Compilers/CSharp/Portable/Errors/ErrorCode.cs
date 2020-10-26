@@ -1929,8 +1929,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for latest
 
         ERR_MultipleSingleLineNamespace = 8907,
-        ERR_SingleLineAndNormalNamespace = 8907,
-        ERR_SingleLineNamespaceNotBeforeAllMembers = 8907,
+        ERR_SingleLineAndNormalNamespace = 8908,
+        ERR_SingleLineNamespaceNotBeforeAllMembers = 8909,
 
         #endregion
 

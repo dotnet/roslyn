@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder VisitRecordDeclaration(RecordDeclarationSyntax node)
                 => VisitTypeDeclarationCore(node);
 
-            public override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
+            public sealed override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
             {
                 if (!LookupPosition.IsInNamespaceDeclaration(_position, parent))
                 {
@@ -774,7 +774,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitNamespaceDeclaration(parent, _position, inBody, inUsing);
             }
 
-            internal Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent, int position, bool inBody, bool inUsing)
+            public override Binder VisitSingleLineNamespaceDeclaration(SingleLineNamespaceDeclarationSyntax parent)
+            {
+                if (!LookupPosition.IsInNamespaceDeclaration(_position, parent))
+                {
+                    return VisitCore(parent.Parent);
+                }
+
+                // test for position equality in case the open brace token is missing:
+                // namespace X class C { }
+                bool inBody = _position >= parent.SemicolonToken.EndPosition;
+
+                bool inUsing = IsInUsing(parent);
+
+                return VisitNamespaceDeclaration(parent, _position, inBody, inUsing);
+            }
+
+            internal Binder VisitNamespaceDeclaration(BaseNamespaceDeclarationSyntax parent, int position, bool inBody, bool inUsing)
             {
                 Debug.Assert(!inUsing || inBody, "inUsing => inBody");
 
