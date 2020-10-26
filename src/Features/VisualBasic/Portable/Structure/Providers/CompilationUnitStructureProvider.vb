@@ -4,7 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxNodeStructureProvider(Of CompilationUnitSyntax)
 
         Protected Overrides Sub CollectBlockSpans(compilationUnit As CompilationUnitSyntax,
-                                                  spans As ArrayBuilder(Of BlockSpan),
+                                                  ByRef spans As TemporaryArray(Of BlockSpan),
                                                   isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)

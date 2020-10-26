@@ -7,7 +7,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             InitializerExpressionSyntax node,
-            ArrayBuilder<BlockSpan> spans,
+            ref TemporaryArray<BlockSpan> spans,
             bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)

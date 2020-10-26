@@ -6,9 +6,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
@@ -67,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Structure
         private void ProvideBlockStructureWorker(
             BlockStructureContext context, SyntaxNode syntaxRoot)
         {
-            using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var spans);
+            using var spans = TemporaryArray<BlockSpan>.Empty;
             BlockSpanCollector.CollectBlockSpans(
-                context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
+                context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, ref Unsafe.AsRef(in spans), context.CancellationToken);
 
             foreach (var span in spans)
             {

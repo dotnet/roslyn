@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             CompilationUnitSyntax compilationUnit,
-            ArrayBuilder<BlockSpan> spans,
+            ref TemporaryArray<BlockSpan> spans,
             bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit, spans, isMetadataAsSource);
+            CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit, ref spans, isMetadataAsSource);
 
             // extern aliases and usings are outlined in a single region
             var externsAndUsings = new List<SyntaxNode>();
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 compilationUnit.Members.Count > 0 ||
                 compilationUnit.AttributeLists.Count > 0)
             {
-                CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit.EndOfFileToken.LeadingTrivia, spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit.EndOfFileToken.LeadingTrivia, ref spans);
             }
         }
     }

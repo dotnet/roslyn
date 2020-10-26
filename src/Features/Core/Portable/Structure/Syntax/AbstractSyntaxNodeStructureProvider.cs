@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
@@ -17,18 +15,18 @@ namespace Microsoft.CodeAnalysis.Structure
         public sealed override void CollectBlockSpans(
             Document document,
             SyntaxNode node,
-            ArrayBuilder<BlockSpan> spans,
+            ref TemporaryArray<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             var isMetadataAsSource = document.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
             var options = document.Project.Solution.Options;
-            CollectBlockSpans(node, spans, isMetadataAsSource, options, cancellationToken);
+            CollectBlockSpans(node, ref spans, isMetadataAsSource, options, cancellationToken);
         }
 
         public sealed override void CollectBlockSpans(
             Document document,
             SyntaxTrivia trivia,
-            ArrayBuilder<BlockSpan> spans,
+            ref TemporaryArray<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
@@ -36,19 +34,19 @@ namespace Microsoft.CodeAnalysis.Structure
 
         private void CollectBlockSpans(
             SyntaxNode node,
-            ArrayBuilder<BlockSpan> spans,
+            ref TemporaryArray<BlockSpan> spans,
             bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
             if (node is TSyntaxNode tSyntax)
             {
-                CollectBlockSpans(tSyntax, spans, isMetadataAsSource, options, cancellationToken);
+                CollectBlockSpans(tSyntax, ref spans, isMetadataAsSource, options, cancellationToken);
             }
         }
 
         protected abstract void CollectBlockSpans(
-            TSyntaxNode node, ArrayBuilder<BlockSpan> spans,
+            TSyntaxNode node, ref TemporaryArray<BlockSpan> spans,
             bool isMetadataAsSource, OptionSet options, CancellationToken cancellationToken);
     }
 }

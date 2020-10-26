@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -426,20 +427,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector> cumulativeChanges,
             ImmutableArray<TextChange> currentChanges)
         {
-            using var _1 = ArrayBuilder<TextChange>.GetInstance(out var overlappingSpans);
-            using var _2 = ArrayBuilder<TextChange>.GetInstance(out var intersectingSpans);
+            using var overlappingSpans = TemporaryArray<TextChange>.Empty;
+            using var intersectingSpans = TemporaryArray<TextChange>.Empty;
 
             return AllChangesCanBeApplied(
                 cumulativeChanges, currentChanges,
-                overlappingSpans: overlappingSpans,
-                intersectingSpans: intersectingSpans);
+                overlappingSpans: ref Unsafe.AsRef(in overlappingSpans),
+                intersectingSpans: ref Unsafe.AsRef(in intersectingSpans));
         }
 
         private static bool AllChangesCanBeApplied(
             SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector> cumulativeChanges,
             ImmutableArray<TextChange> currentChanges,
-            ArrayBuilder<TextChange> overlappingSpans,
-            ArrayBuilder<TextChange> intersectingSpans)
+            ref TemporaryArray<TextChange> overlappingSpans,
+            ref TemporaryArray<TextChange> intersectingSpans)
         {
             foreach (var change in currentChanges)
             {
@@ -447,14 +448,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 intersectingSpans.Clear();
 
                 cumulativeChanges.FillWithIntervalsThatOverlapWith(
-                    change.Span.Start, change.Span.Length, overlappingSpans);
+                    change.Span.Start, change.Span.Length, ref overlappingSpans);
 
                 cumulativeChanges.FillWithIntervalsThatIntersectWith(
-                   change.Span.Start, change.Span.Length, intersectingSpans);
+                   change.Span.Start, change.Span.Length, ref intersectingSpans);
 
                 var value = ChangeCanBeApplied(change,
-                    overlappingSpans: overlappingSpans,
-                    intersectingSpans: intersectingSpans);
+                    overlappingSpans: in overlappingSpans,
+                    intersectingSpans: in intersectingSpans);
                 if (!value)
                 {
                     return false;
@@ -467,8 +468,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static bool ChangeCanBeApplied(
             TextChange change,
-            ArrayBuilder<TextChange> overlappingSpans,
-            ArrayBuilder<TextChange> intersectingSpans)
+            in TemporaryArray<TextChange> overlappingSpans,
+            in TemporaryArray<TextChange> intersectingSpans)
         {
             // We distinguish two types of changes that can happen.  'Pure Insertions' 
             // and 'Overwrites'.  Pure-Insertions are those that are just inserting 
@@ -485,8 +486,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // we conservatively disallow cases like this.
 
             return IsPureInsertion(change)
-                ? PureInsertionChangeCanBeApplied(change, overlappingSpans, intersectingSpans)
-                : OverwriteChangeCanBeApplied(change, overlappingSpans, intersectingSpans);
+                ? PureInsertionChangeCanBeApplied(change, in overlappingSpans, in intersectingSpans)
+                : OverwriteChangeCanBeApplied(change, in overlappingSpans, in intersectingSpans);
         }
 
         private static bool IsPureInsertion(TextChange change)
@@ -494,8 +495,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static bool PureInsertionChangeCanBeApplied(
             TextChange change,
-            ArrayBuilder<TextChange> overlappingSpans,
-            ArrayBuilder<TextChange> intersectingSpans)
+            in TemporaryArray<TextChange> overlappingSpans,
+            in TemporaryArray<TextChange> intersectingSpans)
         {
             // Pure insertions can't ever overlap anything.  (They're just an insertion at a 
             // single position, and overlaps can't occur with single-positions).
@@ -541,18 +542,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static bool OverwriteChangeCanBeApplied(
             TextChange change,
-            ArrayBuilder<TextChange> overlappingSpans,
-            ArrayBuilder<TextChange> intersectingSpans)
+            in TemporaryArray<TextChange> overlappingSpans,
+            in TemporaryArray<TextChange> intersectingSpans)
         {
             Debug.Assert(!IsPureInsertion(change));
 
-            return !OverwriteChangeConflictsWithOverlappingSpans(change, overlappingSpans) &&
-                   !OverwriteChangeConflictsWithIntersectingSpans(change, intersectingSpans);
+            return !OverwriteChangeConflictsWithOverlappingSpans(change, in overlappingSpans) &&
+                   !OverwriteChangeConflictsWithIntersectingSpans(change, in intersectingSpans);
         }
 
         private static bool OverwriteChangeConflictsWithOverlappingSpans(
             TextChange change,
-            ArrayBuilder<TextChange> overlappingSpans)
+            in TemporaryArray<TextChange> overlappingSpans)
         {
             Debug.Assert(!IsPureInsertion(change));
 
@@ -572,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static bool OverwriteChangeConflictsWithIntersectingSpans(
             TextChange change,
-            ArrayBuilder<TextChange> intersectingSpans)
+            in TemporaryArray<TextChange> intersectingSpans)
         {
             Debug.Assert(!IsPureInsertion(change));
 
@@ -584,17 +585,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // However, pure-insertion changes are extremely ambiguous. It is not possible to tell which
             // change should be applied first.  So if we get any pure-insertions we have to bail
             // on applying this span.
-            foreach (var otherSpan in intersectingSpans)
-            {
-                if (IsPureInsertion(otherSpan))
-                {
-                    // Intersecting with a pure-insertion is too ambiguous, so we just consider
-                    // this a conflict.
-                    return true;
-                }
-            }
-
-            return false;
+            return intersectingSpans.Any(static otherSpan => IsPureInsertion(otherSpan));
         }
     }
 }

@@ -4,7 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Function
 
         Protected Overrides Sub CollectBlockSpans(regionDirective As RegionDirectiveTriviaSyntax,
-                                                  spans As ArrayBuilder(Of BlockSpan),
+                                                  ByRef spans As TemporaryArray(Of BlockSpan),
                                                   isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   CancellationToken As CancellationToken)
