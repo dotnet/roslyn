@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _additionalTextFiles = Nothing
             _tempDirectory = buildPaths.TempDirectory
 
-            Debug.Assert(Arguments.OutputFileName IsNot Nothing OrElse Arguments.Errors.Length > 0)
+            Debug.Assert(Arguments.OutputFileName IsNot Nothing OrElse Arguments.Errors.Length > 0 OrElse parser.IsScriptCommandLineParser)
         End Sub
 
         Private Function GetAdditionalTextFiles() As ImmutableArray(Of AdditionalTextFile)
