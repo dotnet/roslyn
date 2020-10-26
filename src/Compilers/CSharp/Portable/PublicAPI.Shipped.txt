@@ -60,12 +60,14 @@ abstract Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.EqualsToken.get
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.Name.get -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlNameSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.StartQuoteToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
+Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.AwaitExpressionInfo() -> void
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.Equals(Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo other) -> bool
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.GetAwaiterMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.GetResultMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.IsCompletedProperty.get -> Microsoft.CodeAnalysis.IPropertySymbol
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.IsDynamic.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion
+Microsoft.CodeAnalysis.CSharp.Conversion.Conversion() -> void
 Microsoft.CodeAnalysis.CSharp.Conversion.Equals(Microsoft.CodeAnalysis.CSharp.Conversion other) -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.Exists.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsAnonymousFunction.get -> bool
@@ -216,6 +218,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.CSharpSyntaxWalker(Microsoft.Co
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.Depth.get -> Microsoft.CodeAnalysis.SyntaxWalkerDepth
 Microsoft.CodeAnalysis.CSharp.DeconstructionInfo
 Microsoft.CodeAnalysis.CSharp.DeconstructionInfo.Conversion.get -> Microsoft.CodeAnalysis.CSharp.Conversion?
+Microsoft.CodeAnalysis.CSharp.DeconstructionInfo.DeconstructionInfo() -> void
 Microsoft.CodeAnalysis.CSharp.DeconstructionInfo.Method.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.CSharp.DeconstructionInfo.Nested.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CSharp.DeconstructionInfo>
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo
@@ -225,6 +228,7 @@ Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.DisposeMethod.get -> Microsof
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.ElementConversion.get -> Microsoft.CodeAnalysis.CSharp.Conversion
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.Equals(Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo other) -> bool
+Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.ForEachStatementInfo() -> void
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.GetEnumeratorMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.IsAsynchronous.get -> bool
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.MoveNextMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
@@ -250,6 +254,7 @@ Microsoft.CodeAnalysis.CSharp.QueryClauseInfo
 Microsoft.CodeAnalysis.CSharp.QueryClauseInfo.CastInfo.get -> Microsoft.CodeAnalysis.SymbolInfo
 Microsoft.CodeAnalysis.CSharp.QueryClauseInfo.Equals(Microsoft.CodeAnalysis.CSharp.QueryClauseInfo other) -> bool
 Microsoft.CodeAnalysis.CSharp.QueryClauseInfo.OperationInfo.get -> Microsoft.CodeAnalysis.SymbolInfo
+Microsoft.CodeAnalysis.CSharp.QueryClauseInfo.QueryClauseInfo() -> void
 Microsoft.CodeAnalysis.CSharp.SymbolDisplay
 Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax

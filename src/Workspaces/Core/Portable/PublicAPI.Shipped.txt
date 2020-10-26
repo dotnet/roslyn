@@ -325,6 +325,7 @@ Microsoft.CodeAnalysis.ApplyChangesKind.RemoveSolutionAnalyzerReference = 21 -> 
 Microsoft.CodeAnalysis.Classification.ClassificationTypeNames
 Microsoft.CodeAnalysis.Classification.ClassifiedSpan
 Microsoft.CodeAnalysis.Classification.ClassifiedSpan.ClassificationType.get -> string
+Microsoft.CodeAnalysis.Classification.ClassifiedSpan.ClassifiedSpan() -> void
 Microsoft.CodeAnalysis.Classification.ClassifiedSpan.ClassifiedSpan(Microsoft.CodeAnalysis.Text.TextSpan textSpan, string classificationType) -> void
 Microsoft.CodeAnalysis.Classification.ClassifiedSpan.ClassifiedSpan(string classificationType, Microsoft.CodeAnalysis.Text.TextSpan textSpan) -> void
 Microsoft.CodeAnalysis.Classification.ClassifiedSpan.Equals(Microsoft.CodeAnalysis.Classification.ClassifiedSpan other) -> bool
@@ -354,6 +355,7 @@ Microsoft.CodeAnalysis.CodeActions.RenameAnnotation
 Microsoft.CodeAnalysis.CodeActions.WarningAnnotation
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.CodeFixContext() -> void
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.CodeFixContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Diagnostic diagnostic, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>> registerCodeFix, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.CodeFixContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>> registerCodeFix, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
@@ -396,6 +398,7 @@ Microsoft.CodeAnalysis.CodeFixes.FixAllScope.Solution = 2 -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders
 Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext
 Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.CodeRefactoringContext() -> void
 Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.CodeRefactoringContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction> registerRefactoring, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.Document.get -> Microsoft.CodeAnalysis.Document
 Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.RegisterRefactoring(Microsoft.CodeAnalysis.CodeActions.CodeAction action) -> void
@@ -426,9 +429,11 @@ Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.get -> Microsoft.CodeA
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.set -> void
 Microsoft.CodeAnalysis.CompilationOutputInfo
 Microsoft.CodeAnalysis.CompilationOutputInfo.AssemblyPath.get -> string
+Microsoft.CodeAnalysis.CompilationOutputInfo.CompilationOutputInfo() -> void
 Microsoft.CodeAnalysis.CompilationOutputInfo.Equals(Microsoft.CodeAnalysis.CompilationOutputInfo other) -> bool
 Microsoft.CodeAnalysis.CompilationOutputInfo.WithAssemblyPath(string path) -> Microsoft.CodeAnalysis.CompilationOutputInfo
 Microsoft.CodeAnalysis.Differencing.Edit<TNode>
+Microsoft.CodeAnalysis.Differencing.Edit<TNode>.Edit() -> void
 Microsoft.CodeAnalysis.Differencing.Edit<TNode>.Equals(Microsoft.CodeAnalysis.Differencing.Edit<TNode> other) -> bool
 Microsoft.CodeAnalysis.Differencing.Edit<TNode>.Kind.get -> Microsoft.CodeAnalysis.Differencing.EditKind
 Microsoft.CodeAnalysis.Differencing.Edit<TNode>.NewNode.get -> TNode
@@ -539,6 +544,7 @@ Microsoft.CodeAnalysis.Editing.DeclarationKind.SetAccessor = 25 -> Microsoft.Cod
 Microsoft.CodeAnalysis.Editing.DeclarationKind.Struct = 3 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Editing.DeclarationKind.Variable = 21 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Editing.DeclarationModifiers.DeclarationModifiers() -> void
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsAbstract.get -> bool
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsAsync.get -> bool
@@ -771,11 +777,13 @@ Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.Equals(Microsoft.CodeAnalys
 Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.IsCandidateLocation.get -> bool
 Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.IsImplicit.get -> bool
 Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.Location.get -> Microsoft.CodeAnalysis.Location
+Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.ReferenceLocation() -> void
 Microsoft.CodeAnalysis.FindSymbols.SymbolCallerInfo
 Microsoft.CodeAnalysis.FindSymbols.SymbolCallerInfo.CalledSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.FindSymbols.SymbolCallerInfo.CallingSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.FindSymbols.SymbolCallerInfo.IsDirect.get -> bool
 Microsoft.CodeAnalysis.FindSymbols.SymbolCallerInfo.Locations.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Location>
+Microsoft.CodeAnalysis.FindSymbols.SymbolCallerInfo.SymbolCallerInfo() -> void
 Microsoft.CodeAnalysis.FindSymbols.SymbolFinder
 Microsoft.CodeAnalysis.Formatting.Formatter
 Microsoft.CodeAnalysis.Formatting.FormattingOptions
@@ -866,6 +874,7 @@ Microsoft.CodeAnalysis.Options.OptionKey
 Microsoft.CodeAnalysis.Options.OptionKey.Equals(Microsoft.CodeAnalysis.Options.OptionKey other) -> bool
 Microsoft.CodeAnalysis.Options.OptionKey.Language.get -> string
 Microsoft.CodeAnalysis.Options.OptionKey.Option.get -> Microsoft.CodeAnalysis.Options.IOption
+Microsoft.CodeAnalysis.Options.OptionKey.OptionKey() -> void
 Microsoft.CodeAnalysis.Options.OptionKey.OptionKey(Microsoft.CodeAnalysis.Options.IOption option, string language = null) -> void
 Microsoft.CodeAnalysis.Options.OptionSet
 Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
@@ -978,6 +987,7 @@ Microsoft.CodeAnalysis.ProjectChanges.GetRemovedMetadataReferences() -> System.C
 Microsoft.CodeAnalysis.ProjectChanges.GetRemovedProjectReferences() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference>
 Microsoft.CodeAnalysis.ProjectChanges.NewProject.get -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.ProjectChanges.OldProject.get -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.ProjectChanges.ProjectChanges() -> void
 Microsoft.CodeAnalysis.ProjectChanges.ProjectId.get -> Microsoft.CodeAnalysis.ProjectId
 Microsoft.CodeAnalysis.ProjectDependencyGraph
 Microsoft.CodeAnalysis.ProjectDependencyGraph.GetDependencySets(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectId>>
@@ -1145,6 +1155,7 @@ Microsoft.CodeAnalysis.SolutionChanges.GetAddedProjects() -> System.Collections.
 Microsoft.CodeAnalysis.SolutionChanges.GetProjectChanges() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectChanges>
 Microsoft.CodeAnalysis.SolutionChanges.GetRemovedAnalyzerReferences() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference>
 Microsoft.CodeAnalysis.SolutionChanges.GetRemovedProjects() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Project>
+Microsoft.CodeAnalysis.SolutionChanges.SolutionChanges() -> void
 Microsoft.CodeAnalysis.SolutionId
 Microsoft.CodeAnalysis.SolutionId.Equals(Microsoft.CodeAnalysis.SolutionId other) -> bool
 Microsoft.CodeAnalysis.SolutionId.Id.get -> System.Guid
@@ -1179,6 +1190,7 @@ Microsoft.CodeAnalysis.VersionStamp
 Microsoft.CodeAnalysis.VersionStamp.Equals(Microsoft.CodeAnalysis.VersionStamp version) -> bool
 Microsoft.CodeAnalysis.VersionStamp.GetNewerVersion() -> Microsoft.CodeAnalysis.VersionStamp
 Microsoft.CodeAnalysis.VersionStamp.GetNewerVersion(Microsoft.CodeAnalysis.VersionStamp version) -> Microsoft.CodeAnalysis.VersionStamp
+Microsoft.CodeAnalysis.VersionStamp.VersionStamp() -> void
 Microsoft.CodeAnalysis.Workspace
 Microsoft.CodeAnalysis.Workspace.CheckAdditionalDocumentIsInCurrentSolution(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 Microsoft.CodeAnalysis.Workspace.CheckAdditionalDocumentIsNotInCurrentSolution(Microsoft.CodeAnalysis.DocumentId documentId) -> void
