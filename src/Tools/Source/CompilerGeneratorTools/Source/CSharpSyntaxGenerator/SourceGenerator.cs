@@ -21,6 +21,30 @@ namespace CSharpSyntaxGenerator
     [Generator]
     public sealed class SourceGenerator : ISourceGenerator
     {
+        private static readonly DiagnosticDescriptor s_MissingSyntaxXml = new DiagnosticDescriptor(
+            "CSSG1001",
+            title: "Syntax.xml is missing",
+            messageFormat: "The Syntax.xml file was not included in the project, so we are not generating source.",
+            category: "SyntaxGenerator",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        private static readonly DiagnosticDescriptor s_UnableToReadSyntaxXml = new DiagnosticDescriptor(
+            "CSSG1002",
+            title: "Syntax.xml could not be read",
+            messageFormat: "The Syntax.xml file could not even be read. Does it exist?",
+            category: "SyntaxGenerator",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        private static readonly DiagnosticDescriptor s_SyntaxXmlError = new DiagnosticDescriptor(
+            "CSSG1003",
+            title: "Syntax.xml has a syntax error",
+            messageFormat: "{0}",
+            category: "SyntaxGenerator",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
         public void Initialize(GeneratorInitializationContext context)
         {
         }
@@ -31,6 +55,7 @@ namespace CSharpSyntaxGenerator
 
             if (syntaxXml == null)
             {
+                context.ReportDiagnostic(Diagnostic.Create(s_MissingSyntaxXml, location: null));
                 return;
             }
 
@@ -38,13 +63,36 @@ namespace CSharpSyntaxGenerator
 
             if (syntaxXmlText == null)
             {
-                // TODO: report a diagnostic here
+                context.ReportDiagnostic(Diagnostic.Create(s_UnableToReadSyntaxXml, location: null));
                 return;
             }
 
+            Tree tree;
             var reader = XmlReader.Create(new SourceTextReader(syntaxXmlText), new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
-            var serializer = new XmlSerializer(typeof(Tree));
-            var tree = (Tree)serializer.Deserialize(reader);
+
+            try
+            {
+                var serializer = new XmlSerializer(typeof(Tree));
+                tree = (Tree)serializer.Deserialize(reader);
+            }
+            catch (InvalidOperationException ex) when (ex.InnerException is XmlException)
+            {
+                var xmlException = (XmlException)ex.InnerException;
+
+                var line = syntaxXmlText.Lines[xmlException.LineNumber - 1]; // LineNumber is one-based.
+                int offset = xmlException.LinePosition - 1; // LinePosition is one-based
+                var position = line.Start + offset;
+                var span = new TextSpan(position, 0);
+                var lineSpan = syntaxXmlText.Lines.GetLinePositionSpan(span);
+
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        s_SyntaxXmlError,
+                        location: Location.Create(syntaxXml.Path, span, lineSpan),
+                        xmlException.Message));
+
+                return;
+            }
 
             TreeFlattening.FlattenChildren(tree);
 
