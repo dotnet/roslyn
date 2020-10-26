@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Runtime;
 using System.Threading.Tasks;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
                ServiceActivationOptions serviceActivationOptions,
                IServiceBroker serviceBroker)
             {
-                var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit: IntPtr.Size == 8);
+                var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC);
                 var serviceHubTraceSource = (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
                 var serverConnection = descriptor.WithTraceSource(serviceHubTraceSource).ConstructRpcConnection(pipe);
 
