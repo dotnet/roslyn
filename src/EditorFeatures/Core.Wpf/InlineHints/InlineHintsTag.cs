@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             bool classify)
         {
             return new InlineHintsTag(
-                CreateElement(hint.DisplayParts, textView, span, format, formatMap, taggerProvider.TypeMap, classify),
+                CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify),
                 textView, span, hint, taggerProvider);
         }
 
@@ -105,7 +106,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private static FrameworkElement CreateElement(
             ImmutableArray<TaggedText> taggedTexts,
             IWpfTextView textView,
-            SnapshotSpan span,
             TextFormattingRunProperties format,
             IClassificationFormatMap formatMap,
             ClassificationTypeMap typeMap,
@@ -126,7 +126,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
-            foreach (var taggedText in taggedTexts)
+            var (trimmedTexts, leftPadding, rightPadding) = Trim(taggedTexts);
+
+            foreach (var taggedText in trimmedTexts)
             {
                 var run = new Run(taggedText.ToVisibleDisplayString(includeLeftToRightMarker: true));
 
@@ -144,9 +146,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             // height. Gets foreground/background colors from the options menu. The margin is the distance from the 
             // adornment to the text and pushing the adornment upwards to create a separation when on a specific line
 
-            // If the tag is followed by a space, just create a normal border (as there will already be a buffer to the right).
-            // If not, then pad the right a little so the tag doesn't feel too cramped with the following text.
-            var right = span.End < span.Snapshot.Length && char.IsWhiteSpace(span.End.GetChar()) ? 0 : 5;
+            // If the tag is started or followed by a space, we trim that off but represent the space as buffer on hte
+            // left or right side.
+            var left = leftPadding * 5;
+            var right = rightPadding * 5;
 
             var border = new Border
             {
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 CornerRadius = new CornerRadius(2),
                 Height = textView.LineHeight - (0.25 * textView.LineHeight),
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(left: 0, top: -0.20 * textView.LineHeight, right, bottom: 0),
+                Margin = new Thickness(left, top: -0.20 * textView.LineHeight, right, bottom: 0),
                 Padding = new Thickness(1),
 
                 // Need to set SnapsToDevicePixels and UseLayoutRounding to avoid unnecessary reformatting
@@ -172,6 +175,41 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             return border;
+        }
+
+        private static (ImmutableArray<TaggedText> texts, int leftPadding, int rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
+        {
+            using var _ = ArrayBuilder<TaggedText>.GetInstance(out var result);
+            var leftPadding = 0;
+            var rightPadding = 0;
+
+            if (taggedTexts.Length == 1)
+            {
+                var first = taggedTexts.First();
+
+                var trimStart = first.Text.TrimStart();
+                var trimBoth = trimStart.TrimEnd();
+                result.Add(new TaggedText(first.Tag, trimBoth));
+                leftPadding = first.Text.Length - trimStart.Length;
+                rightPadding = trimStart.Length - trimBoth.Length;
+            }
+            else if (taggedTexts.Length >= 2)
+            {
+                var first = taggedTexts.First();
+                var trimStart = first.Text.TrimStart();
+                result.Add(new TaggedText(first.Tag, trimStart));
+                leftPadding = first.Text.Length - trimStart.Length;
+
+                for (var i = 1; i < taggedTexts.Length - 1; i++)
+                    result.Add(taggedTexts[i]);
+
+                var last = taggedTexts.Last();
+                var trimEnd = last.Text.TrimEnd();
+                result.Add(new TaggedText(last.Tag, trimEnd));
+                rightPadding = last.Text.Length - trimEnd.Length;
+            }
+
+            return (result.ToImmutable(), leftPadding, rightPadding);
         }
 
         /// <summary>

@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return this;
         }
 
-        protected virtual ITextBuffer GetSubjectBufferContainingCaret()
+        protected virtual ITextBuffer? GetSubjectBufferContainingCaret()
             => WpfTextView.GetBufferContainingCaret();
 
         protected virtual ITextView ConvertTextView()

@@ -369,7 +369,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             // Triggers language server to send notifications.
             foreach (var document in documentsToPublish)
-                await languageServer.PublishDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
+                await languageServer.PublishDiagnosticsAsync(diagnosticService, document, CancellationToken.None).ConfigureAwait(false);
 
             // Waits for all notifications to be received.
             await callback.CallbackCompletedTask.Task.ConfigureAwait(false);
@@ -398,16 +398,27 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
         private void SetupMockWithDiagnostics(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
         {
-            diagnosticServiceMock.Setup(d => d.GetDiagnostics(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), documentId,
-                    It.IsAny<object>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Returns(diagnostics);
+            diagnosticServiceMock.Setup(d => d.GetDiagnostics(
+                It.IsAny<Workspace>(),
+                It.IsAny<ProjectId>(),
+                documentId,
+                It.IsAny<object>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>())).Returns(diagnostics);
         }
 
         private void SetupMockDiagnosticSequence(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId,
             ImmutableArray<DiagnosticData> firstDiagnostics, ImmutableArray<DiagnosticData> secondDiagnostics)
         {
-            diagnosticServiceMock.SetupSequence(d => d.GetDiagnostics(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), documentId,
-                    It.IsAny<object>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            diagnosticServiceMock.SetupSequence(d => d.GetDiagnostics(
+                It.IsAny<Workspace>(),
+                It.IsAny<ProjectId>(),
+                documentId,
+                It.IsAny<object>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
                 .Returns(firstDiagnostics)
                 .Returns(secondDiagnostics);
         }

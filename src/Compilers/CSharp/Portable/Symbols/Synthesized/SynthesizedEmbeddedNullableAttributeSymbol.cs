@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
 
+        internal override bool IsRecord => false;
+
         internal override AttributeUsageInfo GetAttributeUsageInfo()
         {
             return new AttributeUsageInfo(

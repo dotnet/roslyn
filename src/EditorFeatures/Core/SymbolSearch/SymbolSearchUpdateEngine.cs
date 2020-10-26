@@ -35,9 +35,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// <summary>
         /// Don't call directly. Use <see cref="SymbolSearchUpdateEngineFactory"/> instead.
         /// </summary>
-        public SymbolSearchUpdateEngine(ISymbolSearchLogService logService)
-            : this(logService,
-                   new RemoteControlService(),
+        public SymbolSearchUpdateEngine()
+            : this(new RemoteControlService(),
                    new DelayService(),
                    new IOService(),
                    new PatchService(),
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// For testing purposes only.
         /// </summary>
         internal SymbolSearchUpdateEngine(
-            ISymbolSearchLogService logService,
             IRemoteControlService remoteControlService,
             IDelayService delayService,
             IIOService ioService,
@@ -61,7 +59,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         {
             _delayService = delayService;
             _ioService = ioService;
-            _logService = logService;
             _remoteControlService = remoteControlService;
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;

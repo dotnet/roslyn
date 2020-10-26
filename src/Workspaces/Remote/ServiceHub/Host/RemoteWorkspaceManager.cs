@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         // TODO: remove
+        [Obsolete("Supports non-brokered services")]
         internal IAssetSource GetAssetSource()
         {
             Contract.ThrowIfNull(_solutionAssetSource, "Storage not initialized");
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         // TODO: remove
+        [Obsolete("Supports non-brokered services")]
         internal void InitializeAssetSource(IAssetSource assetSource)
         {
             Contract.ThrowIfFalse(_solutionAssetSource == null);
