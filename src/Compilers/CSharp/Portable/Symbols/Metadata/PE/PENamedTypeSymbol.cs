@@ -556,15 +556,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool IsRecord
-        {
-            get
-            {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                return SynthesizedRecordClone.FindValidCloneMethod(this, ref useSiteDiagnostics) != null;
-            }
-        }
-
         public override Accessibility DeclaredAccessibility
         {
             get

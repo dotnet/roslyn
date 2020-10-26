@@ -348,8 +348,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
-        internal override bool IsRecord => false;
-
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)
         {

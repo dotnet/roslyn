@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsRecord
+        internal bool IsRecord
         {
             get
             {

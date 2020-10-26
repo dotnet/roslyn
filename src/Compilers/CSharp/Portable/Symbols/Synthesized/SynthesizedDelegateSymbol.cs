@@ -88,8 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        internal override bool IsRecord => false;
-
         private sealed class DelegateConstructor : SynthesizedInstanceConstructor
         {
             private readonly ImmutableArray<ParameterSymbol> _parameters;

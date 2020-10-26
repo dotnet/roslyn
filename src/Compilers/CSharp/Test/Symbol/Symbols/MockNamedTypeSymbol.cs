@@ -323,7 +323,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
-
-        internal override bool IsRecord => false;
     }
 }

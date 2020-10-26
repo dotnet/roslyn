@@ -115,7 +115,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 ClassificationTypeNames.Operator => SymbolDisplayPartKind.Operator,
                 ClassificationTypeNames.Punctuation => SymbolDisplayPartKind.Punctuation,
                 ClassificationTypeNames.ClassName => SymbolDisplayPartKind.ClassName,
-                ClassificationTypeNames.RecordName => SymbolDisplayPartKind.RecordName,
                 ClassificationTypeNames.StructName => SymbolDisplayPartKind.StructName,
                 ClassificationTypeNames.InterfaceName => SymbolDisplayPartKind.InterfaceName,
                 ClassificationTypeNames.DelegateName => SymbolDisplayPartKind.DelegateName,

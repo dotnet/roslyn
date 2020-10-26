@@ -71,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _constructor; }
         }
 
-        internal override bool IsRecord => false;
-
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _interfaces;

@@ -482,8 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new PublicModel.ArrayTypeSymbol(this, nullableAnnotation);
         }
 
-        internal override bool IsRecord => false;
-
         /// <summary>
         /// Represents SZARRAY - zero-based one-dimensional array 
         /// </summary>

@@ -63,8 +63,6 @@
             </Color>
             <Color Name="label name">
             </Color>
-            <Color Name="record name">
-            </Color>
             <Color Name="inline hints">
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
                 <Foreground Type="CT_RAW" Source="FF686868" />
@@ -219,8 +217,6 @@
             <Color Name="namespace name">
             </Color>
             <Color Name="label name">
-            </Color>
-            <Color Name="record name">
             </Color>
             <Color Name="inline hints">
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
@@ -377,8 +373,6 @@
             </Color>
             <Color Name="label name">
             </Color>
-            <Color Name="record name">
-            </Color>"
             <Color Name="inline hints">
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
                 <Foreground Type="CT_RAW" Source="FF504848" />
@@ -534,8 +528,6 @@
             </Color>
             <Color Name="label name">
             </Color>
-            <Color Name="record name">
-            </Color>"
             <Color Name="inline hints">
                 <Background Type="CT_RAW" Source="FF3E3E3E" />
                 <Foreground Type="CT_RAW" Source="FFA9A8A7" />
@@ -703,9 +695,6 @@
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
             <Color Name="label name">
-                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
-            </Color>
-            <Color Name="record name">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
             <Color Name="inline hints">

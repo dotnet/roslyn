@@ -203,11 +203,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent is ConstructorDeclarationSyntax constructorDeclaration && constructorDeclaration.Identifier == token)
             {
-                return GetClassificationTypeForConstructorOrDestructorParent(constructorDeclaration.Parent!);
+                return constructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
+                    ? ClassificationTypeNames.ClassName
+                    : ClassificationTypeNames.StructName;
             }
             else if (token.Parent is DestructorDeclarationSyntax destructorDeclaration && destructorDeclaration.Identifier == token)
             {
-                return GetClassificationTypeForConstructorOrDestructorParent(destructorDeclaration.Parent!);
+                return destructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
+                    ? ClassificationTypeNames.ClassName
+                    : ClassificationTypeNames.StructName;
             }
             else if (token.Parent is LocalFunctionStatementSyntax localFunctionStatement && localFunctionStatement.Identifier == token)
             {
@@ -295,15 +299,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private static string? GetClassificationTypeForConstructorOrDestructorParent(SyntaxNode parentNode)
-            => parentNode.Kind() switch
-            {
-                SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
-                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordName,
-                SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
-                _ => null
-            };
-
         private static bool IsNamespaceName(IdentifierNameSyntax identifierSyntax)
         {
             var parent = identifierSyntax.Parent;
@@ -353,7 +348,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
-                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordName,
                 _ => null,
             };
 

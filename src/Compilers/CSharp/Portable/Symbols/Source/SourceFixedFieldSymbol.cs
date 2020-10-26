@@ -238,7 +238,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool AreLocalsZeroed
             => throw ExceptionUtilities.Unreachable;
-
-        internal override bool IsRecord => false;
     }
 }

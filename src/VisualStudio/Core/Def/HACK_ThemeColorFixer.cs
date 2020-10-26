@@ -98,7 +98,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.Punctuation, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.ClassName, sourceFormatMap, targetFormatMap);
-            UpdateForegroundColor(ClassificationTypeNames.RecordName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.StructName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.InterfaceName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.DelegateName, sourceFormatMap, targetFormatMap);

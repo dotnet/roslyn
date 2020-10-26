@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // Note: this method was replicated in SymbolDisplayVisitor.FindValidCloneMethod
         internal static MethodSymbol? FindValidCloneMethod(TypeSymbol containingType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             if (containingType.IsObjectType())
