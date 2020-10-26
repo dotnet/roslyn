@@ -6580,9 +6580,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A function pointer cannot be called with named arguments.</value>
   </data>
   <data name="WRN_UnusedRecordParameter" xml:space="preserve">
-    <value>Parameter '{0}' is unused. Did you forget to use it to initialize the property with that name?</value>
+    <value>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</value>
   </data>
   <data name="WRN_UnusedRecordParameter_Title" xml:space="preserve">
-    <value>Parameter is unused. Did you forget to use it to initialize the property with that name?</value>
+    <value>Parameter is unread. Did you forget to use it to initialize the property with that name?</value>
   </data>
 </root>
