@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class CommonCompiler
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis
                 _loggerOpt = logger;
             }
 
-            protected override bool FileExists(string fullPath)
+            protected override bool FileExists(string? fullPath)
             {
                 if (fullPath != null)
                 {

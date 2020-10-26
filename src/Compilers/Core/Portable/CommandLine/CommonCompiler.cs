@@ -1281,7 +1281,7 @@ namespace Microsoft.CodeAnalysis
                             }
                             if (refPeStreamProviderOpt != null)
                             {
-                                touchedFilesLogger.AddWritten(finalRefPeFilePath);
+                                touchedFilesLogger.AddWritten(finalRefPeFilePath!);
                             }
                             touchedFilesLogger.AddWritten(finalPeFilePath);
                         }

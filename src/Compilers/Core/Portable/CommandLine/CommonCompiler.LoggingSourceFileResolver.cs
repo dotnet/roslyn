@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis
 
             public LoggingSourceFileResolver(
                 ImmutableArray<string> searchPaths,
-                string baseDirectory,
+                string? baseDirectory,
                 ImmutableArray<KeyValuePair<string, string>> pathMap,
                 TouchedFileLogger logger)
                 : base(searchPaths, baseDirectory, pathMap)
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis
                 _loggerOpt = logger;
             }
 
-            protected override bool FileExists(string fullPath)
+            protected override bool FileExists(string? fullPath)
             {
                 if (fullPath != null)
                 {
