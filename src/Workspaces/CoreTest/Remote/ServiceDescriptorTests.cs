@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var interfaces = new List<Type>();
 
-            foreach (var (serviceType, (descriptor, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
+            foreach (var (serviceType, (descriptor, _, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
             {
                 interfaces.Add(serviceType);
                 if (descriptor.ClientInterface != null)

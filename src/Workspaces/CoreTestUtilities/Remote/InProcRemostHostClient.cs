@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget) where T : class
         {
-            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8);
+            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC);
             var callbackDispatcher = (descriptor.ClientInterface != null) ? _callbackDispatchers.GetDispatcher(typeof(T)) : null;
 
             return new BrokeredServiceConnection<T>(
@@ -120,9 +120,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 _inprocServices.ServiceBrokerClient,
                 _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
                 _workspaceServices.GetRequiredService<IErrorReportingService>(),
-                shutdownCancellationService: null,
-                isRemoteHost64Bit: IntPtr.Size == 8,
-                isRemoteHostServerGC: GCSettings.IsServerGC);
                 shutdownCancellationService: null);
         }
 
@@ -305,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             public void RegisterRemoteBrokeredService(BrokeredServiceBase.IFactory serviceFactory)
             {
-                var moniker = ServiceDescriptors.Instance.GetServiceDescriptor(serviceFactory.ServiceType, isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC).Moniker;
+                var moniker = ServiceDescriptors.Instance.GetServiceDescriptorForServiceFactory(serviceFactory.ServiceType).Moniker;
                 _remoteBrokeredServicesMap.Add(moniker, serviceFactory);
             }
 
