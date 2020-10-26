@@ -33,5 +33,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string TargetTypedCompletionFilter = "Roslyn.TargetTypedCompletionFilter";
         public const string TriggerCompletionInArgumentLists = "Roslyn.TriggerCompletionInArgumentLists";
         public const string SQLiteInMemoryWriteCache2 = "Roslyn.SQLiteInMemoryWriteCache2";
+        public const string OOPServerGC = "Roslyn.OOPServerGC";
     }
 }
