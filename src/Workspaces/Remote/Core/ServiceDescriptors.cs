@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Resources;
+using System.Runtime;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeLens;
@@ -42,7 +43,30 @@ namespace Microsoft.CodeAnalysis.Remote
         private const string InterfaceNamePrefix = "IRemote";
         private const string InterfaceNameSuffix = "Service";
 
-        public static readonly ServiceDescriptors Instance = new(ServiceNameComponentLevelPrefix, GetFeatureDisplayName, new[]
+        public static readonly ServiceDescriptors Instance = new(ServiceNameComponentLevelPrefix, GetFeatureDisplayName, new (Type, Type?)[]
+        {
+            (typeof(IRemoteAssetSynchronizationService), null),
+            (typeof(IRemoteAsynchronousOperationListenerService), null),
+            (typeof(IRemoteTodoCommentsDiscoveryService), typeof(IRemoteTodoCommentsDiscoveryService.ICallback)),
+            (typeof(IRemoteDesignerAttributeDiscoveryService), typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
+            (typeof(IRemoteProjectTelemetryService), typeof(IRemoteProjectTelemetryService.ICallback)),
+            (typeof(IRemoteDiagnosticAnalyzerService), null),
+            (typeof(IRemoteSemanticClassificationService), null),
+            (typeof(IRemoteSemanticClassificationCacheService), null),
+            (typeof(IRemoteDocumentHighlightsService), null),
+            (typeof(IRemoteEncapsulateFieldService), null),
+            (typeof(IRemoteRenamerService), null),
+            (typeof(IRemoteConvertTupleToStructCodeRefactoringService), null),
+            (typeof(IRemoteSymbolFinderService), typeof(IRemoteSymbolFinderService.ICallback)),
+            (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
+            (typeof(IRemoteNavigateToSearchService), null),
+            (typeof(IRemoteMissingImportDiscoveryService), typeof(IRemoteMissingImportDiscoveryService.ICallback)),
+            (typeof(IRemoteSymbolSearchUpdateService), typeof(IRemoteSymbolSearchUpdateService.ICallback)),
+            (typeof(IRemoteExtensionMethodImportCompletionService), null),
+            (typeof(IRemoteDependentTypeFinderService), null),
+            (typeof(IRemoteGlobalNotificationDeliveryService), null),
+            (typeof(IRemoteCodeLensReferencesService), null),
+        });
 
         private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> _descriptors;
         private readonly string _componentLevelPrefix;
@@ -71,8 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
         internal string GetQualifiedServiceName(Type serviceInterface)
             => ServiceNameTopLevelPrefix + _componentLevelPrefix + GetServiceName(serviceInterface);
 
-
-        private (ServiceDescriptor, ServiceDescriptor) CreateDescriptors(Type serviceInterface, Type? callbackInterface = null)
+        private (ServiceDescriptor, ServiceDescriptor, ServiceDescriptor) CreateDescriptors(Type serviceInterface, Type? callbackInterface = null)
         {
             Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
 
@@ -83,7 +106,10 @@ namespace Microsoft.CodeAnalysis.Remote
             return (descriptor32, descriptor64, descriptor64ServerGC);
         }
 
-        public static ServiceDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit, bool isRemoteHostServerGC)
+        public ServiceDescriptor GetServiceDescriptorForServiceFactory(Type serviceType)
+            => GetServiceDescriptor(serviceType, isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC);
+
+        public ServiceDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit, bool isRemoteHostServerGC)
         {
             var (descriptor32, descriptor64, descriptor64ServerGC) = _descriptors[serviceType];
             return (isRemoteHost64Bit, isRemoteHostServerGC) switch
@@ -115,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Remote
             internal TestAccessor(ServiceDescriptors serviceDescriptors)
                 => _serviceDescriptors = serviceDescriptors;
 
-            public ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64)> Descriptors
+            public ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> Descriptors
                 => _serviceDescriptors._descriptors;
         }
     }

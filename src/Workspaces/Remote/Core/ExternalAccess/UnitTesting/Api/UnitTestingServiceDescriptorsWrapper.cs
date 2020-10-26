@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime;
 using MessagePack;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Framework;
@@ -21,10 +22,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             => UnderlyingObject = new ServiceDescriptors(componentLevelPrefix, featureDisplayNameProvider, interfaces);
 
         /// <summary>
-        /// TO be called from a service factory in OOP.
+        /// To be called from a service factory in OOP.
         /// </summary>
         public ServiceJsonRpcDescriptor GetDescriptorForServiceFactory(Type serviceInterface)
-            => UnderlyingObject.GetServiceDescriptor(serviceInterface, isRemoteHost64Bit: IntPtr.Size == 8);
+            => UnderlyingObject.GetServiceDescriptorForServiceFactory(serviceInterface);
 
         public static MessagePackSerializerOptions MessagePackOptions
             => ServiceDescriptor.Options;
