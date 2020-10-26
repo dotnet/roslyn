@@ -647,6 +647,125 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Fact]
+        public async Task AllowCustomForeachEnumerator()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    void Method()
+    {
+        var cannotCopy = new CannotCopy();
+        foreach (var obj in cannotCopy)
+        {
+        }
+    }
+}
+
+[NonCopyable]
+struct CannotCopy
+{
+    public Enumerator GetEnumerator() => throw null;
+
+    public struct Enumerator
+    {
+        public object Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+}
+
+internal sealed class NonCopyableAttribute : System.Attribute { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task AllowCustomForeachEnumeratorDisposableObject()
+        {
+            var source = @"
+using System;
+using System.Runtime.InteropServices;
+
+class C
+{
+    void Method()
+    {
+        using var cannotCopy = new CannotCopy();
+        foreach (var obj in cannotCopy)
+        {
+        }
+    }
+}
+
+[NonCopyable]
+struct CannotCopy : IDisposable
+{
+    public void Dispose() => throw null;
+    public Enumerator GetEnumerator() => throw null;
+
+    public struct Enumerator
+    {
+        public object Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+}
+
+internal sealed class NonCopyableAttribute : System.Attribute { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task AllowCustomForeachReadonlyEnumerator()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    void Method()
+    {
+        var cannotCopy = new CannotCopy();
+        foreach (var obj in cannotCopy)
+        {
+        }
+    }
+}
+
+[NonCopyable]
+struct CannotCopy
+{
+    public readonly Enumerator GetEnumerator() => throw null;
+
+    public struct Enumerator
+    {
+        public object Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+}
+
+internal sealed class NonCopyableAttribute : System.Attribute { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestNonCopyableAttribute()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
