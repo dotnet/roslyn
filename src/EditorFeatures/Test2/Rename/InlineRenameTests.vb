@@ -2196,5 +2196,217 @@ class [|C|]
                 Await VerifyTagsAreCorrect(workspace, "BarGoo")
             End Using
         End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameTupleElement1(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class C
+                                {
+                                    T M&lt;T&gt;(T a, T t2)
+                                    {
+                                      T t1 = default;
+                                      var ab = ([|$$a|]: t1, b: t2);
+                                      var ac = ([|a|], c: t2);
+                                      var x = M(ab, ac);
+                                      Console.WriteLine(x.[|a|]);
+                                      return default;
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "bcd")
+
+                session.Commit()
+
+                Await WaitForRename(workspace)
+                Dim replacedText = workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText()
+                Assert.Equal("
+                                class C
+                                {
+                                    T M<T>(T a, T t2)
+                                    {
+                                      T t1 = default;
+                                      var ab = (bcda: t1, b: t2);
+                                      var ac = (bcda, c: t2);
+                                      var x = M(ab, ac);
+                                      Console.WriteLine(x.bcda);
+                                      return default;
+                                    }
+                                }
+                            ", replacedText)
+
+                Await VerifyTagsAreCorrect(workspace, "bcda")
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameTupleElement2(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class C
+                                {
+                                    T M&lt;T&gt;(T [|$$a|], T t2)
+                                    {
+                                      T t1 = default;
+                                      var ab = ([|a|]: t1, b: t2);
+                                      var ac = ([|a|], c: t2);
+                                      var x = M(ab, ac);
+                                      Console.WriteLine(x.[|a|]);
+                                      return default;
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "bcd")
+
+                session.Commit()
+
+                Await WaitForRename(workspace)
+                Dim replacedText = workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText()
+                Assert.Equal("
+                                class C
+                                {
+                                    T M<T>(T bcda, T t2)
+                                    {
+                                      T t1 = default;
+                                      var ab = (bcda: t1, b: t2);
+                                      var ac = (bcda, c: t2);
+                                      var x = M(ab, ac);
+                                      Console.WriteLine(x.bcda);
+                                      return default;
+                                    }
+                                }
+                            ", replacedText)
+
+                Await VerifyTagsAreCorrect(workspace, "abcd")
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameTupleElement3(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class C
+                                {
+                                    T M&lt;T&gt;(T [|a|], T t2)
+                                    {
+                                      T t1 = default;
+                                      var ab = ([|a|]: t1, b: t2);
+                                      var ac = ([|$$a|], c: t2);
+                                      var x = M(ab, ac);
+                                      Console.WriteLine(x.[|a|]);
+                                      return default;
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "bcd")
+
+                session.Commit()
+
+                Await WaitForRename(workspace)
+                Dim replacedText = workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText()
+                Assert.Equal("
+                                class C
+                                {
+                                    T M<T>(T a, T t2)
+                                    {
+                                      T t1 = default;
+                                      var ab = (bcda: t1, b: t2);
+                                      var ac = (bcda, c: t2);
+                                      var x = M(ab, ac);
+                                      Console.WriteLine(x.bcda);
+                                      return default;
+                                    }
+                                }
+                            ", replacedText)
+
+                Await VerifyTagsAreCorrect(workspace, "abcd")
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameTupleElement4(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class C
+                                {
+                                    T M&lt;T&gt;(T [|a|], T t2)
+                                    {
+                                      T t1 = default;
+                                      var ab = ([|a|]: t1, b: t2);
+                                      var ac = ([|a|], c: t2);
+                                      var x = M(ab, ac);
+                                      Console.WriteLine(x.[|$$a|]);
+                                      return default;
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "bcd")
+
+                session.Commit()
+
+                Await WaitForRename(workspace)
+                Dim replacedText = workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText()
+                Assert.Equal("
+                                class C
+                                {
+                                    T M<T>(T a, T t2)
+                                    {
+                                      T t1 = default;
+                                      var ab = (bcda: t1, b: t2);
+                                      var ac = (bcda, c: t2);
+                                      var x = M(ab, ac);
+                                      Console.WriteLine(x.bcda);
+                                      return default;
+                                    }
+                                }
+                            ", replacedText)
+
+                Await VerifyTagsAreCorrect(workspace, "abcd")
+            End Using
+        End Function
     End Class
 End Namespace
