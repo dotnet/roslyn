@@ -205,7 +205,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         NavigationBar_ComputeModelAsync = 164,
         NavigationBar_ItemService_GetMembersInTypes_CSharp = 165,
-        NavigationBar_ItemService_GetTypesInFile_CSharp = 166,
         NavigationBar_UpdateDropDownsSynchronously_WaitForModel = 167,
         NavigationBar_UpdateDropDownsSynchronously_WaitForSelectedItemInfo = 168,
 
@@ -500,5 +499,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         FeatureNotAvailable = 441,
 
         LSPCompletion_MissingLSPCompletionTriggerKind = 450,
+
+        DocumentSymbols_GetDocumentSymbols_GetTypesInFile = 460,
+        DocumentSymbols_GetDocumentSymbols_GetMembersInDocumentTypesAndMethodsOnlyAsync = 461,
+        DocumentSymbols_GetDocumentSymbols_GetMembersInDocumentFullHierarchy = 462,
     }
 }

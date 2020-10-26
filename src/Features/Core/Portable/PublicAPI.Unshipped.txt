@@ -1,1 +1,13 @@
+Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolInfo
+Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolInfo.ChildrenSymbols.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolInfo>
+Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolInfo.Deconstruct(out Microsoft.CodeAnalysis.ISymbol symbol, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolInfo> childrenSymbols) -> void
+Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolInfo.DocumentSymbolInfo(Microsoft.CodeAnalysis.ISymbol symbol, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolInfo> childrenSymbols) -> void
+Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolInfo.Symbol.get -> Microsoft.CodeAnalysis.ISymbol
+Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolInfo.Text.get -> string
+Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolsOptions
+Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolsOptions.FullHierarchy = 1 -> Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolsOptions
+Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolsOptions.TypesAndMethodsOnly = 0 -> Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolsOptions
+Microsoft.CodeAnalysis.DocumentSymbols.IDocumentSymbolsService
+Microsoft.CodeAnalysis.DocumentSymbols.IDocumentSymbolsService.GetSymbolsInDocumentAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolsOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolInfo>>
+abstract Microsoft.CodeAnalysis.DocumentSymbols.DocumentSymbolInfo.FormatSymbol() -> string
 const Microsoft.CodeAnalysis.TextTags.Record = "Record" -> string

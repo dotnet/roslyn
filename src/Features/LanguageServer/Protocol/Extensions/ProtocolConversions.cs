@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -327,10 +328,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static LSP.SymbolKind GlyphToSymbolKind(Glyph glyph)
+        public static LSP.SymbolKind GlyphToSymbolKind(ISymbol symbol)
         {
+            // These special cases don't map to the same glyph kind directly
+            switch (symbol)
+            {
+                case IMethodSymbol { MethodKind: MethodKind.Constructor }:
+                    return LSP.SymbolKind.Constructor;
+                case ILocalSymbol { IsConst: true }:
+                    return LSP.SymbolKind.Constant;
+            }
+
             // Glyph kinds have accessibility modifiers in their name, e.g. ClassPrivate.
             // Remove the accessibility modifier and try to convert to LSP symbol kind.
+            var glyph = symbol.GetGlyph();
             var glyphString = glyph.ToString().Replace(nameof(Accessibility.Public), string.Empty)
                                               .Replace(nameof(Accessibility.Protected), string.Empty)
                                               .Replace(nameof(Accessibility.Private), string.Empty)
@@ -514,6 +525,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProjectId.CreateFromSerialized(
                 Guid.Parse(projectContext.Id.Substring(0, delimiter)),
                 debugName: projectContext.Id.Substring(delimiter + 1));
+        }
+
+        public static IEnumerable<SumType<T1, T2>> WhereSumElementsNotNull<T1, T2>(this IEnumerable<SumType<T1?, T2?>> enumerable)
+            where T1 : notnull where T2 : notnull
+        {
+            return enumerable.Where(el => el.Value != null)!;
         }
     }
 }
