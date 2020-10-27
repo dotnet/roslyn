@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 GetType(NoCompilationEditorClassificationService))
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
-                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)
 
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),

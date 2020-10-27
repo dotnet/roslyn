@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Dispose of the export provider, including calling Dispose for any IDisposable services created during the test.
             using var _ = exportProvider;
 
-            if (exportProvider.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault() is { } listenerProvider)
+            if (exportProvider.GetExportedValues<AsynchronousOperationListenerProvider>().SingleOrDefault() is { } listenerProvider)
             {
                 if (exportProvider.GetExportedValues<IThreadingContext>().SingleOrDefault()?.HasMainThread ?? false)
                 {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         // This attribute cleans up the in-process and out-of-process export providers separately, so we
                         // don't need to provide a workspace when waiting for operations to complete.
-                        var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync(workspace: null);
+                        var waiter = listenerProvider.WaitAllAsync(workspace: null);
                         waiter.JoinUsingDispatcher(timeoutTokenSource.Token);
                     }
                     catch (OperationCanceledException ex) when (timeoutTokenSource.IsCancellationRequested)
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         denyExecutionSynchronizationContext?.ThrowIfSwitchOccurred();
 
                         var messageBuilder = new StringBuilder("Failed to clean up listeners in a timely manner.");
-                        foreach (var token in ((AsynchronousOperationListenerProvider)listenerProvider).GetTokens())
+                        foreach (var token in listenerProvider.GetTokens())
                         {
                             messageBuilder.AppendLine().Append($"  {token}");
                         }

@@ -35,7 +35,7 @@ class C
                 view.Selection.Select(
                     testDocument.AnnotatedSpans("Selection").Single().ToSnapshotSpan(snapshot), isReversed:=False)
 
-                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)
 
                 Dim context = New FindReferencesTests.TestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(

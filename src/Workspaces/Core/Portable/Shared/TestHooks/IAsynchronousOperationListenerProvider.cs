@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// loop, dig into the waiters and see all of the active <see cref="IAsyncToken"/> values 
         /// representing the remaining work.
         /// </remarks>
-        public async Task WaitAllAsync(Workspace? workspace, string[]? featureNames = null, Action? eventProcessingAction = null, TimeSpan? timeout = null)
+        public async Task WaitAllAsync(Workspace? workspace, string[]? featureNames = null, TimeSpan? timeout = null)
         {
             var startTime = Stopwatch.StartNew();
             var smallTimeout = TimeSpan.FromMilliseconds(10);
@@ -173,16 +173,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                         break;
                     }
 
-                    // certain test requires some event queues to be processed
-                    // for waiter tasks to finish such as Dispatcher queue
-                    eventProcessingAction?.Invoke();
-
                     // in unit test where it uses fake foreground task scheduler such as StaTaskScheduler
-                    // we need to yield for the scheduler to run inlined tasks. If we are not processing events, we
-                    // switch to the thread pool for the continuations since the yield will only let operations at the
-                    // same or higher priority to execute prior to the continuation.
-                    var continueOnCapturedContext = eventProcessingAction is object;
-                    await Task.Yield().ConfigureAwait(continueOnCapturedContext);
+                    // we need to yield for the scheduler to run inlined tasks. We switch to the thread pool for the
+                    // continuations since the yield will only let operations at the same or higher dispatcher priority to
+                    // execute prior to the continuation.
+                    await Task.Yield().ConfigureAwait(false);
 
                     if (startTime.Elapsed > timeout && timeout != Timeout.InfiniteTimeSpan)
                     {

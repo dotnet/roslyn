@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 CSharpParseOptions.Default,
                 composition: s_compositionWithMockDiagnosticService);
 
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
             var diagnosticService = Assert.IsType<MockDiagnosticService>(workspace.ExportProvider.GetExportedValue<IDiagnosticService>());
             var provider = workspace.ExportProvider.GetExportedValues<ITaggerProvider>().OfType<DiagnosticsSquiggleTaggerProvider>().Single();
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 CSharpParseOptions.Default,
                 composition: s_compositionWithMockDiagnosticService);
 
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
             var diagnosticService = Assert.IsType<MockDiagnosticService>(workspace.ExportProvider.GetExportedValue<IDiagnosticService>());
             var provider = workspace.ExportProvider.GetExportedValues<ITaggerProvider>().OfType<DiagnosticsSquiggleTaggerProvider>().Single();

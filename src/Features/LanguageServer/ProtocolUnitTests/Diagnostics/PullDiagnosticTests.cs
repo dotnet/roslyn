@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
         private static async Task WaitForDiagnosticsAsync(TestWorkspace workspace)
         {
-            var listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.GetService<AsynchronousOperationListenerProvider>();
 
             await listenerProvider.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
             await listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();

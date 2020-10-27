@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public async Task WaitForAsynchronousOperationsAsync()
         {
             var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            await provider.WaitAllDispatcherOperationAndTasksAsync(Workspace, FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp);
+            await provider.WaitAllAsync(Workspace, FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp);
         }
 
         public void AssertMatchesTextStartingAtLine(int line, string text)

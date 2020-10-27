@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             var context = new MockFindUsagesContext();
             var presenter = new MockStreamingFindUsagesPresenter(context);
 
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
             var handler = new FindReferencesCommandHandler(
                 presenter,
