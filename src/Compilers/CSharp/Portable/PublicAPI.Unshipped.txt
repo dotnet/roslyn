@@ -1,3 +1,8 @@
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax.Externs.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExternAliasDirectiveSyntax>
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax.Members.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax>
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax.Name.get -> Microsoft.CodeAnalysis.CSharp.Syntax.NameSyntax
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax.NamespaceKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax.Usings.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax>
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseNamespaceDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseNamespaceDeclarationSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseNamespaceDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseNamespaceDeclarationSyntax.AddExterns(params Microsoft.CodeAnalysis.CSharp.Syntax.ExternAliasDirectiveSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseNamespaceDeclarationSyntax
