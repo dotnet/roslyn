@@ -121,7 +121,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<ISourceGenerator> GetGenerators()
         {
+            //PROTOTYPE: Should we keep returning  all generators, or default to CSharp to retain strict back compat?
+            //           Alternatively, we could obsolete this method (and make it return CSharp) and add a GetGeneratorsForAllLanguages()
             return _generators.GetExtensionsForAllLanguages();
+        }
+
+        public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
+        {
+            return _generators.GetExtensions(language);
         }
 
         public override string Display
