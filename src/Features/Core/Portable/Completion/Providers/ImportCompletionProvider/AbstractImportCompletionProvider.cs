@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -109,9 +110,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
 
+            var textChange = commitKey == ';' && ImportCompletionItem.GetProvideParenthesisCompletion(completionItem)
+                ? completionItem.DisplayText + "();"
+                : completionItem.DisplayText;
+
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
-                var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
+                var fullyQualifiedName = $"{containingNamespace}.{textChange}";
                 var change = new TextChange(completionListSpan, fullyQualifiedName);
 
                 return CompletionChange.Create(change);
@@ -153,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
             //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
             //       with "AsnEncodedDatasd" in the code.
-            builder.Add(new TextChange(completionListSpan, completionItem.DisplayText));
+            builder.Add(new TextChange(completionListSpan, textChange));
 
             // Then get the combined change
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

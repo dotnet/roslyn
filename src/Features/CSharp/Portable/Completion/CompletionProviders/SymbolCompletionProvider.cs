@@ -304,6 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             item = SymbolCompletionItem.AddProvideParenthesisCompletion(item, true);
+            // Will this cause perf problem?
             var hasParameter = symbols.All(ShouldPutCaretBetweenParenthesis);
             return SymbolCompletionItem.AddPutCaretBetweenParenthesis(item, hasParameter);
         }
