@@ -9,6 +9,8 @@ using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -367,7 +369,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     switch (Acquire(operation.Operand))
                     {
                         case RefKind.None:
-                        case RefKind.Ref when operation.Conversion.IsIdentity:
+                        case RefKind.Ref or RefKind.RefReadOnly when operation.Conversion.IsIdentity:
                             return true;
 
                         default:
@@ -547,14 +549,36 @@ namespace Roslyn.Diagnostics.Analyzers
 
                 var instance = operation.Collection;
                 var instance2 = (operation.Collection as IConversionOperation)?.Operand;
-                if (Acquire(operation.Collection) != RefKind.Ref)
+
+                switch (Acquire(operation.Collection))
                 {
-                    instance = null;
-                    instance2 = null;
+                    case RefKind.Ref:
+                        // No special requirements
+                        break;
+
+                    case RefKind.RefReadOnly when operation.Syntax is CommonForEachStatementSyntax syntax && operation.SemanticModel.GetForEachStatementInfo(syntax).GetEnumeratorMethod is { IsReadOnly: true }:
+                        // Requirement of readonly GetEnumerator is met
+                        break;
+
+                    default:
+                        instance = null;
+                        instance2 = null;
+                        break;
                 }
-                else if (Acquire(instance2) != RefKind.Ref)
+
+                switch (Acquire(instance2))
                 {
-                    instance2 = null;
+                    case RefKind.Ref:
+                        // No special requirements
+                        break;
+
+                    case RefKind.RefReadOnly when operation.Syntax is CommonForEachStatementSyntax syntax && operation.SemanticModel.GetForEachStatementInfo(syntax).GetEnumeratorMethod is { IsReadOnly: true }:
+                        // Requirement of readonly GetEnumerator is met
+                        break;
+
+                    default:
+                        instance2 = null;
+                        break;
                 }
 
                 using var releaser = TryAddForVisit(_handledOperations, instance, out _);

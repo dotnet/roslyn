@@ -3,6 +3,7 @@
 #nullable enable
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpSecurityCodeFixVerifier<
     Roslyn.Diagnostics.Analyzers.DoNotCopyValue,
@@ -683,6 +684,58 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
                 TestCode = source,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task AllowCustomForeachEnumeratorParameterReference(
+            [CombinatorialValues("", "ref", "in")] string parameterModifiers,
+            [CombinatorialValues("", "readonly")] string getEnumeratorModifiers)
+        {
+            var source = $@"
+using System.Runtime.InteropServices;
+
+class C
+{{
+    void Method({parameterModifiers} CannotCopy cannotCopy)
+    {{
+        foreach (var obj in {{|#0:cannotCopy|}})
+        {{
+        }}
+    }}
+}}
+
+[NonCopyable]
+struct CannotCopy
+{{
+    public {getEnumeratorModifiers} Enumerator GetEnumerator() => throw null;
+
+    public struct Enumerator
+    {{
+        public object Current => throw null;
+        public bool MoveNext() => throw null;
+    }}
+}}
+
+internal sealed class NonCopyableAttribute : System.Attribute {{ }}
+";
+
+            var expected = (parameterModifiers, getEnumeratorModifiers) switch
+            {
+                // /0/Test0.cs(8,29): warning RS0042: Unsupported use of non-copyable type 'CannotCopy' in 'ParameterReference' operation
+                ("in", "") => new[] { VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("CannotCopy", "ParameterReference") },
+
+                _ => DiagnosticResult.EmptyDiagnosticResults,
+            };
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            };
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
         }
 
         [Fact]
