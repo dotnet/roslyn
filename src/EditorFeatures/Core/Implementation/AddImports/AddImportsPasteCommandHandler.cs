@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 {
     [Export]
     [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Name(PredefinedCommandHandlerNames.AddImportsPaste)]
     // Order is important here, this command needs to execute before PasteTracking
     // since it may modify the pasted span. Paste tracking dismisses if 
@@ -52,6 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
+            // Create a tracking span from the pre-paste caret position that will grow as text is inserted.
+            var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
+
+            // Perform the paste command before adding imports
             nextCommandHandler();
 
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
@@ -70,12 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
-            // Create a tracking span from the pre-paste caret position that will grow as text is inserted.
-            var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
-
             // Applying the post-paste snapshot to the tracking span gives us the span of pasted text.
             var snapshotSpan = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot);
-            var textSpan = TextSpan.FromBounds(snapshotSpan.Start, snapshotSpan.End);
+            var textSpan = snapshotSpan.Span.ToTextSpan();
 
             AddMissingImportsForPaste(args, executionContext, textSpan);
         }
@@ -97,11 +99,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
+            var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
+            if (addMissingImportsService is null)
+            {
+                return;
+            }
+
             using var _ = executionContext.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Adding_missing_import_directives);
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
 
 #pragma warning disable VSTHRD102 // Implement internal logic asynchronously
-            var updatedDocument = _threadingContext.JoinableTaskFactory.Run(() => AddMissingImportsAsync(document, textSpan, cancellationToken));
+            var updatedDocument = _threadingContext.JoinableTaskFactory.Run(() => addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken));
 #pragma warning restore VSTHRD102 // Implement internal logic asynchronously
             if (updatedDocument is null)
             {
@@ -109,12 +117,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
             }
 
             updatedDocument.Project.Solution.Workspace.TryApplyChanges(updatedDocument.Project.Solution);
-        }
-
-        private static async Task<Document?> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
-            return await addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         }
     }
 }
