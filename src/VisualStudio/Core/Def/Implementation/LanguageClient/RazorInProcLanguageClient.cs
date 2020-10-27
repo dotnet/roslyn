@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         protected internal override VSServerCapabilities GetCapabilities()
         {
             var capabilities = _defaultCapabilitiesProvider.GetCapabilities();
-            capabilities.SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.RazorLspPullDiagnostics);
+            capabilities.SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.RazorDiagnosticMode) == DiagnosticMode.Pull;
             return capabilities;
         }
     }

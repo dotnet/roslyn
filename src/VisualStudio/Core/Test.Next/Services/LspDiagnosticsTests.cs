@@ -405,7 +405,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 documentId,
                 It.IsAny<object>(),
                 It.IsAny<bool>(),
-                It.IsAny<Option2<bool>>(),
+                It.IsAny<Option2<DiagnosticMode>>(),
                 It.IsAny<CancellationToken>())).Returns(diagnostics);
         }
 
@@ -418,7 +418,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 documentId,
                 It.IsAny<object>(),
                 It.IsAny<bool>(),
-                It.IsAny<Option2<bool>>(),
+                It.IsAny<Option2<DiagnosticMode>>(),
                 It.IsAny<CancellationToken>()))
                 .Returns(firstDiagnostics)
                 .Returns(secondDiagnostics);

@@ -549,8 +549,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             var isRazor = _clientName != null;
             var option = isRazor
-                ? InternalDiagnosticsOptions.RazorLspPullDiagnostics
-                : InternalDiagnosticsOptions.LspPullDiagnostics;
+                ? InternalDiagnosticsOptions.RoslynDiagnosticMode
+                : InternalDiagnosticsOptions.RazorDiagnosticMode;
             var diagnostics = diagnosticService.GetPushDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken)
                                                .WhereAsArray(IncludeDiagnostic);
 

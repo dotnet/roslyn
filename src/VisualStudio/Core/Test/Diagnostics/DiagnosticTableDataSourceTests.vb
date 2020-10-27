@@ -821,11 +821,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
 
-            Public Function GetPullDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, pullDiagnosticOption As Option2(Of Boolean), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetPullDiagnostics
+            Public Function GetPullDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetPullDiagnostics
                 Return GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics)
             End Function
 
-            Public Function GetPushDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, pullDiagnosticOption As Option2(Of Boolean), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetPushDiagnostics
+            Public Function GetPushDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetPushDiagnostics
                 Return GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics)
             End Function
 
@@ -853,11 +853,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnostics
             End Function
 
-            Public Function GetPullDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, pullDiagnosticOption As Option2(Of Boolean), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPullDiagnosticBuckets
+            Public Function GetPullDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPullDiagnosticBuckets
                 Return GetDiagnosticsBuckets(workspace, projectId, documentId)
             End Function
 
-            Public Function GetPushDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, pullDiagnosticOption As Option2(Of Boolean), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPushDiagnosticBuckets
+            Public Function GetPushDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPushDiagnosticBuckets
                 Return GetDiagnosticsBuckets(workspace, projectId, documentId)
             End Function
 

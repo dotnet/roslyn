@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly Option2<bool> ProcessHiddenDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(ProcessHiddenDiagnostics), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Process Hidden Diagnostics"));
 
-        public static readonly Option2<bool> LspPullDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(LspPullDiagnostics), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Lsp Pull Diagnostics"));
+        public static readonly Option2<DiagnosticMode> RoslynDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(RoslynDiagnosticMode), defaultValue: DiagnosticMode.Push,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "RoslynDiagnosticMode"));
 
-        public static readonly Option2<bool> RazorLspPullDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(RazorLspPullDiagnostics), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Razor Lsp Pull Diagnostics"));
+        public static readonly Option2<DiagnosticMode> RazorDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(RazorDiagnosticMode), defaultValue: DiagnosticMode.Push,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "RazorDiagnosticMode"));
     }
 }

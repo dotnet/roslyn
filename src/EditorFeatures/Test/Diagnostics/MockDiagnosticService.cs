@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
         }
 
-        public ImmutableArray<DiagnosticData> GetPullDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticData> GetPullDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             return GetDiagnostics(workspace, projectId, documentId);
         }
 
-        public ImmutableArray<DiagnosticData> GetPushDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticData> GetPushDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             return GetDiagnostics(workspace, projectId, documentId);
         }
@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return _diagnostic == null ? ImmutableArray<DiagnosticData>.Empty : ImmutableArray.Create(_diagnostic);
         }
 
-        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             return GetDiagnosticBuckets(workspace, projectId, documentId);
         }
 
-        public ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             return GetDiagnosticBuckets(workspace, projectId, documentId);
         }

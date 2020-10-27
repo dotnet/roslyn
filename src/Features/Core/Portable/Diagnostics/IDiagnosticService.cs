@@ -25,47 +25,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get current diagnostics stored in IDiagnosticUpdateSource.
         /// </summary>
-        /// <param name="pullDiagnosticOption">Option controlling if pull diagnostics are allowed for the client.  The
+        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
         /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
         /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
         /// will return the requested diagnostics.</param>
         ImmutableArray<DiagnosticData> GetPullDiagnostics(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
-            Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken);
+            Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current diagnostics stored in IDiagnosticUpdateSource.
         /// </summary>
-        /// <param name="pullDiagnosticOption">Option controlling if pull diagnostics are allowed for the client.  The
+        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
         /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
         /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
         /// will return the requested diagnostics.</param>
         ImmutableArray<DiagnosticData> GetPushDiagnostics(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
-            Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken);
+            Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current buckets stored our diagnostics are grouped into.  Specific buckets can be retrieved by calling
         /// <see cref="IDiagnosticServiceExtensions.GetDiagnostics"/>.
         /// </summary>
-        /// <param name="pullDiagnosticOption">Option controlling if pull diagnostics are allowed for the client.  The
+        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
         /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
         /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
         /// will return the requested buckets.</param>
         ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId,
-            Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken);
+            Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current buckets stored our diagnostics are grouped into.  Specific buckets can be retrieved by calling
         /// <see cref="IDiagnosticServiceExtensions.GetDiagnostics"/>.
         /// </summary>
-        /// <param name="pullDiagnosticOption">Option controlling if pull diagnostics are allowed for the client.  The
-        /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
-        /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
+        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The <see
+        /// cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).  If
+        /// the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
         /// will return the requested buckets.</param>
         ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId,
-            Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken);
+            Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
     }
 }
