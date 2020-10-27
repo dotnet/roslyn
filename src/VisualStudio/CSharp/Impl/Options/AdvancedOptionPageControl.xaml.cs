@@ -132,7 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Pull);
             UpdatePullDiagnosticsOptions();
-
         }
 
         private void Enable_pull_diagnostics_experimental_requires_restart_Unchecked(object sender, RoutedEventArgs e)
