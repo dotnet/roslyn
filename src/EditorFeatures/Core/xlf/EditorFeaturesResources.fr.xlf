@@ -7,6 +7,11 @@
         <target state="new">Add Missing Imports On Paste</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_Missing_Usings_On_Paste">
+        <source>Add Missing Usings On Paste</source>
+        <target state="new">Add Missing Usings On Paste</target>
+        <note>"usings" is a language word and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Adding_missing_import_directives">
         <source>Adding missing import directives...</source>
         <target state="new">Adding missing import directives...</target>

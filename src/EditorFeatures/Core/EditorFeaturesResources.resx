@@ -955,4 +955,8 @@ Do you want to proceed?</value>
   <data name="User_Types_Records" xml:space="preserve">
     <value>User Types - Records</value>
   </data>
+  <data name="Add_Missing_Usings_On_Paste" xml:space="preserve">
+    <value>Add Missing Usings On Paste</value>
+    <comment>"usings" is a language word and should not be localized</comment>
+  </data>
 </root>

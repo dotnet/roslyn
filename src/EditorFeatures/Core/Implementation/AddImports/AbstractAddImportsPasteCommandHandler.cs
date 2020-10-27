@@ -20,28 +20,13 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 {
-    [Export]
-    [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
-    [Name(PredefinedCommandHandlerNames.AddImportsPaste)]
-    // Order is important here, this command needs to execute before PasteTracking
-    // since it may modify the pasted span. Paste tracking dismisses if 
-    // the span is modified. It doesn't need to be before FormatDocument, but
-    // this helps the order of execution be more constant in case there 
-    // are problems that arise. This command will always execute the next
-    // command before doing operations.
-    [Order(After = PredefinedCommandHandlerNames.PasteTrackingPaste)]
-    [Order(Before = PredefinedCommandHandlerNames.FormatDocument)]
-    internal class AddImportsPasteCommandHandler : IChainedCommandHandler<PasteCommandArgs>
+    internal abstract class AbstractAddImportsPasteCommandHandler : IChainedCommandHandler<PasteCommandArgs>
     {
-        public string DisplayName => EditorFeaturesResources.Add_Missing_Imports_On_Paste;
+        public abstract string DisplayName { get; }
 
         private readonly IThreadingContext _threadingContext;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AddImportsPasteCommandHandler(IThreadingContext threadingContext)
+        public AbstractAddImportsPasteCommandHandler(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
