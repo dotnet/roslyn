@@ -23,8 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<SymbolDisplayPart> builder,
             SymbolDisplayFormat format,
             SemanticModel semanticModelOpt,
-            int positionOpt)
-            : base(builder, format, true, semanticModelOpt, positionOpt)
+            int positionOpt,
+            bool needsKind)
+            : base(builder, format, isFirstSymbolVisited: true, semanticModelOpt, positionOpt, needsKind: needsKind)
         {
             _escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
         }
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddSpace();
             }
 
-            if (symbol.IsConst)
+            if (needsKind && symbol.IsConst)
             {
                 builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name));
             }

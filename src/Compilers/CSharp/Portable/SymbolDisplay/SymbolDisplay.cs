@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ISymbol symbol,
             SymbolDisplayFormat? format = null)
         {
-            return ToDisplayParts(symbol, format).ToDisplayString();
+            format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
+            return ToDisplayParts(symbol, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false, needsKind: false).ToDisplayString();
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -40,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CodeAnalysis.NullableFlowState nullableFlowState,
             SymbolDisplayFormat? format = null)
         {
-            return ToDisplayParts(symbol, nullableFlowState, format).ToDisplayString();
+            format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
+            return ToDisplayParts(symbol, nullableFlowState, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false, needsKind: false).ToDisplayString();
         }
 
         public static string ToDisplayString(
@@ -48,7 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CodeAnalysis.NullableAnnotation nullableAnnotation,
             SymbolDisplayFormat? format = null)
         {
-            return ToDisplayParts(symbol, nullableAnnotation, format).ToDisplayString();
+            format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
+            return ToDisplayParts(symbol.WithNullableAnnotation(nullableAnnotation), semanticModelOpt: null, positionOpt: -1, format: format, minimal: false, needsKind: false).ToDisplayString();
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -71,7 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat? format = null)
         {
-            return ToMinimalDisplayParts(symbol, semanticModel, position, format).ToDisplayString();
+            format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
+            return ToDisplayParts(symbol, semanticModel, position, format, minimal: true, needsKind: false).ToDisplayString();
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -82,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat? format = null)
         {
-            return ToMinimalDisplayParts(symbol, nullableFlowState, semanticModel, position, format).ToDisplayString();
+            format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
+            return ToDisplayParts(symbol, nullableFlowState, semanticModel, position, format, minimal: true, needsKind: false).ToDisplayString();
         }
 
         public static string ToMinimalDisplayString(
@@ -92,7 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat? format = null)
         {
-            return ToMinimalDisplayParts(symbol, nullableAnnotation, semanticModel, position, format).ToDisplayString();
+            format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
+            return ToDisplayParts(symbol.WithNullableAnnotation(nullableAnnotation), semanticModel, position, format, minimal: true, needsKind: false).ToDisplayString();
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -113,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // null indicates the default format
             format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
             return ToDisplayParts(
-                symbol, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
+                symbol, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false, needsKind: true);
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -126,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // null indicates the default format
             format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
             return ToDisplayParts(
-                symbol, nullableFlowState, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
+                symbol, nullableFlowState, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false, needsKind: true);
         }
 
         public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
@@ -137,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // null indicates the default format
             format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
             return ToDisplayParts(
-                symbol.WithNullableAnnotation(nullableAnnotation), semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
+                symbol.WithNullableAnnotation(nullableAnnotation), semanticModelOpt: null, positionOpt: -1, format: format, minimal: false, needsKind: true);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -160,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat? format = null)
         {
             format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
-            return ToDisplayParts(symbol, semanticModel, position, format, minimal: true);
+            return ToDisplayParts(symbol, semanticModel, position, format, minimal: true, needsKind: true);
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -173,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat? format = null)
         {
             format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
-            return ToDisplayParts(symbol, nullableFlowState, semanticModel, position, format, minimal: true);
+            return ToDisplayParts(symbol, nullableFlowState, semanticModel, position, format, minimal: true, needsKind: true);
         }
 
         public static ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
@@ -184,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat? format = null)
         {
             format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
-            return ToDisplayParts(symbol.WithNullableAnnotation(nullableAnnotation), semanticModel, position, format, minimal: true);
+            return ToDisplayParts(symbol.WithNullableAnnotation(nullableAnnotation), semanticModel, position, format, minimal: true, needsKind: true);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -194,9 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             SemanticModel? semanticModelOpt,
             int positionOpt,
             SymbolDisplayFormat format,
-            bool minimal)
+            bool minimal,
+            bool needsKind)
         {
-            return ToDisplayParts(symbol.WithNullableAnnotation(nullableFlowState.ToAnnotation()), semanticModelOpt, positionOpt, format, minimal);
+            return ToDisplayParts(symbol.WithNullableAnnotation(nullableFlowState.ToAnnotation()), semanticModelOpt, positionOpt, format, minimal, needsKind);
         }
 
         private static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
@@ -204,7 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SemanticModel? semanticModelOpt,
             int positionOpt,
             SymbolDisplayFormat format,
-            bool minimal)
+            bool minimal,
+            bool needsKind)
         {
             if (symbol == null)
             {
@@ -236,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
-            var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt);
+            var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt, needsKind);
             symbol.Accept(visitor);
 
             return builder.ToImmutableAndFree();

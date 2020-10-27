@@ -561,8 +561,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbol.DelegateInvokeMethod != null;
         }
 
-        private static SymbolDisplayPartKind GetPartKind(INamedTypeSymbol symbol)
+        private SymbolDisplayPartKind GetPartKind(INamedTypeSymbol symbol)
         {
+            if (symbol is IErrorTypeSymbol)
+                return SymbolDisplayPartKind.ErrorTypeName;
+            else if (!needsKind)
+                return SymbolDisplayPartKind.ClassName;
+
             switch (symbol.TypeKind)
             {
                 case TypeKind.Submission:

@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.DotToken);
             }
 
-            if (symbol.ContainingType.TypeKind == TypeKind.Enum)
+            if (needsKind && symbol.ContainingType.TypeKind == TypeKind.Enum)
             {
                 builder.Add(CreatePart(SymbolDisplayPartKind.EnumMemberName, symbol, symbol.Name));
             }
-            else if (symbol.IsConst)
+            else if (needsKind && symbol.IsConst)
             {
                 builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name));
             }
@@ -453,14 +453,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ? symbol.Name
                             : symbol.ContainingType.Name;
 
-                        var partKind = GetPartKindForConstructorOrDestructor(symbol);
+                        var partKind = needsKind ? GetPartKindForConstructorOrDestructor(symbol) : SymbolDisplayPartKind.ClassName;
 
                         builder.Add(CreatePart(partKind, symbol, name));
                         break;
                     }
                 case MethodKind.Destructor:
                     {
-                        var partKind = GetPartKindForConstructorOrDestructor(symbol);
+                        var partKind = needsKind ? GetPartKindForConstructorOrDestructor(symbol) : SymbolDisplayPartKind.ClassName;
 
                         // Note: we are using the metadata name also in the case that symbol.containingType is null, which should never be the case here.
                         if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) || symbol.ContainingType == null)
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static SymbolDisplayPartKind GetPartKindForConstructorOrDestructor(IMethodSymbol symbol)
+        private SymbolDisplayPartKind GetPartKindForConstructorOrDestructor(IMethodSymbol symbol)
         {
             // In the case that symbol.containingType is null (which should never be the case here) we will fallback to the MethodName symbol part
             if (symbol.ContainingType is null)
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeName)
             {
-                var kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
+                var kind = needsKind && symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
                 builder.Add(CreatePart(kind, symbol, symbol.Name));
 
                 if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&

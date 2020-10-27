@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
         protected readonly SemanticModel semanticModelOpt;
         protected readonly int positionOpt;
+        protected readonly bool needsKind;
 
         private AbstractSymbolDisplayVisitor _lazyNotFirstVisitor;
         private AbstractSymbolDisplayVisitor _lazyNotFirstVisitorNamespaceOrType;
@@ -30,7 +31,8 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             bool isFirstSymbolVisited,
             SemanticModel semanticModelOpt,
             int positionOpt,
-            bool inNamespaceOrType = false)
+            bool inNamespaceOrType = false,
+            bool needsKind = true)
         {
             Debug.Assert(format != null);
 
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             this.semanticModelOpt = semanticModelOpt;
             this.positionOpt = positionOpt;
             this.inNamespaceOrType = inNamespaceOrType;
+            this.needsKind = needsKind;
 
             // If we're not the first symbol visitor, then we will just recurse into ourselves.
             if (!isFirstSymbolVisited)
