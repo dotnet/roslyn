@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         Push,
         /// <summary>
-        /// Push diagnostics.  Roslyn/LSP is responsible for aggregating internal diagnostic notifications and pushing
+        /// Pull diagnostics.  Roslyn/LSP is responsible for aggregating internal diagnostic notifications and
         /// responding to LSP pull requests for them.
         /// </summary>
         Pull,
