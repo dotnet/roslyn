@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSingleLineNamespace()
         {
             var text = "namespace a;";
-            var file = this.ParseFile(text);
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSingleLineNamespaceWithUsing()
         {
             var text = "namespace a; using b.c;";
-            var file = this.ParseFile(text);
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSingleLineNamespaceWithExternAlias()
         {
             var text = "namespace a; extern alias b;";
-            var file = this.ParseFile(text);
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
