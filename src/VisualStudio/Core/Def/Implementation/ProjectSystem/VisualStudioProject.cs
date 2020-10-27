@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-        private readonly IWorkspaceTelemetryService _telemetryService;
+        private readonly IWorkspaceTelemetryService? _telemetryService;
 
         /// <summary>
         /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
-            _telemetryService = _workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
+            _telemetryService = _workspace.Services.GetService<IWorkspaceTelemetryService>();
 
             Id = id;
             Language = language;
@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 field = newValue;
 
-                if (logThrowAwayTelemetry && _telemetryService.HasActiveSession)
+                if (logThrowAwayTelemetry && _telemetryService?.HasActiveSession == true)
                 {
                     TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
                 }
