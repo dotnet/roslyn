@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
         public AddImportsPasteCommandHandler(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
+        public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
+            => nextCommandHandler();
+
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
             // Capture the pre-paste caret position
@@ -81,9 +84,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
             AddMissingImportsForPaste(args, executionContext, textSpan);
         }
-
-        public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
-            => nextCommandHandler();
 
         private void AddMissingImportsForPaste(PasteCommandArgs args, CommandExecutionContext executionContext, TextSpan textSpan)
         {
