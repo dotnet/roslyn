@@ -6258,7 +6258,7 @@ class A
             var file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal(2, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_IdentifierExpectedKW, file.Errors()[0].Code);
 
             var usings = file.Usings;
