@@ -8,11 +8,9 @@
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
-    <ProjectReference Include="..\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
-    <ProjectReference Include="..\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+    <ProjectReference Include="..\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />
