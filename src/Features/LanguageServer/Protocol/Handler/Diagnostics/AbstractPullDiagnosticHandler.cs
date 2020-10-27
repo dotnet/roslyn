@@ -173,8 +173,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Razor has a separate option for determining if they should be in push or pull mode.
             var diagnosticOption = document.IsRazorDocument()
-                ? InternalDiagnosticsOptions.NormalDiagnosticMode
-                : InternalDiagnosticsOptions.RazorDiagnosticMode;
+                ? InternalDiagnosticsOptions.RazorDiagnosticMode
+                : InternalDiagnosticsOptions.NormalDiagnosticMode;
 
             var diagnostics = _diagnosticService.GetPullDiagnostics(document, includeSuppressedDiagnostics: false, diagnosticOption, cancellationToken);
             foreach (var diagnostic in diagnostics)
