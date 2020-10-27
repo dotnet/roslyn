@@ -411,7 +411,7 @@ class C
             var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var errors = comp.GetDiagnostics().ToArray();
-            Assert.Equal(3, errors.Length);
+            Assert.Equal(2, errors.Length);
 
             var nsArray = tree.GetCompilationUnitRoot().DescendantNodes().Where(node => node.IsKind(SyntaxKind.SingleLineNamespaceDeclaration)).ToArray();
             Assert.Equal(1, nsArray.Length);
