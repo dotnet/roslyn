@@ -5426,5 +5426,62 @@ namespace Whatever
     </Project>
 </Workspace>");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(1237182, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1237182")]
+        public async Task TestMissingWithTargetTypedNewExpression()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    int M()
+    {
+        Random [||]r = new();
+        return r.Next();
+    }
+}";
+
+            await TestMissingInRegularAndScriptAsync(code, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(1237182, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1237182")]
+        public async Task TestMissingWithParenthesizedTargetTypedNewExpression()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    int M()
+    {
+        Random [||]r = (new());
+        return r.Next();
+    }
+}";
+
+            await TestMissingInRegularAndScriptAsync(code, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(1237182, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1237182")]
+        public async Task TestMissingWithCastTargetTypedNewExpression()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    int M()
+    {
+        Random [||]r = (Random)new();
+        return r.Next();
+    }
+}";
+
+            await TestMissingInRegularAndScriptAsync(code, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
+        }
     }
 }
