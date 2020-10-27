@@ -40,9 +40,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly Func<Task<IVsAsyncFileChangeEx>, object, Task<IVsAsyncFileChangeEx>> _executeActionDelegate =
             async (precedingTask, state) =>
             {
+                // Store a local copy of the previous result before the first await, and then explicitly set the
+                // parameter to null. It's fine for the closure to GC root the IVsAsyncFileChangeEx service, but we
+                // don't want it to GC root the chain of antecedent tasks which led to this point.
+                // https://github.com/dotnet/roslyn/issues/48938
+                var asyncFileChangeEx = precedingTask.Result;
+                precedingTask = null!;
+
                 var action = (Func<IVsAsyncFileChangeEx, Task>)state;
-                await action(precedingTask.Result).ConfigureAwait(false);
-                return precedingTask.Result;
+                await action(asyncFileChangeEx).ConfigureAwait(false);
+                return asyncFileChangeEx;
             };
 
         public FileChangeWatcher(Task<IVsAsyncFileChangeEx> fileChangeService)
