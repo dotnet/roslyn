@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, fileName, cancellationToken)
         End Function
 
-        Friend Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), Optional additionalTexts As ImmutableArray(Of AdditionalText) = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider = Nothing) As VisualBasicGeneratorDriver
+        Public Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), Optional additionalTexts As ImmutableArray(Of AdditionalText) = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider = Nothing) As VisualBasicGeneratorDriver
             Return New VisualBasicGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts)
         End Function
     End Class
