@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableArray<DiagnosticData> GetPushDiagnostics(
             Workspace workspace, Option2<DiagnosticMode> diagnosticMode)
         {
-            // If pull diagnostics are on, they get nothing since they're a push client.
+            // If pull diagnostics are on, they get nothing since they're asking for push diagnostics.
             if (workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Pull)
                 return ImmutableArray<DiagnosticData>.Empty;
 
