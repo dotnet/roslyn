@@ -1783,14 +1783,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static bool AllowUnconstrainedTypeParameterAnnotations(CSharpCompilation compilation)
-        {
-            // Check IDS_FeatureDefaultTypeParameterConstraint feature since `T?` and `where ... : default`
-            // are treated as a single feature, even though the errors reported for the two cases are distinct.
-            var requiredVersion = MessageID.IDS_FeatureDefaultTypeParameterConstraint.RequiredVersion();
-            return requiredVersion <= compilation.LanguageVersion;
-        }
-
         /// <summary>
         /// Reports top-level nullability problem in assignment.
         /// Any conversion of the value should have been applied.
@@ -1842,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (useLegacyWarnings)
             {
-                if (isMaybeDefaultValue(valueType) && !AllowUnconstrainedTypeParameterAnnotations(compilation))
+                if (isMaybeDefaultValue(valueType) && !allowUnconstrainedTypeParameterAnnotations(compilation))
                 {
                     // No W warning reported assigning or casting [MaybeNull]T value to T
                     // because there is no syntax for declaring the target type as [MaybeNull]T.
@@ -1859,6 +1851,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return valueType.Type?.TypeKind == TypeKind.TypeParameter &&
                     valueType.State == NullableFlowState.MaybeDefault;
+            }
+
+            static bool allowUnconstrainedTypeParameterAnnotations(CSharpCompilation compilation)
+            {
+                // Check IDS_FeatureDefaultTypeParameterConstraint feature since `T?` and `where ... : default`
+                // are treated as a single feature, even though the errors reported for the two cases are distinct.
+                var requiredVersion = MessageID.IDS_FeatureDefaultTypeParameterConstraint.RequiredVersion();
+                return requiredVersion <= compilation.LanguageVersion;
             }
         }
 
