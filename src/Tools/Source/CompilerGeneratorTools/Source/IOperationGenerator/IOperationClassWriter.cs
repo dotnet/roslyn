@@ -182,7 +182,7 @@ namespace IOperationGenerator
 
         private void WriteInterface(AbstractNode node)
         {
-            if (PortedTypes.Contains(node.Name))
+            if (!UnportedTypes.Contains(node.Name))
             {
                 WriteLine("#nullable enable");
             }
@@ -200,7 +200,7 @@ namespace IOperationGenerator
 
             Unbrace();
 
-            if (PortedTypes.Contains(node.Name))
+            if (!UnportedTypes.Contains(node.Name))
             {
                 WriteLine("#nullable disable");
             }
@@ -384,7 +384,7 @@ namespace IOperationGenerator
                 if (type.SkipClassGeneration)
                     continue;
 
-                if (PortedTypes.Contains(type.Name))
+                if (!UnportedTypes.Contains(type.Name))
                 {
                     WriteClassNew(type);
                 }
@@ -1039,7 +1039,7 @@ namespace IOperationGenerator
             {
                 const string internalName = "internalOperation";
 
-                if (!PortedTypes.Contains(node.Name) || node.SkipClassGeneration)
+                if (UnportedTypes.Contains(node.Name) || node.SkipClassGeneration)
                 {
                     continue;
                 }
