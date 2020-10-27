@@ -68,12 +68,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static async Task<bool> IsOverrideAsync(Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
         {
-            for (var current = member; current != null; current = current.OverriddenMember())
+            for (var current = member; current != null; current = current.GetOverriddenMember())
             {
-                if (await OriginalSymbolsMatchAsync(solution, current.OverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
-                {
+                if (await OriginalSymbolsMatchAsync(solution, current.GetOverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
                     return true;
-                }
             }
 
             return false;

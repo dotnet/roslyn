@@ -2068,7 +2068,12 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                );
+                // (13,17): warning CS8602: Dereference of a possibly null reference.
+                //                 c.c.c.c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c").WithLocation(13, 17),
+                // (13,17): warning CS8602: Dereference of a possibly null reference.
+                //                 c.c.c.c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c.c").WithLocation(13, 17));
         }
 
         [Fact]

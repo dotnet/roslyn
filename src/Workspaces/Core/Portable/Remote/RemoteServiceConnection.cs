@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public abstract void Dispose();
 
+        // no solution, no callback
+
         public abstract ValueTask<bool> TryInvokeAsync(
             Func<TService, CancellationToken, ValueTask> invocation,
             CancellationToken cancellationToken);
@@ -46,6 +48,18 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
             Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken);
+
+        // no solution, callback
+
+        public abstract ValueTask<bool> TryInvokeAsync(
+            Func<TService, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken);
+
+        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+            Func<TService, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+            CancellationToken cancellationToken);
+
+        // solution, no callback
 
         public abstract ValueTask<bool> TryInvokeAsync(
             Solution solution,
@@ -61,6 +75,18 @@ namespace Microsoft.CodeAnalysis.Remote
             Solution solution,
             Func<TService, PinnedSolutionInfo, PipeWriter, CancellationToken, ValueTask> invocation,
             Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+            CancellationToken cancellationToken);
+
+        // solution, callback
+
+        public abstract ValueTask<bool> TryInvokeAsync(
+            Solution solution,
+            Func<TService, PinnedSolutionInfo, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken);
+
+        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+            Solution solution,
+            Func<TService, PinnedSolutionInfo, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
     }
 }

@@ -2119,6 +2119,7 @@ public class C
             Assert.Equal(Accessibility.NotApplicable, Generator.GetAccessibility(Generator.WithAccessibility(Generator.LocalDeclarationStatement(Generator.IdentifierName("t"), "loc"), Accessibility.Private)));
             Assert.Equal(Accessibility.NotApplicable, Generator.GetAccessibility(Generator.WithAccessibility(Generator.Attribute("a"), Accessibility.Private)));
             Assert.Equal(Accessibility.NotApplicable, Generator.GetAccessibility(Generator.WithAccessibility(SyntaxFactory.TypeParameter("tp"), Accessibility.Private)));
+            Assert.Equal(Accessibility.Private, Generator.GetAccessibility(Generator.WithAccessibility(SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration), Accessibility.Private)));
         }
 
         [Fact]

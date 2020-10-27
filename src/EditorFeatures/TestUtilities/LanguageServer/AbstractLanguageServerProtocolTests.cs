@@ -12,8 +12,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
@@ -25,8 +25,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -38,7 +38,9 @@ namespace Roslyn.Test.Utilities
     {
         // TODO: remove WPF dependency (IEditorInlineRenameService)
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
-            .AddParts(typeof(TestLspSolutionProvider));
+            .AddParts(typeof(TestLspSolutionProvider))
+            .AddParts(typeof(TestDocumentTrackingService))
+            .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]
         internal class TestLspSolutionProvider : ILspSolutionProvider
@@ -67,12 +69,6 @@ namespace Roslyn.Test.Utilities
             {
                 Contract.ThrowIfNull(_currentSolution);
                 return _currentSolution.GetDocuments(documentUri);
-            }
-
-            public ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri)
-            {
-                Contract.ThrowIfNull(_currentSolution);
-                return _currentSolution.GetTextDocuments(documentUri);
             }
         }
 
@@ -171,13 +167,19 @@ namespace Roslyn.Test.Utilities
         }
 
         protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string? containerName = null)
-            => new LSP.SymbolInformation()
+        {
+            var info = new LSP.SymbolInformation()
             {
                 Kind = kind,
                 Name = name,
                 Location = location,
-                ContainerName = containerName
             };
+
+            if (containerName != null)
+                info.ContainerName = containerName;
+
+            return info;
+        }
 
         protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
         {
@@ -226,7 +228,8 @@ namespace Roslyn.Test.Utilities
             bool preselect = false,
             ImmutableArray<char>? commitCharacters = null,
             string? sortText = null)
-            => new LSP.VSCompletionItem()
+        {
+            var item = new LSP.VSCompletionItem()
             {
                 FilterText = insertText,
                 InsertText = insertText,
@@ -234,17 +237,24 @@ namespace Roslyn.Test.Utilities
                 SortText = sortText ?? insertText,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
-                Data = new CompletionResolveData()
+                Data = JObject.FromObject(new CompletionResolveData()
                 {
                     DisplayText = insertText,
                     TextDocument = requestParameters.TextDocument,
                     Position = requestParameters.Position,
-                    CompletionTrigger = new CompletionTrigger(ProtocolConversions.LSPToRoslynCompletionTriggerKind(requestParameters.Context.TriggerKind), char.Parse(requestParameters.Context.TriggerCharacter))
-                },
-                Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null,
-                Preselect = preselect,
-                CommitCharacters = commitCharacters?.Select(c => c.ToString()).ToArray()
+                    CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context)
+                }),
+                Preselect = preselect
             };
+
+            if (tags != null)
+                item.Icon = tags.ToImmutableArray().GetFirstGlyph().GetImageElement();
+
+            if (commitCharacters != null)
+                item.CommitCharacters = commitCharacters.Value.Select(c => c.ToString()).ToArray();
+
+            return item;
+        }
 
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
             => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));

@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 var symbol = graphBuilder.GetSymbol(node);
                 if (symbol != null)
                 {
-                    var overriddenMember = symbol.OverriddenMember();
+                    var overriddenMember = symbol.GetOverriddenMember();
                     if (overriddenMember != null)
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(

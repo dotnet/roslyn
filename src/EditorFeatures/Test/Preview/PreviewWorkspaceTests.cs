@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(taskSource.Task.IsCompleted);
 
             var args = taskSource.Task.Result;
-            Assert.True(args.Diagnostics.Length > 0);
+            Assert.True(args.GetDiagnostics(previewWorkspace, forPullDiagnostics: false).Length > 0);
         }
 
         [WpfFact]
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var rightTagger = provider.CreateTagger<IErrorTag>(rightBuffer);
             using var rightDisposable = rightTagger as IDisposable;
             // wait for diagnostics and taggers
-            await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles);
+            await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(workspace, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles);
 
             // check left buffer
             var leftSnapshot = leftBuffer.CurrentSnapshot;

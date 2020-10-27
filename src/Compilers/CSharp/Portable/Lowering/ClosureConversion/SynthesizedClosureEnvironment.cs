@@ -140,5 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
 
         IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
+
+        internal override bool IsRecord => false;
     }
 }

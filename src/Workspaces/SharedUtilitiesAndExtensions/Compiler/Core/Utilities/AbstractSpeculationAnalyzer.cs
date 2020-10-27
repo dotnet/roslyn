@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         #region Semantic comparison helpers
 
-        private bool ReplacementIntroducesErrorType(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
+        protected virtual bool ReplacementIntroducesErrorType(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
         {
             Debug.Assert(originalExpression != null);
             Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
@@ -758,16 +758,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             if (newSymbol.IsOverride)
             {
-                var overriddenMember = newSymbol.OverriddenMember();
-
-                while (overriddenMember != null)
+                for (var overriddenMember = newSymbol.GetOverriddenMember(); overriddenMember != null; overriddenMember = overriddenMember.GetOverriddenMember())
                 {
                     if (symbol.Equals(overriddenMember))
-                    {
                         return !SymbolsHaveCompatibleParameterLists(symbol, newSymbol, expression);
-                    }
-
-                    overriddenMember = overriddenMember.OverriddenMember();
                 }
             }
 

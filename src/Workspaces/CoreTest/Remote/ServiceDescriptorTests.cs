@@ -15,19 +15,25 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
+    [UseExportProvider]
     public class ServiceDescriptorTests
     {
+        public static IEnumerable<object[]> ServiceTypes
+            => ServiceDescriptors.Descriptors.Select(descriptor => new object[] { descriptor.Key });
+
         private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
         {
             var interfaces = new List<Type>();
 
-            foreach (var (serviceType, (descriptor, _)) in ServiceDescriptors.Descriptors)
+            foreach (var (serviceType, (descriptor, _, _)) in ServiceDescriptors.Descriptors)
             {
                 interfaces.Add(serviceType);
                 if (descriptor.ClientInterface != null)
@@ -156,13 +162,22 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             AssertEx.Empty(errors, "Types are not MessagePack-serializable");
         }
 
-        [Fact]
-        public void GetFeatureName()
+        [Theory]
+        [MemberData(nameof(ServiceTypes))]
+        public void GetFeatureName(Type serviceType)
         {
-            foreach (var (serviceType, _) in ServiceDescriptors.Descriptors)
-            {
-                Assert.NotEmpty(ServiceDescriptors.GetFeatureName(serviceType));
-            }
+            Assert.NotEmpty(ServiceDescriptors.GetFeatureName(serviceType));
+        }
+
+        [Fact]
+        public void CallbackDispatchers()
+        {
+            var hostServices = FeaturesTestCompositions.Features.WithTestHostParts(Testing.TestHost.OutOfProcess).GetHostServices();
+            var callbackDispatchers = ((IMefHostExportProvider)hostServices).GetExports<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>();
+
+            var descriptorsWithCallbackServiceTypes = ServiceDescriptors.Descriptors.Where(d => d.Value.descriptor32.ClientInterface != null).Select(d => d.Key);
+            var callbackDispatcherServiceTypes = callbackDispatchers.Select(d => d.Metadata.ServiceInterface);
+            AssertEx.SetEqual(descriptorsWithCallbackServiceTypes, callbackDispatcherServiceTypes);
         }
     }
 }

@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
                     DiagnosticSeverity.Info,
                     isEnabledByDefault,
                     description,
+                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
                     customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, customTags));
     }
 }

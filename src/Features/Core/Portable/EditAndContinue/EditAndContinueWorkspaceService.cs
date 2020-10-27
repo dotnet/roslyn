@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return currentActiveStatements[baseActiveStatement.PrimaryDocumentOrdinal].Span;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return null;
             }
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // If the document is out-of-sync the exception regions can't be determined.
                 return baseExceptionRegions.Spans.IsDefault ? (bool?)null : baseExceptionRegions.IsActiveStatementCovered;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return null;
             }
