@@ -42,7 +42,7 @@
     <ProjectReference Include="..\..\TestUtilities2\Microsoft.VisualStudio.LanguageServices.Test.Utilities2.vbproj" />
     <ProjectReference Include="..\..\VisualBasic\Impl\Microsoft.VisualStudio.LanguageServices.VisualBasic.vbproj" />
     <ProjectReference Include="..\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" />
-    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\VisualStudio\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
     <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />

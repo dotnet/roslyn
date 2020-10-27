@@ -20,7 +20,7 @@
     <ProjectReference Include="..\..\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
-    <ProjectReference Include="..\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
+    <ProjectReference Include="..\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Aliases>global,WORKSPACES</Aliases>
     </ProjectReference>

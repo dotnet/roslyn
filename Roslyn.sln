@@ -165,7 +165,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Edit
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests", "src\EditorFeatures\Test2\Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.vbproj", "{3CEA0D69-00D3-40E5-A661-DC41EA07269B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Services.Test.Utilities", "src\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj", "{76C6F005-C89D-4348-BB4A-39189DDBEB52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities", "src\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj", "{76C6F005-C89D-4348-BB4A-39189DDBEB52}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf", "src\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj", "{FE2CBEA6-D121-4FAA-AA8B-FC9900BF8C83}"
 EndProject
