@@ -18,7 +18,7 @@ jobs:
 - job: VS_Integration
   pool:
     name: NetCorePublic-Pool
-    queue: buildpool.windows.10.amd64.vs2019.pre.open
+    queue: $(queueName)
   strategy:
     maxParallel: 4
     matrix:

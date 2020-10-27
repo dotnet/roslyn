@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             private void AddValueExpression()
             {
                 // If we're in a setter/adder/remover then add "value".
-                if (_parentStatement.GetAncestorOrThis<AccessorDeclarationSyntax>().IsKind(SyntaxKind.SetAccessorDeclaration, SyntaxKind.AddAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration))
+                if (_parentStatement.GetAncestorOrThis<AccessorDeclarationSyntax>().IsKind(
+                    SyntaxKind.SetAccessorDeclaration, SyntaxKind.InitAccessorDeclaration, SyntaxKind.AddAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration))
                 {
                     _expressions.Add("value");
                 }

@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.TodoComments;
-using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -40,12 +39,13 @@ namespace Microsoft.CodeAnalysis.Remote
         private const string InterfaceNamePrefix = "IRemote";
         private const string InterfaceNameSuffix = "Service";
 
-        internal static readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64)> Descriptors = ImmutableDictionary.CreateRange(new[]
+        internal static readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> Descriptors = ImmutableDictionary.CreateRange(new[]
         {
+            CreateDescriptors(typeof(IRemoteAssetSynchronizationService)),
             CreateDescriptors(typeof(IRemoteAsynchronousOperationListenerService)),
-            CreateDescriptors(typeof(IRemoteTodoCommentsDiscoveryService), callbackInterface: typeof(ITodoCommentsListener)),
-            CreateDescriptors(typeof(IRemoteDesignerAttributeDiscoveryService), callbackInterface: typeof(IDesignerAttributeListener)),
-            CreateDescriptors(typeof(IRemoteProjectTelemetryService), callbackInterface: typeof(IProjectTelemetryListener)),
+            CreateDescriptors(typeof(IRemoteTodoCommentsDiscoveryService), callbackInterface: typeof(IRemoteTodoCommentsDiscoveryService.ICallback)),
+            CreateDescriptors(typeof(IRemoteDesignerAttributeDiscoveryService), callbackInterface: typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
+            CreateDescriptors(typeof(IRemoteProjectTelemetryService), callbackInterface: typeof(IRemoteProjectTelemetryService.ICallback)),
             CreateDescriptors(typeof(IRemoteDiagnosticAnalyzerService)),
             CreateDescriptors(typeof(IRemoteSemanticClassificationService)),
             CreateDescriptors(typeof(IRemoteSemanticClassificationCacheService)),
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteFindUsagesService), callbackInterface: typeof(IRemoteFindUsagesService.ICallback)),
             CreateDescriptors(typeof(IRemoteNavigateToSearchService)),
             CreateDescriptors(typeof(IRemoteMissingImportDiscoveryService), callbackInterface: typeof(IRemoteMissingImportDiscoveryService.ICallback)),
-            CreateDescriptors(typeof(IRemoteSymbolSearchUpdateService), callbackInterface: typeof(ISymbolSearchLogService)),
+            CreateDescriptors(typeof(IRemoteSymbolSearchUpdateService), callbackInterface: typeof(IRemoteSymbolSearchUpdateService.ICallback)),
             CreateDescriptors(typeof(IRemoteExtensionMethodImportCompletionService)),
             CreateDescriptors(typeof(IRemoteDependentTypeFinderService)),
             CreateDescriptors(typeof(IRemoteGlobalNotificationDeliveryService)),
@@ -77,20 +77,26 @@ namespace Microsoft.CodeAnalysis.Remote
         internal static string GetQualifiedServiceName(Type serviceInterface)
             => ServiceNamePrefix + GetServiceName(serviceInterface);
 
-        private static KeyValuePair<Type, (ServiceDescriptor, ServiceDescriptor)> CreateDescriptors(Type serviceInterface, Type? callbackInterface = null)
+        private static KeyValuePair<Type, (ServiceDescriptor, ServiceDescriptor, ServiceDescriptor)> CreateDescriptors(Type serviceInterface, Type? callbackInterface = null)
         {
             Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
 
             var serviceName = GetQualifiedServiceName(serviceInterface);
             var descriptor32 = ServiceDescriptor.CreateRemoteServiceDescriptor(serviceName, callbackInterface);
             var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(serviceName + RemoteServiceName.Suffix64, callbackInterface);
-            return new(serviceInterface, (descriptor32, descriptor64));
+            var descriptor64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(serviceName + RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, callbackInterface);
+            return new(serviceInterface, (descriptor32, descriptor64, descriptor64ServerGC));
         }
 
-        public static ServiceRpcDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit)
+        public static ServiceDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit, bool isRemoteHostServerGC)
         {
-            var (descriptor32, descriptor64) = Descriptors[serviceType];
-            return isRemoteHost64Bit ? descriptor64 : descriptor32;
+            var (descriptor32, descriptor64, descriptor64ServerGC) = Descriptors[serviceType];
+            return (isRemoteHost64Bit, isRemoteHostServerGC) switch
+            {
+                (true, false) => descriptor64,
+                (true, true) => descriptor64ServerGC,
+                _ => descriptor32,
+            };
         }
 
         internal static string GetFeatureName(Type serviceInterface)

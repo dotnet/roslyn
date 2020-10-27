@@ -206,7 +206,7 @@ class MyClass
 
         [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderConstructorParametersAndArguments_TargetTypedNew()
+        public async Task ReorderConstructorParametersAndArguments_ImplicitObjectCreation()
         {
             var markup = @"
 using System;

@@ -738,9 +738,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_DefaultLiteralNotValid, node.Location);
                 }
-                else if (ultimateReceiver.IsTypelessNew())
+                else if (ultimateReceiver.IsImplicitObjectCreation())
                 {
-                    diagnostics.Add(ErrorCode.ERR_TypelessNewNotValid, node.Location);
+                    diagnostics.Add(ErrorCode.ERR_ImplicitObjectCreationNotValid, node.Location);
                 }
                 else if (ultimateReceiver.Kind == BoundKind.NamespaceExpression)
                 {

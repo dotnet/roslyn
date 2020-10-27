@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public static readonly CultureInfo USCultureInfo = new("en-US");
 
-        public static string? GetBingHelpMessage(this Diagnostic diagnostic, OptionSet options)
+        public static string GetBingHelpMessage(this Diagnostic diagnostic, OptionSet options)
         {
             // We use the ENU version of the message for bing search.
             return options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch) ?
                 diagnostic.GetMessage(USCultureInfo) : diagnostic.Descriptor.GetBingHelpMessage();
         }
 
-        public static string? GetBingHelpMessage(this DiagnosticDescriptor descriptor)
+        public static string GetBingHelpMessage(this DiagnosticDescriptor descriptor)
         {
             // We use the ENU version of the message for bing search.
             return descriptor.MessageFormat.ToString(USCultureInfo);
@@ -455,11 +455,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 await suppressionAnalyzer.AnalyzeAsync(semanticModel, span, compilationWithAnalyzers,
-                    analyzerInfoCache.GetDiagnosticDescriptors, IsCompilationEndAnalyzer, reportDiagnostic, cancellationToken).ConfigureAwait(false);
+                    analyzerInfoCache.GetDiagnosticDescriptors, reportDiagnostic, cancellationToken).ConfigureAwait(false);
             }
-
-            bool IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer)
-                => analyzerInfoCache.IsCompilationEndAnalyzer(analyzer, compilationWithAnalyzers.AnalysisOptions.Options!, compilationWithAnalyzers.Compilation) ?? true;
         }
     }
 }
