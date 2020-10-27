@@ -609,7 +609,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics(
                 // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
                 Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
         }
