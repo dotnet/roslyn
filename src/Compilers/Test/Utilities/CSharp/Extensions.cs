@@ -611,7 +611,7 @@ internal static class Extensions
             declaration is JoinIntoClauseSyntax ||
             declaration is LabeledStatementSyntax ||
             declaration is MemberDeclarationSyntax ||
-            declaration is NamespaceDeclarationSyntax ||
+            declaration is BaseNamespaceDeclarationSyntax ||
             declaration is ParameterSyntax ||
             declaration is QueryClauseSyntax ||
             declaration is QueryContinuationSyntax ||
