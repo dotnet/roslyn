@@ -308,6 +308,10 @@
             {
               "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
               "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.LanguageServer.Protocol.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
             }
           ]
         }
