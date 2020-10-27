@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PasteTrackingPasteCommandHandler(PasteTrackingService pasteTrackingService)
-        {
-            _pasteTrackingService = pasteTrackingService;
-        }
+            => _pasteTrackingService = pasteTrackingService;
 
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
             => nextCommandHandler();
@@ -51,6 +49,11 @@ namespace Microsoft.CodeAnalysis.PasteTracking
 
             // Allow the pasted text to be inserted and formatted.
             nextCommandHandler();
+
+            if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
+            {
+                return;
+            }
 
             // Create a tracking span from the pre-paste caret position that will grow as text is inserted.
             var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
