@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// basically, this is used to manage lifetime of the service hub.
     /// </summary>
+    [Obsolete("Supports non-brokered services")]
     internal partial class RemoteHostService : ServiceBase, IRemoteHostService, IAssetSource
     {
         private static readonly TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);

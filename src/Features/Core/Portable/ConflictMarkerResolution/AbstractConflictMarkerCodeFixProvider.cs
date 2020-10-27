@@ -189,12 +189,12 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         {
             var document = context.Document;
 
-            var topText = startLine.ToString().Substring(s_mergeConflictLength).Trim();
+            var topText = startLine.ToString()[s_mergeConflictLength..].Trim();
             var takeTopText = string.IsNullOrWhiteSpace(topText)
                 ? FeaturesResources.Take_top
                 : string.Format(FeaturesResources.Take_0, topText);
 
-            var bottomText = endLine.ToString().Substring(s_mergeConflictLength).Trim();
+            var bottomText = endLine.ToString()[s_mergeConflictLength..].Trim();
             var takeBottomText = string.IsNullOrWhiteSpace(bottomText)
                 ? FeaturesResources.Take_bottom
                 : string.Format(FeaturesResources.Take_0, bottomText);
