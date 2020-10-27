@@ -6566,6 +6566,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
+  <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
+    <value>Record equality contract property '{0}' must have a get accessor.</value>
+  </data>
   <data name="WRN_AnalyzerReferencesFramework" xml:space="preserve">
     <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
     <comment>{1} is the type that was loaded, {0} is the containing assembly.</comment>

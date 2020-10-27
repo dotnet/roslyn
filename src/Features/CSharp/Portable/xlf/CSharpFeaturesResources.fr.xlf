@@ -87,6 +87,16 @@
         <target state="translated">Sélection automatique désactivée en raison d'une déclaration de variable de modèle éventuelle.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_to_as_expression">
+        <source>Change to 'as' expression</source>
+        <target state="new">Change to 'as' expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_cast">
+        <source>Change to cast</source>
+        <target state="new">Change to cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Compare_to_0">
         <source>Compare to '{0}'</source>
         <target state="translated">Comparer à '{0}'</target>

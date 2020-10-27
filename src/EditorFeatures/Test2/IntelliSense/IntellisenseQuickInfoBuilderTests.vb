@@ -1110,5 +1110,53 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             ToolTipAssert.EqualContent(expected, container)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")>
+        Public Async Function QuickInfoForRecords() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            public sealed record TestRecord(int X, int Y) { }
+
+                            class C
+                            {
+                                void M()
+                                {
+                                    var x = new Test$$Record(1, 2);
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPublic)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordName, "TestRecord", navigationAction:=Sub() Return, "TestRecord"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordName, "TestRecord", navigationAction:=Sub() Return, "TestRecord.TestRecord(int X, int Y)"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "X", navigationAction:=Sub() Return, "int X"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ","),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "Y", navigationAction:=Sub() Return, "int Y"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
     End Class
 End Namespace

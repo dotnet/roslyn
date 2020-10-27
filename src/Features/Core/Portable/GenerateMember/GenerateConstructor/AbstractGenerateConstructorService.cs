@@ -45,16 +45,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         protected abstract IMethodSymbol GetCurrentConstructor(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
         protected abstract IMethodSymbol GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken);
 
-        protected bool CanDelegateThisConstructor(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken)
+        protected bool WillCauseConstructorCycle(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken)
         {
             // Check if we're in a constructor.  If not, then we can always have our new constructor delegate to
             // another, as it can't cause a cycle.
             var currentConstructor = GetCurrentConstructor(document.SemanticModel, state.Token, cancellationToken);
             if (currentConstructor == null)
-                return true;
-
-            if (currentConstructor.Equals(delegatedConstructor))
                 return false;
+
+            // If we're delegating to the constructor we're currently in, that would cause a cycle.
+            if (currentConstructor.Equals(delegatedConstructor))
+                return true;
 
             // We need ensure that delegating constructor won't cause circular dependency.
             // The chain of dependency can not exceed the number for constructors
@@ -63,13 +64,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 delegatedConstructor = GetDelegatedConstructor(document.SemanticModel, delegatedConstructor, cancellationToken);
                 if (delegatedConstructor == null)
-                    return true;
+                    return false;
 
                 if (delegatedConstructor.Equals(currentConstructor))
-                    return false;
+                    return true;
             }
 
-            return false;
+            return true;
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
