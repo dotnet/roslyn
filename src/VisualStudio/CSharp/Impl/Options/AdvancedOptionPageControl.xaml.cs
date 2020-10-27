@@ -44,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp);
             BindToOption(Enable_navigation_to_decompiled_sources, FeatureOnOffOptions.NavigateToDecompiledSources);
             BindToOption(Enable_pull_diagnostics_experimental_requires_restart, InternalDiagnosticsOptions.LspPullDiagnostics);
+            BindToOption(Enable_Razor_pull_diagnostics_experimental_requires_restart, InternalDiagnosticsOptions.RazorLspPullDiagnostics);
             BindToOption(Use_64bit_analysis_process, RemoteHostOptions.OOP64Bit);
 
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp);
