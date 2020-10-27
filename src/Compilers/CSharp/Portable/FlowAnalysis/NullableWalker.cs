@@ -1369,19 +1369,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#if DEBUG
 #if REPORT_MAX
-        private static (Symbol, int) _maxSlots;
+        private static (Symbol symbol, int slots) s_maxSlots;
+#endif
 #endif
 
         private SharedWalkerState SaveSharedState()
         {
+#if DEBUG
 #if REPORT_MAX
             int slots = _variableSlot.Count;
-            if (slots > _maxSlots.Item2)
+            if (slots > s_maxSlots.slots)
             {
-                _maxSlots = (_symbol, slots);
+                s_maxSlots = (_symbol, slots);
                 Debug.WriteLine("{0}: {1}", slots, _symbol);
             }
+#endif
 #endif
             return new SharedWalkerState(
                 _variableSlot.ToImmutableDictionary(),
