@@ -102,6 +102,11 @@
         <target state="translated">No se puede usar una colección de tipo dinámico en una instrucción foreach asincrónica.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadFieldTypeInRecord">
+        <source>The type '{0}' may not be used for a field of a record.</source>
+        <target state="new">The type '{0}' may not be used for a field of a record.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
         <source>Function pointer '{0}' does not take {1} arguments</source>
         <target state="new">Function pointer '{0}' does not take {1} arguments</target>
@@ -135,11 +140,6 @@
       <trans-unit id="ERR_BadOpOnNullOrDefaultOrNew">
         <source>Operator '{0}' cannot be applied to operand '{1}'</source>
         <target state="new">Operator '{0}' cannot be applied to operand '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadParameterTypeInRecord">
-        <source>The type '{0}' may not be used for a positional parameter of a record.</source>
-        <target state="new">The type '{0}' may not be used for a positional parameter of a record.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">

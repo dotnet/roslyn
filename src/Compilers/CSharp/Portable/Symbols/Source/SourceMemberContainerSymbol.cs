@@ -3046,15 +3046,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var existingOrAddedMembers = addProperties(ctor.Parameters);
                     addDeconstruct(ctor, existingOrAddedMembers);
-
-                    foreach (var parameter in ctor.Parameters)
-                    {
-                        var parameterType = parameter.Type;
-                        if (parameterType.IsPointerOrFunctionPointer() || parameterType.IsRestrictedType())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_BadParameterTypeInRecord, parameter.Locations[0], parameterType);
-                        }
-                    }
                 }
             }
 
