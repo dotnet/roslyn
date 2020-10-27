@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             CreateDescriptors(typeof(IRemoteAssetSynchronizationService)),
             CreateDescriptors(typeof(IRemoteAsynchronousOperationListenerService)),
-            CreateDescriptors(typeof(IRemoteTodoCommentsDiscoveryService), callbackInterface: typeof(ITodoCommentsListener)),
-            CreateDescriptors(typeof(IRemoteDesignerAttributeDiscoveryService), callbackInterface: typeof(IDesignerAttributeListener)),
-            CreateDescriptors(typeof(IRemoteProjectTelemetryService), callbackInterface: typeof(IProjectTelemetryListener)),
+            CreateDescriptors(typeof(IRemoteTodoCommentsDiscoveryService), callbackInterface: typeof(IRemoteTodoCommentsDiscoveryService.ICallback)),
+            CreateDescriptors(typeof(IRemoteDesignerAttributeDiscoveryService), callbackInterface: typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
+            CreateDescriptors(typeof(IRemoteProjectTelemetryService), callbackInterface: typeof(IRemoteProjectTelemetryService.ICallback)),
             CreateDescriptors(typeof(IRemoteDiagnosticAnalyzerService)),
             CreateDescriptors(typeof(IRemoteSemanticClassificationService)),
             CreateDescriptors(typeof(IRemoteSemanticClassificationCacheService)),
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteFindUsagesService), callbackInterface: typeof(IRemoteFindUsagesService.ICallback)),
             CreateDescriptors(typeof(IRemoteNavigateToSearchService)),
             CreateDescriptors(typeof(IRemoteMissingImportDiscoveryService), callbackInterface: typeof(IRemoteMissingImportDiscoveryService.ICallback)),
-            CreateDescriptors(typeof(IRemoteSymbolSearchUpdateService), callbackInterface: typeof(ISymbolSearchLogService)),
+            CreateDescriptors(typeof(IRemoteSymbolSearchUpdateService), callbackInterface: typeof(IRemoteSymbolSearchUpdateService.ICallback)),
             CreateDescriptors(typeof(IRemoteExtensionMethodImportCompletionService)),
             CreateDescriptors(typeof(IRemoteDependentTypeFinderService)),
             CreateDescriptors(typeof(IRemoteGlobalNotificationDeliveryService)),
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return new(serviceInterface, (descriptor32, descriptor64));
         }
 
-        public static ServiceRpcDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit)
+        public static ServiceDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit)
         {
             var (descriptor32, descriptor64) = Descriptors[serviceType];
             return isRemoteHost64Bit ? descriptor64 : descriptor32;

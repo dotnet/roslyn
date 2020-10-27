@@ -219,25 +219,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static LSP.DiagnosticSeverity DiagnosticSeverityToLspDiagnositcSeverity(DiagnosticSeverity severity)
-        {
-            switch (severity)
-            {
-                // TO-DO: Add new LSP diagnostic severity for hidden diagnostics
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1063158
-                case DiagnosticSeverity.Hidden:
-                    return LSP.DiagnosticSeverity.Hint;
-                case DiagnosticSeverity.Info:
-                    return LSP.DiagnosticSeverity.Hint;
-                case DiagnosticSeverity.Warning:
-                    return LSP.DiagnosticSeverity.Warning;
-                case DiagnosticSeverity.Error:
-                    return LSP.DiagnosticSeverity.Error;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(severity);
-            }
-        }
-
         public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
         {
             if (Enum.TryParse<LSP.SymbolKind>(kind, out var symbolKind))

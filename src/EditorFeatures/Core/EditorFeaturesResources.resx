@@ -952,4 +952,7 @@ Do you want to proceed?</value>
   <data name="Add_Missing_Imports_On_Paste" xml:space="preserve">
     <value>Add Missing Imports On Paste</value>
   </data>
+  <data name="User_Types_Records" xml:space="preserve">
+    <value>User Types - Records</value>
+  </data>
 </root>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.VisualStudio.Text;
 
@@ -12,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     internal static class ITextBufferEditExtensions
     {
 #pragma warning disable IDE0052 // Remove unread private members - Used for debugging.
-        private static Exception s_lastException = null;
+        private static Exception? s_lastException = null;
 #pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>

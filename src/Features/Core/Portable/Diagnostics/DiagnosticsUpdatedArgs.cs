@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public DiagnosticsUpdatedKind Kind { get; }
         public Solution? Solution { get; }
-        public ImmutableArray<DiagnosticData> Diagnostics { get; }
+
+        private readonly ImmutableArray<DiagnosticData> _diagnostics;
 
         private DiagnosticsUpdatedArgs(
             object id,
@@ -30,8 +31,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
 
             Solution = solution;
-            Diagnostics = diagnostics;
             Kind = kind;
+            _diagnostics = diagnostics;
+        }
+
+        /// <summary>
+        /// Gets all the diagnostics for this event, regardless if this is for pull or push diagnostics.  Most clients
+        /// should not use this.  The only clients that should are ones that are aggregating the values transparently
+        /// and then forwarding on later on to other clients that will make this decision.
+        /// </summary>
+        /// <returns></returns>
+        public ImmutableArray<DiagnosticData> GetAllDiagnosticsRegardlessOfPushPullSetting()
+            => _diagnostics;
+
+        /// <summary>
+        /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull
+        /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of diagnostics
+        /// in their scenario (or an empty array if not in their scenario).q
+        /// </summary>
+        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, bool forPullDiagnostics)
+        {
+            // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
+            // push client and pull diagnostics are on, they get nothing.
+            if (forPullDiagnostics != workspace.Options.GetOption(InternalDiagnosticsOptions.LspPullDiagnostics))
+                return ImmutableArray<DiagnosticData>.Empty;
+
+            return _diagnostics;
         }
 
         public static DiagnosticsUpdatedArgs DiagnosticsCreated(
