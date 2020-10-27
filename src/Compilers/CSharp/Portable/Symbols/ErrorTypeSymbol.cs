@@ -544,6 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsRecord => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
     }
 
     internal abstract class SubstitutedErrorTypeSymbol : ErrorTypeSymbol

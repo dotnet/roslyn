@@ -256,5 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _underlyingType.GetGuidString(out guidString);
         }
+
+        internal override bool HasPossibleWellKnownCloneMethod() => _underlyingType.HasPossibleWellKnownCloneMethod();
     }
 }
