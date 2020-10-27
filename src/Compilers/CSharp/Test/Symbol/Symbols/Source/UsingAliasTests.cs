@@ -386,13 +386,12 @@ class Test
 }
 ";
 
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             compilation.VerifyDiagnostics(
-    // (4,19): error CS0246: The type or namespace name 'LongNamespace' could not be found (are you missing a using directive or an assembly reference?)
-    //     using Short = LongNamespace;
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "LongNamespace").WithArguments("LongNamespace").WithLocation(4, 19)
-                );
+                // (3,15): error CS0246: The type or namespace name 'LongNamespace' could not be found (are you missing a using directive or an assembly reference?)
+                // using Short = LongNamespace;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "LongNamespace").WithArguments("LongNamespace").WithLocation(3, 15));
 
             var tree = compilation.SyntaxTrees.Single();
 
