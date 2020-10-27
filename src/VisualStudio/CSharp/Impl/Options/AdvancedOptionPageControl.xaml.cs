@@ -124,20 +124,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private void UpdatePullDiagnosticsOptions()
         {
-            Enable_pull_diagnostics_experimental_requires_restart.IsChecked = OptionStore.GetOption(InternalDiagnosticsOptions.RoslynDiagnosticMode) == DiagnosticMode.Pull;
+            Enable_pull_diagnostics_experimental_requires_restart.IsChecked = OptionStore.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode) == DiagnosticMode.Pull;
             Enable_Razor_pull_diagnostics_experimental_requires_restart.IsChecked = OptionStore.GetOption(InternalDiagnosticsOptions.RazorDiagnosticMode) == DiagnosticMode.Pull;
         }
 
         private void Enable_pull_diagnostics_experimental_requires_restart_Checked(object sender, RoutedEventArgs e)
         {
-            this.OptionStore.SetOption(InternalDiagnosticsOptions.RoslynDiagnosticMode, DiagnosticMode.Pull);
+            this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Pull);
             UpdatePullDiagnosticsOptions();
 
         }
 
         private void Enable_pull_diagnostics_experimental_requires_restart_Unchecked(object sender, RoutedEventArgs e)
         {
-            this.OptionStore.SetOption(InternalDiagnosticsOptions.RoslynDiagnosticMode, DiagnosticMode.Push);
+            this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Push);
             UpdatePullDiagnosticsOptions();
         }
 

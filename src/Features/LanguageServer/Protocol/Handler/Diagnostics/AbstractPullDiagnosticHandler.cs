@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
 
             var diagnosticOption = forRazor
-                ? InternalDiagnosticsOptions.RoslynDiagnosticMode
+                ? InternalDiagnosticsOptions.NormalDiagnosticMode
                 : InternalDiagnosticsOptions.RazorDiagnosticMode;
 
             var diagnostics = _diagnosticService.GetPullDiagnostics(document, includeSuppressedDiagnostics: false, diagnosticOption, cancellationToken);
