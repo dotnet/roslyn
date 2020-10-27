@@ -228,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // But we also want to know if a compilation was created
-            var hadCompilation = solutionState.TryGetCompilation(projectId, out var previousCompilation);
+            var hadCompilation = solutionState.TryGetCompilation(projectId, out _);
 
             if (parsedTrees > 0 || hadCompilation)
             {
