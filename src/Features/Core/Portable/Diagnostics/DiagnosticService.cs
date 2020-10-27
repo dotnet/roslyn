@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -210,18 +211,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             RaiseDiagnosticsCleared((IDiagnosticUpdateSource)sender);
         }
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(
+        public ImmutableArray<DiagnosticData> GetPullDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken)
+            => GetDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, forPullDiagnostics: true, pullDiagnosticOption, cancellationToken);
+
+        public ImmutableArray<DiagnosticData> GetPushDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken)
+            => GetDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, forPullDiagnostics: false, pullDiagnosticOption, cancellationToken);
+
+        private ImmutableArray<DiagnosticData> GetDiagnostics(
             Workspace workspace,
             ProjectId projectId,
             DocumentId documentId,
             object id,
             bool includeSuppressedDiagnostics,
             bool forPullDiagnostics,
+            Option2<bool> pullDiagnosticOption,
             CancellationToken cancellationToken)
         {
             // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
             // push client and pull diagnostics are on, they get nothing.
-            if (forPullDiagnostics != workspace.Options.GetOption(InternalDiagnosticsOptions.LspPullDiagnostics))
+            if (forPullDiagnostics != workspace.Options.GetOption(pullDiagnosticOption))
                 return ImmutableArray<DiagnosticData>.Empty;
 
             if (id != null)
@@ -300,16 +308,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return result.ToImmutable();
         }
 
-        public ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
+        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken)
+            => GetDiagnosticBuckets(workspace, projectId, documentId, forPullDiagnostics: true, pullDiagnosticOption, cancellationToken);
+
+        public ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken)
+            => GetDiagnosticBuckets(workspace, projectId, documentId, forPullDiagnostics: false, pullDiagnosticOption, cancellationToken);
+
+        private ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
             Workspace workspace,
             ProjectId projectId,
             DocumentId documentId,
             bool forPullDiagnostics,
+            Option2<bool> pullDiagnosticOption,
             CancellationToken cancellationToken)
         {
             // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
             // push client and pull diagnostics are on, they get nothing.
-            if (forPullDiagnostics != workspace.Options.GetOption(InternalDiagnosticsOptions.LspPullDiagnostics))
+            if (forPullDiagnostics != workspace.Options.GetOption(pullDiagnosticOption))
                 return ImmutableArray<DiagnosticBucket>.Empty;
 
             using var _1 = ArrayBuilder<DiagnosticBucket>.GetInstance(out var result);

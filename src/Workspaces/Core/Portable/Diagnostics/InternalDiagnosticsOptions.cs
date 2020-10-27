@@ -29,5 +29,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static readonly Option2<bool> LspPullDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(LspPullDiagnostics), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Lsp Pull Diagnostics"));
+
+        public static readonly Option2<bool> RazorLspPullDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(RazorLspPullDiagnostics), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Razor Lsp Pull Diagnostics"));
     }
 }

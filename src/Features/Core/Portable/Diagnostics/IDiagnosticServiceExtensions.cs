@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -11,14 +12,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class IDiagnosticServiceExtensions
     {
-        public static ImmutableArray<DiagnosticData> GetDiagnostics(this IDiagnosticService service, DiagnosticBucket bucket, bool includeSuppressedDiagnostics, bool forPullDiagnostics, CancellationToken cancellationToken)
-            => service.GetDiagnostics(bucket.Workspace, bucket.ProjectId, bucket.DocumentId, bucket.Id, includeSuppressedDiagnostics, forPullDiagnostics, cancellationToken);
+        public static ImmutableArray<DiagnosticData> GetPullDiagnostics(this IDiagnosticService service, DiagnosticBucket bucket, bool includeSuppressedDiagnostics, Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken)
+            => service.GetPullDiagnostics(bucket.Workspace, bucket.ProjectId, bucket.DocumentId, bucket.Id, includeSuppressedDiagnostics, pullDiagnosticOption, cancellationToken);
+
+        public static ImmutableArray<DiagnosticData> GetPushDiagnostics(this IDiagnosticService service, DiagnosticBucket bucket, bool includeSuppressedDiagnostics, Option2<bool> pullDiagnosticOption, CancellationToken cancellationToken)
+            => service.GetPushDiagnostics(bucket.Workspace, bucket.ProjectId, bucket.DocumentId, bucket.Id, includeSuppressedDiagnostics, pullDiagnosticOption, cancellationToken);
+
+        public static ImmutableArray<DiagnosticData> GetPushDiagnostics(
+            this IDiagnosticService service,
+            Document document,
+            bool includeSuppressedDiagnostics,
+            Option2<bool> pullDiagnosticsOption,
+            CancellationToken cancellationToken)
+        {
+            return GetDiagnostics(service, document, includeSuppressedDiagnostics, forPullDiagnostics: false, pullDiagnosticsOption, cancellationToken);
+        }
+
+        public static ImmutableArray<DiagnosticData> GetPullDiagnostics(
+            this IDiagnosticService service,
+            Document document,
+            bool includeSuppressedDiagnostics,
+            Option2<bool> pullDiagnosticsOption,
+            CancellationToken cancellationToken)
+        {
+            return GetDiagnostics(service, document, includeSuppressedDiagnostics, forPullDiagnostics: true, pullDiagnosticsOption, cancellationToken);
+        }
 
         public static ImmutableArray<DiagnosticData> GetDiagnostics(
             this IDiagnosticService service,
             Document document,
             bool includeSuppressedDiagnostics,
             bool forPullDiagnostics,
+            Option2<bool> pullDiagnosticsOption,
             CancellationToken cancellationToken)
         {
             var project = document.Project;
@@ -26,12 +51,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
 
-            foreach (var bucket in service.GetDiagnosticBuckets(workspace, project.Id, document.Id, forPullDiagnostics, cancellationToken))
+            var buckets = forPullDiagnostics
+                ? service.GetPullDiagnosticBuckets(workspace, project.Id, document.Id, pullDiagnosticsOption, cancellationToken)
+                : service.GetPushDiagnosticBuckets(workspace, project.Id, document.Id, pullDiagnosticsOption, cancellationToken);
+
+            foreach (var bucket in buckets)
             {
                 Contract.ThrowIfFalse(workspace.Equals(bucket.Workspace));
                 Contract.ThrowIfFalse(document.Id.Equals(bucket.DocumentId));
 
-                var diagnostics = service.GetDiagnostics(bucket, includeSuppressedDiagnostics, forPullDiagnostics, cancellationToken);
+                var diagnostics = forPullDiagnostics
+                    ? service.GetPullDiagnostics(bucket, includeSuppressedDiagnostics, pullDiagnosticsOption, cancellationToken)
+                    : service.GetPushDiagnostics(bucket, includeSuppressedDiagnostics, pullDiagnosticsOption, cancellationToken);
                 result.AddRange(diagnostics);
             }
 

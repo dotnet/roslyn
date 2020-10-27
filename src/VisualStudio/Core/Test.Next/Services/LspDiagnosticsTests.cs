@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -398,26 +399,26 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
         private void SetupMockWithDiagnostics(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
         {
-            diagnosticServiceMock.Setup(d => d.GetDiagnostics(
+            diagnosticServiceMock.Setup(d => d.GetPushDiagnostics(
                 It.IsAny<Workspace>(),
                 It.IsAny<ProjectId>(),
                 documentId,
                 It.IsAny<object>(),
                 It.IsAny<bool>(),
-                It.IsAny<bool>(),
+                It.IsAny<Option2<bool>>(),
                 It.IsAny<CancellationToken>())).Returns(diagnostics);
         }
 
         private void SetupMockDiagnosticSequence(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId,
             ImmutableArray<DiagnosticData> firstDiagnostics, ImmutableArray<DiagnosticData> secondDiagnostics)
         {
-            diagnosticServiceMock.SetupSequence(d => d.GetDiagnostics(
+            diagnosticServiceMock.SetupSequence(d => d.GetPushDiagnostics(
                 It.IsAny<Workspace>(),
                 It.IsAny<ProjectId>(),
                 documentId,
                 It.IsAny<object>(),
                 It.IsAny<bool>(),
-                It.IsAny<bool>(),
+                It.IsAny<Option2<bool>>(),
                 It.IsAny<CancellationToken>()))
                 .Returns(firstDiagnostics)
                 .Returns(secondDiagnostics);
