@@ -547,8 +547,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private async Task<Dictionary<Uri, ImmutableArray<LSP.Diagnostic>>> GetDiagnosticsAsync(
             IDiagnosticService diagnosticService, Document document, CancellationToken cancellationToken)
         {
-            var isRazor = _clientName != null;
-            var option = isRazor
+            var option = document.IsRazorDocument()
                 ? InternalDiagnosticsOptions.NormalDiagnosticMode
                 : InternalDiagnosticsOptions.RazorDiagnosticMode;
             var diagnostics = diagnosticService.GetPushDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken)

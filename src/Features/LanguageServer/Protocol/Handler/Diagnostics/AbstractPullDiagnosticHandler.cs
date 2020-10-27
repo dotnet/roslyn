@@ -138,18 +138,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Documents either belong to Razor or not.  We can determine this by checking if the doc has a span-mapping
             // service or not.  If we're not in razor, we do not include razor docs.  If we are in razor, we only
             // include razor docs.
-            var isRazorDoc = IsRazorDocument(document);
+            var isRazorDoc = document.IsRazorDocument();
             var wantsRazorDoc = clientName != null;
 
             return wantsRazorDoc == isRazorDoc;
-        }
-
-        private static bool IsRazorDocument(Document document)
-        {
-            // Only razor docs have an ISpanMappingService, so we can use the presence of that to determine if this doc
-            // belongs to them.
-            var spanMapper = document.Services.GetService<ISpanMappingService>();
-            return spanMapper != null;
         }
 
         private Dictionary<Document, DiagnosticParams> GetDocumentToPreviousDiagnosticParams(DiagnosticParams[] previousResults)
@@ -180,7 +172,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
 
             // Razor has a separate option for determining if they should be in push or pull mode.
-            var diagnosticOption = IsRazorDocument(document)
+            var diagnosticOption = document.IsRazorDocument()
                 ? InternalDiagnosticsOptions.NormalDiagnosticMode
                 : InternalDiagnosticsOptions.RazorDiagnosticMode;
 
@@ -246,7 +238,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Razor wants to handle all span mapping themselves.  So if we are in razor, return the raw doc spans, and
             // do not map them.
-            var useMappedSpan = !IsRazorDocument(document);
+            var useMappedSpan = !document.IsRazorDocument();
             return new VSDiagnostic
             {
                 Code = diagnosticData.Id,

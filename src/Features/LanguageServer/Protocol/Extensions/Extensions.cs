@@ -159,5 +159,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
             => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
+
+        public static bool IsRazorDocument(this Document document)
+        {
+            // Only razor docs have an ISpanMappingService, so we can use the presence of that to determine if this doc
+            // belongs to them.
+            var spanMapper = document.Services.GetService<ISpanMappingService>();
+            return spanMapper != null;
+        }
     }
 }
