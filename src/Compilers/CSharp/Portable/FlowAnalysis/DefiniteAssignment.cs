@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         /// <summary>
-        /// Parameters of record primary constructors that were used anywhere.
+        /// Parameters of record primary constructors that were read anywhere.
         /// </summary>
-        private PooledHashSet<ParameterSymbol>? _usedParameters;
+        private PooledHashSet<ParameterSymbol>? _readParameters;
 #nullable disable
 
         /// <summary>
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Free()
         {
             _usedVariables.Free();
-            _usedParameters?.Free();
+            _readParameters?.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
@@ -519,9 +519,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (ParameterSymbol parameter in MethodParameters)
                     {
-                        if (_usedParameters?.Contains(parameter) != true)
+                        if (_readParameters?.Contains(parameter) != true)
                         {
-                            diagnostics.Add(ErrorCode.WRN_UnusedRecordParameter, parameter.Locations.FirstOrNone(), parameter.Name);
+                            diagnostics.Add(ErrorCode.WRN_UnreadRecordParameter, parameter.Locations.FirstOrNone(), parameter.Name);
                         }
                     }
                 }
@@ -569,6 +569,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Tracking reads/writes of variables for warnings
 
+        private void NoteRecordParameterReadIfNeeded(Symbol symbol)
+        {
+            if (symbol is ParameterSymbol parameter && CurrentSymbol is SynthesizedRecordConstructor)
+            {
+                _readParameters ??= PooledHashSet<ParameterSymbol>.GetInstance();
+                _readParameters.Add(parameter);
+            }
+        }
         protected virtual void NoteRead(
             Symbol variable,
             ParameterSymbol rangeVariableUnderlyingParameter = null)
@@ -579,11 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _usedVariables.Add(local);
             }
 
-            if (variable is ParameterSymbol parameter && CurrentSymbol is SynthesizedRecordConstructor)
-            {
-                _usedParameters ??= PooledHashSet<ParameterSymbol>.GetInstance();
-                _usedParameters.Add(parameter);
-            }
+            NoteRecordParameterReadIfNeeded(variable);
 
             var localFunction = variable as LocalFunctionSymbol;
             if ((object)localFunction != null)
@@ -1903,9 +1907,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckAssigned(node.ParameterSymbol, node.Syntax);
             }
-            else if (CurrentSymbol is SynthesizedRecordConstructor)
+            else
             {
-                NoteRead(node.ParameterSymbol);
+                NoteRecordParameterReadIfNeeded(node.ParameterSymbol);
             }
 
             return null;

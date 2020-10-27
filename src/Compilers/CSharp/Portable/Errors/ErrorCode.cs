@@ -1924,7 +1924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_EqualityContractRequiresGetter = 8906,
 
-        WRN_UnusedRecordParameter = 8907,
+        WRN_UnreadRecordParameter = 8907,
 
         #endregion diagnostics introduced for C# 9.0
 

@@ -2881,12 +2881,12 @@
         <target state="needs-review-translation">Le champ non-nullable n'est pas initialisé. Déclarez-le comme étant nullable.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnusedRecordParameter">
+      <trans-unit id="WRN_UnreadRecordParameter">
         <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="new">Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnusedRecordParameter_Title">
+      <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="new">Parameter is unread. Did you forget to use it to initialize the property with that name?</target>
         <note />
