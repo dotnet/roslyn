@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
 
             _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
-            _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: false);
+            _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorSupportedLanguages, allowNetFramework: false);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -261,7 +261,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // first supported language and an array parameter for addition supported languages.
             // Parse the argument blob to extract the languages.
             BlobReader argsReader = peModule.GetMemoryReaderOrThrow(peModule.GetCustomAttributeValueOrThrow(customAttrHandle));
+            return ReadLanguagesFromAttribute(ref argsReader);
+        }
 
+        private static bool IsGeneratorAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        {
+            return peModule.IsTargetAttribute(customAttrHandle, s_generatorAttributeNamespace, nameof(GeneratorAttribute), ctor: out _);
+        }
+
+        private static IEnumerable<string> GetGeneratorSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        {
+            // The GeneratorAttribute has two constructors: one default, and one with a string parameter for the
+            // first supported language and an array parameter for addition supported languages.
+            BlobReader argsReader = peModule.GetMemoryReaderOrThrow(peModule.GetCustomAttributeValueOrThrow(customAttrHandle));
+            if (argsReader.Length == 4)
+            {
+                // default ctor
+                return ImmutableArray.Create(LanguageNames.CSharp);
+            }
+            else
+            {
+                // Parse the argument blob to extract the languages.
+                return ReadLanguagesFromAttribute(ref argsReader);
+            }
+        }
+
+        private static IEnumerable<string> ReadLanguagesFromAttribute(ref BlobReader argsReader)
+        {
             if (argsReader.Length > 4)
             {
                 // Arguments are present--check prologue.
@@ -285,14 +311,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }
-
             return SpecializedCollections.EmptyEnumerable<string>();
         }
 
-        private static bool IsGeneratorAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
-        {
-            return peModule.IsTargetAttribute(customAttrHandle, s_generatorAttributeNamespace, nameof(GeneratorAttribute), ctor: out _);
-        }
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {
