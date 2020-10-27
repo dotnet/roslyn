@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         /// if there are ambiguous imports, no known resolutions to import, or if no imports that would be provided
         /// would be added without adding a reference for the project. 
         /// </summary>
-        Task<Document?> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+        Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Analyzes the document inside the texstpan to determine if imports can be added.
@@ -28,6 +28,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         /// Performs the same action as <see cref="AddMissingImportsAsync(Document, TextSpan, CancellationToken)"/> but
         /// with a predetermined analysis of the input instead of recalculating it
         /// </summary>
-        Task<Document?> AddMissingImportsAsync(AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken);
+        Task<Document> AddMissingImportsAsync(AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken);
     }
 }

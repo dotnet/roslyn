@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         protected abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 
         /// <inheritdoc/>
-        public async Task<Document?> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var analysisResult = await AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             return await AddMissingImportsAsync(analysisResult, cancellationToken).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<Document?> AddMissingImportsAsync(AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken)
+        public async Task<Document> AddMissingImportsAsync(AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken)
         {
             if (analysisResult.CanAddMissingImports)
             {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 return newDocument;
             }
 
-            return null;
+            return analysisResult.Document;
         }
 
         /// <inheritdoc/>
