@@ -124,10 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
                 else
                 {
-                    await ComputeAndReportCurrentDiagnosticsAsync(
-                        progress, document,
-                        forRazor: context.ClientName != null,
-                        cancellationToken).ConfigureAwait(false);
+                    await ComputeAndReportCurrentDiagnosticsAsync(progress, document, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -174,7 +171,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         private async Task ComputeAndReportCurrentDiagnosticsAsync(
             BufferedProgress<TReport> progress,
             Document document,
-            bool forRazor,
             CancellationToken cancellationToken)
         {
             // Being asked about this document for the first time.  Or being asked again and we have different
@@ -183,7 +179,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
 
-            var diagnosticOption = forRazor
+            // Razor has a separate option for determining if they should be in push or pull mode.
+            var diagnosticOption = IsRazorDocument(document)
                 ? InternalDiagnosticsOptions.NormalDiagnosticMode
                 : InternalDiagnosticsOptions.RazorDiagnosticMode;
 
