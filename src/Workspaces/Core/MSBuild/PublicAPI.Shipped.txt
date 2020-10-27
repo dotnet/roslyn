@@ -40,7 +40,7 @@ static Microsoft.CodeAnalysis.Host.Mef.MSBuildMefHostServices.DefaultAssemblies.
 static Microsoft.CodeAnalysis.Host.Mef.MSBuildMefHostServices.DefaultServices.get -> Microsoft.CodeAnalysis.Host.Mef.MefHostServices
 static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create() -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
-static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties, Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties, Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 static Microsoft.CodeAnalysis.MSBuild.ProjectMap.Create() -> Microsoft.CodeAnalysis.MSBuild.ProjectMap
 static Microsoft.CodeAnalysis.MSBuild.ProjectMap.Create(Microsoft.CodeAnalysis.Solution solution) -> Microsoft.CodeAnalysis.MSBuild.ProjectMap
