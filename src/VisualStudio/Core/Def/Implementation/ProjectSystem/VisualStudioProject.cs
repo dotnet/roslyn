@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -27,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly IWorkspaceTelemetryService _telemetryService;
 
         /// <summary>
         /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
@@ -138,6 +140,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
+            _telemetryService = _workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
+
             Id = id;
             Language = language;
             _displayName = displayName;
@@ -195,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 field = newValue;
 
-                if (logThrowAwayTelemetry)
+                if (logThrowAwayTelemetry && _telemetryService.HasActiveSession)
                 {
                     TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
                 }
