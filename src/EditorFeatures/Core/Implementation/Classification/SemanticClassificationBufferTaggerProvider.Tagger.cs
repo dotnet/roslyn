@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private readonly SemanticClassificationBufferTaggerProvider _owner;
             private readonly ITextBuffer _subjectBuffer;
             private readonly ITaggerEventSource _eventSource;
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
 
             private TagSpanIntervalTree<IClassificationTag> _cachedTags_doNotAccessDirectly;
             private SnapshotSpan? _cachedTaggedSpan_doNotAccessDirectly;
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public void Dispose()
             {
                 this.AssertIsForeground();
+                _cancellationTokenSource.Cancel();
                 _eventSource.Changed -= OnEventSourceChanged;
                 _eventSource.Disconnect();
             }
@@ -99,7 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 _owner._notificationService.RegisterNotification(
                     OnEventSourceChanged_OnForeground,
-                    _owner._asyncListener.BeginAsyncOperation("SemanticClassificationBufferTaggerProvider"));
+                    _owner._asyncListener.BeginAsyncOperation("SemanticClassificationBufferTaggerProvider"),
+                    _cancellationTokenSource.Token);
             }
 
             private void OnEventSourceChanged_OnForeground()
