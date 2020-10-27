@@ -37,8 +37,10 @@ namespace Microsoft.CodeAnalysis
                 public Compilation? DeclarationOnlyCompilation { get; }
 
                 /// <summary>
-                /// The best compilation that is available that source generators have not ran on. May be an in-progress, full declaration,
-                /// a final compilation, or <see langword="null"/>.
+                /// The best compilation that is available that source generators have not ran on. May be an in-progress,
+                /// full declaration,  a final compilation, or <see langword="null"/>.
+                /// The value is an <see cref="Optional{Compilation}"/> to represent the
+                /// possibility of the compilation already having been garabage collected.
                 /// </summary>
                 public ValueSource<Optional<Compilation>>? Compilation { get; }
 
@@ -59,7 +61,9 @@ namespace Microsoft.CodeAnalysis
                 public virtual bool? HasSuccessfullyLoaded => null;
 
                 /// <summary>
-                /// The final compilation if available, otherwise <see langword="null"/>.
+                /// The final compilation is potentially available, otherwise <see langword="null"/>.
+                /// The value is an <see cref="Optional{Compilation}"/> to represent the
+                /// possibility of the compilation already having been garabage collected.
                 /// </summary>
                 public virtual ValueSource<Optional<Compilation>>? FinalCompilation => null;
 
