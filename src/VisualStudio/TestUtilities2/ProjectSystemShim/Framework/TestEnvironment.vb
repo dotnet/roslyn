@@ -28,6 +28,7 @@ Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
+Imports Task = System.Threading.Tasks.Task
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -269,14 +270,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Function
         End Class
 
-        Friend Sub RaiseFileChange(path As String)
+        Friend Async Function RaiseFileChangeAsync(path As String) As Task
             ' Ensure we've pushed everything to the file change watcher
             Dim fileChangeProvider = ExportProvider.GetExportedValue(Of FileChangeWatcherProvider)
             Dim mockFileChangeService = DirectCast(ServiceProvider.GetService(GetType(SVsFileChangeEx)), MockVsFileChangeEx)
-            fileChangeProvider.TrySetFileChangeService_TestOnly(mockFileChangeService)
-            fileChangeProvider.Watcher.WaitForQueue_TestOnly()
+            Await fileChangeProvider.Watcher.GetTestAccessor().WaitForQueueAsync().ConfigureAwait(False)
             mockFileChangeService.FireUpdate(path)
-        End Sub
+        End Function
 
         Private Class MockVsSmartOpenScope
             Implements IVsSmartOpenScope

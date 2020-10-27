@@ -8,7 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx;
 
@@ -23,11 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal const uint FileChangeFlags = (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size);
 
         /// <summary>
-        /// Gate that is used to guard modifications to <see cref="_taskQueue"/>.
-        /// </summary>
-        private readonly object _taskQueueGate = new();
-
-        /// <summary>
         /// We create a queue of tasks against the IVsFileChangeEx service for two reasons. First, we are obtaining the service asynchronously, and don't want to
         /// block on it being available, so anybody who wants to do anything must wait for it. Secondly, the service itself is single-threaded; the entry points
         /// are asynchronous so we avoid starving the thread pool, but there's still no reason to create a lot more work blocked than needed. Finally, since this
@@ -36,48 +33,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// For performance and correctness reasons, NOTHING should ever do a block on this; figure out how to do your work without a block and add any work to
         /// the end of the queue.
         /// </summary>
-        private Task<IVsAsyncFileChangeEx> _taskQueue;
-        private static readonly Func<Task<IVsAsyncFileChangeEx>, object, Task<IVsAsyncFileChangeEx>> _executeActionDelegate =
-            async (precedingTask, state) =>
-            {
-                var action = (Func<IVsAsyncFileChangeEx, Task>)state;
-                await action(precedingTask.Result).ConfigureAwait(false);
-                return precedingTask.Result;
-            };
+        private readonly AsyncQueue<Func<IVsAsyncFileChangeEx, Task>> _taskQueue = new();
+        private readonly Task _worker;
 
-        public FileChangeWatcher(Task<IVsAsyncFileChangeEx> fileChangeService)
-            => _taskQueue = fileChangeService;
-
-        private void EnqueueWork(Func<IVsAsyncFileChangeEx, Task> action)
+        public FileChangeWatcher(Func<Task<IVsAsyncFileChangeEx>> fileChangeService)
         {
-            lock (_taskQueueGate)
+            _worker = Task.Run(() => RunAsync(fileChangeService));
+        }
+
+        private async Task RunAsync(Func<Task<IVsAsyncFileChangeEx>> getFileChangeService)
+        {
+            var fileChangeService = await getFileChangeService().ConfigureAwait(false);
+
+            while (!_taskQueue.IsCompleted || !_taskQueue.IsEmpty)
             {
-                _taskQueue = _taskQueue.ContinueWith(
-                    _executeActionDelegate,
-                    action,
-                    CancellationToken.None,
-                    TaskContinuationOptions.None,
-                    TaskScheduler.Default).Unwrap();
+                var item = await DequeueAsync(_taskQueue).ConfigureAwait(false);
+                try
+                {
+                    await item(fileChangeService).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                }
+            }
+
+            // Local functions
+            static async ValueTask<Func<IVsAsyncFileChangeEx, Task>> DequeueAsync(AsyncQueue<Func<IVsAsyncFileChangeEx, Task>> taskQueue)
+            {
+                if (taskQueue.TryDequeue(out var value))
+                    return value;
+
+                return await taskQueue.DequeueAsync().ConfigureAwait(false);
             }
         }
 
-        // TODO: remove this when there is a mechanism for a caller of EnqueueWatchingFile
-        // to explicitly wait on that being complete.
-        public void WaitForQueue_TestOnly()
+        private void EnqueueWork(Func<IVsAsyncFileChangeEx, Task> action)
         {
-            Task queue;
-
-            lock (_taskQueueGate)
-            {
-                queue = _taskQueue;
-            }
-
-            queue.Wait();
+            _taskQueue.Enqueue(action);
         }
 
         public IContext CreateContext(params WatchedDirectory[] watchedDirectories)
         {
             return new Context(this, watchedDirectories.ToImmutableArray());
+        }
+
+        internal TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor(this);
         }
 
         /// <summary>
@@ -359,6 +361,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 Debug.Fail("Since we're implementing IVsFreeThreadedFileChangeEvents2.DirectoryChangedEx2, this should not be called.");
                 return VSConstants.E_NOTIMPL;
+            }
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly FileChangeWatcher _fileChangeWatcher;
+
+            internal TestAccessor(FileChangeWatcher fileChangeWatcher)
+            {
+                _fileChangeWatcher = fileChangeWatcher;
+            }
+
+            public Task WaitForQueueAsync()
+            {
+                var result = new TaskCompletionSource<VoidResult>();
+                _fileChangeWatcher.EnqueueWork(
+                    _ =>
+                    {
+                        result.SetResult(default);
+                        return Task.CompletedTask;
+                    });
+
+                return result.Task;
             }
         }
     }
