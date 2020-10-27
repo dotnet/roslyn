@@ -1125,6 +1125,21 @@ class C
 
         [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUsingDeclaration()
+        {
+            await Test_KeywordAsync(
+@"using namespace.Class;
+
+class C
+{ 
+    void Method(String someString) {
+        us[||]ing var reader = new StringReader(someString);
+    }
+}", "using-statement");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestUsingStaticOnStaticKeyword()
         {
             await Test_KeywordAsync(
