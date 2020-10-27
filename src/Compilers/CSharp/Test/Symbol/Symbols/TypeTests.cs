@@ -158,7 +158,7 @@ interface B {
         }
 
         [Fact]
-        public void InheritedTypesCrossTrees()
+        public void InheritedTypesCrossTrees_SingleLineNamespace()
         {
             var text = @"namespace MT;
 public interface IGoo { void Goo(); }
