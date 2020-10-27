@@ -16,3 +16,10 @@ steps:
     continueOnError: true
     condition: not(succeeded())
 
+  - task: PublishPipelineArtifact@1
+    displayName: Publish Dumps
+    inputs:
+      targetPath: '$(Build.SourcesDirectory)/artifacts/log2/${{ parameters.configuration }}'
+      artifactName: '${{ parameters.jobName }} Dumps'
+    continueOnError: true
+    condition: not(succeeded())
