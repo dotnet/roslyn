@@ -99,7 +99,8 @@ public delegate void voidDelegate();
                     libSrc,
                     sourceSymbolValidator: validator,
                     symbolValidator: validator,
-                    options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);
+                    options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll,
+                    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
                 verifier.VerifyDiagnostics();
             };
 
