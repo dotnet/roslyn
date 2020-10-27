@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
 
             _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
-            _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorsSupportedLanguages, allowNetFramework: false);
+            _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: false);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -286,8 +286,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return peModule.IsTargetAttribute(customAttrHandle, s_generatorAttributeNamespace, nameof(GeneratorAttribute), ctor: out _);
         }
-
-        private static IEnumerable<string> GetGeneratorsSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle) => ImmutableArray.Create(LanguageNames.CSharp);
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {
