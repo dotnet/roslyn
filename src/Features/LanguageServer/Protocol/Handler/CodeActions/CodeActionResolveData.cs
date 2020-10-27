@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// Identifies the Code Action Provider which produced this Code Action.
         /// </summary>
         /// <remarks>
-        /// e.g. 'Add Await Code Action Provider'
+        /// The unique identifier is currently set as:
+        /// name of top level code action provider + '|' + name of code action provider implementation
+        /// e.g. 'Add Await Code Action Provider | GetTitleWithConfigureAwait'
         /// </remarks>
         public string ProviderName { get; }
 

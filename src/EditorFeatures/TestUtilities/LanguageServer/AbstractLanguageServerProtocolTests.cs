@@ -261,8 +261,8 @@ namespace Roslyn.Test.Utilities
             return item;
         }
 
-        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
-            => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));
+        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, string providerName = null)
+            => new CodeActionResolveData(uniqueIdentifier, providerName ?? string.Empty, location.Range, CreateTextDocumentIdentifier(location.Uri));
 
         /// <summary>
         /// Creates a solution with a document.
