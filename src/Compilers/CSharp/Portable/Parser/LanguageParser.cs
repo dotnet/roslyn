@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Debug.Assert(semicolon != null);
 
                     SyntaxListBuilder initialBadNodes = null;
-                    this.ParseNamespaceBody(ref semicolon, ref body, ref initialBadNodes, SyntaxKind.NamespaceDeclaration);
+                    this.ParseNamespaceBody(ref semicolon, ref body, ref initialBadNodes, SyntaxKind.SingleLineNamespaceDeclaration);
                     Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to open brace...
 
                     namespaceToken = CheckFeatureAvailability(namespaceToken, MessageID.IDS_SingleLineNamespace);
@@ -613,6 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
 
                     case SyntaxKind.NamespaceDeclaration:
+                    case SyntaxKind.SingleLineNamespaceDeclaration:
                     case SyntaxKind.EnumDeclaration:
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.ClassDeclaration:
@@ -2088,6 +2089,7 @@ tryAgain:
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.SingleLineNamespaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                     return true;
                 case SyntaxKind.FieldDeclaration:
@@ -2581,6 +2583,7 @@ parse_member_name:;
                     result = incompleteMember;
                 }
                 else if (parentKind == SyntaxKind.NamespaceDeclaration ||
+                         parentKind == SyntaxKind.SingleLineNamespaceDeclaration ||
                          parentKind == SyntaxKind.CompilationUnit && !IsScript)
                 {
                     result = this.AddErrorToLastToken(incompleteMember, ErrorCode.ERR_NamespaceUnexpected);
@@ -4508,6 +4511,7 @@ tryAgain:
             // the reported errors should take into consideration whether or not one expects them in the current context.
             bool variableDeclarationsExpected =
                 parentKind != SyntaxKind.NamespaceDeclaration &&
+                parentKind != SyntaxKind.SingleLineNamespaceDeclaration &&
                 (parentKind != SyntaxKind.CompilationUnit || IsScript);
 
             LocalFunctionStatementSyntax localFunction;

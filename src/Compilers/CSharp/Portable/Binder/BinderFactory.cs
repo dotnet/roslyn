@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns binder that binds usings and aliases 
         /// </summary>
         /// <param name="unit">
-        /// Specify <see cref="NamespaceDeclarationSyntax"/> imports in the corresponding namespace, or
+        /// Specify <see cref="BaseNamespaceDeclarationSyntax"/> imports in the corresponding namespace, or
         /// <see cref="CompilationUnitSyntax"/> for top-level imports.
         /// </param>
         /// <param name="inUsing">True if the binder will be used to bind a using directive.</param>
@@ -173,8 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (unit.Kind())
             {
-                case SyntaxKind.SingleLineNamespaceDeclaration:
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.SingleLineNamespaceDeclaration:
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Initialize(0, null, null);
