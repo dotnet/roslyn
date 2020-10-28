@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        private static VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
+        private VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
             Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
@@ -239,8 +239,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Razor wants to handle all span mapping themselves.  So if we are in razor, return the raw doc spans, and
             // do not map them.
             var useMappedSpan = !document.IsRazorDocument();
-            return new VSDiagnostic
+            return new RoslynDiagnostic
             {
+                Client = GetType().Name,
                 Code = diagnosticData.Id,
                 Message = diagnosticData.Message,
                 Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),

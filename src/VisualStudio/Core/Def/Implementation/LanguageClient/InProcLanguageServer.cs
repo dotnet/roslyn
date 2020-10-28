@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -547,9 +548,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private async Task<Dictionary<Uri, ImmutableArray<LSP.Diagnostic>>> GetDiagnosticsAsync(
             IDiagnosticService diagnosticService, Document document, CancellationToken cancellationToken)
         {
-            var option = document.IsRazorDocument()
-                ? InternalDiagnosticsOptions.NormalDiagnosticMode
-                : InternalDiagnosticsOptions.RazorDiagnosticMode;
+            var isRazor = document.IsRazorDocument();
+            var option = isRazor
+                ? InternalDiagnosticsOptions.RazorDiagnosticMode
+                : InternalDiagnosticsOptions.NormalDiagnosticMode;
             var diagnostics = diagnosticService.GetPushDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken)
                                                .WhereAsArray(IncludeDiagnostic);
 
@@ -562,39 +564,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // https://docs.microsoft.com/en-us/aspnet/core/blazor/layouts?view=aspnetcore-3.1#centralized-layout-selection
             // So we get the diagnostics and group them by the actual mapped path so we can publish notifications
             // for each mapped file's diagnostics.
-            var fileUriToDiagnostics = diagnostics.GroupBy(diagnostic => GetDiagnosticUri(document, diagnostic)).ToDictionary(
+            var fileUriToDiagnostics = diagnostics.GroupBy(diagnostic => GetDiagnosticUri(document, diagnostic, isRazor)).ToDictionary(
                 group => group.Key,
-                group => group.Select(diagnostic => ConvertToLspDiagnostic(diagnostic, text)).ToImmutableArray());
+                group => group.Select(diagnostic => ConvertToLspDiagnostic(diagnostic, text, isRazor)).ToImmutableArray());
             return fileUriToDiagnostics;
 
-            static Uri GetDiagnosticUri(Document document, DiagnosticData diagnosticData)
+            static Uri GetDiagnosticUri(Document document, DiagnosticData diagnosticData, bool isRazor)
             {
                 Contract.ThrowIfNull(diagnosticData.DataLocation, "Diagnostic data location should not be null here");
 
-                var filePath = diagnosticData.DataLocation.MappedFilePath ?? diagnosticData.DataLocation.OriginalFilePath;
+                // Razor wants to handle all span mapping themselves.  So if we are in razor, return the raw doc spans, and
+                // do not map them.
+                var filePath =
+                    isRazor ? diagnosticData.DataLocation.OriginalFilePath
+                            : diagnosticData.DataLocation.MappedFilePath ?? diagnosticData.DataLocation.OriginalFilePath;
                 return ProtocolConversions.GetUriFromFilePath(filePath);
             }
+        }
 
-            static LSP.Diagnostic ConvertToLspDiagnostic(DiagnosticData diagnosticData, SourceText text)
+        private LSP.Diagnostic ConvertToLspDiagnostic(DiagnosticData diagnosticData, SourceText text, bool isRazor)
+        {
+            Contract.ThrowIfNull(diagnosticData.DataLocation);
+
+            var diagnostic = new RoslynDiagnostic
             {
-                Contract.ThrowIfNull(diagnosticData.DataLocation);
+                Client = this._languageClient.GetType().Name,
+                Code = diagnosticData.Id,
+                Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
+                Range = GetDiagnosticRange(diagnosticData.DataLocation, text, isRazor),
+                // Only the unnecessary diagnostic tag is currently supported via LSP.
+                Tags = diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
+                    ? new DiagnosticTag[] { DiagnosticTag.Unnecessary }
+                    : Array.Empty<DiagnosticTag>()
+            };
 
-                var diagnostic = new LSP.Diagnostic
-                {
-                    Code = diagnosticData.Id,
-                    Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
-                    Range = GetDiagnosticRange(diagnosticData.DataLocation, text),
-                    // Only the unnecessary diagnostic tag is currently supported via LSP.
-                    Tags = diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
-                        ? new DiagnosticTag[] { DiagnosticTag.Unnecessary }
-                        : Array.Empty<DiagnosticTag>()
-                };
+            if (diagnosticData.Message != null)
+                diagnostic.Message = diagnosticData.Message;
 
-                if (diagnosticData.Message != null)
-                    diagnostic.Message = diagnosticData.Message;
-
-                return diagnostic;
-            }
+            return diagnostic;
         }
 
         // Some diagnostics only apply to certain clients and document types, e.g. Razor.
@@ -608,9 +615,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private bool IncludeDiagnostic(DiagnosticData diagnostic) =>
             diagnostic.Properties.GetOrDefault(nameof(DocumentPropertiesService.DiagnosticsLspClientName)) == _clientName;
 
-        private static LSP.Range GetDiagnosticRange(DiagnosticDataLocation diagnosticDataLocation, SourceText text)
+        private static LSP.Range GetDiagnosticRange(DiagnosticDataLocation diagnosticDataLocation, SourceText text, bool isRazor)
         {
-            var linePositionSpan = DiagnosticData.GetLinePositionSpan(diagnosticDataLocation, text, useMapped: true);
+            // Razor wants to handle all span mapping themselves.  So if we are in razor, return the raw doc spans, and
+            // do not map them.
+            var useMappedSpan = !isRazor;
+
+            var linePositionSpan = DiagnosticData.GetLinePositionSpan(diagnosticDataLocation, text, useMapped: useMappedSpan);
             return ProtocolConversions.LinePositionToRange(linePositionSpan);
         }
 
