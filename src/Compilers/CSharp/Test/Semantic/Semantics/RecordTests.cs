@@ -878,12 +878,11 @@ unsafe record C( // 1
         public void RestrictedTypesAndPointerTypes_NominalMembers()
         {
             var src = @"
-#pragma warning disable 0649
-class C<T> { }
-static class C2 { }
-ref struct RefLike{}
+public class C<T> { }
+public static class C2 { }
+public ref struct RefLike{}
 
-unsafe record C
+public unsafe record C
 {
     public int* f1; // 1
     public int*[] f2;
@@ -899,27 +898,27 @@ unsafe record C
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
-                // (9,17): error CS8908: The type 'int*' may not be used for a field of a record.
+                // (8,17): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     public int* f1; // 1
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f1").WithArguments("int*").WithLocation(9, 17),
-                // (12,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f1").WithArguments("int*").WithLocation(8, 17),
+                // (11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     public delegate*<int, int> f4; // 2
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f4").WithArguments("delegate*<int, int>").WithLocation(12, 32),
-                // (13,12): error CS0670: Field cannot have void type
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f4").WithArguments("delegate*<int, int>").WithLocation(11, 32),
+                // (12,12): error CS0670: Field cannot have void type
                 //     public void f5; // 3
-                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(13, 12),
-                // (14,15): error CS0723: Cannot declare a variable of static type 'C2'
+                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(12, 12),
+                // (13,15): error CS0723: Cannot declare a variable of static type 'C2'
                 //     public C2 f6; // 4
-                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "f6").WithArguments("C2").WithLocation(14, 15),
-                // (15,12): error CS0610: Field or property cannot be of type 'ArgIterator'
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "f6").WithArguments("C2").WithLocation(13, 15),
+                // (14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     public System.ArgIterator f7; // 5
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(15, 12),
-                // (16,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
+                // (15,12): error CS0610: Field or property cannot be of type 'TypedReference'
                 //     public System.TypedReference f8; // 6
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(16, 12),
-                // (17,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(15, 12),
+                // (16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     public RefLike f9; // 7
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(17, 12)
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)
                 );
         }
 
@@ -959,6 +958,45 @@ unsafe record C(int* P1, int*[] P2, C<int*[]> P3)
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "P1 P2 P3 RAN");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        public void RestrictedTypesAndPointerTypes_StaticFields()
+        {
+            var src = @"
+public class C<T> { }
+public static class C2 { }
+public ref struct RefLike{}
+
+public unsafe record C
+{
+    public static int* f1;
+    public static int*[] f2;
+    public static C<int*[]> f3;
+    public static delegate*<int, int> f4;
+    public static C2 f6; // 1
+    public static System.ArgIterator f7; // 2
+    public static System.TypedReference f8; // 3
+    public static RefLike f9; // 4
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (12,22): error CS0723: Cannot declare a variable of static type 'C2'
+                //     public static C2 f6; // 1
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "f6").WithArguments("C2").WithLocation(12, 22),
+                // (13,19): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //     public static System.ArgIterator f7; // 2
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(13, 19),
+                // (14,19): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     public static System.TypedReference f8; // 3
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 19),
+                // (15,19): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
+                //     public static RefLike f9; // 4
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 19)
+                );
         }
 
         [Fact]
