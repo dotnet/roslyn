@@ -255,17 +255,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
 
             BoundExpression valueBeforeConversion;
-            BoundExpression convertedExpression = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out valueBeforeConversion).Value;
+            BoundParameterEqualsValue parameterEqualsValue = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out valueBeforeConversion);
             if (valueBeforeConversion.HasErrors)
             {
                 return ConstantValue.Bad;
             }
 
+            BoundExpression convertedExpression = parameterEqualsValue.Value;
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, convertedExpression, diagnostics);
             if (hasErrors)
             {
                 return ConstantValue.Bad;
             }
+
+            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
 
             // If we have something like M(double? x = 1) then the expression we'll get is (double?)1, which
             // does not have a constant value. The constant value we want is (double)1.
@@ -809,9 +812,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ConstantValue.Bad;
             }
 
+            // TODO: nullable analysis
+            // var constantValue = ConstantValue.Create(arg.ValueInternal, constantValueDiscriminator);
+
             if (diagnose)
             {
                 diagnosticsOpt.Add(node.Name.Location, useSiteDiagnostics);
+
+                // var syntaxTree = _syntaxRef.SyntaxTree;
+                // var binderFactory = compilation.GetBinderFactory(syntaxTree);
+                // var binder = binderFactory.GetBinder(node);
             }
 
             return ConstantValue.Create(arg.ValueInternal, constantValueDiscriminator);
