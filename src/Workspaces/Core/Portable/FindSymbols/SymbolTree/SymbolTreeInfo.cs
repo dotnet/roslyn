@@ -463,9 +463,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using var containerSymbols = TemporaryArray<ISymbol>.Empty;
                 Bind(node.ParentIndex, rootContainer, ref Unsafe.AsRef(in containerSymbols), cancellationToken);
-#pragma warning disable RS0042 // Do not copy value
                 foreach (var containerSymbol in containerSymbols)
-#pragma warning restore RS0042 // Do not copy value
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -562,9 +560,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 tempBuilder.Clear();
 
                 Bind(derivedTypeIndex, compilation.GlobalNamespace, ref Unsafe.AsRef(in tempBuilder), cancellationToken);
-#pragma warning disable RS0042 // Do not copy value
                 foreach (var symbol in tempBuilder)
-#pragma warning restore RS0042 // Do not copy value
                 {
                     if (symbol is INamedTypeSymbol namedType)
                     {
