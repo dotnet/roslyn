@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -170,19 +171,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 foreach (var docId in changedDocuments)
                 {
-                    var newDoc = getNewDocumentFunc(docId);
-                    var oldDoc = getOldDocumentFunc(docId);
+                    var newTextDoc = getNewDocumentFunc(docId);
+                    var oldTextDoc = getOldDocumentFunc(docId);
 
-                    Contract.ThrowIfNull(oldDoc);
-                    Contract.ThrowIfNull(newDoc);
+                    Contract.ThrowIfNull(oldTextDoc);
+                    Contract.ThrowIfNull(newTextDoc);
 
-                    var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = await newDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var oldText = await oldTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                    var textChanges = newText.GetTextChanges(oldText);
+                    IEnumerable<TextChange> textChanges;
+
+                    // Normal documents use a special method to get their text changes which avoids dirtying the entire file unless necessary.
+                    if (newTextDoc is Document newDoc && oldTextDoc is Document oldDoc)
+                    {
+                        textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        textChanges = newText.GetTextChanges(oldText);
+                    }
 
                     var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
-                    var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newDoc.GetURI() };
+                    var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
                     textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits.ToArray() });
                 }
             }
