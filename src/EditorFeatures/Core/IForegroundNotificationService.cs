@@ -15,15 +15,15 @@ namespace Microsoft.CodeAnalysis.Editor
     /// </summary>
     internal interface IForegroundNotificationService
     {
-        void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default);
+        void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken);
 
-        void RegisterNotification(Action action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default);
+        void RegisterNotification(Action action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken);
 
         /// <summary>
         /// if action return true, the service will call it back again when it has time.
         /// </summary>
-        void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default);
+        void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken);
 
-        void RegisterNotification(Func<bool> action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default);
+        void RegisterNotification(Func<bool> action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken);
     }
 }

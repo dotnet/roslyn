@@ -19,13 +19,13 @@ jobs:
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Debug
-    testArtifactName: Test_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Release
-    testArtifactName: Test_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
 
 - template: eng/pipelines/test-windows-job.yml
@@ -33,7 +33,7 @@ jobs:
     testRunName: 'Test Windows Desktop Debug 32'
     jobName: Test_Windows_Desktop_Debug_32
     buildJobName: Build_Windows_Debug
-    testArtifactName: Test_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testDesktop -test32
 
@@ -42,7 +42,7 @@ jobs:
     testRunName: 'Test Windows Desktop Spanish Debug 32'
     jobName: Test_Windows_Desktop_Spanish_Debug_32
     buildJobName: Build_Windows_Debug
-    testArtifactName: Test_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testDesktop -test32
     queueName: 'BuildPool.Windows.10.Amd64.ES.VS2017.Open'
@@ -52,7 +52,7 @@ jobs:
     testRunName: 'Test Windows Desktop Debug 64'
     jobName: Test_Windows_Desktop_Debug_64
     buildJobName: Build_Windows_Debug
-    testArtifactName: Test_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testDesktop -test64
 
@@ -61,7 +61,7 @@ jobs:
     testRunName: 'Test Windows CoreClr Debug'
     jobName: Test_Windows_CoreClr_Debug
     buildJobName: Build_Windows_Debug
-    testArtifactName: Test_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testCoreClr
 
@@ -70,7 +70,7 @@ jobs:
     testRunName: 'Test Windows Desktop Release 32'
     jobName: Test_Windows_Desktop_Release_32
     buildJobName: Build_Windows_Release
-    testArtifactName: Test_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testDesktop -test32
 
@@ -79,7 +79,7 @@ jobs:
     testRunName: 'Test Windows Desktop Release 64'
     jobName: Test_Windows_Desktop_Release_64
     buildJobName: Build_Windows_Release
-    testArtifactName: Test_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testDesktop -test64
 
@@ -88,7 +88,7 @@ jobs:
     testRunName: 'Test Windows CoreClr Release'
     jobName: Test_Windows_CoreClr_Release
     buildJobName: Build_Windows_Release
-    testArtifactName: Test_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testCoreClr
 
@@ -96,7 +96,7 @@ jobs:
 - template: eng/pipelines/build-unix-job.yml
   parameters:
     jobName: Build_Unix_Debug
-    testArtifactName: Test_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     vmImageName: 'ubuntu-16.04'
 
@@ -105,7 +105,7 @@ jobs:
     testRunName: 'Test Linux Debug'
     jobName: Test_Linux_Debug
     buildJobName: Build_Unix_Debug
-    testArtifactName: Test_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr
     queueName: 'BuildPool.Ubuntu.1604.amd64.Open'
@@ -115,7 +115,7 @@ jobs:
     testRunName: 'Test OSX Debug'
     jobName: Test_OSX_Debug
     buildJobName: Build_Unix_Debug
-    testArtifactName: Test_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr
     vmImageName: 'macOS-10.14'

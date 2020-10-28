@@ -1064,7 +1064,10 @@ namespace Microsoft.CodeAnalysis
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            // https://github.com/dotnet/roslyn/issues/48599
+            // Given a compilation and a destination directory, determine three names:
+            //   1) The name with which the assembly should be output.
+            //   2) The path of the assembly/module file (default = destination directory + compilation output name).
+            //   3) The path of the pdb file (default = assembly/module path with ".pdb" extension).
             string outputName = GetOutputFileName(compilation, cancellationToken)!;
             var finalPeFilePath = Arguments.GetOutputFilePath(outputName);
             var finalPdbFilePath = Arguments.GetPdbFilePath(outputName);
@@ -1454,18 +1457,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Given a compilation and a destination directory, determine three names:
-        ///   1) The name with which the assembly should be output (default = null, which indicates that the compilation output name should be used).
-        ///   2) The path of the assembly/module file (default = destination directory + compilation output name).
-        ///   3) The path of the pdb file (default = assembly/module path with ".pdb" extension).
+        /// Returns the name with which the assembly should be output
         /// </summary>
-        /// <remarks>
-        /// C# has a special implementation that implements idiosyncratic behavior of csc.
-        /// </remarks>
-        protected virtual string? GetOutputFileName(Compilation compilation, CancellationToken cancellationToken)
-        {
-            return Arguments.OutputFileName;
-        }
+        protected abstract string GetOutputFileName(Compilation compilation, CancellationToken cancellationToken);
 
         /// <summary>
         /// Test hook for intercepting File.Open.

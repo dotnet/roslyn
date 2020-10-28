@@ -2020,7 +2020,7 @@ class C<T>
                 // All locals of type E<T> with type argument T from <>c<T>.
                 foreach (var local in locals)
                 {
-                    var localType = (NamedTypeSymbol)local.Type;
+                    var localType = (NamedTypeSymbol)local.Type.GetInternalSymbol();
                     var typeArg = localType.TypeArguments()[0];
                     Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType);
                 }
@@ -2090,7 +2090,7 @@ class C<T>
                 Assert.Equal(1, locals.Length);
                 foreach (var local in locals)
                 {
-                    var localType = (TypeSymbol)local.Type;
+                    var localType = (TypeSymbol)local.Type.GetInternalSymbol();
                     Assert.Equal(localType.ContainingSymbol, method);
                 }
 
@@ -2478,7 +2478,7 @@ class C
   IL_002c:  ret
 }");
                 // Verify generated type and method are generic.
-                Assert.Equal(Cci.CallingConvention.Generic, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
+                Assert.Equal(Cci.CallingConvention.Generic, ((Cci.IMethodDefinition)methodData.Method.GetCciAdapter()).CallingConvention);
                 var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(result.Assembly));
                 var reader = metadata.MetadataReader;
                 var typeDef = reader.GetTypeDef(result.TypeName);
@@ -2492,7 +2492,7 @@ class C
                 testData = new CompilationTestData();
                 context.CompileExpression("(object)t ?? typeof(T) ?? typeof(U)", out error, testData);
                 methodData = testData.GetMethodData("<>x<T, U, V>.<>m0");
-                Assert.Equal(Cci.CallingConvention.Default, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
+                Assert.Equal(Cci.CallingConvention.Default, ((Cci.IMethodDefinition)methodData.Method.GetCciAdapter()).CallingConvention);
             });
         }
 
@@ -2537,7 +2537,7 @@ class C<T>
   IL_001e:  call       ""U C<T>.F<U>(System.Func<U>)""
   IL_0023:  ret
 }");
-                Assert.Equal(Cci.CallingConvention.Generic, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
+                Assert.Equal(Cci.CallingConvention.Generic, ((Cci.IMethodDefinition)methodData.Method.GetCciAdapter()).CallingConvention);
             });
         }
 
@@ -2568,7 +2568,7 @@ class C<T>
   IL_0002:  newobj     ""System.ArgIterator..ctor(System.RuntimeArgumentHandle)""
   IL_0007:  ret
 }");
-                Assert.Equal(Cci.CallingConvention.ExtraArguments, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
+                Assert.Equal(Cci.CallingConvention.ExtraArguments, ((Cci.IMethodDefinition)methodData.Method.GetCciAdapter()).CallingConvention);
             });
         }
 
