@@ -1398,6 +1398,7 @@ _Default:
             For Each sym In symbols
                 If sym.Kind = SymbolKind.Alias Then
                     anyAliases = True
+                    Exit For
                 End If
             Next
 
