@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis
                     compilation: null,
                     declarationOnlyCompilation: null,
                     generatedDocuments: ImmutableArray<SourceGeneratedDocumentState>.Empty,
+                    generatedDocumentsAreFinal: false,
                     unrootedSymbolSet: null);
 
                 /// <summary>
@@ -46,12 +47,18 @@ namespace Microsoft.CodeAnalysis
                 public ValueSource<Optional<Compilation>>? Compilation { get; }
 
                 /// <summary>
-                /// The best generated documents we have for the current state. If this is a final state, then this should reflect
-                /// what is actually correct for the compilation. For an in-progress state, this may represent the generated documents
-                /// prior to the compilation being forked; in that case the generated documents could still be used if we are looking
-                /// to use an in-progress compilation that isn't entirely correct, but we will need to rerun the generators eventually.
+                /// The best generated documents we have for the current state. <see cref="GeneratedDocumentsAreFinal"/> specifies whether the
+                /// documents are to be considered final and can be reused, or whether they're from a prior snapshot which needs to be recomputed.
                 /// </summary>
                 public ImmutableArray<SourceGeneratedDocumentState> GeneratedDocuments { get; }
+
+                /// <summary>
+                /// Whether the generated documents in <see cref="GeneratedDocuments"/> are final and should not be regenerated. It's important
+                /// that once we've ran generators once we don't want to run them again. Once we've ran them the first time, those syntax trees
+                /// are visible from other parts of the Workspaces model; if we run them a second time we'd end up with new trees which would
+                /// confuse our snapshot model -- once the tree has been handed out we can't make a second tree later.
+                /// </summary>
+                public bool GeneratedDocumentsAreFinal { get; }
 
                 /// <summary>
                 /// Weak set of the assembly, module and dynamic symbols that this compilation tracker has created.
@@ -78,6 +85,7 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>>? compilation,
                     Compilation? declarationOnlyCompilation,
                     ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    bool generatedDocumentsAreFinal,
                     UnrootedSymbolSet? unrootedSymbolSet)
                 {
                     // Declaration-only compilations should never have any references
@@ -86,6 +94,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation = compilation;
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
                     GeneratedDocuments = generatedDocuments;
+                    GeneratedDocumentsAreFinal = generatedDocumentsAreFinal;
                     UnrootedSymbolSet = unrootedSymbolSet;
                 }
 
@@ -97,9 +106,10 @@ namespace Microsoft.CodeAnalysis
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
 
                     // If we don't have any intermediate projects to process, just initialize our
-                    // DeclarationState now.
+                    // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
+                    // if our referenced projects are changing, so we'll have to rerun to consume changes.
                     return intermediateProjects.Length == 0
-                        ? new FullDeclarationState(compilation, generatedDocuments)
+                        ? new FullDeclarationState(compilation, generatedDocuments, generatedDocumentsAreFinal: false)
                         : (State)new InProgressState(compilation, generatedDocuments, intermediateProjects);
                 }
 
@@ -152,6 +162,7 @@ namespace Microsoft.CodeAnalysis
                     : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
                            generatedDocuments,
+                           generatedDocumentsAreFinal: false, // since we have a set of transformations to make, we'll always have to run generators again
                            GetUnrootedSymbols(inProgressCompilation))
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -167,10 +178,12 @@ namespace Microsoft.CodeAnalysis
             private sealed class LightDeclarationState : State
             {
                 public LightDeclarationState(Compilation declarationOnlyCompilation,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments)
+                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    bool generatedDocumentsAreFinal)
                     : base(compilation: null,
                            declarationOnlyCompilation,
                            generatedDocuments,
+                           generatedDocumentsAreFinal,
                            unrootedSymbolSet: null)
                 {
                 }
@@ -182,10 +195,13 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class FullDeclarationState : State
             {
-                public FullDeclarationState(Compilation declarationCompilation, ImmutableArray<SourceGeneratedDocumentState> generatedDocuments)
+                public FullDeclarationState(Compilation declarationCompilation,
+                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    bool generatedDocumentsAreFinal)
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
                            declarationCompilation.Clone().RemoveAllReferences(),
                            generatedDocuments,
+                           generatedDocumentsAreFinal,
                            GetUnrootedSymbols(declarationCompilation))
                 {
                 }
@@ -218,6 +234,7 @@ namespace Microsoft.CodeAnalysis
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
                            generatedDocuments,
+                           generatedDocumentsAreFinal: true, // when we're in a final state, we've ran generators and should not run again
                            unrootedSymbolSet)
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;

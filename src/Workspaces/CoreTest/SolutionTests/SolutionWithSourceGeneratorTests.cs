@@ -166,6 +166,30 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(compilationWithGenerator, compilationReference.Compilation);
         }
 
+        [Fact]
+        public async Task RequestingGeneratedDocumentsTwiceGivesSameInstance()
+        {
+            using var workspace = AdhocWorkspaceTests.CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+            var generatedDocumentFirstTime = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
+            var tree = await generatedDocumentFirstTime.GetSyntaxTreeAsync();
+
+            // Fetch the compilation, and then wait for it to be GC'ed, then fetch it again. This ensures that
+            // finalizing a compilation more than once doesn't recreate things incorrectly.
+            var compilationReference = ObjectReference.CreateFromFactory(() => project.GetCompilationAsync().Result);
+            compilationReference.AssertReleased();
+            var secondCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+
+            var generatedDocumentSecondTime = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
+
+            Assert.Same(generatedDocumentFirstTime, generatedDocumentSecondTime);
+            Assert.Same(tree, secondCompilation.SyntaxTrees.Single());
+        }
+
         private sealed class GenerateFileForEachAdditionalFileWithContentsCommented : ISourceGenerator
         {
             public void Execute(GeneratorExecutionContext context)
