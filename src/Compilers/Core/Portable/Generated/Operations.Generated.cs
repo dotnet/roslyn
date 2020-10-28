@@ -667,6 +667,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a type conversion.
     /// <para>
@@ -692,7 +693,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
-        IMethodSymbol OperatorMethod { get; }
+        IMethodSymbol? OperatorMethod { get; }
         /// <summary>
         /// Gets the underlying common conversion information.
         /// </summary>
@@ -712,6 +713,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         bool IsChecked { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents an invocation of a method.
@@ -4392,16 +4394,21 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLiteral(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseConversionOperation : OperationOld, IConversionOperation
+    #nullable enable
+    internal sealed partial class ConversionOperation : Operation, IConversionOperation
     {
-        internal BaseConversionOperation(IConvertibleConversion conversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Conversion, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ConversionOperation(IOperation operand, IConvertibleConversion conversion, bool isTryCast, bool isChecked, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            Operand = SetParentOperation(operand, this);
             ConversionConvertible = conversion;
             IsTryCast = isTryCast;
             IsChecked = isChecked;
+            OperationConstantValue = constantValue;
+            Type = type;
         }
-        public abstract IOperation Operand { get; }
+        public IOperation Operand { get; }
         internal IConvertibleConversion ConversionConvertible { get; }
         public CommonConversion Conversion => ConversionConvertible.ToCommonConversion();
         public bool IsTryCast { get; }
@@ -4410,41 +4417,22 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                if (Operand is object) yield return Operand;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Operand is not null) builder.Add(Operand);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.Conversion;
         public override void Accept(OperationVisitor visitor) => visitor.VisitConversion(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitConversion(this, argument);
     }
-    internal sealed partial class ConversionOperation : BaseConversionOperation, IConversionOperation
-    {
-        internal ConversionOperation(IOperation operand, IConvertibleConversion conversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(conversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operand = SetParentOperation(operand, this);
-        }
-        public override IOperation Operand { get; }
-    }
-    internal abstract partial class LazyConversionOperation : BaseConversionOperation, IConversionOperation
-    {
-        private IOperation _lazyOperand = s_unset;
-        internal LazyConversionOperation(IConvertibleConversion conversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(conversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateOperand();
-        public override IOperation Operand
-        {
-            get
-            {
-                if (_lazyOperand == s_unset)
-                {
-                    IOperation operand = CreateOperand();
-                    SetParentOperation(operand, this);
-                    Interlocked.CompareExchange(ref _lazyOperand, operand, s_unset);
-                }
-                return _lazyOperand;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class InvocationOperation : Operation, IInvocationOperation
     {
@@ -7898,6 +7886,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (LiteralOperation)operation;
             return new LiteralOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitConversion(IConversionOperation operation, object? argument)
+        {
+            var internalOperation = (ConversionOperation)operation;
+            return new ConversionOperation(Visit(internalOperation.Operand), internalOperation.ConversionConvertible, internalOperation.IsTryCast, internalOperation.IsChecked, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitInvocation(IInvocationOperation operation, object? argument)
         {

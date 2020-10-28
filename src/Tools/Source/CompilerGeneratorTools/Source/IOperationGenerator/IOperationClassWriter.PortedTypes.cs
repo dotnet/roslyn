@@ -18,7 +18,6 @@ namespace IOperationGenerator
             "IForLoopOperation",
             "IForToLoopOperation",
             "IWhileLoopOperation",
-            "IConversionOperation",
             "IAssignmentOperation",
             "ISimpleAssignmentOperation",
             "ICompoundAssignmentOperation",

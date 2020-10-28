@@ -73,10 +73,12 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal abstract partial class BaseConversionOperation : OperationOld, IConversionOperation
+#nullable enable
+    internal partial class ConversionOperation
     {
-        public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
+        public IMethodSymbol? OperatorMethod => Conversion.MethodSymbol;
     }
+#nullable disable
 
     internal sealed partial class VariableInitializerOperation : BaseVariableInitializerOperation, IVariableInitializerOperation
     {

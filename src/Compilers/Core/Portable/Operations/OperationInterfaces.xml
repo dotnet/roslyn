@@ -590,7 +590,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IConversionOperation" Base="IOperation">
+  <Node Name="IConversionOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a type conversion.
@@ -606,7 +606,7 @@
         <summary>Value to be converted.</summary>
       </Comments>
     </Property>
-    <Property Name="OperatorMethod" Type="IMethodSymbol" SkipGeneration="true">
+    <Property Name="OperatorMethod" Type="IMethodSymbol?" SkipGeneration="true">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>

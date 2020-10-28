@@ -1159,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 LogNewLine();
                 Indent();
-                LogString($"({((BaseConversionOperation)operation).ConversionConvertible})");
+                LogString($"({((ConversionOperation)operation).ConversionConvertible})");
                 Unindent();
             }
 

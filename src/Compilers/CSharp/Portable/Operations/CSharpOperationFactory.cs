@@ -1045,26 +1045,24 @@ namespace Microsoft.CodeAnalysis.Operations
                     bool isTryCast = false;
                     // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
                     bool isChecked = conversion.IsNumeric && boundConversion.Checked;
-                    return new CSharpLazyConversionOperation(this, correctedConversionNode.Operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+                    IOperation operand = Create(correctedConversionNode.Operand);
+                    return new ConversionOperation(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
                 }
             }
         }
-#nullable disable
 
         private IConversionOperation CreateBoundAsOperatorOperation(BoundAsOperator boundAsOperator)
         {
-            BoundNode operand = boundAsOperator.Operand;
+            IOperation operand = Create(boundAsOperator.Operand);
             SyntaxNode syntax = boundAsOperator.Syntax;
             Conversion conversion = boundAsOperator.Conversion;
             bool isTryCast = true;
             bool isChecked = false;
-            ITypeSymbol type = boundAsOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundAsOperator.ConstantValue;
+            ITypeSymbol? type = boundAsOperator.GetPublicTypeSymbol();
             bool isImplicit = boundAsOperator.WasCompilerGenerated;
-            return new CSharpLazyConversionOperation(this, operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ConversionOperation(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue: null, isImplicit);
         }
 
-#nullable enable
         private IDelegateCreationOperation CreateBoundDelegateCreationExpressionOperation(BoundDelegateCreationExpression boundDelegateCreationExpression)
         {
             IOperation target = CreateDelegateTargetOperation(boundDelegateCreationExpression);
