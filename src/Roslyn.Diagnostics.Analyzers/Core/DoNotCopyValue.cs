@@ -547,38 +547,45 @@ namespace Roslyn.Diagnostics.Analyzers
                     CheckLocalSymbolInUnsupportedContext(operation, local);
                 }
 
-                var instance = operation.Collection;
+                // 'foreach' operations have an identity conversion for the collection property, and then invoke the
+                // GetEnumerator method.
+                var instance = operation.Collection as IConversionOperation;
                 var instance2 = (operation.Collection as IConversionOperation)?.Operand;
 
-                switch (Acquire(operation.Collection))
+                if (instance2 is null)
                 {
-                    case RefKind.Ref:
-                        // No special requirements
-                        break;
+                    // Didn't match the known pattern
+                    instance = null;
+                }
+                else if (instance?.Conversion is not { IsIdentity: true, MethodSymbol: null })
+                {
+                    // Not a supported conversion
+                    instance = null;
+                    instance2 = null;
+                }
+                else
+                {
+                    // Treat this as an invocation of the GetEnumerator method.
+                    if (operation.Syntax is CommonForEachStatementSyntax syntax
+                        && operation.SemanticModel.GetForEachStatementInfo(syntax).GetEnumeratorMethod is { } getEnumeratorMethod)
+                    {
+                        CheckMethodSymbolInUnsupportedContext(operation, getEnumeratorMethod);
 
-                    case RefKind.RefReadOnly when operation.Syntax is CommonForEachStatementSyntax syntax && operation.SemanticModel.GetForEachStatementInfo(syntax).GetEnumeratorMethod is { IsReadOnly: true }:
-                        // Requirement of readonly GetEnumerator is met
-                        break;
-
-                    default:
+                        if (instance2 is not null
+                            && _cache.IsNonCopyableType(getEnumeratorMethod.ReceiverType)
+                            && !getEnumeratorMethod.IsReadOnly
+                            && Acquire(instance) == RefKind.In)
+                        {
+                            // mark the instance as not checked by this method
+                            instance2 = null;
+                        }
+                    }
+                    else
+                    {
+                        // Not supported
                         instance = null;
                         instance2 = null;
-                        break;
-                }
-
-                switch (Acquire(instance2))
-                {
-                    case RefKind.Ref:
-                        // No special requirements
-                        break;
-
-                    case RefKind.RefReadOnly when operation.Syntax is CommonForEachStatementSyntax syntax && operation.SemanticModel.GetForEachStatementInfo(syntax).GetEnumeratorMethod is { IsReadOnly: true }:
-                        // Requirement of readonly GetEnumerator is met
-                        break;
-
-                    default:
-                        instance2 = null;
-                        break;
+                    }
                 }
 
                 using var releaser = TryAddForVisit(_handledOperations, instance, out _);
