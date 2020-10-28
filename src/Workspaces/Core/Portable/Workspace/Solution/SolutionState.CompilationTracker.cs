@@ -999,6 +999,21 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.GeneratedDocuments;
             }
 
+            public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
+            {
+                var state = ReadState();
+
+                // If we are in FinalState, then we have correctly ran generators and then know the final contents of the
+                // Compilation. The GeneratedDocuments can be filled for intermediate states, but those aren't guaranteed to be
+                // correct and can be re-ran later.
+                if (state is FinalState finalState)
+                {
+                    return finalState.GeneratedDocuments.SingleOrDefault(d => d.Id == documentId);
+                }
+
+                return null;
+            }
+
             #region Versions
 
             // Dependent Versions are stored on compilation tracker so they are more likely to survive when unrelated solution branching occurs.

@@ -1761,6 +1761,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
+        /// </summary>
+        /// <remarks>
+        /// This is only safe to call if you already have seen the SyntaxTree or equivalent that indicates the document state has already been
+        /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
+        /// similarly tricky like that.
+        /// </remarks>
+        public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
+        {
+            return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+        }
+
+        /// <summary>
         /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
         /// </summary>
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap =

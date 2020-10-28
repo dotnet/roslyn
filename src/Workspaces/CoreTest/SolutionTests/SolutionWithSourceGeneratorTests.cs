@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Contains(regularDocumentSyntaxTree, compilation.SyntaxTrees);
 
                 var generatedSyntaxTree = Assert.Single(compilation.SyntaxTrees.Where(t => t != regularDocumentSyntaxTree));
-                Assert.Null(project.GetDocument(generatedSyntaxTree));
+                Assert.IsType<SourceGeneratedDocument>(project.GetDocument(generatedSyntaxTree));
 
                 Assert.Equal(expectedGeneratedContents, generatedSyntaxTree.GetText().ToString());
             }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
                 var generatedSyntaxTree = Assert.Single(compilation.SyntaxTrees);
-                Assert.Null(project.GetDocument(generatedSyntaxTree));
+                Assert.IsType<SourceGeneratedDocument>(project.GetDocument(generatedSyntaxTree));
 
                 Assert.Equal(expectedGeneratedContents, generatedSyntaxTree.GetText().ToString());
             }
@@ -188,6 +188,43 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Same(generatedDocumentFirstTime, generatedDocumentSecondTime);
             Assert.Same(tree, secondCompilation.SyntaxTrees.Single());
+        }
+
+        [Fact]
+        public async Task GetDocumentWithGeneratedTreeReturnsGeneratedDocument()
+        {
+            using var workspace = new AdhocWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+            var syntaxTree = Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+            var generatedDocument = Assert.IsType<SourceGeneratedDocument>(project.GetDocument(syntaxTree));
+            Assert.Same(syntaxTree, await generatedDocument.GetSyntaxTreeAsync());
+        }
+
+        [Fact]
+        public async Task GetDocumentWithGeneratedTreeForInProgressReturnsGeneratedDocument()
+        {
+            using var workspace = new AdhocWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+            // Ensure we've ran generators at least once
+            await project.GetCompilationAsync();
+
+            // Produce an in-progress snapshot
+            project = project.Documents.Single(d => d.Name == "RegularDocument.cs").WithFrozenPartialSemantics(CancellationToken.None).Project;
+
+            // The generated tree should still be there; even if the regular compilation fell away we've now cached the 
+            // generated trees.
+            var syntaxTree = Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees, t => t.FilePath != "RegularDocument.cs");
+            var generatedDocument = Assert.IsType<SourceGeneratedDocument>(project.GetDocument(syntaxTree));
+            Assert.Same(syntaxTree, await generatedDocument.GetSyntaxTreeAsync());
         }
 
         private sealed class GenerateFileForEachAdditionalFileWithContentsCommented : ISourceGenerator

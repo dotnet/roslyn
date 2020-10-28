@@ -256,7 +256,6 @@ namespace Microsoft.CodeAnalysis
 
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToAnalyzerConfigDocumentMap, documentId, s_createAnalyzerConfigDocumentFunction, this);
         }
-
         public async ValueTask<IEnumerable<SourceGeneratedDocument>> GetSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
         {
             var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
@@ -283,6 +282,34 @@ namespace Microsoft.CodeAnalysis
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
+        /// </summary>
+        /// <remarks>
+        /// This is only safe to call if you already have seen the SyntaxTree or equivalent that indicates the document state has already been
+        /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
+        /// similarly tricky like that.
+        /// </remarks>
+        internal SourceGeneratedDocument? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
+        {
+            // Easy case: do we already have the SourceGeneratedDocument created?
+            if (_idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var document))
+            {
+                return document;
+            }
+
+            // Trickier case now: it's possible we generated this, but we don't actually have the SourceGeneratedDocument for it, so let's go
+            // try to fetch the state.
+            var documentState = _solution.State.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+
+            if (documentState == null)
+            {
+                return null;
+            }
+
+            return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
         }
 
         internal DocumentState? GetDocumentState(DocumentId documentId)
