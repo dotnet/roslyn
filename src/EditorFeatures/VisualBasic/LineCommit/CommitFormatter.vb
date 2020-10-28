@@ -49,6 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 baseSnapshot As ITextSnapshot,
                 baseTree As SyntaxTree,
                 currentSnapshot As ITextSnapshot,
+                blocking As Boolean,
                 cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
 
             Using (Logger.LogBlock(FunctionId.LineCommit_CommitRegion, cancellationToken))
@@ -72,12 +73,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
+                Dim tree = If(blocking,
+                    document.GetSyntaxTreeSynchronously(cancellationToken),
+                    Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False))
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document,
                     documentOptions,
                     spanToFormat,
                     baseSnapshot, baseTree,
-                    dirtyRegion, Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False),
+                    dirtyRegion, tree,
                     cancellationToken)
 
                 Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
@@ -89,7 +93,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     finalDocument = Await CodeCleaner.CleanupAsync(
                         document, textSpanToFormat, codeCleanups, cancellationToken).ConfigureAwait(False)
                 Else
-                    Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
+                    Dim root = If(blocking,
+                        document.GetSyntaxRootSynchronously(cancellationToken),
+                        Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False))
+
                     Dim newRoot = Await CodeCleaner.CleanupAsync(
                         root, textSpanToFormat, document.Project.Solution.Workspace, codeCleanups, cancellationToken).ConfigureAwait(False)
                     If root Is newRoot Then

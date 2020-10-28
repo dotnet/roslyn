@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -65,7 +66,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 commitManagerFactory,
                 workspace.GetService(Of IEditorOperationsFactoryService),
                 workspace.GetService(Of ISmartIndentationService),
-                textUndoHistoryRegistry)
+                textUndoHistoryRegistry,
+                workspace.GetService(Of IAsynchronousOperationListenerProvider))
         End Sub
 
         Friend Sub AssertHadCommit(expectCommit As Boolean)
@@ -124,13 +126,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 _testWorkspace = testWorkspace
             End Sub
 
-            Public Sub CommitRegion(spanToFormat As SnapshotSpan,
-                                    isExplicitFormat As Boolean,
-                                    useSemantics As Boolean,
-                                    dirtyRegion As SnapshotSpan,
-                                    baseSnapshot As ITextSnapshot,
-                                    baseTree As SyntaxTree,
-                                    cancellationToken As CancellationToken) Implements ICommitFormatter.CommitRegion
+            Public Function CommitRegionAsync(
+                    spanToFormat As SnapshotSpan,
+                    isExplicitFormat As Boolean,
+                    useSemantics As Boolean,
+                    dirtyRegion As SnapshotSpan,
+                    baseSnapshot As ITextSnapshot,
+                    baseTree As SyntaxTree,
+                    currentSnapshot As ITextSnapshot,
+                    blocking As Boolean,
+                    cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
                 GotCommit = True
                 UsedSemantics = useSemantics
 
@@ -142,9 +147,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Assert.Equal(trackingSpan.GetSpan(spanToFormat.Snapshot), spanToFormat.Span)
                 End If
 
-                Dim realCommitFormatter As New CommitFormatter(_testWorkspace.GetService(Of IIndentationManagerService))
-                realCommitFormatter.CommitRegion(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
-            End Sub
+                Dim realCommitFormatter As New CommitFormatter(
+                    _testWorkspace.GetService(Of IIndentationManagerService),
+                    _testWorkspace.ExportProvider.GetExportedValue(Of IThreadingContext))
+                Return realCommitFormatter.CommitRegionAsync(
+                    spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree,
+                    currentSnapshot, blocking, cancellationToken)
+            End Function
         End Class
     End Class
 End Namespace

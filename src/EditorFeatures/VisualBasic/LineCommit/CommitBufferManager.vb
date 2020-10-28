@@ -19,7 +19,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _buffer As ITextBuffer
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
-        Private ReadOnly _listener As IAsynchronousOperationListener
         Private _referencingViews As Integer
 
         ''' <summary>
@@ -43,8 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             buffer As ITextBuffer,
             commitFormatter As ICommitFormatter,
             inlineRenameService As IInlineRenameService,
-            threadingContext As IThreadingContext,
-            listenerProvider As IAsynchronousOperationListenerProvider)
+            threadingContext As IThreadingContext)
             MyBase.New(threadingContext, assertIsForeground:=False)
 
             Contract.ThrowIfNull(buffer)
@@ -54,7 +52,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             _buffer = buffer
             _commitFormatter = commitFormatter
             _inlineRenameService = inlineRenameService
-            _listener = listenerProvider.GetListener(FeatureAttribute.Commit)
         End Sub
 
         Public Sub AddReferencingView()
@@ -99,36 +96,48 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         ''' To improve perf, passing false to isExplicitFormat will avoid semantic checks when expanding
         ''' the formatting span to an entire block
         ''' </summary>
-        Public Sub CommitDirty(isExplicitFormat As Boolean, blocking As Boolean, cancellationToken As CancellationToken)
+        Public Sub CommitDirty(isExplicitFormat As Boolean, cancellationToken As CancellationToken)
+            CommitDirtyAsync(isExplicitFormat, blocking:=True, cancellationToken).Wait(cancellationToken)
+        End Sub
+
+        ''' <summary>
+        ''' Commits any dirty region, if one exists.
+        '''
+        ''' To improve perf, passing false to isExplicitFormat will avoid semantic checks when expanding
+        ''' the formatting span to an entire block
+        ''' </summary>
+        Public Function CommitDirtyAsync(isExplicitFormat As Boolean) As Task
+            Return CommitDirtyAsync(isExplicitFormat, blocking:=False, CancellationToken.None)
+        End Function
+
+        Private Function CommitDirtyAsync(isExplicitFormat As Boolean, blocking As Boolean, cancellationToken As CancellationToken) As Task
             Me.AssertIsForeground()
 
             If _inlineRenameService.ActiveSession IsNot Nothing Then
                 _dirtyState = Nothing
-                Return
+                Return Task.CompletedTask
             End If
 
             If _dirtyState Is Nothing Then
-                Return
+                Return Task.CompletedTask
             End If
 
             ' Is something else in the commit process suppressing the commit?
             If _suppressions > 0 Then
-                Return
+                Return Task.CompletedTask
             End If
 
-            ' Kick of the async work to actually compute and apply the commit change.
-            Dim token = _listener.BeginAsyncOperation(NameOf(CommitDirty))
-            Dim task = CommitDirtyAsync(isExplicitFormat, cancellationToken)
-            task.CompletesAsyncOperation(token)
+            Return CommitDirtyWorkerAsync(isExplicitFormat, blocking, cancellationToken)
+        End Function
 
-            ' If the caller wants to block
-            If blocking Then
-                task.Wait(cancellationToken)
-            End If
-        End Sub
-
-        Private Async Function CommitDirtyAsync(isExplicitFormat As Boolean, cancellationToken As CancellationToken) As Task
+        Private Async Function CommitDirtyWorkerAsync(
+                isExplicitFormat As Boolean,
+                blocking As Boolean,
+                cancellationToken As CancellationToken) As Task
             Me.AssertIsForeground()
+
+            ' Create our own linked token to do the async committing work.  This way we can cancel the work if we see
+            ' any edits come through to the buffer.
 
             Using bufferEditTokenSource = New CancellationTokenSource()
                 Using linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(bufferEditTokenSource.Token, cancellationToken)
@@ -174,7 +183,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                             End If
 
                             ' Get the original tree, but come back to the UI thread so we can capture the current buffer snapshot
-                            Dim tree = Await _dirtyState.BaseDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(True)
+                            Dim tree = If(blocking,
+                                _dirtyState.BaseDocument.GetSyntaxTreeSynchronously(cancellationToken),
+                                Await _dirtyState.BaseDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(True))
                             Me.AssertIsForeground()
                             Await _commitFormatter.CommitRegionAsync(
                                 info.SpanToFormat,
@@ -183,6 +194,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                 dirtyRegion,
                                 _dirtyState.BaseSnapshot,
                                 tree,
+                                info.SpanToFormat.Snapshot.TextBuffer.CurrentSnapshot,
+                                blocking,
                                 cancellationToken).ConfigureAwait(False)
                         End Using
                     Finally

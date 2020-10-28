@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             baseSnapshot As ITextSnapshot,
             baseTree As SyntaxTree,
             currentSnapshot As ITextSnapshot,
+            blocking As Boolean,
             cancellationToken As CancellationToken) As Task
     End Interface
 End Namespace

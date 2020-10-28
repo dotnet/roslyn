@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                     Dim beforeCommitVersion = buffer.CurrentSnapshot.Version
                     Dim subjectBufferCaretPosition = MapDownToPoint(e.OldPosition)
-                    commitBufferManager.CommitDirty(isExplicitFormat:=False, cancellationToken:=cancellationToken)
+                    commitBufferManager.CommitDirty(isExplicitFormat:=False, cancellationToken)
 
                     If buffer.CurrentSnapshot.Version Is beforeCommitVersion Then
                         transaction.Cancel()
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 action:=
                 Sub(waitContext)
                     For Each buffer In _view.BufferGraph.GetTextBuffers(Function(b) b.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType))
-                        _commitBufferManagerFactory.CreateForBuffer(buffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=waitContext.CancellationToken)
+                        _commitBufferManagerFactory.CreateForBuffer(buffer).CommitDirty(isExplicitFormat:=False, waitContext.CancellationToken)
                     Next
                 End Sub)
         End Sub

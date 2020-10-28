@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
@@ -41,6 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
         Private ReadOnly _smartIndentationService As ISmartIndentationService
         Private ReadOnly _textUndoHistoryRegistry As ITextUndoHistoryRegistry
+        Private ReadOnly _listener As IAsynchronousOperationListener
 
         Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
             Get
@@ -51,15 +53,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         <ImportingConstructor()>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(
-            bufferManagerFactory As CommitBufferManagerFactory,
-            editorOperationsFactoryService As IEditorOperationsFactoryService,
-            smartIndentationService As ISmartIndentationService,
-            textUndoHistoryRegistry As ITextUndoHistoryRegistry)
+                bufferManagerFactory As CommitBufferManagerFactory,
+                editorOperationsFactoryService As IEditorOperationsFactoryService,
+                smartIndentationService As ISmartIndentationService,
+                textUndoHistoryRegistry As ITextUndoHistoryRegistry,
+                listenerProvider As IAsynchronousOperationListenerProvider)
 
             _bufferManagerFactory = bufferManagerFactory
             _editorOperationsFactoryService = editorOperationsFactoryService
             _smartIndentationService = smartIndentationService
             _textUndoHistoryRegistry = textUndoHistoryRegistry
+            _listener = listenerProvider.GetListener(FeatureAttribute.Commit)
         End Sub
 
         Public Sub ExecuteCommand(args As FormatDocumentCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of FormatDocumentCommandArgs).ExecuteCommand
@@ -75,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Dim wholeFile = snapshot.GetFullSpan()
                 Dim commitBufferManager = _bufferManagerFactory.CreateForBuffer(buffer)
                 commitBufferManager.ExpandDirtyRegion(wholeFile)
-                commitBufferManager.CommitDirty(isExplicitFormat:=True, cancellationToken:=context.OperationContext.UserCancellationToken)
+                commitBufferManager.CommitDirty(isExplicitFormat:=True, context.OperationContext.UserCancellationToken)
             End Using
         End Sub
 
@@ -104,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Dim selectedSpan = New SnapshotSpan(snapshot, textspan.Start, textspan.Length)
                     Dim commitBufferManager = _bufferManagerFactory.CreateForBuffer(buffer)
                     commitBufferManager.ExpandDirtyRegion(selectedSpan)
-                    commitBufferManager.CommitDirty(isExplicitFormat:=True, cancellationToken:=context.OperationContext.UserCancellationToken)
+                    commitBufferManager.CommitDirty(isExplicitFormat:=True, context.OperationContext.UserCancellationToken)
                 Next
             End Using
 
@@ -144,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         suppressionHandle.Dispose()
                         suppressionHandle = Nothing
 
-                        bufferManager.CommitDirty(isExplicitFormat:=False, cancellationToken:=_cancellationToken)
+                        bufferManager.CommitDirty(isExplicitFormat:=False, _cancellationToken)
 
                         ' We may have re-indented the surrounding block, so let's recompute
                         ' where we should end up
@@ -239,7 +243,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Return
             End If
 
-            _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, blocking:=False, cancellationToken:=Nothing)
+            ' We're kicking off async work in a non blocking fashion.  Ensure we can track this during tests
+            Dim token = _listener.BeginAsyncOperation(NameOf(ExecuteCommand))
+            Dim task = _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirtyAsync(isExplicitFormat:=False)
+            task.CompletesAsyncOperation(token)
         End Sub
 
         Public Function GetCommandState(args As PasteCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of PasteCommandArgs).GetCommandState
@@ -250,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             If args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.FormatOnSave) Then
                 Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
                     Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Format_on_Save)
-                        _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=context.OperationContext.UserCancellationToken)
+                        _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, context.OperationContext.UserCancellationToken)
 
                         ' We should only create the transaction if anything actually happened
                         If transaction.UndoPrimitives.Any() Then
