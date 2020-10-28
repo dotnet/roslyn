@@ -9,16 +9,13 @@ using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed class DoNotCopyValue : DiagnosticAnalyzer
+    public abstract class AbstractDoNotCopyValue : DiagnosticAnalyzer
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
@@ -93,6 +90,8 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule, UnsupportedUseRule, NoBoxingRule, NoUnboxingRule);
 
+        protected abstract NonCopyableWalker CreateWalker(OperationBlockAnalysisContext context, NonCopyableTypesCache cache);
+
         public override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
@@ -105,9 +104,9 @@ namespace Roslyn.Diagnostics.Analyzers
             });
         }
 
-        private static void AnalyzeOperationBlock(OperationBlockAnalysisContext context, NonCopyableTypesCache cache)
+        private void AnalyzeOperationBlock(OperationBlockAnalysisContext context, NonCopyableTypesCache cache)
         {
-            var walker = new NonCopyableWalker(context, cache);
+            var walker = CreateWalker(context, cache);
             foreach (var operation in context.OperationBlocks)
             {
                 walker.Visit(operation);
@@ -149,17 +148,20 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
-        private sealed class NonCopyableWalker : OperationWalker
+        protected abstract class NonCopyableWalker : OperationWalker
         {
             private readonly OperationBlockAnalysisContext _context;
-            private readonly NonCopyableTypesCache _cache;
             private readonly HashSet<IOperation> _handledOperations = new HashSet<IOperation>();
 
-            public NonCopyableWalker(OperationBlockAnalysisContext context, NonCopyableTypesCache cache)
+            protected NonCopyableWalker(OperationBlockAnalysisContext context, NonCopyableTypesCache cache)
             {
                 _context = context;
-                _cache = cache;
+                Cache = cache;
             }
+
+            protected NonCopyableTypesCache Cache { get; }
+
+            protected abstract bool CheckForEachGetEnumerator(IForEachLoopOperation operation, [DisallowNull] ref IConversionOperation? conversion, [DisallowNull] ref IOperation? instance);
 
             public override void VisitAddressOf(IAddressOfOperation operation)
             {
@@ -222,11 +224,11 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 // Treat await of ValueTask<T> the same way handling of a return
                 if (operation.Type is { } type
-                    && _cache.IsNonCopyableType(type)
+                    && Cache.IsNonCopyableType(type)
                     && operation.Operation.Type is INamedTypeSymbol { OriginalDefinition: var taskType })
                 {
-                    if (!SymbolEqualityComparer.Default.Equals(taskType, _cache.ValueTaskT)
-                        && !SymbolEqualityComparer.Default.Equals(taskType, _cache.ConfiguredValueTaskAwaitableT))
+                    if (!SymbolEqualityComparer.Default.Equals(taskType, Cache.ValueTaskT)
+                        && !SymbolEqualityComparer.Default.Equals(taskType, Cache.ConfiguredValueTaskAwaitableT))
                     {
                         CheckTypeInUnsupportedContext(operation);
                     }
@@ -566,21 +568,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 else
                 {
                     // Treat this as an invocation of the GetEnumerator method.
-                    if (operation.Syntax is CommonForEachStatementSyntax syntax
-                        && operation.SemanticModel.GetForEachStatementInfo(syntax).GetEnumeratorMethod is { } getEnumeratorMethod)
-                    {
-                        CheckMethodSymbolInUnsupportedContext(operation, getEnumeratorMethod);
-
-                        if (instance2 is not null
-                            && _cache.IsNonCopyableType(getEnumeratorMethod.ReceiverType)
-                            && !getEnumeratorMethod.IsReadOnly
-                            && Acquire(instance) == RefKind.In)
-                        {
-                            // mark the instance as not checked by this method
-                            instance2 = null;
-                        }
-                    }
-                    else
+                    if (!CheckForEachGetEnumerator(operation, ref instance, ref instance2))
                     {
                         // Not supported
                         instance = null;
@@ -669,7 +657,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
                 var instance = operation.Instance;
                 if (instance is object
-                    && _cache.IsNonCopyableType(operation.TargetMethod.ReceiverType)
+                    && Cache.IsNonCopyableType(operation.TargetMethod.ReceiverType)
                     && !operation.TargetMethod.IsReadOnly
                     && Acquire(instance) == RefKind.In)
                 {
@@ -837,7 +825,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
                 var instance = operation.Instance;
                 if (instance is object
-                    && _cache.IsNonCopyableType(operation.Property.ContainingType)
+                    && Cache.IsNonCopyableType(operation.Property.ContainingType)
                     && Acquire(instance) == RefKind.In)
                 {
                     if (operation.IsSetMethodInvocation())
@@ -1144,7 +1132,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 };
             }
 
-            private RefKind Acquire(IOperation? operation)
+            protected RefKind Acquire(IOperation? operation)
             {
                 if (operation is null)
                     return RefKind.RefReadOnly;
@@ -1338,7 +1326,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
                     var nullableUnderlyingType = ((INamedTypeSymbol)type).TypeArguments.FirstOrDefault();
-                    if (_cache.IsNonCopyableType(nullableUnderlyingType))
+                    if (Cache.IsNonCopyableType(nullableUnderlyingType))
                     {
                         _context.ReportDiagnostic(operation.Syntax.CreateDiagnostic(AvoidNullableWrapperRule, type, operation.Kind));
                     }
@@ -1380,7 +1368,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 CheckTypeSymbolInUnsupportedContext(operation, local.Type);
             }
 
-            private void CheckMethodSymbolInUnsupportedContext(IOperation operation, IMethodSymbol? symbol)
+            protected void CheckMethodSymbolInUnsupportedContext(IOperation operation, IMethodSymbol? symbol)
             {
                 if (symbol is null)
                     return;
@@ -1424,7 +1412,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     return;
                 }
 
-                if (!_cache.IsNonCopyableType(symbol))
+                if (!Cache.IsNonCopyableType(symbol))
                 {
                     // Copies of this type are allowed
                     return;
@@ -1434,7 +1422,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
-        private sealed class NonCopyableTypesCache
+        protected sealed class NonCopyableTypesCache
         {
             private readonly ConcurrentDictionary<INamedTypeSymbol, bool> _typesToNonCopyable
                 = new ConcurrentDictionary<INamedTypeSymbol, bool>();
