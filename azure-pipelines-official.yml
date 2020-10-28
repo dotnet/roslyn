@@ -1,3 +1,9 @@
+# Branches that trigger a build on commit
+trigger:
+- dev15.9.x-vs-deps
+- master-vs-deps
+- release/*-vs-deps
+
 resources:
 - repo: self
   clean: true
@@ -43,11 +49,11 @@ stages:
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
-    # Conditionally set build pool so we can share this YAML when building with different pipeline (devdiv vs dnceng) 
-    pool:      
+    # Conditionally set build pool so we can share this YAML when building with different pipeline (devdiv vs dnceng)
+    pool:
       ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
         name: VSEng-MicroBuildVS2017
-        demands: 
+        demands:
         - msbuild
         - visualstudio
         - DotNetFramework
@@ -55,7 +61,7 @@ stages:
         name: NetCoreInternal-Pool
         queue: BuildPool.Windows.10.Amd64.VS2019.Pre
 
-    steps:        
+    steps:
     # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
     # i.e. DevDiv builds will have even rev# whereas dnceng builds will be odd.
     - task: PowerShell@2
@@ -77,7 +83,7 @@ stages:
         type: 'Build'
         tags: 'OfficialBuild'
       condition: and(succeeded(), endsWith(variables['SourceBranchName'], '-vs-deps'), eq(variables['PRNumber'], 'default'))
-          
+
     - task: tagBuildOrRelease@0
       displayName: Tag PR validation build
       inputs:
@@ -127,7 +133,7 @@ stages:
     # Required by MicroBuildBuildVSBootstrapper
     - task: ms-vseng.MicroBuildTasks.32f78468-e895-4f47-962c-58a699361df8.MicroBuildSwixPlugin@1
       inputs:
-        dropName: $(VisualStudio.DropName) 
+        dropName: $(VisualStudio.DropName)
         feedSource: 'https://devdiv-test.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json'
 
     - script: eng\cibuild.cmd
@@ -249,7 +255,7 @@ stages:
 
     # Publish insertion packages to CoreXT store.
     - task: NuGetCommand@2
-      displayName: Publish CoreXT Packages 
+      displayName: Publish CoreXT Packages
       inputs:
         command: push
         feedsToUse: config
@@ -266,7 +272,7 @@ stages:
         ArtifactName: 'VSSetup'
       condition: succeeded()
 
-    # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the 
+    # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the
     # arcade templates depend on the name.
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact Packages
@@ -303,7 +309,7 @@ stages:
       queue:
         name: Hosted VS2017
 
-# We need to skip post-build stages for PR validation build, but it can only be identified by 
+# We need to skip post-build stages for PR validation build, but it can only be identified by
 # the runtime variable 'PRNumber', thus this dummy stage. Also the dummy job is required
 # otherwise AzDO would just repeat jobs from previous stage.
 - stage: SetValidateDependency
@@ -323,8 +329,8 @@ stages:
       # https://github.com/dotnet/arcade/issues/2871 is resolved.
       enableSymbolValidation: false
       enableSourceLinkValidation: false
-      # It's important that post-build stages are depends on 'SetValidateDependency' stage instead of 'build', 
-      # since we don't want to publish validation build. 
+      # It's important that post-build stages are depends on 'SetValidateDependency' stage instead of 'build',
+      # since we don't want to publish validation build.
       validateDependsOn:
         - SetValidateDependency
       dependsOn:
