@@ -31,8 +31,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, bool forPullDiagnostics, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get current buckets stored our diagnostics are grouped into.  Specific buckets can be retrieved by calling
-        /// <see cref="IDiagnosticServiceExtensions.GetDiagnostics(IDiagnosticService, DiagnosticBucket, bool, bool, CancellationToken)"/>.
+        /// Get current buckets storing our grouped diagnostics.  Specific buckets can be retrieved by calling <see
+        /// cref="IDiagnosticServiceExtensions.GetDiagnostics(IDiagnosticService, DiagnosticBucket, bool, bool,
+        /// CancellationToken)"/>.
         /// </summary>
         /// <param name="forPullDiagnostics">If the caller of this method will be using the diagnostics for pull or push
         /// diagnostic purposes.  The <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull
