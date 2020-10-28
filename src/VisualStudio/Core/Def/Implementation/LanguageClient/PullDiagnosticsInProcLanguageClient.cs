@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider)
-            : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, diagnosticsClientName: null)
+            : base(languageServerProtocol, workspace, diagnosticService: null, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
             _globalOptionService = globalOptionService;
         }

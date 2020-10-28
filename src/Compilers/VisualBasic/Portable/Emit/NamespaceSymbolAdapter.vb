@@ -19,5 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.ContainingNamespace
             End Get
         End Property
+
+        Private Function INamespaceSymbol_GetInternalSymbol() As CodeAnalysis.Symbols.INamespaceSymbolInternal Implements Cci.INamespace.GetInternalSymbol
+            Return Me
+        End Function
     End Class
 End Namespace

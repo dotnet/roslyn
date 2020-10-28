@@ -66,9 +66,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
-        public async Task<bool> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer diagnosticAnalyzer, Project project, CancellationToken cancellationToken)
-            => await DiagnosticAnalyzerInfoCache.IsCompilationEndAnalyzerAsync(diagnosticAnalyzer, project, cancellationToken).ConfigureAwait(false) == true;
-
         public bool ContainsDiagnostics(ProjectId projectId)
         {
             foreach (var stateSet in _stateManager.GetStateSets(projectId))

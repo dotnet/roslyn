@@ -658,5 +658,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Protected NotOverridable Overrides Function CreatePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.IMethodDefinition
             Return New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics))
         End Function
+
+        Public Overrides Function GetAdditionalTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            Return GetAdditionalTopLevelTypes(context.Diagnostics)
+        End Function
+
+        Public Overrides Function GetEmbeddedTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            Return GetEmbeddedTypes(context.Diagnostics)
+        End Function
     End Class
 End Namespace

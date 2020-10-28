@@ -560,5 +560,17 @@ class C {
     int M(C arg1) => arg1[index: ^1]; 
 }" + TestSources.Index);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestNoTrailingArgumentsToName()
+        {
+            // Because we're on the last argument that doesn't have a name, we should only offer one refactoring to the user.
+            var initialMarkup = @"class C { void M(int arg1, int arg2, int arg3) => M(1, [||]2, arg3: 3); }";
+            await TestActionCountAsync(initialMarkup, count: 1);
+
+            await TestInRegularAndScriptAsync(
+                initialMarkup,
+                @"class C { void M(int arg1, int arg2, int arg3) => M(1, arg2: 2, arg3: 3); }");
+        }
     }
 }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        private const string DefaultParameterName = "p";
+        public const string DefaultParameterName = "p";
         private const string DefaultBuiltInParameterName = "v";
 
         public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)

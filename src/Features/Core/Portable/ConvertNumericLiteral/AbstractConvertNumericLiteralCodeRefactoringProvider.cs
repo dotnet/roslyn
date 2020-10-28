@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             // Insert digit separators in the given interval.
             var result = Regex.Replace(numericText, $"(.{{{interval}}})", "_$1", RegexOptions.RightToLeft);
             // Fix for the case "0x_1111" that is not supported yet.
-            return result[0] == '_' ? result.Substring(1) : result;
+            return result[0] == '_' ? result[1..] : result;
         }
 
         private static bool IsIntegral(SpecialType specialType)

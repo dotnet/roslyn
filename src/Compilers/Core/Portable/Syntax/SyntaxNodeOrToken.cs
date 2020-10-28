@@ -129,6 +129,15 @@ namespace Microsoft.CodeAnalysis
 
         internal int Position => _position;
 
+        internal GreenNode RequiredUnderlyingNode
+        {
+            get
+            {
+                Debug.Assert(UnderlyingNode is not null);
+                return UnderlyingNode;
+            }
+        }
+
         /// <summary>
         /// Determines whether this <see cref="SyntaxNodeOrToken"/> is wrapping a token.
         /// </summary>
