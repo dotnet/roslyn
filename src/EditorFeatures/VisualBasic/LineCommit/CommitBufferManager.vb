@@ -3,9 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 
@@ -143,10 +141,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Using linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(bufferEditTokenSource.Token, cancellationToken)
 
                     ' if the text buffer is changed, then cancel any work we're doing.
+                    Dim textBuffer = _dirtyState.BaseSnapshot.TextBuffer
                     Dim handler = Sub(sender As Object, eventArgs As TextContentChangingEventArgs)
                                       bufferEditTokenSource.Cancel()
                                   End Sub
-                    AddHandler _dirtyState.BaseSnapshot.TextBuffer.Changing, handler
+                    AddHandler textBuffer.Changing, handler
 
                     Try
                         ' Start to suppress commits to ensure we don't have any sort of re-entrancy in this process.
@@ -199,12 +198,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                 cancellationToken).ConfigureAwait(False)
                         End Using
                     Finally
+                        ' make sure we always clean up our event handler
+                        RemoveHandler textBuffer.Changing, handler
+
                         ' We may have tracked a dirty region while committing or it may have been aborted.
                         ' In any case, we want to guarantee we have no dirty region once we're done
                         _dirtyState = Nothing
-
-                        ' make sure we always clean up our event handler
-                        RemoveHandler _dirtyState.BaseSnapshot.TextBuffer.Changing, handler
                     End Try
                 End Using
             End Using
