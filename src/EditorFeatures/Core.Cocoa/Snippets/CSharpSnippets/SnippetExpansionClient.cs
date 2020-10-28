@@ -65,11 +65,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             switch (snippetFunctionName)
             {
                 case "SimpleTypeName":
-                    return new SnippetFunctionSimpleTypeName(this, TextView, SubjectBuffer, fieldName, param);
+                    return new SnippetFunctionSimpleTypeName(this, SubjectBuffer, fieldName, param);
                 case "ClassName":
-                    return new SnippetFunctionClassName(this, TextView, SubjectBuffer, fieldName);
+                    return new SnippetFunctionClassName(this, SubjectBuffer, fieldName);
                 case "GenerateSwitchCases":
-                    return new SnippetFunctionGenerateSwitchCases(this, TextView, SubjectBuffer, fieldName, param);
+                    return new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, fieldName, param);
                 default:
                     return null;
             }
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var contextLocation = root.FindToken(position).Parent;
 
-            var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode, cancellationToken);
+            var newUsingDirectives = GetUsingDirectivesToAdd(snippetNode, importsNode);
             if (!newUsingDirectives.Any())
             {
                 return document;
@@ -115,12 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             return formattedDocument;
         }
 
-        private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
-#pragma warning disable IDE0060 // Remove unused parameter
-#pragma warning disable IDE0060 // Remove unused parameter
-            SyntaxNode contextLocation, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore IDE0060 // Remove unused parameter
+        private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(XElement snippetNode, XElement importsNode)
         {
             var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
             var existingUsings = (IEnumerable<UsingDirectiveSyntax>)null;// contextLocation.GetEnclosingUsingDirectives();
@@ -153,13 +148,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             }
 
             return newUsings;
-        }
-
-#pragma warning disable IDE0051 // Remove unused private members
-        private static string GetAliasName(UsingDirectiveSyntax usingDirective)
-#pragma warning restore IDE0051 // Remove unused private members
-        {
-            return (usingDirective.Alias == null || usingDirective.Alias.Name == null) ? null : usingDirective.Alias.Name.ToString();
         }
     }
 }

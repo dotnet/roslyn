@@ -14,17 +14,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     internal abstract partial class AbstractSnippetFunction
     {
-#pragma warning disable IDE0052 // Remove unread private members
-        private readonly ITextView _textView;
-#pragma warning restore IDE0052 // Remove unread private members
         private readonly ITextBuffer _subjectBuffer;
 
         protected AbstractSnippetExpansionClient snippetExpansionClient;
 
-        public AbstractSnippetFunction(AbstractSnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer)
+        public AbstractSnippetFunction(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer)
         {
             this.snippetExpansionClient = snippetExpansionClient;
-            _textView = textView;
             _subjectBuffer = subjectBuffer;
         }
 
