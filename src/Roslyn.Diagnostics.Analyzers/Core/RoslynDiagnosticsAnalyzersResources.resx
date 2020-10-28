@@ -366,4 +366,16 @@
   <data name="BlankLinesTitle" xml:space="preserve">
     <value>Avoid multiple blank lines</value>
   </data>
+  <data name="DoNotCopyValueNoAssignValueFromReferenceDescription" xml:space="preserve">
+    <value>Cannot assign a value from a reference to a non-copyable type.</value>
+  </data>
+  <data name="DoNotCopyValueNoAssignValueFromReferenceMessage" xml:space="preserve">
+    <value>Cannot assign a value from a reference to non-copyable type '{0}'</value>
+  </data>
+  <data name="DoNotCopyValueNoReturnValueFromReferenceDescription" xml:space="preserve">
+    <value>Cannot return a value from a reference to a non-copyable type.</value>
+  </data>
+  <data name="DoNotCopyValueNoReturnValueFromReferenceMessage" xml:space="preserve">
+    <value>Cannot return a value from a reference to non-copyable type '{0}'</value>
+  </data>
 </root>
