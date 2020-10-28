@@ -17,19 +17,9 @@
         <target state="translated">ソリューションに含まれているすべての '{0}' を修正します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
-        <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
-        <target state="translated">タスクの完了には ID {0} のプロジェクトが必要ですが、このソリューションからは利用できません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Supplied_diagnostic_cannot_be_null">
         <source>Supplied diagnostic cannot be null.</source>
         <target state="translated">診断に null は指定できません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_solution_does_not_contain_the_specified_document">
-        <source>The solution does not contain the specified document.</source>
-        <target state="translated">ソリューションには、指定されたドキュメントがありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -34,55 +35,35 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static Project GetRequiredProject(this Solution solution, ProjectId projectId)
         {
             var project = solution.GetProject(projectId);
-            if (project == null)
-            {
-                throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution, projectId));
-            }
-
+            Contract.ThrowIfNull(project);
             return project;
         }
 
         public static Document GetRequiredDocument(this Solution solution, DocumentId documentId)
         {
             var document = solution.GetDocument(documentId);
-            if (document == null)
-            {
-                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
-            }
-
+            Contract.ThrowIfNull(document);
             return document;
         }
 
         public static TextDocument GetRequiredAdditionalDocument(this Solution solution, DocumentId documentId)
         {
             var document = solution.GetAdditionalDocument(documentId);
-            if (document == null)
-            {
-                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
-            }
-
+            Contract.ThrowIfNull(document);
             return document;
         }
 
         public static TextDocument GetRequiredAnalyzerConfigDocument(this Solution solution, DocumentId documentId)
         {
             var document = solution.GetAnalyzerConfigDocument(documentId);
-            if (document == null)
-            {
-                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
-            }
-
+            Contract.ThrowIfNull(document);
             return document;
         }
 
         public static TextDocument GetRequiredTextDocument(this Solution solution, DocumentId documentId)
         {
             var document = solution.GetTextDocument(documentId);
-            if (document == null)
-            {
-                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
-            }
-
+            Contract.ThrowIfNull(document);
             return document;
         }
     }
