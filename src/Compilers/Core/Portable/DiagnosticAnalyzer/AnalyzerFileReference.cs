@@ -111,7 +111,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
-            return _diagnosticAnalyzers.GetExtensionsForAllLanguages();
+            // This API returns duplicates of analyzers that support multiple languages.
+            // We explicitly retain this behaviour to ensure back compat
+            return _diagnosticAnalyzers.GetExtensionsForAllLanguages(includeDuplicates: true);
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
@@ -119,11 +121,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _diagnosticAnalyzers.GetExtensions(language);
         }
 
+        public override ImmutableArray<ISourceGenerator> GetGeneratorsForAllLanguages()
+        {
+            return _generators.GetExtensionsForAllLanguages(includeDuplicates: false);
+        }
+
+        [Obsolete("Use GetGenerators(string language) or GetGeneratorsForAllLanguages()")]
         public override ImmutableArray<ISourceGenerator> GetGenerators()
         {
-            //PROTOTYPE: Should we keep returning  all generators, or default to CSharp to retain strict back compat?
-            //           Alternatively, we could obsolete this method (and make it return CSharp) and add a GetGeneratorsForAllLanguages()
-            return _generators.GetExtensionsForAllLanguages();
+            return _generators.GetExtensions(LanguageNames.CSharp);
         }
 
         public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
@@ -351,17 +357,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
             }
 
-            internal ImmutableArray<TExtension> GetExtensionsForAllLanguages()
+            internal ImmutableArray<TExtension> GetExtensionsForAllLanguages(bool includeDuplicates)
             {
                 if (_lazyAllExtensions.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyAllExtensions, CreateExtensionsForAllLanguages(this));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyAllExtensions, CreateExtensionsForAllLanguages(this, includeDuplicates));
                 }
 
                 return _lazyAllExtensions;
             }
 
-            private static ImmutableArray<TExtension> CreateExtensionsForAllLanguages(Extensions<TExtension> extensions)
+            private static ImmutableArray<TExtension> CreateExtensionsForAllLanguages(Extensions<TExtension> extensions, bool includeDuplicates)
             {
                 // Get all analyzers in the assembly.
                 var map = ImmutableDictionary.CreateBuilder<string, ImmutableArray<TExtension>>();
@@ -370,7 +376,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var builder = ImmutableArray.CreateBuilder<TExtension>();
                 foreach (var analyzers in map.Values)
                 {
-                    builder.AddRange(analyzers);
+                    foreach (var analyzer in analyzers)
+                    {
+                        if (includeDuplicates || !builder.Contains(t => t.GetType().Equals(analyzer.GetType())))
+                        {
+                            builder.Add(analyzer);
+                        }
+                    }
                 }
 
                 return builder.ToImmutable();
