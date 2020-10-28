@@ -588,7 +588,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             var diagnostic = new LSP.Diagnostic
             {
-                Source = this._languageClient.GetType().Name,
+                Source = _languageClient?.GetType().Name,
                 Code = diagnosticData.Id,
                 Severity = Convert(diagnosticData.Severity),
                 Range = GetDiagnosticRange(diagnosticData.DataLocation, text, isRazor),
