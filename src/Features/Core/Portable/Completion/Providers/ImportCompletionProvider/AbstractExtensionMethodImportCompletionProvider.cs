@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         cancellationToken).ConfigureAwait(false);
 
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    var isInferredTypeDelegate = syntaxContext.InferredTypes.Any(type => type.IsDelegateType());
-                    completionContext.AddItems(items.Select(i => Convert(i, receiverTypeKey, isInferredTypeDelegate)));
+                    var completionItemsQuery = items.Select(item => Convert(item, receiverTypeKey));
+                    completionContext.AddItems(AttachParenthesisCompletionProperties(syntaxContext, completionItemsQuery));
                 }
                 else
                 {
@@ -104,17 +104,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _ => symbol as ITypeSymbol,
             };
 
-        private CompletionItem Convert(SerializableImportCompletionItem serializableItem, string receiverTypeSymbolKey, bool isInferredTypeDelegate)
-        {
-            var item = ImportCompletionItem.Create(
-                    serializableItem.Name,
-                    serializableItem.Arity,
-                    serializableItem.ContainingNamespace,
-                    serializableItem.Glyph,
-                    GenericSuffix,
-                    CompletionItemFlags.Expanded,
-                    (serializableItem.SymbolKeyData, receiverTypeSymbolKey, serializableItem.AdditionalOverloadCount));
-            return ImportCompletionItem.CreateItemWithProvideParenthesisCompletion(item, isInferredTypeDelegate);
-        }
+        private CompletionItem Convert(SerializableImportCompletionItem serializableItem, string receiverTypeSymbolKey)
+            => ImportCompletionItem.Create(
+                serializableItem.Name,
+                serializableItem.Arity,
+                serializableItem.ContainingNamespace,
+                serializableItem.Glyph,
+                GenericSuffix,
+                CompletionItemFlags.Expanded,
+                (serializableItem.SymbolKeyData, receiverTypeSymbolKey, serializableItem.AdditionalOverloadCount));
     }
 }

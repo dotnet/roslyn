@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -27,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
+        protected abstract IEnumerable<CompletionItem> AttachParenthesisCompletionProperties(SyntaxContext syntaxContext, IEnumerable<CompletionItem> items);
 
         // For telemetry reporting
         protected abstract void LogCommit();
@@ -111,15 +111,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
 
             var textChange = commitKey == ';' && ImportCompletionItem.GetProvideParenthesisCompletion(completionItem)
-                ? completionItem.DisplayText + "();"
+                ? completionItem.DisplayText + "()"
                 : completionItem.DisplayText;
 
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
                 var fullyQualifiedName = $"{containingNamespace}.{textChange}";
-                var change = new TextChange(completionListSpan, fullyQualifiedName);
-
-                return CompletionChange.Create(change);
+                return CompletionChange.Create(new TextChange(completionListSpan, fullyQualifiedName));
             }
 
             // Find context node so we can use it to decide where to insert using/imports.
@@ -164,7 +162,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
 
-            return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
+            var change = Utilities.Collapse(newText, builder.ToImmutableAndFree());
+            int? caretLocation = commitKey == ';' ? change.Span.Start + change.NewText.Length - 2 : null;
+            return CompletionChange.Create(change, null);
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {

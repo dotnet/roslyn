@@ -309,20 +309,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return SymbolCompletionItem.AddPutCaretBetweenParenthesis(item, hasParameter);
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
+        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
             if (commitKey == ';' && SymbolCompletionItem.GetProvideParenthesisCompletion(item))
             {
                 var textChange = new TextChange(item.Span, insertionText + "();");
                 var endOfInsertionText = item.Span.Start + insertionText.Length;
-                return CompletionChange.Create(textChange,
+                return Task.FromResult(CompletionChange.Create(textChange,
                     SymbolCompletionItem.GetPutCaretBetweenParenthesis(item) ? endOfInsertionText + 1 : endOfInsertionText + 3,
-                    includesCommitCharacter: true);
+                    includesCommitCharacter: true));
             }
 
             var insertionTextChange = new TextChange(item.Span, insertionText);
-            return CompletionChange.Create(insertionTextChange);
+            return Task.FromResult(CompletionChange.Create(insertionTextChange));
         }
     }
 }

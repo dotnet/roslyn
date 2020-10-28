@@ -44,7 +44,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     foreach (var items in itemsFromAllAssemblies)
                     {
-                        AddItems(items, completionContext, namespacesInScope, telemetryCounter);
+                        AddItems(
+                            AttachParenthesisCompletionProperties(syntaxContext, items).ToImmutableArray(),
+                            completionContext,
+                            namespacesInScope,
+                            telemetryCounter);
                     }
                 }
 

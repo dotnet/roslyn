@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 
@@ -55,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ExternAliasDirectiveSyntax externAliasDirective => externAliasDirective.SemicolonToken == token,
                 _ => false,
             };
+        }
+
+        protected override IEnumerable<CompletionItem> AttachParenthesisCompletionProperties(SyntaxContext syntaxContext, IEnumerable<CompletionItem> items)
+        {
+            var isInferredTypeDelegate = syntaxContext.InferredTypes.Any(type => type.IsDelegateType());
+            return items.Select(item => ImportCompletionItem.CreateItemWithProvideParenthesisCompletion(item, !isInferredTypeDelegate));
         }
     }
 }
