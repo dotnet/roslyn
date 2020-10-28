@@ -579,7 +579,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 var diagnostic = new LSP.Diagnostic
                 {
                     Code = diagnosticData.Id,
-                    Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
+                    Severity = Convert(diagnosticData.Severity),
                     Range = GetDiagnosticRange(diagnosticData.DataLocation, text),
                     // Only the unnecessary diagnostic tag is currently supported via LSP.
                     Tags = diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
@@ -593,6 +593,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 return diagnostic;
             }
         }
+
+        private static LSP.DiagnosticSeverity Convert(CodeAnalysis.DiagnosticSeverity severity)
+            => severity switch
+            {
+                CodeAnalysis.DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
+                CodeAnalysis.DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Hint,
+                CodeAnalysis.DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
+                CodeAnalysis.DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
+                _ => throw ExceptionUtilities.UnexpectedValue(severity),
+            };
 
         // Some diagnostics only apply to certain clients and document types, e.g. Razor.
         // If the DocumentPropertiesService.DiagnosticsLspClientName property exists, we only include the
