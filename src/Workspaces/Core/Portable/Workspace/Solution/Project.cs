@@ -270,6 +270,21 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutable();
         }
 
+        public async ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken = default)
+        {
+            var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
+
+            foreach (var generatedDocumentState in generatedDocumentStates)
+            {
+                if (generatedDocumentState.Id == documentId)
+                {
+                    return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, generatedDocumentState.Id, s_createSourceGeneratedDocumentFunction, (generatedDocumentState, this));
+                }
+            }
+
+            return null;
+        }
+
         internal DocumentState? GetDocumentState(DocumentId documentId)
             => _projectState.GetDocumentState(documentId);
 
