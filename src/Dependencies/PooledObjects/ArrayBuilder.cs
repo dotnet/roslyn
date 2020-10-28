@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         private readonly ImmutableArray<T>.Builder _builder;
 
-        private readonly ObjectPool<ArrayBuilder<T>> _pool;
+        private readonly ObjectPool<ArrayBuilder<T>>? _pool;
 
         public ArrayBuilder(int size)
         {
@@ -127,7 +125,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             while (index > _builder.Count)
             {
-                _builder.Add(default);
+                _builder.Add(default!);
             }
 
             if (index == _builder.Count)
@@ -293,7 +291,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             var tmp = ArrayBuilder<U>.GetInstance(Count);
             foreach (var i in this)
             {
-                tmp.Add((U)i);
+                tmp.Add((U)i!);
             }
 
             return tmp.ToImmutableAndFree();
@@ -403,8 +401,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public static ObjectPool<ArrayBuilder<T>> CreatePool(int size)
         {
-            ObjectPool<ArrayBuilder<T>> pool = null;
-            pool = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(pool), size);
+            ObjectPool<ArrayBuilder<T>>? pool = null;
+            pool = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(pool!), size);
             return pool;
         }
 
@@ -425,7 +423,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return _builder.GetEnumerator();
         }
 
-        internal Dictionary<K, ImmutableArray<T>> ToDictionary<K>(Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
+        internal Dictionary<K, ImmutableArray<T>> ToDictionary<K>(Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+            where K : notnull
         {
             if (this.Count == 1)
             {

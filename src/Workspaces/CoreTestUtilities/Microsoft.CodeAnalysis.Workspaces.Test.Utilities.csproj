@@ -8,6 +8,9 @@
     <UseWpf>true</UseWpf>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+
+    <!-- CSC error AD0001: Analyzer 'Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.CSharpRestrictedInternalsVisibleToAnalyzer' threw an exception of type 'System.NullReferenceException' with message 'Object reference not set to an instance of an object.'. -->
+    <NoWarn>$(NoWarn);RS0035</NoWarn>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
