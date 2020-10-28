@@ -129,6 +129,18 @@
   <data name="Fix_all_0_in_Solution" xml:space="preserve">
     <value>Fix all '{0}' in Solution</value>
   </data>
+  <data name="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0" xml:space="preserve">
+    <value>Compilation is required to accomplish the task but is not supported by project {0}.</value>
+  </data>
+  <data name="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0" xml:space="preserve">
+    <value>Syntax tree is required to accomplish the task but is not supported by document {0}.</value>
+  </data>
+  <data name="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution" xml:space="preserve">
+    <value>Project of ID {0} is required to accomplish the task but is not available from the solution</value>
+  </data>
+  <data name="The_solution_does_not_contain_the_specified_document" xml:space="preserve">
+    <value>The solution does not contain the specified document.</value>
+  </data>
   <data name="Warning_colon_Declaration_changes_scope_and_may_change_meaning" xml:space="preserve">
     <value>Warning: Declaration changes scope and may change meaning.</value>
   </data>
