@@ -538,12 +538,22 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(awaitExpression);
 
+            if (innerExpression is null)
+            {
+                return null;
+            }
+
             return semanticModel.GetTypeInfo(innerExpression).Type;
         }
 
         private static ITypeSymbol? GetCollectionExpressionType(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
         {
             var collectionExpression = FirstForeachCollectionExpressionAncestor(syntaxFactsService, node);
+
+            if (collectionExpression is null)
+            {
+                return null;
+            }
 
             return semanticModel.GetTypeInfo(collectionExpression).Type;
         }
