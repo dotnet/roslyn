@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -325,7 +326,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         cancellationToken).ConfigureAwait(false);
                 operationsToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor.RemoveRange(operationsReadOnlyOnce);
                 var parametersToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor
-                    .SelectAsArray(argument => (argument.Parameter, GenerateArgumentExpression(syntaxGenerator, argument)));
+                    // We excluded arglist callees, so Parameter will always be non null
+                    .SelectAsArray(argument => (argument.Parameter!, GenerateArgumentExpression(syntaxGenerator, argument)));
 
                 var parameterToReplaceMap =
                     operationsWithLiteralArgument
@@ -333,7 +335,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .Concat(operationsReadOnlyOnce)
                     .Concat(operationsWithDefaultValue)
                     .ToImmutableDictionary(
-                        keySelector: argument => argument.Parameter,
+                        // We excluded arglist callees, so Parameter will always be non null
+                        keySelector: argument => (argument.Parameter!),
                         elementSelector: argument => GenerateArgumentExpression(syntaxGenerator, argument));
 
                 // Use array instead of dictionary because using dictionary will make the parameter becomes unordered.
@@ -384,7 +387,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .Where(argument => argument.Value.Syntax is TExpressionSyntax
                        && !_syntaxFacts.IsDeclarationExpression(argument.Value.Syntax))
                     .ToImmutableDictionary(
-                        keySelector: argument => argument.Parameter,
+                        // We excluded arglist callees, so Parameter will always be non null
+                        keySelector: argument => argument.Parameter!,
                         elementSelector: argument => GenerateArgumentExpression(syntaxGenerator, argument));
                 return new MethodParametersInfo(
                     ImmutableArray<(IParameterSymbol parameterSymbol, string name)>.Empty,
@@ -499,6 +503,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             IArgumentOperation argumentOperation)
         {
             var parameterSymbol = argumentOperation.Parameter;
+            Debug.Assert(parameterSymbol is not null);
             var argumentExpressionOperation = argumentOperation.Value;
             if (argumentOperation.ArgumentKind == ArgumentKind.ParamArray
                 && parameterSymbol.Type is IArrayTypeSymbol paramArrayParameter
