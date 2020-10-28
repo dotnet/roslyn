@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var interfaces = new List<Type>();
 
-            foreach (var (serviceType, (descriptor, _)) in ServiceDescriptors.Descriptors)
+            foreach (var (serviceType, (descriptor, _, _)) in ServiceDescriptors.Descriptors)
             {
                 interfaces.Add(serviceType);
                 if (descriptor.ClientInterface != null)

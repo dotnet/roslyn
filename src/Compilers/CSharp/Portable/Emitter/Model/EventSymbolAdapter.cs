@@ -11,23 +11,77 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class EventSymbol :
+    internal partial class
+#if DEBUG
+        EventSymbolAdapter : SymbolAdapter,
+#else
+        EventSymbol :
+#endif 
         Cci.IEventDefinition
     {
+#if DEBUG
+        internal EventSymbolAdapter(EventSymbol underlyingEventSymbol)
+        {
+            AdaptedEventSymbol = underlyingEventSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedEventSymbol;
+        internal EventSymbol AdaptedEventSymbol { get; }
+#else
+        internal EventSymbol AdaptedEventSymbol => this;
+#endif 
+    }
+
+    internal partial class EventSymbol
+    {
+#if DEBUG
+        private EventSymbolAdapter? _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+#endif
+        internal new
+#if DEBUG
+            EventSymbolAdapter
+#else
+            EventSymbol
+#endif
+            GetCciAdapter()
+        {
+#if DEBUG
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new EventSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+#else
+            return this;
+#endif
+        }
+    }
+
+    internal partial class
+#if DEBUG
+        EventSymbolAdapter
+#else
+        EventSymbol
+#endif
+    {
+
         #region IEventDefinition Members
 
         IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.GetAccessors(EmitContext context)
         {
             CheckDefinitionInvariant();
 
-            var addMethod = this.AddMethod;
+            var addMethod = AdaptedEventSymbol.AddMethod?.GetCciAdapter();
             RoslynDebug.Assert((object?)addMethod != null);
             if (addMethod.ShouldInclude(context))
             {
                 yield return addMethod;
             }
 
-            var removeMethod = this.RemoveMethod;
+            var removeMethod = AdaptedEventSymbol.RemoveMethod?.GetCciAdapter();
             RoslynDebug.Assert((object?)removeMethod != null);
             if (removeMethod.ShouldInclude(context))
             {
@@ -40,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                MethodSymbol? addMethod = this.AddMethod;
+                var addMethod = AdaptedEventSymbol.AddMethod?.GetCciAdapter();
                 RoslynDebug.Assert((object?)addMethod != null);
                 return addMethod;
             }
@@ -51,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                MethodSymbol? removeMethod = this.RemoveMethod;
+                var removeMethod = AdaptedEventSymbol.RemoveMethod?.GetCciAdapter();
                 RoslynDebug.Assert((object?)removeMethod != null);
                 return removeMethod;
             }
@@ -62,10 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return HasRuntimeSpecialName;
+                return AdaptedEventSymbol.HasRuntimeSpecialName;
             }
         }
+    }
 
+    internal partial class EventSymbol
+    {
         internal virtual bool HasRuntimeSpecialName
         {
             get
@@ -74,13 +131,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        EventSymbolAdapter
+#else
+        EventSymbol
+#endif
+    {
         bool Cci.IEventDefinition.IsSpecialName
         {
             get
             {
                 CheckDefinitionInvariant();
-                return this.HasSpecialName;
+                return AdaptedEventSymbol.HasSpecialName;
             }
         }
 
@@ -95,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.IEventDefinition.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(this.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            return ((PEModuleBuilder)context.Module).Translate(AdaptedEventSymbol.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
         }
 
         #endregion
@@ -107,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.ContainingType;
+                return AdaptedEventSymbol.ContainingType.GetCciAdapter();
             }
         }
 
@@ -116,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return PEModuleBuilder.MemberVisibility(this);
+                return PEModuleBuilder.MemberVisibility(AdaptedEventSymbol);
             }
         }
 
@@ -127,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return this.ContainingType;
+            return AdaptedEventSymbol.ContainingType.GetCciAdapter();
         }
 
         #endregion
@@ -155,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.MetadataName;
+                return AdaptedEventSymbol.MetadataName;
             }
         }
 

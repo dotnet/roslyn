@@ -116,7 +116,6 @@ namespace Roslyn.Test.Utilities.PDB
 
             var externAliases = blobReader.ReadUTF8(terminatorIndex);
 
-            // Skip the null terminator
             blobReader.ReadByte();
 
             var embedInteropTypesAndKind = blobReader.ReadByte();

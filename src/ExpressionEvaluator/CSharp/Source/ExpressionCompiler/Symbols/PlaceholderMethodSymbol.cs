@@ -16,7 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// <summary>
     /// Represents an intrinsic debugger method with byref return type.
     /// </summary>
-    internal sealed class PlaceholderMethodSymbol : MethodSymbol, Cci.ISignature
+    internal sealed class PlaceholderMethodSymbol : MethodSymbol
+#if !DEBUG
+        , Cci.ISignature
+#endif
     {
         internal delegate ImmutableArray<TypeParameterSymbol> GetTypeParameters(PlaceholderMethodSymbol method);
         internal delegate ImmutableArray<ParameterSymbol> GetParameters(PlaceholderMethodSymbol method);
@@ -167,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+#if !DEBUG
         bool Cci.ISignature.ReturnValueIsByRef
         {
             get { return true; }
@@ -182,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return ImmutableArray<Cci.ICustomModifier>.CastUp(this.RefCustomModifiers);
             }
         }
-
+#endif
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
