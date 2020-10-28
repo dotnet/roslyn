@@ -193,7 +193,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                 dirtyRegion,
                                 _dirtyState.BaseSnapshot,
                                 tree,
-                                info.SpanToFormat.Snapshot.TextBuffer.CurrentSnapshot,
                                 blocking,
                                 cancellationToken).ConfigureAwait(False)
                         End Using

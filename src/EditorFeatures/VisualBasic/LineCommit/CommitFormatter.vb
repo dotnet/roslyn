@@ -21,6 +21,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Export(GetType(ICommitFormatter))>
     Friend Class CommitFormatter
+        Inherits ForegroundThreadAffinitizedObject
         Implements ICommitFormatter
 
         Private ReadOnly _indentationManagerService As IIndentationManagerService
@@ -37,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Public Sub New(
                 indentationManagerService As IIndentationManagerService,
                 threadingContext As IThreadingContext)
+            MyBase.New(threadingContext)
             _indentationManagerService = indentationManagerService
             _threadingContext = threadingContext
         End Sub
@@ -48,11 +50,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 dirtyRegion As SnapshotSpan,
                 baseSnapshot As ITextSnapshot,
                 baseTree As SyntaxTree,
-                currentSnapshot As ITextSnapshot,
                 blocking As Boolean,
                 cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
 
+            Me.AssertIsForeground()
+
             Using (Logger.LogBlock(FunctionId.LineCommit_CommitRegion, cancellationToken))
+                ' Safe to do as we must be called on the UI thread.
+                Dim buffer = spanToFormat.Snapshot.TextBuffer
+                Dim currentSnapshot = buffer.CurrentSnapshot
+
                 ' make sure things are current
                 spanToFormat = spanToFormat.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
                 dirtyRegion = dirtyRegion.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)

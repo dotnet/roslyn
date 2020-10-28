@@ -8,11 +8,14 @@ Imports Microsoft.VisualStudio.Text
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     Friend Interface ICommitFormatter
         ''' <summary>
-        ''' Commits a region by formatting and case correcting it. It is assumed that an
-        ''' ITextUndoTransaction is open the underlying text buffer, as multiple edits may be done
-        ''' by this function. Further, if the operation is cancelled, the buffer may be left in a
-        ''' partially committed state that must be rolled back by the transaction.
+        ''' Commits a region by formatting and case correcting it. It is assumed that an ITextUndoTransaction is open
+        ''' the underlying text buffer, as multiple edits may be done by this function. Further, if the operation is
+        ''' cancelled, the buffer may be left in a partially committed state that must be rolled back by the
+        ''' transaction.
         ''' </summary>
+        ''' <remarks>
+        ''' This method must be called when on the UI thread as it examines the current state of the <see cref="ITextBuffer"/>.
+        ''' </remarks>
         Function CommitRegionAsync(
             spanToFormat As SnapshotSpan,
             isExplicitFormat As Boolean,
@@ -20,7 +23,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             dirtyRegion As SnapshotSpan,
             baseSnapshot As ITextSnapshot,
             baseTree As SyntaxTree,
-            currentSnapshot As ITextSnapshot,
             blocking As Boolean,
             cancellationToken As CancellationToken) As Task
     End Interface
