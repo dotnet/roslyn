@@ -47,15 +47,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
         private static readonly Regex s_headerPattern = new(@"\[(\*|[^ #;\[\]]+\.({[^ #;{}\.\[\]]+}|[^ #;{}\.\[\]]+))\]\s*([#;].*)?");
 
         // Regular expression for .editorconfig code style option entry.
-        // For example: "dotnet_style_object_initializer = true:suggestion   # Optional comment"
-        private static readonly Regex s_optionBasedEntryPattern = new(@"([\w ]+)=([\w, ]+):[ ]*([\w]+)([ ]*[;#].*)?");
-
-        // Regular expression for .editorconfig diagnostic severity configuration entry.
         // For example:
-        //  1. "dotnet_diagnostic.CA2000.severity = suggestion   # Optional comment"
-        //  2. "dotnet_analyzer_diagnostic.category-Security.severity = suggestion   # Optional comment"
-        //  3. "dotnet_analyzer_diagnostic.severity = suggestion   # Optional comment"
-        private static readonly Regex s_severityBasedEntryPattern = new(@"([\w- \.]+)=[ ]*([\w]+)([ ]*[;#].*)?");
+        //  1. "dotnet_style_object_initializer = true   # Optional comment"
+        //  2. "dotnet_style_object_initializer = true:suggestion   ; Optional comment"
+        //  3. "dotnet_diagnostic.CA2000.severity = suggestion   # Optional comment"
+        //  4. "dotnet_analyzer_diagnostic.category-Security.severity = suggestion   # Optional comment"
+        //  5. "dotnet_analyzer_diagnostic.severity = suggestion   # Optional comment"
+        //
+        // Regex groups:
+        //  1. Option key
+        //  2. Option value
+        //  3. Optional severity suffix in option value, i.e. ':severity' suffix
+        //  4. Optional comment suffix
+        private static readonly Regex s_optionEntryPattern = new($@"(.*)=([\w, ]*)(:[\w]+)?([ ]*[;#].*)?");
 
         private readonly string? _optionNameOpt;
         private readonly string? _newOptionValueOpt;
@@ -372,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             var editorConfigString = editorConfigLocation.GetEditorConfigString(codeStyleOption, optionSet);
             if (!string.IsNullOrEmpty(editorConfigString))
             {
-                var match = s_optionBasedEntryPattern.Match(editorConfigString);
+                var match = s_optionEntryPattern.Match(editorConfigString);
                 if (match.Success)
                 {
                     parts = (optionName: match.Groups[1].Value.Trim(),
@@ -474,23 +478,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             {
                 var curLineText = curLine.ToString();
 
-                // We might have a diagnostic ID configuration entry based on either s_optionBasedEntryPattern or
-                // s_severityBasedEntryPattern. Both of these are considered valid severity configurations.
-                var isOptionBasedMatch = s_optionBasedEntryPattern.IsMatch(curLineText);
-
-                // We want to detect severity based entry only when we are configuring severity and have no option name specified.
-                var isSeverityBasedMatch = _configurationKind != ConfigurationKind.OptionValue &&
-                    _optionNameOpt == null &&
-                    !isOptionBasedMatch &&
-                    s_severityBasedEntryPattern.IsMatch(curLineText);
-                if (isOptionBasedMatch || isSeverityBasedMatch)
+                if (s_optionEntryPattern.IsMatch(curLineText))
                 {
-                    var groups = isOptionBasedMatch
-                        ? s_optionBasedEntryPattern.Match(curLineText).Groups
-                        : s_severityBasedEntryPattern.Match(curLineText).Groups;
-                    var key = groups[1].Value.ToString().Trim();
-                    var commentIndex = isOptionBasedMatch ? 4 : 3;
-                    var commentValue = groups[commentIndex].Value.ToString();
+                    var groups = s_optionEntryPattern.Match(curLineText).Groups;
+
+                    // Regex groups:
+                    //  1. Option key
+                    //  2. Option value
+                    //  3. Optional severity suffix, i.e. ':severity' suffix
+                    //  4. Optional comment suffix
+                    var untrimmedKey = groups[1].Value.ToString();
+                    var key = untrimmedKey.Trim();
+                    var value = groups[2].Value.ToString();
+                    var severitySuffixInValue = groups[3].Value.ToString();
+                    var commentValue = groups[4].Value.ToString();
 
                     // Verify the most recent header is a valid header
                     if (mostRecentHeader != null &&
@@ -498,70 +499,75 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         mostRecentHeader.Equals(lastValidHeader))
                     {
                         // We found the rule in the file -- replace it with updated option value/severity.
-                        if (isOptionBasedMatch && key.Equals(_optionNameOpt))
+                        if (key.Equals(_optionNameOpt))
                         {
-                            // We found a rule configuration entry of option based form:
+                            // We found an option configuration entry of form:
+                            //      "%option_name% = %option_value%
+                            //          OR
                             //      "%option_name% = %option_value%:%severity%
-                            var currentOptionValue = groups[2].Value.ToString().Trim();
-                            var currentSeverityValue = groups[3].Value.ToString().Trim();
-                            var newOptionValue = _configurationKind == ConfigurationKind.OptionValue ? _newOptionValueOpt : currentOptionValue;
-                            var newSeverityValue = _configurationKind == ConfigurationKind.Severity ? _newSeverity : currentSeverityValue;
+                            var newOptionValue = _configurationKind == ConfigurationKind.OptionValue
+                                ? $"{value.GetLeadingWhitespace()}{_newOptionValueOpt}{value.GetTrailingWhitespace()}"
+                                : value;
+                            var newSeverityValue = _configurationKind == ConfigurationKind.Severity && severitySuffixInValue.Length > 0 ? $":{_newSeverity}" : severitySuffixInValue;
 
-                            textChange = new TextChange(curLine.Span, $"{key} = {newOptionValue}:{newSeverityValue}{commentValue}");
+                            textChange = new TextChange(curLine.Span, $"{untrimmedKey}={newOptionValue}{newSeverityValue}{commentValue}");
                         }
-                        else if (isSeverityBasedMatch)
+                        else
                         {
-                            // We found a rule configuration entry of severity based form:
-                            //      "dotnet_diagnostic.<%DiagnosticId%>.severity = %severity%
-                            //              OR
-                            //      "dotnet_analyzer_diagnostic.severity = %severity%
-                            //              OR
-                            //      "dotnet_analyzer_diagnostic.category-<%DiagnosticCategory%>.severity = %severity%
-
-                            switch (_configurationKind)
+                            // We want to detect severity based entry only when we are configuring severity and have no option name specified.
+                            if (_configurationKind != ConfigurationKind.OptionValue &&
+                                _optionNameOpt == null &&
+                                severitySuffixInValue.Length == 0 &&
+                                key.EndsWith(SeveritySuffix))
                             {
-                                case ConfigurationKind.Severity:
-                                    RoslynDebug.Assert(_diagnostic != null);
-                                    if (key.StartsWith(DiagnosticOptionPrefix, StringComparison.Ordinal) &&
-                                        key.EndsWith(SeveritySuffix, StringComparison.Ordinal))
-                                    {
-                                        var diagIdLength = key.Length - (DiagnosticOptionPrefix.Length + SeveritySuffix.Length);
-                                        if (diagIdLength > 0)
+                                // We found a rule configuration entry of severity based form:
+                                //      "dotnet_diagnostic.<%DiagnosticId%>.severity = %severity%
+                                //              OR
+                                //      "dotnet_analyzer_diagnostic.severity = %severity%
+                                //              OR
+                                //      "dotnet_analyzer_diagnostic.category-<%DiagnosticCategory%>.severity = %severity%
+
+                                var foundMatch = false;
+                                switch (_configurationKind)
+                                {
+                                    case ConfigurationKind.Severity:
+                                        RoslynDebug.Assert(_diagnostic != null);
+                                        if (key.StartsWith(DiagnosticOptionPrefix, StringComparison.Ordinal))
                                         {
-                                            var diagId = key.Substring(DiagnosticOptionPrefix.Length, diagIdLength);
-                                            if (string.Equals(diagId, _diagnostic.Id, StringComparison.OrdinalIgnoreCase))
+                                            var diagIdLength = key.Length - (DiagnosticOptionPrefix.Length + SeveritySuffix.Length);
+                                            if (diagIdLength > 0)
                                             {
-                                                textChange = new TextChange(curLine.Span, $"{key} = {_newSeverity}{commentValue}");
+                                                var diagId = key.Substring(DiagnosticOptionPrefix.Length, diagIdLength);
+                                                foundMatch = string.Equals(diagId, _diagnostic.Id, StringComparison.OrdinalIgnoreCase);
                                             }
                                         }
-                                    }
 
-                                    break;
+                                        break;
 
-                                case ConfigurationKind.BulkConfigure:
-                                    RoslynDebug.Assert(_categoryToBulkConfigure != null);
-                                    if (_categoryToBulkConfigure == AllAnalyzerDiagnosticsCategory)
-                                    {
-                                        if (key == BulkConfigureAllAnalyzerDiagnosticsOptionKey)
+                                    case ConfigurationKind.BulkConfigure:
+                                        RoslynDebug.Assert(_categoryToBulkConfigure != null);
+                                        if (_categoryToBulkConfigure == AllAnalyzerDiagnosticsCategory)
                                         {
-                                            textChange = new TextChange(curLine.Span, $"{key} = {_newSeverity}{commentValue}");
+                                            foundMatch = key == BulkConfigureAllAnalyzerDiagnosticsOptionKey;
                                         }
-                                    }
-                                    else
-                                    {
-                                        if (key.StartsWith(BulkConfigureAnalyzerDiagnosticsByCategoryOptionPrefix, StringComparison.Ordinal) &&
-                                            key.EndsWith(SeveritySuffix, StringComparison.Ordinal))
+                                        else
                                         {
-                                            var categoryLength = key.Length - (BulkConfigureAnalyzerDiagnosticsByCategoryOptionPrefix.Length + SeveritySuffix.Length);
-                                            var category = key.Substring(BulkConfigureAnalyzerDiagnosticsByCategoryOptionPrefix.Length, categoryLength);
-                                            if (string.Equals(category, _categoryToBulkConfigure, StringComparison.OrdinalIgnoreCase))
+                                            if (key.StartsWith(BulkConfigureAnalyzerDiagnosticsByCategoryOptionPrefix, StringComparison.Ordinal))
                                             {
-                                                textChange = new TextChange(curLine.Span, $"{key} = {_newSeverity}{commentValue}");
+                                                var categoryLength = key.Length - (BulkConfigureAnalyzerDiagnosticsByCategoryOptionPrefix.Length + SeveritySuffix.Length);
+                                                var category = key.Substring(BulkConfigureAnalyzerDiagnosticsByCategoryOptionPrefix.Length, categoryLength);
+                                                foundMatch = string.Equals(category, _categoryToBulkConfigure, StringComparison.OrdinalIgnoreCase);
                                             }
                                         }
-                                    }
 
-                                    break;
+                                        break;
+                                }
+
+                                if (foundMatch)
+                                {
+                                    var newSeverityValue = $"{value.GetLeadingWhitespace()}{_newSeverity}{value.GetTrailingWhitespace()}";
+                                    textChange = new TextChange(curLine.Span, $"{untrimmedKey}={newSeverityValue}{commentValue}");
+                                }
                             }
                         }
                     }
@@ -692,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             //  2. Category configuration: "dotnet_analyzer_diagnostic.category-<%DiagnosticCategory%>.severity = %severity%
 
             var newEntry = !string.IsNullOrEmpty(_optionNameOpt) && !string.IsNullOrEmpty(_newOptionValueOpt)
-                ? $"{_optionNameOpt} = {_newOptionValueOpt}:{_newSeverity}"
+                ? $"{_optionNameOpt} = {_newOptionValueOpt}"
                 : _diagnostic != null
                     ? $"{DiagnosticOptionPrefix}{_diagnostic.Id}{SeveritySuffix} = {_newSeverity}"
                     : _categoryToBulkConfigure == AllAnalyzerDiagnosticsCategory

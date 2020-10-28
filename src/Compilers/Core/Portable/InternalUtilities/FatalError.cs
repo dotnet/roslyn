@@ -89,14 +89,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>False to avoid catching the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportUnlessCanceled(Exception exception)
+        public static bool ReportAndPropagateUnlessCanceled(Exception exception)
         {
             if (exception is OperationCanceledException)
             {
                 return false;
             }
 
-            return Report(exception);
+            return ReportAndPropagate(exception);
         }
 
         /// <summary>
@@ -106,14 +106,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>False to avoid catching the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportUnlessCanceled(Exception exception, CancellationToken cancellationToken)
+        public static bool ReportAndPropagateUnlessCanceled(Exception exception, CancellationToken cancellationToken)
         {
             if (IsCurrentOperationBeingCancelled(exception, cancellationToken))
             {
                 return false;
             }
 
-            return Report(exception);
+            return ReportAndPropagate(exception);
         }
 
         /// <summary>
@@ -123,14 +123,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>True to catch the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportWithoutCrashUnlessCanceled(Exception exception)
+        public static bool ReportAndCatchUnlessCanceled(Exception exception)
         {
             if (exception is OperationCanceledException)
             {
                 return false;
             }
 
-            return ReportWithoutCrash(exception);
+            return ReportAndCatch(exception);
         }
 
         /// <summary>
@@ -140,31 +140,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>True to catch the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportWithoutCrashUnlessCanceled(Exception exception, CancellationToken cancellationToken)
+        public static bool ReportAndCatchUnlessCanceled(Exception exception, CancellationToken cancellationToken)
         {
             if (IsCurrentOperationBeingCancelled(exception, cancellationToken))
             {
                 return false;
             }
 
-            return ReportWithoutCrash(exception);
-        }
-
-        /// <summary>
-        /// Use in an exception filter to report a fatal error. 
-        /// Unless the exception is <see cref="NotImplementedException"/> 
-        /// it calls <see cref="Handler"/>. The exception is passed through (the method returns false).
-        /// </summary>
-        /// <returns>False to avoid catching the exception.</returns>
-        [DebuggerHidden]
-        public static bool ReportUnlessNotImplemented(Exception exception)
-        {
-            if (exception is NotImplementedException)
-            {
-                return false;
-            }
-
-            return Report(exception);
+            return ReportAndCatch(exception);
         }
 
         /// <summary>
@@ -173,7 +156,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>False to avoid catching the exception.</returns>
         [DebuggerHidden]
-        public static bool Report(Exception exception)
+        public static bool ReportAndPropagate(Exception exception)
         {
             Report(exception, s_fatalHandler);
             return false;
@@ -190,51 +173,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>True to catch the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportWithoutCrash(Exception exception)
+        public static bool ReportAndCatch(Exception exception)
         {
             Report(exception, s_nonFatalHandler);
             return true;
-        }
-
-        /// <summary>
-        /// Report a non-fatal error like <see cref="ReportWithoutCrash"/> but propagates the exception.
-        /// </summary>
-        /// <returns>False to propagate the exception.</returns>
-        [DebuggerHidden]
-        public static bool ReportWithoutCrashAndPropagate(Exception exception)
-        {
-            Report(exception, s_nonFatalHandler);
-            return false;
-        }
-
-        /// <summary>
-        /// Report a non-fatal error like <see cref="ReportWithoutCrash"/> but propagates the exception.
-        /// </summary>
-        /// <returns>False to propagate the exception.</returns>
-        [DebuggerHidden]
-        public static bool ReportWithoutCrashUnlessCanceledAndPropagate(Exception exception)
-        {
-            if (!(exception is OperationCanceledException))
-            {
-                Report(exception, s_nonFatalHandler);
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Report a non-fatal error like <see cref="ReportWithoutCrash"/> but propagates the exception, unless the operation has been cancelled.
-        /// </summary>
-        /// <returns>False to propagate the exception.</returns>
-        [DebuggerHidden]
-        public static bool ReportWithoutCrashUnlessCanceledAndPropagate(Exception exception, CancellationToken cancellationToken)
-        {
-            if (!IsCurrentOperationBeingCancelled(exception, cancellationToken))
-            {
-                Report(exception, s_nonFatalHandler);
-            }
-
-            return false;
         }
 
         private static readonly object s_reportedMarker = new();

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -16,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If the property has a GetMethod, return that.  Otherwise check the overridden
         /// property, if any.  Repeat for each overridden property.
         /// </summary>
-        public static MethodSymbol GetOwnOrInheritedGetMethod(this PropertySymbol property)
+        public static MethodSymbol? GetOwnOrInheritedGetMethod(this PropertySymbol? property)
         {
-            while ((object)property != null)
+            while ((object?)property != null)
             {
                 MethodSymbol getMethod = property.GetMethod;
-                if ((object)getMethod != null)
+                if ((object?)getMethod != null)
                 {
                     return getMethod;
                 }
@@ -36,12 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If the property has a SetMethod, return that.  Otherwise check the overridden
         /// property, if any.  Repeat for each overridden property.
         /// </summary>
-        public static MethodSymbol GetOwnOrInheritedSetMethod(this PropertySymbol property)
+        public static MethodSymbol? GetOwnOrInheritedSetMethod(this PropertySymbol? property)
         {
-            while ((object)property != null)
+            while ((object?)property != null)
             {
                 MethodSymbol setMethod = property.SetMethod;
-                if ((object)setMethod != null)
+                if ((object?)setMethod != null)
                 {
                     return setMethod;
                 }

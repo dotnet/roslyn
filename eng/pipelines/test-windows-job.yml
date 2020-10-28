@@ -1,0 +1,61 @@
+# Test on Windows Desktop
+parameters:
+- name: testRunName
+  type: string
+  default: ''
+- name: jobName
+  type: string
+  default: ''
+- name: buildJobName
+  type: string
+  default: ''
+- name: testArtifactName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+- name: testArguments
+  type: string
+  default: ''
+- name: queueName
+  type: string
+  default: 'BuildPool.Windows.10.Amd64.Open'
+
+jobs:
+- job: ${{ parameters.jobName }}
+  dependsOn: ${{ parameters.buildJobName }}
+  pool:
+    name: NetCorePublic-Pool
+    queue: ${{ parameters.queueName }}
+  timeoutInMinutes: 120
+  steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: ${{ parameters.testArtifactName }}
+        path: '$(Build.SourcesDirectory)\artifacts\bin' 
+
+    - task: PowerShell@2 
+      displayName: Rehydrate Unit Tests Environment
+      inputs:
+        filePath: eng/rehydrate-tests.ps1
+
+    - task: PowerShell@2 
+      displayName: Run Unit Tests
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml'
+        mergeTestResults: true
+        testRunTitle: '${{ parameters.testRunName }}'
+      condition: always()
+
+    - template: publish-logs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+        jobName: ${{ parameters.jobName }}

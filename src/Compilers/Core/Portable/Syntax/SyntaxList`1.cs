@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return CreateList(list[0].Green, list);
+                return CreateList(list);
             }
         }
 
@@ -314,20 +314,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return default(SyntaxList<TNode>);
             }
-            else
-            {
-                return CreateList(items[0].Green, items);
-            }
-        }
 
-        private static SyntaxList<TNode> CreateList(GreenNode creator, List<TNode> items)
-        {
-            if (items.Count == 0)
-            {
-                return default(SyntaxList<TNode>);
-            }
-
-            var newGreen = creator.CreateList(items.Select(n => n.Green));
+            var newGreen = GreenNode.CreateList(items.Select(n => n.Green));
             return new SyntaxList<TNode>(newGreen!.CreateRed());
         }
 

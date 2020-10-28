@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Remote
         // obsolete: RemoteDesignerAttributeService = 4,
         // obsolete: RemoteProjectTelemetryService = 5,
         // obsolete: RemoteTodoCommentsService = 6,
-        LanguageServer = 7,
+        RemoteLanguageServer = 7,
         IntelliCode = 8,
         Razor = 9,
 

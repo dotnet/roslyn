@@ -479,7 +479,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     if (textBuffer == null)
                     {
                         // Text buffer is missing for opened Live Share document.
-                        FatalError.ReportWithoutCrash(new LiveShareTextBufferMissingException());
+                        FatalError.ReportAndCatch(new LiveShareTextBufferMissingException());
                         return;
                     }
 

@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     Console.OutputEncoding = Encoding.UTF8;
                 }
-                catch (IOException ex) when (FatalError.ReportWithoutCrash(ex))
+                catch (IOException ex) when (FatalError.ReportAndCatch(ex))
                 {
                     // Ignore this exception
                     // https://github.com/dotnet/roslyn/issues/47571
