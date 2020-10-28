@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _buffer As ITextBuffer
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
+
         Private _referencingViews As Integer
 
         ''' <summary>
