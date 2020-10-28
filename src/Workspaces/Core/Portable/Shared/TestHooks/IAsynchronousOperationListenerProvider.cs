@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     // switch to the thread pool for the continuations since the yield will only let operations at the
                     // same or higher priority to execute prior to the continuation.
                     var continueOnCapturedContext = eventProcessingAction is object;
-                    await Task.Yield().ConfigureAwait(continueOnCapturedContext);
+                    await Task.Delay(smallTimeout).ConfigureAwait(continueOnCapturedContext);
 
                     if (startTime.Elapsed > timeout && timeout != Timeout.InfiniteTimeSpan)
                     {
