@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
-        "version": "2.9.12",
+        "version": "2.9.13",
         "language": "en-US"
       },
       "rules": {
@@ -14,7 +14,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers",
-        "version": "2.9.12",
+        "version": "2.9.13",
         "language": "en-US"
       },
       "rules": {
@@ -77,7 +77,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
-        "version": "2.9.12",
+        "version": "2.9.13",
         "language": "en-US"
       },
       "rules": {
@@ -222,7 +222,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers",
-        "version": "2.9.12",
+        "version": "2.9.13",
         "language": "en-US"
       },
       "rules": {
@@ -285,7 +285,7 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.Analyzers",
-        "version": "2.9.12",
+        "version": "2.9.13",
         "language": "en-US"
       },
       "rules": {
@@ -384,7 +384,7 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.CSharp.Analyzers",
-        "version": "2.9.12",
+        "version": "2.9.13",
         "language": "en-US"
       },
       "rules": {
@@ -479,7 +479,7 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.VisualBasic.Analyzers",
-        "version": "2.9.12",
+        "version": "2.9.13",
         "language": "en-US"
       },
       "rules": {
