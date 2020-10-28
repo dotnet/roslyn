@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (Interlocked.CompareExchange(
                         ref _lazyDefaultSyntaxValue,
-                        MakeDefaultExpression(diagnostics, ParameterBinderOpt),
+                        MakeDefaultExpression(diagnostics),
                         ConstantValue.Unset) == ConstantValue.Unset)
                     {
                         // This is a race condition where the thread that loses
@@ -223,10 +223,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // If binder is null, then get it from the compilation. Otherwise use the provided binder.
-        // Don't always get it from the compilation because we might be in a speculative context (local function parameter),
-        // in which case the declaring compilation is the wrong one.
-        protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder)
+        private Binder GetBinder(SyntaxNode syntax)
+        {
+            var binder = ParameterBinderOpt;
+
+            // If binder is null, then get it from the compilation. Otherwise use the provided binder.
+            // Don't always get it from the compilation because we might be in a speculative context (local function parameter),
+            // in which case the declaring compilation is the wrong one.
+            if (binder == null)
+            {
+                var syntaxTree = _syntaxRef.SyntaxTree;
+                var compilation = this.DeclaringCompilation;
+                var binderFactory = compilation.GetBinderFactory(syntaxTree);
+                binder = binderFactory.GetBinder(syntax);
+            }
+            Debug.Assert(binder.GetBinder(syntax) == null);
+            return binder;
+        }
+
+        private ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics)
         {
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
@@ -240,16 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ConstantValue.NotAvailable;
             }
 
-            if (binder == null)
-            {
-                var syntaxTree = _syntaxRef.SyntaxTree;
-                var compilation = this.DeclaringCompilation;
-                var binderFactory = compilation.GetBinderFactory(syntaxTree);
-                binder = binderFactory.GetBinder(defaultSyntax);
-            }
-
-            Debug.Assert(binder.GetBinder(defaultSyntax) == null);
-
+            Binder binder = GetBinder(defaultSyntax);
             Binder binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
             Debug.Assert(binderForDefault.InParameterDefaultValue);
             Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
@@ -1107,6 +1113,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Force binding of default value.
             var unused = this.ExplicitDefaultConstantValue;
+            AnalyzeParameterDefaultValueFromAttributes();
+        }
+
+        private void AnalyzeParameterDefaultValueFromAttributes()
+        {
+            var defaultValue = DefaultValueFromAttributes;
+            if (defaultValue == null || defaultValue.IsBad)
+            {
+                return;
+            }
+
+            var parameterSyntax = this.CSharpSyntaxNode;
+            var binder = GetBinder(parameterSyntax);
+
+            var parameterEqualsValue = new BoundParameterEqualsValue(
+                parameterSyntax,
+                this,
+                ImmutableArray<LocalSymbol>.Empty,
+                // note that if the parameter type conflicts with the default value from attributes,
+                // we will just get a bad constant value above and return early.
+                new BoundLiteral(parameterSyntax, DefaultValueFromAttributes, Type));
+
+            var diagnostics = DiagnosticBag.GetInstance();
+            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
+            AddDeclarationDiagnostics(diagnostics);
+            diagnostics.Free();
         }
     }
 
