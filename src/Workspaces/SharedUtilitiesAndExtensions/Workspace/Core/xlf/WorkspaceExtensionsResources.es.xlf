@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../WorkspaceExtensionsResources.resx">
     <body>
-      <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
-        <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
-        <target state="translated">La compilación es necesaria para realizar la tarea, pero el proyecto {0} no la admite.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="translated">Corregir todo '{0}'</target>
@@ -30,11 +25,6 @@
       <trans-unit id="Supplied_diagnostic_cannot_be_null">
         <source>Supplied diagnostic cannot be null.</source>
         <target state="translated">El diagnóstico suministrado no puede ser nulo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
-        <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
-        <target state="translated">El árbol de sintaxis es necesario para realizar la tarea, pero el documento {0} no lo admite.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_solution_does_not_contain_the_specified_document">

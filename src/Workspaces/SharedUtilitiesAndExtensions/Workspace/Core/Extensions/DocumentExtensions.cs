@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return semanticModel;
 
             semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return semanticModel ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+            Contract.ThrowIfNull(semanticModel);
+            return semanticModel;
         }
 
         public static async ValueTask<SyntaxTree> GetRequiredSyntaxTreeAsync(this Document document, CancellationToken cancellationToken)
@@ -44,14 +45,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return syntaxTree;
 
             syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return syntaxTree ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+            Contract.ThrowIfNull(syntaxTree);
+            return syntaxTree;
         }
 
 #if !CODE_STYLE
         public static SyntaxTree GetRequiredSyntaxTreeSynchronously(this Document document, CancellationToken cancellationToken)
         {
             var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
-            return syntaxTree ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+            Contract.ThrowIfNull(syntaxTree);
+            return syntaxTree;
         }
 #endif
 
@@ -61,14 +64,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return root;
 
             root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+            Contract.ThrowIfNull(root);
+            return root;
         }
 
 #if !CODE_STYLE
         public static SyntaxNode GetRequiredSyntaxRootSynchronously(this Document document, CancellationToken cancellationToken)
         {
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+            Contract.ThrowIfNull(root);
+            return root;
         }
 #endif
 

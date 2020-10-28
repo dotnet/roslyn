@@ -119,11 +119,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static async Task<Compilation> GetRequiredCompilationAsync(this Project project, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (compilation == null)
-            {
-                throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0, project.Name));
-            }
-
+            Contract.ThrowIfNull(compilation);
             return compilation;
         }
     }
