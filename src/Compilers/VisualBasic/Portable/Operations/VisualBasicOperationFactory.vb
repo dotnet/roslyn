@@ -739,15 +739,16 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                (method.IsAbstract OrElse method.IsOverride OrElse method.IsVirtual) AndAlso
                                                Not boundDelegateCreationExpression.SuppressVirtualCalls
 
-            Dim receiverOpt As BoundExpression = If(boundDelegateCreationExpression.ReceiverOpt, boundDelegateCreationExpression.MethodGroupOpt?.ReceiverOpt)
+            Dim receiverOpt As IOperation = CreateReceiverOperation(
+                If(boundDelegateCreationExpression.ReceiverOpt, boundDelegateCreationExpression.MethodGroupOpt?.ReceiverOpt),
+                method)
 
             ' The compiler creates a BoundDelegateCreationExpression node for the AddressOf expression, and that's the node we want to use for the operand
             ' of the IDelegateCreationExpression parent
             Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
             Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = boundDelegateCreationExpression.ConstantValueOpt
             Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated
-            Return New VisualBasicLazyMethodReferenceOperation(Me, receiverOpt, method, isVirtual, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New MethodReferenceOperation(method, isVirtual, receiverOpt, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalOperation
@@ -853,12 +854,15 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundPropertyAccessOperation(boundPropertyAccess As BoundPropertyAccess) As IPropertyReferenceOperation
             Dim [property] As IPropertySymbol = boundPropertyAccess.PropertySymbol
+            Dim instance As IOperation = CreateReceiverOperation(
+                If(boundPropertyAccess.ReceiverOpt, boundPropertyAccess.PropertyGroupOpt?.ReceiverOpt),
+                [property])
+            Dim arguments as ImmutableArray(Of IArgumentOperation) = DeriveArguments(boundPropertyAccess)
 
             Dim syntax As SyntaxNode = boundPropertyAccess.Syntax
             Dim type As ITypeSymbol = boundPropertyAccess.Type
-            Dim constantValue As ConstantValue = boundPropertyAccess.ConstantValueOpt
             Dim isImplicit As Boolean = boundPropertyAccess.WasCompilerGenerated
-            Return New VisualBasicLazyPropertyReferenceOperation(Me, boundPropertyAccess, [property], _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New PropertyReferenceOperation([property], arguments, instance, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundWithLValueExpressionPlaceholder(boundWithLValueExpressionPlaceholder As BoundWithLValueExpressionPlaceholder) As IInstanceReferenceOperation
@@ -879,25 +883,24 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundEventAccessOperation(boundEventAccess As BoundEventAccess) As IEventReferenceOperation
             Dim [event] As IEventSymbol = boundEventAccess.EventSymbol
-            Dim instance As BoundNode = boundEventAccess.ReceiverOpt
+            Dim instance As IOperation = CreateReceiverOperation(boundEventAccess.ReceiverOpt, [event])
 
             Dim syntax As SyntaxNode = boundEventAccess.Syntax
             Dim type As ITypeSymbol = boundEventAccess.Type
-            Dim constantValue As ConstantValue = boundEventAccess.ConstantValueOpt
             Dim isImplicit As Boolean = boundEventAccess.WasCompilerGenerated
-            Return New VisualBasicLazyEventReferenceOperation(Me, instance, [event], _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New EventReferenceOperation([event], instance, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundFieldAccessOperation(boundFieldAccess As BoundFieldAccess) As IFieldReferenceOperation
             Dim field As IFieldSymbol = boundFieldAccess.FieldSymbol
             Dim isDeclaration As Boolean = False
-            Dim instance As BoundNode = boundFieldAccess.ReceiverOpt
+            Dim instance As IOperation = CreateReceiverOperation(boundFieldAccess.ReceiverOpt, field)
 
             Dim syntax As SyntaxNode = boundFieldAccess.Syntax
             Dim type As ITypeSymbol = boundFieldAccess.Type
             Dim constantValue As ConstantValue = boundFieldAccess.ConstantValueOpt
             Dim isImplicit As Boolean = boundFieldAccess.WasCompilerGenerated
-            Return New VisualBasicLazyFieldReferenceOperation(Me, instance, field, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New FieldReferenceOperation(field, isDeclaration, instance, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundConditionalAccessOperation(boundConditionalAccess As BoundConditionalAccess) As IConditionalAccessOperation
@@ -1466,7 +1469,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                                           If(TryCast(boundRaiseEventStatement.Syntax, RaiseEventStatementSyntax)?.Name,
                                              boundRaiseEventStatement.Syntax))
             Dim eventReferenceType As ITypeSymbol = boundRaiseEventStatement.EventSymbol.Type
-            Dim eventReferenceConstantValue As ConstantValue = receiverOpt?.ConstantValueOpt
             ' EventReference in a raise event statement is never implicit. However, the way it is implemented, we don't get
             ' a "BoundEventAccess" for either field backed event or custom event, and the bound nodes we get are marked as
             ' generated by compiler. As a result, we have to explicitly set IsImplicit to false.
@@ -1480,14 +1482,13 @@ Namespace Microsoft.CodeAnalysis.Operations
                 receiverOpt = eventFieldAccess.ReceiverOpt
             End If
 
-            Return New VisualBasicLazyEventReferenceOperation(Me,
-                                                              receiverOpt,
-                                                              boundRaiseEventStatement.EventSymbol,
-                                                              _semanticModel,
-                                                              eventReferenceSyntax,
-                                                              eventReferenceType,
-                                                              eventReferenceConstantValue,
-                                                              eventReferenceIsImplicit)
+            Dim instance = CreateReceiverOperation(receiverOpt, boundRaiseEventStatement.EventSymbol)
+            Return New EventReferenceOperation(boundRaiseEventStatement.EventSymbol,
+                                               instance,
+                                               _semanticModel,
+                                               eventReferenceSyntax,
+                                               eventReferenceType,
+                                               eventReferenceIsImplicit)
         End Function
 
         Private Function CreateBoundRaiseEventStatementOperation(boundRaiseEventStatement As BoundRaiseEventStatement) As IOperation
@@ -1592,9 +1593,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim arguments = ImmutableArray(Of IArgumentOperation).Empty
             Dim syntax As SyntaxNode = boundAnonymousTypePropertyAccess.Syntax
             Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
-            Dim constantValue As ConstantValue = boundAnonymousTypePropertyAccess.ConstantValueOpt
             Dim isImplicit As Boolean = boundAnonymousTypePropertyAccess.WasCompilerGenerated
-            Return New PropertyReferenceOperation([property], arguments, instance, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New PropertyReferenceOperation([property], arguments, instance, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateAnonymousTypePropertyAccessImplicitReceiverOperation(propertySym As IPropertySymbol, syntax As SyntaxNode) As InstanceReferenceOperation

@@ -340,7 +340,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                         _semanticModel,
                         value.Syntax,
                         [property].Type,
-                        constantValue:=Nothing,
                         isImplicit:=True)
                     isImplicitAssignment = True
                 Else

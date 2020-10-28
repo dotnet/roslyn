@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
 #nullable enable
-        internal IOperation? CreateReceiverOperation(BoundNode? instance, Symbol symbol)
+        internal IOperation? CreateReceiverOperation(BoundNode? instance, Symbol? symbol)
         {
             if (instance == null || instance.Kind == BoundKind.TypeExpression)
             {
@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private bool IsMethodInvalid(LookupResultKind resultKind, MethodSymbol targetMethod) =>
             resultKind == LookupResultKind.OverloadResolutionFailure || targetMethod?.OriginalDefinition is ErrorMethodSymbol;
-#nullable disable
 
         internal IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
@@ -133,12 +132,13 @@ namespace Microsoft.CodeAnalysis.Operations
             //  2. the constant value of BoundEventAccess is always null.
             //  3. the syntax of the boundEventAssignmentOperator is always AssignmentExpressionSyntax, so the syntax for the event reference would be the LHS of the assignment.
             IEventSymbol @event = boundEventAssignmentOperator.Event.GetPublicSymbol();
-            BoundNode instance = boundEventAssignmentOperator.ReceiverOpt;
+            IOperation? instance = CreateReceiverOperation(boundEventAssignmentOperator.ReceiverOpt, boundEventAssignmentOperator.Event);
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
 
-            return new CSharpLazyEventReferenceOperation(this, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, constantValue: null, isImplicit);
+            return new EventReferenceOperation(@event, instance, _semanticModel, eventAccessSyntax, @event.Type, isImplicit);
         }
+#nullable disable
 
         internal IOperation CreateDelegateTargetOperation(BoundNode delegateNode)
         {
@@ -399,7 +399,6 @@ namespace Microsoft.CodeAnalysis.Operations
                         semanticModel: _semanticModel,
                         syntax: value.Syntax,
                         type: property.Type.GetPublicSymbol(),
-                        constantValue: null,
                         isImplicit: true);
                     isImplicitAssignment = true;
                 }
@@ -411,7 +410,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                             _semanticModel,
                                                             anonymousProperty.Syntax,
                                                             anonymousProperty.GetPublicTypeSymbol(),
-                                                            anonymousProperty.ConstantValue,
                                                             anonymousProperty.WasCompilerGenerated);
                     isImplicitAssignment = isImplicit;
                 }

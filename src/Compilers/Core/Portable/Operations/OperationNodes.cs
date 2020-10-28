@@ -78,21 +78,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
     }
 
-    internal abstract partial class BaseEventReferenceOperation
-    {
-        public override ISymbol Member => Event;
-    }
-
     internal sealed partial class VariableInitializerOperation : BaseVariableInitializerOperation, IVariableInitializerOperation
     {
         public VariableInitializerOperation(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(ImmutableArray<ILocalSymbol>.Empty, value, semanticModel, syntax, type, constantValue, isImplicit)
         { }
-    }
-
-    internal abstract partial class BaseFieldReferenceOperation
-    {
-        public override ISymbol Member => Field;
     }
 
     internal abstract partial class BaseForEachLoopOperation : BaseLoopOperation, IForEachLoopOperation
@@ -249,20 +239,32 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal abstract partial class BaseMemberReferenceOperation : OperationOld, IMemberReferenceOperation
+#nullable enable
+    internal abstract partial class BaseMemberReferenceOperation : IMemberReferenceOperation
     {
         public abstract ISymbol Member { get; }
     }
 
-    internal abstract partial class BaseMethodReferenceOperation
+    internal sealed partial class MethodReferenceOperation
     {
         public override ISymbol Member => Method;
     }
 
-    internal abstract partial class BasePropertyReferenceOperation
+    internal sealed partial class PropertyReferenceOperation
     {
         public override ISymbol Member => Property;
     }
+
+    internal sealed partial class EventReferenceOperation
+    {
+        public override ISymbol Member => Event;
+    }
+
+    internal sealed partial class FieldReferenceOperation
+    {
+        public override ISymbol Member => Field;
+    }
+#nullable disable
 
     internal sealed partial class RangeCaseClauseOperation : BaseRangeCaseClauseOperation, IRangeCaseClauseOperation
     {

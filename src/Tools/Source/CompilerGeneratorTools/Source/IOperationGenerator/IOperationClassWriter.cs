@@ -544,7 +544,7 @@ namespace IOperationGenerator
                     }
                 }
 
-                if (type.IsAbstract || multipleValidKinds)
+                if (multipleValidKinds)
                 {
                     Write("OperationKind kind, ");
                 }

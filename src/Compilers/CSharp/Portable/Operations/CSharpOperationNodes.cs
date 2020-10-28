@@ -137,24 +137,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyEventReferenceOperation : LazyEventReferenceOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _instance;
-
-        internal CSharpLazyEventReferenceOperation(CSharpOperationFactory operationFactory, BoundNode instance, IEventSymbol @event, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(@event, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _instance = instance;
-        }
-
-        protected override IOperation CreateInstance()
-        {
-            return _operationFactory.CreateReceiverOperation(_instance, Event.GetSymbol());
-        }
-    }
-
     internal sealed class CSharpLazyVariableInitializerOperation : LazyVariableInitializerOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -188,24 +170,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateValue()
         {
             return _operationFactory.Create(_value);
-        }
-    }
-
-    internal sealed class CSharpLazyFieldReferenceOperation : LazyFieldReferenceOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _instance;
-
-        internal CSharpLazyFieldReferenceOperation(CSharpOperationFactory operationFactory, BoundNode instance, IFieldSymbol field, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(field, isDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _instance = instance;
-        }
-
-        protected override IOperation CreateInstance()
-        {
-            return _operationFactory.CreateReceiverOperation(_instance, Field.GetSymbol());
         }
     }
 
@@ -362,24 +326,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyMethodReferenceOperation : LazyMethodReferenceOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _instance;
-
-        internal CSharpLazyMethodReferenceOperation(CSharpOperationFactory operationFactory, BoundNode instance, IMethodSymbol method, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(method, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _instance = instance;
-        }
-
-        protected override IOperation CreateInstance()
-        {
-            return _operationFactory.CreateReceiverOperation(_instance, Method.GetSymbol());
-        }
-    }
-
     internal sealed class CSharpLazyCoalesceAssignmentOperation : LazyCoalesceAssignmentOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -436,31 +382,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateValue()
         {
             return _operationFactory.Create(_value);
-        }
-    }
-
-    internal sealed class CSharpLazyPropertyReferenceOperation : LazyPropertyReferenceOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _propertyReference;
-        private readonly bool _isObjectOrCollectionInitializer;
-
-        internal CSharpLazyPropertyReferenceOperation(CSharpOperationFactory operationFactory, BoundNode propertyReference, bool isObjectOrCollectionInitializer, IPropertySymbol property, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(property, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _propertyReference = propertyReference;
-            _isObjectOrCollectionInitializer = isObjectOrCollectionInitializer;
-        }
-
-        protected override IOperation CreateInstance()
-        {
-            return _operationFactory.CreateBoundPropertyReferenceInstance(_propertyReference);
-        }
-
-        protected override ImmutableArray<IArgumentOperation> CreateArguments()
-        {
-            return _propertyReference is null || _propertyReference.Kind == BoundKind.PropertyAccess ? ImmutableArray<IArgumentOperation>.Empty : _operationFactory.DeriveArguments(_propertyReference, _isObjectOrCollectionInitializer);
         }
     }
 

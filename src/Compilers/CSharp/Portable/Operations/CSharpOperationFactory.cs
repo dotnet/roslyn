@@ -524,7 +524,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             IFieldSymbol field = boundFieldAccess.FieldSymbol.GetPublicSymbol();
             bool isDeclaration = boundFieldAccess.IsDeclaration;
-            BoundNode? instance = boundFieldAccess.ReceiverOpt;
             SyntaxNode syntax = boundFieldAccess.Syntax;
             ITypeSymbol? type = boundFieldAccess.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundFieldAccess.ConstantValue;
@@ -539,11 +538,12 @@ namespace Microsoft.CodeAnalysis.Operations
                     return new DeclarationExpressionOperation(fieldAccess, _semanticModel, declarationExpressionSyntax, type, isImplicit: false);
                 }
             }
-            return new CSharpLazyFieldReferenceOperation(this, instance, field, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
-        }
-#nullable disable
 
-        internal IOperation CreateBoundPropertyReferenceInstance(BoundNode boundNode)
+            IOperation? instance = CreateReceiverOperation(boundFieldAccess.ReceiverOpt, boundFieldAccess.FieldSymbol);
+            return new FieldReferenceOperation(field, isDeclaration, instance, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        internal IOperation? CreateBoundPropertyReferenceInstance(BoundNode boundNode)
         {
             switch (boundNode)
             {
@@ -560,73 +560,46 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        internal ImmutableArray<IArgumentOperation> CreateBoundPropertyReferenceArguments(BoundNode boundNode, bool isObjectOrCollectionInitializerMember)
-        {
-            switch (boundNode)
-            {
-                case BoundObjectInitializerMember boundObjectInitializerMember:
-                    if (boundObjectInitializerMember.Arguments.IsEmpty)
-                    {
-                        return ImmutableArray<IArgumentOperation>.Empty;
-                    }
-                    else
-                    {
-                        return DeriveArguments(boundObjectInitializerMember, isObjectOrCollectionInitializerMember);
-                    }
-
-                case BoundIndexerAccess boundIndexerAccess:
-                    return DeriveArguments(boundIndexerAccess);
-
-                case BoundPropertyAccess _:
-                    return ImmutableArray<IArgumentOperation>.Empty;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(boundNode.Kind);
-            }
-        }
-
         private IPropertyReferenceOperation CreateBoundPropertyAccessOperation(BoundPropertyAccess boundPropertyAccess)
         {
-            bool isObjectOrCollectionInitializer = false;
+            IOperation? instance = CreateReceiverOperation(boundPropertyAccess.ReceiverOpt, boundPropertyAccess.PropertySymbol);
+            var arguments = ImmutableArray<IArgumentOperation>.Empty;
             IPropertySymbol property = boundPropertyAccess.PropertySymbol.GetPublicSymbol();
             SyntaxNode syntax = boundPropertyAccess.Syntax;
-            ITypeSymbol type = boundPropertyAccess.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundPropertyAccess.ConstantValue;
+            ITypeSymbol? type = boundPropertyAccess.GetPublicTypeSymbol();
             bool isImplicit = boundPropertyAccess.WasCompilerGenerated;
-            return new CSharpLazyPropertyReferenceOperation(this, boundPropertyAccess, isObjectOrCollectionInitializer, property, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new PropertyReferenceOperation(property, arguments, instance, _semanticModel, syntax, type, isImplicit);
         }
 
         private IOperation CreateBoundIndexerAccessOperation(BoundIndexerAccess boundIndexerAccess)
         {
-            bool isObjectOrCollectionInitializer = false;
             PropertySymbol property = boundIndexerAccess.Indexer;
             SyntaxNode syntax = boundIndexerAccess.Syntax;
-            ITypeSymbol type = boundIndexerAccess.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundIndexerAccess.ConstantValue;
+            ITypeSymbol? type = boundIndexerAccess.GetPublicTypeSymbol();
             bool isImplicit = boundIndexerAccess.WasCompilerGenerated;
 
-            MethodSymbol accessor = boundIndexerAccess.UseSetterForDefaultArgumentGeneration
+            MethodSymbol? accessor = boundIndexerAccess.UseSetterForDefaultArgumentGeneration
                 ? property.GetOwnOrInheritedSetMethod()
                 : property.GetOwnOrInheritedGetMethod();
 
             if (!boundIndexerAccess.OriginalIndexersOpt.IsDefault || boundIndexerAccess.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor == null || accessor.OriginalDefinition is ErrorMethodSymbol)
             {
-                return new CSharpLazyInvalidOperation(this, boundIndexerAccess, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new CSharpLazyInvalidOperation(this, boundIndexerAccess, _semanticModel, syntax, type, constantValue: null, isImplicit);
             }
 
-            return new CSharpLazyPropertyReferenceOperation(this, boundIndexerAccess, isObjectOrCollectionInitializer, property.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
+            ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundIndexerAccess, isObjectOrCollectionInitializer: false);
+            IOperation? instance = CreateReceiverOperation(boundIndexerAccess.ReceiverOpt, boundIndexerAccess.ExpressionSymbol);
+            return new PropertyReferenceOperation(property.GetPublicSymbol(), arguments, instance, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAccess boundEventAccess)
         {
             IEventSymbol @event = boundEventAccess.EventSymbol.GetPublicSymbol();
-            BoundNode? instance = boundEventAccess.ReceiverOpt;
+            IOperation? instance = CreateReceiverOperation(boundEventAccess.ReceiverOpt, boundEventAccess.EventSymbol);
             SyntaxNode syntax = boundEventAccess.Syntax;
             ITypeSymbol? type = boundEventAccess.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundEventAccess.ConstantValue;
             bool isImplicit = boundEventAccess.WasCompilerGenerated;
-            return new CSharpLazyEventReferenceOperation(this, instance, @event, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new EventReferenceOperation(@event, instance, _semanticModel, syntax, type, isImplicit);
         }
 
         private IEventAssignmentOperation CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
@@ -837,10 +810,12 @@ namespace Microsoft.CodeAnalysis.Operations
                     return new FieldReferenceOperation(field.GetPublicSymbol(), isDeclaration, createReceiver(), _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Event:
                     var eventSymbol = (EventSymbol)memberSymbol;
-                    return new EventReferenceOperation(eventSymbol.GetPublicSymbol(), createReceiver(), _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new EventReferenceOperation(eventSymbol.GetPublicSymbol(), createReceiver(), _semanticModel, syntax, type, isImplicit);
                 case SymbolKind.Property:
                     var property = (PropertySymbol)memberSymbol;
-                    if (boundObjectInitializerMember.Arguments.Any())
+
+                    ImmutableArray<IArgumentOperation> arguments;
+                    if (!boundObjectInitializerMember.Arguments.IsEmpty)
                     {
                         // In nested member initializers, the property is not actually set. Instead, it is retrieved for a series of Add method calls or nested property setter calls,
                         // so we need to use the getter for this property
@@ -849,9 +824,15 @@ namespace Microsoft.CodeAnalysis.Operations
                         {
                             return new CSharpLazyInvalidOperation(this, boundObjectInitializerMember, _semanticModel, syntax, type, constantValue, isImplicit);
                         }
+
+                        arguments = DeriveArguments(boundObjectInitializerMember, isObjectOrCollectionInitializer);
+                    }
+                    else
+                    {
+                        arguments = ImmutableArray<IArgumentOperation>.Empty;
                     }
 
-                    return new CSharpLazyPropertyReferenceOperation(this, boundObjectInitializerMember, isObjectOrCollectionInitializer, property.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new PropertyReferenceOperation(property.GetPublicSymbol(), arguments, createReceiver(), _semanticModel, syntax, type, isImplicit);
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
@@ -979,7 +960,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (boundConversion.Type is FunctionPointerTypeSymbol)
                 {
-                    Debug.Assert(boundConversion.Conversion.MethodSymbol is object);
+                    Debug.Assert(boundConversion.SymbolOpt is object);
                     return new AddressOfOperation(
                         CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand, boundConversion.SymbolOpt, suppressVirtualCalls: false),
                         _semanticModel, syntax, type, boundConversion.WasCompilerGenerated);
@@ -1092,20 +1073,17 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundDelegateCreationExpression.WasCompilerGenerated;
             return new DelegateCreationOperation(target, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IMethodReferenceOperation CreateBoundMethodGroupSingleMethodOperation(BoundMethodGroup boundMethodGroup, MethodSymbol methodSymbol, bool suppressVirtualCalls)
         {
             bool isVirtual = (methodSymbol.IsAbstract || methodSymbol.IsOverride || methodSymbol.IsVirtual) && !suppressVirtualCalls;
-            BoundNode instance = boundMethodGroup.ReceiverOpt;
+            IOperation? instance = CreateReceiverOperation(boundMethodGroup.ReceiverOpt, methodSymbol);
             SyntaxNode bindingSyntax = boundMethodGroup.Syntax;
-            ITypeSymbol bindingType = null;
-            ConstantValue bindingConstantValue = boundMethodGroup.ConstantValue;
+            ITypeSymbol? bindingType = null;
             bool isImplicit = boundMethodGroup.WasCompilerGenerated;
-            return new CSharpLazyMethodReferenceOperation(this, instance, methodSymbol.GetPublicSymbol(), isVirtual, _semanticModel, bindingSyntax, bindingType, bindingConstantValue, boundMethodGroup.WasCompilerGenerated);
+            return new MethodReferenceOperation(methodSymbol.GetPublicSymbol(), isVirtual, instance, _semanticModel, bindingSyntax, bindingType, boundMethodGroup.WasCompilerGenerated);
         }
 
-#nullable enable
         private IIsTypeOperation CreateBoundIsOperatorOperation(BoundIsOperator boundIsOperator)
         {
             IOperation value = Create(boundIsOperator.Operand);
@@ -2306,7 +2284,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, isImplicit: true);
                         return new PropertyReferenceOperation(
                             property.GetPublicSymbol(), ImmutableArray<IArgumentOperation>.Empty, receiver, _semanticModel, nameSyntax, property.Type.GetPublicSymbol(),
-                            constantValue: null, isImplicit: isImplicit);
+                            isImplicit: isImplicit);
                     }
                 default:
                     // We should expose the symbol in this case somehow:

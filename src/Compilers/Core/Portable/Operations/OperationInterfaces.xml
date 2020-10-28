@@ -742,7 +742,7 @@
       </Comments>
     </Property>
   </Node>
-  <AbstractNode Name="IMemberReferenceOperation" Base="IOperation">
+  <AbstractNode Name="IMemberReferenceOperation" Base="IOperation" >
     <Comments>
       <summary>
         Represents a reference to a member of a class, struct, or interface.
@@ -753,7 +753,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Instance" Type="IOperation">
+    <Property Name="Instance" Type="IOperation?">
       <Comments>
         <summary>Instance of the type. Null if the reference is to a static/shared member.</summary>
       </Comments>
@@ -764,7 +764,7 @@
       </Comments>
     </Property>
   </AbstractNode>
-  <Node Name="IFieldReferenceOperation" Base="IMemberReferenceOperation">
+  <Node Name="IFieldReferenceOperation" Base="IMemberReferenceOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a reference to a field.
@@ -790,7 +790,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IMethodReferenceOperation" Base="IMemberReferenceOperation">
+  <Node Name="IMethodReferenceOperation" Base="IMemberReferenceOperation" HasType="true">
     <Comments>
       <summary>
         Represents a reference to a method other than as the target of an invocation.
@@ -812,7 +812,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IPropertyReferenceOperation" Base="IMemberReferenceOperation" ChildrenOrder="Instance,Arguments">
+  <Node Name="IPropertyReferenceOperation" Base="IMemberReferenceOperation" ChildrenOrder="Instance,Arguments" HasType="true">
     <Comments>
       <summary>
         Represents a reference to a property.
@@ -838,7 +838,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IEventReferenceOperation" Base="IMemberReferenceOperation">
+  <Node Name="IEventReferenceOperation" Base="IMemberReferenceOperation" HasType="true">
     <Comments>
       <summary>
         Represents a reference to an event.

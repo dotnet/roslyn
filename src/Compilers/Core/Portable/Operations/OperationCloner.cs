@@ -87,26 +87,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                             ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitFieldReference(IFieldReferenceOperation operation, object argument)
-        {
-            return new FieldReferenceOperation(operation.Field, operation.IsDeclaration, Visit(operation.Instance), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitMethodReference(IMethodReferenceOperation operation, object argument)
-        {
-            return new MethodReferenceOperation(operation.Method, operation.IsVirtual, Visit(operation.Instance), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, object argument)
-        {
-            return new PropertyReferenceOperation(operation.Property, VisitArray(operation.Arguments), Visit(operation.Instance), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitEventReference(IEventReferenceOperation operation, object argument)
-        {
-            return new EventReferenceOperation(operation.Event, Visit(operation.Instance), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, object argument)
         {
             var compoundAssignment = (BaseCompoundAssignmentOperation)operation;

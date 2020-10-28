@@ -4279,7 +4279,7 @@ oneMoreTime:
                                                           info.CurrentProperty.IsStatic ? null : enumeratorRef,
                                                           semanticModel: null,
                                                           operation.LoopControlVariable.Syntax,
-                                                          info.CurrentProperty.Type, constantValue: null, isImplicit: true);
+                                                          info.CurrentProperty.Type, isImplicit: true);
                 }
                 else
                 {
@@ -5822,13 +5822,13 @@ oneMoreTime:
                         var eventReference = (IEventReferenceOperation)originalTarget;
                         instance = (!eventReference.Member.IsStatic && eventReference.Instance != null) ? PopOperand() : null;
                         return new EventReferenceOperation(eventReference.Event, instance, semanticModel: null, eventReference.Syntax,
-                                                            eventReference.Type, eventReference.GetConstantValue(), IsImplicit(eventReference));
+                                                            eventReference.Type, IsImplicit(eventReference));
                     case OperationKind.PropertyReference:
                         var propertyReference = (IPropertyReferenceOperation)originalTarget;
                         instance = (!propertyReference.Member.IsStatic && propertyReference.Instance != null) ? PopOperand() : null;
                         ImmutableArray<IArgumentOperation> propertyArguments = PopArray(propertyReference.Arguments, RewriteArgumentFromArray);
                         return new PropertyReferenceOperation(propertyReference.Property, propertyArguments, instance, semanticModel: null, propertyReference.Syntax,
-                                                               propertyReference.Type, propertyReference.GetConstantValue(), IsImplicit(propertyReference));
+                                                               propertyReference.Type, IsImplicit(propertyReference));
                     case OperationKind.ArrayElementReference:
                         var arrayElementReference = (IArrayElementReferenceOperation)originalTarget;
                         instance = PopOperand();
@@ -5898,7 +5898,7 @@ oneMoreTime:
                 var visitedPropertyInstance = new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, semanticModel: null,
                     propertyReference.Instance.Syntax, propertyReference.Instance.Type, IsImplicit(propertyReference.Instance));
                 IOperation visitedTarget = new PropertyReferenceOperation(propertyReference.Property, ImmutableArray<IArgumentOperation>.Empty, visitedPropertyInstance,
-                    semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.GetConstantValue(), IsImplicit(propertyReference));
+                    semanticModel: null, propertyReference.Syntax, propertyReference.Type, IsImplicit(propertyReference));
                 IOperation visitedValue = visitAndCaptureInitializer(propertyReference.Property, simpleAssignment.Value);
                 var visitedAssignment = new SimpleAssignmentOperation(isRef: simpleAssignment.IsRef, visitedTarget, visitedValue,
                     semanticModel: null, simpleAssignment.Syntax, simpleAssignment.Type, simpleAssignment.GetConstantValue(), IsImplicit(simpleAssignment));
@@ -6332,20 +6332,19 @@ oneMoreTime:
             return new ParameterReferenceOperation(operation.Parameter, semanticModel: null, operation.Syntax,
                                                    operation.Type, IsImplicit(operation));
         }
-#nullable disable
 
         public override IOperation VisitFieldReference(IFieldReferenceOperation operation, int? captureIdForResult)
         {
-            IOperation visitedInstance = operation.Field.IsStatic ? null : Visit(operation.Instance);
+            IOperation? visitedInstance = operation.Field.IsStatic ? null : Visit(operation.Instance);
             return new FieldReferenceOperation(operation.Field, operation.IsDeclaration, visitedInstance, semanticModel: null,
                                                 operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         public override IOperation VisitMethodReference(IMethodReferenceOperation operation, int? captureIdForResult)
         {
-            IOperation visitedInstance = operation.Method.IsStatic ? null : Visit(operation.Instance);
+            IOperation? visitedInstance = operation.Method.IsStatic ? null : Visit(operation.Instance);
             return new MethodReferenceOperation(operation.Method, operation.IsVirtual, visitedInstance, semanticModel: null,
-                                                 operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                                                operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, int? captureIdForResult)
@@ -6356,7 +6355,8 @@ oneMoreTime:
                 operation.Property.ContainingType.IsAnonymousType &&
                 operation.Property.ContainingType == _currentImplicitInstance.AnonymousType)
             {
-                if (_currentImplicitInstance.AnonymousTypePropertyValues.TryGetValue(operation.Property, out IOperation captured))
+                Debug.Assert(_currentImplicitInstance.AnonymousTypePropertyValues is not null);
+                if (_currentImplicitInstance.AnonymousTypePropertyValues.TryGetValue(operation.Property, out IOperation? captured))
                 {
                     return captured is IFlowCaptureReferenceOperation reference ?
                                GetCaptureReference(reference.Id.Value, operation) :
@@ -6369,21 +6369,20 @@ oneMoreTime:
             }
 
             EvalStackFrame frame = PushStackFrame();
-            IOperation instance = operation.Property.IsStatic ? null : operation.Instance;
-            (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
+            IOperation? instance = operation.Property.IsStatic ? null : operation.Instance;
+            (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
             PopStackFrame(frame);
             return new PropertyReferenceOperation(operation.Property, visitedArguments, visitedInstance, semanticModel: null,
-                                                   operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                                                  operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitEventReference(IEventReferenceOperation operation, int? captureIdForResult)
         {
-            IOperation visitedInstance = operation.Event.IsStatic ? null : Visit(operation.Instance);
+            IOperation? visitedInstance = operation.Event.IsStatic ? null : Visit(operation.Instance);
             return new EventReferenceOperation(operation.Event, visitedInstance, semanticModel: null,
-                                                operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+                                               operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
-#nullable enable
         public override IOperation VisitTypeOf(ITypeOfOperation operation, int? captureIdForResult)
         {
             return new TypeOfOperation(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
@@ -6478,7 +6477,7 @@ oneMoreTime:
                 }
 
                 IOperation propertyRef = new PropertyReferenceOperation(propertySymbol, arguments, instance,
-                    semanticModel: null, operation.Syntax, propertySymbol.Type, constantValue: null, isImplicit: true);
+                    semanticModel: null, operation.Syntax, propertySymbol.Type, isImplicit: true);
                 VisitInitializer(rewrittenTarget: propertyRef, initializer: operation);
             }
 
@@ -6521,7 +6520,7 @@ oneMoreTime:
 
                 IOperation? visitedInstance = eventReferenceInstance == null ? null : PopOperand();
                 visitedEventReference = new EventReferenceOperation(eventReference.Event, visitedInstance,
-                    semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.GetConstantValue(), IsImplicit(operation.EventReference));
+                    semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, IsImplicit(operation.EventReference));
             }
             else
             {
@@ -6572,7 +6571,7 @@ oneMoreTime:
             ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(operation.Arguments);
             IOperation? visitedInstance = instance == null ? null : PopOperand();
             var visitedEventReference = new EventReferenceOperation(operation.EventReference.Event, visitedInstance,
-                semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.GetConstantValue(), IsImplicit(operation.EventReference));
+                semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, IsImplicit(operation.EventReference));
 
             PopStackFrame(frame);
             return FinishVisitingStatement(operation, new RaiseEventOperation(visitedEventReference, visitedArguments, semanticModel: null,
