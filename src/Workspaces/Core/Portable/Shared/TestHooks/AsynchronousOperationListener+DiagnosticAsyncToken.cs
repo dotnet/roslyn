@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Threading.Tasks;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
@@ -20,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             public string Name { get; }
             public string FilePath { get; }
             public int LineNumber { get; }
-            public object Tag { get; }
-            public Task Task { get; set; }
+            public object? Tag { get; }
+            public Task? Task { get; set; }
 
             public DiagnosticAsyncToken(
                 AsynchronousOperationListener listener,
                 string name,
-                object tag,
+                object? tag,
                 string filePath,
                 int lineNumber)
                 : base(listener)
