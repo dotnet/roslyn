@@ -216,43 +216,30 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As PasteCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of PasteCommandArgs).ExecuteCommand
-            Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_pasted_text)
-                CommitOnPaste(args, nextHandler, context.OperationContext.UserCancellationToken)
-            End Using
-        End Sub
+            Dim oldVersion = args.SubjectBuffer.CurrentSnapshot.Version
 
-        Private Sub CommitOnPaste(args As PasteCommandArgs, nextHandler As Action, cancellationToken As CancellationToken)
-            Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Paste)
-                Dim oldVersion = args.SubjectBuffer.CurrentSnapshot.Version
+            nextHandler()
 
-                ' Do the paste in the same transaction as the commit/format
-                nextHandler()
+            If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.FormatOnPaste) Then
+                Return
+            End If
 
-                If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.FormatOnPaste) Then
-                    transaction.Complete()
-                    Return
-                End If
+            Dim document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            If document Is Nothing Then
+                Return
+            End If
 
-                Dim document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
-                If document IsNot Nothing Then
-                    Dim formattingRuleService = document.Project.Solution.Workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-                    If formattingRuleService.ShouldNotFormatOrCommitOnPaste(document) Then
-                        transaction.Complete()
-                        Return
-                    End If
-                End If
+            Dim formattingRuleService = document.Project.Solution.Workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
+            If formattingRuleService.ShouldNotFormatOrCommitOnPaste(document) Then
+                Return
+            End If
 
-                ' Did we paste content that changed the number of lines?
-                If oldVersion.Changes IsNot Nothing AndAlso oldVersion.Changes.IncludesLineChanges Then
-                    Try
-                        _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=cancellationToken)
-                    Catch ex As OperationCanceledException
-                        ' If the commit was cancelled, we still want the paste to go through
-                    End Try
-                End If
+            ' Did we paste content that changed the number of lines?
+            If oldVersion.Changes Is Nothing OrElse Not oldVersion.Changes.IncludesLineChanges Then
+                Return
+            End If
 
-                transaction.Complete()
-            End Using
+            _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, blocking:=False, cancellationToken:=Nothing)
         End Sub
 
         Public Function GetCommandState(args As PasteCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of PasteCommandArgs).GetCommandState

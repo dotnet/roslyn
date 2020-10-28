@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string CallHierarchy = nameof(CallHierarchy);
         public const string Classification = nameof(Classification);
         public const string CodeModel = nameof(CodeModel);
+        public const string Commit = nameof(Commit);
         public const string CompletionSet = nameof(CompletionSet);
         public const string DiagnosticService = nameof(DiagnosticService);
         public const string EncapsulateField = nameof(EncapsulateField);

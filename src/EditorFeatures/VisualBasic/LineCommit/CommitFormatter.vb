@@ -9,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Internal.Log
@@ -23,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Implements ICommitFormatter
 
         Private ReadOnly _indentationManagerService As IIndentationManagerService
+        Private ReadOnly _threadingContext As IThreadingContext
 
         Private Shared ReadOnly s_codeCleanupPredicate As Func(Of ICodeCleanupProvider, Boolean) =
             Function(p)
@@ -32,22 +34,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(indentationManagerService As IIndentationManagerService)
+        Public Sub New(
+                indentationManagerService As IIndentationManagerService,
+                threadingContext As IThreadingContext)
             _indentationManagerService = indentationManagerService
+            _threadingContext = threadingContext
         End Sub
 
-        Public Sub CommitRegion(spanToFormat As SnapshotSpan,
-                                isExplicitFormat As Boolean,
-                                useSemantics As Boolean,
-                                dirtyRegion As SnapshotSpan,
-                                baseSnapshot As ITextSnapshot,
-                                baseTree As SyntaxTree,
-                                cancellationToken As CancellationToken) Implements ICommitFormatter.CommitRegion
+        Public Async Function CommitRegionAsync(
+                spanToFormat As SnapshotSpan,
+                isExplicitFormat As Boolean,
+                useSemantics As Boolean,
+                dirtyRegion As SnapshotSpan,
+                baseSnapshot As ITextSnapshot,
+                baseTree As SyntaxTree,
+                currentSnapshot As ITextSnapshot,
+                cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
 
             Using (Logger.LogBlock(FunctionId.LineCommit_CommitRegion, cancellationToken))
-                Dim buffer = spanToFormat.Snapshot.TextBuffer
-                Dim currentSnapshot = buffer.CurrentSnapshot
-
                 ' make sure things are current
                 spanToFormat = spanToFormat.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
                 dirtyRegion = dirtyRegion.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
@@ -69,12 +73,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
-                                                document,
-                                                documentOptions,
-                                                spanToFormat,
-                                                baseSnapshot, baseTree,
-                                                dirtyRegion, document.GetSyntaxTreeSynchronously(cancellationToken),
-                                                cancellationToken)
+                    document,
+                    documentOptions,
+                    spanToFormat,
+                    baseSnapshot, baseTree,
+                    dirtyRegion, Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False),
+                    cancellationToken)
 
                 Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
                                                WhereAsArray(s_codeCleanupPredicate).
@@ -82,17 +86,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then
-                    finalDocument = CodeCleaner.CleanupAsync(document,
-                                                             textSpanToFormat,
-                                                             codeCleanups,
-                                                             cancellationToken).WaitAndGetResult(cancellationToken)
+                    finalDocument = Await CodeCleaner.CleanupAsync(
+                        document, textSpanToFormat, codeCleanups, cancellationToken).ConfigureAwait(False)
                 Else
                     Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
-                    Dim newRoot = CodeCleaner.CleanupAsync(root,
-                                                           textSpanToFormat,
-                                                           document.Project.Solution.Workspace,
-                                                           codeCleanups,
-                                                           cancellationToken).WaitAndGetResult(cancellationToken)
+                    Dim newRoot = Await CodeCleaner.CleanupAsync(
+                        root, textSpanToFormat, document.Project.Solution.Workspace, codeCleanups, cancellationToken).ConfigureAwait(False)
                     If root Is newRoot Then
                         finalDocument = document
                     Else
@@ -105,9 +104,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     End If
                 End If
 
+                ' go back to the UI thread and attempt to apply this change.  if other changes have happened since we
+                ' kicked this work off, this will naturally fail in ApplyDocumentChanges.
+                Await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
                 finalDocument.Project.Solution.Workspace.ApplyDocumentChanges(finalDocument, cancellationToken)
             End Using
-        End Sub
+        End Function
 
         Private Shared Function AbortForDiagnostics(document As Document, cancellationToken As CancellationToken) As Boolean
             Const UnterminatedStringId = "BC30648"

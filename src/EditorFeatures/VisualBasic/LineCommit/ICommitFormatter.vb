@@ -13,13 +13,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         ''' by this function. Further, if the operation is cancelled, the buffer may be left in a
         ''' partially committed state that must be rolled back by the transaction.
         ''' </summary>
-        Sub CommitRegion(
+        Function CommitRegionAsync(
             spanToFormat As SnapshotSpan,
             isExplicitFormat As Boolean,
             useSemantics As Boolean,
             dirtyRegion As SnapshotSpan,
             baseSnapshot As ITextSnapshot,
             baseTree As SyntaxTree,
-            cancellationToken As CancellationToken)
+            currentSnapshot As ITextSnapshot,
+            cancellationToken As CancellationToken) As Task
     End Interface
 End Namespace

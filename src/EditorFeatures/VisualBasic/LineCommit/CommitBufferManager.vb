@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 
@@ -18,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _buffer As ITextBuffer
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
-
+        Private ReadOnly _listener As IAsynchronousOperationListener
         Private _referencingViews As Integer
 
         ''' <summary>
@@ -42,7 +43,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             buffer As ITextBuffer,
             commitFormatter As ICommitFormatter,
             inlineRenameService As IInlineRenameService,
-            threadingContext As IThreadingContext)
+            threadingContext As IThreadingContext,
+            listenerProvider As IAsynchronousOperationListenerProvider)
             MyBase.New(threadingContext, assertIsForeground:=False)
 
             Contract.ThrowIfNull(buffer)
@@ -52,6 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             _buffer = buffer
             _commitFormatter = commitFormatter
             _inlineRenameService = inlineRenameService
+            _listener = listenerProvider.GetListener(FeatureAttribute.Commit)
         End Sub
 
         Public Sub AddReferencingView()
@@ -96,7 +99,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         ''' To improve perf, passing false to isExplicitFormat will avoid semantic checks when expanding
         ''' the formatting span to an entire block
         ''' </summary>
-        Public Sub CommitDirty(isExplicitFormat As Boolean, cancellationToken As CancellationToken)
+        Public Sub CommitDirty(isExplicitFormat As Boolean, blocking As Boolean, cancellationToken As CancellationToken)
+            Me.AssertIsForeground()
+
             If _inlineRenameService.ActiveSession IsNot Nothing Then
                 _dirtyState = Nothing
                 Return
@@ -111,49 +116,86 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Return
             End If
 
-            Try
-                ' Start to suppress commits to ensure we don't have any sort of re-entrancy in this process.
-                ' We've seen bugs (17015) where waits triggered by some computation might re-enter.
-                Using BeginSuppressingCommits()
-                    ' It's possible that an edit may already be in progress. In this scenario, there's
-                    ' really nothing we can do, so we'll just skip the format
-                    If _buffer.EditInProgress Then
-                        Return
-                    End If
+            ' Kick of the async work to actually compute and apply the commit change.
+            Dim token = _listener.BeginAsyncOperation(NameOf(CommitDirty))
+            Dim task = CommitDirtyAsync(isExplicitFormat, cancellationToken)
+            task.CompletesAsyncOperation(token)
 
-                    Dim dirtyRegion = _dirtyState.DirtyRegion.GetSpan(_buffer.CurrentSnapshot)
-                    Dim info As FormattingInfo
-                    If Not TryComputeExpandedSpanToFormat(dirtyRegion, info, cancellationToken) Then
-                        Return
-                    End If
-
-                    Dim useSemantics = info.UseSemantics
-                    If useSemantics AndAlso Not isExplicitFormat Then
-                        ' Avoid using semantics for formatting extremely large dirty spans without an explicit request
-                        ' from the user. The "large span threshold" is 7000 lines. The 7000 line threshold is an
-                        ' estimated value accounting for a lower-bound of the algorithmic complexity of text
-                        ' differencing in designer cases along with measurements of a pathological example demonstrated
-                        ' at 14000 lines. We expect Windows Forms designer formatting operations to run in under ~15
-                        ' seconds on average current hardware when nearing the threshold.
-                        Dim startLineNumber = 0
-                        Dim startCharIndex = 0
-                        Dim endLineNumber = 0
-                        Dim endCharIndex = 0
-                        info.SpanToFormat.GetLinesAndCharacters(startLineNumber, startCharIndex, endLineNumber, endCharIndex)
-                        If endLineNumber - startLineNumber > 7000 Then
-                            useSemantics = False
-                        End If
-                    End If
-
-                    Dim tree = _dirtyState.BaseDocument.GetSyntaxTreeSynchronously(cancellationToken)
-                    _commitFormatter.CommitRegion(info.SpanToFormat, isExplicitFormat, useSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken)
-                End Using
-            Finally
-                ' We may have tracked a dirty region while committing or it may have been aborted.
-                ' In any case, we want to guarantee we have no dirty region once we're done
-                _dirtyState = Nothing
-            End Try
+            ' If the caller wants to block
+            If blocking Then
+                task.Wait(cancellationToken)
+            End If
         End Sub
+
+        Private Async Function CommitDirtyAsync(isExplicitFormat As Boolean, cancellationToken As CancellationToken) As Task
+            Me.AssertIsForeground()
+
+            Using bufferEditTokenSource = New CancellationTokenSource()
+                Using linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(bufferEditTokenSource.Token, cancellationToken)
+
+                    ' if the text buffer is changed, then cancel any work we're doing.
+                    Dim handler = Sub(sender As Object, eventArgs As TextContentChangingEventArgs)
+                                      bufferEditTokenSource.Cancel()
+                                  End Sub
+                    AddHandler _dirtyState.BaseSnapshot.TextBuffer.Changing, handler
+
+                    Try
+                        ' Start to suppress commits to ensure we don't have any sort of re-entrancy in this process.
+                        ' We've seen bugs (17015) where waits triggered by some computation might re-enter.
+                        Using BeginSuppressingCommits()
+                            ' It's possible that an edit may already be in progress. In this scenario, there's
+                            ' really nothing we can do, so we'll just skip the format
+                            If _buffer.EditInProgress Then
+                                Return
+                            End If
+
+                            Dim dirtyRegion = _dirtyState.DirtyRegion.GetSpan(_buffer.CurrentSnapshot)
+                            Dim info As FormattingInfo
+                            If Not TryComputeExpandedSpanToFormat(dirtyRegion, info, cancellationToken) Then
+                                Return
+                            End If
+
+                            Dim useSemantics = info.UseSemantics
+                            If useSemantics AndAlso Not isExplicitFormat Then
+                                ' Avoid using semantics for formatting extremely large dirty spans without an explicit request
+                                ' from the user. The "large span threshold" is 7000 lines. The 7000 line threshold is an
+                                ' estimated value accounting for a lower-bound of the algorithmic complexity of text
+                                ' differencing in designer cases along with measurements of a pathological example demonstrated
+                                ' at 14000 lines. We expect Windows Forms designer formatting operations to run in under ~15
+                                ' seconds on average current hardware when nearing the threshold.
+                                Dim startLineNumber = 0
+                                Dim startCharIndex = 0
+                                Dim endLineNumber = 0
+                                Dim endCharIndex = 0
+                                info.SpanToFormat.GetLinesAndCharacters(startLineNumber, startCharIndex, endLineNumber, endCharIndex)
+                                If endLineNumber - startLineNumber > 7000 Then
+                                    useSemantics = False
+                                End If
+                            End If
+
+                            ' Get the original tree, but come back to the UI thread so we can capture the current buffer snapshot
+                            Dim tree = Await _dirtyState.BaseDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(True)
+                            Me.AssertIsForeground()
+                            Await _commitFormatter.CommitRegionAsync(
+                                info.SpanToFormat,
+                                isExplicitFormat,
+                                useSemantics,
+                                dirtyRegion,
+                                _dirtyState.BaseSnapshot,
+                                tree,
+                                cancellationToken).ConfigureAwait(False)
+                        End Using
+                    Finally
+                        ' We may have tracked a dirty region while committing or it may have been aborted.
+                        ' In any case, we want to guarantee we have no dirty region once we're done
+                        _dirtyState = Nothing
+
+                        ' make sure we always clean up our event handler
+                        RemoveHandler _dirtyState.BaseSnapshot.TextBuffer.Changing, handler
+                    End Try
+                End Using
+            End Using
+        End Function
 
         Private Structure FormattingInfo
             Public UseSemantics As Boolean
