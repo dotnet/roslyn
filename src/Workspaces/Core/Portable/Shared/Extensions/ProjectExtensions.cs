@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -56,22 +57,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static Document GetRequiredDocument(this Project project, DocumentId documentId)
         {
             var document = project.GetDocument(documentId);
-            if (document == null)
-            {
-                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
-            }
-
+            Contract.ThrowIfNull(document);
             return document;
         }
 
         public static TextDocument GetRequiredTextDocument(this Project project, DocumentId documentId)
         {
             var document = project.GetTextDocument(documentId);
-            if (document == null)
-            {
-                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
-            }
-
+            Contract.ThrowIfNull(document);
             return document;
         }
     }
