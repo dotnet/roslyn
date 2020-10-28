@@ -134,24 +134,6 @@
             ]
           }
         },
-        "RS0042": {
-          "id": "RS0042",
-          "shortDescription": "Do not copy value",
-          "fullDescription": "Do not unbox non-copyable value types.",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsReliability",
-            "isEnabledByDefault": true,
-            "typeName": "DoNotCopyValue",
-            "languages": [
-              "C#",
-              "Visual Basic"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
         "RS0043": {
           "id": "RS0043",
           "shortDescription": "Do not call 'GetTestAccessor()'",
@@ -240,6 +222,23 @@
             "category": "RoslynDiagnosticsMaintainability",
             "isEnabledByDefault": true,
             "typeName": "PreferNullLiteral",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0042": {
+          "id": "RS0042",
+          "shortDescription": "Do not copy value",
+          "fullDescription": "Do not unbox non-copyable value types.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpDoNotCopyValue",
             "languages": [
               "C#"
             ],
@@ -390,6 +389,23 @@
             ],
             "tags": [
               "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0042": {
+          "id": "RS0042",
+          "shortDescription": "Do not copy value",
+          "fullDescription": "Do not unbox non-copyable value types.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "VisualBasicDoNotCopyValue",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
               "Telemetry"
             ]
           }
