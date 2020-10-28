@@ -181,7 +181,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                     IEnumerable<TextChange> textChanges;
 
-                    // Normal documents use a special method to get their text changes which avoids dirtying the entire file unless necessary.
+                    // Normal documents have a unique method for calculating minimal text edits. If we used the standard 'GetTextChanges'
+                    // method instead, we would get a change that spans the entire document, which we ideally want to avoid.
                     if (newTextDoc is Document newDoc && oldTextDoc is Document oldDoc)
                     {
                         textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
