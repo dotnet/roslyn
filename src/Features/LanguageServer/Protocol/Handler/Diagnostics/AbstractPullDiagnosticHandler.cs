@@ -239,9 +239,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Razor wants to handle all span mapping themselves.  So if we are in razor, return the raw doc spans, and
             // do not map them.
             var useMappedSpan = !document.IsRazorDocument();
-            return new RoslynDiagnostic
+            return new VSDiagnostic
             {
-                Client = GetType().Name,
+                Source = GetType().Name,
                 Code = diagnosticData.Id,
                 Message = diagnosticData.Message,
                 Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),

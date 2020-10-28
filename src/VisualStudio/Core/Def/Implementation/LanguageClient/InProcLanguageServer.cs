@@ -586,9 +586,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             Contract.ThrowIfNull(diagnosticData.DataLocation);
 
-            var diagnostic = new RoslynDiagnostic
+            var diagnostic = new LSP.Diagnostic
             {
-                Client = this._languageClient.GetType().Name,
+                Source = this._languageClient.GetType().Name,
                 Code = diagnosticData.Id,
                 Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
                 Range = GetDiagnosticRange(diagnosticData.DataLocation, text, isRazor),
