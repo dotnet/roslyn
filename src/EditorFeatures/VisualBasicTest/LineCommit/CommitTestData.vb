@@ -133,7 +133,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     dirtyRegion As SnapshotSpan,
                     baseSnapshot As ITextSnapshot,
                     baseTree As SyntaxTree,
-                    currentSnapshot As ITextSnapshot,
                     blocking As Boolean,
                     cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
                 GotCommit = True
@@ -151,8 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     _testWorkspace.GetService(Of IIndentationManagerService),
                     _testWorkspace.ExportProvider.GetExportedValue(Of IThreadingContext))
                 Return realCommitFormatter.CommitRegionAsync(
-                    spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree,
-                    currentSnapshot, blocking, cancellationToken)
+                    spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, blocking, cancellationToken)
             End Function
         End Class
     End Class
