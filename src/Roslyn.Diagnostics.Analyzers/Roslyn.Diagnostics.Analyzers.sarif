@@ -151,6 +151,24 @@
               "Telemetry"
             ]
           }
+        },
+        "RS0049": {
+          "id": "RS0049",
+          "shortDescription": "Instance of TemporaryArray<T>.AsRef() must be a 'using' variable",
+          "fullDescription": "Instance of TemporaryArray<T>.AsRef() must be a 'using' variable.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "TemporaryArrayAsRefAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },

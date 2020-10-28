@@ -366,4 +366,16 @@
   <data name="BlankLinesTitle" xml:space="preserve">
     <value>Avoid multiple blank lines</value>
   </data>
+  <data name="TemporaryArrayAsRefDescription" xml:space="preserve">
+    <value>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</value>
+    <comment>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</comment>
+  </data>
+  <data name="TemporaryArrayAsRefMessage" xml:space="preserve">
+    <value>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</value>
+    <comment>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</comment>
+  </data>
+  <data name="TemporaryArrayAsRefTitle" xml:space="preserve">
+    <value>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</value>
+    <comment>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</comment>
+  </data>
 </root>
