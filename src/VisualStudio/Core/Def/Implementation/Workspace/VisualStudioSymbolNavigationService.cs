@@ -73,16 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var targetDocument = project.Solution.GetDocument(sourceLocation.SourceTree);
                 if (targetDocument != null)
                 {
-                    if (targetDocument is SourceGeneratedDocument sourceGeneratedDocument)
-                    {
-                        _sourceGeneratedFileManager.NavigateToSourceGeneratedFile(project, sourceGeneratedDocument.SourceGenerator, sourceGeneratedDocument.HintName, sourceLocation.SourceSpan);
-                    }
-                    else
-                    {
-                        var editorWorkspace = targetDocument.Project.Solution.Workspace;
-                        var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
-                        return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
-                    }
+                    var editorWorkspace = targetDocument.Project.Solution.Workspace;
+                    var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
+                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
                 }
             }
 

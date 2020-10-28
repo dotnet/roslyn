@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 this);
         }
 
-        public void NavigateToSourceGeneratedFile(Project project, ISourceGenerator generator, string generatedSourceHintName, TextSpan sourceSpan)
+        public void NavigateToSourceGeneratedFile(SourceGeneratedDocument document, TextSpan sourceSpan)
         {
             _foregroundThreadAffintizedObject.AssertIsForeground();
 
@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // but most URIs are blocked other than file:// and http://; they also get extra handling to attempt to download the file so
             // those aren't really usable anyways.
 
-            var generatorType = generator.GetType();
+            var generatorType = document.SourceGenerator.GetType();
             var generatorAssemblyName = generatorType.Assembly.GetName().Name ?? string.Empty;
             var generatorFullName = generatorType.FullName;
 
@@ -145,9 +145,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // This can only be changed if the compiler changes the algorithm as well. The directory itself we can of course change.
             var temporaryFilePath = Path.Combine(
                 _temporaryDirectory,
-                project.Id.Id.ToString(),
+                document.Project.Id.Id.ToString(),
                 guidForDirectory.Value.ToString(),
-                generatedSourceHintName);
+                document.HintName);
 
             Directory.CreateDirectory(Path.GetDirectoryName(temporaryFilePath));
 
@@ -358,8 +358,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
                     var generatedDocument = generatedDocuments.SingleOrDefault(d =>
-                                d.SourceGenerator.GetType().FullName.Equals(_generatorTypeName, StringComparison.OrdinalIgnoreCase) &&
-                                d.SourceGenerator.GetType().Assembly.GetName().Name.Equals(_generatorAssemblyName));
+                        d.SourceGenerator.GetType().FullName.Equals(_generatorTypeName) &&
+                        d.SourceGenerator.GetType().Assembly.GetName().Name.Equals(_generatorAssemblyName));
 
                     if (generatedDocument != null)
                     {
