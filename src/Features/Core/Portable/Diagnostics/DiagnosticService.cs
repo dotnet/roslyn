@@ -211,6 +211,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             RaiseDiagnosticsCleared((IDiagnosticUpdateSource)sender);
         }
 
+        ImmutableArray<DiagnosticData> IDiagnosticService.GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => GetPushDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken);
+
         public ImmutableArray<DiagnosticData> GetPullDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
             => GetDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, forPullDiagnostics: true, diagnosticMode, cancellationToken);
 

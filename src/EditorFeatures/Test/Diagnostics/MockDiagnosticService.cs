@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
         }
 
+        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => GetPushDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken);
+
         public ImmutableArray<DiagnosticData> GetPullDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             return GetDiagnostics(workspace, projectId, documentId);

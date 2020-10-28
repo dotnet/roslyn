@@ -23,6 +23,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
         /// <summary>
+        /// This call is equivalent to <see cref="GetPushDiagnostics"/> passing in <see cref="InternalDiagnosticsOptions.NormalDiagnosticMode"/>.
+        /// </summary>
+        [Obsolete("Legacy overload for TypeScript.  Use GetPullDiagnostics or GetPushDiagnostics instead.", error: false)]
+        ImmutableArray<DiagnosticData> GetDiagnostics(
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Get current diagnostics stored in IDiagnosticUpdateSource.
         /// </summary>
         /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
