@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull
-        /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of diagnostics
-        /// in their scenario (or an empty array if not in their scenario).q
+        /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
+        /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
         public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, bool forPullDiagnostics)
         {
