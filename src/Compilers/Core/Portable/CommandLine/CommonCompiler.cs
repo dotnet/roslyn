@@ -959,73 +959,16 @@ namespace Microsoft.CodeAnalysis
                         additionalFileAnalyzerOptions);
                 }
 
-                if (!generators.IsEmpty)
-                {
-                    // At this point we have a compilation with nothing yet computed. 
-                    // We pass it to the generators, which will realize any symbols they require. 
-                    compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
-
-                    bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
-                    bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
-
-                    var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToList();
-
-                    var analyzerOptionsBuilder = hasAnalyzerConfigs ? ArrayBuilder<AnalyzerConfigOptionsResult>.GetInstance(generatedSyntaxTrees.Count) : null;
-                    var embeddedTextBuilder = ArrayBuilder<EmbeddedText>.GetInstance(generatedSyntaxTrees.Count);
-                    try
-                    {
-                        foreach (var tree in generatedSyntaxTrees)
-                        {
-                            Debug.Assert(!string.IsNullOrWhiteSpace(tree.FilePath));
-                            cancellationToken.ThrowIfCancellationRequested();
-
-                            var sourceText = tree.GetText(cancellationToken);
-
-                            // embed the generated text and get analyzer options for it if needed
-                            embeddedTextBuilder.Add(EmbeddedText.FromSource(tree.FilePath, sourceText));
-                            if (analyzerOptionsBuilder is object)
-                            {
-                                analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(tree.FilePath));
-                            }
-
-                            // write out the file if we have an output path
-                            if (hasGeneratedOutputPath)
-                            {
-                                var path = Path.Combine(Arguments.GeneratedFilesOutputDirectory!, tree.FilePath);
-                                if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
-                                {
-                                    Directory.CreateDirectory(Path.GetDirectoryName(path));
-                                }
-
-                                var fileStream = OpenFile(path, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
-                                if (fileStream is object)
-                                {
-                                    Debug.Assert(tree.Encoding is object);
-
-                                    using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
-                                    using var writer = new StreamWriter(fileStream, tree.Encoding);
-
-                                    sourceText.Write(writer, cancellationToken);
-                                    touchedFilesLogger?.AddWritten(path);
-                                }
-                            }
-                        }
-
-                        embeddedTexts = embeddedTexts.AddRange(embeddedTextBuilder);
-                        if (analyzerOptionsBuilder is object)
-                        {
-                            analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
-                               analyzerConfigProvider,
-                               generatedSyntaxTrees,
-                               analyzerOptionsBuilder.ToImmutable());
-                        }
-                    }
-                    finally
-                    {
-                        analyzerOptionsBuilder?.Free();
-                        embeddedTextBuilder.Free();
-                    }
-                }
+                RunGenerators(
+                    touchedFilesLogger,
+                    ref compilation,
+                    generators,
+                    additionalTextFiles,
+                    analyzerConfigSet,
+                    ref embeddedTexts,
+                    diagnostics,
+                    ref analyzerConfigProvider,
+                    cancellationToken);
 
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
                       additionalTextFiles, analyzerConfigProvider);
@@ -1322,6 +1265,86 @@ namespace Microsoft.CodeAnalysis
             if (!WriteTouchedFiles(diagnostics, touchedFilesLogger, finalXmlFilePath))
             {
                 return;
+            }
+        }
+
+        private void RunGenerators(
+            TouchedFileLogger? touchedFilesLogger,
+            ref Compilation compilation,
+            ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<AdditionalText> additionalTextFiles,
+            AnalyzerConfigSet? analyzerConfigSet,
+            ref ImmutableArray<EmbeddedText?> embeddedTexts,
+            DiagnosticBag diagnostics,
+            ref CompilerAnalyzerConfigOptionsProvider analyzerConfigProvider,
+            CancellationToken cancellationToken)
+        {
+            if (!generators.IsEmpty)
+            {
+                // At this point we have a compilation with nothing yet computed. 
+                // We pass it to the generators, which will realize any symbols they require. 
+                compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
+
+                bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
+                bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
+
+                var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToList();
+
+                var analyzerOptionsBuilder = hasAnalyzerConfigs ? ArrayBuilder<AnalyzerConfigOptionsResult>.GetInstance(generatedSyntaxTrees.Count) : null;
+                var embeddedTextBuilder = ArrayBuilder<EmbeddedText>.GetInstance(generatedSyntaxTrees.Count);
+                try
+                {
+                    foreach (var tree in generatedSyntaxTrees)
+                    {
+                        Debug.Assert(!string.IsNullOrWhiteSpace(tree.FilePath));
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var sourceText = tree.GetText(cancellationToken);
+
+                        // embed the generated text and get analyzer options for it if needed
+                        embeddedTextBuilder.Add(EmbeddedText.FromSource(tree.FilePath, sourceText));
+                        if (analyzerOptionsBuilder is object)
+                        {
+                            analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(tree.FilePath));
+                        }
+
+                        // write out the file if we have an output path
+                        if (hasGeneratedOutputPath)
+                        {
+                            var path = Path.Combine(Arguments.GeneratedFilesOutputDirectory!, tree.FilePath);
+                            if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
+                            {
+                                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                            }
+
+                            var fileStream = OpenFile(path, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                            if (fileStream is object)
+                            {
+                                Debug.Assert(tree.Encoding is object);
+
+                                using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
+                                using var writer = new StreamWriter(fileStream, tree.Encoding);
+
+                                sourceText.Write(writer, cancellationToken);
+                                touchedFilesLogger?.AddWritten(path);
+                            }
+                        }
+                    }
+
+                    embeddedTexts = embeddedTexts.AddRange(embeddedTextBuilder);
+                    if (analyzerOptionsBuilder is object)
+                    {
+                        analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
+                           analyzerConfigProvider,
+                           generatedSyntaxTrees,
+                           analyzerOptionsBuilder.ToImmutable());
+                    }
+                }
+                finally
+                {
+                    analyzerOptionsBuilder?.Free();
+                    embeddedTextBuilder.Free();
+                }
             }
         }
 
