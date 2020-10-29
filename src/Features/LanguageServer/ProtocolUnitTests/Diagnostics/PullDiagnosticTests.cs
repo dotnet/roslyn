@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 workspace.Options
                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope)
                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope)
-                    .WithChangedOption(InternalDiagnosticsOptions.LspPullDiagnostics, pullDiagnostics)));
+                    .WithChangedOption(InternalDiagnosticsOptions.NormalDiagnosticMode, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push)));
 
             var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));

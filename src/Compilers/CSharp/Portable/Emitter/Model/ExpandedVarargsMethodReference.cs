@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal class ExpandedVarargsMethodReference :
+    internal sealed class ExpandedVarargsMethodReference :
         Cci.IMethodReference,
         Cci.IGenericMethodInstanceReference,
         Cci.ISpecializedMethodReference
@@ -153,6 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
         string Cci.INamedEntity.Name
         {
             get { return _underlyingMethod.Name; }
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public override string ToString()
         {
             var result = PooledStringBuilder.GetInstance();
-            Append(result, _underlyingMethod);
+            Append(result, _underlyingMethod.GetInternalSymbol() ?? (object)_underlyingMethod);
 
             result.Builder.Append(" with __arglist( ");
 
@@ -223,6 +225,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 result.Builder.Append(value);
             }
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these CCi objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these CCi objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
         }
     }
 }

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             source.DiagnosticsUpdated += (object sender, DiagnosticsUpdatedArgs e) =>
             {
-                var diagnostics = e.GetDiagnostics(workspace, forPullDiagnostics: false);
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 updates.Add($"{e.Kind} p={e.ProjectId} d={e.DocumentId}: {string.Join(",", diagnostics.Select(d => d.Id.ToString()))}");
             };
 
