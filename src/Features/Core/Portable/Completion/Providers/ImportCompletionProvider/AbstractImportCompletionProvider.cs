@@ -130,8 +130,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
 
-            var provideParenthesisCompletion = commitKey == ';' && ImportCompletionItem.GetProvideParenthesisCompletion(completionItem);
-            var insertText = provideParenthesisCompletion ? completionItem.DisplayText + "();" : completionItem.DisplayText;
+            var provideParenthesisCompletion = (commitKey == ';' || commitKey == '.')
+                && ImportCompletionItem.GetProvideParenthesisCompletion(completionItem);
+            var insertText = provideParenthesisCompletion
+                ? string.Concat(completionItem.DisplayText, "()", commitKey)
+                : completionItem.DisplayText;
 
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = ImportCompletionItem.GetSymbol(completionItem, compilation);
@@ -139,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
                 var textChange = new TextChange(completionListSpan, $"{containingNamespace}.{insertText}");
-                var location = GetCaretLocation(provideParenthesisCompletion, symbol, textChange);
+                var location = GetCaretLocation(commitKey, provideParenthesisCompletion, symbol, textChange);
                 return CompletionChange.Create(textChange, newPosition: location, includesCommitCharacter: provideParenthesisCompletion);
             }
 
@@ -184,19 +187,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
             var change = Utilities.Collapse(newText, builder.ToImmutableAndFree());
-            var caretLocation = GetCaretLocation(provideParenthesisCompletion, symbol, change);
+            var caretLocation = GetCaretLocation(commitKey, provideParenthesisCompletion, symbol, change);
             return CompletionChange.Create(change, caretLocation, includesCommitCharacter: provideParenthesisCompletion);
 
-            static int? GetCaretLocation(bool provideParenthesisCompletion, ISymbol? symbol, TextChange change)
+            static int? GetCaretLocation(char? commitKey, bool provideParenthesisCompletion, ISymbol? symbol, TextChange change)
             {
                 if (provideParenthesisCompletion
                     && symbol != null
                     && change.NewText != null
+                    && commitKey == ';'
                     && CommonCompletionUtilities.ShouldPutCaretBetweenParenthesis(symbol))
                 {
                     return change.Span.Start + change.NewText.Length - 2;
                 }
 
+                // TODO: Wait for feedback to see if it is good to always put caret at the end when commit with
+                // '.'
                 return null;
             }
 

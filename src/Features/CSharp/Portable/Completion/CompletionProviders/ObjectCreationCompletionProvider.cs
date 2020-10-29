@@ -151,15 +151,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var solution = document.Project.Solution;
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
-            if (commitKey == ';' && IsAutoAddParenthesisBySemicolonAndDotEnabled(document))
+            if ((commitKey == ';' || commitKey == '.') && IsAutoAddParenthesisBySemicolonAndDotEnabled(document))
             {
                 var endOfInsertionText = item.Span.Start + insertionText.Length;
-                var textChange = new TextChange(item.Span, insertionText + "();");
+                var textChange = new TextChange(
+                    item.Span,
+                    string.Concat(insertionText, "()", commitKey));
                 var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-                var putCaretBetweenParenthesis = symbols.All(ShouldPutCaretBetweenParenthesis);
+                var putCaretBetweenParenthesis = commitKey == ';' && symbols.All(ShouldPutCaretBetweenParenthesis);
                 var completionChange = CompletionChange.Create(
                     textChange,
-                    putCaretBetweenParenthesis ? endOfInsertionText + 1 : endOfInsertionText + 3,
+                    putCaretBetweenParenthesis ? endOfInsertionText + 1 : null,
                     includesCommitCharacter: true);
                 return completionChange;
             }

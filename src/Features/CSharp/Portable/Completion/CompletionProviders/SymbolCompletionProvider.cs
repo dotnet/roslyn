@@ -316,12 +316,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
-            if (commitKey == ';' && SymbolCompletionItem.GetProvideParenthesisCompletion(item))
+            if ((commitKey == ';' || commitKey == '.') && SymbolCompletionItem.GetProvideParenthesisCompletion(item))
             {
-                var textChange = new TextChange(item.Span, insertionText + "();");
+                var textChange = new TextChange(
+                    item.Span,
+                    string.Concat(insertionText + "()", commitKey));
+                var putCaretBetweenParenthesis = commitKey == ';' && SymbolCompletionItem.GetPutCaretBetweenParenthesis(item);
                 var endOfInsertionText = item.Span.Start + insertionText.Length;
                 return Task.FromResult(CompletionChange.Create(textChange,
-                    SymbolCompletionItem.GetPutCaretBetweenParenthesis(item) ? endOfInsertionText + 1 : endOfInsertionText + 3,
+                    putCaretBetweenParenthesis ? endOfInsertionText + 1 : null,
                     includesCommitCharacter: true));
             }
 
