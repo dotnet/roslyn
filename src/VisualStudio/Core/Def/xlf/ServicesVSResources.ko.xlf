@@ -227,6 +227,11 @@
         <target state="translated">요소가 잘못되었습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
+        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="new">Enable Razor 'pull' diagnostics (experimental, requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="new">Enable 'pull' diagnostics (experimental, requires restart)</target>

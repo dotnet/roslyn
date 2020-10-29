@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         protected internal override VSServerCapabilities GetCapabilities()
             => new VSServerCapabilities
             {
-                SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.LspPullDiagnostics),
+                SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode) == DiagnosticMode.Pull,
             };
     }
 }
