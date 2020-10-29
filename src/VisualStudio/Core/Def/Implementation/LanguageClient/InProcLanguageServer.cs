@@ -595,29 +595,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                     : Array.Empty<DiagnosticTag>()
             };
 
-<<<<<<< HEAD
-                var diagnostic = new LSP.Diagnostic
-                {
-                    Code = diagnosticData.Id,
-                    Severity = Convert(diagnosticData.Severity),
-                    Range = GetDiagnosticRange(diagnosticData.DataLocation, text),
-                    // Only the unnecessary diagnostic tag is currently supported via LSP.
-                    Tags = diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
-                        ? new DiagnosticTag[] { DiagnosticTag.Unnecessary }
-                        : Array.Empty<DiagnosticTag>()
-                };
-
-                if (diagnosticData.Message != null)
-                    diagnostic.Message = diagnosticData.Message;
-
-                return diagnostic;
-            }
-=======
             if (diagnosticData.Message != null)
                 diagnostic.Message = diagnosticData.Message;
 
             return diagnostic;
->>>>>>> upstream/master
         }
 
         private static LSP.DiagnosticSeverity Convert(CodeAnalysis.DiagnosticSeverity severity)
