@@ -91,6 +91,8 @@ namespace Roslyn.Test.Utilities
                 Uri = new Uri(s_mappedFilePath)
             };
 
+            public bool IsLegacy => false;
+
             public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
             {
                 ImmutableArray<MappedSpanResult> mappedResult = default;

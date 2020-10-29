@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private class TestSpanMappingService : ISpanMappingService
         {
+            public bool IsLegacy => false;
+
             public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
             {
                 return Task.FromResult(ImmutableArray<MappedSpanResult>.Empty);

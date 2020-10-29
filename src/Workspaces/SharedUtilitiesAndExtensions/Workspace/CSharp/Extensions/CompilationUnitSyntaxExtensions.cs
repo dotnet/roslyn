@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class CompilationUnitSyntaxExtensions
     {
-        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, CancellationToken cancellationToken)
+        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
             var usingDirectiveAncestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
             if ((usingDirectiveAncestor != null) && (usingDirectiveAncestor.GetAncestor<NamespaceDeclarationSyntax>() == null))
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (contextNode.SyntaxTree.HasHiddenRegions())
+            if (!allowInHiddenRegions && contextNode.SyntaxTree.HasHiddenRegions())
             {
                 var namespaceDeclaration = contextNode.GetInnermostNamespaceDeclarationWithUsings();
                 var root = (CompilationUnitSyntax)contextNode.SyntaxTree.GetRoot(cancellationToken);

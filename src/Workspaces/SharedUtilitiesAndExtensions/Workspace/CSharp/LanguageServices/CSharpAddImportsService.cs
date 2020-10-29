@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -45,14 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             SyntaxNode usingContainer,
             SyntaxNode staticUsingContainer,
             SyntaxNode aliasContainer,
+            Document document,
             bool placeSystemNamespaceFirst,
             SyntaxNode root,
             CancellationToken cancellationToken)
         {
             var rewriter = new Rewriter(
-                externAliases, usingDirectives, staticUsingDirectives,
-                aliasDirectives, externContainer, usingContainer,
-                staticUsingContainer, aliasContainer, placeSystemNamespaceFirst, cancellationToken);
+                externAliases, usingDirectives, staticUsingDirectives, aliasDirectives,
+                externContainer, usingContainer, staticUsingContainer, aliasContainer,
+                document, placeSystemNamespaceFirst, cancellationToken);
 
             var newRoot = rewriter.Visit(root);
             return newRoot;
@@ -79,13 +81,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
 
         private class Rewriter : CSharpSyntaxRewriter
         {
+            private readonly Document _document;
             private readonly bool _placeSystemNamespaceFirst;
             private readonly CancellationToken _cancellationToken;
             private readonly SyntaxNode _externContainer;
             private readonly SyntaxNode _usingContainer;
             private readonly SyntaxNode _aliasContainer;
             private readonly SyntaxNode _staticUsingContainer;
-
             private readonly UsingDirectiveSyntax[] _aliasDirectives;
             private readonly ExternAliasDirectiveSyntax[] _externAliases;
             private readonly UsingDirectiveSyntax[] _usingDirectives;
@@ -100,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 SyntaxNode usingContainer,
                 SyntaxNode aliasContainer,
                 SyntaxNode staticUsingContainer,
+                Document document,
                 bool placeSystemNamespaceFirst,
                 CancellationToken cancellationToken)
             {
@@ -111,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 _usingContainer = usingContainer;
                 _aliasContainer = aliasContainer;
                 _staticUsingContainer = staticUsingContainer;
+                _document = document;
                 _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
                 _cancellationToken = cancellationToken;
             }
@@ -124,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (NamespaceDeclarationSyntax)(base.VisitNamespaceDeclaration(node) ?? throw ExceptionUtilities.Unreachable);
 
-                if (!node.CanAddUsingDirectives(_cancellationToken))
+                if (!_document.CanAddUsingDirectives(node, _cancellationToken))
                 {
                     return rewritten;
                 }
@@ -157,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (CompilationUnitSyntax)(base.VisitCompilationUnit(node) ?? throw ExceptionUtilities.Unreachable);
 
-                if (!node.CanAddUsingDirectives(_cancellationToken))
+                if (!_document.CanAddUsingDirectives(node, _cancellationToken))
                 {
                     return rewritten;
                 }

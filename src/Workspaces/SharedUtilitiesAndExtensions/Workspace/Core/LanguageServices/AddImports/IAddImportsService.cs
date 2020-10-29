@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import);
 
         SyntaxNode AddImports(
-            Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation,
+            Document document, Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation,
             IEnumerable<SyntaxNode> newImports, SyntaxGenerator generator,
             bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
     }
@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.AddImports
     internal static class IAddImportServiceExtensions
     {
         public static SyntaxNode AddImport(
-            this IAddImportsService service, Compilation compilation, SyntaxNode root,
+            this IAddImportsService service, Document document, Compilation compilation, SyntaxNode root,
             SyntaxNode contextLocation, SyntaxNode newImport, SyntaxGenerator generator, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
         {
-            return service.AddImports(compilation, root, contextLocation,
+            return service.AddImports(document, compilation, root, contextLocation,
                 SpecializedCollections.SingletonEnumerable(newImport), generator, placeSystemNamespaceFirst, cancellationToken);
         }
     }

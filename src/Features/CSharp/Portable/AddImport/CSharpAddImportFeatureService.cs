@@ -15,10 +15,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -37,14 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         {
         }
 
-        protected override bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken)
+        protected override bool CanAddImport(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return false;
-            }
-
-            return node.CanAddUsingDirectives(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            return document.CanAddUsingDirectives(node, cancellationToken);
         }
 
         protected override bool CanAddImportForMethod(
@@ -380,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var addImportService = document.GetLanguageService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
             var newRoot = addImportService.AddImports(
-                semanticModel.Compilation, root, contextNode, newImports, generator, placeSystemNamespaceFirst, cancellationToken);
+                document, semanticModel.Compilation, root, contextNode, newImports, generator, placeSystemNamespaceFirst, cancellationToken);
             return (CompilationUnitSyntax)newRoot;
         }
 
@@ -397,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var service = document.GetLanguageService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
             var newRoot = service.AddImport(
-                compilation, root, contextNode, usingDirective, generator, placeSystemNamespaceFirst, cancellationToken);
+                document, compilation, root, contextNode, usingDirective, generator, placeSystemNamespaceFirst, cancellationToken);
 
             return document.WithSyntaxRoot(newRoot);
         }

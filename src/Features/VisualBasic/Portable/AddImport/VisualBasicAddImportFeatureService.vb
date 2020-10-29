@@ -25,12 +25,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Public Sub New()
         End Sub
 
-        Protected Overrides Function CanAddImport(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
-            If node.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then
-                Return False
-            End If
-
-            Return node.CanAddImportsStatements(cancellationToken)
+        Protected Overrides Function CanAddImport(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
+            cancellationToken.ThrowIfCancellationRequested()
+            Return document.CanAddImportsStatements(node, cancellationToken)
         End Function
 
         Protected Overrides Function CanAddImportForMethod(
@@ -296,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Dim generator = SyntaxGenerator.GetGenerator(document)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, generator, placeSystemNamespaceFirst, cancellationToken)
+            Dim newRoot = importService.AddImport(document, compilation, root, contextNode, importsStatement, generator, placeSystemNamespaceFirst, cancellationToken)
             newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 

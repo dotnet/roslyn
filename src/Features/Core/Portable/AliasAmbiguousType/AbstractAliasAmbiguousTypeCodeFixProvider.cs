@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                     codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText, c =>
                         {
                             var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
-                            var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, syntaxGenerator, placeSystemNamespaceFirst, cancellationToken);
+                            var newRoot = addImportService.AddImport(document, compilation, root, diagnosticNode, aliasDirective, syntaxGenerator, placeSystemNamespaceFirst, cancellationToken);
                             return Task.FromResult(document.WithSyntaxRoot(newRoot));
                         }));
                 }

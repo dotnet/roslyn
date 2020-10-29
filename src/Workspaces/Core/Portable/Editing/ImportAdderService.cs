@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
             var context = first.GetCommonRoot(last);
 
-            root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
+            root = addImportsService.AddImports(document, model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
 
             return document.WithSyntaxRoot(root);
         }
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editing
             if (importsToAdd.Length == 0)
                 return document;
 
-            root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
+            root = addImportsService.AddImports(document, model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
             return document.WithSyntaxRoot(root);
         }
 
