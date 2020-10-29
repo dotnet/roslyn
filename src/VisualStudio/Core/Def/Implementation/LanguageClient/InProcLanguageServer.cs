@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -547,8 +548,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private async Task<Dictionary<Uri, ImmutableArray<LSP.Diagnostic>>> GetDiagnosticsAsync(
             IDiagnosticService diagnosticService, Document document, CancellationToken cancellationToken)
         {
-            var diagnostics = diagnosticService.GetDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, forPullDiagnostics: false, cancellationToken)
-                                               .Where(IncludeDiagnostic);
+            var option = document.IsRazorDocument()
+                ? InternalDiagnosticsOptions.RazorDiagnosticMode
+                : InternalDiagnosticsOptions.NormalDiagnosticMode;
+            var diagnostics = diagnosticService.GetPushDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken)
+                                               .WhereAsArray(IncludeDiagnostic);
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -568,14 +572,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             {
                 Contract.ThrowIfNull(diagnosticData.DataLocation, "Diagnostic data location should not be null here");
 
+                // Razor wants to handle all span mapping themselves.  So if we are in razor, return the raw doc spans, and
+                // do not map them.
                 var filePath = diagnosticData.DataLocation.MappedFilePath ?? diagnosticData.DataLocation.OriginalFilePath;
                 return ProtocolConversions.GetUriFromFilePath(filePath);
             }
+        }
 
-            static LSP.Diagnostic ConvertToLspDiagnostic(DiagnosticData diagnosticData, SourceText text)
+        private LSP.Diagnostic ConvertToLspDiagnostic(DiagnosticData diagnosticData, SourceText text)
+        {
+            Contract.ThrowIfNull(diagnosticData.DataLocation);
+
+            var diagnostic = new LSP.Diagnostic
             {
-                Contract.ThrowIfNull(diagnosticData.DataLocation);
+                Source = _languageClient?.GetType().Name,
+                Code = diagnosticData.Id,
+                Severity = Convert(diagnosticData.Severity),
+                Range = GetDiagnosticRange(diagnosticData.DataLocation, text),
+                // Only the unnecessary diagnostic tag is currently supported via LSP.
+                Tags = diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
+                    ? new DiagnosticTag[] { DiagnosticTag.Unnecessary }
+                    : Array.Empty<DiagnosticTag>()
+            };
 
+<<<<<<< HEAD
                 var diagnostic = new LSP.Diagnostic
                 {
                     Code = diagnosticData.Id,
@@ -592,6 +612,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
                 return diagnostic;
             }
+=======
+            if (diagnosticData.Message != null)
+                diagnostic.Message = diagnosticData.Message;
+
+            return diagnostic;
+>>>>>>> upstream/master
         }
 
         private static LSP.DiagnosticSeverity Convert(CodeAnalysis.DiagnosticSeverity severity)

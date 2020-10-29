@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -238,16 +236,22 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
+                    ref var node = ref _builderNodes[currentNodeIndex];
+
                     // When we hit 4 elements, we need to allocate the spillover dictionary to 
                     // place the extra edges.
                     if (currentNodeEdgeCount == CompactEdgeAllocationSize)
                     {
-                        Debug.Assert(_builderNodes[currentNodeIndex].SpilloverEdges == null);
+                        RoslynDebug.Assert(node.SpilloverEdges is null);
                         var spilloverEdges = new Dictionary<int, int>();
-                        _builderNodes[currentNodeIndex].SpilloverEdges = spilloverEdges;
+                        node.SpilloverEdges = spilloverEdges;
+                    }
+                    else
+                    {
+                        RoslynDebug.AssertNotNull(node.SpilloverEdges);
                     }
 
-                    _builderNodes[currentNodeIndex].SpilloverEdges.Add(editDistance, insertionIndex);
+                    node.SpilloverEdges.Add(editDistance, insertionIndex);
                 }
 
                 _builderNodes[currentNodeIndex].EdgeCount++;
@@ -286,7 +290,7 @@ namespace Roslyn.Utilities
             {
                 public readonly TextSpan CharacterSpan;
                 public int EdgeCount;
-                public Dictionary<int, int> SpilloverEdges;
+                public Dictionary<int, int>? SpilloverEdges;
 
                 public BuilderNode(TextSpan characterSpan) : this()
                     => this.CharacterSpan = characterSpan;

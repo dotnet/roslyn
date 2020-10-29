@@ -401,7 +401,9 @@ End Class</Test>
                     workspace.CurrentSolution.Projects.Single().Documents.Single(),
                     If(position, 0),
                     snippetNode,
-                    placeSystemNamespaceFirst, CancellationToken.None)
+                    placeSystemNamespaceFirst,
+                    allowInHiddenRegions:=False,
+                    CancellationToken.None)
 
                 Assert.Equal(expectedUpdatedCode.Replace(vbLf, vbCrLf),
                              (Await updatedDocument.GetTextAsync()).ToString())

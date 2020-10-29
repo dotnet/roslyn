@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // free any chunks remaining
-        private static void BlowChunks(byte[][] chunks)
+        private static void BlowChunks(byte[][]? chunks)
         {
             if (chunks != null)
             {
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis
                     if (chunks[c] != null)
                     {
                         SharedPools.ByteArray.Free(chunks[c]);
-                        chunks[c] = null;
+                        chunks[c] = null!;
                     }
                 }
             }
@@ -262,7 +260,7 @@ namespace Microsoft.CodeAnalysis
                         SharedPools.ByteArray.Free(chunk);
                     }
 
-                    chunks = null;
+                    chunks = null!;
                 }
             }
 
