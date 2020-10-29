@@ -27,9 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         public XamlInProcLanguageClient(
             XamlLanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
+            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             XamlSolutionProvider solutionProvider)
-            : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, diagnosticsClientName: null)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
         }
 

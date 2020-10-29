@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Roslyn.Utilities
 {
     internal class CancellableLazy<T>
     {
-        private NonReentrantLock _gate;
-        private Func<CancellationToken, T> _valueFactory;
-        private T _value;
+        private NonReentrantLock? _gate;
+        private Func<CancellationToken, T>? _valueFactory;
+        private T? _value;
 
         public CancellableLazy(Func<CancellationToken, T> valueFactory)
         {
@@ -32,11 +31,11 @@ namespace Roslyn.Utilities
             }
         }
 
-        public bool TryGetValue(out T value)
+        public bool TryGetValue([MaybeNullWhen(false)] out T value)
         {
             if (_valueFactory == null)
             {
-                value = _value;
+                value = _value!;
                 return true;
             }
             else
@@ -56,14 +55,14 @@ namespace Roslyn.Utilities
                     if (_valueFactory != null)
                     {
                         _value = _valueFactory(cancellationToken);
-                        Interlocked.Exchange(ref _valueFactory, null);
+                        Interlocked.Exchange<Func<CancellationToken, T>?>(ref _valueFactory, null);
                     }
 
                     Interlocked.Exchange(ref _gate, null);
                 }
             }
 
-            return _value;
+            return _value!;
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class LinkedFileReferenceFinder : IReferenceFinder
     {
         public Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects,
+            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return options.Cascade
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document> documents,
+            ISymbol symbol, Project project, IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyImmutableArray<Document>();

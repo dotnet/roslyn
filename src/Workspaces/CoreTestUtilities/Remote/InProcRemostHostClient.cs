@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Runtime;
 using System.Runtime.Remoting;
 using System.Text;
 using System.Threading;
@@ -115,7 +116,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
                 _workspaceServices.GetRequiredService<IErrorReportingService>(),
                 shutdownCancellationService: null,
-                isRemoteHost64Bit: IntPtr.Size == 8);
+                isRemoteHost64Bit: IntPtr.Size == 8,
+                isRemoteHostServerGC: GCSettings.IsServerGC);
 
         public override async Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
@@ -279,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             public void RegisterService(RemoteServiceName name, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceFactory)
             {
                 _factoryMap.Add(name, serviceFactory);
-                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit: IntPtr.Size == 8), name.WellKnownService);
+                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC), name.WellKnownService);
             }
 
             public Task<Stream> RequestServiceAsync(RemoteServiceName serviceName)
@@ -296,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             public void RegisterRemoteBrokeredService(BrokeredServiceBase.IFactory serviceFactory)
             {
-                var moniker = ServiceDescriptors.GetServiceDescriptor(serviceFactory.ServiceType, isRemoteHost64Bit: IntPtr.Size == 8).Moniker;
+                var moniker = ServiceDescriptors.GetServiceDescriptor(serviceFactory.ServiceType, isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC).Moniker;
                 _remoteBrokeredServicesMap.Add(moniker, serviceFactory);
             }
 

@@ -72,12 +72,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return visibility;
         }
 
-        public static ISymbol? OverriddenMember(this ISymbol symbol)
-            => symbol.Kind switch
+        public static ISymbol? GetOverriddenMember(this ISymbol? symbol)
+            => symbol switch
             {
-                SymbolKind.Event => ((IEventSymbol)symbol).OverriddenEvent,
-                SymbolKind.Method => ((IMethodSymbol)symbol).OverriddenMethod,
-                SymbolKind.Property => ((IPropertySymbol)symbol).OverriddenProperty,
+                IMethodSymbol method => method.OverriddenMethod,
+                IPropertySymbol property => property.OverriddenProperty,
+                IEventSymbol @event => @event.OverriddenEvent,
                 _ => null,
             };
 

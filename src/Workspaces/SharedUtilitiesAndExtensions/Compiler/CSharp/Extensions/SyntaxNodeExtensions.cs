@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                    node.IsKind(SyntaxKind.TypeArgumentList);
         }
 
-        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBraces(this SyntaxNode node)
+        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBraces(this SyntaxNode? node)
         {
             switch (node)
             {

@@ -56,14 +56,15 @@ namespace Microsoft.CodeAnalysis.Remote
             SolutionAssetStorage solutionAssetStorage,
             IErrorReportingService? errorReportingService,
             IRemoteHostClientShutdownCancellationService? shutdownCancellationService,
-            bool isRemoteHost64Bit)
+            bool isRemoteHost64Bit,
+            bool isRemoteHostServerGC)
         {
             _serviceBrokerClient = serviceBrokerClient;
             _solutionAssetStorage = solutionAssetStorage;
             _errorReportingService = errorReportingService;
             _shutdownCancellationService = shutdownCancellationService;
 
-            _serviceDescriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit);
+            _serviceDescriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit, isRemoteHostServerGC);
 
             if (_serviceDescriptor.ClientInterface != null)
             {

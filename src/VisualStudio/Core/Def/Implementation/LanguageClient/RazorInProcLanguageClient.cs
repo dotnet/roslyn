@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     {
         public const string ClientName = "RazorCSharp";
 
+        private readonly IGlobalOptionService _globalOptionService;
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
         /// <summary>
@@ -41,17 +43,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
+            IGlobalOptionService globalOptionService,
             LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
+            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider)
-            : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, ClientName)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, ClientName)
         {
+            _globalOptionService = globalOptionService;
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected internal override VSServerCapabilities GetCapabilities()
-            => _defaultCapabilitiesProvider.GetCapabilities();
+        {
+            var capabilities = _defaultCapabilitiesProvider.GetCapabilities();
+            capabilities.SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.RazorDiagnosticMode) == DiagnosticMode.Pull;
+            return capabilities;
+        }
     }
 }

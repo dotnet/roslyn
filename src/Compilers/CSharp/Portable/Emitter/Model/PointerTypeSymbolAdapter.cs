@@ -8,23 +8,77 @@ using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class PointerTypeSymbol :
+    internal partial class
+#if DEBUG
+        PointerTypeSymbolAdapter : SymbolAdapter,
+#else
+        PointerTypeSymbol :
+#endif 
         Cci.IPointerTypeReference
+    {
+#if DEBUG
+        internal PointerTypeSymbolAdapter(PointerTypeSymbol underlyingPointerTypeSymbol)
+        {
+            AdaptedPointerTypeSymbol = underlyingPointerTypeSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedPointerTypeSymbol;
+        internal PointerTypeSymbol AdaptedPointerTypeSymbol { get; }
+#else
+        internal PointerTypeSymbol AdaptedPointerTypeSymbol => this;
+#endif 
+    }
+
+    internal partial class PointerTypeSymbol
+    {
+#if DEBUG
+        private PointerTypeSymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+#endif
+        internal new
+#if DEBUG
+            PointerTypeSymbolAdapter
+#else
+            PointerTypeSymbol
+#endif
+            GetCciAdapter()
+        {
+#if DEBUG
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new PointerTypeSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+#else
+            return this;
+#endif
+        }
+    }
+
+    internal partial class
+#if DEBUG
+        PointerTypeSymbolAdapter
+#else
+        PointerTypeSymbol
+#endif
     {
         Cci.ITypeReference Cci.IPointerTypeReference.GetTargetType(EmitContext context)
         {
-            var type = ((PEModuleBuilder)context.Module).Translate(this.PointedAtType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            var type = ((PEModuleBuilder)context.Module).Translate(AdaptedPointerTypeSymbol.PointedAtType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
-            if (this.PointedAtTypeWithAnnotations.CustomModifiers.Length == 0)
+            if (AdaptedPointerTypeSymbol.PointedAtTypeWithAnnotations.CustomModifiers.Length == 0)
             {
                 return type;
             }
             else
             {
-                return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(this.PointedAtTypeWithAnnotations.CustomModifiers));
+                return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedPointerTypeSymbol.PointedAtTypeWithAnnotations.CustomModifiers));
             }
         }
 
