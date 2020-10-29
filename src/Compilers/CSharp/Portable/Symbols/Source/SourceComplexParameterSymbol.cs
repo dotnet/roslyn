@@ -236,9 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // in which case the declaring compilation is the wrong one.
             if (binder == null)
             {
-                var syntaxTree = _syntaxRef.SyntaxTree;
                 var compilation = this.DeclaringCompilation;
-                var binderFactory = compilation.GetBinderFactory(syntaxTree);
+                var binderFactory = compilation.GetBinderFactory(syntax.SyntaxTree);
                 binder = binderFactory.GetBinder(syntax);
             }
             Debug.Assert(binder.GetBinder(syntax) == null);
