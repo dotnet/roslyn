@@ -80,8 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ParameterSyntax CSharpSyntaxNode => (ParameterSyntax)_syntaxRef?.GetSyntax();
 
-        internal SyntaxTree SyntaxTree => _syntaxRef == null ? null : _syntaxRef.SyntaxTree;
-
         public sealed override bool IsDiscard => false;
 
         internal override ConstantValue ExplicitDefaultConstantValue
@@ -206,9 +204,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (Interlocked.CompareExchange(
                         ref _lazyDefaultSyntaxValue,
-                        MakeDefaultExpression(diagnostics),
+                        MakeDefaultExpression(diagnostics, out var binder, out var parameterEqualsValue),
                         ConstantValue.Unset) == ConstantValue.Unset)
                     {
+                        if (binder is not null && parameterEqualsValue is not null && !_lazyDefaultSyntaxValue.IsBad)
+                        {
+                            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
+                        }
+                        NullableAnalyzeParameterDefaultValueFromAttributes(diagnostics);
+
                         // This is a race condition where the thread that loses
                         // the compare exchange tries to access the diagnostics
                         // before the thread which won the race finishes adding
@@ -250,24 +254,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var parameterSyntax = this.CSharpSyntaxNode;
+            if (parameterSyntax == null)
+            {
+                // If there is no syntax at all for the parameter, it means we are in a situation like
+                // a property setter whose 'value' parameter has a default value from attributes.
+                // There isn't a sensible use for this in the language, so we just bail in such scenarios.
+                return;
+            }
+
             var binder = GetBinder(parameterSyntax);
 
+            // Nullable warnings *within* the attribute argument (such as a W-warning for `(string)null`)
+            // are reported when we nullable-analyze attribute arguments separately from here.
+            // However, this analysis of the constant value's compatibility with the parameter
+            // needs to wait until the attributes are populated on the parameter symbol.
             var parameterEqualsValue = new BoundParameterEqualsValue(
                 parameterSyntax,
                 this,
                 ImmutableArray<LocalSymbol>.Empty,
                 // note that if the parameter type conflicts with the default value from attributes,
                 // we will just get a bad constant value above and return early.
-                new BoundLiteral(parameterSyntax, DefaultValueFromAttributes, Type));
+                new BoundLiteral(parameterSyntax, defaultValue, Type));
 
             NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
         }
 
-        private ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics)
+        private ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, out Binder binder, out BoundParameterEqualsValue parameterEqualsValue)
         {
-            // Note that this can't be done at the time we determine the default value from attributes,
-            // because nullable analysis requires attributes to be populated on symbols to work properly.
-            NullableAnalyzeParameterDefaultValueFromAttributes(diagnostics);
+            binder = null;
+            parameterEqualsValue = null;
 
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
@@ -281,13 +296,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ConstantValue.NotAvailable;
             }
 
-            Binder binder = GetBinder(defaultSyntax);
+            binder = GetBinder(defaultSyntax);
             Binder binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
             Debug.Assert(binderForDefault.InParameterDefaultValue);
             Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
 
             BoundExpression valueBeforeConversion;
-            BoundParameterEqualsValue parameterEqualsValue = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out valueBeforeConversion);
+            parameterEqualsValue = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out valueBeforeConversion);
             if (valueBeforeConversion.HasErrors)
             {
                 return ConstantValue.Bad;
@@ -299,8 +314,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ConstantValue.Bad;
             }
-
-            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
 
             // If we have something like M(double? x = 1) then the expression we'll get is (double?)1, which
             // does not have a constant value. The constant value we want is (double)1.
