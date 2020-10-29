@@ -110,14 +110,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
 
-            var textChange = commitKey == ';' && ImportCompletionItem.GetProvideParenthesisCompletion(completionItem)
-                ? completionItem.DisplayText + "()"
-                : completionItem.DisplayText;
+            var provideParenthesisCompletion = commitKey == ';' && ImportCompletionItem.GetProvideParenthesisCompletion(completionItem);
+            var insertText = provideParenthesisCompletion ? completionItem.DisplayText + "();" : completionItem.DisplayText;
+
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = ImportCompletionItem.GetSymbol(completionItem, compilation);
 
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
-                var fullyQualifiedName = $"{containingNamespace}.{textChange}";
-                return CompletionChange.Create(new TextChange(completionListSpan, fullyQualifiedName));
+                var textChange = new TextChange(completionListSpan, $"{containingNamespace}.{insertText}");
+                var location = GetCaretLocation(provideParenthesisCompletion, symbol, textChange);
+                return CompletionChange.Create(textChange, newPosition: location, includesCommitCharacter: provideParenthesisCompletion);
             }
 
             // Find context node so we can use it to decide where to insert using/imports.
@@ -130,7 +133,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var importNode = CreateImport(document, containingNamespace);
 
             var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, placeSystemNamespaceFirst, cancellationToken);
@@ -156,15 +158,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
             //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
             //       with "AsnEncodedDatasd" in the code.
-            builder.Add(new TextChange(completionListSpan, textChange));
+            builder.Add(new TextChange(completionListSpan, insertText));
 
             // Then get the combined change
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
-
             var change = Utilities.Collapse(newText, builder.ToImmutableAndFree());
-            int? caretLocation = commitKey == ';' ? change.Span.Start + change.NewText.Length - 2 : null;
-            return CompletionChange.Create(change, null);
+            var caretLocation = GetCaretLocation(provideParenthesisCompletion, symbol, change);
+            return CompletionChange.Create(change, caretLocation, includesCommitCharacter: provideParenthesisCompletion);
+
+            static int? GetCaretLocation(bool provideParenthesisCompletion, ISymbol? symbol, TextChange change)
+            {
+                if (provideParenthesisCompletion
+                    && symbol != null
+                    && change.NewText != null
+                    && CommonCompletionUtilities.ShouldPutCaretBetweenParenthesis(symbol))
+                {
+                    return change.Span.Start + change.NewText.Length - 2;
+                }
+
+                return null;
+            }
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
