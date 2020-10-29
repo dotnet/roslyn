@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis
                 analyzersArray,
                 options,
                 analyzerManager,
-                addAdditionalFile: null,
+                addOutputFile: null,
                 onAnalyzerException,
                 analyzerExceptionFilter: null,
                 reportAnalyzer: false,

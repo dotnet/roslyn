@@ -1283,10 +1283,10 @@ namespace Microsoft.CodeAnalysis
 
                 var hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
                 var generatedAdditionalFiles = new List<(string filePath, SourceText text)>();
-                Action<(string filePath, SourceText text)>? addAdditionalFile = null;
+                Action<(string filePath, SourceText text)>? addOutputFile = null;
                 if (hasGeneratedOutputPath)
                 {
-                    addAdditionalFile = tuple =>
+                    addOutputFile = tuple =>
                     {
                         lock (generatedAdditionalFiles)
                             generatedAdditionalFiles.Add(tuple);
@@ -1299,7 +1299,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptions,
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
-                    addAdditionalFile,
+                    addOutputFile,
                     Arguments.ReportAnalyzer,
                     severityFilter,
                     out compilation,

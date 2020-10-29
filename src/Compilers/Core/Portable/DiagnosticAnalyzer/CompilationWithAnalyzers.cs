@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = true;
                 driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
-                driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, addAdditionalFile: null, cancellationToken);
+                driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, addOutputFile: null, cancellationToken);
                 var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
                 var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, cancellationToken);
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = false;
                 driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
-                driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, addAdditionalFile: null, cancellationToken);
+                driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, addOutputFile: null, cancellationToken);
                 var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
                 var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, cancellationToken);
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Start the initialization task, if required.
                     if (!driver.IsInitialized)
                     {
-                        driver.Initialize(_compilation, _analysisOptions, _compilationData, categorizeDiagnostics: true, addAdditionalFile: null, cancellationToken);
+                        driver.Initialize(_compilation, _analysisOptions, _compilationData, categorizeDiagnostics: true, addOutputFile: null, cancellationToken);
                     }
 
                     // Wait for driver initialization to complete: this executes the Initialize and CompilationStartActions to compute all registered actions per-analyzer.
@@ -1328,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var analyzerManager = new AnalyzerManager(analyzer);
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, addAdditionalFile: null, analyzerManager);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, addOutputFile: null, analyzerManager);
             return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, analyzerManager, analyzerExecutor, severityFilter: SeverityFilter.None);
         }
 

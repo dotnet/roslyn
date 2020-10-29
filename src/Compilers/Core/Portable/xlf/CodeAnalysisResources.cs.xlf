@@ -12,9 +12,9 @@
         <target state="translated">Pro tuto možnost se musí zadat název jazyka.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AddAdditionalFile_can_only_be_called_when_CanAddAdditionalFile_is_true">
-        <source>'AddAdditionalFile' can only be called when 'CanAddAdditionalFile' is true.</source>
-        <target state="new">'AddAdditionalFile' can only be called when 'CanAddAdditionalFile' is true.</target>
+      <trans-unit id="AddOutputFile_can_only_be_called_when_CanAddOutputFile_is_true">
+        <source>'AddOutputFile' can only be called when 'CanAddOutputFile' is true.</source>
+        <target state="new">'AddOutputFile' can only be called when 'CanAddOutputFile' is true.</target>
         <note />
       </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
