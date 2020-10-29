@@ -341,6 +341,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Callback to add additional files to be generated to disk.  Null if generating files is not desired.
+        /// </summary>
+        public Action<(string filePath, SourceText text)>? AddAdditionalFile;
+
+        /// <summary>
         /// Create an analyzer driver.
         /// </summary>
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
@@ -367,12 +372,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It kicks off the <see cref="WhenInitializedTask"/> task for initialization.
         /// Note: This method must be invoked exactly once on the driver.
         /// </summary>
-        private void Initialize(AnalyzerExecutor analyzerExecutor, DiagnosticQueue diagnosticQueue, CompilationData compilationData, CancellationToken cancellationToken)
+        private void Initialize(
+            AnalyzerExecutor analyzerExecutor,
+            DiagnosticQueue diagnosticQueue,
+            CompilationData compilationData,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
+            CancellationToken cancellationToken)
         {
             try
             {
                 Debug.Assert(_lazyInitializeTask == null);
 
+                AddAdditionalFile = addAdditionalFile;
                 _lazyAnalyzerExecutor = analyzerExecutor;
                 _lazyCurrentCompilationData = compilationData;
                 _lazyDiagnosticQueue = diagnosticQueue;
@@ -435,6 +446,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            CompilationWithAnalyzersOptions analysisOptions,
            CompilationData compilationData,
            bool categorizeDiagnostics,
+           Action<(string filePath, SourceText text)>? addAdditionalFile,
            CancellationToken cancellationToken)
         {
             Debug.Assert(_lazyInitializeTask == null);
@@ -477,12 +489,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
 
             var analyzerExecutor = AnalyzerExecutor.Create(
-                compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addNotCategorizedDiagnostic, newOnAnalyzerException, analysisOptions.AnalyzerExceptionFilter,
-                IsCompilerAnalyzer, AnalyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, IsGeneratedOrHiddenCodeLocation, IsAnalyzerSuppressedForTree, GetAnalyzerGate,
+                compilation,
+                analysisOptions.Options ?? AnalyzerOptions.Empty,
+                addNotCategorizedDiagnostic,
+                newOnAnalyzerException,
+                analysisOptions.AnalyzerExceptionFilter,
+                IsCompilerAnalyzer,
+                AnalyzerManager,
+                ShouldSkipAnalysisOnGeneratedCode,
+                ShouldSuppressGeneratedCodeDiagnostic,
+                IsGeneratedOrHiddenCodeLocation,
+                IsAnalyzerSuppressedForTree,
+                GetAnalyzerGate,
                 getSemanticModel: GetOrCreateSemanticModel,
-                analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic, s => _programmaticSuppressions!.Add(s), cancellationToken);
+                addAdditionalFile: addAdditionalFile,
+                analysisOptions.LogAnalyzerExecutionTime,
+                addCategorizedLocalDiagnostic,
+                addCategorizedNonLocalDiagnostic,
+                s => _programmaticSuppressions!.Add(s),
+                cancellationToken);
 
-            Initialize(analyzerExecutor, diagnosticQueue, compilationData, cancellationToken);
+            Initialize(analyzerExecutor, diagnosticQueue, compilationData, addAdditionalFile, cancellationToken);
         }
 
         private SemaphoreSlim? GetAnalyzerGate(DiagnosticAnalyzer analyzer)
@@ -601,7 +628,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analysisScope">Scope of analysis.</param>
         /// <param name="analysisState">An optional object to track partial analysis state.</param>
         /// <param name="cancellationToken">Cancellation token to abort analysis.</param>
-        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
+        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, Action{ValueTuple{string, SourceText}}?, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
         internal async Task AttachQueueAndProcessAllEventsAsync(AsyncQueue<CompilationEvent> eventQueue, AnalysisScope analysisScope, AnalysisState? analysisState, CancellationToken cancellationToken)
         {
             try
@@ -632,7 +659,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="eventQueue">Compilation events to analyze.</param>
         /// <param name="analysisScope">Scope of analysis.</param>
         /// <param name="cancellationToken">Cancellation token to abort analysis.</param>
-        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
+        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, Action{ValueTuple{string, SourceText}}?, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
         internal void AttachQueueAndStartProcessingEvents(AsyncQueue<CompilationEvent> eventQueue, AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
             try
@@ -798,6 +825,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
         /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for exceptions from third party analyzers.</param>
+        /// /// <param name="addAdditionalFile">Delegate to add additional files to be generated.</param>
         /// <param name="reportAnalyzer">Report additional information related to analyzers, such as analyzer execution time.</param>
         /// <param name="severityFilter">Filtered diagnostic severities in the compilation, i.e. diagnostics with effective severity from this set should not be reported.</param>
         /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
@@ -813,6 +841,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             AnalyzerManager analyzerManager,
             Action<Diagnostic> addExceptionDiagnostic,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
             bool reportAnalyzer,
             SeverityFilter severityFilter,
             out Compilation newCompilation,
@@ -822,7 +851,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 (ex, analyzer, diagnostic) => addExceptionDiagnostic?.Invoke(diagnostic);
 
             Func<Exception, bool>? nullFilter = null;
-            return CreateAndAttachToCompilation(compilation, analyzers, options, analyzerManager, onAnalyzerException, nullFilter, reportAnalyzer, severityFilter, out newCompilation, cancellationToken: cancellationToken);
+            return CreateAndAttachToCompilation(
+                compilation,
+                analyzers,
+                options,
+                analyzerManager,
+                addAdditionalFile,
+                onAnalyzerException,
+                nullFilter,
+                reportAnalyzer,
+                severityFilter,
+                out newCompilation,
+                cancellationToken);
         }
 
         // internal for testing purposes
@@ -831,6 +871,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalyzerOptions options,
             AnalyzerManager analyzerManager,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             bool reportAnalyzer,
@@ -845,7 +886,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var categorizeDiagnostics = false;
             var analysisOptions = new CompilationWithAnalyzersOptions(options, onAnalyzerException, analyzerExceptionFilter: analyzerExceptionFilter, concurrentAnalysis: true, logAnalyzerExecutionTime: reportAnalyzer, reportSuppressedDiagnostics: false);
-            analyzerDriver.Initialize(newCompilation, analysisOptions, new CompilationData(newCompilation), categorizeDiagnostics, cancellationToken);
+            analyzerDriver.Initialize(newCompilation, analysisOptions, new CompilationData(newCompilation), categorizeDiagnostics, addAdditionalFile, cancellationToken);
 
             var analysisScope = new AnalysisScope(newCompilation, options, analyzers, hasAllAnalyzers: true, concurrentAnalysis: newCompilation.Options.ConcurrentBuild, categorizeDiagnostics: categorizeDiagnostics);
             analyzerDriver.AttachQueueAndStartProcessingEvents(newCompilation.EventQueue!, analysisScope, cancellationToken: cancellationToken);

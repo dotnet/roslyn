@@ -971,6 +971,7 @@ namespace Microsoft.CodeAnalysis
                     cancellationToken);
 
                 RunAnalyzers(
+                    touchedFilesLogger,
                     ref compilation,
                     analyzers,
                     additionalTextFiles,
@@ -978,6 +979,7 @@ namespace Microsoft.CodeAnalysis
                     ref reportAnalyzer,
                     ref analyzerDriver,
                     ref analyzerExceptionDiagnostics,
+                    diagnostics,
                     analyzerConfigProvider,
                     cancellationToken);
             }
@@ -1252,6 +1254,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private void RunAnalyzers(
+            TouchedFileLogger? touchedFilesLogger,
             ref Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<AdditionalText> additionalTextFiles,
@@ -1259,6 +1262,7 @@ namespace Microsoft.CodeAnalysis
             ref bool reportAnalyzer,
             ref AnalyzerDriver? analyzerDriver,
             ref DiagnosticBag? analyzerExceptionDiagnostics,
+            DiagnosticBag diagnostics,
             CompilerAnalyzerConfigOptionsProvider analyzerConfigProvider,
             CancellationToken cancellationToken)
         {
@@ -1277,17 +1281,33 @@ namespace Microsoft.CodeAnalysis
                 if (Arguments.ErrorLogPath == null)
                     severityFilter |= SeverityFilter.Info;
 
+                var hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
+                var generatedAdditionalFiles = new List<(string filePath, SourceText text)>();
+                Action<(string filePath, SourceText text)>? addAdditionalFile = null;
+                if (hasGeneratedOutputPath)
+                {
+                    addAdditionalFile = tuple =>
+                    {
+                        lock (generatedAdditionalFiles)
+                            generatedAdditionalFiles.Add(tuple);
+                    };
+                }
+
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
                     compilation,
                     analyzers,
                     analyzerOptions,
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
+                    addAdditionalFile,
                     Arguments.ReportAnalyzer,
                     severityFilter,
                     out compilation,
                     analyzerCts.Token);
                 reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
+
+                foreach (var (filePath, text) in generatedAdditionalFiles)
+                    WriteSourceText(touchedFilesLogger, diagnostics, filePath, text.Encoding, text, cancellationToken);
             }
         }
 

@@ -724,4 +724,7 @@
   <data name="ChangesMustBeWithinBoundsOfSourceText" xml:space="preserve">
     <value>Changes must be within bounds of SourceText</value>
   </data>
+  <data name="AddAdditionalFile_can_only_be_called_when_CanAddAdditionalFile_is_true" xml:space="preserve">
+    <value>'AddAdditionalFile' can only be called when 'CanAddAdditionalFile' is true.</value>
+  </data>
 </root>

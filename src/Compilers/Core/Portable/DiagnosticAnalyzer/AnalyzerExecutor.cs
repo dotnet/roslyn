@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<DiagnosticAnalyzer, bool>? _isCompilerAnalyzer;
         private readonly Func<DiagnosticAnalyzer, object?>? _getAnalyzerGate;
         private readonly Func<SyntaxTree, SemanticModel>? _getSemanticModel;
+        private readonly Action<(string filePath, SourceText text)>? _addAdditionalFile;
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
         private readonly Func<SyntaxTree, TextSpan, bool> _isGeneratedCodeLocation;
@@ -118,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool> isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
             bool logExecutionTime = false,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic = null,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic = null,
@@ -130,10 +132,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var analyzerExecutionTimeMap = logExecutionTime ? new ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>() : null;
 
-            return new AnalyzerExecutor(compilation, analyzerOptions, addNonCategorizedDiagnostic, onAnalyzerException, analyzerExceptionFilter,
-                isCompilerAnalyzer, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic, isGeneratedCodeLocation,
-                isAnalyzerSuppressedForTree, getAnalyzerGate, getSemanticModel, analyzerExecutionTimeMap, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic,
-                addSuppression, cancellationToken);
+            return new AnalyzerExecutor(
+                compilation,
+                analyzerOptions,
+                addNonCategorizedDiagnostic,
+                onAnalyzerException,
+                analyzerExceptionFilter,
+                isCompilerAnalyzer,
+                analyzerManager,
+                shouldSkipAnalysisOnGeneratedCode,
+                shouldSuppressGeneratedCodeDiagnostic,
+                isGeneratedCodeLocation,
+                isAnalyzerSuppressedForTree,
+                getAnalyzerGate,
+                getSemanticModel,
+                addAdditionalFile,
+                analyzerExecutionTimeMap,
+                addCategorizedLocalDiagnostic,
+                addCategorizedNonLocalDiagnostic,
+                addSuppression,
+                cancellationToken);
         }
 
         /// <summary>
@@ -147,6 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
             Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
             AnalyzerManager analyzerManager,
             CancellationToken cancellationToken = default)
         {
@@ -162,6 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isAnalyzerSuppressedForTree: null,
                 getAnalyzerGate: null,
                 getSemanticModel: null,
+                addAdditionalFile: addAdditionalFile,
                 onAnalyzerException: onAnalyzerException,
                 analyzerExceptionFilter: null,
                 analyzerManager: analyzerManager,
@@ -186,6 +206,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool>? isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?>? getAnalyzerGate,
             Func<SyntaxTree, SemanticModel>? getSemanticModel,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? analyzerExecutionTimeMap,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
@@ -205,6 +226,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _isAnalyzerSuppressedForTree = isAnalyzerSuppressedForTree;
             _getAnalyzerGate = getAnalyzerGate;
             _getSemanticModel = getSemanticModel;
+            _addAdditionalFile = addAdditionalFile;
             _analyzerExecutionTimeMap = analyzerExecutionTimeMap;
             _addCategorizedLocalDiagnostic = addCategorizedLocalDiagnostic;
             _addCategorizedNonLocalDiagnostic = addCategorizedNonLocalDiagnostic;
@@ -221,10 +243,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return this;
             }
 
-            return new AnalyzerExecutor(_compilation, _analyzerOptions, _addNonCategorizedDiagnostic, _onAnalyzerException, _analyzerExceptionFilter,
-                _isCompilerAnalyzer, _analyzerManager, _shouldSkipAnalysisOnGeneratedCode, _shouldSuppressGeneratedCodeDiagnostic, _isGeneratedCodeLocation,
-                _isAnalyzerSuppressedForTree, _getAnalyzerGate, _getSemanticModel, _analyzerExecutionTimeMap, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic,
-                _addSuppression, cancellationToken);
+            return new AnalyzerExecutor(
+                _compilation,
+                _analyzerOptions,
+                _addNonCategorizedDiagnostic,
+                _onAnalyzerException,
+                _analyzerExceptionFilter,
+                _isCompilerAnalyzer,
+                _analyzerManager,
+                _shouldSkipAnalysisOnGeneratedCode,
+                _shouldSuppressGeneratedCodeDiagnostic,
+                _isGeneratedCodeLocation,
+                _isAnalyzerSuppressedForTree,
+                _getAnalyzerGate,
+                _getSemanticModel,
+                _addAdditionalFile,
+                _analyzerExecutionTimeMap,
+                _addCategorizedLocalDiagnostic,
+                _addCategorizedNonLocalDiagnostic,
+                _addSuppression,
+                cancellationToken);
         }
 
         internal bool TryGetCompilationAndAnalyzerOptions(
@@ -423,7 +461,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var context = new CompilationAnalysisContext(
                         Compilation, AnalyzerOptions, addDiagnostic,
-                        isSupportedDiagnostic, _compilationAnalysisValueProviderFactory, _cancellationToken);
+                        isSupportedDiagnostic, _compilationAnalysisValueProviderFactory,
+                        _addAdditionalFile, _cancellationToken);
 
                     ExecuteAndCatchIfThrows(
                         endAction.Analyzer,
@@ -511,8 +550,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic,
-                            isSupportedDiagnostic, _cancellationToken);
+                        var context = new SymbolAnalysisContext(
+                            symbol,
+                            Compilation,
+                            AnalyzerOptions,
+                            addDiagnostic,
+                            isSupportedDiagnostic,
+                            _addAdditionalFile,
+                            _cancellationToken);
 
                         ExecuteAndCatchIfThrows(
                             symbolAction.Analyzer,
@@ -643,8 +688,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic,
-                        isSupportedDiagnostic, _cancellationToken);
+                    var context = new SymbolAnalysisContext(
+                        symbol,
+                        Compilation,
+                        AnalyzerOptions,
+                        addDiagnostic,
+                        isSupportedDiagnostic,
+                        _addAdditionalFile,
+                        _cancellationToken);
 
                     ExecuteAndCatchIfThrows(
                         symbolAction.Analyzer,
@@ -722,8 +773,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var context = new SemanticModelAnalysisContext(semanticModel, AnalyzerOptions, diagReporter.AddDiagnosticAction,
-                        isSupportedDiagnostic, _cancellationToken);
+                    var context = new SemanticModelAnalysisContext(
+                        semanticModel,
+                        AnalyzerOptions,
+                        diagReporter.AddDiagnosticAction,
+                        isSupportedDiagnostic,
+                        _addAdditionalFile,
+                        _cancellationToken);
 
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(
@@ -806,7 +862,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var context = new SyntaxTreeAnalysisContext(tree, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, Compilation, _cancellationToken);
+                    var context = new SyntaxTreeAnalysisContext(
+                        tree,
+                        AnalyzerOptions,
+                        diagReporter.AddDiagnosticAction,
+                        isSupportedDiagnostic,
+                        Compilation,
+                        _addAdditionalFile,
+                        _cancellationToken);
 
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(
@@ -879,7 +942,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var context = new AdditionalFileAnalysisContext(additionalFile, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, Compilation, _cancellationToken);
+                    var context = new AdditionalFileAnalysisContext(
+                        additionalFile,
+                        AnalyzerOptions,
+                        diagReporter.AddDiagnosticAction,
+                        isSupportedDiagnostic,
+                        Compilation,
+                        _addAdditionalFile,
+                        _cancellationToken);
 
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(
@@ -910,8 +980,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerState, syntaxNodeAction))
             {
-                var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, containingSymbol, semanticModel, AnalyzerOptions, addDiagnostic,
-                    isSupportedDiagnostic, _cancellationToken);
+                var syntaxNodeContext = new SyntaxNodeAnalysisContext(
+                    node,
+                    containingSymbol,
+                    semanticModel,
+                    AnalyzerOptions,
+                    addDiagnostic,
+                    isSupportedDiagnostic,
+                    _addAdditionalFile,
+                    _cancellationToken);
 
                 ExecuteAndCatchIfThrows(
                     syntaxNodeAction.Analyzer,
@@ -937,8 +1014,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerState, operationAction))
             {
-                var operationContext = new OperationAnalysisContext(operation, containingSymbol, semanticModel.Compilation,
-                    AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, _cancellationToken);
+                var operationContext = new OperationAnalysisContext(
+                    operation,
+                    containingSymbol,
+                    semanticModel.Compilation,
+                    AnalyzerOptions,
+                    addDiagnostic,
+                    isSupportedDiagnostic,
+                    GetControlFlowGraph,
+                    _addAdditionalFile,
+                    _cancellationToken);
+
                 ExecuteAndCatchIfThrows(
                     operationAction.Analyzer,
                     data => data.action(data.context),
@@ -1220,7 +1306,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var codeBlockAction = blockAction as CodeBlockAnalyzerAction;
                     if (codeBlockAction != null)
                     {
-                        var context = new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken);
+                        var context = new CodeBlockAnalysisContext(
+                            declaredNode,
+                            declaredSymbol,
+                            semanticModel,
+                            AnalyzerOptions,
+                            addDiagnostic,
+                            isSupportedDiagnostic,
+                            _addAdditionalFile,
+                            _cancellationToken);
 
                         ExecuteAndCatchIfThrows(
                             codeBlockAction.Analyzer,
@@ -1233,8 +1327,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var operationBlockAction = blockAction as OperationBlockAnalyzerAction;
                         if (operationBlockAction != null)
                         {
-                            var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
-                                AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, _cancellationToken);
+                            var context = new OperationBlockAnalysisContext(
+                                operationBlocks,
+                                declaredSymbol,
+                                semanticModel.Compilation,
+                                AnalyzerOptions,
+                                addDiagnostic,
+                                isSupportedDiagnostic,
+                                GetControlFlowGraph,
+                                _addAdditionalFile,
+                                _cancellationToken);
 
                             ExecuteAndCatchIfThrows(
                                 operationBlockAction.Analyzer,

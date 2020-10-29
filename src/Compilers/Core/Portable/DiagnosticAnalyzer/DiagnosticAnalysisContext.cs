@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -525,6 +526,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly CompilationAnalysisValueProviderFactory? _compilationAnalysisValueProviderFactoryOpt;
+        private readonly Action<(string filePath, SourceText text)>? _addAdditionalFile;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -542,8 +544,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
+        /// <summary>
+        /// Whether or not calling <see cref="AddAdditionalFile(string, SourceText)"/> is allowed.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(_addAdditionalFile))]
+        public bool CanAddAdditionalFile => _addAdditionalFile != null;
+
+        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
         public CompilationAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(compilation, options, reportDiagnostic, isSupportedDiagnostic, null, cancellationToken)
+            : this(compilation, options, reportDiagnostic, isSupportedDiagnostic, compilationAnalysisValueProviderFactoryOpt: null, addAdditionalFile: null, cancellationToken)
         {
         }
 
@@ -553,6 +562,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CompilationAnalysisValueProviderFactory? compilationAnalysisValueProviderFactoryOpt,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
             CancellationToken cancellationToken)
         {
             _compilation = compilation;
@@ -560,6 +570,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _compilationAnalysisValueProviderFactoryOpt = compilationAnalysisValueProviderFactoryOpt;
+            _addAdditionalFile = addAdditionalFile;
             _cancellationToken = cancellationToken;
         }
 
@@ -619,6 +630,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return valueProvider.TryGetValue(key, out value);
         }
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="string"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="source">The source code to be add</param>
+        public void AddAdditionalFile(string hintName, string source) => AddAdditionalFile(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="SourceText"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        public void AddAdditionalFile(string hintName, SourceText sourceText)
+        {
+            if (!CanAddAdditionalFile)
+                throw new NotSupportedException(CodeAnalysisResources.AddAdditionalFile_can_only_be_called_when_CanAddAdditionalFile_is_true);
+
+            _addAdditionalFile((hintName, sourceText));
+        }
     }
 
     /// <summary>
@@ -631,6 +664,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly Action<(string filePath, SourceText text)>? _addAdditionalFile;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -648,12 +682,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        public SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        /// <summary>
+        /// Whether or not calling <see cref="AddAdditionalFile(string, SourceText)"/> is allowed.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(_addAdditionalFile))]
+        public bool CanAddAdditionalFile => _addAdditionalFile != null;
+
+        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
+        public SemanticModelAnalysisContext(
+            SemanticModel semanticModel,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            CancellationToken cancellationToken)
+            : this(semanticModel, options, reportDiagnostic, isSupportedDiagnostic, addAdditionalFile: null, cancellationToken)
+        {
+        }
+
+        internal SemanticModelAnalysisContext(
+            SemanticModel semanticModel,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
+            CancellationToken cancellationToken)
         {
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            _addAdditionalFile = addAdditionalFile;
             _cancellationToken = cancellationToken;
         }
 
@@ -669,6 +727,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="string"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="source">The source code to be add</param>
+        public void AddAdditionalFile(string hintName, string source) => AddAdditionalFile(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="SourceText"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        public void AddAdditionalFile(string hintName, SourceText sourceText)
+        {
+            if (!CanAddAdditionalFile)
+                throw new NotSupportedException(CodeAnalysisResources.AddAdditionalFile_can_only_be_called_when_CanAddAdditionalFile_is_true);
+
+            _addAdditionalFile((hintName, sourceText));
+        }
     }
 
     /// <summary>
@@ -682,6 +762,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        internal readonly Action<(string filePath, SourceText text)>? _addAdditionalFile;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -706,13 +787,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal Func<Diagnostic, bool> IsSupportedDiagnostic => _isSupportedDiagnostic;
 
-        public SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        /// <summary>
+        /// Whether or not calling <see cref="AddAdditionalFile(string, SourceText)"/> is allowed.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(_addAdditionalFile))]
+        public bool CanAddAdditionalFile => _addAdditionalFile != null;
+
+        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
+        public SymbolAnalysisContext(
+            ISymbol symbol,
+            Compilation compilation,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            CancellationToken cancellationToken)
+            : this(symbol, compilation, options, reportDiagnostic, isSupportedDiagnostic, addAdditionalFile: null, cancellationToken)
+        {
+        }
+
+        internal SymbolAnalysisContext(
+            ISymbol symbol,
+            Compilation compilation,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
+            CancellationToken cancellationToken)
         {
             _symbol = symbol;
             _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            _addAdditionalFile = addAdditionalFile;
             _cancellationToken = cancellationToken;
         }
 
@@ -727,6 +834,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _reportDiagnostic(diagnostic);
             }
+        }
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="string"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="source">The source code to be add</param>
+        public void AddAdditionalFile(string hintName, string source) => AddAdditionalFile(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="SourceText"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        public void AddAdditionalFile(string hintName, SourceText sourceText)
+        {
+            if (!CanAddAdditionalFile)
+                throw new NotSupportedException(CodeAnalysisResources.AddAdditionalFile_can_only_be_called_when_CanAddAdditionalFile_is_true);
+
+            _addAdditionalFile((hintName, sourceText));
         }
     }
 
@@ -943,6 +1072,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly Action<(string filePath, SourceText text)>? _addAdditionalFile;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -970,7 +1100,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        public CodeBlockAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        /// <summary>
+        /// Whether or not calling <see cref="AddAdditionalFile(string, SourceText)"/> is allowed.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(_addAdditionalFile))]
+        public bool CanAddAdditionalFile => _addAdditionalFile != null;
+
+        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
+        public CodeBlockAnalysisContext(
+            SyntaxNode codeBlock,
+            ISymbol owningSymbol,
+            SemanticModel semanticModel,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            CancellationToken cancellationToken)
+            : this(codeBlock, owningSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, addAdditionalFile: null, cancellationToken)
+        {
+        }
+
+        internal CodeBlockAnalysisContext(
+            SyntaxNode codeBlock,
+            ISymbol owningSymbol,
+            SemanticModel semanticModel,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
+            CancellationToken cancellationToken)
         {
             _codeBlock = codeBlock;
             _owningSymbol = owningSymbol;
@@ -978,6 +1135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            _addAdditionalFile = addAdditionalFile;
             _cancellationToken = cancellationToken;
         }
 
@@ -992,6 +1150,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _reportDiagnostic(diagnostic);
             }
+        }
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="string"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="source">The source code to be add</param>
+        public void AddAdditionalFile(string hintName, string source) => AddAdditionalFile(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="SourceText"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        public void AddAdditionalFile(string hintName, SourceText sourceText)
+        {
+            if (!CanAddAdditionalFile)
+                throw new NotSupportedException(CodeAnalysisResources.AddAdditionalFile_can_only_be_called_when_CanAddAdditionalFile_is_true);
+
+            _addAdditionalFile((hintName, sourceText));
         }
     }
 
@@ -1137,6 +1317,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly Func<IOperation, ControlFlowGraph>? _getControlFlowGraph;
+        private readonly Action<(string filePath, SourceText text)>? _addAdditionalFile;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -1167,6 +1348,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
+        /// <summary>
+        /// Whether or not calling <see cref="AddAdditionalFile(string, SourceText)"/> is allowed.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(_addAdditionalFile))]
+        public bool CanAddAdditionalFile => _addAdditionalFile != null;
+
+        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
         public OperationBlockAnalysisContext(
             ImmutableArray<IOperation> operationBlocks,
             ISymbol owningSymbol,
@@ -1175,15 +1363,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
+            : this(operationBlocks, owningSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic, getControlFlowGraph: null, addAdditionalFile: null, cancellationToken)
         {
-            _operationBlocks = operationBlocks;
-            _owningSymbol = owningSymbol;
-            _compilation = compilation;
-            _options = options;
-            _reportDiagnostic = reportDiagnostic;
-            _isSupportedDiagnostic = isSupportedDiagnostic;
-            _cancellationToken = cancellationToken;
-            _getControlFlowGraph = null;
         }
 
         internal OperationBlockAnalysisContext(
@@ -1193,7 +1374,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
-            Func<IOperation, ControlFlowGraph> getControlFlowGraph,
+            Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
             CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;
@@ -1203,6 +1385,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _getControlFlowGraph = getControlFlowGraph;
+            _addAdditionalFile = addAdditionalFile;
             _cancellationToken = cancellationToken;
         }
 
@@ -1237,6 +1420,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraph, _cancellationToken);
         }
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="string"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="source">The source code to be add</param>
+        public void AddAdditionalFile(string hintName, string source) => AddAdditionalFile(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="SourceText"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        public void AddAdditionalFile(string hintName, SourceText sourceText)
+        {
+            if (!CanAddAdditionalFile)
+                throw new NotSupportedException(CodeAnalysisResources.AddAdditionalFile_can_only_be_called_when_CanAddAdditionalFile_is_true);
+
+            _addAdditionalFile((hintName, sourceText));
+        }
     }
 
     /// <summary>
@@ -1250,6 +1455,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly Action<(string filePath, SourceText text)>? _addAdditionalFile;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -1269,23 +1475,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal Compilation? Compilation => _compilationOpt;
 
-        public SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        /// <summary>
+        /// Whether or not calling <see cref="AddAdditionalFile(string, SourceText)"/> is allowed.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(_addAdditionalFile))]
+        public bool CanAddAdditionalFile => _addAdditionalFile != null;
+
+        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
+        public SyntaxTreeAnalysisContext(
+            SyntaxTree tree,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            CancellationToken cancellationToken)
+            : this(tree, options, reportDiagnostic, isSupportedDiagnostic, compilation: null, addAdditionalFile: null, cancellationToken)
         {
-            _tree = tree;
-            _options = options;
-            _reportDiagnostic = reportDiagnostic;
-            _isSupportedDiagnostic = isSupportedDiagnostic;
-            _compilationOpt = null;
-            _cancellationToken = cancellationToken;
         }
 
-        internal SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, Compilation compilation, CancellationToken cancellationToken)
+        internal SyntaxTreeAnalysisContext(
+            SyntaxTree tree,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            Compilation? compilation,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
+            CancellationToken cancellationToken)
         {
             _tree = tree;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _compilationOpt = compilation;
+            _addAdditionalFile = addAdditionalFile;
             _cancellationToken = cancellationToken;
         }
 
@@ -1301,6 +1522,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="string"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="source">The source code to be add</param>
+        public void AddAdditionalFile(string hintName, string source) => AddAdditionalFile(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="SourceText"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        public void AddAdditionalFile(string hintName, SourceText sourceText)
+        {
+            if (!CanAddAdditionalFile)
+                throw new NotSupportedException(CodeAnalysisResources.AddAdditionalFile_can_only_be_called_when_CanAddAdditionalFile_is_true);
+
+            _addAdditionalFile((hintName, sourceText));
+        }
     }
 
     /// <summary>
@@ -1311,6 +1554,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly Action<(string filePath, SourceText text)>? _addAdditionalFile;
 
         /// <summary>
         /// <see cref="AdditionalText"/> that is the subject of the analysis.
@@ -1332,12 +1576,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public Compilation Compilation { get; }
 
+        /// <summary>
+        /// Whether or not calling <see cref="AddAdditionalFile(string, SourceText)"/> is allowed.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(_addAdditionalFile))]
+        public bool CanAddAdditionalFile => _addAdditionalFile != null;
+
         internal AdditionalFileAnalysisContext(
             AdditionalText additionalFile,
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             Compilation compilation,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
             CancellationToken cancellationToken)
         {
             AdditionalFile = additionalFile;
@@ -1345,6 +1596,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             Compilation = compilation;
+            _addAdditionalFile = addAdditionalFile;
             CancellationToken = cancellationToken;
         }
 
@@ -1361,6 +1613,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="string"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="source">The source code to be add</param>
+        public void AddAdditionalFile(string hintName, string source) => AddAdditionalFile(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="SourceText"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        public void AddAdditionalFile(string hintName, SourceText sourceText)
+        {
+            if (!CanAddAdditionalFile)
+                throw new NotSupportedException(CodeAnalysisResources.AddAdditionalFile_can_only_be_called_when_CanAddAdditionalFile_is_true);
+
+            _addAdditionalFile((hintName, sourceText));
+        }
     }
 
     /// <summary>
@@ -1375,6 +1649,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly Action<(string filePath, SourceText text)>? _addAdditionalFile;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -1407,7 +1682,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        public SyntaxNodeAnalysisContext(SyntaxNode node, ISymbol? containingSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        /// <summary>
+        /// Whether or not calling <see cref="AddAdditionalFile(string, SourceText)"/> is allowed.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(_addAdditionalFile))]
+        public bool CanAddAdditionalFile => _addAdditionalFile != null;
+
+        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
+        public SyntaxNodeAnalysisContext(
+            SyntaxNode node,
+            SemanticModel semanticModel,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            CancellationToken cancellationToken)
+           : this(node, containingSymbol: null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, cancellationToken)
+        {
+        }
+
+        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
+        public SyntaxNodeAnalysisContext(
+            SyntaxNode node,
+            ISymbol? containingSymbol,
+            SemanticModel semanticModel,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            CancellationToken cancellationToken)
+            : this(node, containingSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, addAdditionalFile: null, cancellationToken)
+        {
+        }
+
+        internal SyntaxNodeAnalysisContext(
+            SyntaxNode node,
+            ISymbol? containingSymbol,
+            SemanticModel semanticModel,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
+            CancellationToken cancellationToken)
         {
             _node = node;
             _containingSymbol = containingSymbol;
@@ -1415,12 +1729,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            _addAdditionalFile = addAdditionalFile;
             _cancellationToken = cancellationToken;
-        }
-
-        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-           : this(node, null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, cancellationToken)
-        {
         }
 
         /// <summary>
@@ -1434,6 +1744,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _reportDiagnostic(diagnostic);
             }
+        }
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="string"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="source">The source code to be add</param>
+        public void AddAdditionalFile(string hintName, string source) => AddAdditionalFile(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="SourceText"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        public void AddAdditionalFile(string hintName, SourceText sourceText)
+        {
+            if (!CanAddAdditionalFile)
+                throw new NotSupportedException(CodeAnalysisResources.AddAdditionalFile_can_only_be_called_when_CanAddAdditionalFile_is_true);
+
+            _addAdditionalFile((hintName, sourceText));
         }
     }
 
@@ -1450,6 +1782,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly Func<IOperation, ControlFlowGraph>? _getControlFlowGraph;
+        private readonly Action<(string filePath, SourceText text)>? _addAdditionalFile;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -1477,6 +1810,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
+        /// <summary>
+        /// Whether or not calling <see cref="AddAdditionalFile(string, SourceText)"/> is allowed.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(_addAdditionalFile))]
+        public bool CanAddAdditionalFile => _addAdditionalFile != null;
+
+        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
         public OperationAnalysisContext(
             IOperation operation,
             ISymbol containingSymbol,
@@ -1485,15 +1825,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
+            : this(operation, containingSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic, getControlFlowGraph: null, addAdditionalFile: null, cancellationToken)
         {
-            _operation = operation;
-            _containingSymbol = containingSymbol;
-            _compilation = compilation;
-            _options = options;
-            _reportDiagnostic = reportDiagnostic;
-            _isSupportedDiagnostic = isSupportedDiagnostic;
-            _cancellationToken = cancellationToken;
-            _getControlFlowGraph = null;
         }
 
         internal OperationAnalysisContext(
@@ -1503,7 +1836,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
-            Func<IOperation, ControlFlowGraph> getControlFlowGraph,
+            Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            Action<(string filePath, SourceText text)>? addAdditionalFile,
             CancellationToken cancellationToken)
         {
             _operation = operation;
@@ -1513,6 +1847,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _getControlFlowGraph = getControlFlowGraph;
+            _addAdditionalFile = addAdditionalFile;
             _cancellationToken = cancellationToken;
         }
 
@@ -1533,6 +1868,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Gets a <see cref="ControlFlowGraph"/> for the operation block containing the <see cref="Operation"/>.
         /// </summary>
         public ControlFlowGraph GetControlFlowGraph() => DiagnosticAnalysisContextHelpers.GetControlFlowGraph(Operation, _getControlFlowGraph, _cancellationToken);
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="string"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="source">The source code to be add</param>
+        public void AddAdditionalFile(string hintName, string source) => AddAdditionalFile(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds additional file in the form of a <see cref="SourceText"/>.  Can only be called if <see
+        /// cref="CanAddAdditionalFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        public void AddAdditionalFile(string hintName, SourceText sourceText)
+        {
+            if (!CanAddAdditionalFile)
+                throw new NotSupportedException(CodeAnalysisResources.AddAdditionalFile_can_only_be_called_when_CanAddAdditionalFile_is_true);
+
+            _addAdditionalFile((hintName, sourceText));
+        }
     }
 
     /// <summary>

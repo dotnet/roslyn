@@ -1,3 +1,30 @@
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AddAdditionalFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AddAdditionalFile(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.CanAddAdditionalFile.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.AddAdditionalFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.AddAdditionalFile(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.CanAddAdditionalFile.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.AddAdditionalFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.AddAdditionalFile(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.CanAddAdditionalFile.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.AddAdditionalFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.AddAdditionalFile(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.CanAddAdditionalFile.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.AddAdditionalFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.AddAdditionalFile(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.CanAddAdditionalFile.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.AddAdditionalFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.AddAdditionalFile(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.CanAddAdditionalFile.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.AddAdditionalFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.AddAdditionalFile(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.CanAddAdditionalFile.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.AddAdditionalFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.AddAdditionalFile(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.CanAddAdditionalFile.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.AddAdditionalFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.AddAdditionalFile(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.CanAddAdditionalFile.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CompilationEnd = "CompilationEnd" -> string

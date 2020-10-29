@@ -569,6 +569,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     context.Options,
                                     context.ReportDiagnostic,
                                     context.IsSupportedDiagnostic,
+                                    context._addAdditionalFile,
                                     context.CancellationToken));
                             }
                         }
