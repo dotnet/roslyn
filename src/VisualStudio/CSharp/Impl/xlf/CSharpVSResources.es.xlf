@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">Mostrar automáticamente la lista de finalización en las listas de argumentos (experimental)</target>
+        <target state="needs-review-translation">Mostrar automáticamente la lista de finalización en las listas de argumentos (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -128,8 +128,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="translated">Mostrar elementos de espacios de nombres no importados (experimental)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="needs-review-translation">Mostrar elementos de espacios de nombres no importados (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -110,6 +111,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // last time we notified the client.  Report back either to the client so they can update accordingly.
             foreach (var document in GetOrderedDocuments(context))
             {
+                if (!IncludeDocument(document, context.ClientName))
+                    continue;
+
                 if (DiagnosticsAreUnchanged(documentToPreviousDiagnosticParams, document))
                 {
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
@@ -127,6 +131,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
             return progress.GetValues();
+        }
+
+        private static bool IncludeDocument(Document document, string? clientName)
+        {
+            // Documents either belong to Razor or not.  We can determine this by checking if the doc has a span-mapping
+            // service or not.  If we're not in razor, we do not include razor docs.  If we are in razor, we only
+            // include razor docs.
+            var isRazorDoc = document.IsRazorDocument();
+            var wantsRazorDoc = clientName != null;
+
+            return wantsRazorDoc == isRazorDoc;
         }
 
         private Dictionary<Document, DiagnosticParams> GetDocumentToPreviousDiagnosticParams(DiagnosticParams[] previousResults)
@@ -156,7 +171,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
 
-            var diagnostics = _diagnosticService.GetDiagnostics(document, includeSuppressedDiagnostics: false, forPullDiagnostics: true, cancellationToken);
+            // Razor has a separate option for determining if they should be in push or pull mode.
+            var diagnosticOption = document.IsRazorDocument()
+                ? InternalDiagnosticsOptions.RazorDiagnosticMode
+                : InternalDiagnosticsOptions.NormalDiagnosticMode;
+
+            var diagnostics = _diagnosticService.GetPullDiagnostics(document, includeSuppressedDiagnostics: false, diagnosticOption, cancellationToken);
             foreach (var diagnostic in diagnostics)
                 result.Add(ConvertDiagnostic(document, text, diagnostic));
 
@@ -209,18 +229,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        private static VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
+        private VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
             Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
 
             var project = document.Project;
+
+            // Razor wants to handle all span mapping themselves.  So if we are in razor, return the raw doc spans, and
+            // do not map them.
+            var useMappedSpan = !document.IsRazorDocument();
             return new VSDiagnostic
             {
+                Source = GetType().Name,
                 Code = diagnosticData.Id,
                 Message = diagnosticData.Message,
                 Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
-                Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMapped: true)),
+                Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMappedSpan)),
                 Tags = ConvertTags(diagnosticData),
                 DiagnosticType = diagnosticData.Category,
                 Projects = new[]

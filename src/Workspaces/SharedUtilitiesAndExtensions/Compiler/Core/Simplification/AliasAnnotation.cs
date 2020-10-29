@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.Simplification
 {
     /// <summary>
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         public const string Kind = "Alias";
 
         public static string GetAliasName(SyntaxAnnotation annotation)
-            => annotation.Data;
+            => annotation.Data!;
 
         public static SyntaxAnnotation Create(string aliasName)
             => new(Kind, aliasName);

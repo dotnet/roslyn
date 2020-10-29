@@ -14,15 +14,75 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class ParameterSymbol :
+    internal partial class
+#if DEBUG
+        ParameterSymbolAdapter : SymbolAdapter,
+#else
+        ParameterSymbol :
+#endif 
         Cci.IParameterTypeInformation,
         Cci.IParameterDefinition
     {
+#if DEBUG
+        internal ParameterSymbolAdapter(ParameterSymbol underlyingParameterSymbol)
+        {
+            AdaptedParameterSymbol = underlyingParameterSymbol;
+
+            if (underlyingParameterSymbol is NativeIntegerParameterSymbol)
+            {
+                // Emit should use underlying symbol only.
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedParameterSymbol;
+        internal ParameterSymbol AdaptedParameterSymbol { get; }
+#else
+        internal ParameterSymbol AdaptedParameterSymbol => this;
+#endif
+    }
+
+    internal partial class ParameterSymbol
+    {
+#if DEBUG
+        private ParameterSymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+#endif
+        internal new
+#if DEBUG
+            ParameterSymbolAdapter
+#else
+            ParameterSymbol
+#endif
+            GetCciAdapter()
+        {
+#if DEBUG
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new ParameterSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+#else
+            return this;
+#endif
+        }
+    }
+
+    internal partial class
+#if DEBUG
+        ParameterSymbolAdapter
+#else
+        ParameterSymbol
+#endif
+    {
+
         ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
         {
             get
             {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(this.TypeWithAnnotations.CustomModifiers);
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedParameterSymbol.TypeWithAnnotations.CustomModifiers);
             }
         }
 
@@ -30,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.RefKind != RefKind.None;
+                return AdaptedParameterSymbol.RefKind != RefKind.None;
             }
         }
 
@@ -38,13 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(this.RefCustomModifiers);
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedParameterSymbol.RefCustomModifiers);
             }
         }
 
         Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(this.Type,
+            return ((PEModuleBuilder)context.Module).Translate(AdaptedParameterSymbol.Type,
                                                       syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                       diagnostics: context.Diagnostics);
         }
@@ -53,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (ushort)this.Ordinal;
+                return (ushort)AdaptedParameterSymbol.Ordinal;
             }
         }
 
@@ -68,30 +128,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal MetadataConstant GetMetadataConstantValue(EmitContext context)
         {
-            if (!HasMetadataConstantValue)
+            if (!AdaptedParameterSymbol.HasMetadataConstantValue)
             {
                 return null;
             }
 
-            ConstantValue constant = this.ExplicitDefaultConstantValue;
+            ConstantValue constant = AdaptedParameterSymbol.ExplicitDefaultConstantValue;
             TypeSymbol type;
             if (constant.SpecialType != SpecialType.None)
             {
                 // preserve the exact type of the constant for primitive types,
                 // e.g. it should be Int16 for [DefaultParameterValue((short)1)]int x
-                type = this.ContainingAssembly.GetSpecialType(constant.SpecialType);
+                type = AdaptedParameterSymbol.ContainingAssembly.GetSpecialType(constant.SpecialType);
             }
             else
             {
                 // default(struct), enum
-                type = this.Type;
+                type = AdaptedParameterSymbol.Type;
             }
 
             return ((PEModuleBuilder)context.Module).CreateConstant(type, constant.Value,
                                                            syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                            diagnostics: context.Diagnostics);
         }
+    }
 
+    internal partial class ParameterSymbol
+    {
         internal virtual bool HasMetadataConstantValue
         {
             get
@@ -105,13 +168,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        this.ExplicitDefaultConstantValue.SpecialType != SpecialType.System_DateTime;
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        ParameterSymbolAdapter
+#else
+        ParameterSymbol
+#endif
+    {
         bool Cci.IParameterDefinition.HasDefaultValue
         {
             get
             {
                 CheckDefinitionInvariant();
-                return HasMetadataConstantValue;
+                return AdaptedParameterSymbol.HasMetadataConstantValue;
             }
         }
 
@@ -120,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsMetadataOptional;
+                return AdaptedParameterSymbol.IsMetadataOptional;
             }
         }
 
@@ -129,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return IsMetadataIn;
+                return AdaptedParameterSymbol.IsMetadataIn;
             }
         }
 
@@ -138,10 +209,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsMarshalledExplicitly;
+                return AdaptedParameterSymbol.IsMarshalledExplicitly;
             }
         }
+    }
 
+    internal partial class ParameterSymbol
+    {
         internal virtual bool IsMarshalledExplicitly
         {
             get
@@ -150,13 +224,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.MarshallingInformation != null;
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        ParameterSymbolAdapter
+#else
+        ParameterSymbol
+#endif
+    {
         bool Cci.IParameterDefinition.IsOut
         {
             get
             {
                 CheckDefinitionInvariant();
-                return IsMetadataOut;
+                return AdaptedParameterSymbol.IsMetadataOut;
             }
         }
 
@@ -165,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.MarshallingInformation;
+                return AdaptedParameterSymbol.MarshallingInformation;
             }
         }
 
@@ -174,10 +256,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.MarshallingDescriptor;
+                return AdaptedParameterSymbol.MarshallingDescriptor;
             }
         }
+    }
 
+    internal partial class ParameterSymbol
+    {
         internal virtual ImmutableArray<byte> MarshallingDescriptor
         {
             get
@@ -186,7 +271,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default(ImmutableArray<byte>);
             }
         }
+    }
 
+    internal partial class
+#if DEBUG
+        ParameterSymbolAdapter
+#else
+        ParameterSymbol
+#endif
+    {
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
@@ -216,8 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            if (this.IsDefinition &&
-                this.ContainingModule == moduleBeingBuilt.SourceModule)
+            if (AdaptedParameterSymbol.IsDefinition &&
+                AdaptedParameterSymbol.ContainingModule == moduleBeingBuilt.SourceModule)
             {
                 return this;
             }
@@ -227,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         string Cci.INamedEntity.Name
         {
-            get { return this.MetadataName; }
+            get { return AdaptedParameterSymbol.MetadataName; }
         }
     }
 }
