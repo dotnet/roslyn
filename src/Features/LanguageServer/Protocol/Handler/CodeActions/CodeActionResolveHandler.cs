@@ -92,10 +92,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var applyChangesOperations = operations.OfType<ApplyChangesOperation>();
             if (applyChangesOperations.Any())
             {
+                var solution = document.Project.Solution;
+                var textDiffService = solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+
                 using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var textDocumentEdits);
                 foreach (var applyChangesOperation in applyChangesOperations)
                 {
-                    var solution = document.Project.Solution;
                     var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
                     var projectChanges = changes.GetProjectChanges();
 
@@ -130,20 +132,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Changed documents
                     await AddTextDocumentEdits(
                         textDocumentEdits, applyChangesOperation, solution, changedDocuments,
-                        applyChangesOperation.ChangedSolution.GetDocument, solution.GetDocument,
+                        applyChangesOperation.ChangedSolution.GetDocument, solution.GetDocument, textDiffService,
                         cancellationToken).ConfigureAwait(false);
 
                     // Changed analyzer config documents
                     await AddTextDocumentEdits(
                         textDocumentEdits, applyChangesOperation, solution, changedAnalyzerConfigDocuments,
                         applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument, solution.GetAnalyzerConfigDocument,
-                        cancellationToken).ConfigureAwait(false);
+                        textDiffService: null, cancellationToken).ConfigureAwait(false);
 
                     // Changed additional documents
                     await AddTextDocumentEdits(
                         textDocumentEdits, applyChangesOperation, solution, changedAdditionalDocuments,
                         applyChangesOperation.ChangedSolution.GetAdditionalDocument, solution.GetAdditionalDocument,
-                        cancellationToken).ConfigureAwait(false);
+                        textDiffService: null, cancellationToken).ConfigureAwait(false);
                 }
 
                 codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
@@ -166,6 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 IEnumerable<DocumentId> changedDocuments,
                 Func<DocumentId, T?> getNewDocumentFunc,
                 Func<DocumentId, T?> getOldDocumentFunc,
+                IDocumentTextDifferencingService? textDiffService,
                 CancellationToken cancellationToken)
                 where T : TextDocument
             {
@@ -181,11 +184,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                     IEnumerable<TextChange> textChanges;
 
-                    // Normal documents have a unique method for calculating minimal text edits. If we used the standard 'GetTextChanges'
+                    // Normal documents have a unique service for calculating minimal text edits. If we used the standard 'GetTextChanges'
                     // method instead, we would get a change that spans the entire document, which we ideally want to avoid.
                     if (newTextDoc is Document newDoc && oldTextDoc is Document oldDoc)
                     {
-                        textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
+                        Contract.ThrowIfNull(textDiffService);
+                        textChanges = await textDiffService.GetTextChangesAsync(oldDoc, newDoc, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
