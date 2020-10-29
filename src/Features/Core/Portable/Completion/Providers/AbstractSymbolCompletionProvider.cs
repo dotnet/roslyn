@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly object s_cacheGate = new();
 
         private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
+        private bool? _isInsertFullMethodCallExperimentEnabled = null;
 
         protected AbstractSymbolCompletionProvider()
         {
@@ -58,6 +59,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return _isTargetTypeCompletionFilterExperimentEnabled == true;
+        }
+
+        private bool IsInsertFullMethodCallExperimentEnabled(Workspace workspace)
+        {
+            if (!_isInsertFullMethodCallExperimentEnabled.HasValue)
+            {
+                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                _isInsertFullMethodCallExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InsertFullMethodCall);
+            }
+
+            return _isInsertFullMethodCallExperimentEnabled == true;
+        }
+
+        protected bool IsAutoAddParenthesisBySemicolonAndDotEnabled(Document document)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var option = workspace.Options.GetOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolonAndDot, document.Project.Language);
+            return option == true || (option == null && IsInsertFullMethodCallExperimentEnabled(workspace));
         }
 
         /// <param name="typeConvertibilityCache">A cache to use for repeated lookups. This should be created with <see cref="SymbolEqualityComparer.Default"/>

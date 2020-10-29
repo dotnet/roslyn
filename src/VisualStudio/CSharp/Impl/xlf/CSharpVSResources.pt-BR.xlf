@@ -7,6 +7,11 @@
         <target state="translated">Aplicar todas as regras de formatação de C# (recuo, quebra de linha, espaçamento)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_add_parenthesis_by_semicolon_and_dot">
+        <source>Automatically add parenthesis by ';' and '.' (experimental)</source>
+        <target state="new">Automatically add parenthesis by ';' and '.' (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
         <target state="translated">Mostrar automaticamente a lista de conclusão nas listas de argumentos (experimental)</target>

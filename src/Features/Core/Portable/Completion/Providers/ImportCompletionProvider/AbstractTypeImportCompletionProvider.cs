@@ -42,10 +42,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
                 else
                 {
+                    var isParenthesisCompletionEnable = IsAutoAddParenthesisBySemicolonAndDotEnabled(completionContext.Document);
                     foreach (var items in itemsFromAllAssemblies)
                     {
-                        AddItems(
-                            AttachParenthesisCompletionProperties(syntaxContext, items).ToImmutableArray(),
+                        AddItems(isParenthesisCompletionEnable
+                            ? AttachParenthesisCompletionProperties(syntaxContext, items).ToImmutableArray()
+                            : items,
                             completionContext,
                             namespacesInScope,
                             telemetryCounter);

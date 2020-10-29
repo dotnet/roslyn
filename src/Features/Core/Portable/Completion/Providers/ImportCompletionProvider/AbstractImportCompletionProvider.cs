@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private bool? _isImportCompletionExperimentEnabled = null;
 
-        private bool IsExperimentEnabled(Workspace workspace)
+        private bool? _isInsertFullMethodCallExperimentEnabled = null;
+
+        private bool IsTypeImportCompletionExperimentEnabled(Workspace workspace)
         {
             if (!_isImportCompletionExperimentEnabled.HasValue)
             {
@@ -44,6 +46,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return _isImportCompletionExperimentEnabled == true;
+        }
+
+        private bool IsInsertFullMethodCallExperimentEnabled(Workspace workspace)
+        {
+            if (!_isInsertFullMethodCallExperimentEnabled.HasValue)
+            {
+                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
+                _isInsertFullMethodCallExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InsertFullMethodCall);
+            }
+
+            return _isInsertFullMethodCallExperimentEnabled == true;
+        }
+
+        protected bool IsAutoAddParenthesisBySemicolonAndDotEnabled(Document document)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var option = workspace.Options.GetOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolonAndDot, document.Project.Language);
+            return option == true || (option == null && IsInsertFullMethodCallExperimentEnabled(workspace));
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
@@ -69,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
                 if (importCompletionOptionValue == false ||
-                    (importCompletionOptionValue == null && !IsExperimentEnabled(document.Project.Solution.Workspace)))
+                    (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(document.Project.Solution.Workspace)))
                 {
                     return;
                 }

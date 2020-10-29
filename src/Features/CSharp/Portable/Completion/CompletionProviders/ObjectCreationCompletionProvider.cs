@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Completion.CommonCompletionUtilities;
 
@@ -150,8 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
+            var solution = document.Project.Solution;
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
-            if (commitKey == ';')
+            if (commitKey == ';' && IsAutoAddParenthesisBySemicolonAndDotEnabled(document))
             {
                 var endOfInsertionText = item.Span.Start + insertionText.Length;
                 var textChange = new TextChange(item.Span, insertionText + "();");

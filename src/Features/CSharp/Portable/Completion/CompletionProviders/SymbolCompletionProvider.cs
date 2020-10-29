@@ -282,6 +282,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context,
                 preselect,
                 supportedPlatformData);
+            if (!IsAutoAddParenthesisBySemicolonAndDotEnabled(completionContext.Document))
+            {
+                return item;
+            }
 
             var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
             var isObjectCreationTypeContext = context switch

@@ -7,6 +7,11 @@
         <target state="translated">모든 C# 서식 규칙 적용(들여쓰기, 래핑, 간격 조정)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_add_parenthesis_by_semicolon_and_dot">
+        <source>Automatically add parenthesis by ';' and '.' (experimental)</source>
+        <target state="new">Automatically add parenthesis by ';' and '.' (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
         <target state="translated">인수 목록에 자동으로 완성 목록 표시(실험적)</target>

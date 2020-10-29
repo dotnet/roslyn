@@ -64,6 +64,11 @@ namespace Microsoft.CodeAnalysis.Completion
             new(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: null,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
 
+        // Use tri-value so the default state can be used to turn on the feature with experimentation service.
+        public static readonly PerLanguageOption2<bool?> AutomaticallyAddParenthesisBySemicolonAndDot =
+            new(nameof(CompletionOptions), nameof(AutomaticallyAddParenthesisBySemicolonAndDot), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AutomaticallyAddParenthesisBySemicolonAndDot"));
+
         public static IEnumerable<PerLanguageOption2<bool>> GetDev15CompletionOptions()
         {
             yield return ShowCompletionItemFilters;

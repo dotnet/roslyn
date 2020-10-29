@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var isObjectCreationContext = syntaxContext switch
             {
-                CSharpSyntaxContext cSharpSyntaxContext => cSharpSyntaxContext.IsObjectCreationTypeContext,
+                CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
                 _ => false
             };
 
