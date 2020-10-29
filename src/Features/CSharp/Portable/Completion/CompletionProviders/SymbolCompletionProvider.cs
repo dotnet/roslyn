@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
-            if ((commitKey == ';' || commitKey == '.') && SymbolCompletionItem.GetProvideParenthesisCompletion(item))
+            if (commitKey == ';' && SymbolCompletionItem.GetProvideParenthesisCompletion(item))
             {
                 var textChange = new TextChange(
                     item.Span,
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var putCaretBetweenParenthesis = commitKey == ';' && SymbolCompletionItem.GetPutCaretBetweenParenthesis(item);
                 var endOfInsertionText = item.Span.Start + insertionText.Length;
                 return Task.FromResult(CompletionChange.Create(textChange,
-                    putCaretBetweenParenthesis ? endOfInsertionText + 1 : null,
+                    putCaretBetweenParenthesis ? endOfInsertionText + 1 : endOfInsertionText + 3,
                     includesCommitCharacter: true));
             }
 

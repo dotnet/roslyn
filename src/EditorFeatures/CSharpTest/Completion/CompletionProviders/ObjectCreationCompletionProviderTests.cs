@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,6 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     {
         internal override Type GetCompletionProviderType()
             => typeof(ObjectCreationCompletionProvider);
+
+        protected override OptionSet WithChangedOptions(OptionSet options)
+            => options.WithChangedOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolonAndDot, LanguageNames.CSharp, true);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InObjectCreation()
