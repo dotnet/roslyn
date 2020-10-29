@@ -91,6 +91,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
                 Glyph.AddReference => VSTypeScriptGlyph.AddReference,
                 Glyph.NuGet => VSTypeScriptGlyph.NuGet,
                 Glyph.TargetTypeMatch => VSTypeScriptGlyph.TargetTypeMatch,
+                Glyph.ConstructorPublic => VSTypeScriptGlyph.MethodPublic,
+                Glyph.ConstructorProtected => VSTypeScriptGlyph.MethodProtected,
+                Glyph.ConstructorPrivate => VSTypeScriptGlyph.MethodPrivate,
+                Glyph.ConstructorInternal => VSTypeScriptGlyph.MethodInternal,
                 _ => throw ExceptionUtilities.UnexpectedValue(glyph),
             };
         }

@@ -8,46 +8,52 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentSymbols
 {
     internal abstract class AbstractDocumentSymbolsService : IDocumentSymbolsService
     {
-        public Task<ImmutableArray<DocumentSymbolInfo>> GetSymbolsInDocumentAsync(Document document, DocumentSymbolsOptions options, CancellationToken cancellationToken)
+        protected abstract ISymbol? GetSymbol(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract bool ShouldSkipSyntaxChildren(SyntaxNode node, DocumentSymbolsOptions options);
+        protected abstract bool ConsiderNestedNodesChildren(ISymbol node);
+        protected abstract DocumentSymbolInfo GetMemberInfoForType(INamedTypeSymbol type, SyntaxTree tree, ISymbolDeclarationService declarationService, CancellationToken cancellationToken);
+        protected abstract DocumentSymbolInfo CreateInfo(ISymbol symbol, SyntaxTree tree, ISymbolDeclarationService declarationService, ImmutableArray<DocumentSymbolInfo> childrenSymbols, CancellationToken cancellationToken);
+
+        public async Task<ImmutableArray<DocumentSymbolInfo>> GetSymbolsInDocumentAsync(Document document, DocumentSymbolsOptions options, CancellationToken cancellationToken)
         {
-            if (options == DocumentSymbolsOptions.TypesAndMethodsOnly)
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
+            if (options == DocumentSymbolsOptions.TypesAndMembersOnly)
             {
-                return GetMembersInDocumentTypesAndMethodsOnlyAsync(document, options, cancellationToken);
+                return GetMembersInDocumentTypesAndMethodsOnly(options, semanticModel, tree, declarationService, cancellationToken);
             }
             else
             {
-                return GetMembersInDocumentFullHierarchyAsync(document, options, cancellationToken);
+                return await GetMembersInDocumentFullHierarchyAsync(options, semanticModel, tree, declarationService, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task<ImmutableArray<DocumentSymbolInfo>> GetMembersInDocumentTypesAndMethodsOnlyAsync(Document document, DocumentSymbolsOptions options, CancellationToken cancellationToken)
+        private ImmutableArray<DocumentSymbolInfo> GetMembersInDocumentTypesAndMethodsOnly(
+            DocumentSymbolsOptions options,
+            SemanticModel semanticModel,
+            SyntaxTree tree,
+            ISymbolDeclarationService declarationService,
+            CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            if (semanticModel is null)
-            {
-                return ImmutableArray<DocumentSymbolInfo>.Empty;
-            }
-
-            using var _ = PooledHashSet<INamedTypeSymbol>.GetInstance(out var typesInFile);
+            using var _1 = PooledHashSet<INamedTypeSymbol>.GetInstance(out var typesInFile);
             GetTypesInFile(semanticModel, typesInFile, cancellationToken);
 
-            using var __ = ArrayBuilder<DocumentSymbolInfo>.GetInstance(out var typesBuilder);
+            using var _2 = ArrayBuilder<DocumentSymbolInfo>.GetInstance(out var typesBuilder);
             foreach (var type in typesInFile)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return ImmutableArray<DocumentSymbolInfo>.Empty;
-                }
-
-                typesBuilder.Add(GetInfoForType(type));
+                cancellationToken.ThrowIfCancellationRequested();
+                typesBuilder.Add(GetMemberInfoForType(type, tree, declarationService, cancellationToken));
             }
 
             typesBuilder.Sort((d1, d2) => d1.Text.CompareTo(d2.Text));
@@ -63,11 +69,7 @@ namespace Microsoft.CodeAnalysis.DocumentSymbols
 
                     while (!nodesToVisit.IsEmpty())
                     {
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            types.Clear();
-                            return;
-                        }
+                        cancellationToken.ThrowIfCancellationRequested();
 
                         var node = nodesToVisit.Pop();
                         var symbol = GetSymbol(semanticModel, node, cancellationToken);
@@ -92,36 +94,32 @@ namespace Microsoft.CodeAnalysis.DocumentSymbols
             }
         }
 
-        private async Task<ImmutableArray<DocumentSymbolInfo>> GetMembersInDocumentFullHierarchyAsync(Document document, DocumentSymbolsOptions options, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<DocumentSymbolInfo>> GetMembersInDocumentFullHierarchyAsync(
+            DocumentSymbolsOptions options,
+            SemanticModel semanticModel,
+            SyntaxTree tree,
+            ISymbolDeclarationService declarationService,
+            CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            if (semanticModel is null || root is null)
-            {
-                return ImmutableArray<DocumentSymbolInfo>.Empty;
-            }
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToVisit);
             nodesToVisit.Push(root);
 
-            return GetMembersInNode(semanticModel, nodesToVisit, startingCount: 0, options, cancellationToken);
+            return GetMembersInNode(semanticModel, tree, nodesToVisit, startingCount: 0, options, cancellationToken);
 
-            ImmutableArray<DocumentSymbolInfo> GetMembersInNode(SemanticModel semanticModel, ArrayBuilder<SyntaxNode> nodesToVisit, int startingCount, DocumentSymbolsOptions options, CancellationToken cancellationToken)
+            ImmutableArray<DocumentSymbolInfo> GetMembersInNode(SemanticModel semanticModel, SyntaxTree tree, ArrayBuilder<SyntaxNode> nodesToVisit, int startingCount, DocumentSymbolsOptions options, CancellationToken cancellationToken)
             {
                 using var _ = ArrayBuilder<DocumentSymbolInfo>.GetInstance(out var memberBuilder);
                 while (nodesToVisit.Count > startingCount)
                 {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        return ImmutableArray<DocumentSymbolInfo>.Empty;
-                    }
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     var node = nodesToVisit.Pop();
 
                     var symbol = GetSymbol(semanticModel, node, cancellationToken);
 
-                    if (symbol is not null and { IsImplicitlyDeclared: false })
+                    if (symbol is { IsImplicitlyDeclared: false })
                     {
                         ImmutableArray<DocumentSymbolInfo> childrenSymbols;
                         if (ShouldSkipSyntaxChildren(node, options))
@@ -138,11 +136,11 @@ namespace Microsoft.CodeAnalysis.DocumentSymbols
                             var currentCount = nodesToVisit.Count;
                             AddChildrenToVisit(nodesToVisit, node);
 
-                            childrenSymbols = GetMembersInNode(semanticModel, nodesToVisit, currentCount, options, cancellationToken);
+                            childrenSymbols = GetMembersInNode(semanticModel, tree, nodesToVisit, currentCount, options, cancellationToken);
                             Debug.Assert(nodesToVisit.Count == currentCount);
                         }
 
-                        memberBuilder.Add(CreateInfo(symbol, childrenSymbols));
+                        memberBuilder.Add(CreateInfo(symbol, tree, declarationService, childrenSymbols, cancellationToken));
                     }
                     else
                     {
@@ -171,10 +169,17 @@ namespace Microsoft.CodeAnalysis.DocumentSymbols
             }
         }
 
-        protected abstract ISymbol? GetSymbol(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract bool ShouldSkipSyntaxChildren(SyntaxNode node, DocumentSymbolsOptions options);
-        protected abstract bool ConsiderNestedNodesChildren(ISymbol node);
-        protected abstract DocumentSymbolInfo GetInfoForType(INamedTypeSymbol type);
-        protected abstract DocumentSymbolInfo CreateInfo(ISymbol symbol, ImmutableArray<DocumentSymbolInfo> childrenSymbols);
+        protected static ImmutableArray<TextSpan> GetDeclaringSpans(ISymbol symbol, SyntaxTree tree)
+        {
+            foreach (var location in symbol.Locations)
+            {
+                if (tree.Equals(location.SourceTree))
+                {
+                    return ImmutableArray.Create(location.SourceSpan);
+                }
+            }
+
+            return ImmutableArray<TextSpan>.Empty;
+        }
     }
 }

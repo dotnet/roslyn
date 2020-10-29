@@ -92,22 +92,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 case SymbolKind.Method:
                     {
-                        var methodSymbol = (IMethodSymbol)symbol;
-
-                        if (methodSymbol.MethodKind == MethodKind.UserDefinedOperator ||
-                            methodSymbol.MethodKind == MethodKind.Conversion ||
-                            methodSymbol.MethodKind == MethodKind.BuiltinOperator)
+                        switch ((IMethodSymbol)symbol)
                         {
-                            return Glyph.Operator;
-                        }
-                        else if (methodSymbol.IsExtensionMethod ||
-                                 methodSymbol.MethodKind == MethodKind.ReducedExtension)
-                        {
-                            publicIcon = Glyph.ExtensionMethodPublic;
-                        }
-                        else
-                        {
-                            publicIcon = Glyph.MethodPublic;
+                            case { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion or MethodKind.BuiltinOperator }:
+                                return Glyph.Operator;
+                            case { IsExtensionMethod: true } or { MethodKind: MethodKind.ReducedExtension }:
+                                publicIcon = Glyph.ExtensionMethodPublic;
+                                break;
+                            case { MethodKind: MethodKind.Constructor }:
+                                publicIcon = Glyph.ConstructorPublic;
+                                break;
+                            default:
+                                publicIcon = Glyph.MethodPublic;
+                                break;
                         }
                     }
 

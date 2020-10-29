@@ -141,12 +141,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     return new ImageId(ImageCatalogGuid, KnownImageIds.Namespace);
 
                 case Glyph.MethodPublic:
+                case Glyph.ConstructorPublic:
                     return new ImageId(ImageCatalogGuid, KnownImageIds.MethodPublic);
                 case Glyph.MethodProtected:
+                case Glyph.ConstructorProtected:
                     return new ImageId(ImageCatalogGuid, KnownImageIds.MethodProtected);
                 case Glyph.MethodPrivate:
+                case Glyph.ConstructorPrivate:
                     return new ImageId(ImageCatalogGuid, KnownImageIds.MethodPrivate);
                 case Glyph.MethodInternal:
+                case Glyph.ConstructorInternal:
                     return new ImageId(ImageCatalogGuid, KnownImageIds.MethodInternal);
 
                 case Glyph.ModulePublic:

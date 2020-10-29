@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentSymbols;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
@@ -50,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentSymbols
             var formattedActualHierarchicalResult = AbstractDocumentSymbolsServiceTests<TWorkspaceFixture>.FormatSymbolResult(actualHierarchicalResult);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedHierarchicalLayout, formattedActualHierarchicalResult);
 
-            var actualNonHierarchicalResult = await documentSymbolsService.GetSymbolsInDocumentAsync(document1, DocumentSymbolsOptions.TypesAndMethodsOnly, CancellationToken.None);
+            var actualNonHierarchicalResult = await documentSymbolsService.GetSymbolsInDocumentAsync(document1, DocumentSymbolsOptions.TypesAndMembersOnly, CancellationToken.None);
             var formattedActualNonHierarchicalResult = AbstractDocumentSymbolsServiceTests<TWorkspaceFixture>.FormatSymbolResult(actualNonHierarchicalResult);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedNonHierarchicalLayout, formattedActualNonHierarchicalResult);
         }
 
-        protected virtual IDocumentSymbolsService GetDocumentSymbolsService(Document document1)
+        private protected virtual IDocumentSymbolsService GetDocumentSymbolsService(Document document1)
         {
             return document1.Project.GetRequiredLanguageService<IDocumentSymbolsService>();
         }
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentSymbols
                 foreach (var info in currentLevel)
                 {
                     formatted.Append(leadingText);
-                    formatted.AppendLine(info.Symbol.ToTestDisplayString());
+                    formatted.AppendLine($"{(info.Obsolete ? "(obsolete) " : "")}{info.Glyph} {info.Text}{(info.Tags.IsEmpty ? "" : " " + string.Join(" ", info.Tags))}");
                     if (!info.ChildrenSymbols.IsEmpty)
                     {
                         AppendInfo(formatted, info.ChildrenSymbols, leadingText + "  ");

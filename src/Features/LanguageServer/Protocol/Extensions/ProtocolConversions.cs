@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,6 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 case LSP.SymbolKind.Field:
                     return Glyph.FieldPublic;
                 case LSP.SymbolKind.Constructor:
-                    return Glyph.MethodPublic;
+                    return Glyph.ConstructorPublic;
                 case LSP.SymbolKind.Enum:
                     return Glyph.EnumPublic;
                 case LSP.SymbolKind.Interface:
@@ -328,20 +328,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static LSP.SymbolKind GlyphToSymbolKind(ISymbol symbol)
+        public static LSP.SymbolKind GlyphToSymbolKind(Glyph glyph, ImmutableArray<string> tags)
         {
-            // These special cases don't map to the same glyph kind directly
-            switch (symbol)
-            {
-                case IMethodSymbol { MethodKind: MethodKind.Constructor }:
-                    return LSP.SymbolKind.Constructor;
-                case ILocalSymbol { IsConst: true }:
-                    return LSP.SymbolKind.Constant;
-            }
-
             // Glyph kinds have accessibility modifiers in their name, e.g. ClassPrivate.
             // Remove the accessibility modifier and try to convert to LSP symbol kind.
-            var glyph = symbol.GetGlyph();
             var glyphString = glyph.ToString().Replace(nameof(Accessibility.Public), string.Empty)
                                               .Replace(nameof(Accessibility.Protected), string.Empty)
                                               .Replace(nameof(Accessibility.Private), string.Empty)
@@ -354,6 +344,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             switch (glyph)
             {
+                case Glyph.ConstructorPublic:
+                case Glyph.ConstructorProtected:
+                case Glyph.ConstructorPrivate:
+                case Glyph.ConstructorInternal:
+                    return LSP.SymbolKind.Constructor;
                 case Glyph.Assembly:
                 case Glyph.BasicProject:
                 case Glyph.CSharpProject:
@@ -375,7 +370,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 case Glyph.Parameter:
                 case Glyph.RangeVariable:
                 case Glyph.Reference:
-                    return LSP.SymbolKind.Variable;
+                    return tags.Contains(WellKnownTags.Constant) ? LSP.SymbolKind.Constant : LSP.SymbolKind.Variable;
                 case Glyph.StructurePublic:
                 case Glyph.StructureProtected:
                 case Glyph.StructurePrivate:
@@ -392,8 +387,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 case LSP.CompletionItemKind.Text:
                     return Glyph.None;
-                case LSP.CompletionItemKind.Method:
                 case LSP.CompletionItemKind.Constructor:
+                    return Glyph.ConstructorPublic;
+                case LSP.CompletionItemKind.Method:
                 case LSP.CompletionItemKind.Function:    // We don't use Function, but map it just in case. It has the same icon as Method in VS and VS Code
                     return Glyph.MethodPublic;
                 case LSP.CompletionItemKind.Field:

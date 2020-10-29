@@ -6,10 +6,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentSymbols
 {
-    public interface IDocumentSymbolsService : ILanguageService
+    internal interface IDocumentSymbolsService : ILanguageService
     {
         /// <summary>
         /// Gets the symbols defined in this document.
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.DocumentSymbols
         Task<ImmutableArray<DocumentSymbolInfo>> GetSymbolsInDocumentAsync(Document document, DocumentSymbolsOptions options, CancellationToken cancellationToken);
     }
 
-    public enum DocumentSymbolsOptions
+    internal enum DocumentSymbolsOptions
     {
         /// <summary>
         /// Computes all types and nested types as part of the main array returned by
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.DocumentSymbols
         /// No info on locals or local functions is returned. Members not in the given document can be returned. This format
         /// matches the behavior of the Visual Studio toolbars.
         /// </summary>
-        TypesAndMethodsOnly,
+        TypesAndMembersOnly,
         /// <summary>
         /// Computes all types as a hierarchy. Nested types are returned as <see cref="DocumentSymbolInfo.ChildrenSymbols"/> of their
         /// containing types. Information about locals and local functions is also returned. Members not in the given document are not
@@ -38,32 +39,75 @@ namespace Microsoft.CodeAnalysis.DocumentSymbols
     /// <summary>
     /// Information about the symbols in this document
     /// </summary>
-    public abstract class DocumentSymbolInfo
+    internal sealed class DocumentSymbolInfo
     {
-        protected DocumentSymbolInfo(ISymbol symbol, ImmutableArray<DocumentSymbolInfo> childrenSymbols)
-        {
-            Symbol = symbol;
-            ChildrenSymbols = childrenSymbols;
-        }
-
-        /// <summary>
-        /// The symbol in the document
-        /// </summary>
-        public ISymbol Symbol { get; }
-        /// <summary>
-        /// Any nested symbols from the document.
-        /// </summary>
-        public ImmutableArray<DocumentSymbolInfo> ChildrenSymbols { get; }
-
-        public void Deconstruct(out ISymbol symbol, out ImmutableArray<DocumentSymbolInfo> childrenSymbols)
-            => (symbol, childrenSymbols) = (Symbol, ChildrenSymbols);
-
-        protected abstract string FormatSymbol();
-
-        private string? _text;
         /// <summary>
         /// Textual representation of the symbol.
         /// </summary>
-        public string Text => _text ??= FormatSymbol();
+        public string Text { get; }
+
+        /// <summary>
+        /// The short name of this item.
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        /// The editor glyph that represents this item.
+        /// </summary>
+        public Glyph Glyph { get; }
+
+        /// <summary>
+        /// Whether this item is obsolete.
+        /// </summary>
+        public bool Obsolete { get; }
+
+        /// <summary>
+        /// Descriptive tags from <see cref="Tags.WellKnownTags"/>.
+        /// These tags may influence how the item is displayed.
+        /// </summary>
+        public ImmutableArray<string> Tags { get; }
+
+        /// <summary>
+        /// Additional information attached to a completion item by it creator.
+        /// </summary>
+        public ImmutableDictionary<string, string> Properties { get; }
+
+        /// <summary>
+        /// The range enclosing this symbol not including leading/trailing whitespace
+	    /// but everything else like comments.
+        /// </summary>
+        public ImmutableArray<TextSpan> EnclosingSpans { get; }
+
+        /// <summary>
+        /// The range that should be selected and revealed when this symbol is being picked.
+        /// </summary>
+        public ImmutableArray<TextSpan> DeclaringSpans { get; }
+
+        /// <summary>
+        /// Any nested items from the document.
+        /// </summary>
+        public ImmutableArray<DocumentSymbolInfo> ChildrenSymbols { get; }
+
+        public DocumentSymbolInfo(
+            string text,
+            string name,
+            Glyph glyph,
+            bool obsolete,
+            ImmutableArray<string> tags,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<TextSpan> enclosingSpans,
+            ImmutableArray<TextSpan> declaringSpans,
+            ImmutableArray<DocumentSymbolInfo> childrenSymbols)
+        {
+            Text = text;
+            Name = name;
+            Glyph = glyph;
+            Obsolete = obsolete;
+            Tags = tags;
+            Properties = properties;
+            EnclosingSpans = enclosingSpans;
+            ChildrenSymbols = childrenSymbols;
+            DeclaringSpans = declaringSpans;
+        }
     }
 }

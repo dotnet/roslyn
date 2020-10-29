@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 {
     {|method:void {|methodSelection:Method|}()
     {
-        int {|local:{|localSelection:i|} = 1|};
+        {|local:int {|localSelection:i|} = 1;|}
     }|}
 }|}";
             using var workspace = CreateTestWorkspace(markup, out var locations);
@@ -191,18 +191,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             var markup =
 @"{|a:class {|aSelection:A|}
 {
-    private int {|i1:{|i1Selection:i1|} = 1|};
+    {|i1:private int {|i1Selection:i1|} = 1;|}
     {|b:class {|bSelection:B|}
     {
-        private int {|i2:i2|};
+        {|i2:private int {|i2Selection:i2|};|}
     }|}
+
+    {|i4:private int {|i4Selection:i4|}|}, {|i5:{|i5Selection:i5|};|}
 }|}";
 
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var a = CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "A", locations["a"].Single(), locations["aSelection"].Single());
             CreateDocumentSymbol(LSP.SymbolKind.Field, "i1", "i1", locations["i1"].Single(), locations["i1Selection"].Single(), a);
             var b = CreateDocumentSymbol(LSP.SymbolKind.Class, "B", "A.B", locations["b"].Single(), locations["bSelection"].Single(), a);
-            CreateDocumentSymbol(LSP.SymbolKind.Field, "i2", "i2", locations["i2"].Single(), locations["i2"].Single(), b);
+            CreateDocumentSymbol(LSP.SymbolKind.Field, "i2", "i2", locations["i2"].Single(), locations["i2Selection"].Single(), b);
+            CreateDocumentSymbol(LSP.SymbolKind.Field, "i4", "i4", locations["i4"].Single(), locations["i4Selection"].Single(), a);
+            CreateDocumentSymbol(LSP.SymbolKind.Field, "i5", "i5", locations["i5"].Single(), locations["i5Selection"].Single(), a);
 
             var results = await RunGetDocumentSymbolsAsync(workspace.CurrentSolution, true);
             AssertJsonEquals(a, results);
@@ -240,14 +244,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             var markup =
 @"{|e:enum {|eSelection:E|}
 {
-    {|e1:Element1|}, {|e2:Element2|},
+    {|e1:{|e1Selection:Element1|},|} {|e2:{|e2Selection:Element2|},|}
     {|e3:{|e3Selection:Element3|} = 3|}
 }|}";
 
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var e = CreateDocumentSymbol(LSP.SymbolKind.Enum, "E", "E", locations["e"].Single(), locations["eSelection"].Single());
-            CreateDocumentSymbol(LSP.SymbolKind.EnumMember, "Element1", "Element1", locations["e1"].Single(), locations["e1"].Single(), e);
-            CreateDocumentSymbol(LSP.SymbolKind.EnumMember, "Element2", "Element2", locations["e2"].Single(), locations["e2"].Single(), e);
+            CreateDocumentSymbol(LSP.SymbolKind.EnumMember, "Element1", "Element1", locations["e1"].Single(), locations["e1Selection"].Single(), e);
+            CreateDocumentSymbol(LSP.SymbolKind.EnumMember, "Element2", "Element2", locations["e2"].Single(), locations["e2Selection"].Single(), e);
             CreateDocumentSymbol(LSP.SymbolKind.EnumMember, "Element3", "Element3", locations["e3"].Single(), locations["e3Selection"].Single(), e);
 
             var results = await RunGetDocumentSymbolsAsync(workspace.CurrentSolution, true);
@@ -258,16 +262,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
         public async Task TestGetDocumentSymbolsAsync__TopLevelStatements()
         {
             var markup =
-@"var {|a:{|aSelection:a|} = 1|};
+@"{|a:var {|aSelection:a|} = 1;|}
 {|m:static void {|mSelection:M|}()
 {
-    int {|b:b|};
+    {|b:int {|bSelection:b|};|}
 }|}";
 
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var a = CreateDocumentSymbol(LSP.SymbolKind.Variable, "a", "a", locations["a"].Single(), locations["aSelection"].Single());
             var m = CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", locations["m"].Single(), locations["mSelection"].Single());
-            CreateDocumentSymbol(LSP.SymbolKind.Variable, "b", "b", locations["b"].Single(), locations["b"].Single(), m);
+            CreateDocumentSymbol(LSP.SymbolKind.Variable, "b", "b", locations["b"].Single(), locations["bSelection"].Single(), m);
 
             var results = await RunGetDocumentSymbolsAsync(workspace.CurrentSolution, true);
             AssertJsonEquals(new LSP.SumType<LSP.DocumentSymbol, LSP.SymbolInformation>[] { a, m }, results);
@@ -385,7 +389,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var c = CreateDocumentSymbol(LSP.SymbolKind.Class, "C", "C", locations["c"].Single(), locations["cSelection"].Single());
-            CreateDocumentSymbol(LSP.SymbolKind.Operator, "op_Addition", "operator+(Cc1, Cc2)", locations["operator"].Single(), locations["operatorSelection"].Single(), c);
+            CreateDocumentSymbol(LSP.SymbolKind.Operator, "op_Addition", "operator +(C c1, C c2)", locations["operator"].Single(), locations["operatorSelection"].Single(), c);
 
             var results = await RunGetDocumentSymbolsAsync(workspace.CurrentSolution, true);
             AssertJsonEquals(c, results);
@@ -397,11 +401,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             var markup =
 @"{|c:class {|cSelection:C|}
 {
-    const int {|c1:{|c1Selection:C1|} = 1|};
+    {|c1:const int {|c1Selection:C1|} = 1;|}
 
     {|m:void {|mSelection:M|}()
     {
-        const int {|c2:{|c2Selection:C2|} = 2|};
+        {|c2:const int {|c2Selection:C2|} = 2;|}
     }|}
 }|}";
 

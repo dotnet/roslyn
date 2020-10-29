@@ -114,6 +114,11 @@ namespace Microsoft.CodeAnalysis
 
         AddReference,
         NuGet,
-        TargetTypeMatch
+        TargetTypeMatch,
+
+        ConstructorPublic,
+        ConstructorProtected,
+        ConstructorPrivate,
+        ConstructorInternal,
     }
 }

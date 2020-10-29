@@ -113,16 +113,9 @@ namespace Roslyn.Test.Utilities
         /// <param name="actual">the actual object to be converted to JSON.</param>
         protected static void AssertJsonEquals<T>(T expected, T actual)
         {
-            var expectedStr = JsonConvert.SerializeObject(expected);
-            var actualStr = JsonConvert.SerializeObject(actual);
-            AssertEqualIgnoringWhitespace(expectedStr, actualStr);
-        }
-
-        protected static void AssertEqualIgnoringWhitespace(string expected, string actual)
-        {
-            var expectedWithoutWhitespace = Regex.Replace(expected, @"\s+", string.Empty);
-            var actualWithoutWhitespace = Regex.Replace(actual, @"\s+", string.Empty);
-            Assert.Equal(expectedWithoutWhitespace, actualWithoutWhitespace);
+            var expectedStr = JsonConvert.SerializeObject(expected, Formatting.Indented);
+            var actualStr = JsonConvert.SerializeObject(actual, Formatting.Indented);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedStr, actualStr, escapeQuotes: false);
         }
 
         /// <summary>

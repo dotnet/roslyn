@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.DocumentSymbols;
 using Microsoft.CodeAnalysis.DocumentSymbols;
 using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
@@ -36,8 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         public override async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
             var documentSymbolsSerivce = document.GetRequiredLanguageService<IDocumentSymbolsService>();
-            var membersInDocument = await documentSymbolsSerivce.GetSymbolsInDocumentAsync(document, DocumentSymbolsOptions.TypesAndMethodsOnly, cancellationToken).ConfigureAwait(false);
-            if (membersInDocument.IsEmpty || cancellationToken.IsCancellationRequested)
+            var membersInDocument = await documentSymbolsSerivce.GetSymbolsInDocumentAsync(document, DocumentSymbolsOptions.TypesAndMembersOnly, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (membersInDocument.IsEmpty)
             {
                 return SpecializedCollections.EmptyList<NavigationBarItem>();
             }
@@ -45,11 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             // If we got members from the symbol service, there had to have been a tree
             Debug.Assert(tree is not null);
-            return MapMembersToNavigationBarItems(tree, membersInDocument, cancellationToken);
+            return MapMembersToNavigationBarItems(membersInDocument, cancellationToken);
         }
 
-        private static IList<NavigationBarItem> MapMembersToNavigationBarItems(
-            SyntaxTree tree, ImmutableArray<DocumentSymbolInfo> types, CancellationToken cancellationToken)
+        private static IList<NavigationBarItem> MapMembersToNavigationBarItems(ImmutableArray<DocumentSymbolInfo> types, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.NavigationBar_ItemService_GetMembersInTypes_CSharp, cancellationToken))
             {
@@ -63,34 +62,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                     var memberItems = new List<NavigationBarItem>();
                     foreach (var memberInfo in typeInfo.ChildrenSymbols)
                     {
-                        var method = memberInfo.Symbol as IMethodSymbol;
-                        if (method != null && method.PartialImplementationPart != null)
-                        {
-                            memberItems.Add(CreateItemForMember(
-                                memberInfo.Symbol,
-                                memberInfo.Text,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(method.GetSymbolKey(cancellationToken)),
-                                tree,
-                                cancellationToken));
-
-                            memberItems.Add(CreateItemForMember(
-                                method.PartialImplementationPart,
-                                memberInfo.Text,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(method.PartialImplementationPart.GetSymbolKey(cancellationToken)),
-                                tree,
-                                cancellationToken));
-                        }
-                        else
-                        {
-                            Debug.Assert(method == null || method.PartialDefinitionPart == null, "NavBar expected GetMembers to return partial method definition parts but the implementation part was returned.");
-
-                            memberItems.Add(CreateItemForMember(
-                                memberInfo.Symbol,
-                                memberInfo.Text,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(memberInfo.Symbol.GetSymbolKey(cancellationToken)),
-                                tree,
-                                cancellationToken));
-                        }
+                        var symbolKey = memberInfo.GetSymbolKey();
+                        memberItems.Add(CreateItemForMember(
+                            memberInfo,
+                            symbolKey,
+                            memberSymbolIndexProvider.GetIndexForSymbolId(symbolKey)));
                     }
 
                     memberItems.Sort((x, y) =>
@@ -99,12 +75,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                         return textComparison != 0 ? textComparison : x.Grayed.CompareTo(y.Grayed);
                     });
 
-                    var symbolId = typeInfo.Symbol.GetSymbolKey(cancellationToken);
+                    var symbolId = typeInfo.GetSymbolKey();
                     items.Add(new NavigationBarSymbolItem(
                         text: typeInfo.Text,
-                        glyph: typeInfo.Symbol.GetGlyph(),
+                        glyph: typeInfo.Glyph,
                         indent: 0,
-                        spans: GetSpansInDocument(typeInfo.Symbol, tree, cancellationToken),
+                        spans: typeInfo.EnclosingSpans,
                         navigationSymbolId: symbolId,
                         navigationSymbolIndex: typeSymbolIndexProvider.GetIndexForSymbolId(symbolId),
                         childItems: memberItems));
@@ -115,118 +91,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             }
         }
 
-        private static NavigationBarItem CreateItemForMember(ISymbol member, string text, int symbolIndex, SyntaxTree tree, CancellationToken cancellationToken)
+        private static NavigationBarItem CreateItemForMember(DocumentSymbolInfo member, SymbolKey symbolKey, int symbolIndex)
         {
-            var spans = GetSpansInDocument(member, tree, cancellationToken);
-
             return new NavigationBarSymbolItem(
-                text,
-                member.GetGlyph(),
-                spans,
-                member.GetSymbolKey(cancellationToken),
+                member.Text,
+                member.Glyph,
+                member.EnclosingSpans,
+                symbolKey,
                 symbolIndex,
-                grayed: spans.Count == 0);
-        }
-
-        private static IList<TextSpan> GetSpansInDocument(ISymbol symbol, SyntaxTree tree, CancellationToken cancellationToken)
-        {
-            var spans = new List<TextSpan>();
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                if (symbol.Kind == SymbolKind.Field)
-                {
-                    if (symbol.ContainingType.TypeKind == TypeKind.Enum)
-                    {
-                        AddEnumMemberSpan(symbol, tree, spans);
-                    }
-                    else
-                    {
-                        AddFieldSpan(symbol, tree, spans);
-                    }
-                }
-                else
-                {
-                    foreach (var reference in symbol.DeclaringSyntaxReferences)
-                    {
-                        if (reference.SyntaxTree.Equals(tree))
-                        {
-                            var span = reference.Span;
-
-                            spans.Add(span);
-                        }
-                    }
-                }
-            }
-
-            return spans;
-        }
-
-        /// <summary>
-        /// Computes a span for a given field symbol, expanding to the outer 
-        /// </summary>
-        private static void AddFieldSpan(ISymbol symbol, SyntaxTree tree, List<TextSpan> spans)
-        {
-            var reference = symbol.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == tree);
-            if (reference == null)
-            {
-                return;
-            }
-
-            var declaringNode = reference.GetSyntax();
-
-            var spanStart = declaringNode.SpanStart;
-            var spanEnd = declaringNode.Span.End;
-
-            var fieldDeclaration = declaringNode.GetAncestor<FieldDeclarationSyntax>();
-            if (fieldDeclaration != null)
-            {
-                var variables = fieldDeclaration.Declaration.Variables;
-
-                if (variables.FirstOrDefault() == declaringNode)
-                {
-                    spanStart = fieldDeclaration.SpanStart;
-                }
-
-                if (variables.LastOrDefault() == declaringNode)
-                {
-                    spanEnd = fieldDeclaration.Span.End;
-                }
-            }
-
-            spans.Add(TextSpan.FromBounds(spanStart, spanEnd));
-        }
-
-        private static void AddEnumMemberSpan(ISymbol symbol, SyntaxTree tree, List<TextSpan> spans)
-        {
-            // Ideally we want the span of this to include the trailing comma, so let's find
-            // the declaration
-            var reference = symbol.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == tree);
-            if (reference == null)
-            {
-                return;
-            }
-
-            var declaringNode = reference.GetSyntax();
-            if (declaringNode is EnumMemberDeclarationSyntax enumMember)
-            {
-                var enumDeclaration = enumMember.GetAncestor<EnumDeclarationSyntax>();
-
-                if (enumDeclaration != null)
-                {
-                    var index = enumDeclaration.Members.IndexOf(enumMember);
-                    if (index != -1 && index < enumDeclaration.Members.SeparatorCount)
-                    {
-                        // Cool, we have a comma, so do it
-                        var start = enumMember.SpanStart;
-                        var end = enumDeclaration.Members.GetSeparator(index).Span.End;
-
-                        spans.Add(TextSpan.FromBounds(start, end));
-                        return;
-                    }
-                }
-            }
-
-            spans.Add(declaringNode.Span);
+                grayed: member.EnclosingSpans.Length == 0);
         }
 
         protected internal override VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, NavigationBarSymbolItem item, CancellationToken cancellationToken)

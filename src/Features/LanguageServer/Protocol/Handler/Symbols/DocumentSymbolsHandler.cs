@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var documentSymbolsService = document.Project.LanguageServices.GetRequiredService<IDocumentSymbolsService>();
             var documentSymbols = await documentSymbolsService.GetSymbolsInDocumentAsync(
                 document,
-                hierarchicalDocumentSymbolSupport ? DocumentSymbolsOptions.FullHierarchy : DocumentSymbolsOptions.TypesAndMethodsOnly,
+                hierarchicalDocumentSymbolSupport ? DocumentSymbolsOptions.FullHierarchy : DocumentSymbolsOptions.TypesAndMembersOnly,
                 cancellationToken).ConfigureAwait(false);
             if (documentSymbols.IsEmpty)
             {
@@ -72,11 +72,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 foreach (var item in documentSymbols)
                 {
-                    symbols.Add(GetSymbolInformation(item, tree, document, text, containerName: null));
+                    symbols.Add(GetSymbolInformation(item, document, text, containerName: null));
 
                     foreach (var childItem in item.ChildrenSymbols)
                     {
-                        symbols.Add(GetSymbolInformation(childItem, tree, document, text, item.Text));
+                        symbols.Add(GetSymbolInformation(childItem, document, text, item.Text));
                     }
                 }
             }
@@ -89,12 +89,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Get a symbol information from a specified nav bar item.
         /// </summary>
-        private static SymbolInformation? GetSymbolInformation(DocumentSymbolInfo item, SyntaxTree tree, Document document,
-            SourceText text, string? containerName = null)
+        private static SymbolInformation? GetSymbolInformation(DocumentSymbolInfo item, Document document, SourceText text,
+            string? containerName = null)
         {
-            var locations = GetLocation(item, tree);
-
-            if (locations is not (_, var selection))
+            if (item.DeclaringSpans.IsEmpty)
             {
                 return null;
             }
@@ -105,9 +103,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Location = new LSP.Location
                 {
                     Uri = document.GetURI(),
-                    Range = ProtocolConversions.TextSpanToRange(selection, text),
+                    Range = ProtocolConversions.TextSpanToRange(item.DeclaringSpans[0], text),
                 },
-                Kind = ProtocolConversions.GlyphToSymbolKind(item.Symbol),
+                Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph, item.Tags),
                 ContainerName = containerName,
             };
         }
@@ -117,22 +115,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         private static DocumentSymbol? GetDocumentSymbol(DocumentSymbolInfo item, SyntaxTree tree, SourceText text)
         {
-            var location = GetLocation(item, tree);
-
-            if (location is not (var range, var selection))
+            if (item.DeclaringSpans.IsEmpty || item.EnclosingSpans.IsEmpty)
             {
                 return null;
             }
 
             return new DocumentSymbol
             {
-                Name = item.Symbol.Name,
+                Name = item.Name,
                 Detail = item.Text,
-                Kind = ProtocolConversions.GlyphToSymbolKind(item.Symbol),
-                // AttributeClass can be null on bad metadata deserialization
-                Deprecated = item.Symbol.GetAttributes().Any(x => x.AttributeClass?.MetadataName == "ObsoleteAttribute"),
-                Range = ProtocolConversions.TextSpanToRange(range, text),
-                SelectionRange = ProtocolConversions.TextSpanToRange(selection, text),
+                Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph, item.Tags),
+                Deprecated = item.Obsolete,
+                Range = ProtocolConversions.TextSpanToRange(item.EnclosingSpans[0], text),
+                SelectionRange = ProtocolConversions.TextSpanToRange(item.DeclaringSpans[0], text),
                 Children = GetChildren(item.ChildrenSymbols, tree, text)
             };
 
@@ -148,36 +143,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 list.Free();
                 return ret;
             }
-        }
-
-        private static (TextSpan Range, TextSpan SelectionRange)? GetLocation(DocumentSymbolInfo item, SyntaxTree tree)
-        {
-            TextSpan range = default;
-            foreach (var declaringReference in item.Symbol.DeclaringSyntaxReferences)
-            {
-                if (tree.Equals(declaringReference.SyntaxTree))
-                {
-                    range = declaringReference.Span;
-                    break;
-                }
-            }
-
-            if (range == default)
-            {
-                return null;
-            }
-
-            TextSpan selection = default;
-            foreach (var location in item.Symbol.Locations)
-            {
-                if (tree.Equals(location.SourceTree))
-                {
-                    selection = location.SourceSpan;
-                    break;
-                }
-            }
-
-            return (range, selection);
         }
     }
 }
