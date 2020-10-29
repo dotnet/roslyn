@@ -1506,44 +1506,34 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundConditionalReceiver.WasCompilerGenerated;
             return new ConditionalAccessInstanceOperation(_semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IFieldInitializerOperation CreateBoundFieldEqualsValueOperation(BoundFieldEqualsValue boundFieldEqualsValue)
         {
             ImmutableArray<IFieldSymbol> initializedFields = ImmutableArray.Create<IFieldSymbol>(boundFieldEqualsValue.Field.GetPublicSymbol());
-            BoundNode value = boundFieldEqualsValue.Value;
-            OperationKind kind = OperationKind.FieldInitializer;
+            IOperation value = Create(boundFieldEqualsValue.Value);
             SyntaxNode syntax = boundFieldEqualsValue.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundFieldEqualsValue.WasCompilerGenerated;
-            return new CSharpLazyFieldInitializerOperation(this, value, boundFieldEqualsValue.Locals.GetPublicSymbols(), initializedFields, kind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new FieldInitializerOperation(initializedFields, boundFieldEqualsValue.Locals.GetPublicSymbols(), value, _semanticModel, syntax, isImplicit);
         }
 
         private IPropertyInitializerOperation CreateBoundPropertyEqualsValueOperation(BoundPropertyEqualsValue boundPropertyEqualsValue)
         {
             ImmutableArray<IPropertySymbol> initializedProperties = ImmutableArray.Create<IPropertySymbol>(boundPropertyEqualsValue.Property.GetPublicSymbol());
-            BoundNode value = boundPropertyEqualsValue.Value;
+            IOperation value = Create(boundPropertyEqualsValue.Value);
             SyntaxNode syntax = boundPropertyEqualsValue.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundPropertyEqualsValue.WasCompilerGenerated;
-            return new CSharpLazyPropertyInitializerOperation(this, value, boundPropertyEqualsValue.Locals.GetPublicSymbols(), initializedProperties, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new PropertyInitializerOperation(initializedProperties, boundPropertyEqualsValue.Locals.GetPublicSymbols(), value, _semanticModel, syntax, isImplicit);
         }
 
         private IParameterInitializerOperation CreateBoundParameterEqualsValueOperation(BoundParameterEqualsValue boundParameterEqualsValue)
         {
             IParameterSymbol parameter = boundParameterEqualsValue.Parameter.GetPublicSymbol();
-            BoundNode value = boundParameterEqualsValue.Value;
-            OperationKind kind = OperationKind.ParameterInitializer;
+            IOperation value = Create(boundParameterEqualsValue.Value);
             SyntaxNode syntax = boundParameterEqualsValue.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundParameterEqualsValue.WasCompilerGenerated;
-            return new CSharpLazyParameterInitializerOperation(this, value, boundParameterEqualsValue.Locals.GetPublicSymbols(), parameter, kind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ParameterInitializerOperation(parameter, boundParameterEqualsValue.Locals.GetPublicSymbols(), value, _semanticModel, syntax, isImplicit);
         }
 
-#nullable enable
         private IBlockOperation CreateBoundBlockOperation(BoundBlock boundBlock)
         {
             ImmutableArray<IOperation> operations = CreateFromArray<BoundStatement, IOperation>(boundBlock.Statements);

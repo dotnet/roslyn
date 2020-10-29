@@ -2217,6 +2217,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an initializer for a field, property, parameter or a local variable declaration.
     /// <para>
@@ -2240,6 +2241,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Value { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an initialization of a field.
     /// <para>
@@ -2263,6 +2266,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IFieldSymbol> InitializedFields { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an initialization of a local variable.
     /// <para>
@@ -2282,6 +2287,8 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IVariableInitializerOperation : ISymbolInitializerOperation
     {
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an initialization of a property.
     /// <para>
@@ -2305,6 +2312,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IPropertySymbol> InitializedProperties { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an initialization of a parameter at the point of declaration.
     /// <para>
@@ -2328,6 +2337,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IParameterSymbol Parameter { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents the initialization of an array instance.
@@ -5582,20 +5592,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitOmittedArgument(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseSymbolInitializerOperation : OperationOld, ISymbolInitializerOperation
+    #nullable enable
+    internal abstract partial class BaseSymbolInitializerOperation : Operation, ISymbolInitializerOperation
     {
-        protected BaseSymbolInitializerOperation(ImmutableArray<ILocalSymbol> locals, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseSymbolInitializerOperation(ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Locals = locals;
+            Value = SetParentOperation(value, this);
         }
         public ImmutableArray<ILocalSymbol> Locals { get; }
-        public abstract IOperation Value { get; }
+        public IOperation Value { get; }
     }
-    internal abstract partial class BaseFieldInitializerOperation : BaseSymbolInitializerOperation, IFieldInitializerOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class FieldInitializerOperation : BaseSymbolInitializerOperation, IFieldInitializerOperation
     {
-        internal BaseFieldInitializerOperation(ImmutableArray<IFieldSymbol> initializedFields, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, OperationKind.FieldInitializer, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal FieldInitializerOperation(ImmutableArray<IFieldSymbol> initializedFields, ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(locals, value, semanticModel, syntax, isImplicit)
         {
             InitializedFields = initializedFields;
         }
@@ -5604,88 +5619,54 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                if (Value is object) yield return Value;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Value is not null) builder.Add(Value);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.FieldInitializer;
         public override void Accept(OperationVisitor visitor) => visitor.VisitFieldInitializer(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitFieldInitializer(this, argument);
     }
-    internal sealed partial class FieldInitializerOperation : BaseFieldInitializerOperation, IFieldInitializerOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class VariableInitializerOperation : BaseSymbolInitializerOperation, IVariableInitializerOperation
     {
-        internal FieldInitializerOperation(ImmutableArray<IFieldSymbol> initializedFields, ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(initializedFields, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-        }
-        public override IOperation Value { get; }
-    }
-    internal abstract partial class LazyFieldInitializerOperation : BaseFieldInitializerOperation, IFieldInitializerOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        internal LazyFieldInitializerOperation(ImmutableArray<IFieldSymbol> initializedFields, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(initializedFields, locals, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-    }
-    internal abstract partial class BaseVariableInitializerOperation : BaseSymbolInitializerOperation, IVariableInitializerOperation
-    {
-        internal BaseVariableInitializerOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, OperationKind.VariableInitializer, semanticModel, syntax, type, constantValue, isImplicit) { }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal VariableInitializerOperation(ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(locals, value, semanticModel, syntax, isImplicit) { }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Value is object) yield return Value;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Value is not null) builder.Add(Value);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.VariableInitializer;
         public override void Accept(OperationVisitor visitor) => visitor.VisitVariableInitializer(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitVariableInitializer(this, argument);
     }
-    internal sealed partial class VariableInitializerOperation : BaseVariableInitializerOperation, IVariableInitializerOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class PropertyInitializerOperation : BaseSymbolInitializerOperation, IPropertyInitializerOperation
     {
-        internal VariableInitializerOperation(ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-        }
-        public override IOperation Value { get; }
-    }
-    internal abstract partial class LazyVariableInitializerOperation : BaseVariableInitializerOperation, IVariableInitializerOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        internal LazyVariableInitializerOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-    }
-    internal abstract partial class BasePropertyInitializerOperation : BaseSymbolInitializerOperation, IPropertyInitializerOperation
-    {
-        internal BasePropertyInitializerOperation(ImmutableArray<IPropertySymbol> initializedProperties, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, OperationKind.PropertyInitializer, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal PropertyInitializerOperation(ImmutableArray<IPropertySymbol> initializedProperties, ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(locals, value, semanticModel, syntax, isImplicit)
         {
             InitializedProperties = initializedProperties;
         }
@@ -5694,45 +5675,28 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                if (Value is object) yield return Value;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Value is not null) builder.Add(Value);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.PropertyInitializer;
         public override void Accept(OperationVisitor visitor) => visitor.VisitPropertyInitializer(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPropertyInitializer(this, argument);
     }
-    internal sealed partial class PropertyInitializerOperation : BasePropertyInitializerOperation, IPropertyInitializerOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class ParameterInitializerOperation : BaseSymbolInitializerOperation, IParameterInitializerOperation
     {
-        internal PropertyInitializerOperation(ImmutableArray<IPropertySymbol> initializedProperties, ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(initializedProperties, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-        }
-        public override IOperation Value { get; }
-    }
-    internal abstract partial class LazyPropertyInitializerOperation : BasePropertyInitializerOperation, IPropertyInitializerOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        internal LazyPropertyInitializerOperation(ImmutableArray<IPropertySymbol> initializedProperties, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(initializedProperties, locals, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-    }
-    internal abstract partial class BaseParameterInitializerOperation : BaseSymbolInitializerOperation, IParameterInitializerOperation
-    {
-        internal BaseParameterInitializerOperation(IParameterSymbol parameter, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, OperationKind.ParameterInitializer, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ParameterInitializerOperation(IParameterSymbol parameter, ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(locals, value, semanticModel, syntax, isImplicit)
         {
             Parameter = parameter;
         }
@@ -5741,41 +5705,22 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                if (Value is object) yield return Value;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Value is not null) builder.Add(Value);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.ParameterInitializer;
         public override void Accept(OperationVisitor visitor) => visitor.VisitParameterInitializer(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitParameterInitializer(this, argument);
     }
-    internal sealed partial class ParameterInitializerOperation : BaseParameterInitializerOperation, IParameterInitializerOperation
-    {
-        internal ParameterInitializerOperation(IParameterSymbol parameter, ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(parameter, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-        }
-        public override IOperation Value { get; }
-    }
-    internal abstract partial class LazyParameterInitializerOperation : BaseParameterInitializerOperation, IParameterInitializerOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        internal LazyParameterInitializerOperation(IParameterSymbol parameter, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(parameter, locals, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class ArrayInitializerOperation : Operation, IArrayInitializerOperation
     {
@@ -7735,6 +7680,26 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (OmittedArgumentOperation)operation;
             return new OmittedArgumentOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, object? argument)
+        {
+            var internalOperation = (FieldInitializerOperation)operation;
+            return new FieldInitializerOperation(internalOperation.InitializedFields, internalOperation.Locals, Visit(internalOperation.Value), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitVariableInitializer(IVariableInitializerOperation operation, object? argument)
+        {
+            var internalOperation = (VariableInitializerOperation)operation;
+            return new VariableInitializerOperation(internalOperation.Locals, Visit(internalOperation.Value), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, object? argument)
+        {
+            var internalOperation = (PropertyInitializerOperation)operation;
+            return new PropertyInitializerOperation(internalOperation.InitializedProperties, internalOperation.Locals, Visit(internalOperation.Value), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, object? argument)
+        {
+            var internalOperation = (ParameterInitializerOperation)operation;
+            return new ParameterInitializerOperation(internalOperation.Parameter, internalOperation.Locals, Visit(internalOperation.Value), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, object? argument)
         {

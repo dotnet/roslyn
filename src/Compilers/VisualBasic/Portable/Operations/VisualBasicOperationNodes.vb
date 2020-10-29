@@ -24,40 +24,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyVariableInitializerOperation
-        Inherits LazyVariableInitializerOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _value As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(locals:=ImmutableArray(Of ILocalSymbol).Empty, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _value = value
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_value)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyFieldInitializerOperation
-        Inherits LazyFieldInitializerOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _value As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), initializedFields As ImmutableArray(Of IFieldSymbol), kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(initializedFields, locals, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _value = value
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_value)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyInterpolatedStringTextOperation
         Inherits LazyInterpolatedStringTextOperation
 
@@ -131,40 +97,6 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Protected Overrides Function CreateInstance() As IOperation
             Return _operationFactory.Create(_instance)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyParameterInitializerOperation
-        Inherits LazyParameterInitializerOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _value As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), parameter As IParameterSymbol, kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(parameter, locals, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _value = value
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_value)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyPropertyInitializerOperation
-        Inherits LazyPropertyInitializerOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _value As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), initializedProperties As ImmutableArray(Of IPropertySymbol), kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(initializedProperties, locals, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _value = value
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_value)
         End Function
     End Class
 

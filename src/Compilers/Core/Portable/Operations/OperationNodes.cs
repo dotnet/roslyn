@@ -81,12 +81,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 #nullable disable
 
-    internal sealed partial class VariableInitializerOperation : BaseVariableInitializerOperation, IVariableInitializerOperation
-    {
-        public VariableInitializerOperation(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(ImmutableArray<ILocalSymbol>.Empty, value, semanticModel, syntax, type, constantValue, isImplicit)
-        { }
-    }
     internal abstract partial class BaseInvalidOperation : OperationOld, IInvalidOperation
     {
         protected BaseInvalidOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :

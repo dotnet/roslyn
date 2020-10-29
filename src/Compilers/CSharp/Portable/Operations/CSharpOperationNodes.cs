@@ -49,42 +49,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IOperation> GetChildren() => _operationFactory.GetIOperationChildren(_boundNode);
     }
 
-    internal sealed class CSharpLazyVariableInitializerOperation : LazyVariableInitializerOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _value;
-
-        internal CSharpLazyVariableInitializerOperation(CSharpOperationFactory operationFactory, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(locals: ImmutableArray<ILocalSymbol>.Empty, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _value = value;
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_value);
-        }
-    }
-
-    internal sealed class CSharpLazyFieldInitializerOperation : LazyFieldInitializerOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _value;
-
-        internal CSharpLazyFieldInitializerOperation(CSharpOperationFactory operationFactory, BoundNode value, ImmutableArray<ILocalSymbol> locals, ImmutableArray<IFieldSymbol> initializedFields, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(initializedFields, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _value = value;
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_value);
-        }
-    }
-
     internal sealed class CSharpLazyInterpolatedStringTextOperation : LazyInterpolatedStringTextOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -164,42 +128,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateInstance()
         {
             return _operationFactory.Create(_instance);
-        }
-    }
-
-    internal sealed class CSharpLazyParameterInitializerOperation : LazyParameterInitializerOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _value;
-
-        internal CSharpLazyParameterInitializerOperation(CSharpOperationFactory operationFactory, BoundNode value, ImmutableArray<ILocalSymbol> locals, IParameterSymbol parameter, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(parameter, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _value = value;
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_value);
-        }
-    }
-
-    internal sealed class CSharpLazyPropertyInitializerOperation : LazyPropertyInitializerOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _value;
-
-        internal CSharpLazyPropertyInitializerOperation(CSharpOperationFactory operationFactory, BoundNode value, ImmutableArray<ILocalSymbol> locals, ImmutableArray<IPropertySymbol> initializedProperties, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(initializedProperties, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _value = value;
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_value);
         }
     }
 

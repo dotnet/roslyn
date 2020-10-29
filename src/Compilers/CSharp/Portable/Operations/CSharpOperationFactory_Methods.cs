@@ -50,13 +50,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 syntax,
                 isImplicit);
         }
-#nullable disable
 
-        internal IVariableInitializerOperation CreateVariableDeclaratorInitializer(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
+        internal IVariableInitializerOperation? CreateVariableDeclaratorInitializer(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
             if (boundLocalDeclaration.InitializerOpt != null)
             {
-                SyntaxNode initializerSyntax = null;
+                SyntaxNode? initializerSyntax = null;
                 bool initializerIsImplicit = false;
                 if (syntax is VariableDeclaratorSyntax variableDeclarator)
                 {
@@ -74,11 +73,13 @@ namespace Microsoft.CodeAnalysis.Operations
                     initializerIsImplicit = true;
                 }
 
-                return new CSharpLazyVariableInitializerOperation(this, boundLocalDeclaration.InitializerOpt, _semanticModel, initializerSyntax, type: null, constantValue: null, initializerIsImplicit);
+                IOperation value = Create(boundLocalDeclaration.InitializerOpt);
+                return new VariableInitializerOperation(locals: ImmutableArray<ILocalSymbol>.Empty, value, _semanticModel, initializerSyntax, initializerIsImplicit);
             }
 
             return null;
         }
+#nullable disable
 
         private IVariableDeclaratorOperation CreateVariableDeclaratorInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {

@@ -968,35 +968,26 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundFieldInitializerOperation(boundFieldInitializer As BoundFieldInitializer) As IFieldInitializerOperation
             Dim initializedFields As ImmutableArray(Of IFieldSymbol) = boundFieldInitializer.InitializedFields.As(Of IFieldSymbol)
-            Dim value As BoundNode = boundFieldInitializer.InitialValue
-            Dim kind As OperationKind = OperationKind.FieldInitializer
+            Dim value As IOperation = Create(boundFieldInitializer.InitialValue)
             Dim syntax As SyntaxNode = boundFieldInitializer.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundFieldInitializer.WasCompilerGenerated
-            Return New VisualBasicLazyFieldInitializerOperation(Me, value, ImmutableArray(Of ILocalSymbol).Empty, initializedFields, kind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New FieldInitializerOperation(initializedFields, ImmutableArray(Of ILocalSymbol).Empty, value, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundPropertyInitializerOperation(boundPropertyInitializer As BoundPropertyInitializer) As IPropertyInitializerOperation
             Dim initializedProperties As ImmutableArray(Of IPropertySymbol) = boundPropertyInitializer.InitializedProperties.As(Of IPropertySymbol)
-            Dim value = boundPropertyInitializer.InitialValue
-            Dim kind As OperationKind = OperationKind.PropertyInitializer
+            Dim value As IOperation = Create(boundPropertyInitializer.InitialValue)
             Dim syntax As SyntaxNode = boundPropertyInitializer.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundPropertyInitializer.WasCompilerGenerated
-            Return New VisualBasicLazyPropertyInitializerOperation(Me, value, ImmutableArray(Of ILocalSymbol).Empty, initializedProperties, kind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New PropertyInitializerOperation(initializedProperties, ImmutableArray(Of ILocalSymbol).Empty, value, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundParameterEqualsValueOperation(boundParameterEqualsValue As BoundParameterEqualsValue) As IParameterInitializerOperation
             Dim parameter As IParameterSymbol = boundParameterEqualsValue.Parameter
-            Dim value = boundParameterEqualsValue.Value
-            Dim kind As OperationKind = OperationKind.ParameterInitializer
+            Dim value As IOperation = Create(boundParameterEqualsValue.Value)
             Dim syntax As SyntaxNode = boundParameterEqualsValue.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundParameterEqualsValue.WasCompilerGenerated
-            Return New VisualBasicLazyParameterInitializerOperation(Me, value, ImmutableArray(Of ILocalSymbol).Empty, parameter, kind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ParameterInitializerOperation(parameter, ImmutableArray(Of ILocalSymbol).Empty, value, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundLValueToRValueWrapper(boundNode As BoundLValueToRValueWrapper) As IOperation

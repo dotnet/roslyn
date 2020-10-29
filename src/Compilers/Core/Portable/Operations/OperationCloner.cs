@@ -62,26 +62,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new FlowAnonymousFunctionOperation(in anonymous.Context, anonymous.Original, operation.IsImplicit);
         }
 
-        public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, object argument)
-        {
-            return new FieldInitializerOperation(operation.InitializedFields, operation.Locals, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitVariableInitializer(IVariableInitializerOperation operation, object argument)
-        {
-            return new VariableInitializerOperation(Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, object argument)
-        {
-            return new PropertyInitializerOperation(operation.InitializedProperties, operation.Locals, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, object argument)
-        {
-            return new ParameterInitializerOperation(operation.Parameter, operation.Locals, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation, object argument)
         {
             return new DynamicMemberReferenceOperation(Visit(operation.Instance), operation.MemberName, operation.TypeArguments, operation.ContainingType, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);

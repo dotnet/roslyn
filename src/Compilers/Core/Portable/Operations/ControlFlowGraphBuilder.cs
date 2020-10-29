@@ -5504,7 +5504,6 @@ oneMoreTime:
                 AppendNewBlock(afterInitialization);
             }
         }
-#nullable disable
 
         public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, int? captureIdForResult)
         {
@@ -5544,7 +5543,6 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
-#nullable enable
         public override IOperation VisitInvocation(IInvocationOperation operation, int? captureIdForResult)
         {
             EvalStackFrame frame = PushStackFrame();

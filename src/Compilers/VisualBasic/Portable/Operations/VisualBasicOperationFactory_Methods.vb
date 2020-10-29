@@ -432,14 +432,18 @@ Namespace Microsoft.CodeAnalysis.Operations
                             initializerSyntax = last.InitializerOpt.Syntax
                             isImplicit = True
                         End If
-                        initializer = New VisualBasicLazyVariableInitializerOperation(Me, last.InitializerOpt, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=Nothing, isImplicit)
+                        Debug.Assert(last.InitializerOpt IsNot Nothing)
+                        Dim value = Create(last.InitializerOpt)
+                        initializer = New VariableInitializerOperation(locals:=ImmutableArray(Of ILocalSymbol).Empty, value, _semanticModel, initializerSyntax, isImplicit)
                     End If
                 Else
                     Dim asNewDeclarations = DirectCast(first, BoundAsNewLocalDeclarations)
                     declarators = asNewDeclarations.LocalDeclarations.SelectAsArray(AddressOf GetVariableDeclarator)
                     Dim initializerSyntax As AsClauseSyntax = DirectCast(asNewDeclarations.Syntax, VariableDeclaratorSyntax).AsClause
                     Dim initializerValue As IOperation = Create(asNewDeclarations.Initializer)
-                    initializer = New VisualBasicLazyVariableInitializerOperation(Me, asNewDeclarations.Initializer, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=Nothing, isImplicit:=False)
+                    Debug.Assert(asNewDeclarations.Initializer IsNot Nothing)
+                    Dim value = Create(asNewDeclarations.Initializer)
+                    initializer = New VariableInitializerOperation(locals:=ImmutableArray(Of ILocalSymbol).Empty, value, _semanticModel, initializerSyntax, isImplicit:=False)
                 End If
 
                 builder.Add(New VariableDeclarationOperation(declarators,
@@ -459,8 +463,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim initializer As IVariableInitializerOperation = Nothing
             If boundLocalDeclaration.IdentifierInitializerOpt IsNot Nothing Then
                 Dim syntax = boundLocalDeclaration.Syntax
-                Dim initializerValue As BoundNode = boundLocalDeclaration.IdentifierInitializerOpt
-                initializer = New VisualBasicLazyVariableInitializerOperation(Me, initializerValue, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+                Dim initializerValue As IOperation = Create(boundLocalDeclaration.IdentifierInitializerOpt)
+                initializer = New VariableInitializerOperation(locals:=ImmutableArray(Of ILocalSymbol).Empty, initializerValue, _semanticModel, syntax, isImplicit:=True)
             End If
 
             Dim ignoredArguments = ImmutableArray(Of IOperation).Empty

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(
             declarations: ImmutableArray<IVariableDeclarationOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(
-            locals: ImmutableArray<ILocalSymbol>.Empty, value: null, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: false);
+            locals: ImmutableArray<ILocalSymbol>.Empty, value: null!, semanticModel: null, syntax: null!,  isImplicit: false);
         private readonly SemanticModel? _owningSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once
