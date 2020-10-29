@@ -114,13 +114,13 @@ namespace Microsoft.CodeAnalysis.AddImports
         }
 
         public SyntaxNode AddImports(
-            Document document,
             Compilation compilation,
             SyntaxNode root,
             SyntaxNode? contextLocation,
             IEnumerable<SyntaxNode> newImports,
             SyntaxGenerator generator,
             bool placeSystemNamespaceFirst,
+            bool allowInHiddenRegions,
             CancellationToken cancellationToken)
         {
             contextLocation ??= root;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             var newRoot = Rewrite(
                 externAliases, usingDirectives, staticUsingDirectives, aliasDirectives,
                 externContainer, usingContainer, staticUsingContainer, aliasContainer,
-                document, placeSystemNamespaceFirst, root, cancellationToken);
+                placeSystemNamespaceFirst, allowInHiddenRegions, root, cancellationToken);
 
             return newRoot;
         }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract SyntaxNode Rewrite(
             TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] staticUsingDirectives, TUsingOrAliasSyntax[] aliasDirectives,
             SyntaxNode externContainer, SyntaxNode usingContainer, SyntaxNode staticUsingContainer, SyntaxNode aliasContainer,
-            Document document, bool placeSystemNamespaceFirst, SyntaxNode root, CancellationToken cancellationToken);
+            bool placeSystemNamespaceFirst, bool allowInHiddenRegions, SyntaxNode root, CancellationToken cancellationToken);
 
         private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
         {

@@ -46,15 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             SyntaxNode usingContainer,
             SyntaxNode staticUsingContainer,
             SyntaxNode aliasContainer,
-            Document document,
             bool placeSystemNamespaceFirst,
+            bool allowInHiddenRegions,
             SyntaxNode root,
             CancellationToken cancellationToken)
         {
             var rewriter = new Rewriter(
                 externAliases, usingDirectives, staticUsingDirectives, aliasDirectives,
                 externContainer, usingContainer, staticUsingContainer, aliasContainer,
-                document, placeSystemNamespaceFirst, cancellationToken);
+                placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
 
             var newRoot = rewriter.Visit(root);
             return newRoot;
@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
 
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly Document _document;
             private readonly bool _placeSystemNamespaceFirst;
+            private readonly bool _allowInHiddenRegions;
             private readonly CancellationToken _cancellationToken;
             private readonly SyntaxNode _externContainer;
             private readonly SyntaxNode _usingContainer;
@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 SyntaxNode usingContainer,
                 SyntaxNode aliasContainer,
                 SyntaxNode staticUsingContainer,
-                Document document,
                 bool placeSystemNamespaceFirst,
+                bool allowInHiddenRegions,
                 CancellationToken cancellationToken)
             {
                 _externAliases = externAliases;
@@ -114,8 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 _usingContainer = usingContainer;
                 _aliasContainer = aliasContainer;
                 _staticUsingContainer = staticUsingContainer;
-                _document = document;
                 _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
+                _allowInHiddenRegions = allowInHiddenRegions;
                 _cancellationToken = cancellationToken;
             }
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (NamespaceDeclarationSyntax)(base.VisitNamespaceDeclaration(node) ?? throw ExceptionUtilities.Unreachable);
 
-                if (!node.CanAddUsingDirectives(_document, _cancellationToken))
+                if (!node.CanAddUsingDirectives(_allowInHiddenRegions, _cancellationToken))
                 {
                     return rewritten;
                 }
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (CompilationUnitSyntax)(base.VisitCompilationUnit(node) ?? throw ExceptionUtilities.Unreachable);
 
-                if (!node.CanAddUsingDirectives(_document, _cancellationToken))
+                if (!node.CanAddUsingDirectives(_allowInHiddenRegions, _cancellationToken))
                 {
                     return rewritten;
                 }

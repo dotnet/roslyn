@@ -26,19 +26,21 @@ namespace Microsoft.CodeAnalysis.AddImports
         SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import);
 
         SyntaxNode AddImports(
-            Document document, Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation,
+            Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation,
             IEnumerable<SyntaxNode> newImports, SyntaxGenerator generator,
-            bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
+            bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken);
     }
 
     internal static class IAddImportServiceExtensions
     {
         public static SyntaxNode AddImport(
-            this IAddImportsService service, Document document, Compilation compilation, SyntaxNode root,
-            SyntaxNode contextLocation, SyntaxNode newImport, SyntaxGenerator generator, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            this IAddImportsService service, Compilation compilation, SyntaxNode root,
+            SyntaxNode contextLocation, SyntaxNode newImport, SyntaxGenerator generator,
+            bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
-            return service.AddImports(document, compilation, root, contextLocation,
-                SpecializedCollections.SingletonEnumerable(newImport), generator, placeSystemNamespaceFirst, cancellationToken);
+            return service.AddImports(compilation, root, contextLocation,
+                SpecializedCollections.SingletonEnumerable(newImport), generator,
+                placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
         }
     }
 }

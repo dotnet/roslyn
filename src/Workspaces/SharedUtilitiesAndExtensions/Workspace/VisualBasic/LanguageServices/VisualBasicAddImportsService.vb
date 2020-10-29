@@ -83,14 +83,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                 usingContainer As SyntaxNode,
                 staticUsingContainer As SyntaxNode,
                 aliasContainer As SyntaxNode,
-                document As Document,
                 placeSystemNamespaceFirst As Boolean,
+                allowInHiddenRegions As Boolean,
                 root As SyntaxNode,
                 cancellationToken As CancellationToken) As SyntaxNode
 
             Dim compilationUnit = DirectCast(root, CompilationUnitSyntax)
 
-            If Not compilationUnit.CanAddImportsStatements(document, cancellationToken) Then
+            If Not compilationUnit.CanAddImportsStatements(allowInHiddenRegions, cancellationToken) Then
                 Return compilationUnit
             End If
 

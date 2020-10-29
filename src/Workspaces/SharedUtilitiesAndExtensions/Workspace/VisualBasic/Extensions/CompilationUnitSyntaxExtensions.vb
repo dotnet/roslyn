@@ -6,7 +6,6 @@ Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImports
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -17,19 +16,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module CompilationUnitSyntaxExtensions
         <Extension>
         Public Function CanAddImportsStatements(contextNode As SyntaxNode, document As Document, cancellationToken As CancellationToken) As Boolean
+            Return CanAddImportsStatements(contextNode, document.CanAddImportsInHiddenRegions(), cancellationToken)
+        End Function
+
+        <Extension>
+        Public Function CanAddImportsStatements(contextNode As SyntaxNode, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Boolean
             If contextNode.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then
                 Return False
             End If
-
-            ' Normally we don't allow generation into a hidden region in the file.  However, if we have a
-            ' modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
-            ' our edit to their domain appropriate.
-#If Not CODE_STYLE Then
-            Dim spanMapper = document.Services.GetService(Of ISpanMappingService)()
-            Dim allowInHiddenRegions = spanMapper IsNot Nothing AndAlso Not spanMapper.IsLegacy
-#Else
-            Dim allowInHiddenRegions = false
-#End If
 
             If allowInHiddenRegions Then
                 Return True
