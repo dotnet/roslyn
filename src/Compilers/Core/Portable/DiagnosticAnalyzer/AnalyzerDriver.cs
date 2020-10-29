@@ -376,14 +376,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerExecutor analyzerExecutor,
             DiagnosticQueue diagnosticQueue,
             CompilationData compilationData,
-            Action<(string filePath, SourceText text)>? addAdditionalFile,
             CancellationToken cancellationToken)
         {
             try
             {
                 Debug.Assert(_lazyInitializeTask == null);
 
-                AddAdditionalFile = addAdditionalFile;
                 _lazyAnalyzerExecutor = analyzerExecutor;
                 _lazyCurrentCompilationData = compilationData;
                 _lazyDiagnosticQueue = diagnosticQueue;
@@ -509,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 s => _programmaticSuppressions!.Add(s),
                 cancellationToken);
 
-            Initialize(analyzerExecutor, diagnosticQueue, compilationData, addAdditionalFile, cancellationToken);
+            Initialize(analyzerExecutor, diagnosticQueue, compilationData, cancellationToken);
         }
 
         private SemaphoreSlim? GetAnalyzerGate(DiagnosticAnalyzer analyzer)
@@ -628,7 +626,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analysisScope">Scope of analysis.</param>
         /// <param name="analysisState">An optional object to track partial analysis state.</param>
         /// <param name="cancellationToken">Cancellation token to abort analysis.</param>
-        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, Action{ValueTuple{string, SourceText}}?, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
+        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
         internal async Task AttachQueueAndProcessAllEventsAsync(AsyncQueue<CompilationEvent> eventQueue, AnalysisScope analysisScope, AnalysisState? analysisState, CancellationToken cancellationToken)
         {
             try
@@ -659,7 +657,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="eventQueue">Compilation events to analyze.</param>
         /// <param name="analysisScope">Scope of analysis.</param>
         /// <param name="cancellationToken">Cancellation token to abort analysis.</param>
-        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, Action{ValueTuple{string, SourceText}}?, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
+        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
         internal void AttachQueueAndStartProcessingEvents(AsyncQueue<CompilationEvent> eventQueue, AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
             try
