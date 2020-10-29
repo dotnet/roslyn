@@ -1275,20 +1275,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (declaration is RecordDeclarationSyntax recordDeclaration)
             {
-                if (recordDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken))
-                {
-                    recordDeclaration = recordDeclaration.WithSemicolonToken(default);
-                }
-                if (!recordDeclaration.OpenBraceToken.IsKind(SyntaxKind.OpenBraceToken))
-                {
-                    recordDeclaration = recordDeclaration.WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken));
-                }
-                if (!recordDeclaration.CloseBraceToken.IsKind(SyntaxKind.CloseBraceToken))
-                {
-                    recordDeclaration = recordDeclaration.WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-                }
-
-                return recordDeclaration;
+                return recordDeclaration
+                    .WithSemicolonToken(default)
+                    .WithOpenBraceToken(recordDeclaration.OpenBraceToken == default ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken) : recordDeclaration.OpenBraceToken)
+                    .WithCloseBraceToken(recordDeclaration.CloseBraceToken == default ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken) : recordDeclaration.CloseBraceToken);
             }
 
             return declaration;
