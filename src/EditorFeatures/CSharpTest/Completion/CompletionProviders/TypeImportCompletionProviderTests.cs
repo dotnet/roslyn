@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
                 .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, DisallowAddingImports)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
+                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
+                .WithChangedOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolon, LanguageNames.CSharp, true);
         }
 
         protected override TestComposition GetComposition()
@@ -1560,6 +1561,102 @@ namespace Foo
                         "Goo",
                         inlineDescription: "Foo");
             }
+        }
+
+        [WpfFact]
+        public async Task TestCommitWithSemicolonForParameterlessConstructor()
+        {
+            var markup = @"
+namespace AA
+{
+    public class C
+    {
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new $$
+        }
+    }
+}";
+
+            var expected = @"
+using AA;
+
+namespace AA
+{
+    public class C
+    {
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C();$$
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "C", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WpfFact]
+        public async Task TestCommitWithSemicolonForConstructorWithParameter()
+        {
+            var markup = @"
+namespace AA
+{
+    public class C
+    {
+        public C(int i)
+        {
+        }
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new $$
+        }
+    }
+}";
+
+            var expected = @"
+using AA;
+
+namespace AA
+{
+    public class C
+    {
+        public C(int i)
+        {
+        }
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C($$);
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "C", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
         }
 
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
