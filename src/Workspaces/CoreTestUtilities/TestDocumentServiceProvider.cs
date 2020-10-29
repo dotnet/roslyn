@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     internal class TestDocumentServiceProvider : IDocumentServiceProvider
     {
-        public TestDocumentServiceProvider(bool canApplyChange = true, bool supportDiagnostics = true, bool isLegacySpanMapper = true)
+        public TestDocumentServiceProvider(bool canApplyChange = true, bool supportDiagnostics = true, bool supportsMappingImportDirectives = false)
         {
             DocumentOperationService = new TestDocumentOperationService()
             {
@@ -23,14 +21,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 SupportDiagnostics = supportDiagnostics
             };
 
-            SpanMappingService = new TestSpanMappingService(isLegacySpanMapper);
+            SpanMappingService = new TestSpanMappingService(supportsMappingImportDirectives);
         }
 
         public IDocumentOperationService DocumentOperationService { get; }
 
         public ISpanMappingService SpanMappingService { get; }
 
-        public TService GetService<TService>() where TService : class, IDocumentService
+        public TService? GetService<TService>() where TService : class, IDocumentService
         {
             if (DocumentOperationService is TService service)
             {
@@ -56,12 +54,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private class TestSpanMappingService : ISpanMappingService
         {
-            public TestSpanMappingService(bool isLegacy)
+            public TestSpanMappingService(bool supportsMappingImportDirectives)
             {
-                IsLegacy = isLegacy;
+                SupportsMappingImportDirectives = supportsMappingImportDirectives;
             }
 
-            public bool IsLegacy { get; }
+            public bool SupportsMappingImportDirectives { get; }
 
             public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
             {

@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
             // our edit to their domain appropriate.
             var spanMapper = document.Services.GetService<ISpanMappingService>();
-            return spanMapper != null && !spanMapper.IsLegacy;
+            return spanMapper != null && spanMapper.SupportsMappingImportDirectives;
 #else
             return false;
 #endif

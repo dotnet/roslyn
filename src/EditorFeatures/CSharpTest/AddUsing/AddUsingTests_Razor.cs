@@ -44,7 +44,7 @@ class Program
 
         private protected override IDocumentServiceProvider GetDocumentServiceProvider()
         {
-            return new TestDocumentServiceProvider(isLegacySpanMapper: false);
+            return new TestDocumentServiceProvider(supportsMappingImportDirectives: true);
         }
     }
 }

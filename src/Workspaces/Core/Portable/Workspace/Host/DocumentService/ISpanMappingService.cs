@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface ISpanMappingService : IDocumentService
     {
         /// <summary>
-        /// Whether ths is a legacy span mapper (e.g. for venus), or a new span mapper (e.g. for razor/lsp).
+        /// Whether this span mapping service can handle mapping import directives added to a document.
         /// </summary>
-        bool IsLegacy { get; }
+        bool SupportsMappingImportDirectives { get; }
 
         /// <summary>
         /// Map spans in the document to more appropriate locations
