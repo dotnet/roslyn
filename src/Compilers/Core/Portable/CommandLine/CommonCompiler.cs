@@ -1319,38 +1319,26 @@ namespace Microsoft.CodeAnalysis
                 {
                     foreach (var tree in generatedSyntaxTrees)
                     {
-                        Debug.Assert(!string.IsNullOrWhiteSpace(tree.FilePath));
                         cancellationToken.ThrowIfCancellationRequested();
+
+                        var filePath = tree.FilePath;
+                        Debug.Assert(!string.IsNullOrWhiteSpace(filePath));
+
+                        var encoding = tree.Encoding;
 
                         var sourceText = tree.GetText(cancellationToken);
 
                         // embed the generated text and get analyzer options for it if needed
-                        embeddedTextBuilder.Add(EmbeddedText.FromSource(tree.FilePath, sourceText));
+                        embeddedTextBuilder.Add(EmbeddedText.FromSource(filePath, sourceText));
                         if (analyzerOptionsBuilder is object)
                         {
-                            analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(tree.FilePath));
+                            analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(filePath));
                         }
 
                         // write out the file if we have an output path
                         if (hasGeneratedOutputPath)
                         {
-                            var path = Path.Combine(Arguments.GeneratedFilesOutputDirectory!, tree.FilePath);
-                            if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
-                            {
-                                Directory.CreateDirectory(Path.GetDirectoryName(path));
-                            }
-
-                            var fileStream = OpenFile(path, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
-                            if (fileStream is object)
-                            {
-                                Debug.Assert(tree.Encoding is object);
-
-                                using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
-                                using var writer = new StreamWriter(fileStream, tree.Encoding);
-
-                                sourceText.Write(writer, cancellationToken);
-                                touchedFilesLogger?.AddWritten(path);
-                            }
+                            WriteSourceText(touchedFilesLogger, diagnostics, filePath, encoding, sourceText, cancellationToken);
                         }
                     }
 
@@ -1368,6 +1356,27 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptionsBuilder?.Free();
                     embeddedTextBuilder.Free();
                 }
+            }
+        }
+
+        private void WriteSourceText(TouchedFileLogger? touchedFilesLogger, DiagnosticBag diagnostics, string filePath, Encoding? encoding, SourceText sourceText, CancellationToken cancellationToken)
+        {
+            var path = Path.Combine(Arguments.GeneratedFilesOutputDirectory!, filePath);
+            if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+            }
+
+            var fileStream = OpenFile(path, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+            if (fileStream is object)
+            {
+                Debug.Assert(encoding is object);
+
+                using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
+                using var writer = new StreamWriter(fileStream, encoding);
+
+                sourceText.Write(writer, cancellationToken);
+                touchedFilesLogger?.AddWritten(path);
             }
         }
 
