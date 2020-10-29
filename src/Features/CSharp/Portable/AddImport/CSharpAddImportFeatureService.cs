@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         protected override bool CanAddImport(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return document.CanAddUsingDirectives(node, cancellationToken);
+            return node.CanAddUsingDirectives(document, cancellationToken);
         }
 
         protected override bool CanAddImportForMethod(

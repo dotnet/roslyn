@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (NamespaceDeclarationSyntax)(base.VisitNamespaceDeclaration(node) ?? throw ExceptionUtilities.Unreachable);
 
-                if (!_document.CanAddUsingDirectives(node, _cancellationToken))
+                if (!node.CanAddUsingDirectives(_document, _cancellationToken))
                 {
                     return rewritten;
                 }
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (CompilationUnitSyntax)(base.VisitCompilationUnit(node) ?? throw ExceptionUtilities.Unreachable);
 
-                if (!_document.CanAddUsingDirectives(node, _cancellationToken))
+                if (!node.CanAddUsingDirectives(_document, _cancellationToken))
                 {
                     return rewritten;
                 }

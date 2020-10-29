@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class CompilationUnitSyntaxExtensions
     {
-        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, bool allowInHiddenRegions, CancellationToken cancellationToken)
+        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, Document document, CancellationToken cancellationToken)
         {
             var usingDirectiveAncestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
             if ((usingDirectiveAncestor != null) && (usingDirectiveAncestor.GetAncestor<NamespaceDeclarationSyntax>() == null))
@@ -24,6 +25,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // We are inside a top level using directive (i.e. one that's directly in the compilation unit).
                 return false;
             }
+
+#if !CODE_STYLE
+            // Normally we don't allow generation into a hidden region in the file.  However, if we have a
+            // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
+            // our edit to their domain appropriate.
+            var spanMapper = document.Services.GetService<ISpanMappingService>();
+            var allowInHiddenRegions = spanMapper != null && !spanMapper.IsLegacy;
+#else
+            var allowInHiddenRegions = false;
+#endif
 
             if (!allowInHiddenRegions && contextNode.SyntaxTree.HasHiddenRegions())
             {

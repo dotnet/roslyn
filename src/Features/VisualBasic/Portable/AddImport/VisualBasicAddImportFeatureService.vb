@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
         Protected Overrides Function CanAddImport(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
             cancellationToken.ThrowIfCancellationRequested()
-            Return document.CanAddImportsStatements(node, cancellationToken)
+            Return node.CanAddImportsStatements(document, cancellationToken)
         End Function
 
         Protected Overrides Function CanAddImportForMethod(

@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
 
             Dim compilationUnit = DirectCast(root, CompilationUnitSyntax)
 
-            If Not document.CanAddImportsStatements(compilationUnit, cancellationToken) Then
+            If Not compilationUnit.CanAddImportsStatements(document, cancellationToken) Then
                 Return compilationUnit
             End If
 
