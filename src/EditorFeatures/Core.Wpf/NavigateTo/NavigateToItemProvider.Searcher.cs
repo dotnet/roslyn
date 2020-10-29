@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal partial class NavigateToItemProvider
     {
-        private class Searcher
+        private partial class Searcher
         {
             private readonly Solution _solution;
             private readonly IAsynchronousOperationListener _asyncListener;
@@ -307,26 +307,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     LanguageNames.VisualBasic => "vb",
                     _ => languageName,
                 };
-
-            private class WrappedNavigateToSearchService : INavigateToSearchService
-            {
-                private readonly INavigateToSeINavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdatearchService _legacySearchService;
-
-                public WrappedNavigateToSearchService(INavigateToSeINavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdatearchService legacySearchService)
-                {
-                    _legacySearchService = legacySearchService;
-                }
-
-                public IImmutableSet<string> KindsProvided => _legacySearchService.KindsProvided;
-
-                public bool CanFilter => _legacySearchService.CanFilter;
-
-                public Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-                    => _legacySearchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken);
-
-                public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-                    => _legacySearchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken);
-            }
         }
     }
 }
