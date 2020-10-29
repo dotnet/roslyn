@@ -46,8 +46,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         cancellationToken).ConfigureAwait(false);
 
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    var completionItemsQuery = items.Select(item => Convert(item, receiverTypeKey));
-                    completionContext.AddItems(AttachParenthesisCompletionProperties(syntaxContext, completionItemsQuery));
+                    var completionItems = items.Select(item => Convert(item, receiverTypeKey));
+                    var isParenthesisCompletionEnable = IsAutoAddParenthesisBySemicolonEnabled(completionContext.Document);
+                    completionContext.AddItems(
+                        isParenthesisCompletionEnable
+                        ? AttachParenthesisCompletionProperties(syntaxContext, completionItems)
+                        : completionItems);
                 }
                 else
                 {

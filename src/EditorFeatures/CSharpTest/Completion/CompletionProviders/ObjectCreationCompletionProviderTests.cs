@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             => typeof(ObjectCreationCompletionProvider);
 
         protected override OptionSet WithChangedOptions(OptionSet options)
-            => options.WithChangedOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolonAndDot, LanguageNames.CSharp, true);
+            => options.WithChangedOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolon, LanguageNames.CSharp, true);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InObjectCreation()

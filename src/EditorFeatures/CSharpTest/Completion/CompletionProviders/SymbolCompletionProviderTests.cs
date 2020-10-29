@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         protected override OptionSet WithChangedOptions(OptionSet options)
-            => options.WithChangedOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolonAndDot, LanguageNames.CSharp, true);
+            => options.WithChangedOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolon, LanguageNames.CSharp, true);
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(SourceCodeKind.Regular)]

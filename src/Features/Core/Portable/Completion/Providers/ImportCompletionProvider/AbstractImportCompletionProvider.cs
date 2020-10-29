@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isInsertFullMethodCallExperimentEnabled == true;
         }
 
-        protected bool IsAutoAddParenthesisBySemicolonAndDotEnabled(Document document)
+        protected bool IsAutoAddParenthesisBySemicolonEnabled(Document document)
         {
             var workspace = document.Project.Solution.Workspace;
-            var option = workspace.Options.GetOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolonAndDot, document.Project.Language);
+            var option = workspace.Options.GetOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolon, document.Project.Language);
             return option == true || (option == null && IsInsertFullMethodCallExperimentEnabled(workspace));
         }
 
@@ -130,8 +130,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
 
-            var provideParenthesisCompletion = (commitKey == ';' || commitKey == '.')
-                && ImportCompletionItem.GetProvideParenthesisCompletion(completionItem);
+            var provideParenthesisCompletion = commitKey == ';' && ImportCompletionItem.GetProvideParenthesisCompletion(completionItem);
             var insertText = provideParenthesisCompletion
                 ? string.Concat(completionItem.DisplayText, "()", commitKey)
                 : completionItem.DisplayText;

@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var solution = document.Project.Solution;
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
-            if (commitKey == ';' && IsAutoAddParenthesisBySemicolonAndDotEnabled(document))
+            if (commitKey == ';' && IsAutoAddParenthesisBySemicolonEnabled(document))
             {
                 var endOfInsertionText = item.Span.Start + insertionText.Length;
                 var textChange = new TextChange(

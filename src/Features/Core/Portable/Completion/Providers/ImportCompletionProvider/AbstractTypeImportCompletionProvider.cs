@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
                 else
                 {
-                    var isParenthesisCompletionEnable = IsAutoAddParenthesisBySemicolonAndDotEnabled(completionContext.Document);
+                    var isParenthesisCompletionEnable = IsAutoAddParenthesisBySemicolonEnabled(completionContext.Document);
                     foreach (var items in itemsFromAllAssemblies)
                     {
                         AddItems(isParenthesisCompletionEnable

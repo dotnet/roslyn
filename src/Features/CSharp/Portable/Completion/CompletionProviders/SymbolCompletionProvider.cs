@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context,
                 preselect,
                 supportedPlatformData);
-            if (!IsAutoAddParenthesisBySemicolonAndDotEnabled(completionContext.Document))
+            if (!IsAutoAddParenthesisBySemicolonEnabled(completionContext.Document))
             {
                 return item;
             }

@@ -629,7 +629,7 @@
   <data name="Show_hints_for_new_expressions" xml:space="preserve">
     <value>Show hints for 'new' expressions</value>
   </data>
-  <data name="Automatically_add_parenthesis_by_semicolon_and_dot" xml:space="preserve">
-    <value>Automatically add parenthesis by ';' and '.' (experimental)</value>
+  <data name="Automatically_add_parenthesis_by_semicolon" xml:space="preserve">
+    <value>Automatically add parenthesis by ';' (experimental)</value>
   </data>
 </root>
