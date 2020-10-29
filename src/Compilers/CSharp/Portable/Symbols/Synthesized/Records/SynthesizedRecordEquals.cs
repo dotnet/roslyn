@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         fields.Add(f);
 
                         var parameterType = f.Type;
-                        if (parameterType.IsPointerOrFunctionPointer())
+                        if (parameterType.IsUnsafe())
                         {
                             diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.Locations[0], parameterType);
                             foundBadField = true;
