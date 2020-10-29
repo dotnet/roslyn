@@ -844,16 +844,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ConstantValue.Bad;
             }
 
-            // TODO: nullable analysis
-            // var constantValue = ConstantValue.Create(arg.ValueInternal, constantValueDiscriminator);
-
             if (diagnose)
             {
                 diagnosticsOpt.Add(node.Name.Location, useSiteDiagnostics);
-
-                // var syntaxTree = _syntaxRef.SyntaxTree;
-                // var binderFactory = compilation.GetBinderFactory(syntaxTree);
-                // var binder = binderFactory.GetBinder(node);
             }
 
             return ConstantValue.Create(arg.ValueInternal, constantValueDiscriminator);
