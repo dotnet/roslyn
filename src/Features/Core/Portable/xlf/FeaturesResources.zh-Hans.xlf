@@ -205,6 +205,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">将“{0}”更改为“{1}”会阻止调试会话继续执行，因为它会更改状态机的形状。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_the_attributes_defined_on_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the attributes defined on '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing the attributes defined on '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">配置 {0} 代码样式</target>
