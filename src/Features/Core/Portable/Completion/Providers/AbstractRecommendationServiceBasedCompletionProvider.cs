@@ -74,6 +74,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
+            var rules = CreateCompletionItemRules(completionContext, symbols, context, preselect);
+            return SymbolCompletionItem.CreateWithNameAndKind(
+                displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
+                symbols: symbols,
+                rules: rules,
+                contextPosition: context.Position,
+                insertionText: insertionText,
+                filterText: GetFilterText(symbols[0], displayText, context),
+                supportedPlatforms: supportedPlatformData);
+        }
+
+        protected CompletionItemRules CreateCompletionItemRules(
+            CompletionContext completionContext, List<ISymbol> symbols,
+            SyntaxContext context, bool preselect)
+        {
             var rules = GetCompletionItemRules(symbols, context, preselect);
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;
             rules = rules.WithMatchPriority(matchPriority);
@@ -91,15 +107,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules = rules.WithSelectionBehavior(PreselectedItemSelectionBehavior);
             }
 
-            return SymbolCompletionItem.CreateWithNameAndKind(
-                displayText: displayText,
-                displayTextSuffix: displayTextSuffix,
-                symbols: symbols,
-                rules: rules,
-                contextPosition: context.Position,
-                insertionText: insertionText,
-                filterText: GetFilterText(symbols[0], displayText, context),
-                supportedPlatforms: supportedPlatformData);
+            return rules;
         }
 
         private static bool ShouldSoftSelectInArgumentList(CompletionContext completionContext, SyntaxContext context, bool preselect)

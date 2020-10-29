@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     item.Span,
                     string.Concat(insertionText, "()", commitKey));
                 var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-                var putCaretBetweenParenthesis = commitKey == ';' && symbols.All(ShouldPutCaretBetweenParenthesis);
+                var putCaretBetweenParenthesis = ShouldPutCaretBetweenParenthesis(symbols.FirstOrDefault());
                 var completionChange = CompletionChange.Create(
                     textChange,
                     putCaretBetweenParenthesis ? endOfInsertionText + 1 : endOfInsertionText + 3,

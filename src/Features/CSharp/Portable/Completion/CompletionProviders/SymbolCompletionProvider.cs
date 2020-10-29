@@ -273,63 +273,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
-            var item = base.CreateItem(
-                completionContext,
-                displayText,
-                displayTextSuffix,
-                insertionText,
-                symbols,
-                context,
-                preselect,
-                supportedPlatformData);
-            if (!IsAutoAddParenthesisBySemicolonEnabled(completionContext.Document))
+            if (IsAutoAddParenthesisBySemicolonEnabled(completionContext.Document))
             {
-                return item;
+                var rules = CreateCompletionItemRules(completionContext, symbols, context, preselect);
+                var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
+                var isObjectCreationTypeContext = context switch
+                {
+                    CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
+                    _ => false
+                };
+
+                var shouldProvideParenthesisCompletion = symbols.All(symbol => symbol switch
+                {
+                    IMethodSymbol => !isInferredTypeDelegate,
+                    ITypeSymbol => isObjectCreationTypeContext,
+                    IAliasSymbol => isObjectCreationTypeContext,
+                    _ => false
+                });
+                var properties = ImmutableDictionary<string, string>.Empty
+                    .Add("ProvideParenthesisCompletion", shouldProvideParenthesisCompletion.ToString());
+
+                return SymbolCompletionItem.CreateWithNameKindAndId(
+                    displayText: displayText,
+                    displayTextSuffix: displayTextSuffix,
+                    symbols: symbols,
+                    // Always preselect
+                    rules: rules,
+                    contextPosition: context.Position,
+                    insertionText: insertionText,
+                    filterText: GetFilterText(symbols[0], displayText, context),
+                    supportedPlatforms: supportedPlatformData,
+                    properties: properties);
             }
-
-            var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
-            var isObjectCreationTypeContext = context switch
+            else
             {
-                CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
-                _ => false
-            };
-
-            var shouldProvideParenthesisCompletion = symbols.All(symbol => symbol switch
-            {
-                IMethodSymbol => !isInferredTypeDelegate,
-                ITypeSymbol => isObjectCreationTypeContext,
-                IAliasSymbol => isObjectCreationTypeContext,
-                _ => false
-            });
-
-            if (!shouldProvideParenthesisCompletion)
-            {
-                return item;
+                return base.CreateItem(
+                    completionContext,
+                    displayText,
+                    displayTextSuffix,
+                    insertionText,
+                    symbols,
+                    context,
+                    preselect,
+                    supportedPlatformData);
             }
-
-            item = SymbolCompletionItem.AddProvideParenthesisCompletion(item, true);
-            // Will this cause perf problem?
-            var hasParameter = symbols.All(ShouldPutCaretBetweenParenthesis);
-            return SymbolCompletionItem.AddPutCaretBetweenParenthesis(item, hasParameter);
         }
 
-        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
             if (commitKey == ';' && SymbolCompletionItem.GetProvideParenthesisCompletion(item))
             {
-                var textChange = new TextChange(
-                    item.Span,
-                    string.Concat(insertionText + "()", commitKey));
-                var putCaretBetweenParenthesis = commitKey == ';' && SymbolCompletionItem.GetPutCaretBetweenParenthesis(item);
+                var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+                var textChange = new TextChange(item.Span,string.Concat(insertionText + "()", commitKey));
+                var putCaretBetweenParenthesis = ShouldPutCaretBetweenParenthesis(symbols.FirstOrDefault());
                 var endOfInsertionText = item.Span.Start + insertionText.Length;
-                return Task.FromResult(CompletionChange.Create(textChange,
+                return CompletionChange.Create(textChange,
                     putCaretBetweenParenthesis ? endOfInsertionText + 1 : endOfInsertionText + 3,
-                    includesCommitCharacter: true));
+                    includesCommitCharacter: true);
             }
 
             var insertionTextChange = new TextChange(item.Span, insertionText);
-            return Task.FromResult(CompletionChange.Create(insertionTextChange));
+            return CompletionChange.Create(insertionTextChange);
         }
     }
 }
