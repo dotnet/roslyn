@@ -303,7 +303,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diag) => exceptionDiagnostics.Add(diag);
             var analyzerManager = new AnalyzerManager(analyzer);
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, analyzerManager);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(
+                onAnalyzerException, addAdditionalFile: null, analyzerManager);
             var descriptors = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
 
             Assert.Equal(1, descriptors.Length);
