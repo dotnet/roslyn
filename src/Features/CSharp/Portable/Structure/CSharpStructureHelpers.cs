@@ -8,10 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
@@ -191,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxTriviaList triviaList)
         {
             using var result = TemporaryArray<BlockSpan>.Empty;
-            CollectCommentBlockSpans(triviaList, ref Unsafe.AsRef(in result));
+            CollectCommentBlockSpans(triviaList, ref result.AsRef());
             return result.ToImmutableAndClear();
         }
 

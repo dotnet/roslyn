@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -432,8 +431,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             return AllChangesCanBeApplied(
                 cumulativeChanges, currentChanges,
-                overlappingSpans: ref Unsafe.AsRef(in overlappingSpans),
-                intersectingSpans: ref Unsafe.AsRef(in intersectingSpans));
+                overlappingSpans: ref overlappingSpans.AsRef(),
+                intersectingSpans: ref intersectingSpans.AsRef());
         }
 
         private static bool AllChangesCanBeApplied(

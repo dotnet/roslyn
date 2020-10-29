@@ -7,7 +7,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -140,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
             using var result = TemporaryArray<T>.Empty;
-            var matches = FillWithIntervalsThatMatch(start, length, testInterval, ref Unsafe.AsRef(in result), in introspector, stopAfterFirst: true);
+            var matches = FillWithIntervalsThatMatch(start, length, testInterval, ref result.AsRef(), in introspector, stopAfterFirst: true);
             return matches > 0;
         }
 
@@ -149,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
             using var result = TemporaryArray<T>.Empty;
-            FillWithIntervalsThatMatch(start, length, testInterval, ref Unsafe.AsRef(in result), in introspector, stopAfterFirst: false);
+            FillWithIntervalsThatMatch(start, length, testInterval, ref result.AsRef(), in introspector, stopAfterFirst: false);
             return result.ToImmutableAndClear();
         }
 

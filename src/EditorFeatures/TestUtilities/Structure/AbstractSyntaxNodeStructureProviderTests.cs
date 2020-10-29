@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
             var outliner = CreateProvider();
             using var actualRegions = TemporaryArray<BlockSpan>.Empty;
-            outliner.CollectBlockSpans(document, node, ref Unsafe.AsRef(in actualRegions), CancellationToken.None);
+            outliner.CollectBlockSpans(document, node, ref actualRegions.AsRef(), CancellationToken.None);
 
             // TODO: Determine why we get null outlining spans.
             return actualRegions.ToImmutableAndClear();

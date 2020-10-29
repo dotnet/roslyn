@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction())
             {
                 using var builder = TemporaryArray<IMethodSymbol>.Empty;
-                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(assignment), ref Unsafe.AsRef(in builder));
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(assignment), ref builder.AsRef());
                 return builder.ToImmutableAndClear();
             }
 
@@ -201,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is ForEachVariableStatementSyntax @foreach)
             {
                 using var builder = TemporaryArray<IMethodSymbol>.Empty;
-                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(@foreach), ref Unsafe.AsRef(in builder));
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(@foreach), ref builder.AsRef());
                 return builder.ToImmutableAndClear();
             }
 

@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             using var spans = TemporaryArray<BlockSpan>.Empty;
             BlockSpanCollector.CollectBlockSpans(
-                context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, ref Unsafe.AsRef(in spans), context.CancellationToken);
+                context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
 
             foreach (var span in spans)
             {
