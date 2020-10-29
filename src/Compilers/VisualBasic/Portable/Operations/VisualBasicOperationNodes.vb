@@ -24,48 +24,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazySimpleAssignmentOperation
-        Inherits LazySimpleAssignmentOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _assignment As BoundAssignmentOperator
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, assignment As BoundAssignmentOperator, isRef As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(isRef, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _assignment = assignment
-        End Sub
-
-        Protected Overrides Function CreateTarget() As IOperation
-            Return _operationFactory.Create(_assignment.Left)
-        End Function
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_assignment.Right)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyCompoundAssignmentOperation
-        Inherits LazyCompoundAssignmentOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _assignment As BoundAssignmentOperator
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, assignment As BoundAssignmentOperator, inConversionConvertible As IConvertibleConversion, outConversionConvertible As IConvertibleConversion, operatorKind As BinaryOperatorKind, isLifted As Boolean, isChecked As Boolean, operatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _assignment = assignment
-        End Sub
-
-        Protected Overrides Function CreateTarget() As IOperation
-            Return _operationFactory.Create(_assignment.Left)
-        End Function
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.CreateCompoundAssignmentRightOperand(_assignment)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyVariableInitializerOperation
         Inherits LazyVariableInitializerOperation
 

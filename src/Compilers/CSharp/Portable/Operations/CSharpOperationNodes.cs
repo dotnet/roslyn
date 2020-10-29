@@ -49,76 +49,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IOperation> GetChildren() => _operationFactory.GetIOperationChildren(_boundNode);
     }
 
-    internal sealed class CSharpLazySimpleAssignmentOperation : LazySimpleAssignmentOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundAssignmentOperator _assignmentOperator;
-
-        internal CSharpLazySimpleAssignmentOperation(CSharpOperationFactory operationFactory, BoundAssignmentOperator assignment, bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _assignmentOperator = assignment;
-        }
-
-        protected override IOperation CreateTarget()
-        {
-            return _operationFactory.Create(_assignmentOperator.Left);
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_assignmentOperator.Right);
-        }
-    }
-
-    internal sealed class CSharpLazyDeconstructionAssignmentOperation : LazyDeconstructionAssignmentOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundDeconstructionAssignmentOperator _deconstructionAssignment;
-
-        internal CSharpLazyDeconstructionAssignmentOperation(CSharpOperationFactory operationFactory, BoundDeconstructionAssignmentOperator deconstructionAssignment, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _deconstructionAssignment = deconstructionAssignment;
-        }
-
-        protected override IOperation CreateTarget()
-        {
-            return _operationFactory.Create(_deconstructionAssignment.Left);
-        }
-
-        protected override IOperation CreateValue()
-        {
-            // Skip the synthetic deconstruction conversion wrapping the right operand.
-            return _operationFactory.Create(_deconstructionAssignment.Right.Operand);
-        }
-    }
-
-    internal sealed class CSharpLazyCompoundAssignmentOperation : LazyCompoundAssignmentOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundCompoundAssignmentOperator _compoundAssignmentOperator;
-
-        internal CSharpLazyCompoundAssignmentOperation(CSharpOperationFactory operationFactory, BoundCompoundAssignmentOperator compoundAssignmentOperator, IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _compoundAssignmentOperator = compoundAssignmentOperator;
-        }
-
-        protected override IOperation CreateTarget()
-        {
-            return _operationFactory.Create(_compoundAssignmentOperator.Left);
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_compoundAssignmentOperator.Right);
-        }
-    }
-
     internal sealed class CSharpLazyVariableInitializerOperation : LazyVariableInitializerOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -234,29 +164,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateInstance()
         {
             return _operationFactory.Create(_instance);
-        }
-    }
-
-    internal sealed class CSharpLazyCoalesceAssignmentOperation : LazyCoalesceAssignmentOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNullCoalescingAssignmentOperator _nullCoalescingAssignmentOperator;
-
-        internal CSharpLazyCoalesceAssignmentOperation(CSharpOperationFactory operationFactory, BoundNullCoalescingAssignmentOperator nullCoalescingAssignmentOperator, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _nullCoalescingAssignmentOperator = nullCoalescingAssignmentOperator;
-        }
-
-        protected override IOperation CreateTarget()
-        {
-            return _operationFactory.Create(_nullCoalescingAssignmentOperator.LeftOperand);
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_nullCoalescingAssignmentOperator.RightOperand);
         }
     }
 

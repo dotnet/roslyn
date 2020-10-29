@@ -85,15 +85,15 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Debug.Assert(leftOnTheRight Is boundAssignment.LeftOnTheRightOpt)
 
-            Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignment.Left))
+            Dim target As IOperation = Create(boundAssignment.Left)
+            Dim value As IOperation = CreateCompoundAssignmentRightOperand(boundAssignment)
             Dim syntax As SyntaxNode = boundAssignment.Syntax
             Dim type As ITypeSymbol = boundAssignment.Type
-            Dim constantValue As ConstantValue = boundAssignment.ConstantValueOpt
             Dim isImplicit As Boolean = boundAssignment.WasCompilerGenerated
 
-            Return New VisualBasicLazyCompoundAssignmentOperation(Me, boundAssignment, inConversion, outConversion, operatorInfo.OperatorKind,
-                                                                  operatorInfo.IsLifted, operatorInfo.IsChecked, operatorInfo.OperatorMethod,
-                                                                  _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New CompoundAssignmentOperation(inConversion, outConversion, operatorInfo.OperatorKind, operatorInfo.IsLifted,
+                                                   operatorInfo.IsChecked, operatorInfo.OperatorMethod, target, value,
+                                                   _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Structure BinaryOperatorInfo

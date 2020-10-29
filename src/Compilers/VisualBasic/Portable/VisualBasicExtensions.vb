@@ -1439,7 +1439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If compoundAssignment.Language = LanguageNames.VisualBasic Then
-                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentOperation).InConversionConvertible, Conversion)
+                Return DirectCast(DirectCast(compoundAssignment, CompoundAssignmentOperation).InConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),
@@ -1461,7 +1461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If compoundAssignment.Language = LanguageNames.VisualBasic Then
-                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentOperation).OutConversionConvertible, Conversion)
+                Return DirectCast(DirectCast(compoundAssignment, CompoundAssignmentOperation).OutConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),

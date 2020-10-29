@@ -2002,7 +2002,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                          originalArgument.InConversionConvertible, originalArgument.OutConversionConvertible,
                                          semanticModel: null, originalArgument.Syntax, IsImplicit(originalArgument));
         }
-#nullable disable
 
         public override IOperation VisitSimpleAssignment(ISimpleAssignmentOperation operation, int? captureIdForResult)
         {
@@ -2015,16 +2014,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, int? captureIdForResult)
         {
             EvalStackFrame frame = PushStackFrame();
-            var compoundAssignment = (BaseCompoundAssignmentOperation)operation;
+            var compoundAssignment = (CompoundAssignmentOperation)operation;
             PushOperand(Visit(compoundAssignment.Target));
             IOperation value = Visit(compoundAssignment.Value);
 
             return PopStackFrame(frame, new CompoundAssignmentOperation(compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible, operation.OperatorKind, operation.IsLifted,
                 operation.IsChecked, operation.OperatorMethod, PopOperand(), value, semanticModel: null,
-                syntax: operation.Syntax, type: operation.Type, constantValue: operation.GetConstantValue(), isImplicit: IsImplicit(operation)));
+                syntax: operation.Syntax, type: operation.Type, isImplicit: IsImplicit(operation)));
         }
 
-#nullable enable
         public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, int? captureIdForResult)
         {
             EvalStackFrame frame = PushStackFrame();
@@ -2890,15 +2888,15 @@ oneMoreTime:
 
             return result;
         }
-#nullable disable
 
-        public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, int? captureIdForResult)
+        public override IOperation? VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, int? captureIdForResult)
         {
             SpillEvalStack();
 
             // If we're in a statement context, we elide the capture of the result of the assignment, as it will
             // just be wrapped in an expression statement that isn't used anywhere and isn't observed by anything.
-            bool isStatement = _currentStatement == operation || operation?.Parent.Kind == OperationKind.ExpressionStatement;
+            Debug.Assert(operation.Parent != null);
+            bool isStatement = _currentStatement == operation || operation.Parent.Kind == OperationKind.ExpressionStatement;
             Debug.Assert(captureIdForResult == null || !isStatement);
 
             RegionBuilder resultCaptureRegion = _currentRegion;
@@ -2922,8 +2920,9 @@ oneMoreTime:
 
             int resultCaptureId = isStatement ? -1 : captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
-            if (operation.Target?.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T &&
-                ((INamedTypeSymbol)operation.Target.Type).TypeArguments[0].Equals(operation.Type))
+            Debug.Assert(operation.Target == null || operation.Target.Type != null);
+            if (operation.Target?.Type!.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T &&
+                ((INamedTypeSymbol)operation.Target.Type!).TypeArguments[0].Equals(operation.Type))
             {
                 nullableValueTypeReturn();
             }
@@ -2968,7 +2967,7 @@ oneMoreTime:
                 // after:
 
                 int intermediateResult = -1;
-                EvalStackFrame intermediateFrame = null;
+                EvalStackFrame? intermediateFrame = null;
 
                 if (!isStatement)
                 {
@@ -3072,6 +3071,7 @@ oneMoreTime:
                 PopStackFrameAndLeaveRegion(whenNullFrame);
             }
         }
+#nullable disable
 
         private static BasicBlockBuilder.Branch RegularBranch(BasicBlockBuilder destination)
         {
@@ -4308,7 +4308,8 @@ oneMoreTime:
                                                              semanticModel: null,
                                                              declarator.Syntax,
                                                              type: null,
-                            constantValue: null, isImplicit: true);
+                                                             constantValue: null,
+                                                             isImplicit: true);
 
                     case OperationKind.Tuple:
                     case OperationKind.DeclarationExpression:
@@ -4317,7 +4318,7 @@ oneMoreTime:
                         return new DeconstructionAssignmentOperation(VisitPreservingTupleOperations(operation.LoopControlVariable),
                                                                      current, semanticModel: null,
                                                                      operation.LoopControlVariable.Syntax, operation.LoopControlVariable.Type,
-                                                                     constantValue: null, isImplicit: true);
+                                                                     isImplicit: true);
                     default:
                         return new SimpleAssignmentOperation(isRef: false, // In C# this is an error case and VB doesn't support ref locals
                             Visit(operation.LoopControlVariable),
@@ -4615,7 +4616,6 @@ oneMoreTime:
                         initialValue,
                         semanticModel: null, operation.InitialValue.Syntax, type: null,
                         constantValue: null, isImplicit: true));
-
                 }
 
                 PopStackFrameAndLeaveRegion(frame);
@@ -5485,7 +5485,7 @@ oneMoreTime:
                 }
             }
 
-            Debug.Assert(initializer != null);
+            Debug.Assert(initializer != null && assignmentSyntax != null);
 
             // If we have an afterInitialization, then we must have static local and an initializer to ensure we don't create empty regions that can't be cleaned up.
             Debug.Assert(afterInitialization == null || localSymbol.IsStatic);
@@ -6125,11 +6125,13 @@ oneMoreTime:
                 operation.ContainingType, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
+#nullable enable
         public override IOperation VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, int? captureIdForResult)
         {
             (IOperation visitedTarget, IOperation visitedValue) = VisitPreservingTupleOperations(operation.Target, operation.Value);
-            return new DeconstructionAssignmentOperation(visitedTarget, visitedValue, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            return new DeconstructionAssignmentOperation(visitedTarget, visitedValue, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
+#nullable disable
 
         /// <summary>
         /// Recursively push nexted values onto the stack for visiting
@@ -6482,7 +6484,6 @@ oneMoreTime:
 
             return FinishVisitingStatement(operation);
         }
-#nullable disable
 
         private void VisitInitializer(IOperation rewrittenTarget, ISymbolInitializerOperation initializer)
         {
@@ -6497,7 +6498,6 @@ oneMoreTime:
             LeaveRegion();
         }
 
-#nullable enable
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
         {
             EvalStackFrame frame = PushStackFrame();

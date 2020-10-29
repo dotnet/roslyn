@@ -1232,7 +1232,7 @@
       </Comments>
     </Property>
   </AbstractNode>
-  <Node Name="ISimpleAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value">
+  <Node Name="ISimpleAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a simple assignment operation.
@@ -1249,7 +1249,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICompoundAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value">
+  <Node Name="ICompoundAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value" HasType="true">
     <Comments>
       <summary>
         Represents a compound assignment that mutates the target with the result of a binary operation.
@@ -1294,7 +1294,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="OperatorMethod" Type="IMethodSymbol">
+    <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>
@@ -1820,7 +1820,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDeconstructionAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value">
+  <Node Name="IDeconstructionAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value" HasType="true">
     <Comments>
       <summary>
         Represents a assignment with a deconstruction.
@@ -2616,7 +2616,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICoalesceAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value">
+  <Node Name="ICoalesceAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value" HasType="true">
     <Comments>
       <summary>
         Represents a coalesce assignment operation with a target and a conditionally-evaluated value:

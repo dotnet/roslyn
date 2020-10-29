@@ -56,17 +56,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DefaultCaseClauseOperation(operation.Label, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, object argument)
-        {
-            var compoundAssignment = (BaseCompoundAssignmentOperation)operation;
-            return new CompoundAssignmentOperation(compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible, operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, Visit(operation.Target), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, object argument)
-        {
-            return new CoalesceAssignmentOperation(Visit(operation.Target), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object argument)
         {
             var anonymous = (FlowAnonymousFunctionOperation)operation;
@@ -91,16 +80,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, object argument)
         {
             return new ParameterInitializerOperation(operation.Parameter, operation.Locals, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitSimpleAssignment(ISimpleAssignmentOperation operation, object argument)
-        {
-            return new SimpleAssignmentOperation(operation.IsRef, Visit(operation.Target), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, object argument)
-        {
-            return new DeconstructionAssignmentOperation(Visit(operation.Target), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation, object argument)

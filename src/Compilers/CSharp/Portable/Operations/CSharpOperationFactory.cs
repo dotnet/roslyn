@@ -420,18 +420,18 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundDeconstructValuePlaceholder.WasCompilerGenerated;
             return new PlaceholderOperation(PlaceholderKind.Unspecified, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IDeconstructionAssignmentOperation CreateBoundDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator boundDeconstructionAssignmentOperator)
         {
+            IOperation target = Create(boundDeconstructionAssignmentOperator.Left);
+            // Skip the synthetic deconstruction conversion wrapping the right operand.
+            IOperation value = Create(boundDeconstructionAssignmentOperator.Right.Operand);
             SyntaxNode syntax = boundDeconstructionAssignmentOperator.Syntax;
-            ITypeSymbol type = boundDeconstructionAssignmentOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundDeconstructionAssignmentOperator.ConstantValue;
+            ITypeSymbol? type = boundDeconstructionAssignmentOperator.GetPublicTypeSymbol();
             bool isImplicit = boundDeconstructionAssignmentOperator.WasCompilerGenerated;
-            return new CSharpLazyDeconstructionAssignmentOperation(this, boundDeconstructionAssignmentOperator, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new DeconstructionAssignmentOperation(target, value, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IOperation CreateBoundCallOperation(BoundCall boundCall)
         {
             MethodSymbol targetMethod = boundCall.Method;
@@ -1168,7 +1168,6 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundThisReference.WasCompilerGenerated;
             return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IOperation CreateBoundAssignmentOperatorOrMemberInitializerOperation(BoundAssignmentOperator boundAssignmentOperator)
         {
@@ -1185,15 +1184,16 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Debug.Assert(!IsMemberInitializer(boundAssignmentOperator));
 
+            IOperation target = Create(boundAssignmentOperator.Left);
+            IOperation value = Create(boundAssignmentOperator.Right);
             bool isRef = boundAssignmentOperator.IsRef;
             SyntaxNode syntax = boundAssignmentOperator.Syntax;
-            ITypeSymbol type = boundAssignmentOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundAssignmentOperator.ConstantValue;
+            ITypeSymbol? type = boundAssignmentOperator.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundAssignmentOperator.ConstantValue;
             bool isImplicit = boundAssignmentOperator.WasCompilerGenerated;
-            return new CSharpLazySimpleAssignmentOperation(this, boundAssignmentOperator, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new SimpleAssignmentOperation(isRef, target, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-#nullable enable
         private IMemberInitializerOperation CreateBoundMemberInitializerOperation(BoundAssignmentOperator boundAssignmentOperator)
         {
             Debug.Assert(IsMemberInitializer(boundAssignmentOperator));
@@ -1204,10 +1204,11 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundAssignmentOperator.WasCompilerGenerated;
             return new MemberInitializerOperation(initializedMember, initializer, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private ICompoundAssignmentOperation CreateBoundCompoundAssignmentOperatorOperation(BoundCompoundAssignmentOperator boundCompoundAssignmentOperator)
         {
+            IOperation target = Create(boundCompoundAssignmentOperator.Left);
+            IOperation value = Create(boundCompoundAssignmentOperator.Right);
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundCompoundAssignmentOperator.Operator.Kind);
             Conversion inConversion = boundCompoundAssignmentOperator.LeftConversion;
             Conversion outConversion = boundCompoundAssignmentOperator.FinalConversion;
@@ -1215,13 +1216,11 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isChecked = boundCompoundAssignmentOperator.Operator.Kind.IsChecked();
             IMethodSymbol operatorMethod = boundCompoundAssignmentOperator.Operator.Method.GetPublicSymbol();
             SyntaxNode syntax = boundCompoundAssignmentOperator.Syntax;
-            ITypeSymbol type = boundCompoundAssignmentOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundCompoundAssignmentOperator.ConstantValue;
+            ITypeSymbol? type = boundCompoundAssignmentOperator.GetPublicTypeSymbol();
             bool isImplicit = boundCompoundAssignmentOperator.WasCompilerGenerated;
-            return new CSharpLazyCompoundAssignmentOperation(this, boundCompoundAssignmentOperator, inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CompoundAssignmentOperation(inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod, target, value, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IIncrementOrDecrementOperation CreateBoundIncrementOperatorOperation(BoundIncrementOperator boundIncrementOperator)
         {
             OperationKind operationKind = Helper.IsDecrement(boundIncrementOperator.OperatorKind) ? OperationKind.Decrement : OperationKind.Increment;
@@ -1401,19 +1400,18 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return new CoalesceOperation(value, whenNull, valueConversion, _semanticModel, syntax, type, constantValue, isImplicit);
         }
-#nullable disable
 
         private IOperation CreateBoundNullCoalescingAssignmentOperatorOperation(BoundNullCoalescingAssignmentOperator boundNode)
         {
+            IOperation target = Create(boundNode.LeftOperand);
+            IOperation value = Create(boundNode.RightOperand);
             SyntaxNode syntax = boundNode.Syntax;
-            ITypeSymbol type = boundNode.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundNode.ConstantValue;
+            ITypeSymbol? type = boundNode.GetPublicTypeSymbol();
             bool isImplicit = boundNode.WasCompilerGenerated;
 
-            return new CSharpLazyCoalesceAssignmentOperation(this, boundNode, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CoalesceAssignmentOperation(target, value, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IAwaitOperation CreateBoundAwaitExpressionOperation(BoundAwaitExpression boundAwaitExpression)
         {
             IOperation awaitedValue = Create(boundAwaitExpression.Expression);

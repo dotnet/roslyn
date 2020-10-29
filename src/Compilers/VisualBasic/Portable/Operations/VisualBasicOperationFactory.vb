@@ -380,12 +380,14 @@ Namespace Microsoft.CodeAnalysis.Operations
             ElseIf boundAssignmentOperator.LeftOnTheRightOpt IsNot Nothing Then
                 Return CreateCompoundAssignment(boundAssignmentOperator)
             Else
+                Dim target As IOperation = Create(boundAssignmentOperator.Left)
+                Dim value As IOperation = Create(boundAssignmentOperator.Right)
                 Dim isImplicit As Boolean = boundAssignmentOperator.WasCompilerGenerated
                 Dim isRef As Boolean = False
                 Dim syntax As SyntaxNode = boundAssignmentOperator.Syntax
                 Dim type As ITypeSymbol = boundAssignmentOperator.Type
                 Dim constantValue As ConstantValue = boundAssignmentOperator.ConstantValueOpt
-                Return New VisualBasicLazySimpleAssignmentOperation(Me, boundAssignmentOperator, isRef, _semanticModel, syntax, type, constantValue, isImplicit)
+                Return New SimpleAssignmentOperation(isRef, target, value, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
         End Function
 
