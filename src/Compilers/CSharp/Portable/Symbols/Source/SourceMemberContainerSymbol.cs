@@ -1249,11 +1249,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<Symbol>.Empty;
         }
 
-
+        /// <remarks>
+        /// For source symbols, there can only be a valid clone method if this is a record, which is a
+        /// simple syntax check. This will need to change when we generalize cloning, but it's a good
+        /// heuristic for now.
+        /// </remarks>
         internal override bool HasPossibleWellKnownCloneMethod()
-            // For source symbols, there can only be a valid clone method if this is a record, which is a
-            // simple syntax check. This will need to change when we generalize cloning, but it's a good
-            // heuristic for now.
             => IsRecord;
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
