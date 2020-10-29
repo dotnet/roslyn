@@ -842,13 +842,12 @@ record C3(object O5) : Base((System.Func<object, object>)(x => x)) // 3
     public object O5 { get; init; }
 }
 
-// parameter is only read in a lambda, which may never execute
-record C4(object O6) : Base((System.Func<object, object>)(_ => O6)) // 4
+record C4(object O6) : Base((System.Func<object, object>)(_ => O6))
 {
     public object O6 { get; init; }
 }
 
-record C5(object O7) : Base((System.Func<object, object>)(_ => (O7 = 42) )) // 5
+record C5(object O7) : Base((System.Func<object, object>)(_ => (O7 = 42) )) // 4
 {
     public object O7 { get; init; }
 }
@@ -863,12 +862,9 @@ record C5(object O7) : Base((System.Func<object, object>)(_ => (O7 = 42) )) // 5
                 // (16,18): warning CS8907: Parameter 'O5' is unread. Did you forget to use it to initialize the property with that name?
                 // record C3(object O5) : Base((System.Func<object, object>)(x => x)) // 3
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O5").WithArguments("O5").WithLocation(16, 18),
-                // (22,18): warning CS8907: Parameter 'O6' is unread. Did you forget to use it to initialize the property with that name?
-                // record C4(object O6) : Base((System.Func<object, object>)(_ => O6)) // 4
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O6").WithArguments("O6").WithLocation(22, 18),
-                // (27,18): warning CS8907: Parameter 'O7' is unread. Did you forget to use it to initialize the property with that name?
-                // record C5(object O7) : Base((System.Func<object, object>)(_ => (O7 = 42) )) // 5
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O7").WithArguments("O7").WithLocation(27, 18)
+                // (26,18): warning CS8907: Parameter 'O7' is unread. Did you forget to use it to initialize the property with that name?
+                // record C5(object O7) : Base((System.Func<object, object>)(_ => (O7 = 42) )) // 4
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O7").WithArguments("O7").WithLocation(26, 18)
                 );
         }
 

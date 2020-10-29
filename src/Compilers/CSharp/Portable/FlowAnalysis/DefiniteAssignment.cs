@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void NoteRecordParameterReadIfNeeded(Symbol symbol)
         {
-            if (symbol is ParameterSymbol parameter && CurrentSymbol is SynthesizedRecordConstructor)
+            if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedRecordConstructor } parameter)
             {
                 _readParameters ??= PooledHashSet<ParameterSymbol>.GetInstance();
                 _readParameters.Add(parameter);
