@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;

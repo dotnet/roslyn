@@ -29,6 +29,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Host;
+using System.Xml.Linq;
 
 #if CODE_STYLE
 using System.Diagnostics;
@@ -115,9 +117,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected internal abstract string GetLanguage();
         protected ParenthesesOptionsProvider ParenthesesOptionsProvider => new ParenthesesOptionsProvider(this.GetLanguage());
         protected abstract ParseOptions GetScriptOptions();
-        protected virtual TestComposition GetComposition() => EditorTestCompositions.EditorFeatures
-            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+
+        private protected virtual IDocumentServiceProvider GetDocumentServiceProvider()
+            => null;
+
+        protected virtual TestComposition GetComposition()
+            => EditorTestCompositions.EditorFeatures
+                .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+                .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
         protected virtual void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
@@ -132,9 +139,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             parameters = SetParameterDefaults(parameters);
 
-            var workspace = TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode) ?
-                TestWorkspace.Create(workspaceMarkupOrCode, openDocuments: false, composition: composition) :
-                TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: new[] { workspaceMarkupOrCode }, composition: composition);
+            var documentServiceProvider = GetDocumentServiceProvider();
+            var workspace = TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode)
+                ? TestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider)
+                : TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: new[] { workspaceMarkupOrCode }, composition: composition, documentServiceProvider: documentServiceProvider);
 
 #if !CODE_STYLE
             if (parameters.testHost == TestHost.OutOfProcess && _logger != null)

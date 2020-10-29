@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     internal class TestDocumentServiceProvider : IDocumentServiceProvider
     {
-        public TestDocumentServiceProvider(bool canApplyChange = true, bool supportDiagnostics = true)
+        public TestDocumentServiceProvider(bool canApplyChange = true, bool supportDiagnostics = true, bool isLegacySpanMapper = true)
         {
             DocumentOperationService = new TestDocumentOperationService()
             {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 SupportDiagnostics = supportDiagnostics
             };
 
-            SpanMappingService = new TestSpanMappingService();
+            SpanMappingService = new TestSpanMappingService(isLegacySpanMapper);
         }
 
         public IDocumentOperationService DocumentOperationService { get; }
@@ -56,7 +56,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private class TestSpanMappingService : ISpanMappingService
         {
-            public bool IsLegacy => false;
+            public TestSpanMappingService(bool isLegacy)
+            {
+                IsLegacy = isLegacy;
+            }
+
+            public bool IsLegacy { get; }
 
             public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
             {
