@@ -827,9 +827,9 @@ unsafe record C( // 1
     delegate*<int, int> P4, // 3
     void P5, // 4
     C2 P6, // 5, 6
-    System.ArgIterator P7, // 7, 8
-    System.TypedReference P8, // 9, 10
-    RefLike P9); // 11, 12
+    System.ArgIterator P7, // 7
+    System.TypedReference P8, // 8
+    RefLike P9); // 9
 ";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
@@ -853,23 +853,14 @@ unsafe record C( // 1
                 //     C2 P6, // 5, 6
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
                 // (13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     System.ArgIterator P7, // 7, 8
+                //     System.ArgIterator P7, // 7
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(13, 5),
-                // (13,24): error CS8908: The type 'ArgIterator' may not be used for a field of a record.
-                //     System.ArgIterator P7, // 7, 8
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P7").WithArguments("System.ArgIterator").WithLocation(13, 24),
                 // (14,5): error CS0610: Field or property cannot be of type 'TypedReference'
-                //     System.TypedReference P8, // 9, 10
+                //     System.TypedReference P8, // 8
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
-                // (14,27): error CS8908: The type 'TypedReference' may not be used for a field of a record.
-                //     System.TypedReference P8, // 9, 10
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P8").WithArguments("System.TypedReference").WithLocation(14, 27),
                 // (15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
-                //     RefLike P9); // 11, 12
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5),
-                // (15,13): error CS8908: The type 'RefLike' may not be used for a field of a record.
-                //     RefLike P9); // 11, 12
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P9").WithArguments("RefLike").WithLocation(15, 13)
+                //     RefLike P9); // 9
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)
                 );
         }
 
@@ -957,7 +948,7 @@ unsafe record C(int* P1, int*[] P2, C<int*[]> P3)
 ";
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "P1 P2 P3 RAN");
+            CompileAndVerify(comp, expectedOutput: "P1 P2 P3 RAN", verify: Verification.Skipped /* pointers */);
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
