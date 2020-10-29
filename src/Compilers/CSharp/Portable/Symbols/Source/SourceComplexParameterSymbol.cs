@@ -243,6 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics)
         {
+            AnalyzeParameterDefaultValueFromAttributes(diagnostics);
+
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
             {
@@ -1113,10 +1115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Force binding of default value.
             var unused = this.ExplicitDefaultConstantValue;
-            AnalyzeParameterDefaultValueFromAttributes();
         }
 
-        private void AnalyzeParameterDefaultValueFromAttributes()
+        private void AnalyzeParameterDefaultValueFromAttributes(DiagnosticBag diagnostics)
         {
             var defaultValue = DefaultValueFromAttributes;
             if (defaultValue == null || defaultValue.IsBad)
@@ -1135,10 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // we will just get a bad constant value above and return early.
                 new BoundLiteral(parameterSyntax, DefaultValueFromAttributes, Type));
 
-            var diagnostics = DiagnosticBag.GetInstance();
             NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
-            AddDeclarationDiagnostics(diagnostics);
-            diagnostics.Free();
         }
     }
 
