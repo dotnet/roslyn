@@ -241,9 +241,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return binder;
         }
 
+        private void NullableAnalyzeParameterDefaultValueFromAttributes(DiagnosticBag diagnostics)
+        {
+            var defaultValue = DefaultValueFromAttributes;
+            if (defaultValue == null || defaultValue.IsBad)
+            {
+                return;
+            }
+
+            var parameterSyntax = this.CSharpSyntaxNode;
+            var binder = GetBinder(parameterSyntax);
+
+            var parameterEqualsValue = new BoundParameterEqualsValue(
+                parameterSyntax,
+                this,
+                ImmutableArray<LocalSymbol>.Empty,
+                // note that if the parameter type conflicts with the default value from attributes,
+                // we will just get a bad constant value above and return early.
+                new BoundLiteral(parameterSyntax, DefaultValueFromAttributes, Type));
+
+            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
+        }
+
         private ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics)
         {
-            AnalyzeParameterDefaultValueFromAttributes(diagnostics);
+            // Note that this can't be done at the time we determine the default value from attributes,
+            // because nullable analysis requires attributes to be populated on symbols to work properly.
+            NullableAnalyzeParameterDefaultValueFromAttributes(diagnostics);
 
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
@@ -1115,28 +1139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Force binding of default value.
             var unused = this.ExplicitDefaultConstantValue;
-        }
-
-        private void AnalyzeParameterDefaultValueFromAttributes(DiagnosticBag diagnostics)
-        {
-            var defaultValue = DefaultValueFromAttributes;
-            if (defaultValue == null || defaultValue.IsBad)
-            {
-                return;
-            }
-
-            var parameterSyntax = this.CSharpSyntaxNode;
-            var binder = GetBinder(parameterSyntax);
-
-            var parameterEqualsValue = new BoundParameterEqualsValue(
-                parameterSyntax,
-                this,
-                ImmutableArray<LocalSymbol>.Empty,
-                // note that if the parameter type conflicts with the default value from attributes,
-                // we will just get a bad constant value above and return early.
-                new BoundLiteral(parameterSyntax, DefaultValueFromAttributes, Type));
-
-            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
         }
     }
 
