@@ -136,13 +136,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed partial class SingleValueCaseClauseOperation : BaseSingleValueCaseClauseOperation, ISingleValueCaseClauseOperation
-    {
-        public SingleValueCaseClauseOperation(ILabelSymbol label, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(value, CaseKind.SingleValue, label, semanticModel, syntax, type, constantValue, isImplicit)
-        { }
-    }
-
     internal sealed class FlowAnonymousFunctionOperation : OperationOld, IFlowAnonymousFunctionOperation
     {
         public readonly ControlFlowGraphBuilder.Context Context;
@@ -197,28 +190,32 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         public override ISymbol Member => Field;
     }
+
+    internal sealed partial class RangeCaseClauseOperation
+    {
+        public override CaseKind CaseKind => CaseKind.Range;
+    }
+
+    internal sealed partial class SingleValueCaseClauseOperation
+    {
+        public override CaseKind CaseKind => CaseKind.SingleValue;
+    }
+
+    internal sealed partial class RelationalCaseClauseOperation
+    {
+        public override CaseKind CaseKind => CaseKind.Relational;
+    }
+
+    internal sealed partial class DefaultCaseClauseOperation
+    {
+        public override CaseKind CaseKind => CaseKind.Default;
+    }
+
+    internal sealed partial class PatternCaseClauseOperation
+    {
+        public override CaseKind CaseKind => CaseKind.Pattern;
+    }
 #nullable disable
-
-    internal sealed partial class RangeCaseClauseOperation : BaseRangeCaseClauseOperation, IRangeCaseClauseOperation
-    {
-        public RangeCaseClauseOperation(IOperation minimumValue, IOperation maximumValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(minimumValue, maximumValue, CaseKind.Range, label: null, semanticModel, syntax, type, constantValue, isImplicit)
-        { }
-    }
-
-    internal sealed partial class RelationalCaseClauseOperation : BaseRelationalCaseClauseOperation, IRelationalCaseClauseOperation
-    {
-        public RelationalCaseClauseOperation(IOperation value, BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(value, relation, CaseKind.Relational, label: null, semanticModel, syntax, type, constantValue, isImplicit)
-        { }
-    }
-
-    internal sealed partial class DefaultCaseClauseOperation : BaseCaseClauseOperation
-    {
-        public DefaultCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(CaseKind.Default, label, semanticModel, syntax, type, constantValue, isImplicit)
-        { }
-    }
 
     internal abstract partial class HasDynamicArgumentsExpression : OperationOld
     {
@@ -581,96 +578,6 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit) :
             this(matchedType, deconstructSymbol, deconstructionSubpatterns, propertySubpatterns, declaredSymbol, inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         { }
-    }
-
-    internal abstract partial class BasePatternCaseClauseOperation : BaseCaseClauseOperation, IPatternCaseClauseOperation
-    {
-        protected BasePatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(CaseKind.Pattern, label, OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                if (Pattern != null)
-                {
-                    yield return Pattern;
-                }
-                if (Guard != null)
-                {
-                    yield return Guard;
-                }
-            }
-        }
-        public abstract IPatternOperation Pattern { get; }
-        public abstract IOperation Guard { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitPatternCaseClause(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitPatternCaseClause(this, argument);
-        }
-    }
-
-    internal sealed partial class PatternCaseClauseOperation : BasePatternCaseClauseOperation, IPatternCaseClauseOperation
-    {
-        public PatternCaseClauseOperation(ILabelSymbol label, IPatternOperation pattern, IOperation guardExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(label, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Pattern = SetParentOperation(pattern, this);
-            Guard = SetParentOperation(guardExpression, this);
-        }
-
-        public override IPatternOperation Pattern { get; }
-        public override IOperation Guard { get; }
-    }
-
-    internal abstract class LazyPatternCaseClauseOperation : BasePatternCaseClauseOperation, IPatternCaseClauseOperation
-    {
-        private IPatternOperation _lazyPatternInterlocked = s_unsetPattern;
-        private IOperation _lazyGuardExpressionInterlocked = s_unset;
-
-        public LazyPatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(label, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        protected abstract IPatternOperation CreatePattern();
-        protected abstract IOperation CreateGuard();
-
-        public override IPatternOperation Pattern
-        {
-            get
-            {
-                if (_lazyPatternInterlocked == s_unsetPattern)
-                {
-                    IPatternOperation pattern = CreatePattern();
-                    SetParentOperation(pattern, this);
-                    Interlocked.CompareExchange(ref _lazyPatternInterlocked, pattern, s_unsetPattern);
-                }
-
-                return _lazyPatternInterlocked;
-            }
-        }
-
-        public override IOperation Guard
-        {
-            get
-            {
-                if (_lazyGuardExpressionInterlocked == s_unset)
-                {
-                    IOperation guard = CreateGuard();
-                    SetParentOperation(guard, this);
-                    Interlocked.CompareExchange(ref _lazyGuardExpressionInterlocked, guard, s_unset);
-                }
-
-                return _lazyGuardExpressionInterlocked;
-            }
-        }
     }
 
     internal sealed partial class FlowCaptureReferenceOperation : OperationOld, IFlowCaptureReferenceOperation

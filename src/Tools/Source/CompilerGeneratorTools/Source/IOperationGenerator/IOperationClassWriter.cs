@@ -493,8 +493,21 @@ namespace IOperationGenerator
             void writeConstructor(string accessibility, string @class, IEnumerable<Property> properties, IEnumerable<Property>? baseProperties, AbstractNode type, bool hasType, bool hasConstantValue, bool multipleValidKinds)
             {
                 Write($"{accessibility} {@class}(");
+
+                var newProps = new HashSet<string>(StringComparer.Ordinal);
+
                 foreach (var prop in properties)
                 {
+                    if (newProps.Contains(prop.Name))
+                    {
+                        continue;
+                    }
+
+                    if (prop.IsNew)
+                    {
+                        newProps.Add(prop.Name);
+                    }
+
                     if (prop.Type == "CommonConversion")
                     {
                         Write($"IConvertibleConversion {prop.Name.ToCamelCase()}, ");
@@ -524,6 +537,7 @@ namespace IOperationGenerator
 
                 if (baseProperties is object)
                 {
+                    // This will naturally pass all new'd parameters to the base
                     foreach (var prop in baseProperties)
                     {
                         if (prop.MakeAbstract)
@@ -551,7 +565,11 @@ namespace IOperationGenerator
                     Brace();
                     foreach (var prop in propsToInitialize)
                     {
-                        if (prop.Type == "CommonConversion")
+                        if (prop.IsNew)
+                        {
+                            continue;
+                        }
+                        else if (prop.Type == "CommonConversion")
                         {
                             WriteLine($"{prop.Name}Convertible = {prop.Name.ToCamelCase()};");
                         }
@@ -591,6 +609,29 @@ namespace IOperationGenerator
                     // version of the property, and the public version needs to call ToCommonConversion
                     WriteLine($"internal IConvertibleConversion {prop.Name}Convertible {{ get; }}");
                     WriteLine($"public CommonConversion {prop.Name} => {prop.Name}Convertible.ToCommonConversion();");
+                }
+                else if (prop.IsNew)
+                {
+                    Write($"public new {propExtensibility}{prop.Type} {prop.Name} => ");
+
+                    // If the type that is being new'd is more specific, emit a cast. Otherwise, just delegate
+                    Debug.Assert(baseProperties != null);
+                    var baseProp = baseProperties.Single(p => p.Name == prop.Name);
+                    var basePropTypeWithoutNullable = GetTypeNameWithoutNullable(baseProp.Type);
+                    var propTypeWithoutNullable = GetTypeNameWithoutNullable(prop.Type);
+                    if (basePropTypeWithoutNullable != propTypeWithoutNullable)
+                    {
+                        Write($"({prop.Type})");
+                    }
+
+                    Write($"base.{baseProp.Name}");
+
+                    if (baseProp.Type[^1] == '?' && prop.Type[^1] != '?')
+                    {
+                        Write("!");
+                    }
+
+                    WriteLine(";");
                 }
                 else
                 {
@@ -1077,13 +1118,20 @@ namespace IOperationGenerator
                 WriteLine($"var {internalName} = ({nameMinusI})operation;");
                 Write($"return new {nameMinusI}(");
 
+                var newProps = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var prop in GetAllProperties(node))
                 {
-                    if (prop.MakeAbstract)
+                    if (prop.MakeAbstract || newProps.Contains(prop.Name))
                     {
                         continue;
                     }
-                    else if (IsIOperationType(prop.Type))
+
+                    if (prop.IsNew)
+                    {
+                        newProps.Add(prop.Name);
+                    }
+
+                    if (IsIOperationType(prop.Type))
                     {
                         Write(IsImmutableArray(prop.Type, out _) ? "VisitArray" : "Visit");
                         Write($"({internalName}.{prop.Name}), ");
@@ -1211,11 +1259,11 @@ namespace IOperationGenerator
         private bool IsIOperationType(string typeName)
         {
             Debug.Assert(typeName.Length > 0);
-            return _typeMap.ContainsKey(getTypeName(typeName)) ||
-              (IsImmutableArray(typeName, out var innerType) && IsIOperationType(getTypeName(innerType)));
-
-            static string getTypeName(string typeName) => typeName[^1] == '?' ? typeName[..^1] : typeName;
+            return _typeMap.ContainsKey(GetTypeNameWithoutNullable(typeName)) ||
+              (IsImmutableArray(typeName, out var innerType) && IsIOperationType(GetTypeNameWithoutNullable(innerType)));
         }
+
+        private static string GetTypeNameWithoutNullable(string typeName) => typeName[^1] == '?' ? typeName[..^1] : typeName;
 
         private static bool IsImmutableArray(string typeName, [NotNullWhen(true)] out string? arrayType)
         {

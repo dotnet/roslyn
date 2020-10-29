@@ -100,61 +100,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyRangeCaseClauseOperation
-        Inherits LazyRangeCaseClauseOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _rangeCaseClause As BoundRangeCaseClause
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, rangeCaseClause As BoundRangeCaseClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(CaseKind.Range, label:=Nothing, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _rangeCaseClause = rangeCaseClause
-        End Sub
-
-        Protected Overrides Function CreateMinimumValue() As IOperation
-            Return _operationFactory.Create(VisualBasicOperationFactory.GetCaseClauseValue(_rangeCaseClause.LowerBoundOpt, _rangeCaseClause.LowerBoundConditionOpt))
-        End Function
-
-        Protected Overrides Function CreateMaximumValue() As IOperation
-            Return _operationFactory.Create(VisualBasicOperationFactory.GetCaseClauseValue(_rangeCaseClause.UpperBoundOpt, _rangeCaseClause.UpperBoundConditionOpt))
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyRelationalCaseClauseOperation
-        Inherits LazyRelationalCaseClauseOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _value As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, relation As BinaryOperatorKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(relation, CaseKind.Relational, label:=Nothing, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _value = value
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_value)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazySingleValueCaseClauseOperation
-        Inherits LazySingleValueCaseClauseOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _value As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, label As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(CaseKind.SingleValue, label, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _value = value
-        End Sub
-
-        Protected Overrides Function CreateValue() As IOperation
-            Return _operationFactory.Create(_value)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyDynamicInvocationOperation
         Inherits LazyDynamicInvocationOperation
 

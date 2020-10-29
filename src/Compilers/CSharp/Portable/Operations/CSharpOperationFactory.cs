@@ -2134,35 +2134,33 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundSwitchExpressionArm.Syntax,
                 boundSwitchExpressionArm.WasCompilerGenerated);
         }
-#nullable disable
 
         private ICaseClauseOperation CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
         {
             SyntaxNode syntax = boundSwitchLabel.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundSwitchLabel.WasCompilerGenerated;
             LabelSymbol label = boundSwitchLabel.Label;
 
             if (boundSwitchLabel.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
             {
                 Debug.Assert(boundSwitchLabel.Pattern.Kind == BoundKind.DiscardPattern);
-                return new DefaultCaseClauseOperation(label.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
+                return new DefaultCaseClauseOperation(label.GetPublicSymbol(), _semanticModel, syntax, isImplicit);
             }
             else if (boundSwitchLabel.WhenClause == null &&
                      boundSwitchLabel.Pattern.Kind == BoundKind.ConstantPattern &&
                      boundSwitchLabel.Pattern is BoundConstantPattern cp &&
                      cp.InputType.IsValidV6SwitchGoverningType())
             {
-                return new CSharpLazySingleValueCaseClauseOperation(this, cp.Value, label.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
+                return new SingleValueCaseClauseOperation(Create(cp.Value), label.GetPublicSymbol(), _semanticModel, syntax, isImplicit);
             }
             else
             {
-                return new CSharpLazyPatternCaseClauseOperation(this, boundSwitchLabel, label.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
+                IPatternOperation pattern = (IPatternOperation)Create(boundSwitchLabel.Pattern);
+                IOperation? guard = Create(boundSwitchLabel.WhenClause);
+                return new PatternCaseClauseOperation(label.GetPublicSymbol(), pattern, guard, _semanticModel, syntax, isImplicit);
             }
         }
 
-#nullable enable
         private IIsPatternOperation CreateBoundIsPatternExpressionOperation(BoundIsPatternExpression boundIsPatternExpression)
         {
             IOperation value = Create(boundIsPatternExpression.Expression);

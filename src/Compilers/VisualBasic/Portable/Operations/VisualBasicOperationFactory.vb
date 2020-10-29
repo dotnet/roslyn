@@ -1068,8 +1068,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                                 label:=Nothing,
                                 _semanticModel,
                                 caseStatement.Syntax,
-                                type:=Nothing,
-                                constantValue:=Nothing,
                                 isImplicit:=boundCaseBlock.WasCompilerGenerated))
             Else
                 Return caseStatement.CaseClauses.SelectAsArray(Function(n) DirectCast(Create(n), ICaseClauseOperation))
@@ -1105,30 +1103,27 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundSimpleCaseClauseOperation(boundSimpleCaseClause As BoundSimpleCaseClause) As ISingleValueCaseClauseOperation
-            Dim clauseValue = GetSingleValueCaseClauseValue(boundSimpleCaseClause)
+            Dim clauseValue As IOperation = Create(GetSingleValueCaseClauseValue(boundSimpleCaseClause))
             Dim syntax As SyntaxNode = boundSimpleCaseClause.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundSimpleCaseClause.WasCompilerGenerated
-            Return New VisualBasicLazySingleValueCaseClauseOperation(Me, clauseValue, label:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New SingleValueCaseClauseOperation(clauseValue, label:=Nothing, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundRangeCaseClauseOperation(boundRangeCaseClause As BoundRangeCaseClause) As IRangeCaseClauseOperation
+            Dim minimumValue As IOperation = Create(GetCaseClauseValue(boundRangeCaseClause.LowerBoundOpt, boundRangeCaseClause.LowerBoundConditionOpt))
+            Dim maximumValue As IOperation = Create(GetCaseClauseValue(boundRangeCaseClause.UpperBoundOpt, boundRangeCaseClause.UpperBoundConditionOpt))
+            Debug.Assert(minimumValue IsNot Nothing AndAlso maximumValue IsNot Nothing)
             Dim syntax As SyntaxNode = boundRangeCaseClause.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundRangeCaseClause.WasCompilerGenerated
-            Return New VisualBasicLazyRangeCaseClauseOperation(Me, boundRangeCaseClause, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New RangeCaseClauseOperation(minimumValue, maximumValue, label:=Nothing, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundRelationalCaseClauseOperation(boundRelationalCaseClause As BoundRelationalCaseClause) As IRelationalCaseClauseOperation
-            Dim valueExpression = GetSingleValueCaseClauseValue(boundRelationalCaseClause)
+            Dim valueExpression As IOperation = Create(GetSingleValueCaseClauseValue(boundRelationalCaseClause))
             Dim relation As BinaryOperatorKind = If(valueExpression IsNot Nothing, Helper.DeriveBinaryOperatorKind(boundRelationalCaseClause.OperatorKind, leftOpt:=Nothing), BinaryOperatorKind.None)
             Dim syntax As SyntaxNode = boundRelationalCaseClause.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundRelationalCaseClause.WasCompilerGenerated
-            Return New VisualBasicLazyRelationalCaseClauseOperation(Me, valueExpression, relation, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New RelationalCaseClauseOperation(valueExpression, relation, label:=Nothing, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundDoLoopStatementOperation(boundDoLoopStatement As BoundDoLoopStatement) As IWhileLoopOperation

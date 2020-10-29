@@ -2179,12 +2179,12 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="CaseKind" Type="CaseKind">
+    <Property Name="CaseKind" Type="CaseKind" MakeAbstract="true">
       <Comments>
         <summary>Kind of the clause.</summary>
       </Comments>
     </Property>
-    <Property Name="Label" Type="ILabelSymbol">
+    <Property Name="Label" Type="ILabelSymbol?">
       <Comments>
         <summary>Label associated with the case clause, if any.</summary>
       </Comments>
@@ -2203,7 +2203,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IPatternCaseClauseOperation" Base="ICaseClauseOperation" SkipClassGeneration="true">
+  <Node Name="IPatternCaseClauseOperation" Base="ICaseClauseOperation" ChildrenOrder="Pattern,Guard">
     <OperationKind Include="false" />
     <Comments>
       <summary>
@@ -2216,9 +2216,9 @@
     </Comments>
     <Property Name="Label" Type="ILabelSymbol" New="true">
       <Comments>
+        <!-- It would be a binary breaking change to remove this -->
         <summary>
           Label associated with the case clause.
-          https://github.com/dotnet/roslyn/issues/27602: Similar property was added to the base interface, consider if we can remove this one.
         </summary>
       </Comments>
     </Property>
@@ -2227,7 +2227,7 @@
         <summary>Pattern associated with case clause.</summary>
       </Comments>
     </Property>
-    <Property Name="Guard" Type="IOperation">
+    <Property Name="Guard" Type="IOperation?">
       <Comments>
         <summary>Guard associated with the pattern case clause.</summary>
       </Comments>

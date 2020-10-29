@@ -36,26 +36,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new VariableDeclarationOperation(VisitArray(operation.Declarators), Visit(operation.Initializer), VisitArray(operation.IgnoredDimensions), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, object argument)
-        {
-            return new SingleValueCaseClauseOperation(operation.Label, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, object argument)
-        {
-            return new RelationalCaseClauseOperation(Visit(operation.Value), operation.Relation, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitRangeCaseClause(IRangeCaseClauseOperation operation, object argument)
-        {
-            return new RangeCaseClauseOperation(Visit(operation.MinimumValue), Visit(operation.MaximumValue), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
-        public override IOperation VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, object argument)
-        {
-            return new DefaultCaseClauseOperation(operation.Label, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
-
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object argument)
         {
             var anonymous = (FlowAnonymousFunctionOperation)operation;
@@ -130,11 +110,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 ((Operation)operation).OwningSemanticModel,
                 operation.Syntax,
                 operation.IsImplicit);
-        }
-
-        public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)
-        {
-            return new PatternCaseClauseOperation(operation.Label, Visit(operation.Pattern), Visit(operation.Guard), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, object argument)

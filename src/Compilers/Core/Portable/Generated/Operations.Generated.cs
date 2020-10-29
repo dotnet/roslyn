@@ -2568,6 +2568,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<ILocalSymbol> Locals { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a case clause.
     /// <para>
@@ -2589,8 +2590,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Label associated with the case clause, if any.
         /// </summary>
-        ILabelSymbol Label { get; }
+        ILabelSymbol? Label { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a default case clause.
     /// <para>
@@ -2606,6 +2609,8 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IDefaultCaseClauseOperation : ICaseClauseOperation
     {
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a case clause with a pattern and an optional guard operation.
     /// <para>
@@ -2621,7 +2626,6 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         /// <summary>
         /// Label associated with the case clause.
-        /// https://github.com/dotnet/roslyn/issues/27602: Similar property was added to the base interface, consider if we can remove this one.
         /// </summary>
         new ILabelSymbol Label { get; }
         /// <summary>
@@ -2631,8 +2635,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Guard associated with the pattern case clause.
         /// </summary>
-        IOperation Guard { get; }
+        IOperation? Guard { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a case clause with range of values for comparison.
     /// <para>
@@ -2655,6 +2661,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation MaximumValue { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a case clause with custom relational operator for comparison.
     /// <para>
@@ -2677,6 +2685,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         BinaryOperatorKind Relation { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a case clause with a single value for comparison.
     /// <para>
@@ -2696,6 +2706,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Value { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a constituent part of an interpolated string.
     /// <para>
@@ -6026,180 +6037,160 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitSwitchCase(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseCaseClauseOperation : OperationOld, ICaseClauseOperation
+    #nullable enable
+    internal abstract partial class BaseCaseClauseOperation : Operation, ICaseClauseOperation
     {
-        protected BaseCaseClauseOperation(CaseKind caseKind, ILabelSymbol label, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseCaseClauseOperation(ILabelSymbol? label, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
-            CaseKind = caseKind;
             Label = label;
         }
-        public CaseKind CaseKind { get; }
-        public ILabelSymbol Label { get; }
+        public abstract CaseKind CaseKind { get; }
+        public ILabelSymbol? Label { get; }
     }
+    #nullable disable
+    #nullable enable
     internal sealed partial class DefaultCaseClauseOperation : BaseCaseClauseOperation, IDefaultCaseClauseOperation
     {
-        internal DefaultCaseClauseOperation(CaseKind caseKind, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(caseKind, label, OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal DefaultCaseClauseOperation(ILabelSymbol? label, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(label, semanticModel, syntax, isImplicit) { }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.CaseClause;
         public override void Accept(OperationVisitor visitor) => visitor.VisitDefaultCaseClause(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDefaultCaseClause(this, argument);
     }
-    internal abstract partial class BaseRangeCaseClauseOperation : BaseCaseClauseOperation, IRangeCaseClauseOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class PatternCaseClauseOperation : BaseCaseClauseOperation, IPatternCaseClauseOperation
     {
-        internal BaseRangeCaseClauseOperation(CaseKind caseKind, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(caseKind, label, OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation MinimumValue { get; }
-        public abstract IOperation MaximumValue { get; }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal PatternCaseClauseOperation(ILabelSymbol label, IPatternOperation pattern, IOperation? guard, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(label, semanticModel, syntax, isImplicit)
+        {
+            Pattern = SetParentOperation(pattern, this);
+            Guard = SetParentOperation(guard, this);
+        }
+        public new ILabelSymbol Label => base.Label!;
+        public IPatternOperation Pattern { get; }
+        public IOperation? Guard { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (MinimumValue is object) yield return MinimumValue;
-                if (MaximumValue is object) yield return MaximumValue;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (Pattern is not null) builder.Add(Pattern);
+                    if (Guard is not null) builder.Add(Guard);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitRangeCaseClause(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitRangeCaseClause(this, argument);
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.CaseClause;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitPatternCaseClause(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPatternCaseClause(this, argument);
     }
-    internal sealed partial class RangeCaseClauseOperation : BaseRangeCaseClauseOperation, IRangeCaseClauseOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class RangeCaseClauseOperation : BaseCaseClauseOperation, IRangeCaseClauseOperation
     {
-        internal RangeCaseClauseOperation(IOperation minimumValue, IOperation maximumValue, CaseKind caseKind, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(caseKind, label, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal RangeCaseClauseOperation(IOperation minimumValue, IOperation maximumValue, ILabelSymbol? label, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(label, semanticModel, syntax, isImplicit)
         {
             MinimumValue = SetParentOperation(minimumValue, this);
             MaximumValue = SetParentOperation(maximumValue, this);
         }
-        public override IOperation MinimumValue { get; }
-        public override IOperation MaximumValue { get; }
-    }
-    internal abstract partial class LazyRangeCaseClauseOperation : BaseRangeCaseClauseOperation, IRangeCaseClauseOperation
-    {
-        private IOperation _lazyMinimumValue = s_unset;
-        private IOperation _lazyMaximumValue = s_unset;
-        internal LazyRangeCaseClauseOperation(CaseKind caseKind, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(caseKind, label, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateMinimumValue();
-        public override IOperation MinimumValue
+        public IOperation MinimumValue { get; }
+        public IOperation MaximumValue { get; }
+        public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (_lazyMinimumValue == s_unset)
+                if (_lazyChildren is null)
                 {
-                    IOperation minimumValue = CreateMinimumValue();
-                    SetParentOperation(minimumValue, this);
-                    Interlocked.CompareExchange(ref _lazyMinimumValue, minimumValue, s_unset);
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (MinimumValue is not null) builder.Add(MinimumValue);
+                    if (MaximumValue is not null) builder.Add(MaximumValue);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                return _lazyMinimumValue;
+                return _lazyChildren;
             }
         }
-        protected abstract IOperation CreateMaximumValue();
-        public override IOperation MaximumValue
-        {
-            get
-            {
-                if (_lazyMaximumValue == s_unset)
-                {
-                    IOperation maximumValue = CreateMaximumValue();
-                    SetParentOperation(maximumValue, this);
-                    Interlocked.CompareExchange(ref _lazyMaximumValue, maximumValue, s_unset);
-                }
-                return _lazyMaximumValue;
-            }
-        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.CaseClause;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitRangeCaseClause(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitRangeCaseClause(this, argument);
     }
-    internal abstract partial class BaseRelationalCaseClauseOperation : BaseCaseClauseOperation, IRelationalCaseClauseOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class RelationalCaseClauseOperation : BaseCaseClauseOperation, IRelationalCaseClauseOperation
     {
-        internal BaseRelationalCaseClauseOperation(BinaryOperatorKind relation, CaseKind caseKind, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(caseKind, label, OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal RelationalCaseClauseOperation(IOperation value, BinaryOperatorKind relation, ILabelSymbol? label, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(label, semanticModel, syntax, isImplicit)
         {
+            Value = SetParentOperation(value, this);
             Relation = relation;
         }
-        public abstract IOperation Value { get; }
+        public IOperation Value { get; }
         public BinaryOperatorKind Relation { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Value is object) yield return Value;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Value is not null) builder.Add(Value);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.CaseClause;
         public override void Accept(OperationVisitor visitor) => visitor.VisitRelationalCaseClause(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitRelationalCaseClause(this, argument);
     }
-    internal sealed partial class RelationalCaseClauseOperation : BaseRelationalCaseClauseOperation, IRelationalCaseClauseOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class SingleValueCaseClauseOperation : BaseCaseClauseOperation, ISingleValueCaseClauseOperation
     {
-        internal RelationalCaseClauseOperation(IOperation value, BinaryOperatorKind relation, CaseKind caseKind, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(relation, caseKind, label, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal SingleValueCaseClauseOperation(IOperation value, ILabelSymbol? label, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(label, semanticModel, syntax, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
-        public override IOperation Value { get; }
-    }
-    internal abstract partial class LazyRelationalCaseClauseOperation : BaseRelationalCaseClauseOperation, IRelationalCaseClauseOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        internal LazyRelationalCaseClauseOperation(BinaryOperatorKind relation, CaseKind caseKind, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(relation, caseKind, label, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-    }
-    internal abstract partial class BaseSingleValueCaseClauseOperation : BaseCaseClauseOperation, ISingleValueCaseClauseOperation
-    {
-        internal BaseSingleValueCaseClauseOperation(CaseKind caseKind, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(caseKind, label, OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Value { get; }
+        public IOperation Value { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Value is object) yield return Value;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Value is not null) builder.Add(Value);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.CaseClause;
         public override void Accept(OperationVisitor visitor) => visitor.VisitSingleValueCaseClause(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitSingleValueCaseClause(this, argument);
     }
-    internal sealed partial class SingleValueCaseClauseOperation : BaseSingleValueCaseClauseOperation, ISingleValueCaseClauseOperation
-    {
-        internal SingleValueCaseClauseOperation(IOperation value, CaseKind caseKind, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(caseKind, label, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-        }
-        public override IOperation Value { get; }
-    }
-    internal abstract partial class LazySingleValueCaseClauseOperation : BaseSingleValueCaseClauseOperation, ISingleValueCaseClauseOperation
-    {
-        private IOperation _lazyValue = s_unset;
-        internal LazySingleValueCaseClauseOperation(CaseKind caseKind, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(caseKind, label, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
-        {
-            get
-            {
-                if (_lazyValue == s_unset)
-                {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
-                }
-                return _lazyValue;
-            }
-        }
-    }
+    #nullable disable
     internal abstract partial class BaseInterpolatedStringContentOperation : OperationOld, IInterpolatedStringContentOperation
     {
         protected BaseInterpolatedStringContentOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -7720,6 +7711,31 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (SwitchCaseOperation)operation;
             return new SwitchCaseOperation(VisitArray(internalOperation.Clauses), VisitArray(internalOperation.Body), internalOperation.Locals, Visit(internalOperation.Condition), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, object? argument)
+        {
+            var internalOperation = (DefaultCaseClauseOperation)operation;
+            return new DefaultCaseClauseOperation(internalOperation.Label, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object? argument)
+        {
+            var internalOperation = (PatternCaseClauseOperation)operation;
+            return new PatternCaseClauseOperation(internalOperation.Label, Visit(internalOperation.Pattern), Visit(internalOperation.Guard), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitRangeCaseClause(IRangeCaseClauseOperation operation, object? argument)
+        {
+            var internalOperation = (RangeCaseClauseOperation)operation;
+            return new RangeCaseClauseOperation(Visit(internalOperation.MinimumValue), Visit(internalOperation.MaximumValue), internalOperation.Label, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, object? argument)
+        {
+            var internalOperation = (RelationalCaseClauseOperation)operation;
+            return new RelationalCaseClauseOperation(Visit(internalOperation.Value), internalOperation.Relation, internalOperation.Label, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, object? argument)
+        {
+            var internalOperation = (SingleValueCaseClauseOperation)operation;
+            return new SingleValueCaseClauseOperation(Visit(internalOperation.Value), internalOperation.Label, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, object? argument)
         {

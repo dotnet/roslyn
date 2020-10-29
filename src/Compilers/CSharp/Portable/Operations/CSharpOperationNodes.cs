@@ -131,24 +131,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazySingleValueCaseClauseOperation : LazySingleValueCaseClauseOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _value;
-
-        internal CSharpLazySingleValueCaseClauseOperation(CSharpOperationFactory operationFactory, BoundNode value, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(CaseKind.SingleValue, label, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _value = value;
-        }
-
-        protected override IOperation CreateValue()
-        {
-            return _operationFactory.Create(_value);
-        }
-    }
-
     internal sealed class CSharpLazyDynamicObjectCreationOperation : LazyDynamicObjectCreationOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -438,29 +420,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns()
         {
             return ImmutableArray<IPropertySubpatternOperation>.Empty;
-        }
-    }
-
-    internal sealed class CSharpLazyPatternCaseClauseOperation : LazyPatternCaseClauseOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundSwitchLabel _patternSwitchLabel;
-
-        internal CSharpLazyPatternCaseClauseOperation(CSharpOperationFactory operationFactory, BoundSwitchLabel patternSwitchLabel, ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(label, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _patternSwitchLabel = patternSwitchLabel;
-        }
-
-        protected override IPatternOperation CreatePattern()
-        {
-            return (IPatternOperation)_operationFactory.Create(_patternSwitchLabel.Pattern);
-        }
-
-        protected override IOperation CreateGuard()
-        {
-            return _operationFactory.Create(_patternSwitchLabel.WhenClause);
         }
     }
 
