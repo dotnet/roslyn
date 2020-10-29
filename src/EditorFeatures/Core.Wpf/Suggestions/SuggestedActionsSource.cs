@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource3
         {
             private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
+            private readonly WorkspaceRegistration _registration;
 
             // state that will be only reset when source is disposed.
             private SuggestedActionsSourceProvider _owner;
             private ITextView _textView;
             private ITextBuffer _subjectBuffer;
-            private WorkspaceRegistration _registration;
 
             // mutable state
             private Workspace? _workspace;
@@ -89,10 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     _workspace.DocumentActiveContextChanged -= OnActiveContextChanged;
                 }
 
-                if (_registration != null)
-                {
-                    _registration.WorkspaceChanged -= OnWorkspaceChanged;
-                }
+                _registration.WorkspaceChanged -= OnWorkspaceChanged;
 
                 if (_textView != null)
                 {
@@ -102,7 +99,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 _owner = null!;
                 _workspace = null;
                 _workspaceStatusService = null;
-                _registration = null!;
                 _textView = null!;
                 _subjectBuffer = null!;
             }
