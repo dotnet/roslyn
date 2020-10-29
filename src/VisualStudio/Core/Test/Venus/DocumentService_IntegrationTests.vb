@@ -265,7 +265,7 @@ class { }
 
                 Public ReadOnly Property IsLegacy As Boolean Implements ISpanMappingService.IsLegacy
                     Get
-                        Return False
+                        Return True
                     End Get
                 End Property
 
