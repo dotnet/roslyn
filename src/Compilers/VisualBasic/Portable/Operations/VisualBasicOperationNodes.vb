@@ -100,78 +100,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyForEachLoopOperation
-        Inherits LazyForEachLoopOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _forEachLoop As BoundForEachStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, forEachLoop As BoundForEachStatement, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(isAsynchronous:=False, LoopKind.ForEach, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _forEachLoop = forEachLoop
-        End Sub
-
-        Protected Overrides Function CreateLoopInfo() As ForEachLoopOperationInfo
-            Return _operationFactory.GetForEachLoopOperationInfo(_forEachLoop)
-        End Function
-
-        Protected Overrides Function CreateLoopControlVariable() As IOperation
-            Return _operationFactory.CreateBoundControlVariableOperation(_forEachLoop)
-        End Function
-
-        Protected Overrides Function CreateCollection() As IOperation
-            Return _operationFactory.Create(_forEachLoop.Collection)
-        End Function
-
-        Protected Overrides Function CreateNextVariables() As ImmutableArray(Of IOperation)
-            Return If(_forEachLoop.NextVariablesOpt.IsDefault, ImmutableArray(Of IOperation).Empty, _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_forEachLoop.NextVariablesOpt))
-        End Function
-
-        Protected Overrides Function CreateBody() As IOperation
-            Return _operationFactory.Create(_forEachLoop.Body)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyForToLoopOperation
-        Inherits LazyForToLoopOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _boundForToLoop As BoundForToStatement
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundForToLoop As BoundForToStatement, locals As ImmutableArray(Of ILocalSymbol), isChecked As Boolean, info As (LoopObject As ILocalSymbol, UserDefinedInfo As ForToLoopOperationUserDefinedInfo), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(isChecked, info, LoopKind.ForTo, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _boundForToLoop = boundForToLoop
-        End Sub
-
-        Protected Overrides Function CreateLoopControlVariable() As IOperation
-            Return _operationFactory.CreateBoundControlVariableOperation(_boundForToLoop)
-        End Function
-
-        Protected Overrides Function CreateInitialValue() As IOperation
-            Return _operationFactory.Create(_boundForToLoop.InitialValue)
-        End Function
-
-        Protected Overrides Function CreateLimitValue() As IOperation
-            Return _operationFactory.Create(_boundForToLoop.LimitValue)
-        End Function
-
-        Protected Overrides Function CreateStepValue() As IOperation
-            Return _operationFactory.Create(_boundForToLoop.StepValue)
-        End Function
-
-        Protected Overrides Function CreateBody() As IOperation
-            Return _operationFactory.Create(_boundForToLoop.Body)
-        End Function
-
-        Protected Overrides Function CreateNextVariables() As ImmutableArray(Of IOperation)
-            Return If(_boundForToLoop.NextVariablesOpt.IsDefault,
-                      ImmutableArray(Of IOperation).Empty,
-_operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoop.NextVariablesOpt))
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyInterpolatedStringTextOperation
         Inherits LazyInterpolatedStringTextOperation
 
@@ -372,31 +300,6 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
 
         Protected Overrides Function CreateDeclarations() As ImmutableArray(Of IVariableDeclarationOperation)
             Return _operationFactory.GetVariableDeclarationStatementVariables(_localDeclarations.Declarations)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyWhileLoopOperation
-        Inherits LazyWhileLoopOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _conditionalLoop As IBoundConditionalLoop
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalLoop As IBoundConditionalLoop, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, conditionIsTop As Boolean, conditionIsUntil As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(conditionIsTop, conditionIsUntil, LoopKind.While, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _conditionalLoop = conditionalLoop
-        End Sub
-
-        Protected Overrides Function CreateCondition() As IOperation
-            Return _operationFactory.Create(_conditionalLoop.Condition)
-        End Function
-
-        Protected Overrides Function CreateBody() As IOperation
-            Return _operationFactory.Create(_conditionalLoop.Body)
-        End Function
-
-        Protected Overrides Function CreateIgnoredCondition() As IOperation
-            Return _operationFactory.Create(_conditionalLoop.IgnoredCondition)
         End Function
     End Class
 End Namespace

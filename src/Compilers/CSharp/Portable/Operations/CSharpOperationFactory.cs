@@ -1609,57 +1609,58 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundIfStatement.WasCompilerGenerated;
             return new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
         }
-#nullable disable
 
         private IWhileLoopOperation CreateBoundWhileStatementOperation(BoundWhileStatement boundWhileStatement)
         {
+            IOperation condition = Create(boundWhileStatement.Condition);
+            IOperation body = Create(boundWhileStatement.Body);
             ImmutableArray<ILocalSymbol> locals = boundWhileStatement.Locals.GetPublicSymbols();
             ILabelSymbol continueLabel = boundWhileStatement.ContinueLabel.GetPublicSymbol();
             ILabelSymbol exitLabel = boundWhileStatement.BreakLabel.GetPublicSymbol();
             bool conditionIsTop = true;
             bool conditionIsUntil = false;
             SyntaxNode syntax = boundWhileStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundWhileStatement.WasCompilerGenerated;
-            return new CSharpLazyWhileLoopOperation(this, boundWhileStatement, locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new WhileLoopOperation(condition, conditionIsTop, conditionIsUntil, ignoredCondition: null, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit);
         }
 
         private IWhileLoopOperation CreateBoundDoStatementOperation(BoundDoStatement boundDoStatement)
         {
+            IOperation condition = Create(boundDoStatement.Condition);
+            IOperation body = Create(boundDoStatement.Body);
             ILabelSymbol continueLabel = boundDoStatement.ContinueLabel.GetPublicSymbol();
             ILabelSymbol exitLabel = boundDoStatement.BreakLabel.GetPublicSymbol();
             bool conditionIsTop = false;
             bool conditionIsUntil = false;
             ImmutableArray<ILocalSymbol> locals = boundDoStatement.Locals.GetPublicSymbols();
             SyntaxNode syntax = boundDoStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundDoStatement.WasCompilerGenerated;
-            return new CSharpLazyWhileLoopOperation(this, boundDoStatement, locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new WhileLoopOperation(condition, conditionIsTop, conditionIsUntil, ignoredCondition: null, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit);
         }
 
         private IForLoopOperation CreateBoundForStatementOperation(BoundForStatement boundForStatement)
         {
+            ImmutableArray<IOperation> before = CreateFromArray<BoundStatement, IOperation>(ToStatements(boundForStatement.Initializer));
+            IOperation? condition = Create(boundForStatement.Condition);
+            ImmutableArray<IOperation> atLoopBottom = CreateFromArray<BoundStatement, IOperation>(ToStatements(boundForStatement.Increment));
+            IOperation body = Create(boundForStatement.Body);
             ImmutableArray<ILocalSymbol> locals = boundForStatement.OuterLocals.GetPublicSymbols();
             ImmutableArray<ILocalSymbol> conditionLocals = boundForStatement.InnerLocals.GetPublicSymbols();
             ILabelSymbol continueLabel = boundForStatement.ContinueLabel.GetPublicSymbol();
             ILabelSymbol exitLabel = boundForStatement.BreakLabel.GetPublicSymbol();
             SyntaxNode syntax = boundForStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundForStatement.WasCompilerGenerated;
-            return new CSharpLazyForLoopOperation(this, boundForStatement, locals, conditionLocals, continueLabel, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ForLoopOperation(before, conditionLocals, condition, atLoopBottom, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit);
         }
 
-        internal ForEachLoopOperationInfo GetForEachLoopOperatorInfo(BoundForEachStatement boundForEachStatement)
+        internal ForEachLoopOperationInfo? GetForEachLoopOperatorInfo(BoundForEachStatement boundForEachStatement)
         {
-            ForEachEnumeratorInfo enumeratorInfoOpt = boundForEachStatement.EnumeratorInfoOpt;
-            ForEachLoopOperationInfo info;
+            ForEachEnumeratorInfo? enumeratorInfoOpt = boundForEachStatement.EnumeratorInfoOpt;
+            ForEachLoopOperationInfo? info;
 
             if (enumeratorInfoOpt != null)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                 var compilation = (CSharpCompilation)_semanticModel.Compilation;
 
                 info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType.GetPublicSymbol(),
@@ -1724,18 +1725,22 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IForEachLoopOperation CreateBoundForEachStatementOperation(BoundForEachStatement boundForEachStatement)
         {
+            IOperation loopControlVariable = CreateBoundForEachStatementLoopControlVariable(boundForEachStatement);
+            IOperation collection = Create(boundForEachStatement.Expression);
+            var nextVariables = ImmutableArray<IOperation>.Empty;
+            IOperation body = Create(boundForEachStatement.Body);
+            ForEachLoopOperationInfo? info = GetForEachLoopOperatorInfo(boundForEachStatement);
+
             ImmutableArray<ILocalSymbol> locals = boundForEachStatement.IterationVariables.GetPublicSymbols();
 
             ILabelSymbol continueLabel = boundForEachStatement.ContinueLabel.GetPublicSymbol();
             ILabelSymbol exitLabel = boundForEachStatement.BreakLabel.GetPublicSymbol();
             SyntaxNode syntax = boundForEachStatement.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundForEachStatement.WasCompilerGenerated;
-            return new CSharpLazyForEachLoopOperation(this, boundForEachStatement, locals, continueLabel, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
+            bool isAsynchronous = boundForEachStatement.AwaitOpt != null;
+            return new ForEachLoopOperation(loopControlVariable, collection, nextVariables, info, isAsynchronous, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit);
         }
 
-#nullable enable
         private ITryOperation CreateBoundTryStatementOperation(BoundTryStatement boundTryStatement)
         {
             var body = (IBlockOperation)Create(boundTryStatement.TryBlock);

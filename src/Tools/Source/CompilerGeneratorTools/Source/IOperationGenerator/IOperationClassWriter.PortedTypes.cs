@@ -13,11 +13,6 @@ namespace IOperationGenerator
         {
             "IInvalidOperation",
             "IVariableDeclarationGroupOperation",
-            "ILoopOperation",
-            "IForEachLoopOperation",
-            "IForLoopOperation",
-            "IForToLoopOperation",
-            "IWhileLoopOperation",
             "IAssignmentOperation",
             "ISimpleAssignmentOperation",
             "ICompoundAssignmentOperation",

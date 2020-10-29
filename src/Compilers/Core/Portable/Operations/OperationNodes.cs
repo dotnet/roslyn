@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -86,70 +87,6 @@ namespace Microsoft.CodeAnalysis.Operations
             this(ImmutableArray<ILocalSymbol>.Empty, value, semanticModel, syntax, type, constantValue, isImplicit)
         { }
     }
-
-    internal abstract partial class BaseForEachLoopOperation : BaseLoopOperation, IForEachLoopOperation
-    {
-        public abstract ForEachLoopOperationInfo Info { get; }
-    }
-
-    internal sealed partial class ForEachLoopOperation : BaseForEachLoopOperation, IForEachLoopOperation
-    {
-        public ForEachLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation loopControlVariable,
-                                    IOperation collection, ImmutableArray<IOperation> nextVariables, bool isAsynchronous, IOperation body, ForEachLoopOperationInfo info,
-                                    SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(loopControlVariable, collection, nextVariables, isAsynchronous, LoopKind.ForEach, body, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Info = info;
-        }
-
-        public override ForEachLoopOperationInfo Info { get; }
-    }
-
-    internal abstract partial class LazyForEachLoopOperation : BaseForEachLoopOperation, IForEachLoopOperation
-    {
-        private ForEachLoopOperationInfo _lazyForEachLoopInfoInterlocked = null;
-        protected abstract ForEachLoopOperationInfo CreateLoopInfo();
-        public override ForEachLoopOperationInfo Info
-        {
-            get
-            {
-                if (_lazyForEachLoopInfoInterlocked == null)
-                {
-                    Interlocked.CompareExchange(ref _lazyForEachLoopInfoInterlocked, CreateLoopInfo(), null);
-                }
-
-                return _lazyForEachLoopInfoInterlocked;
-            }
-        }
-    }
-
-    internal sealed partial class ForLoopOperation : BaseForLoopOperation, IForLoopOperation
-    {
-        public ForLoopOperation(ImmutableArray<IOperation> before, IOperation condition, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, ImmutableArray<ILocalSymbol> conditionLocals,
-            ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(before, conditionLocals, condition, atLoopBottom, LoopKind.For, body, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        { }
-    }
-
-    internal abstract partial class LazyForLoopOperation : BaseForLoopOperation, IForLoopOperation
-    {
-        public LazyForLoopOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<ILocalSymbol> conditionLocals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(conditionLocals, LoopKind.For, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        { }
-    }
-
-    internal sealed partial class ForToLoopOperation : BaseForToLoopOperation, IForToLoopOperation
-    {
-        public ForToLoopOperation(ImmutableArray<ILocalSymbol> locals, bool isChecked,
-                                  (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) info,
-                                  ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation loopControlVariable,
-                                  IOperation initialValue, IOperation limitValue, IOperation stepValue, IOperation body,
-                                  ImmutableArray<IOperation> nextVariables, SemanticModel semanticModel, SyntaxNode syntax,
-                                  ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(loopControlVariable, initialValue, limitValue, stepValue, isChecked, nextVariables, info, LoopKind.ForTo, body, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        { }
-    }
-
     internal abstract partial class BaseInvalidOperation : OperationOld, IInvalidOperation
     {
         protected BaseInvalidOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
@@ -573,45 +510,46 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal abstract partial class BaseWhileLoopOperation : BaseLoopOperation, IWhileLoopOperation
+#nullable enable
+    internal sealed partial class ForEachLoopOperation
+    {
+        public override LoopKind LoopKind => LoopKind.ForEach;
+    }
+
+    internal sealed partial class ForLoopOperation
+    {
+        public override LoopKind LoopKind => LoopKind.For;
+    }
+
+    internal sealed partial class ForToLoopOperation
+    {
+        public override LoopKind LoopKind => LoopKind.ForTo;
+    }
+
+    internal sealed partial class WhileLoopOperation
     {
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (ConditionIsTop)
+                // PROTOTYPE(iop): Look at making the implementation of these better.
+                if (_lazyChildren is null)
                 {
-                    if (Condition != null)
-                    {
-                        yield return Condition;
-                    }
+                    var builder = ArrayBuilder<IOperation>.GetInstance(6);
+                    if (ConditionIsTop) builder.AddIfNotNull(Condition);
+                    builder.AddIfNotNull(Body);
+                    if (!ConditionIsTop) builder.AddIfNotNull(Condition);
+                    builder.AddIfNotNull(IgnoredCondition);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                if (Body != null)
-                {
-                    yield return Body;
-                }
-                if (!ConditionIsTop)
-                {
-                    if (Condition != null)
-                    {
-                        yield return Condition;
-                    }
-                }
-                if (IgnoredCondition != null)
-                {
-                    yield return IgnoredCondition;
-                }
+
+                return _lazyChildren;
             }
         }
-    }
 
-    internal sealed partial class WhileLoopOperation : BaseWhileLoopOperation, IWhileLoopOperation
-    {
-        public WhileLoopOperation(IOperation condition, IOperation body, IOperation ignoredCondition, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(condition, conditionIsTop, conditionIsUntil, ignoredCondition, LoopKind.While, body, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-
-        { }
+        public override LoopKind LoopKind => LoopKind.While;
     }
+#nullable disable
 
     internal sealed partial class ConstantPatternOperation : BaseConstantPatternOperation, IConstantPatternOperation
     {

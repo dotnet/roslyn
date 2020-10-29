@@ -1139,27 +1139,35 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundDoLoopStatementOperation(boundDoLoopStatement As BoundDoLoopStatement) As IWhileLoopOperation
+            Dim condition As IOperation = Create(boundDoLoopStatement.ConditionOpt)
+            Dim body As IOperation = Create(boundDoLoopStatement.Body)
+            Dim ignoredCondition As IOperation = If(boundDoLoopStatement.TopConditionOpt IsNot Nothing AndAlso boundDoLoopStatement.BottomConditionOpt IsNot Nothing,
+                Create(boundDoLoopStatement.BottomConditionOpt), Nothing)
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
             Dim continueLabel As ILabelSymbol = boundDoLoopStatement.ContinueLabel
             Dim exitLabel As ILabelSymbol = boundDoLoopStatement.ExitLabel
             Dim conditionIsTop As Boolean = boundDoLoopStatement.ConditionIsTop
             Dim conditionIsUntil As Boolean = boundDoLoopStatement.ConditionIsUntil
             Dim syntax As SyntaxNode = boundDoLoopStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundDoLoopStatement.WasCompilerGenerated
-            Return New VisualBasicLazyWhileLoopOperation(Me, boundDoLoopStatement, locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New WhileLoopOperation(condition, conditionIsTop, conditionIsUntil, ignoredCondition, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundForToStatementOperation(boundForToStatement As BoundForToStatement) As IForToLoopOperation
+            Dim loopControlVariable As IOperation = CreateBoundControlVariableOperation(boundForToStatement)
+            Dim initialValue As IOperation = Create(boundForToStatement.InitialValue)
+            Dim limitValue As IOperation = Create(boundForToStatement.LimitValue)
+            Dim stepValue As IOperation = Create(boundForToStatement.StepValue)
+            Dim body As IOperation = Create(boundForToStatement.Body)
+            Dim nextVariables As ImmutableArray(Of IOperation) = If(boundForToStatement.NextVariablesOpt.IsDefault,
+                ImmutableArray(Of IOperation).Empty,
+                CreateFromArray(Of BoundExpression, IOperation)(boundForToStatement.NextVariablesOpt))
             Dim locals As ImmutableArray(Of ILocalSymbol) = If(boundForToStatement.DeclaredOrInferredLocalOpt IsNot Nothing,
                 ImmutableArray.Create(Of ILocalSymbol)(boundForToStatement.DeclaredOrInferredLocalOpt),
                 ImmutableArray(Of ILocalSymbol).Empty)
             Dim continueLabel As ILabelSymbol = boundForToStatement.ContinueLabel
             Dim exitLabel As ILabelSymbol = boundForToStatement.ExitLabel
             Dim syntax As SyntaxNode = boundForToStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundForToStatement.WasCompilerGenerated
             Dim loopObj = If(boundForToStatement.ControlVariable.Type.IsObjectType,
                              New SynthesizedLocal(DirectCast(_semanticModel.GetEnclosingSymbol(boundForToStatement.Syntax.SpanStart), Symbol), boundForToStatement.ControlVariable.Type,
@@ -1179,8 +1187,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                         New Lazy(Of IOperation)(Function() Operation.SetParentOperation(Create(operatorsOpt.GreaterThanOrEqual), Nothing)))
             End If
 
-            Return New VisualBasicLazyForToLoopOperation(Me, boundForToStatement, locals, boundForToStatement.Checked, (loopObj, userDefinedInfo), continueLabel, exitLabel,
-                                                         _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ForToLoopOperation(loopControlVariable, initialValue, limitValue, stepValue, boundForToStatement.Checked, nextVariables, (loopObj, userDefinedInfo),
+                                          body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit)
         End Function
 
         Friend Function GetForEachLoopOperationInfo(boundForEachStatement As BoundForEachStatement) As ForEachLoopOperationInfo
@@ -1227,16 +1235,21 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundForEachStatementOperation(boundForEachStatement As BoundForEachStatement) As IForEachLoopOperation
+            Dim info As ForEachLoopOperationInfo = GetForEachLoopOperationInfo(boundForEachStatement)
+            Dim controlVariable As IOperation = CreateBoundControlVariableOperation(boundForEachStatement)
+            Dim collection As IOperation = Create(boundForEachStatement.Collection)
+            Dim nextVariables = If(boundForEachStatement.NextVariablesOpt.IsDefault,
+                ImmutableArray(Of IOperation).Empty,
+                CreateFromArray(Of BoundExpression, IOperation)(boundForEachStatement.NextVariablesOpt))
+            Dim body As IOperation = Create(boundForEachStatement.Body)
             Dim locals As ImmutableArray(Of ILocalSymbol) = If(boundForEachStatement.DeclaredOrInferredLocalOpt IsNot Nothing,
                 ImmutableArray.Create(Of ILocalSymbol)(boundForEachStatement.DeclaredOrInferredLocalOpt),
                 ImmutableArray(Of ILocalSymbol).Empty)
             Dim continueLabel As ILabelSymbol = boundForEachStatement.ContinueLabel
             Dim exitLabel As ILabelSymbol = boundForEachStatement.ExitLabel
             Dim syntax As SyntaxNode = boundForEachStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundForEachStatement.WasCompilerGenerated
-            Return New VisualBasicLazyForEachLoopOperation(Me, boundForEachStatement, locals, continueLabel, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New ForEachLoopOperation(controlVariable, collection, nextVariables, info, isAsynchronous:=False, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit)
         End Function
 
         Friend Function CreateBoundControlVariableOperation(boundForStatement As BoundForStatement) As IOperation
@@ -1327,16 +1340,17 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundWhileStatementOperation(boundWhileStatement As BoundWhileStatement) As IWhileLoopOperation
+            Dim condition As IOperation = Create(boundWhileStatement.Condition)
+            Dim body As IOperation = Create(boundWhileStatement.Body)
+            Dim ignoredCondition As IOperation = Nothing
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
             Dim continueLabel As ILabelSymbol = boundWhileStatement.ContinueLabel
             Dim exitLabel As ILabelSymbol = boundWhileStatement.ExitLabel
             Dim conditionIsTop As Boolean = True
             Dim conditionIsUntil As Boolean = False
             Dim syntax As SyntaxNode = boundWhileStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundWhileStatement.WasCompilerGenerated
-            Return New VisualBasicLazyWhileLoopOperation(Me, boundWhileStatement, locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New WhileLoopOperation(condition, conditionIsTop, conditionIsUntil, ignoredCondition, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationGroupOperation

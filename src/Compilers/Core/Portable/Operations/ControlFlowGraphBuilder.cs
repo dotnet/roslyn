@@ -3323,9 +3323,8 @@ oneMoreTime:
 
             return FinishVisitingStatement(operation, new ExpressionStatementOperation(underlying, semanticModel: null, operation.Syntax, IsImplicit(operation)));
         }
-#nullable disable
 
-        public override IOperation VisitWhileLoop(IWhileLoopOperation operation, int? captureIdForResult)
+        public override IOperation? VisitWhileLoop(IWhileLoopOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
             var locals = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals);
@@ -3351,6 +3350,7 @@ oneMoreTime:
                 AppendNewBlock(@continue);
                 EnterRegion(locals);
 
+                Debug.Assert(operation.Condition is not null);
                 VisitConditionalBranch(operation.Condition, ref @break, jumpIfTrue: operation.ConditionIsUntil);
 
                 VisitStatement(operation.Body);
@@ -3397,7 +3397,6 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-#nullable enable
         public override IOperation? VisitTry(ITryOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
@@ -4115,7 +4114,7 @@ oneMoreTime:
             var enumeratorCaptureRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
             EnterRegion(enumeratorCaptureRegion);
 
-            ForEachLoopOperationInfo info = ((BaseForEachLoopOperation)operation).Info;
+            ForEachLoopOperationInfo? info = ((ForEachLoopOperation)operation).Info;
 
             RegionBuilder? regionForCollection = null;
 
@@ -4357,7 +4356,7 @@ oneMoreTime:
         {
             StartVisitingStatement(operation);
 
-            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopOperation)operation).Info;
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((ForToLoopOperation)operation).Info;
             bool isObjectLoop = (loopObject != null);
             ImmutableArray<ILocalSymbol> locals = operation.Locals;
 
@@ -5327,7 +5326,8 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitForLoop(IForLoopOperation operation, int? captureIdForResult)
+#nullable enable
+        public override IOperation? VisitForLoop(IForLoopOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -5390,7 +5390,6 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-#nullable enable
         internal override IOperation? VisitFixed(IFixedOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);

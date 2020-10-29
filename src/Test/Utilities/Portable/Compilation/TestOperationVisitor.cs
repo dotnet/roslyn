@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitLoop(operation);
             Assert.Equal(LoopKind.ForTo, operation.LoopKind);
             _ = operation.IsChecked;
-            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopOperation)operation).Info;
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((ForToLoopOperation)operation).Info;
 
             if (userDefinedInfo != null)
             {
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
-            ForEachLoopOperationInfo info = ((BaseForEachLoopOperation)operation).Info;
+            ForEachLoopOperationInfo info = ((ForEachLoopOperation)operation).Info;
             if (info != null)
             {
                 visitArguments(info.GetEnumeratorArguments);

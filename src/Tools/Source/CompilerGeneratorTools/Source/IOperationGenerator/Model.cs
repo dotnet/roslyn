@@ -115,6 +115,10 @@ namespace IOperationGenerator
         public string? SkipGenerationText;
         public bool SkipGeneration => SkipGenerationText == "true";
 
+        [XmlAttribute(AttributeName = "MakeAbstract")]
+        public string? MakeAbstractText;
+        public bool MakeAbstract => MakeAbstractText == "true";
+
         [XmlElement(ElementName = "Comments", Type = typeof(Comments))]
         public Comments? Comments;
     }

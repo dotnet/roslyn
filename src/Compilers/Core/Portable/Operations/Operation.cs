@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis
             return operation;
         }
 
-        public static ImmutableArray<T> SetParentOperation<T>(ImmutableArray<T> operations, IOperation parent) where T : IOperation
+        public static ImmutableArray<T> SetParentOperation<T>(ImmutableArray<T> operations, IOperation? parent) where T : IOperation
         {
             // check quick bail out case first
             if (operations.Length == 0)

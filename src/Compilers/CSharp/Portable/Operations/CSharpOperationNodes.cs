@@ -155,77 +155,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyForEachLoopOperation : LazyForEachLoopOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundForEachStatement _forEachStatement;
-
-        internal CSharpLazyForEachLoopOperation(CSharpOperationFactory operationFactory, BoundForEachStatement forEachStatement, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(forEachStatement.AwaitOpt != null, LoopKind.ForEach, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _forEachStatement = forEachStatement;
-        }
-
-        protected override IOperation CreateLoopControlVariable()
-        {
-            return _operationFactory.CreateBoundForEachStatementLoopControlVariable(_forEachStatement);
-        }
-
-        protected override IOperation CreateCollection()
-        {
-            return _operationFactory.Create(_forEachStatement.Expression);
-        }
-
-        protected override ImmutableArray<IOperation> CreateNextVariables()
-        {
-            return ImmutableArray<IOperation>.Empty;
-        }
-
-        protected override IOperation CreateBody()
-        {
-            return _operationFactory.Create(_forEachStatement.Body);
-        }
-
-        protected override ForEachLoopOperationInfo CreateLoopInfo()
-        {
-            return _operationFactory.GetForEachLoopOperatorInfo(_forEachStatement);
-        }
-    }
-
-    internal sealed class CSharpLazyForLoopOperation : LazyForLoopOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundForStatement _forStatement;
-
-        internal CSharpLazyForLoopOperation(CSharpOperationFactory operationFactory, BoundForStatement forStatement, ImmutableArray<ILocalSymbol> locals, ImmutableArray<ILocalSymbol> conditionLocals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(locals, conditionLocals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _forStatement = forStatement;
-        }
-
-        protected override ImmutableArray<IOperation> CreateBefore()
-        {
-            return _operationFactory.CreateFromArray<BoundStatement, IOperation>(_operationFactory.ToStatements(_forStatement.Initializer));
-        }
-
-        protected override IOperation CreateCondition()
-        {
-            return _operationFactory.Create(_forStatement.Condition);
-        }
-
-        protected override ImmutableArray<IOperation> CreateAtLoopBottom()
-        {
-            return _operationFactory.CreateFromArray<BoundStatement, IOperation>(_operationFactory.ToStatements(_forStatement.Increment));
-        }
-
-        protected override IOperation CreateBody()
-        {
-            return _operationFactory.Create(_forStatement.Body);
-        }
-    }
-
     internal sealed class CSharpLazyInterpolatedStringTextOperation : LazyInterpolatedStringTextOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -502,34 +431,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IOperation> CreateIgnoredDimensions()
         {
             return _operationFactory.CreateIgnoredDimensions(_localDeclaration, Syntax);
-        }
-    }
-
-    internal sealed class CSharpLazyWhileLoopOperation : LazyWhileLoopOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundConditionalLoopStatement _conditionalLoopStatement;
-
-        internal CSharpLazyWhileLoopOperation(CSharpOperationFactory operationFactory, BoundConditionalLoopStatement conditionalLoopStatement, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(conditionIsTop, conditionIsUntil, LoopKind.While, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _conditionalLoopStatement = conditionalLoopStatement;
-        }
-
-        protected override IOperation CreateCondition()
-        {
-            return _operationFactory.Create(_conditionalLoopStatement.Condition);
-        }
-
-        protected override IOperation CreateBody()
-        {
-            return _operationFactory.Create(_conditionalLoopStatement.Body);
-        }
-
-        protected override IOperation CreateIgnoredCondition()
-        {
-            return null;
         }
     }
 

@@ -444,63 +444,24 @@ namespace IOperationGenerator
 
             foreach (var property in type.Properties.Where(p => !p.SkipGeneration))
             {
-                writeProperty(property, propExtensibility: string.Empty);
+                switch (property.MakeAbstract, type.IsAbstract)
+                {
+                    case (true, true):
+                        writeProperty(property, propExtensibility: "abstract ");
+                        break;
+                    case (true, false):
+                        continue;
+                    default:
+                        writeProperty(property, propExtensibility: string.Empty);
+                        break;
+                }
             }
 
             if (node != null)
             {
-                if (publicIOperationProps.Count > 0 && !node.SkipChildrenGeneration)
+                if (!node.SkipChildrenGeneration)
                 {
-                    WriteLine("public override IEnumerable<IOperation> Children");
-                    Brace();
-                    WriteLine("get");
-                    Brace();
-
-                    // PROTOTYPE(iop): Look at making this a better generated impl
-                    WriteLine($"if ({lazyChildren} is null)");
-                    Brace();
-                    WriteLine($"var builder = ArrayBuilder<IOperation>.GetInstance({publicIOperationProps.Count});");
-
-                    var orderedProperties = new List<Property>();
-
-                    if (publicIOperationProps.Count == 1)
-                    {
-                        orderedProperties.Add(publicIOperationProps.Single());
-                    }
-                    else
-                    {
-                        Debug.Assert(node.ChildrenOrder != null, $"Encountered null children order for {type.Name}, should have been caught in verifier!");
-                        var childrenOrdered = GetPropertyOrder(node);
-
-                        foreach (var childName in childrenOrdered)
-                        {
-                            orderedProperties.Add(publicIOperationProps.Find(p => p.Name == childName) ??
-                                throw new InvalidOperationException($"Cannot find property for {childName}"));
-                        }
-                    }
-
-                    foreach (var prop in orderedProperties)
-                    {
-                        if (IsImmutableArray(prop.Type, out _))
-                        {
-                            WriteLine($"if (!{prop.Name}.IsEmpty) builder.AddRange({prop.Name});");
-                        }
-                        else
-                        {
-                            WriteLine($"if ({prop.Name} is not null) builder.Add({prop.Name});");
-                        }
-                    }
-
-                    WriteLine($"Interlocked.CompareExchange(ref {lazyChildren}, builder.ToImmutableAndFree(), null);");
-                    Unbrace();
-
-                    WriteLine($"return {lazyChildren};");
-                    Unbrace();
-                    Unbrace();
-                }
-                else
-                {
-                    WriteLine("public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();");
+                    writeChildrenProperty(type, publicIOperationProps, lazyChildren, node);
                 }
 
                 WriteLine($"public override ITypeSymbol? Type {(node.HasType ? "{ get; }" : "=> null;")}");
@@ -538,6 +499,10 @@ namespace IOperationGenerator
                     {
                         Write($"IConvertibleConversion {prop.Name.ToCamelCase()}, ");
                     }
+                    else if (prop.MakeAbstract)
+                    {
+                        continue;
+                    }
                     else
                     {
                         Write($"{prop.Type} {prop.Name.ToCamelCase()}, ");
@@ -561,6 +526,11 @@ namespace IOperationGenerator
                 {
                     foreach (var prop in baseProperties)
                     {
+                        if (prop.MakeAbstract)
+                        {
+                            continue;
+                        }
+
                         Write($"{prop.Name.ToCamelCase()}, ");
                     }
                 }
@@ -568,7 +538,7 @@ namespace IOperationGenerator
 
                 Outdent();
 
-                List<Property> propsToInitialize = type.Properties.Where(p => !p.SkipGeneration).ToList();
+                List<Property> propsToInitialize = type.Properties.Where(p => !p.SkipGeneration && !p.MakeAbstract).ToList();
 
                 if (propsToInitialize.Count == 0 && !hasType)
                 {
@@ -634,11 +604,11 @@ namespace IOperationGenerator
                 WriteLine($"public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.{visitorName}(this, argument);");
             }
 
-            string getKind(Node node)
+            string getKind(AbstractNode node)
             {
                 while (node.OperationKind?.Include == false)
                 {
-                    node = (Node?)_typeMap[node.Base] ??
+                    node = (AbstractNode?)_typeMap[node.Base] ??
                         throw new InvalidOperationException($"{node.Name} is not being included in OperationKind, but has no base type!");
                 }
 
@@ -648,6 +618,63 @@ namespace IOperationGenerator
                 }
 
                 return GetSubName(node.Name);
+            }
+
+            void writeChildrenProperty(AbstractNode type, List<Property> publicIOperationProps, string lazyChildren, Node node)
+            {
+                if (publicIOperationProps.Count > 0)
+                {
+                    WriteLine("public override IEnumerable<IOperation> Children");
+                    Brace();
+                    WriteLine("get");
+                    Brace();
+
+                    // PROTOTYPE(iop): Look at making this a better generated impl
+                    WriteLine($"if ({lazyChildren} is null)");
+                    Brace();
+                    WriteLine($"var builder = ArrayBuilder<IOperation>.GetInstance({publicIOperationProps.Count});");
+
+                    var orderedProperties = new List<Property>();
+
+                    if (publicIOperationProps.Count == 1)
+                    {
+                        orderedProperties.Add(publicIOperationProps.Single());
+                    }
+                    else
+                    {
+                        Debug.Assert(node.ChildrenOrder != null, $"Encountered null children order for {type.Name}, should have been caught in verifier!");
+                        var childrenOrdered = GetPropertyOrder(node);
+
+                        foreach (var childName in childrenOrdered)
+                        {
+                            orderedProperties.Add(publicIOperationProps.Find(p => p.Name == childName) ??
+                                throw new InvalidOperationException($"Cannot find property for {childName}"));
+                        }
+                    }
+
+                    foreach (var prop in orderedProperties)
+                    {
+                        if (IsImmutableArray(prop.Type, out _))
+                        {
+                            WriteLine($"if (!{prop.Name}.IsEmpty) builder.AddRange({prop.Name});");
+                        }
+                        else
+                        {
+                            WriteLine($"if ({prop.Name} is not null) builder.Add({prop.Name});");
+                        }
+                    }
+
+                    WriteLine($"Interlocked.CompareExchange(ref {lazyChildren}, builder.ToImmutableAndFree(), null);");
+                    Unbrace();
+
+                    WriteLine($"return {lazyChildren};");
+                    Unbrace();
+                    Unbrace();
+                }
+                else
+                {
+                    WriteLine("public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();");
+                }
             }
         }
 
@@ -1052,7 +1079,11 @@ namespace IOperationGenerator
 
                 foreach (var prop in GetAllProperties(node))
                 {
-                    if (IsIOperationType(prop.Type))
+                    if (prop.MakeAbstract)
+                    {
+                        continue;
+                    }
+                    else if (IsIOperationType(prop.Type))
                     {
                         Write(IsImmutableArray(prop.Type, out _) ? "VisitArray" : "Visit");
                         Write($"({internalName}.{prop.Name}), ");

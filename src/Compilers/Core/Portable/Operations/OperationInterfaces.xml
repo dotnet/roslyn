@@ -127,7 +127,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="LoopKind" Type="LoopKind">
+    <Property Name="LoopKind" Type="LoopKind" MakeAbstract="true">
       <Comments>
         <summary>Kind of the loop.</summary>
       </Comments>
@@ -183,7 +183,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="Info" Type="ForEachLoopOperationInfo" Internal="true" SkipGeneration="true" />
+    <Property Name="Info" Type="ForEachLoopOperationInfo?" Internal="true" />
     <Property Name="IsAsynchronous" Type="bool">
       <Comments>
         <summary>
@@ -218,7 +218,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="Condition" Type="IOperation">
+    <Property Name="Condition" Type="IOperation?">
       <Comments>
         <summary>Condition of the loop. For C#, this comes from the second clause of the for statement.</summary>
       </Comments>
@@ -288,9 +288,9 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Condition" Type="IOperation">
+    <Property Name="Condition" Type="IOperation?">
       <Comments>
-        <summary>Condition of the loop.</summary>
+        <summary>Condition of the loop. This can only be null in error scenarios.</summary>
       </Comments>
     </Property>
     <Property Name="ConditionIsTop" Type="bool">
@@ -306,7 +306,7 @@
         <summary>True if the loop has 'Until' loop semantics and the loop is executed while <see cref="Condition" /> is false.</summary>
       </Comments>
     </Property>
-    <Property Name="IgnoredCondition" Type="IOperation">
+    <Property Name="IgnoredCondition" Type="IOperation?">
       <Comments>
         <summary>
           Additional conditional supplied for loop in error cases, which is ignored by the compiler.
