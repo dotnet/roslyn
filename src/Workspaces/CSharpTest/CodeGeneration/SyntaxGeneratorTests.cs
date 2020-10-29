@@ -2991,7 +2991,7 @@ public class C
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
         public void TestInsertMembersOnRecord_SemiColon()
         {
             var comp = Compile(
@@ -3009,7 +3009,7 @@ public class C
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
         public void TestInsertMembersOnRecord_Braces()
         {
             var comp = Compile(
@@ -3027,7 +3027,7 @@ public class C
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
         public void TestInsertMembersOnRecord_BracesAndSemiColon()
         {
             var comp = Compile(
