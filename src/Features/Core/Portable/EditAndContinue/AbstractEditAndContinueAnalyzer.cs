@@ -3742,6 +3742,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 rudeEdit = RudeEditKind.ChangingLambdaReturnType;
             }
+            else if (!oldLambdaSymbol.GetAttributes().SequenceEqual(newLambdaSymbol.GetAttributes()))
+            {
+                rudeEdit = RudeEditKind.ChangingLambdaAttributes;
+            }
             else
             {
                 hasErrors = false;
