@@ -17,19 +17,19 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     /// <summary>
-    /// Language client responsible for exposing pull diagnostics.  Expected to run in all scenarios where the host
-    /// supports pull diagnostics (including VS and liveshare).
+    /// Language client responsible for C# / VB LSP support locally (outside of liveshare / codespaces).
     /// </summary>
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Export(typeof(ILanguageClient))]
-    internal class PullDiagnosticsInProcLanguageClient : AbstractInProcLanguageClient
+    [Export(typeof(VisualStudioInProcLanguageClient))]
+    internal class VisualStudioInProcLanguageClient : AbstractInProcLanguageClient
     {
         private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public PullDiagnosticsInProcLanguageClient(
+        public VisualStudioInProcLanguageClient(
             IGlobalOptionService globalOptionService,
             LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
@@ -41,12 +41,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         }
 
         public override string Name
-            => ServicesVSResources.CSharp_Visual_Basic_Diagnostics_Language_Client;
+            => ServicesVSResources.CSharp_Visual_Basic_Language_Server_Client;
 
         protected internal override VSServerCapabilities GetCapabilities()
             => new VSServerCapabilities
             {
                 SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode) == DiagnosticMode.Pull,
+                DisableGoToWorkspaceSymbols = true,
+                WorkspaceSymbolProvider = true,
             };
     }
 }
