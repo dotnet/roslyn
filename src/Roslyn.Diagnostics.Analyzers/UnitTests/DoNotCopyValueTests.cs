@@ -856,6 +856,40 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Theory]
+        [InlineData("")]
+        [InlineData("ref")]
+        [InlineData("in")]
+        public async Task AllowNameOfParameterReference(string parameterModifiers)
+        {
+            var source = $@"
+using System.Runtime.InteropServices;
+
+class C
+{{
+    void Method({parameterModifiers} CannotCopy value)
+    {{
+        _ = nameof(CannotCopy);
+        _ = nameof(value);
+        _ = nameof(value.ToString);
+    }}
+}}
+
+[NonCopyable]
+struct CannotCopy
+{{
+}}
+
+internal sealed class NonCopyableAttribute : System.Attribute {{ }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Theory]
         [InlineData("ref")]
         [InlineData("in")]
         public async Task AllowUnsafeAsRefParameterReference(string parameterModifiers)

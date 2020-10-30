@@ -760,8 +760,8 @@ namespace Roslyn.Diagnostics.Analyzers
 
             public override void VisitNameOf(INameOfOperation operation)
             {
-                CheckTypeInUnsupportedContext(operation);
-                base.VisitNameOf(operation);
+                // A 'nameof' operation does not copy anything in the value
+                return;
             }
 
             public override void VisitObjectCreation(IObjectCreationOperation operation)
