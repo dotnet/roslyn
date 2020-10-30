@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 // < auto-generated />
+#nullable enable
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
@@ -10,7 +11,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     #region Interfaces
-    #nullable enable
     /// <summary>
     /// Represents that an intermediate result is being captured.
     /// This node is produced only as part of a <see cref="ControlFlowGraph" />.
@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         IOperation Value { get; }
     }
-    #nullable disable
-    #nullable enable
     /// <summary>
     /// Represents a point of use of an intermediate result captured earlier.
     /// The fact of capturing the result is represented by <see cref="IFlowCaptureOperation" />.
@@ -56,8 +54,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         CaptureId Id { get; }
     }
-    #nullable disable
-    #nullable enable
     /// <summary>
     /// Represents result of checking whether the <see cref="Operand" /> is null.
     /// For reference types this checks if the <see cref="Operand" /> is a null reference,
@@ -80,8 +76,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         IOperation Operand { get; }
     }
-    #nullable disable
-    #nullable enable
     /// <summary>
     /// Represents a exception instance passed by an execution environment to an exception filter or handler.
     /// This node is produced only as part of a <see cref="ControlFlowGraph" />.
@@ -97,8 +91,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     public interface ICaughtExceptionOperation : IOperation
     {
     }
-    #nullable disable
-    #nullable enable
     /// <summary>
     /// Represents the check during initialization of a VB static local that is initialized on the first call of the function, and never again.
     /// If the semaphore operation returns true, the static local has not yet been initialized, and the initializer will be run. If it returns
@@ -120,8 +112,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         ILocalSymbol Local { get; }
     }
-    #nullable disable
-    #nullable enable
     /// <summary>
     /// Represents an anonymous function operation in context of a <see cref="ControlFlowGraph" />.
     /// <para>
@@ -147,6 +137,5 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         IMethodSymbol Symbol { get; }
     }
-    #nullable disable
     #endregion
 }

@@ -2731,7 +2731,8 @@ oneMoreTime:
 
                     if (conversion.Operand.Kind == OperationKind.Throw)
                     {
-                        IOperation rewrittenThrow = base.Visit(conversion.Operand, null);
+                        IOperation? rewrittenThrow = base.Visit(conversion.Operand, null);
+                        Debug.Assert(rewrittenThrow != null);
                         Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
                         Debug.Assert(rewrittenThrow.Children.IsEmpty());
                         dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
@@ -2860,7 +2861,8 @@ oneMoreTime:
                 AppendNewBlock(whenNull);
 
                 Debug.Assert(conversion is not null);
-                IOperation rewrittenThrow = base.Visit(conversion.Operand, null);
+                IOperation? rewrittenThrow = base.Visit(conversion.Operand, null);
+                Debug.Assert(rewrittenThrow != null);
                 Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
                 Debug.Assert(rewrittenThrow.Children.IsEmpty());
             }

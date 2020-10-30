@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Operations
             visitor.VisitNoneOperation(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default
         {
             return visitor.VisitNoneOperation(this, argument);
         }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Operations
             visitor.VisitInvalid(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default
         {
             return visitor.VisitInvalid(this, argument);
         }
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             visitor.VisitFlowAnonymousFunction(this);
         }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default
         {
             return visitor.VisitFlowAnonymousFunction(this, argument);
         }
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             visitor.VisitDynamicObjectCreation(this);
         }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default
         {
             return visitor.VisitDynamicObjectCreation(this, argument);
         }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             visitor.VisitDynamicInvocation(this);
         }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default
         {
             return visitor.VisitDynamicInvocation(this, argument);
         }
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             visitor.VisitDynamicIndexerAccess(this);
         }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default
         {
             return visitor.VisitDynamicIndexerAccess(this, argument);
         }
