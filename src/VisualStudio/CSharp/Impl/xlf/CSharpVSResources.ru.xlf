@@ -7,6 +7,11 @@
         <target state="translated">Применять все правила форматирования C# (отступ, перенос по словам, задание интервала)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_add_parenthesis_by_semicolon">
+        <source>Automatically add parenthesis by ';' (experimental)</source>
+        <target state="new">Automatically add parenthesis by ';' (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
         <target state="translated">Автоматически показывать список завершения в списках аргументов (экспериментальная функция)</target>

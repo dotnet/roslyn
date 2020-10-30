@@ -257,6 +257,11 @@
         <target state="translated">Kullanıcı Türleri - Arabirimler</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Records">
+        <source>User Types - Records</source>
+        <target state="new">User Types - Records</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Structures">
         <source>User Types - Structures</source>
         <target state="translated">Kullanıcı Türleri - Yapılar</target>

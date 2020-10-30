@@ -107,6 +107,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static string GetContainingNamespace(CompletionItem item)
             => item.InlineDescription;
 
+        public static CompletionItem CreateItemWithProvideParenthesisCompletion(CompletionItem item, bool provideParenthesisCompletion)
+            => item.AddProperty("ProvideParenthesisCompletion", provideParenthesisCompletion.ToString());
+
+        public static bool GetProvideParenthesisCompletion(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("ProvideParenthesisCompletion", out var value)
+                && bool.TryParse(value, out var result))
+            {
+                return result;
+            }
+
+            return false;
+        }
+
         public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var compilation = (await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false));
@@ -127,6 +141,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return CompletionDescription.Empty;
+        }
+
+        public static ISymbol? GetSymbol(CompletionItem item, Compilation compilation)
+        {
+            var (symbol, _) = GetSymbolAndOverloadCount(item, compilation);
+            return symbol;
         }
 
         private static string GetFullyQualifiedName(string namespaceName, string typeName)

@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncoding = AddSymbolEncoding;
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolInfo = AddSymbolInfo;
+        private static readonly Func<IReadOnlyList<ISymbol>, CompletioObjectCreationCompletionProvider.csObjectCreationCompletionProvider.csObjectCreationCompletionProvider.csObjectCreationCompletionProvider.csObjectCreationCompletionProvider.csObjectCreationCompletionProvider.csnItem, CompletionItem> s_addSymbolEncodingAndInfo = AddSymbolEncodingAndInfo;
 
         private static CompletionItem CreateWorker(
             string displayText,
@@ -74,22 +75,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
         }
 
-        public static CompletionItem AddPutCaretBetweenParenthesis(CompletionItem item, bool hasParameter)
-            => item.AddProperty("PutCaretBetweenParenthesis", hasParameter.ToString());
+        public static CompletionItem AddSymbolEncodingAndInfo(IReadOnlyList<ISymbol> symbols, CompletionItem item)
+            => AddSymbolInfo(symbols, AddSymbolEncoding(symbols, item));
 
-        public static CompletionItem AddProvideParenthesisCompletion(CompletionItem item, bool shouldProvideParenthesisCompletion)
-            => item.AddProperty("ProvideParenthesisCompletion", shouldProvideParenthesisCompletion.ToString());
-
-        public static bool GetPutCaretBetweenParenthesis(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("PutCaretBetweenParenthesis", out var value)
-                && bool.TryParse(value, out var result))
-            {
-                return result;
-            }
-
-            return false;
-        }
+        public static CompletionItem AddProvideParenthesisCompletion(CompletionItem item, bool provideParenthesisCompletion)
+            => item.AddProperty("ProvideParenthesisCompletion", provideParenthesisCompletion.ToString());
 
         public static bool GetProvideParenthesisCompletion(CompletionItem item)
         {
@@ -333,6 +323,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
                 s_addSymbolInfo, sortText, insertionText,
+                filterText, supportedPlatforms, properties, tags);
+        }
+
+        public static CompletionItem CreateWithNameKindAndId(
+            string displayText,
+            string displayTextSuffix,
+            IReadOnlyList<ISymbol> symbols,
+            CompletionItemRules rules,
+            int contextPosition,
+            string sortText = null,
+            string insertionText = null,
+            string filterText = null,
+            SupportedPlatformData supportedPlatforms = null,
+            ImmutableDictionary<string, string> properties = null,
+            ImmutableArray<string> tags = default)
+        {
+            return CreateWorker(
+                displayText, displayTextSuffix, symbols, rules, contextPosition,
+                s_addSymbolEncodingAndInfo, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }
 

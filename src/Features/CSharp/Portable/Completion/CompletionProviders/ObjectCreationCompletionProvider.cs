@@ -149,17 +149,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
+            var solution = document.Project.Solution;
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
-            if (commitKey == ';')
+            if (commitKey == ';' && IsAutoAddParenthesisBySemicolonEnabled(document))
             {
                 var endOfInsertionText = item.Span.Start + insertionText.Length;
-                var textChange = new TextChange(item.Span, insertionText + "();");
+                var textChange = new TextChange(
+                    item.Span,
+                    string.Concat(insertionText, "()", commitKey));
                 var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-                var completionChange = CompletionChange.Create(textChange,
-                    symbols.All(ShouldPutCaretBetweenParenthesis)
-                     ? endOfInsertionText + 1
-                     : endOfInsertionText + 3, includesCommitCharacter: true);
-
+                var putCaretBetweenParenthesis = ShouldPutCaretBetweenParenthesis(symbols.FirstOrDefault());
+                var completionChange = CompletionChange.Create(
+                    textChange,
+                    putCaretBetweenParenthesis ? endOfInsertionText + 1 : endOfInsertionText + 3,
+                    includesCommitCharacter: true);
                 return completionChange;
             }
 

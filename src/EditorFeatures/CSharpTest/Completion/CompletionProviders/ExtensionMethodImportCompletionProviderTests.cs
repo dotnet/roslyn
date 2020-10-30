@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
+                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
+                .WithChangedOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolon, LanguageNames.CSharp, true);
         }
 
         protected override TestComposition GetComposition()
@@ -1882,6 +1883,120 @@ namespace Foo
                         "Bar",
                         inlineDescription: "Foo");
             }
+        }
+
+        [WpfFact]
+        public async Task TestCommitWithSemicolonForParemeterlessMethod()
+        {
+            var markup = @"
+public class C
+{
+}
+namespace AA
+{
+    public static class Ext
+    {
+        public static int ToInt(this C c)
+            => 1;
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}";
+
+            var expected = @"
+using AA;
+
+public class C
+{
+}
+namespace AA
+{
+    public static class Ext
+    {
+        public static int ToInt(this C c)
+            => 1;
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C();
+            c.ToInt();$$
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WpfFact]
+        public async Task TestCommitWithSemicolonForCommonMethod()
+        {
+            var markup = @"
+public class C
+{
+}
+namespace AA
+{
+    public static class Ext
+    {
+        public static int ToInt(this C c, int i)
+            => i;
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}";
+
+            var expected = @"
+using AA;
+
+public class C
+{
+}
+namespace AA
+{
+    public static class Ext
+    {
+        public static int ToInt(this C c, int i)
+            => i;
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C();
+            c.ToInt($$);
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
         }
 
         private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)

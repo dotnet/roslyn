@@ -80,6 +80,14 @@
                               Unchecked="Show_items_from_unimported_namespaces_CheckedChanged"
                               Indeterminate="Show_items_from_unimported_namespaces_CheckedChanged"
                               IsThreeState="True"/>
+
+                    <CheckBox x:Uid="Automatically_add_parenthesis_by_semicolon"
+                                  x:Name="Automatically_add_parenthesis_by_semicolon"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Automatically_add_parenthesis_by_semicolon}" 
+                              Checked="Automatically_add_parenthesis_by_semicolon_CheckedChanged"       
+                              Unchecked="Automatically_add_parenthesis_by_semicolon_CheckedChanged"
+                              Indeterminate="Automatically_add_parenthesis_by_semicolon_CheckedChanged"
+                              IsThreeState="True"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             Show_items_from_unimported_namespaces.IsChecked = this.OptionStore.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp);
             Automatically_show_completion_list_in_argument_lists.IsChecked = this.OptionStore.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
+            Automatically_add_parenthesis_by_semicolon.IsChecked = this.OptionStore.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp);
         }
 
         private void Show_completion_list_after_a_character_is_typed_Checked(object sender, RoutedEventArgs e)
@@ -64,6 +65,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             Automatically_show_completion_list_in_argument_lists.IsThreeState = false;
             this.OptionStore.SetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, value: Automatically_show_completion_list_in_argument_lists.IsChecked);
+        }
+
+        private void Automatically_add_parenthesis_by_semicolon_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            Automatically_add_parenthesis_by_semicolon.IsThreeState = false;
+            this.OptionStore.SetOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolon, LanguageNames.CSharp, value: Automatically_add_parenthesis_by_semicolon.IsChecked);
         }
     }
 }

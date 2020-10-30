@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
+        protected abstract IEnumerable<CompletionItem> AttachParenthesisCompletionProperties(SyntaxContext syntaxContext, IEnumerable<CompletionItem> items);
 
         // For telemetry reporting
         protected abstract void LogCommit();
@@ -34,7 +35,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private bool? _isImportCompletionExperimentEnabled = null;
 
-        private bool IsExperimentEnabled(Workspace workspace)
+        private bool? _isInsertFullMethodCallExperimentEnabled = null;
+
+        private bool IsTypeImportCompletionExperimentEnabled(Workspace workspace)
         {
             if (!_isImportCompletionExperimentEnabled.HasValue)
             {
@@ -43,6 +46,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return _isImportCompletionExperimentEnabled == true;
+        }
+
+        private bool IsInsertFullMethodCallExperimentEnabled(Workspace workspace)
+        {
+            if (!_isInsertFullMethodCallExperimentEnabled.HasValue)
+            {
+                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
+                _isInsertFullMethodCallExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InsertFullMethodCall);
+            }
+
+            return _isInsertFullMethodCallExperimentEnabled == true;
+        }
+
+        protected bool IsAutoAddParenthesisBySemicolonEnabled(Document document)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var option = workspace.Options.GetOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolon, document.Project.Language);
+            return option == true || (option == null && IsInsertFullMethodCallExperimentEnabled(workspace));
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
@@ -68,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
                 if (importCompletionOptionValue == false ||
-                    (importCompletionOptionValue == null && !IsExperimentEnabled(document.Project.Solution.Workspace)))
+                    (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(document.Project.Solution.Workspace)))
                 {
                     return;
                 }
@@ -109,12 +130,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
 
+            var provideParenthesisCompletion = commitKey == ';' && ImportCompletionItem.GetProvideParenthesisCompletion(completionItem);
+            var insertText = provideParenthesisCompletion
+                ? string.Concat(completionItem.DisplayText, "()", commitKey)
+                : completionItem.DisplayText;
+
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = ImportCompletionItem.GetSymbol(completionItem, compilation);
+
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
-                var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
-                var change = new TextChange(completionListSpan, fullyQualifiedName);
-
-                return CompletionChange.Create(change);
+                var textChange = new TextChange(completionListSpan, $"{containingNamespace}.{insertText}");
+                var location = GetCaretLocation(provideParenthesisCompletion, symbol, textChange);
+                return CompletionChange.Create(textChange, newPosition: location, includesCommitCharacter: provideParenthesisCompletion);
             }
 
             // Find context node so we can use it to decide where to insert using/imports.
@@ -127,7 +155,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var importNode = CreateImport(document, containingNamespace);
 
             var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, placeSystemNamespaceFirst, cancellationToken);
@@ -153,13 +180,32 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
             //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
             //       with "AsnEncodedDatasd" in the code.
-            builder.Add(new TextChange(completionListSpan, completionItem.DisplayText));
+            builder.Add(new TextChange(completionListSpan, insertText));
 
             // Then get the combined change
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
+            var change = Utilities.Collapse(newText, builder.ToImmutableAndFree());
+            var caretLocation = GetCaretLocation(provideParenthesisCompletion, symbol, change);
+            return CompletionChange.Create(change, caretLocation, includesCommitCharacter: provideParenthesisCompletion);
 
-            return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
+            static int? GetCaretLocation(bool provideParenthesisCompletion, ISymbol? symbol, TextChange change)
+            {
+                if (provideParenthesisCompletion && change.NewText != null)
+                {
+                    var endOfInsertionText = change.Span.Start + change.NewText.Length;
+                    if (symbol != null && CommonCompletionUtilities.ShouldPutCaretBetweenParenthesis(symbol))
+                    {
+                        return endOfInsertionText - 2;
+                    }
+                    else
+                    {
+                        return endOfInsertionText;
+                    }
+                }
+
+                return null;
+            }
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {

@@ -42,9 +42,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
                 else
                 {
+                    var isParenthesisCompletionEnable = IsAutoAddParenthesisBySemicolonEnabled(completionContext.Document);
                     foreach (var items in itemsFromAllAssemblies)
                     {
-                        AddItems(items, completionContext, namespacesInScope, telemetryCounter);
+                        AddItems(isParenthesisCompletionEnable
+                            ? AttachParenthesisCompletionProperties(syntaxContext, items).ToImmutableArray()
+                            : items,
+                            completionContext,
+                            namespacesInScope,
+                            telemetryCounter);
                     }
                 }
 
