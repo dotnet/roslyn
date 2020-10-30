@@ -4384,6 +4384,77 @@ class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
+        [Fact]
+        [WorkItem(48259, "https://github.com/dotnet/roslyn/issues/48259")]
+        public void SwitchExpressionAsExceptionFilter_03()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public static class Program
+{
+    static async Task Main()
+    {
+        Exception ex = new ArgumentException();
+        try
+        {
+            throw ex;
+        }
+        catch (Exception e) when (e switch { InvalidOperationException => true, _ => false })
+        {
+            return;
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""correct"");
+        }
+    }
+}
+";
+            var expectedOutput = "correct";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (7,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(7, 23));
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(48259, "https://github.com/dotnet/roslyn/issues/48259")]
+        public void SwitchExpressionAsExceptionFilter_04()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public static class Program
+{
+    static async Task Main()
+    {
+        Exception ex = new ArgumentException();
+        try
+        {
+            throw ex;
+        }
+        catch (Exception e) when (e switch { ArgumentException => true, _ => false })
+        {
+            Console.WriteLine(""correct"");
+            return;
+        }
+    }
+}
+";
+            var expectedOutput = "correct";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (7,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(7, 23));
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
         [WorkItem(48563, "https://github.com/dotnet/roslyn/issues/48563")]
         [Theory]
         [InlineData("void*")]

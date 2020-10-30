@@ -19,6 +19,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 
+        Private Function IReferenceGetInternalSymbol() As CodeAnalysis.Symbols.ISymbolInternal Implements Cci.IReference.GetInternalSymbol
+            Return Me
+        End Function
+
+        Private Function ISymbolInternalGetAdapter() As Cci.IReference Implements CodeAnalysis.Symbols.ISymbolInternal.GetCciAdapter
+            Return Me
+        End Function
+
         Friend Overridable Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) _
             Implements Cci.IReference.Dispatch
 

@@ -728,6 +728,28 @@ abstract record D
         }
 
         [Fact]
+        public void RecordParsing_BlockBodyAndSemiColon()
+        {
+            // Type declarations allow an optional semi-colon after block body
+            var text = "record C { };";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestClassWithMultipleConstraints001()
         {
             UsingTree("class a<b> where b : c where b { }",

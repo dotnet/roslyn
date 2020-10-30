@@ -91,6 +91,11 @@ namespace Roslyn.Test.Utilities
                 Uri = new Uri(s_mappedFilePath)
             };
 
+            /// <summary>
+            /// LSP tests are simulating the new razor system which does support mapping import directives.
+            /// </summary>
+            public bool SupportsMappingImportDirectives => true;
+
             public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
             {
                 ImmutableArray<MappedSpanResult> mappedResult = default;

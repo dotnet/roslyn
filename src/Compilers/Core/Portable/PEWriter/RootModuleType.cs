@@ -310,5 +310,19 @@ namespace Microsoft.Cci
         {
             return this;
         }
+
+        CodeAnalysis.Symbols.ISymbolInternal? Cci.IReference.GetInternalSymbol() => null;
+
+        public sealed override bool Equals(object? obj)
+        {
+            // It is not supported to rely on default equality of these CCi objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these CCi objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
     }
 }
