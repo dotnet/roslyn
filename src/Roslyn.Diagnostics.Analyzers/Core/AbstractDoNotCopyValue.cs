@@ -327,6 +327,12 @@ namespace Roslyn.Diagnostics.Analyzers
                     CheckTypeInUnsupportedContext(operation);
                 }
 
+                var currentIsHandled = _handledOperations.Contains(operation);
+                var handledWhenTrue = currentIsHandled ? operation.WhenTrue : null;
+                var handledWhenFalse = currentIsHandled ? operation.WhenFalse : null;
+                using var _1 = TryAddForVisit(_handledOperations, handledWhenTrue, out _);
+                using var _2 = TryAddForVisit(_handledOperations, handledWhenFalse, out _);
+
                 base.VisitConditional(operation);
             }
 
@@ -1077,6 +1083,15 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
 
                 CheckTypeInUnsupportedContext(operation);
+
+                var resource = operation.Resources;
+                if (Acquire(resource) != RefKind.None)
+                {
+                    // Not yet handled
+                    resource = null;
+                }
+
+                using var releaser = TryAddForVisit(_handledOperations, resource, out _);
                 base.VisitUsing(operation);
             }
 
@@ -1486,9 +1501,9 @@ namespace Roslyn.Diagnostics.Analyzers
                 ConfiguredValueTaskAwaitableT = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable1);
             }
 
-            internal bool IsNonCopyableType(ITypeSymbol symbol)
+            internal bool IsNonCopyableType([NotNullWhen(true)] ITypeSymbol? symbol)
             {
-                if (!symbol.IsValueType)
+                if (symbol is not { IsValueType: true })
                 {
                     return false;
                 }
