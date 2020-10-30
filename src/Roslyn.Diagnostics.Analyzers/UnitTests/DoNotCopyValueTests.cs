@@ -42,6 +42,43 @@ End Class");
         }
 
         [Theory]
+        [InlineData("Func<ValueTask<GCHandle>>", "Func(Of ValueTask(Of GCHandle))")]
+        [InlineData("Func<ConfiguredValueTaskAwaitable<GCHandle>>", "Func(Of ConfiguredValueTaskAwaitable(Of GCHandle))")]
+        [InlineData("Func<Task<GCHandle>>", "Func(Of Task(Of GCHandle))")]
+        [InlineData("Func<ConfiguredTaskAwaitable<GCHandle>>", "Func(Of ConfiguredTaskAwaitable(Of GCHandle))")]
+        public async Task TestAcquireFromAwaitInvocation(string csharpInvokeType, string visualBasicInvokeType)
+        {
+            await VerifyCS.VerifyAnalyzerAsync($@"
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+
+class C
+{{
+    async Task M({csharpInvokeType} d)
+    {{
+        var local = await d();
+        local = await d();
+    }}
+}}
+");
+
+            await VerifyVB.VerifyAnalyzerAsync($@"
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+Imports System.Threading.Tasks
+
+Class C
+    Async Function M(d as {visualBasicInvokeType}) As Task
+        Dim local = Await d()
+        local = Await d()
+    End Function
+End Class");
+        }
+
+        [Theory]
         [InlineData("ValueTask<GCHandle>", "ValueTask(Of GCHandle)")]
         [InlineData("ConfiguredValueTaskAwaitable<GCHandle>", "ConfiguredValueTaskAwaitable(Of GCHandle)")]
         public async Task TestAcquireFromAwait(string csharpAwaitableType, string visualBasicAwaitableType)
@@ -86,12 +123,12 @@ class C
 {{
     async Task M({csharpAwaitableType} task)
     {{
-        var local = {{|#0:await task|}};
+        var local {{|#0:= await task|}};
     }}
 }}
 ",
-                // /0/Test0.cs(10,21): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'Await' operation
-                VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle", "Await"));
+                // /0/Test0.cs(10,19): warning RS0042: Cannot assign a value from a reference to non-copyable type 'System.Runtime.InteropServices.GCHandle'
+                VerifyCS.Diagnostic(AbstractDoNotCopyValue.NoAssignValueFromReferenceRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle"));
 
             await VerifyVB.VerifyAnalyzerAsync($@"
 Imports System.Runtime.CompilerServices
@@ -100,11 +137,11 @@ Imports System.Threading.Tasks
 
 Class C
     Async Function M(task as {visualBasicAwaitableType}) As Task
-        Dim local = {{|#0:Await task|}}
+        Dim local {{|#0:= Await task|}}
     End Function
 End Class",
-                // /0/Test0.vb(8,21): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'Await' operation
-                VerifyVB.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle", "Await"));
+                // /0/Test0.vb(8,19): warning RS0042: Cannot assign a value from a reference to non-copyable type 'System.Runtime.InteropServices.GCHandle'
+                VerifyVB.Diagnostic(AbstractDoNotCopyValue.NoAssignValueFromReferenceRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle"));
         }
 
         [Theory]
@@ -191,14 +228,14 @@ class C
 {
     void M()
     {
-        var local = {|#0:GetRef()|};
+        var local {|#0:= GetRef()|};
     }
 
     ref GCHandle GetRef() => throw null;
 }
 ",
-                // /0/Test0.cs(8,21): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'Invocation' operation
-                VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle", "Invocation"));
+                // /0/Test0.cs(8,19): warning RS0042: Cannot assign a value from a reference to non-copyable type 'System.Runtime.InteropServices.GCHandle'
+                VerifyCS.Diagnostic(AbstractDoNotCopyValue.NoAssignValueFromReferenceRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle"));
         }
 
         [Fact]
@@ -814,6 +851,200 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
             await new VerifyCS.Test
             {
                 TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("ref")]
+        [InlineData("in")]
+        public async Task AllowNameOfParameterReference(string parameterModifiers)
+        {
+            var source = $@"
+using System.Runtime.InteropServices;
+
+class C
+{{
+    void Method({parameterModifiers} CannotCopy value)
+    {{
+        _ = nameof(CannotCopy);
+        _ = nameof(value);
+        _ = nameof(value.ToString);
+    }}
+}}
+
+[NonCopyable]
+struct CannotCopy
+{{
+}}
+
+internal sealed class NonCopyableAttribute : System.Attribute {{ }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("in")]
+        public async Task AllowUnsafeAsRefParameterReference(string parameterModifiers)
+        {
+            var source = $@"
+using System.Runtime.InteropServices;
+
+class C
+{{
+    ref CannotCopy Method({parameterModifiers} CannotCopy cannotCopy)
+    {{
+        return ref AsRef(in cannotCopy);
+    }}
+
+    ref T AsRef<T>(in T value)
+        => throw null;
+}}
+
+[NonCopyable]
+struct CannotCopy
+{{
+}}
+
+internal sealed class NonCopyableAttribute : System.Attribute {{ }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("in")]
+        public async Task StoreUnsafeAsRefParameterReferenceToLocal(string parameterModifiers)
+        {
+            var localModifiers = parameterModifiers switch
+            {
+                "in" => "ref readonly",
+                _ => parameterModifiers,
+            };
+
+            var source = $@"
+using System.Runtime.InteropServices;
+
+class C
+{{
+    void Method({parameterModifiers} CannotCopy cannotCopy)
+    {{
+        {localModifiers} var local = ref AsRef(in cannotCopy);
+
+        local = ref AsRef(in cannotCopy);
+    }}
+
+    ref T AsRef<T>(in T value)
+        => throw null;
+}}
+
+[NonCopyable]
+struct CannotCopy
+{{
+}}
+
+internal sealed class NonCopyableAttribute : System.Attribute {{ }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CannotStoreRefReturnByValue()
+        {
+            var source = $@"
+using System.Runtime.InteropServices;
+
+class C
+{{
+    void Method(in CannotCopy cannotCopy)
+    {{
+        // Test with initializer
+        var local {{|#0:= AsRef(in cannotCopy)|}};
+
+        // Test with assignment to local
+        local = {{|#1:AsRef(in cannotCopy)|}};
+
+        // Implicit and explicit discard is acceptable
+        AsRef(in cannotCopy);
+        _ = AsRef(in cannotCopy);
+    }}
+
+    ref T AsRef<T>(in T value)
+        => throw null;
+}}
+
+[NonCopyable]
+struct CannotCopy
+{{
+}}
+
+internal sealed class NonCopyableAttribute : System.Attribute {{ }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(8,19): warning RS0042: Cannot assign a value from a reference to non-copyable type 'CannotCopy'
+                    VerifyCS.Diagnostic(AbstractDoNotCopyValue.NoAssignValueFromReferenceRule).WithLocation(0).WithArguments("CannotCopy"),
+                    // /0/Test0.cs(11,17): warning RS0042: Cannot assign a value from a reference to non-copyable type 'CannotCopy'
+                    VerifyCS.Diagnostic(AbstractDoNotCopyValue.NoAssignValueFromReferenceRule).WithLocation(1).WithArguments("CannotCopy"),
+                },
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CannotReturnRefReturnByValue()
+        {
+            var source = $@"
+using System.Runtime.InteropServices;
+
+class C
+{{
+    CannotCopy Method(in CannotCopy cannotCopy)
+    {{
+        return {{|#0:AsRef(in cannotCopy)|}};
+    }}
+
+    ref T AsRef<T>(in T value)
+        => throw null;
+}}
+
+[NonCopyable]
+struct CannotCopy
+{{
+}}
+
+internal sealed class NonCopyableAttribute : System.Attribute {{ }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(8,16): warning RS0042: Cannot return a value from a reference to non-copyable type 'CannotCopy'
+                    VerifyCS.Diagnostic(AbstractDoNotCopyValue.NoReturnValueFromReferenceRule).WithLocation(0).WithArguments("CannotCopy"),
+                },
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
         }

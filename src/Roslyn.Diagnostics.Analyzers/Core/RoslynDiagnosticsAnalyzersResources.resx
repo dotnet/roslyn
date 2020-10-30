@@ -378,4 +378,16 @@
     <value>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</value>
     <comment>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</comment>
   </data>
+  <data name="DoNotCopyValueNoAssignValueFromReferenceDescription" xml:space="preserve">
+    <value>Cannot assign a value from a reference to a non-copyable type.</value>
+  </data>
+  <data name="DoNotCopyValueNoAssignValueFromReferenceMessage" xml:space="preserve">
+    <value>Cannot assign a value from a reference to non-copyable type '{0}'</value>
+  </data>
+  <data name="DoNotCopyValueNoReturnValueFromReferenceDescription" xml:space="preserve">
+    <value>Cannot return a value from a reference to a non-copyable type.</value>
+  </data>
+  <data name="DoNotCopyValueNoReturnValueFromReferenceMessage" xml:space="preserve">
+    <value>Cannot return a value from a reference to non-copyable type '{0}'</value>
+  </data>
 </root>

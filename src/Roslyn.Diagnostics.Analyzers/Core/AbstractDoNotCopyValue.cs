@@ -29,6 +29,12 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableAvoidNullableWrapperMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueAvoidNullableWrapperMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableAvoidNullableWrapperDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueAvoidNullableWrapperDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
+        private static readonly LocalizableString s_localizableNoAssignValueFromReferenceMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoAssignValueFromReferenceMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+        private static readonly LocalizableString s_localizableNoAssignValueFromReferenceDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoAssignValueFromReferenceDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+
+        private static readonly LocalizableString s_localizableNoReturnValueFromReferenceMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoReturnValueFromReferenceMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+        private static readonly LocalizableString s_localizableNoReturnValueFromReferenceDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoReturnValueFromReferenceDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+
         private static readonly LocalizableString s_localizableNoBoxingMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoBoxingMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableNoBoxingDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoBoxingDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
@@ -65,6 +71,28 @@ namespace Roslyn.Diagnostics.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableAvoidNullableWrapperDescription,
+            helpLinkUri: null,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        internal static DiagnosticDescriptor NoAssignValueFromReferenceRule = new DiagnosticDescriptor(
+            RoslynDiagnosticIds.DoNotCopyValueRuleId,
+            s_localizableTitle,
+            s_localizableNoAssignValueFromReferenceMessage,
+            DiagnosticCategory.RoslynDiagnosticsReliability,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_localizableNoAssignValueFromReferenceDescription,
+            helpLinkUri: null,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        internal static DiagnosticDescriptor NoReturnValueFromReferenceRule = new DiagnosticDescriptor(
+            RoslynDiagnosticIds.DoNotCopyValueRuleId,
+            s_localizableTitle,
+            s_localizableNoReturnValueFromReferenceMessage,
+            DiagnosticCategory.RoslynDiagnosticsReliability,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_localizableNoReturnValueFromReferenceDescription,
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -224,18 +252,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             public override void VisitAwait(IAwaitOperation operation)
             {
-                // Treat await of ValueTask<T> the same way handling of a return
-                if (operation.Type is { } type
-                    && Cache.IsNonCopyableType(type)
-                    && operation.Operation.Type is INamedTypeSymbol { OriginalDefinition: var taskType })
-                {
-                    if (!SymbolEqualityComparer.Default.Equals(taskType, Cache.ValueTaskT)
-                        && !SymbolEqualityComparer.Default.Equals(taskType, Cache.ConfiguredValueTaskAwaitableT))
-                    {
-                        CheckTypeInUnsupportedContext(operation);
-                    }
-                }
-
+                CheckTypeInUnsupportedContext(operation);
                 base.VisitAwait(operation);
             }
 
@@ -494,6 +511,10 @@ namespace Roslyn.Diagnostics.Analyzers
             public override void VisitExpressionStatement(IExpressionStatementOperation operation)
             {
                 CheckTypeInUnsupportedContext(operation);
+
+                // The result of the top-most operation in an expression statement is not used
+                using var releaser = TryAddForVisit(_handledOperations, operation.Operation, out _);
+
                 base.VisitExpressionStatement(operation);
             }
 
@@ -651,11 +672,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             public override void VisitInvocation(IInvocationOperation operation)
             {
-                // Allow a method to return a non-copyable type by value
-                if (Acquire(operation) != RefKind.None)
-                {
-                    CheckTypeInUnsupportedContext(operation);
-                }
+                CheckTypeInUnsupportedContext(operation);
 
                 var instance = operation.Instance;
                 if (instance is object
@@ -745,8 +762,8 @@ namespace Roslyn.Diagnostics.Analyzers
 
             public override void VisitNameOf(INameOfOperation operation)
             {
-                CheckTypeInUnsupportedContext(operation);
-                base.VisitNameOf(operation);
+                // A 'nameof' operation does not copy anything in the value
+                return;
             }
 
             public override void VisitObjectCreation(IObjectCreationOperation operation)
@@ -894,7 +911,7 @@ namespace Roslyn.Diagnostics.Analyzers
             public override void VisitReturn(IReturnOperation operation)
             {
                 var returnedValue = operation.ReturnedValue;
-                if (Acquire(returnedValue) != RefKind.None)
+                if (returnedValue is not null && Acquire(returnedValue) != RefKind.None)
                 {
                     if (returnedValue is ILocalReferenceOperation { Local: { IsRef: false } })
                     {
@@ -904,10 +921,9 @@ namespace Roslyn.Diagnostics.Analyzers
                     {
                         // Returning a by-value parameter is allowed
                     }
-                    else
+                    else if (operation.GetRefKind(_context.OwningSymbol) == RefKind.None && Cache.IsNonCopyableType(returnedValue.Type))
                     {
-                        // Mark the returned value as not checked by this method
-                        returnedValue = null;
+                        _context.ReportDiagnostic(returnedValue.CreateDiagnostic(NoReturnValueFromReferenceRule, returnedValue.Type));
                     }
                 }
 
@@ -922,14 +938,13 @@ namespace Roslyn.Diagnostics.Analyzers
                 var target = operation.Target;
                 var value = operation.Value;
 
-                var targetRefKind = Acquire(target);
                 var sourceRefKind = Acquire(value);
-                if (!CanAssign(sourceRefKind, targetRefKind))
+                if (Cache.IsNonCopyableType(value.Type)
+                    && !operation.IsRef
+                    && target.Kind != OperationKind.Discard
+                    && sourceRefKind != RefKind.None)
                 {
-                    // mark the source and target as not checked by this method
-                    target = null;
-                    value = null;
-                    CheckTypeInUnsupportedContext(operation);
+                    _context.ReportDiagnostic(value.CreateDiagnostic(NoAssignValueFromReferenceRule, value.Type));
                 }
 
                 using var releaser1 = TryAddForVisit(_handledOperations, target, out _);
@@ -1068,6 +1083,23 @@ namespace Roslyn.Diagnostics.Analyzers
             public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
             {
                 CheckTypeInUnsupportedContext(operation);
+
+                var initializer = operation.Initializer;
+                if (initializer is not null)
+                {
+                    var symbol = operation.Declarators.Single().Symbol;
+                    var localRefKind = symbol.RefKind;
+                    var sourceRefKind = Acquire(operation.Initializer?.Value);
+                    if (Cache.IsNonCopyableType(symbol.Type)
+                        && !CanAssign(sourceRefKind, localRefKind))
+                    {
+                        _context.ReportDiagnostic(initializer.CreateDiagnostic(NoAssignValueFromReferenceRule, symbol.Type));
+                    }
+                }
+
+                using var releaser1 = TryAddForVisit(_handledOperations, initializer, out _);
+                using var releaser2 = TryAddForVisit(_handledOperations, initializer?.Value, out _);
+
                 base.VisitVariableDeclaration(operation);
             }
 
@@ -1084,10 +1116,11 @@ namespace Roslyn.Diagnostics.Analyzers
                 var initializer = operation.Initializer;
                 var localRefKind = operation.Symbol.RefKind;
                 var sourceRefKind = Acquire(operation.Initializer?.Value);
-                if (!CanAssign(sourceRefKind, localRefKind))
+                if (initializer is not null
+                    && Cache.IsNonCopyableType(operation.Symbol.Type)
+                    && !CanAssign(sourceRefKind, localRefKind))
                 {
-                    // Mark the initializer as not handled
-                    initializer = null;
+                    _context.ReportDiagnostic(initializer.CreateDiagnostic(NoAssignValueFromReferenceRule, operation.Symbol.Type));
                 }
 
                 using var releaser1 = TryAddForVisit(_handledOperations, initializer, out _);
@@ -1143,6 +1176,15 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     case OperationKind.ArrayElementReference:
                         return RefKind.Ref;
+
+                    case OperationKind.Await:
+                        return ((IAwaitOperation)operation).Operation switch
+                        {
+                            { Type: INamedTypeSymbol { OriginalDefinition: var taskType } }
+                                when SymbolEqualityComparer.Default.Equals(taskType, Cache.ValueTaskT) || SymbolEqualityComparer.Default.Equals(taskType, Cache.ConfiguredValueTaskAwaitableT)
+                                => RefKind.None,
+                            var awaited => Acquire(awaited),
+                        };
 
                     case OperationKind.Conditional:
                         var conditional = (IConditionalOperation)operation;
