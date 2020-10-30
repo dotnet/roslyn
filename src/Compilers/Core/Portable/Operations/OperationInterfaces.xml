@@ -2340,12 +2340,12 @@
         <summary>Expression of the interpolation.</summary>
       </Comments>
     </Property>
-    <Property Name="Alignment" Type="IOperation">
+    <Property Name="Alignment" Type="IOperation?">
       <Comments>
         <summary>Optional alignment of the interpolation.</summary>
       </Comments>
     </Property>
-    <Property Name="FormatString" Type="IOperation">
+    <Property Name="FormatString" Type="IOperation?">
       <Comments>
         <summary>Optional format string of the interpolation.</summary>
       </Comments>

@@ -1566,19 +1566,19 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundInterpolationOperation(boundInterpolation As BoundInterpolation) As IInterpolationOperation
+            Dim expression As IOperation = Create(boundInterpolation.Expression)
+            Dim alignment As IOperation = Create(boundInterpolation.AlignmentOpt)
+            Dim formatString As IOperation = Create(boundInterpolation.FormatStringOpt)
             Dim syntax As SyntaxNode = boundInterpolation.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundInterpolation.WasCompilerGenerated
-            Return New VisualBasicLazyInterpolationOperation(Me, boundInterpolation, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InterpolationOperation(expression, alignment, formatString, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundInterpolatedStringTextOperation(boundLiteral As BoundLiteral) As IInterpolatedStringTextOperation
+            Dim text As IOperation = CreateBoundLiteralOperation(boundLiteral, implicit:=True)
             Dim syntax As SyntaxNode = boundLiteral.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundLiteral.WasCompilerGenerated
-            Return New VisualBasicLazyInterpolatedStringTextOperation(Me, boundLiteral, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InterpolatedStringTextOperation(text, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundAnonymousTypeCreationExpressionOperation(boundAnonymousTypeCreationExpression As BoundAnonymousTypeCreationExpression) As IAnonymousObjectCreationOperation

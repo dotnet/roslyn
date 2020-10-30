@@ -49,52 +49,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IOperation> GetChildren() => _operationFactory.GetIOperationChildren(_boundNode);
     }
 
-    internal sealed class CSharpLazyInterpolatedStringTextOperation : LazyInterpolatedStringTextOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundLiteral _text;
-
-        internal CSharpLazyInterpolatedStringTextOperation(CSharpOperationFactory operationFactory, BoundLiteral text, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _text = text;
-        }
-
-        protected override IOperation CreateText()
-        {
-            return _operationFactory.CreateBoundLiteralOperation(_text, @implicit: true);
-        }
-    }
-
-    internal sealed class CSharpLazyInterpolationOperation : LazyInterpolationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundStringInsert _stringInsert;
-
-        internal CSharpLazyInterpolationOperation(CSharpOperationFactory operationFactory, BoundStringInsert stringInsert, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _stringInsert = stringInsert;
-        }
-
-        protected override IOperation CreateExpression()
-        {
-            return _operationFactory.Create(_stringInsert.Value);
-        }
-
-        protected override IOperation CreateAlignment()
-        {
-            return _operationFactory.Create(_stringInsert.Alignment);
-        }
-
-        protected override IOperation CreateFormatString()
-        {
-            return _operationFactory.Create(_stringInsert.Format);
-        }
-    }
-
     internal sealed class CSharpLazyInvalidOperation : LazyInvalidOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

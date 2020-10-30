@@ -2707,6 +2707,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Value { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a constituent part of an interpolated string.
     /// <para>
@@ -2722,6 +2723,8 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IInterpolatedStringContentOperation : IOperation
     {
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a constituent string literal part of an interpolated string operation.
     /// <para>
@@ -2745,6 +2748,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Text { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a constituent interpolation part of an interpolated string operation.
     /// <para>
@@ -2770,12 +2775,13 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Optional alignment of the interpolation.
         /// </summary>
-        IOperation Alignment { get; }
+        IOperation? Alignment { get; }
         /// <summary>
         /// Optional format string of the interpolation.
         /// </summary>
-        IOperation FormatString { get; }
+        IOperation? FormatString { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents a pattern matching operation.
@@ -6209,137 +6215,79 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitSingleValueCaseClause(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseInterpolatedStringContentOperation : OperationOld, IInterpolatedStringContentOperation
+    #nullable enable
+    internal abstract partial class BaseInterpolatedStringContentOperation : Operation, IInterpolatedStringContentOperation
     {
-        protected BaseInterpolatedStringContentOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit) { }
+        protected BaseInterpolatedStringContentOperation(SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit) { }
     }
-    internal abstract partial class BaseInterpolatedStringTextOperation : BaseInterpolatedStringContentOperation, IInterpolatedStringTextOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class InterpolatedStringTextOperation : BaseInterpolatedStringContentOperation, IInterpolatedStringTextOperation
     {
-        internal BaseInterpolatedStringTextOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.InterpolatedStringText, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Text { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                if (Text is object) yield return Text;
-            }
-        }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitInterpolatedStringText(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInterpolatedStringText(this, argument);
-    }
-    internal sealed partial class InterpolatedStringTextOperation : BaseInterpolatedStringTextOperation, IInterpolatedStringTextOperation
-    {
-        internal InterpolatedStringTextOperation(IOperation text, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal InterpolatedStringTextOperation(IOperation text, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Text = SetParentOperation(text, this);
         }
-        public override IOperation Text { get; }
-    }
-    internal abstract partial class LazyInterpolatedStringTextOperation : BaseInterpolatedStringTextOperation, IInterpolatedStringTextOperation
-    {
-        private IOperation _lazyText = s_unset;
-        internal LazyInterpolatedStringTextOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateText();
-        public override IOperation Text
-        {
-            get
-            {
-                if (_lazyText == s_unset)
-                {
-                    IOperation text = CreateText();
-                    SetParentOperation(text, this);
-                    Interlocked.CompareExchange(ref _lazyText, text, s_unset);
-                }
-                return _lazyText;
-            }
-        }
-    }
-    internal abstract partial class BaseInterpolationOperation : BaseInterpolatedStringContentOperation, IInterpolationOperation
-    {
-        internal BaseInterpolationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.Interpolation, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IOperation Expression { get; }
-        public abstract IOperation Alignment { get; }
-        public abstract IOperation FormatString { get; }
+        public IOperation Text { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Expression is object) yield return Expression;
-                if (Alignment is object) yield return Alignment;
-                if (FormatString is object) yield return FormatString;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Text is not null) builder.Add(Text);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitInterpolation(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInterpolation(this, argument);
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.InterpolatedStringText;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitInterpolatedStringText(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInterpolatedStringText(this, argument);
     }
-    internal sealed partial class InterpolationOperation : BaseInterpolationOperation, IInterpolationOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class InterpolationOperation : BaseInterpolatedStringContentOperation, IInterpolationOperation
     {
-        internal InterpolationOperation(IOperation expression, IOperation alignment, IOperation formatString, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal InterpolationOperation(IOperation expression, IOperation? alignment, IOperation? formatString, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Expression = SetParentOperation(expression, this);
             Alignment = SetParentOperation(alignment, this);
             FormatString = SetParentOperation(formatString, this);
         }
-        public override IOperation Expression { get; }
-        public override IOperation Alignment { get; }
-        public override IOperation FormatString { get; }
+        public IOperation Expression { get; }
+        public IOperation? Alignment { get; }
+        public IOperation? FormatString { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
+                    if (Expression is not null) builder.Add(Expression);
+                    if (Alignment is not null) builder.Add(Alignment);
+                    if (FormatString is not null) builder.Add(FormatString);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
+            }
+        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Interpolation;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitInterpolation(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInterpolation(this, argument);
     }
-    internal abstract partial class LazyInterpolationOperation : BaseInterpolationOperation, IInterpolationOperation
-    {
-        private IOperation _lazyExpression = s_unset;
-        private IOperation _lazyAlignment = s_unset;
-        private IOperation _lazyFormatString = s_unset;
-        internal LazyInterpolationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateExpression();
-        public override IOperation Expression
-        {
-            get
-            {
-                if (_lazyExpression == s_unset)
-                {
-                    IOperation expression = CreateExpression();
-                    SetParentOperation(expression, this);
-                    Interlocked.CompareExchange(ref _lazyExpression, expression, s_unset);
-                }
-                return _lazyExpression;
-            }
-        }
-        protected abstract IOperation CreateAlignment();
-        public override IOperation Alignment
-        {
-            get
-            {
-                if (_lazyAlignment == s_unset)
-                {
-                    IOperation alignment = CreateAlignment();
-                    SetParentOperation(alignment, this);
-                    Interlocked.CompareExchange(ref _lazyAlignment, alignment, s_unset);
-                }
-                return _lazyAlignment;
-            }
-        }
-        protected abstract IOperation CreateFormatString();
-        public override IOperation FormatString
-        {
-            get
-            {
-                if (_lazyFormatString == s_unset)
-                {
-                    IOperation formatString = CreateFormatString();
-                    SetParentOperation(formatString, this);
-                    Interlocked.CompareExchange(ref _lazyFormatString, formatString, s_unset);
-                }
-                return _lazyFormatString;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal abstract partial class BasePatternOperation : Operation, IPatternOperation
     {
@@ -7657,6 +7605,16 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (SingleValueCaseClauseOperation)operation;
             return new SingleValueCaseClauseOperation(Visit(internalOperation.Value), internalOperation.Label, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, object? argument)
+        {
+            var internalOperation = (InterpolatedStringTextOperation)operation;
+            return new InterpolatedStringTextOperation(Visit(internalOperation.Text), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitInterpolation(IInterpolationOperation operation, object? argument)
+        {
+            var internalOperation = (InterpolationOperation)operation;
+            return new InterpolationOperation(Visit(internalOperation.Expression), Visit(internalOperation.Alignment), Visit(internalOperation.FormatString), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, object? argument)
         {

@@ -1978,7 +1978,6 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundInterpolatedString.WasCompilerGenerated;
             return new InterpolatedStringOperation(parts, _semanticModel, syntax, type, constantValue, isImplicit);
         }
-#nullable disable
 
         internal ImmutableArray<IInterpolatedStringContentOperation> CreateBoundInterpolatedStringContentOperation(ImmutableArray<BoundExpression> parts)
         {
@@ -1999,23 +1998,22 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInterpolationOperation CreateBoundInterpolationOperation(BoundStringInsert boundStringInsert)
         {
+            IOperation expression = Create(boundStringInsert.Value);
+            IOperation? alignment = Create(boundStringInsert.Alignment);
+            IOperation? formatString = Create(boundStringInsert.Format);
             SyntaxNode syntax = boundStringInsert.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundStringInsert.WasCompilerGenerated;
-            return new CSharpLazyInterpolationOperation(this, boundStringInsert, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new InterpolationOperation(expression, alignment, formatString, _semanticModel, syntax, isImplicit);
         }
 
         private IInterpolatedStringTextOperation CreateBoundInterpolatedStringTextOperation(BoundLiteral boundNode)
         {
+            IOperation text = CreateBoundLiteralOperation(boundNode, @implicit: true);
             SyntaxNode syntax = boundNode.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = boundNode.WasCompilerGenerated;
-            return new CSharpLazyInterpolatedStringTextOperation(this, boundNode, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new InterpolatedStringTextOperation(text, _semanticModel, syntax, isImplicit);
         }
 
-#nullable enable
         private IConstantPatternOperation CreateBoundConstantPatternOperation(BoundConstantPattern boundConstantPattern)
         {
             IOperation value = Create(boundConstantPattern.Value);

@@ -24,48 +24,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyInterpolatedStringTextOperation
-        Inherits LazyInterpolatedStringTextOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _text As BoundLiteral
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, text As BoundLiteral, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _text = text
-        End Sub
-
-        Protected Overrides Function CreateText() As IOperation
-            Return _operationFactory.CreateBoundLiteralOperation(_text, implicit:=True)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyInterpolationOperation
-        Inherits LazyInterpolationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _interpolation As BoundInterpolation
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, interpolation As BoundInterpolation, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _interpolation = interpolation
-        End Sub
-
-        Protected Overrides Function CreateExpression() As IOperation
-            Return _operationFactory.Create(_interpolation.Expression)
-        End Function
-
-        Protected Overrides Function CreateAlignment() As IOperation
-            Return _operationFactory.Create(_interpolation.AlignmentOpt)
-        End Function
-
-        Protected Overrides Function CreateFormatString() As IOperation
-            Return _operationFactory.Create(_interpolation.FormatStringOpt)
-        End Function
-    End Class
-
     Friend NotInheritable Class VisualBasicLazyInvalidOperation
         Inherits LazyInvalidOperation
 
