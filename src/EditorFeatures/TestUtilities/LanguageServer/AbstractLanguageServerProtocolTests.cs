@@ -175,7 +175,7 @@ namespace Roslyn.Test.Utilities
                 Name = name,
                 Location = location,
                 Icon = new ImageElement(glyph.GetImageId()),
-        };
+            };
 
             if (containerName != null)
             {

@@ -47,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             => new VSServerCapabilities
             {
                 SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode) == DiagnosticMode.Pull,
+                // This flag ensures that cntrl+, search locally uses the old editor APIs so that only cntrl+Q search is powered via LSP.
                 DisableGoToWorkspaceSymbols = true,
                 WorkspaceSymbolProvider = true,
             };

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 var isFullyLoaded = await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false);
                 // providing this extra information will make UI to show indication to users
                 // that result might not contain full data
-                _callback.Done(isFullyLoaded: isFullyLoaded);
+                _callback.Done(isFullyLoaded);
             }
         }
 

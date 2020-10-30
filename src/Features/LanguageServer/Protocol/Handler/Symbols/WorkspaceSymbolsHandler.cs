@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _asyncListener,
                 new LSPNavigateToCallback(progress),
                 request.Query,
-                false,
+                searchCurrentDocument: false,
                 s_supportedKinds,
                 cancellationToken);
 

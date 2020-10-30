@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal interface INavigateToSearchCallback
     {
-        void Done(bool isFullyLoaded = true);
+        void Done(bool isFullyLoaded);
 
         Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken);
 

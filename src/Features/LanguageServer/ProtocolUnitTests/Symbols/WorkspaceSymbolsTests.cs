@@ -198,7 +198,7 @@ End Class";
             AssertJsonEquals(expected, results);
         }
 
-        private static async Task<LSP.SymbolInformation[]> RunGetWorkspaceSymbolsAsync(Solution solution, string query, IProgress<LSP.SymbolInformation[]> progress = null)
+        private static async Task<LSP.SymbolInformation[]> RunGetWorkspaceSymbolsAsync(Solution solution, string query, IProgress<LSP.SymbolInformation[]>? progress = null)
         {
             var request = new LSP.WorkspaceSymbolParams
             {
