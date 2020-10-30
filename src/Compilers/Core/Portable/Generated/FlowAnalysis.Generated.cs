@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         CaptureId Id { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents result of checking whether the <see cref="Operand" /> is null.
     /// For reference types this checks if the <see cref="Operand" /> is a null reference,
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         IOperation Operand { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents a exception instance passed by an execution environment to an exception filter or handler.
     /// This node is produced only as part of a <see cref="ControlFlowGraph" />.

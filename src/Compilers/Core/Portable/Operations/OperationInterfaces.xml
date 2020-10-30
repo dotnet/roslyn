@@ -2558,7 +2558,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IIsNullOperation" Base="IOperation" Namespace="FlowAnalysis" SkipClassGeneration="true">
+  <Node Name="IIsNullOperation" Base="IOperation" Namespace="FlowAnalysis" SkipInCloner="true" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents result of checking whether the <see cref="Operand" /> is null.

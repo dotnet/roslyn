@@ -6432,6 +6432,38 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitFlowCaptureReference(this, argument);
     }
     #nullable disable
+    #nullable enable
+    internal sealed partial class IsNullOperation : Operation, IIsNullOperation
+    {
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal IsNullOperation(IOperation operand, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Operand = SetParentOperation(operand, this);
+            OperationConstantValue = constantValue;
+            Type = type;
+        }
+        public IOperation Operand { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Operand is not null) builder.Add(Operand);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
+            }
+        }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.IsNull;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitIsNull(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitIsNull(this, argument);
+    }
+    #nullable disable
     internal sealed partial class CaughtExceptionOperation : OperationOld, ICaughtExceptionOperation
     {
         internal CaughtExceptionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)

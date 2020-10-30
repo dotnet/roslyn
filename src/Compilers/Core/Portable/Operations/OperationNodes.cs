@@ -401,36 +401,16 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(value != null);
         }
     }
-#nullable disable
 
-    internal sealed partial class IsNullOperation : OperationOld, IIsNullOperation
+    internal sealed partial class IsNullOperation
     {
         public IsNullOperation(SyntaxNode syntax, IOperation operand, ITypeSymbol type, ConstantValue constantValue) :
-            base(OperationKind.IsNull, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
+            this(operand, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
             Debug.Assert(operand != null);
-            Operand = SetParentOperation(operand, this);
-        }
-
-        public IOperation Operand { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return Operand;
-            }
-        }
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitIsNull(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitIsNull(this, argument);
         }
     }
+#nullable disable
 
     internal sealed partial class CaughtExceptionOperation : OperationOld, ICaughtExceptionOperation
     {
