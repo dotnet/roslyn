@@ -5,13 +5,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.GoToDefinition;
-using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
+namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition
 {
     [ExportLanguageService(typeof(IGoToDefinitionSymbolService), LanguageNames.CSharp), Shared]
     internal class CSharpGoToDefinitionSymbolService : AbstractGoToDefinitionSymbolService

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
+namespace Microsoft.CodeAnalysis.GoToDefinition
 {
     internal interface IGoToDefinitionSymbolService : ILanguageService
     {

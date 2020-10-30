@@ -4,21 +4,14 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal interface IGoToDefinitionService : ILanguageService
+    internal interface IGoToDefinitionService : ILanguageService, IFindDefinitionService
     {
-        /// <summary>
-        /// Finds the definitions for the symbol at the specific position in the document.
-        /// </summary>
-        Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
-
         /// <summary>
         /// Finds the definitions for the symbol at the specific position in the document and then 
         /// navigates to them.

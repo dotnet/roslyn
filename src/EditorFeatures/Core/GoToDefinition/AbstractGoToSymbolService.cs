@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Threading;
 

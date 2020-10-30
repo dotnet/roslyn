@@ -6,8 +6,8 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var definitionService = document.Project.LanguageServices.GetRequiredService<IGoToDefinitionService>();
+            var definitionService = document.Project.LanguageServices.GetRequiredService<IFindDefinitionService>();
             var definitions = await definitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (definitions != null && definitions.Count() > 0)
             {

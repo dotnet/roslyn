@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
+namespace Microsoft.CodeAnalysis.GoToDefinition
 {
     internal abstract class AbstractGoToDefinitionSymbolService : IGoToDefinitionSymbolService
     {
