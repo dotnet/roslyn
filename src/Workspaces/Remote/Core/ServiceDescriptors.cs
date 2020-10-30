@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Resources;
 using System.Runtime;
+using MessagePack;
+using MessagePack.Formatters;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeLens;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private const string InterfaceNamePrefix = "IRemote";
         private const string InterfaceNameSuffix = "Service";
 
-        public static readonly ServiceDescriptors Instance = new(ServiceNameComponentLevelPrefix, GetFeatureDisplayName, new (Type, Type?)[]
+        public static readonly ServiceDescriptors Instance = new(ServiceNameComponentLevelPrefix, GetFeatureDisplayName, ImmutableArray<IMessagePackFormatter>.Empty, ImmutableArray<IFormatterResolver>.Empty, new (Type, Type?)[]
         {
             (typeof(IRemoteAssetSynchronizationService), null),
             (typeof(IRemoteAsynchronousOperationListenerService), null),
@@ -68,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteCodeLensReferencesService), null),
         });
 
+        internal readonly MessagePackSerializerOptions Options;
         private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> _descriptors;
         private readonly string _componentLevelPrefix;
         private readonly Func<string, string> _featureDisplayNameProvider;
@@ -75,8 +78,11 @@ namespace Microsoft.CodeAnalysis.Remote
         public ServiceDescriptors(
             string componentLevelPrefix,
             Func<string, string> featureDisplayNameProvider,
+            ImmutableArray<IMessagePackFormatter> additionalFormatters,
+            ImmutableArray<IFormatterResolver> additionalResolvers,
             IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
         {
+            Options = ServiceDescriptor.DefaultOptions.WithResolver(MessagePackFormatters.CreateResolver(additionalFormatters, additionalResolvers));
             _componentLevelPrefix = componentLevelPrefix;
             _featureDisplayNameProvider = featureDisplayNameProvider;
             _descriptors = interfaces.ToImmutableDictionary(i => i.serviceInterface, i => CreateDescriptors(i.serviceInterface, i.callbackInterface));
@@ -95,14 +101,14 @@ namespace Microsoft.CodeAnalysis.Remote
         internal string GetQualifiedServiceName(Type serviceInterface)
             => ServiceNameTopLevelPrefix + _componentLevelPrefix + GetServiceName(serviceInterface);
 
-        private (ServiceDescriptor, ServiceDescriptor, ServiceDescriptor) CreateDescriptors(Type serviceInterface, Type? callbackInterface = null)
+        private (ServiceDescriptor, ServiceDescriptor, ServiceDescriptor) CreateDescriptors(Type serviceInterface, Type? callbackInterface)
         {
             Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
 
             var qualifiedServiceName = GetQualifiedServiceName(serviceInterface);
-            var descriptor32 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName, _featureDisplayNameProvider, callbackInterface);
-            var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64, _featureDisplayNameProvider, callbackInterface);
-            var descriptor64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, _featureDisplayNameProvider, callbackInterface);
+            var descriptor32 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptor64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
             return (descriptor32, descriptor64, descriptor64ServerGC);
         }
 
