@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 {
                     // The first time through, we already have a node. After that, we will get our
                     // node by popping a container from the stack and deconstructing it.
-                    if (node == null)
+                    if (node is null)
                     {
                         var item = stack.Pop();
                         if (item.IsNode)
