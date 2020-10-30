@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncoding = AddSymbolEncoding;
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolInfo = AddSymbolInfo;
-        private static readonly Func<IReadOnlyList<ISymbol>, CompletioObjectCreationCompletionProvider.csObjectCreationCompletionProvider.csObjectCreationCompletionProvider.csObjectCreationCompletionProvider.csObjectCreationCompletionProvider.csObjectCreationCompletionProvider.csnItem, CompletionItem> s_addSymbolEncodingAndInfo = AddSymbolEncodingAndInfo;
+        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncodingAndInfo = AddSymbolEncodingAndInfo;
 
         private static CompletionItem CreateWorker(
             string displayText,

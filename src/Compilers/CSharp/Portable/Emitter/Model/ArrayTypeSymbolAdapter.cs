@@ -11,14 +11,68 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class ArrayTypeSymbol :
+    internal partial class
+#if DEBUG
+        ArrayTypeSymbolAdapter : SymbolAdapter,
+#else
+        ArrayTypeSymbol :
+#endif 
         Cci.IArrayTypeReference
+    {
+#if DEBUG
+        internal ArrayTypeSymbolAdapter(ArrayTypeSymbol underlyingArrayTypeSymbol)
+        {
+            AdaptedArrayTypeSymbol = underlyingArrayTypeSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedArrayTypeSymbol;
+        internal ArrayTypeSymbol AdaptedArrayTypeSymbol { get; }
+#else
+        internal ArrayTypeSymbol AdaptedArrayTypeSymbol => this;
+#endif 
+    }
+
+    internal partial class ArrayTypeSymbol
+    {
+#if DEBUG
+        private ArrayTypeSymbolAdapter? _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+#endif
+
+        internal new
+#if DEBUG
+            ArrayTypeSymbolAdapter
+#else
+            ArrayTypeSymbol
+#endif
+            GetCciAdapter()
+        {
+#if DEBUG
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new ArrayTypeSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+#else
+            return this;
+#endif
+        }
+    }
+
+    internal partial class
+#if DEBUG
+        ArrayTypeSymbolAdapter
+#else
+        ArrayTypeSymbol
+#endif
     {
         Cci.ITypeReference Cci.IArrayTypeReference.GetElementType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            TypeWithAnnotations elementType = this.ElementTypeWithAnnotations;
+            TypeWithAnnotations elementType = AdaptedArrayTypeSymbol.ElementTypeWithAnnotations;
             var type = moduleBeingBuilt.Translate(elementType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
             if (elementType.CustomModifiers.Length == 0)
@@ -35,13 +89,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsSZArray;
+                return AdaptedArrayTypeSymbol.IsSZArray;
             }
         }
 
-        ImmutableArray<int> Cci.IArrayTypeReference.LowerBounds => LowerBounds;
-        int Cci.IArrayTypeReference.Rank => Rank;
-        ImmutableArray<int> Cci.IArrayTypeReference.Sizes => Sizes;
+        ImmutableArray<int> Cci.IArrayTypeReference.LowerBounds => AdaptedArrayTypeSymbol.LowerBounds;
+        int Cci.IArrayTypeReference.Rank => AdaptedArrayTypeSymbol.Rank;
+        ImmutableArray<int> Cci.IArrayTypeReference.Sizes => AdaptedArrayTypeSymbol.Sizes;
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {

@@ -577,7 +577,7 @@
     <value>When on multiple lines</value>
   </data>
   <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
-    <value>Show items from unimported namespaces (experimental)</value>
+    <value>Show items from unimported namespaces</value>
   </data>
   <data name="Inside_namespace" xml:space="preserve">
     <value>Inside namespace</value>

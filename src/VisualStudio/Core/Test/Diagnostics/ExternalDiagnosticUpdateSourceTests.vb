@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim expected = 1
                 AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                          Dim diagnostics = a.GetDiagnostics(workspace, forPullDiagnostics:=False)
+                                                          Dim diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode)
                                                           Assert.Equal(expected, diagnostics.Length)
                                                           If expected = 1 Then
                                                               Assert.Equal(diagnostics(0), diagnostic)
@@ -120,7 +120,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
 
                 AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                          Dim diagnostics = a.GetDiagnostics(workspace, forPullDiagnostics:=False)
+                                                          Dim diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode)
                                                           Assert.Equal(1, diagnostics.Length)
                                                       End Sub
 
@@ -199,7 +199,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 source.AddNewErrors(project.Id, diagnostic)
 
                 AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                          Dim diagnostics = a.GetDiagnostics(workspace, forPullDiagnostics:=False)
+                                                          Dim diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode)
                                                           Assert.Equal(1, diagnostics.Length)
                                                       End Sub
 
@@ -236,7 +236,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 AddHandler source.DiagnosticsUpdated, Sub(o, a)
                                                           buildDiagnosticCallbackSeen = True
 
-                                                          Dim diagnostics = a.GetDiagnostics(workspace, forPullDiagnostics:=False)
+                                                          Dim diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode)
                                                           Assert.Equal(1, diagnostics.Length)
                                                           Assert.Equal(diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
                                                       End Sub
@@ -271,7 +271,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 source.AddNewErrors(project.Id, diagnostic)
 
                 AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                          Dim diagnostics = a.GetDiagnostics(workspace, forPullDiagnostics:=False)
+                                                          Dim diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode)
 
                                                           Assert.Equal(1, diagnostics.Length)
                                                           Assert.Equal(diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
@@ -391,7 +391,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     language:=project.Language)
 
                 AddHandler service.DiagnosticsUpdated, Sub(o, args)
-                                                           Dim diagnostics = args.GetDiagnostics(workspace, forPullDiagnostics:=False)
+                                                           Dim diagnostics = args.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode)
 
                                                            Assert.Single(diagnostics)
                                                            Assert.Equal(diagnostics(0).Id, diagnostic.Id)

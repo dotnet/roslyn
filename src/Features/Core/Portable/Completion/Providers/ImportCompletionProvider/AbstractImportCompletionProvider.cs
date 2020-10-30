@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
 
-                // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
+                // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user.
                 if (importCompletionOptionValue == false ||
                     (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(document.Project.Solution.Workspace)))
                 {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            // Find all namespaces in scope at current cursor location, 
+            // Find all namespaces in scope at current cursor location,
             // which will be used to filter so the provider only returns out-of-scope types.
             var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
             await AddCompletionItemsAsync(completionContext, syntaxContext, namespacesInScope, isExpandedCompletion, cancellationToken).ConfigureAwait(false);
@@ -150,14 +150,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportContextNode = root.FindToken(completionListSpan.Start, findInsideTrivia: true).Parent;
 
-            // Add required using/imports directive.                              
+            // Add required using/imports directive.
             var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
             var importNode = CreateImport(document, containingNamespace);
 
-            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, placeSystemNamespaceFirst, cancellationToken);
+            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
             var documentWithImport = document.WithSyntaxRoot(rootWithImport);
             // This only formats the annotated import we just added, not the entire document.
             var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -170,15 +171,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Create text change for complete type name.
             //
-            // Note: Don't try to obtain TextChange for completed type name by replacing the text directly, 
+            // Note: Don't try to obtain TextChange for completed type name by replacing the text directly,
             //       then use Document.GetTextChangesAsync on document created from the changed text. This is
-            //       because it will do a diff and return TextChanges with minimum span instead of actual 
+            //       because it will do a diff and return TextChanges with minimum span instead of actual
             //       replacement span.
             //
             //       For example: If I'm typing "asd", the completion provider could be triggered after "a"
-            //       is typed. Then if I selected type "AsnEncodedData" to commit, by using the approach described 
-            //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
-            //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
+            //       is typed. Then if I selected type "AsnEncodedData" to commit, by using the approach described
+            //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of
+            //       the full display text with a span of length 1. This will later mess up span-tracking and end up
             //       with "AsnEncodedDatasd" in the code.
             builder.Add(new TextChange(completionListSpan, insertText));
 
@@ -217,12 +218,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // We might need to qualify unimported types to use them in an import directive, because they only affect members of the containing
                 // import container (e.g. namespace/class/etc. declarations).
                 //
-                // For example, `List` and `StringBuilder` both need to be fully qualified below: 
-                // 
+                // For example, `List` and `StringBuilder` both need to be fully qualified below:
+                //
                 //      using CollectionOfStringBuilders = System.Collections.Generic.List<System.Text.StringBuilder>;
                 //
-                // However, if we are typing in an C# using directive that is inside a nested import container (i.e. inside a namespace declaration block), 
-                // then we can add an using in the outer import container instead (this is not allowed in VB). 
+                // However, if we are typing in an C# using directive that is inside a nested import container (i.e. inside a namespace declaration block),
+                // then we can add an using in the outer import container instead (this is not allowed in VB).
                 //
                 // For example:
                 //

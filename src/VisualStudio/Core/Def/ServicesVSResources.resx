@@ -1590,6 +1590,9 @@ I agree to all of the foregoing:</value>
   <data name="Enable_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
     <value>Enable 'pull' diagnostics (experimental, requires restart)</value>
   </data>
+  <data name="Enable_Razor_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
+    <value>Enable Razor 'pull' diagnostics (experimental, requires restart)</value>
+  </data>
   <data name="CSharp_Visual_Basic_Diagnostics_Language_Client" xml:space="preserve">
     <value>C#/Visual Basic Diagnostics Language Client</value>
   </data>

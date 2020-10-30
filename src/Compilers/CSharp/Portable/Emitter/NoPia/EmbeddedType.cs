@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
@@ -17,17 +18,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
     {
         private bool _embeddedAllMembersOfImplementedInterface;
 
-        public EmbeddedType(EmbeddedTypesManager typeManager, NamedTypeSymbol underlyingNamedType) :
+        public EmbeddedType(EmbeddedTypesManager typeManager,
+#if DEBUG
+            NamedTypeSymbolAdapter
+#else
+            NamedTypeSymbol
+#endif
+                underlyingNamedType) :
             base(typeManager, underlyingNamedType)
         {
-            Debug.Assert(underlyingNamedType.IsDefinition);
-            Debug.Assert(underlyingNamedType.IsTopLevelType());
-            Debug.Assert(!underlyingNamedType.IsGenericType);
+            Debug.Assert(underlyingNamedType.AdaptedNamedTypeSymbol.IsDefinition);
+            Debug.Assert(underlyingNamedType.AdaptedNamedTypeSymbol.IsTopLevelType());
+            Debug.Assert(!underlyingNamedType.AdaptedNamedTypeSymbol.IsGenericType);
         }
 
         public void EmbedAllMembersOfImplementedInterface(SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            Debug.Assert(UnderlyingNamedType.IsInterfaceType());
+            Debug.Assert(UnderlyingNamedType.AdaptedNamedTypeSymbol.IsInterfaceType());
 
             if (_embeddedAllMembersOfImplementedInterface)
             {
@@ -37,11 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             _embeddedAllMembersOfImplementedInterface = true;
 
             // Embed all members
-            foreach (MethodSymbol m in UnderlyingNamedType.GetMethodsToEmit())
+            foreach (MethodSymbol m in UnderlyingNamedType.AdaptedNamedTypeSymbol.GetMethodsToEmit())
             {
                 if ((object)m != null)
                 {
-                    TypeManager.EmbedMethod(this, m, syntaxNodeOpt, diagnostics);
+                    TypeManager.EmbedMethod(this, m.GetCciAdapter(), syntaxNodeOpt, diagnostics);
                 }
             }
 
@@ -49,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             // because accessors embed them automatically.
 
             // Do the same for implemented interfaces.
-            foreach (NamedTypeSymbol @interface in UnderlyingNamedType.GetInterfacesToEmit())
+            foreach (NamedTypeSymbol @interface in UnderlyingNamedType.AdaptedNamedTypeSymbol.GetInterfacesToEmit())
             {
                 TypeManager.ModuleBeingBuilt.Translate(@interface, syntaxNodeOpt, diagnostics, fromImplements: true);
             }
@@ -58,41 +65,81 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         protected override int GetAssemblyRefIndex()
         {
             ImmutableArray<AssemblySymbol> refs = TypeManager.ModuleBeingBuilt.SourceModule.GetReferencedAssemblySymbols();
-            return refs.IndexOf(UnderlyingNamedType.ContainingAssembly, ReferenceEqualityComparer.Instance);
+            return refs.IndexOf(UnderlyingNamedType.AdaptedNamedTypeSymbol.ContainingAssembly, ReferenceEqualityComparer.Instance);
         }
 
         protected override bool IsPublic
         {
             get
             {
-                return UnderlyingNamedType.DeclaredAccessibility == Accessibility.Public;
+                return UnderlyingNamedType.AdaptedNamedTypeSymbol.DeclaredAccessibility == Accessibility.Public;
             }
         }
 
         protected override Cci.ITypeReference GetBaseClass(PEModuleBuilder moduleBuilder, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            NamedTypeSymbol baseType = UnderlyingNamedType.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol baseType = UnderlyingNamedType.AdaptedNamedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
             return (object)baseType != null ? moduleBuilder.Translate(baseType, syntaxNodeOpt, diagnostics) : null;
         }
 
-        protected override IEnumerable<FieldSymbol> GetFieldsToEmit()
+        protected override
+#if DEBUG
+            IEnumerable<FieldSymbolAdapter>
+#else
+            IEnumerable<FieldSymbol>
+#endif
+                GetFieldsToEmit()
         {
-            return UnderlyingNamedType.GetFieldsToEmit();
+            return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetFieldsToEmit()
+#if DEBUG
+                .Select(s => s.GetCciAdapter())
+#endif
+                ;
         }
 
-        protected override IEnumerable<MethodSymbol> GetMethodsToEmit()
+        protected override
+#if DEBUG
+            IEnumerable<MethodSymbolAdapter>
+#else
+            IEnumerable<MethodSymbol>
+#endif
+                GetMethodsToEmit()
         {
-            return UnderlyingNamedType.GetMethodsToEmit();
+            return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetMethodsToEmit()
+#if DEBUG
+                .Select(s => s?.GetCciAdapter())
+#endif
+                ;
         }
 
-        protected override IEnumerable<EventSymbol> GetEventsToEmit()
+        protected override
+#if DEBUG
+            IEnumerable<EventSymbolAdapter>
+#else
+            IEnumerable<EventSymbol>
+#endif
+                GetEventsToEmit()
         {
-            return UnderlyingNamedType.GetEventsToEmit();
+            return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetEventsToEmit()
+#if DEBUG
+                .Select(s => s.GetCciAdapter())
+#endif
+                ;
         }
 
-        protected override IEnumerable<PropertySymbol> GetPropertiesToEmit()
+        protected override
+#if DEBUG
+            IEnumerable<PropertySymbolAdapter>
+#else
+            IEnumerable<PropertySymbol>
+#endif
+                GetPropertiesToEmit()
         {
-            return UnderlyingNamedType.GetPropertiesToEmit();
+            return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetPropertiesToEmit()
+#if DEBUG
+                .Select(s => s.GetCciAdapter())
+#endif
+                ;
         }
 
         protected override IEnumerable<Cci.TypeReferenceWithAttributes> GetInterfaces(EmitContext context)
@@ -101,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            foreach (NamedTypeSymbol @interface in UnderlyingNamedType.GetInterfacesToEmit())
+            foreach (NamedTypeSymbol @interface in UnderlyingNamedType.AdaptedNamedTypeSymbol.GetInterfacesToEmit())
             {
                 var typeRef = moduleBeingBuilt.Translate(
                     @interface,
@@ -111,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 var type = TypeWithAnnotations.Create(@interface);
                 yield return type.GetTypeRefWithAttributes(
                     moduleBeingBuilt,
-                    declaringSymbol: UnderlyingNamedType,
+                    declaringSymbol: UnderlyingNamedType.AdaptedNamedTypeSymbol,
                     typeRef);
             }
         }
@@ -120,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingNamedType.IsMetadataAbstract;
+                return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsMetadataAbstract;
             }
         }
 
@@ -128,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                switch (UnderlyingNamedType.TypeKind)
+                switch (UnderlyingNamedType.AdaptedNamedTypeSymbol.TypeKind)
                 {
                     case TypeKind.Enum:
                     case TypeKind.Delegate:
@@ -146,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingNamedType.IsComImport;
+                return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsComImport;
             }
         }
 
@@ -154,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingNamedType.IsInterfaceType();
+                return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsInterfaceType();
             }
         }
 
@@ -162,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingNamedType.IsDelegateType();
+                return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsDelegateType();
             }
         }
 
@@ -170,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingNamedType.IsSerializable;
+                return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsSerializable;
             }
         }
 
@@ -178,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingNamedType.HasSpecialName;
+                return UnderlyingNamedType.AdaptedNamedTypeSymbol.HasSpecialName;
             }
         }
 
@@ -186,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingNamedType.IsWindowsRuntimeImport;
+                return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsWindowsRuntimeImport;
             }
         }
 
@@ -194,15 +241,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingNamedType.IsMetadataSealed;
+                return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsMetadataSealed;
             }
         }
 
         protected override TypeLayout? GetTypeLayoutIfStruct()
         {
-            if (UnderlyingNamedType.IsStructType())
+            if (UnderlyingNamedType.AdaptedNamedTypeSymbol.IsStructType())
             {
-                return UnderlyingNamedType.Layout;
+                return UnderlyingNamedType.AdaptedNamedTypeSymbol.Layout;
             }
             return null;
         }
@@ -211,13 +258,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingNamedType.MarshallingCharSet;
+                return UnderlyingNamedType.AdaptedNamedTypeSymbol.MarshallingCharSet;
             }
         }
 
         protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return UnderlyingNamedType.GetCustomAttributesToEmit(moduleBuilder);
+            return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetCustomAttributesToEmit(moduleBuilder);
         }
 
         protected override CSharpAttributeData CreateTypeIdentifierAttribute(bool hasGuid, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
@@ -249,11 +296,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
                 if ((object)stringType != null)
                 {
-                    string guidString = TypeManager.GetAssemblyGuidString(UnderlyingNamedType.ContainingAssembly);
+                    string guidString = TypeManager.GetAssemblyGuidString(UnderlyingNamedType.AdaptedNamedTypeSymbol.ContainingAssembly);
                     return new SynthesizedAttributeData(ctor,
                                     ImmutableArray.Create(new TypedConstant(stringType, TypedConstantKind.Primitive, guidString),
                                                     new TypedConstant(stringType, TypedConstantKind.Primitive,
-                                                                            UnderlyingNamedType.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))),
+                                                                            UnderlyingNamedType.AdaptedNamedTypeSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))),
                                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
                 }
             }
@@ -263,26 +310,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         protected override void ReportMissingAttribute(AttributeDescription description, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            EmbeddedTypesManager.Error(diagnostics, ErrorCode.ERR_InteropTypeMissingAttribute, syntaxNodeOpt, UnderlyingNamedType, description.FullName);
+            EmbeddedTypesManager.Error(diagnostics, ErrorCode.ERR_InteropTypeMissingAttribute, syntaxNodeOpt, UnderlyingNamedType.AdaptedNamedTypeSymbol, description.FullName);
         }
 
         protected override void EmbedDefaultMembers(string defaultMember, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            foreach (Symbol s in UnderlyingNamedType.GetMembers(defaultMember))
+            foreach (Symbol s in UnderlyingNamedType.AdaptedNamedTypeSymbol.GetMembers(defaultMember))
             {
                 switch (s.Kind)
                 {
                     case SymbolKind.Field:
-                        TypeManager.EmbedField(this, (FieldSymbol)s, syntaxNodeOpt, diagnostics);
+                        TypeManager.EmbedField(this, ((FieldSymbol)s).GetCciAdapter(), syntaxNodeOpt, diagnostics);
                         break;
                     case SymbolKind.Method:
-                        TypeManager.EmbedMethod(this, (MethodSymbol)s, syntaxNodeOpt, diagnostics);
+                        TypeManager.EmbedMethod(this, ((MethodSymbol)s).GetCciAdapter(), syntaxNodeOpt, diagnostics);
                         break;
                     case SymbolKind.Property:
-                        TypeManager.EmbedProperty(this, (PropertySymbol)s, syntaxNodeOpt, diagnostics);
+                        TypeManager.EmbedProperty(this, ((PropertySymbol)s).GetCciAdapter(), syntaxNodeOpt, diagnostics);
                         break;
                     case SymbolKind.Event:
-                        TypeManager.EmbedEvent(this, (EventSymbol)s, syntaxNodeOpt, diagnostics, isUsedForComAwareEventBinding: false);
+                        TypeManager.EmbedEvent(this, ((EventSymbol)s).GetCciAdapter(), syntaxNodeOpt, diagnostics, isUsedForComAwareEventBinding: false);
                         break;
                 }
             }
