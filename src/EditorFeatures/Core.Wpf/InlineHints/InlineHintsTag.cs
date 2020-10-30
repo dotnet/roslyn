@@ -52,6 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                    removalCallback: null,
                    topSpace: null,
                    baseline: null,
+                   // Make the adornment take up the entire line height.  This will cause it to overlap the line
+                   // highlighting box on both the top and bottom.  Below, when we create the border object, we will
+                   // actually give it a margin so that places itself within the highlight lines properly.
                    textHeight: textView.LineHeight,
                    bottomSpace: null,
                    PositionAffinity.Predecessor)
@@ -116,20 +119,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
             // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
-            // well with VS's 
-            const double ShrinkRatio = 3.0 / 4.0;
+            // well with VS at any zoom level or font size.
 
             var block = new TextBlock
             {
                 FontFamily = format.Typeface.FontFamily,
-                FontSize = 0.75 * format.FontRenderingEmSize,// Math.Max(1, Math.Floor(0.75 * format.FontRenderingEmSize)),
+                FontSize = 0.75 * format.FontRenderingEmSize,
                 FontStyle = FontStyles.Normal,
                 Foreground = format.ForegroundBrush,
 
                 // Adds a little bit of padding to the left of the text relative to the border
                 // to make the text seem more balanced in the border
                 Padding = new Thickness(left: 1, top: 0, right: 1, bottom: 0),
-                // VerticalAlignment = VerticalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
             };
 
             var (trimmedTexts, leftPadding, rightPadding) = Trim(taggedTexts);
@@ -148,9 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 block.Inlines.Add(run);
             }
 
-            // Encapsulates the textblock within a border. Sets the height of the border to be 3/4 of the original 
-            // height. Gets foreground/background colors from the options menu. The margin is the distance from the 
-            // adornment to the text and pushing the adornment upwards to create a separation when on a specific line
+            // Encapsulates the textblock within a border. Gets foreground/background colors from the options menu.
 
             // If the tag is started or followed by a space, we trim that off but represent the space as buffer on hte
             // left or right side.
@@ -162,15 +162,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 Background = format.BackgroundBrush,
                 Child = block,
                 CornerRadius = new CornerRadius(2),
-                Height = textView.LineHeight - 6, // (textView.LineHeight + 1) - 6, //  Math.Max(0, Math.Floor(0.75 * textView.LineHeight)),
-                                                  //HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = // new Thickness(left, top: 1, right, bottom: 0),
-                new Thickness(left, top: 3, right, bottom: 0),
-                ////new Thickness(left, top: 0, right, bottom: 2),
-                //Padding = new Thickness(0),
-                // Need to set SnapsToDevicePixels and UseLayoutRounding to avoid unnecessary reformatting
-                UseLayoutRounding = textView.VisualElement.UseLayoutRounding,
-                SnapsToDevicePixels = textView.VisualElement.SnapsToDevicePixels,
+
+                // Place 3 pixels above/below the border object.  This works well as the highlighting lines are 2px
+                // each, giving us 1 px of space on both side of the inline tag and them.  This gives the inline tag
+                // an appropriate floating-halfway feeling on the line.
+                Margin = new Thickness(left, top: 3, right, bottom: 3),
             };
 
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
