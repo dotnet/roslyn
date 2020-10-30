@@ -196,6 +196,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             foreach (var spanToTag in context.SpansToTag)
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
+
+                // Let LSP handle producing tags in the cloud scenario
+                var workspaceContextService = spanToTag.Document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+                if (workspaceContextService.IsCloudEnvironmentClient())
+                {
+                    continue;
+                }
+
                 await ProduceTagsAsync(
                     context, spanToTag,
                     GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan)).ConfigureAwait(false);
