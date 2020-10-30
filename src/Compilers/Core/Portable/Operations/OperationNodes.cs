@@ -80,64 +80,35 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         public IMethodSymbol? OperatorMethod => Conversion.MethodSymbol;
     }
-#nullable disable
 
-    internal abstract partial class BaseInvalidOperation : OperationOld, IInvalidOperation
+    internal sealed partial class InvalidOperation : Operation, IInvalidOperation
     {
-        protected BaseInvalidOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(OperationKind.Invalid, semanticModel, syntax, type, constantValue, isImplicit)
+        public InvalidOperation(ImmutableArray<IOperation> children, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit) :
+            base(semanticModel, syntax, isImplicit)
         {
+            // we don't allow null children.
+            Debug.Assert(children.All(o => o != null));
+            Children = SetParentOperation(children, this);
+            Type = type;
+            OperationConstantValue = constantValue;
         }
+
+        public override IEnumerable<IOperation> Children { get; }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.Invalid;
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvalid(this);
         }
+
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitInvalid(this, argument);
         }
     }
 
-    internal sealed partial class InvalidOperation : BaseInvalidOperation, IInvalidOperation
-    {
-        public InvalidOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            // we don't allow null children.
-            Debug.Assert(children.All(o => o != null));
-            Children = SetParentOperation(children, this);
-        }
-        public override IEnumerable<IOperation> Children { get; }
-    }
-
-    internal abstract class LazyInvalidOperation : BaseInvalidOperation, IInvalidOperation
-    {
-        private ImmutableArray<IOperation> _lazyChildrenInterlocked;
-
-        public LazyInvalidOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        protected abstract ImmutableArray<IOperation> CreateChildren();
-
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                if (_lazyChildrenInterlocked.IsDefault)
-                {
-                    ImmutableArray<IOperation> children = CreateChildren();
-                    SetParentOperation(children, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyChildrenInterlocked, children);
-                }
-
-                return _lazyChildrenInterlocked;
-            }
-        }
-    }
-
-#nullable enable
     internal sealed class FlowAnonymousFunctionOperation : Operation, IFlowAnonymousFunctionOperation
     {
         public readonly ControlFlowGraphBuilder.Context Context;

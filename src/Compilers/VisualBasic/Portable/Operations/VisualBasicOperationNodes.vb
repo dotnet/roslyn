@@ -23,21 +23,4 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return _operationFactory.GetIOperationChildren(_boundNode)
         End Function
     End Class
-
-    Friend NotInheritable Class VisualBasicLazyInvalidOperation
-        Inherits LazyInvalidOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _originalNode As IBoundInvalidNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, originalNode As IBoundInvalidNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _originalNode = originalNode
-        End Sub
-
-        Protected Overrides Function CreateChildren() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundNode, IOperation)(_originalNode.InvalidNodeChildren)
-        End Function
-    End Class
 End Namespace

@@ -13,6 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Operations
 {
     #region Interfaces
+    #nullable enable
     /// <summary>
     /// Represents an invalid operation with one or more child operations.
     /// <para>
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IInvalidOperation : IOperation
     {
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents a block containing a sequence of operations and local declarations.

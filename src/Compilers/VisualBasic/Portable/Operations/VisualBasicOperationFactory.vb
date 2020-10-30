@@ -666,7 +666,8 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             ' if child has syntax node point to same syntax node as bad expression, then this invalid expression Is implicit
             Dim isImplicit = boundBadExpression.WasCompilerGenerated OrElse boundBadExpression.ChildBoundNodes.Any(Function(e) e?.Syntax Is boundBadExpression.Syntax)
-            Return New VisualBasicLazyInvalidOperation(Me, boundBadExpression, _semanticModel, syntax, type, constantValue, isImplicit)
+            Dim children = CreateFromArray(Of BoundExpression, IOperation)(boundBadExpression.ChildBoundNodes)
+            Return New InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IOperation
@@ -1291,8 +1292,6 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundBadStatementOperation(boundBadStatement As BoundBadStatement) As IInvalidOperation
             Dim syntax As SyntaxNode = boundBadStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
 
             ' if child has syntax node point to same syntax node as bad statement, then this invalid statement is implicit
             Dim isImplicit = boundBadStatement.WasCompilerGenerated
@@ -1304,7 +1303,10 @@ Namespace Microsoft.CodeAnalysis.Operations
                     End If
                 Next
             End If
-            Return New VisualBasicLazyInvalidOperation(Me, boundBadStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+
+            Dim children = CreateFromArray(Of BoundNode, IOperation)(boundBadStatement.ChildBoundNodes)
+
+            Return New InvalidOperation(children, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit)
         End Function
 
         Private Function CreateBoundReturnStatementOperation(boundReturnStatement As BoundReturnStatement) As IReturnOperation
@@ -1502,7 +1504,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' Return an invalid statement for invalid raise event statement
             If eventInvocation Is Nothing OrElse (eventInvocation.ReceiverOpt Is Nothing AndAlso Not eventSymbol.IsShared) Then
                 Debug.Assert(boundRaiseEventStatement.HasErrors)
-                Return New VisualBasicLazyInvalidOperation(Me, boundRaiseEventStatement, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit)
+                Dim children = CreateFromArray(Of BoundNode, IOperation)(DirectCast(boundRaiseEventStatement, IBoundInvalidNode).InvalidNodeChildren)
+                Return New InvalidOperation(children, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit)
             End If
 
             Dim eventReference = CreateBoundRaiseEventStatementEventReference(boundRaiseEventStatement)
@@ -1656,7 +1659,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                               boundNullableIsTrueOperator.Type,
                                                               isImplicit)
             Else
-                Return New VisualBasicLazyInvalidOperation(Me, boundNullableIsTrueOperator, _semanticModel, syntax, type, constantValue, isImplicit)
+                Dim children = CreateFromArray(Of BoundNode, IOperation)(DirectCast(boundNullableIsTrueOperator, IBoundInvalidNode).InvalidNodeChildren)
+                Return New InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
         End Function
 
