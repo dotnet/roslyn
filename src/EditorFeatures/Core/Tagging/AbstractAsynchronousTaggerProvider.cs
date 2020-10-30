@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Let LSP handle producing tags in the cloud scenario
                 var workspaceContextService = spanToTag.Document?.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
-                if (workspaceContextService.IsCloudEnvironmentClient())
+                if (workspaceContextService != null && workspaceContextService.IsCloudEnvironmentClient())
                 {
                     continue;
                 }
