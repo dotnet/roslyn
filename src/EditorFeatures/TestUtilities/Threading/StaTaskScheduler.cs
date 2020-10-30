@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Threading;
@@ -43,7 +44,8 @@ namespace Roslyn.Test.Utilities
             //
             // The suggested workaround from the CLR team is to do an explicit GC.Collect and
             // WaitForPendingFinalizers before we let the AppDomain shut down. The belief is subscribing
-            // to DomainUnload is a reasonable place to do it.
+            // to DomainUnload is a reasonable place to do it. We use GC.GetTotalMemory since it loops
+            // over this operation until it stops releasing objects.
             AppDomain.CurrentDomain.DomainUnload += (sender, e) =>
             {
                 GC.GetTotalMemory(forceFullCollection: true);
@@ -93,8 +95,9 @@ namespace Roslyn.Test.Utilities
             if (StaThread.IsAlive)
             {
                 // The message pump is not active during AppDomain.Unload callbacks, so our only option is to abort the
-                // thread directly. 😢
-                StaThread.Abort();
+                // process directly. 😢 We wait for a short timeout to give the process an opportunity to report results.
+                Thread.Sleep(2000);
+                Environment.Exit(0);
             }
         }
     }

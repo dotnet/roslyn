@@ -67,7 +67,7 @@ namespace Roslyn.Test.Utilities
                 {
                     try
                     {
-                        Debug.Assert(SynchronizationContext.Current is DispatcherSynchronizationContext);
+                        Contract.ThrowIfFalse(SynchronizationContext.Current is DispatcherSynchronizationContext);
 
                         // Reset our flag ensuring that part of this test actually needs WpfFact
                         s_wpfFactRequirementReason = null;
