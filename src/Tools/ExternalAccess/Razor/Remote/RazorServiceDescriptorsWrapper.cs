@@ -11,13 +11,13 @@ using MessagePack.Formatters;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal readonly struct UnitTestingServiceDescriptorsWrapper
+    internal readonly struct RazorServiceDescriptorsWrapper
     {
         internal readonly ServiceDescriptors UnderlyingObject;
 
-        public UnitTestingServiceDescriptorsWrapper(
+        public RazorServiceDescriptorsWrapper(
             string componentLevelPrefix,
             Func<string, string> featureDisplayNameProvider,
             ImmutableArray<IMessagePackFormatter> additionalFormatters,

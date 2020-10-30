@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public void TypesUsedInRemoteApisMustBeMessagePackSerializable()
         {
             var types = GetAllParameterTypesOfRemoteApis();
-            var resolver = ServiceDescriptor.Options.Resolver;
+            var resolver = MessagePackFormatters.DefaultResolver;
 
             var errors = new List<string>();
 
