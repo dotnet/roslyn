@@ -1132,12 +1132,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private Binder GetParameterNameAttributeValueBinder(MemberDeclarationSyntax memberSyntax, Binder nextBinder)
             {
-                BaseMethodDeclarationSyntax baseMethodDeclSyntax = memberSyntax as BaseMethodDeclarationSyntax;
-                if ((object)baseMethodDeclSyntax != null && baseMethodDeclSyntax.ParameterList.ParameterCount > 0)
+                if (memberSyntax is BaseMethodDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } baseMethodDeclSyntax)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
                     MethodSymbol method = GetMethodSymbol(baseMethodDeclSyntax, outerBinder);
                     return new WithParametersBinder(method.Parameters, nextBinder);
+                }
+
+                if (memberSyntax is RecordDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } recordDeclSyntax)
+                {
+                    Binder outerBinder = VisitCore(memberSyntax.Parent);
+                    SourceNamedTypeSymbol recordType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember(recordDeclSyntax);
+                    var primaryConstructor = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
+                    Debug.Assert(primaryConstructor is not null);
+                    return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
                 }
 
                 // As in Dev11, we do not allow <param name="value"> on events.

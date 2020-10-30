@@ -26967,5 +26967,109 @@ public class Outer
             CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
             compRelease.VerifyEmitDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public record C(int I1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var parameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().First();
+            var i1 = model.GetDeclaredSymbol(parameter);
+
+            comp.VerifyDiagnostics(
+                // (4,21): warning CS1591: Missing XML comment for publicly visible type or member 'C.I1'
+                // public record C(int I1);
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "I1").WithArguments("C.I1").WithLocation(4, 21)
+                );
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(
+@"<member name=""T:C"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", cMember.GetDocumentationCommentXml());
+
+            var constructor = cMember.GetMembers(".ctor").First();
+            Assert.Equal(
+@"<member name=""M:C.#ctor(System.Int32)"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", constructor.GetDocumentationCommentXml());
+
+            Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
+
+            var property = cMember.GetMembers("I1").Single();
+            Assert.Equal("", property.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_WithExplicitProperty()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public record C(int I1)
+{
+    /// <summary>Property summary</summary>
+    public int I1 { get; init; } = I1;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+
+            comp.VerifyDiagnostics();
+            var cMember = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(
+@"<member name=""T:C"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", cMember.GetDocumentationCommentXml());
+
+            var constructor = cMember.GetMembers(".ctor").First();
+            Assert.Equal(
+@"<member name=""M:C.#ctor(System.Int32)"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", constructor.GetDocumentationCommentXml());
+
+            Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
+
+            var property = cMember.GetMembers("I1").Single();
+            Assert.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Property summary</summary>
+</member>
+", property.GetDocumentationCommentXml());
+        }
     }
 }
