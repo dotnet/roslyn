@@ -697,17 +697,17 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundWithExpression.WasCompilerGenerated;
             return new WithOperation(operand, constructor.GetPublicSymbol(), initializer, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IDynamicObjectCreationOperation CreateBoundDynamicObjectCreationExpressionOperation(BoundDynamicObjectCreationExpression boundDynamicObjectCreationExpression)
         {
+            IObjectOrCollectionInitializerOperation? initializer = (IObjectOrCollectionInitializerOperation?)Create(boundDynamicObjectCreationExpression.InitializerExpressionOpt);
+            ImmutableArray<IOperation> arguments = CreateFromArray<BoundExpression, IOperation>(boundDynamicObjectCreationExpression.Arguments);
             ImmutableArray<string> argumentNames = boundDynamicObjectCreationExpression.ArgumentNamesOpt.NullToEmpty();
             ImmutableArray<RefKind> argumentRefKinds = boundDynamicObjectCreationExpression.ArgumentRefKindsOpt.NullToEmpty();
             SyntaxNode syntax = boundDynamicObjectCreationExpression.Syntax;
-            ITypeSymbol type = boundDynamicObjectCreationExpression.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundDynamicObjectCreationExpression.ConstantValue;
+            ITypeSymbol? type = boundDynamicObjectCreationExpression.GetPublicTypeSymbol();
             bool isImplicit = boundDynamicObjectCreationExpression.WasCompilerGenerated;
-            return new CSharpLazyDynamicObjectCreationOperation(this, boundDynamicObjectCreationExpression, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new DynamicObjectCreationOperation(initializer, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, isImplicit);
         }
 
         internal IOperation CreateBoundDynamicInvocationExpressionReceiver(BoundNode receiver)
@@ -716,11 +716,11 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 case BoundObjectOrCollectionValuePlaceholder implicitReceiver:
                     return CreateBoundDynamicMemberAccessOperation(implicitReceiver, typeArgumentsOpt: ImmutableArray<TypeSymbol>.Empty, memberName: "Add",
-                                                                   implicitReceiver.Syntax, type: null, value: null, isImplicit: true);
+                                                                   implicitReceiver.Syntax, type: null, isImplicit: true);
 
                 case BoundMethodGroup methodGroup:
                     return CreateBoundDynamicMemberAccessOperation(methodGroup.ReceiverOpt, TypeMap.AsTypeSymbols(methodGroup.TypeArgumentsOpt), methodGroup.Name,
-                                                                   methodGroup.Syntax, methodGroup.GetPublicTypeSymbol(), methodGroup.ConstantValue, methodGroup.WasCompilerGenerated);
+                                                                   methodGroup.Syntax, methodGroup.GetPublicTypeSymbol(), methodGroup.WasCompilerGenerated);
 
                 default:
                     return Create(receiver);
@@ -729,13 +729,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IDynamicInvocationOperation CreateBoundDynamicInvocationExpressionOperation(BoundDynamicInvocation boundDynamicInvocation)
         {
+            IOperation operation = CreateBoundDynamicInvocationExpressionReceiver(boundDynamicInvocation.Expression);
+            ImmutableArray<IOperation> arguments = CreateFromArray<BoundExpression, IOperation>(boundDynamicInvocation.Arguments);
             ImmutableArray<string> argumentNames = boundDynamicInvocation.ArgumentNamesOpt.NullToEmpty();
             ImmutableArray<RefKind> argumentRefKinds = boundDynamicInvocation.ArgumentRefKindsOpt.NullToEmpty();
             SyntaxNode syntax = boundDynamicInvocation.Syntax;
-            ITypeSymbol type = boundDynamicInvocation.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundDynamicInvocation.ConstantValue;
+            ITypeSymbol? type = boundDynamicInvocation.GetPublicTypeSymbol();
             bool isImplicit = boundDynamicInvocation.WasCompilerGenerated;
-            return new CSharpLazyDynamicInvocationOperation(this, boundDynamicInvocation, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new DynamicInvocationOperation(operation, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, isImplicit);
         }
 
         internal IOperation CreateBoundDynamicIndexerAccessExpressionReceiver(BoundExpression indexer)
@@ -770,16 +771,16 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IDynamicIndexerAccessOperation CreateBoundDynamicIndexerAccessExpressionOperation(BoundDynamicIndexerAccess boundDynamicIndexerAccess)
         {
+            IOperation operation = CreateBoundDynamicIndexerAccessExpressionReceiver(boundDynamicIndexerAccess);
+            ImmutableArray<IOperation> arguments = CreateBoundDynamicIndexerAccessArguments(boundDynamicIndexerAccess);
             ImmutableArray<string> argumentNames = boundDynamicIndexerAccess.ArgumentNamesOpt.NullToEmpty();
             ImmutableArray<RefKind> argumentRefKinds = boundDynamicIndexerAccess.ArgumentRefKindsOpt.NullToEmpty();
             SyntaxNode syntax = boundDynamicIndexerAccess.Syntax;
-            ITypeSymbol type = boundDynamicIndexerAccess.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundDynamicIndexerAccess.ConstantValue;
+            ITypeSymbol? type = boundDynamicIndexerAccess.GetPublicTypeSymbol();
             bool isImplicit = boundDynamicIndexerAccess.WasCompilerGenerated;
-            return new CSharpLazyDynamicIndexerAccessOperation(this, boundDynamicIndexerAccess, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new DynamicIndexerAccessOperation(operation, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IObjectOrCollectionInitializerOperation CreateBoundObjectInitializerExpressionOperation(BoundObjectInitializerExpression boundObjectInitializerExpression)
         {
             ImmutableArray<IOperation> initializers = CreateFromArray<BoundExpression, IOperation>(BoundObjectCreationExpression.GetChildInitializers(boundObjectInitializerExpression));
@@ -797,23 +798,23 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundCollectionInitializerExpression.WasCompilerGenerated;
             return new ObjectOrCollectionInitializerOperation(initializers, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IOperation CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember, bool isObjectOrCollectionInitializer = false)
         {
-            Symbol memberSymbol = boundObjectInitializerMember.MemberSymbol;
+            Symbol? memberSymbol = boundObjectInitializerMember.MemberSymbol;
             SyntaxNode syntax = boundObjectInitializerMember.Syntax;
-            ITypeSymbol type = boundObjectInitializerMember.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundObjectInitializerMember.ConstantValue;
+            ITypeSymbol? type = boundObjectInitializerMember.GetPublicTypeSymbol();
             bool isImplicit = boundObjectInitializerMember.WasCompilerGenerated;
 
-            if ((object)memberSymbol == null)
+            if ((object?)memberSymbol == null)
             {
                 Debug.Assert(boundObjectInitializerMember.Type.IsDynamic());
 
+                IOperation operation = CreateBoundDynamicIndexerAccessExpressionReceiver(boundObjectInitializerMember);
+                ImmutableArray<IOperation> arguments = CreateBoundDynamicIndexerAccessArguments(boundObjectInitializerMember);
                 ImmutableArray<string> argumentNames = boundObjectInitializerMember.ArgumentNamesOpt.NullToEmpty();
                 ImmutableArray<RefKind> argumentRefKinds = boundObjectInitializerMember.ArgumentRefKindsOpt.NullToEmpty();
-                return new CSharpLazyDynamicIndexerAccessOperation(this, boundObjectInitializerMember, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new DynamicIndexerAccessOperation(operation, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, isImplicit);
             }
 
             switch (memberSymbol.Kind)
@@ -821,7 +822,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case SymbolKind.Field:
                     var field = (FieldSymbol)memberSymbol;
                     bool isDeclaration = false;
-                    return new FieldReferenceOperation(field.GetPublicSymbol(), isDeclaration, createReceiver(), _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new FieldReferenceOperation(field.GetPublicSymbol(), isDeclaration, createReceiver(), _semanticModel, syntax, type, constantValue: null, isImplicit);
                 case SymbolKind.Event:
                     var eventSymbol = (EventSymbol)memberSymbol;
                     return new EventReferenceOperation(eventSymbol.GetPublicSymbol(), createReceiver(), _semanticModel, syntax, type, isImplicit);
@@ -833,10 +834,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         // In nested member initializers, the property is not actually set. Instead, it is retrieved for a series of Add method calls or nested property setter calls,
                         // so we need to use the getter for this property
-                        MethodSymbol accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
+                        MethodSymbol? accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
                         if (accessor == null || boundObjectInitializerMember.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor.OriginalDefinition is ErrorMethodSymbol)
                         {
-                            return new CSharpLazyInvalidOperation(this, boundObjectInitializerMember, _semanticModel, syntax, type, constantValue, isImplicit);
+                            return new CSharpLazyInvalidOperation(this, boundObjectInitializerMember, _semanticModel, syntax, type, constantValue: null, isImplicit);
                         }
 
                         arguments = DeriveArguments(boundObjectInitializerMember, isObjectOrCollectionInitializer);
@@ -851,7 +852,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     throw ExceptionUtilities.Unreachable;
             }
 
-            IOperation createReceiver() => memberSymbol?.IsStatic == true ?
+            IOperation? createReceiver() => memberSymbol?.IsStatic == true ?
                     null :
                     CreateImplicitReceiver(boundObjectInitializerMember.Syntax, boundObjectInitializerMember.ReceiverType);
         }
@@ -863,14 +864,12 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<ITypeSymbol> typeArguments = ImmutableArray<ITypeSymbol>.Empty;
             ITypeSymbol containingType = boundDynamicObjectInitializerMember.ReceiverType.GetPublicSymbol();
             SyntaxNode syntax = boundDynamicObjectInitializerMember.Syntax;
-            ITypeSymbol type = boundDynamicObjectInitializerMember.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundDynamicObjectInitializerMember.ConstantValue;
+            ITypeSymbol? type = boundDynamicObjectInitializerMember.GetPublicTypeSymbol();
             bool isImplicit = boundDynamicObjectInitializerMember.WasCompilerGenerated;
 
-            return new DynamicMemberReferenceOperation(instanceReceiver, memberName, typeArguments, containingType, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new DynamicMemberReferenceOperation(instanceReceiver, memberName, typeArguments, containingType, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IOperation CreateBoundCollectionElementInitializerOperation(BoundCollectionElementInitializer boundCollectionElementInitializer)
         {
             MethodSymbol addMethod = boundCollectionElementInitializer.AddMethod;
@@ -889,24 +888,22 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isVirtual = IsCallVirtual(addMethod, boundCollectionElementInitializer.ImplicitReceiverOpt);
             return new InvocationOperation(addMethod.GetPublicSymbol(), receiver, isVirtual, arguments, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IDynamicMemberReferenceOperation CreateBoundDynamicMemberAccessOperation(BoundDynamicMemberAccess boundDynamicMemberAccess)
         {
             return CreateBoundDynamicMemberAccessOperation(boundDynamicMemberAccess.Receiver, TypeMap.AsTypeSymbols(boundDynamicMemberAccess.TypeArgumentsOpt), boundDynamicMemberAccess.Name,
-                boundDynamicMemberAccess.Syntax, boundDynamicMemberAccess.GetPublicTypeSymbol(), boundDynamicMemberAccess.ConstantValue, boundDynamicMemberAccess.WasCompilerGenerated);
+                boundDynamicMemberAccess.Syntax, boundDynamicMemberAccess.GetPublicTypeSymbol(), boundDynamicMemberAccess.WasCompilerGenerated);
         }
 
         private IDynamicMemberReferenceOperation CreateBoundDynamicMemberAccessOperation(
-            BoundExpression receiverOpt,
+            BoundExpression? receiverOpt,
             ImmutableArray<TypeSymbol> typeArgumentsOpt,
             string memberName,
             SyntaxNode syntaxNode,
-            ITypeSymbol type,
-            ConstantValue value,
+            ITypeSymbol? type,
             bool isImplicit)
         {
-            ITypeSymbol containingType = null;
+            ITypeSymbol? containingType = null;
             if (receiverOpt?.Kind == BoundKind.TypeExpression)
             {
                 containingType = receiverOpt.GetPublicTypeSymbol();
@@ -918,19 +915,21 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 typeArguments = typeArgumentsOpt.GetPublicSymbols();
             }
-            return new CSharpLazyDynamicMemberReferenceOperation(this, receiverOpt, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, constantValue: value, isImplicit);
+
+            IOperation? instance = Create(receiverOpt);
+            return new DynamicMemberReferenceOperation(instance, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, isImplicit);
         }
 
         private IDynamicInvocationOperation CreateBoundDynamicCollectionElementInitializerOperation(BoundDynamicCollectionElementInitializer boundCollectionElementInitializer)
         {
+            IOperation operation = CreateBoundDynamicInvocationExpressionReceiver(boundCollectionElementInitializer.Expression);
+            ImmutableArray<IOperation> arguments = CreateFromArray<BoundExpression, IOperation>(boundCollectionElementInitializer.Arguments);
             SyntaxNode syntax = boundCollectionElementInitializer.Syntax;
-            ITypeSymbol type = boundCollectionElementInitializer.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundCollectionElementInitializer.ConstantValue;
+            ITypeSymbol? type = boundCollectionElementInitializer.GetPublicTypeSymbol();
             bool isImplicit = boundCollectionElementInitializer.WasCompilerGenerated;
-            return new CSharpLazyDynamicInvocationOperation(this, boundCollectionElementInitializer, argumentNames: ImmutableArray<string>.Empty, argumentRefKinds: ImmutableArray<RefKind>.Empty, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new DynamicInvocationOperation(operation, arguments, argumentNames: ImmutableArray<string>.Empty, argumentRefKinds: ImmutableArray<RefKind>.Empty, _semanticModel, syntax, type, isImplicit);
         }
 
-#nullable enable
         private IOperation CreateUnboundLambdaOperation(UnboundLambda unboundLambda)
         {
             // We want to ensure that we never see the UnboundLambda node, and that we don't end up having two different IOperation

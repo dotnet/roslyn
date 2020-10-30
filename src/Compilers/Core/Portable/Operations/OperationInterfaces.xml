@@ -1525,7 +1525,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDynamicObjectCreationOperation" Base="IOperation" SkipClassGeneration="true" ChildrenOrder="Arguments,Initializer">
+  <Node Name="IDynamicObjectCreationOperation" Base="IOperation" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents an object creation with a dynamically bound constructor.
@@ -1536,7 +1536,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">
+    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation?">
       <Comments>
         <summary>Object or collection initializer, if any.</summary>
       </Comments>
@@ -1547,7 +1547,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDynamicMemberReferenceOperation" Base="IOperation">
+  <Node Name="IDynamicMemberReferenceOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a reference to a member of a class, struct, or module that is dynamically bound.
@@ -1558,9 +1558,9 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Instance" Type="IOperation">
+    <Property Name="Instance" Type="IOperation?">
       <Comments>
-        <summary>Instance receiver. In VB, this can be null.</summary>
+        <summary>Instance receiver, if it exists.</summary>
       </Comments>
     </Property>
     <Property Name="MemberName" Type="string">
@@ -1573,7 +1573,7 @@
         <summary>Type arguments.</summary>
       </Comments>
     </Property>
-    <Property Name="ContainingType" Type="ITypeSymbol">
+    <Property Name="ContainingType" Type="ITypeSymbol?">
       <Comments>
         <summary>
           The containing type of the referenced member, if different from type of the <see cref="Instance" />.
@@ -1581,7 +1581,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDynamicInvocationOperation" Base="IOperation" SkipClassGeneration="true" ChildrenOrder="Operation,Arguments">
+  <Node Name="IDynamicInvocationOperation" Base="IOperation" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents a invocation that is dynamically bound.
@@ -1610,7 +1610,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDynamicIndexerAccessOperation" Base="IOperation" SkipClassGeneration="true" ChildrenOrder="Operation,Arguments">
+  <Node Name="IDynamicIndexerAccessOperation" Base="IOperation" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents an indexer access that is dynamically bound.

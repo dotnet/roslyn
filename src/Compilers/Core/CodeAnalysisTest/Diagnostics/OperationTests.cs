@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 
             Func<ImmutableArray<IOperation>, ImmutableArray<string>, ImmutableArray<RefKind>, HasDynamicArgumentsExpression> createDynamicExpression =
-                (arguments, argumentNames, argumentRefKinds) => new DynamicInvocationOperation(operation: null, arguments, argumentNames, argumentRefKinds, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: false);
+                (arguments, argumentNames, argumentRefKinds) => new DynamicInvocationOperation(operation: null, arguments, argumentNames, argumentRefKinds, semanticModel: null, syntax: null, type: null, isImplicit: false);
 
             TestCore(createDynamicExpression);
         }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 
             Func<ImmutableArray<IOperation>, ImmutableArray<string>, ImmutableArray<RefKind>, HasDynamicArgumentsExpression> createDynamicExpression =
-                (arguments, argumentNames, argumentRefKinds) => new DynamicIndexerAccessOperation(operation: null, arguments, argumentNames, argumentRefKinds, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: false);
+                (arguments, argumentNames, argumentRefKinds) => new DynamicIndexerAccessOperation(operation: null, arguments, argumentNames, argumentRefKinds, semanticModel: null, syntax: null, type: null, isImplicit: false);
 
             TestCore(createDynamicExpression);
         }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 
             Func<ImmutableArray<IOperation>, ImmutableArray<string>, ImmutableArray<RefKind>, HasDynamicArgumentsExpression> createDynamicExpression =
-                (arguments, argumentNames, argumentRefKinds) => new DynamicObjectCreationOperation(arguments, argumentNames, argumentRefKinds, initializer: null, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: false);
+                (arguments, argumentNames, argumentRefKinds) => new DynamicObjectCreationOperation(initializer: null, arguments, argumentNames, argumentRefKinds, semanticModel: null, syntax: null, type: null, isImplicit: false);
 
             TestCore(createDynamicExpression);
         }

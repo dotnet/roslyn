@@ -1782,6 +1782,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ITypeSymbol? NaturalType { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an object creation with a dynamically bound constructor.
     /// <para>
@@ -1803,12 +1804,14 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Object or collection initializer, if any.
         /// </summary>
-        IObjectOrCollectionInitializerOperation Initializer { get; }
+        IObjectOrCollectionInitializerOperation? Initializer { get; }
         /// <summary>
         /// Dynamically bound arguments, excluding the instance argument.
         /// </summary>
         ImmutableArray<IOperation> Arguments { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a reference to a member of a class, struct, or module that is dynamically bound.
     /// <para>
@@ -1828,9 +1831,9 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IDynamicMemberReferenceOperation : IOperation
     {
         /// <summary>
-        /// Instance receiver. In VB, this can be null.
+        /// Instance receiver, if it exists.
         /// </summary>
-        IOperation Instance { get; }
+        IOperation? Instance { get; }
         /// <summary>
         /// Referenced member.
         /// </summary>
@@ -1842,8 +1845,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// The containing type of the referenced member, if different from type of the <see cref="Instance" />.
         /// </summary>
-        ITypeSymbol ContainingType { get; }
+        ITypeSymbol? ContainingType { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a invocation that is dynamically bound.
     /// <para>
@@ -1878,6 +1883,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IOperation> Arguments { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an indexer access that is dynamically bound.
     /// <para>
@@ -1904,6 +1911,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IOperation> Arguments { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents an unrolled/lowered query operation.
@@ -5241,58 +5249,43 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTuple(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseDynamicMemberReferenceOperation : OperationOld, IDynamicMemberReferenceOperation
+    #nullable enable
+    internal sealed partial class DynamicMemberReferenceOperation : Operation, IDynamicMemberReferenceOperation
     {
-        internal BaseDynamicMemberReferenceOperation(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.DynamicMemberReference, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal DynamicMemberReferenceOperation(IOperation? instance, string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol? containingType, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
+            Instance = SetParentOperation(instance, this);
             MemberName = memberName;
             TypeArguments = typeArguments;
             ContainingType = containingType;
+            Type = type;
         }
-        public abstract IOperation Instance { get; }
+        public IOperation? Instance { get; }
         public string MemberName { get; }
         public ImmutableArray<ITypeSymbol> TypeArguments { get; }
-        public ITypeSymbol ContainingType { get; }
+        public ITypeSymbol? ContainingType { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Instance is object) yield return Instance;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Instance is not null) builder.Add(Instance);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.DynamicMemberReference;
         public override void Accept(OperationVisitor visitor) => visitor.VisitDynamicMemberReference(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDynamicMemberReference(this, argument);
     }
-    internal sealed partial class DynamicMemberReferenceOperation : BaseDynamicMemberReferenceOperation, IDynamicMemberReferenceOperation
-    {
-        internal DynamicMemberReferenceOperation(IOperation instance, string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Instance = SetParentOperation(instance, this);
-        }
-        public override IOperation Instance { get; }
-    }
-    internal abstract partial class LazyDynamicMemberReferenceOperation : BaseDynamicMemberReferenceOperation, IDynamicMemberReferenceOperation
-    {
-        private IOperation _lazyInstance = s_unset;
-        internal LazyDynamicMemberReferenceOperation(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateInstance();
-        public override IOperation Instance
-        {
-            get
-            {
-                if (_lazyInstance == s_unset)
-                {
-                    IOperation instance = CreateInstance();
-                    SetParentOperation(instance, this);
-                    Interlocked.CompareExchange(ref _lazyInstance, instance, s_unset);
-                }
-                return _lazyInstance;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class TranslatedQueryOperation : Operation, ITranslatedQueryOperation
     {
@@ -7315,6 +7308,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (TupleOperation)operation;
             return new TupleOperation(VisitArray(internalOperation.Elements), internalOperation.NaturalType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation, object? argument)
+        {
+            var internalOperation = (DynamicMemberReferenceOperation)operation;
+            return new DynamicMemberReferenceOperation(Visit(internalOperation.Instance), internalOperation.MemberName, internalOperation.TypeArguments, internalOperation.ContainingType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, object? argument)
         {

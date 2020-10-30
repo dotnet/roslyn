@@ -27,25 +27,22 @@ namespace Microsoft.CodeAnalysis.Operations
             return new FlowAnonymousFunctionOperation(in anonymous.Context, anonymous.Original, operation.IsImplicit);
         }
 
-        public override IOperation VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation, object argument)
+#nullable enable
+        public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, object? argument)
         {
-            return new DynamicMemberReferenceOperation(Visit(operation.Instance), operation.MemberName, operation.TypeArguments, operation.ContainingType, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
+            return new DynamicObjectCreationOperation(Visit(operation.Initializer), VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.IsImplicit);
         }
 
-        public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, object argument)
+        public override IOperation VisitDynamicInvocation(IDynamicInvocationOperation operation, object? argument)
         {
-            return new DynamicObjectCreationOperation(VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
+            return new DynamicInvocationOperation(Visit(operation.Operation), VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.IsImplicit);
         }
 
-        public override IOperation VisitDynamicInvocation(IDynamicInvocationOperation operation, object argument)
+        public override IOperation VisitDynamicIndexerAccess(IDynamicIndexerAccessOperation operation, object? argument)
         {
-            return new DynamicInvocationOperation(Visit(operation.Operation), VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
+            return new DynamicIndexerAccessOperation(Visit(operation.Operation), VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.IsImplicit);
         }
-
-        public override IOperation VisitDynamicIndexerAccess(IDynamicIndexerAccessOperation operation, object argument)
-        {
-            return new DynamicIndexerAccessOperation(Visit(operation.Operation), VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
-        }
+#nullable disable
 
         public override IOperation VisitInvalid(IInvalidOperation operation, object argument)
         {

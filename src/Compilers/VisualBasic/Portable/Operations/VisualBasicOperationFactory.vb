@@ -784,13 +784,14 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundLateInvocationOperation(boundLateInvocation As BoundLateInvocation) As IOperation
+            Dim operation As IOperation = Create(boundLateInvocation.Member)
+            Dim arguments As ImmutableArray(Of IOperation) = CreateFromArray(Of BoundExpression, IOperation)(boundLateInvocation.ArgumentsOpt)
             Dim argumentNames As ImmutableArray(Of String) = boundLateInvocation.ArgumentNamesOpt
             Dim argumentRefKinds As ImmutableArray(Of RefKind) = Nothing
             Dim syntax As SyntaxNode = boundLateInvocation.Syntax
             Dim type As ITypeSymbol = boundLateInvocation.Type
-            Dim constantValue As ConstantValue = boundLateInvocation.ConstantValueOpt
             Dim isImplicit As Boolean = boundLateInvocation.WasCompilerGenerated
-            Return New VisualBasicLazyDynamicInvocationOperation(Me, boundLateInvocation, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New DynamicInvocationOperation(operation, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundObjectCreationExpressionOperation(boundObjectCreationExpression As BoundObjectCreationExpression) As IObjectCreationOperation
@@ -943,7 +944,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundLateMemberAccessOperation(boundLateMemberAccess As BoundLateMemberAccess) As IDynamicMemberReferenceOperation
             Debug.Assert(boundLateMemberAccess.ReceiverOpt Is Nothing OrElse boundLateMemberAccess.ReceiverOpt.Kind <> BoundKind.TypeExpression)
 
-            Dim instance As BoundNode = boundLateMemberAccess.ReceiverOpt
+            Dim instance As IOperation = Create(boundLateMemberAccess.ReceiverOpt)
             Dim memberName As String = boundLateMemberAccess.NameOpt
             Dim typeArguments As ImmutableArray(Of ITypeSymbol) = ImmutableArray(Of ITypeSymbol).Empty
             If boundLateMemberAccess.TypeArgumentsOpt IsNot Nothing Then
@@ -961,9 +962,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             End If
             Dim syntax As SyntaxNode = boundLateMemberAccess.Syntax
             Dim type As ITypeSymbol = boundLateMemberAccess.Type
-            Dim constantValue As ConstantValue = boundLateMemberAccess.ConstantValueOpt
             Dim isImplicit As Boolean = boundLateMemberAccess.WasCompilerGenerated
-            Return New VisualBasicLazyDynamicMemberReferenceOperation(Me, instance, memberName, typeArguments, containingType, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New DynamicMemberReferenceOperation(instance, memberName, typeArguments, containingType, _semanticModel, syntax, type, isImplicit)
         End Function
 
         Private Function CreateBoundFieldInitializerOperation(boundFieldInitializer As BoundFieldInitializer) As IFieldInitializerOperation

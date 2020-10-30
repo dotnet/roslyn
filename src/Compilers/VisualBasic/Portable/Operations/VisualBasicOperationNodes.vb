@@ -40,42 +40,4 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return _operationFactory.CreateFromArray(Of BoundNode, IOperation)(_originalNode.InvalidNodeChildren)
         End Function
     End Class
-
-    Friend NotInheritable Class VisualBasicLazyDynamicMemberReferenceOperation
-        Inherits LazyDynamicMemberReferenceOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _instance As BoundNode
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, instance As BoundNode, memberName As String, typeArguments As ImmutableArray(Of ITypeSymbol), containingType As ITypeSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _instance = instance
-        End Sub
-
-        Protected Overrides Function CreateInstance() As IOperation
-            Return _operationFactory.Create(_instance)
-        End Function
-    End Class
-
-    Friend NotInheritable Class VisualBasicLazyDynamicInvocationOperation
-        Inherits LazyDynamicInvocationOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _lateInvocation As BoundLateInvocation
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, lateInvocation As BoundLateInvocation, argumentNames As ImmutableArray(Of String), argumentRefKinds As ImmutableArray(Of RefKind), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _lateInvocation = lateInvocation
-        End Sub
-
-        Protected Overrides Function CreateOperation() As IOperation
-            Return _operationFactory.Create(_lateInvocation.Member)
-        End Function
-
-        Protected Overrides Function CreateArguments() As ImmutableArray(Of IOperation)
-            Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_lateInvocation.ArgumentsOpt)
-        End Function
-    End Class
 End Namespace

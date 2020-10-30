@@ -215,46 +215,52 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         public override CaseKind CaseKind => CaseKind.Pattern;
     }
-#nullable disable
 
-    internal abstract partial class HasDynamicArgumentsExpression : OperationOld
+    internal abstract partial class HasDynamicArgumentsExpression : Operation
     {
-        protected HasDynamicArgumentsExpression(OperationKind operationKind, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(operationKind, semanticModel, syntax, type, constantValue, isImplicit)
+        protected HasDynamicArgumentsExpression(ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+            base(semanticModel, syntax, isImplicit)
         {
+            Arguments = SetParentOperation(arguments, this);
             ArgumentNames = argumentNames;
             ArgumentRefKinds = argumentRefKinds;
+            Type = type;
         }
 
         public ImmutableArray<string> ArgumentNames { get; }
         public ImmutableArray<RefKind> ArgumentRefKinds { get; }
-        public abstract ImmutableArray<IOperation> Arguments { get; }
+        public ImmutableArray<IOperation> Arguments { get; }
+        public override ITypeSymbol? Type { get; }
     }
 
-    internal abstract partial class BaseDynamicObjectCreationOperation : HasDynamicArgumentsExpression, IDynamicObjectCreationOperation
+    internal sealed partial class DynamicObjectCreationOperation : HasDynamicArgumentsExpression, IDynamicObjectCreationOperation
     {
-        public BaseDynamicObjectCreationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(OperationKind.DynamicObjectCreation, argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        public DynamicObjectCreationOperation(IObjectOrCollectionInitializerOperation? initializer, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+            base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
+            Initializer = SetParentOperation(initializer, this);
         }
+
+        public IObjectOrCollectionInitializerOperation? Initializer { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.DynamicObjectCreation;
+
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                foreach (var argument in Arguments)
+                if (_lazyChildren is null)
                 {
-                    if (argument != null)
-                    {
-                        yield return argument;
-                    }
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
+                    builder.AddIfNotNull(Initializer);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                if (Initializer != null)
-                {
-                    yield return Initializer;
-                }
+                return _lazyChildren;
             }
         }
-        public abstract IObjectOrCollectionInitializerOperation Initializer { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDynamicObjectCreation(this);
@@ -265,86 +271,33 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed partial class DynamicObjectCreationOperation : BaseDynamicObjectCreationOperation, IDynamicObjectCreationOperation
+    internal sealed partial class DynamicInvocationOperation : HasDynamicArgumentsExpression, IDynamicInvocationOperation
     {
-        public DynamicObjectCreationOperation(ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        public DynamicInvocationOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+            base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
-            Arguments = SetParentOperation(arguments, this);
-            Initializer = SetParentOperation(initializer, this);
-        }
-        public override ImmutableArray<IOperation> Arguments { get; }
-        public override IObjectOrCollectionInitializerOperation Initializer { get; }
-    }
-
-    internal abstract class LazyDynamicObjectCreationOperation : BaseDynamicObjectCreationOperation, IDynamicObjectCreationOperation
-    {
-        private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
-        private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
-
-        public LazyDynamicObjectCreationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        protected abstract ImmutableArray<IOperation> CreateArguments();
-        protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
-
-        public override ImmutableArray<IOperation> Arguments
-        {
-            get
-            {
-                if (_lazyArgumentsInterlocked.IsDefault)
-                {
-                    ImmutableArray<IOperation> arguments = CreateArguments();
-                    SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArgumentsInterlocked, arguments);
-                }
-
-                return _lazyArgumentsInterlocked;
-            }
-        }
-
-        public override IObjectOrCollectionInitializerOperation Initializer
-        {
-            get
-            {
-                if (_lazyInitializerInterlocked == s_unsetObjectOrCollectionInitializer)
-                {
-                    IObjectOrCollectionInitializerOperation initializer = CreateInitializer();
-                    SetParentOperation(initializer, this);
-                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, initializer, s_unsetObjectOrCollectionInitializer);
-                }
-
-                return _lazyInitializerInterlocked;
-            }
-        }
-    }
-
-    internal abstract partial class BaseDynamicInvocationOperation : HasDynamicArgumentsExpression, IDynamicInvocationOperation
-    {
-        public BaseDynamicInvocationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(OperationKind.DynamicInvocation, argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
-        {
+            Operation = SetParentOperation(operation, this);
         }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Operation != null)
+                if (_lazyChildren is null)
                 {
-                    yield return Operation;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    builder.AddIfNotNull(Operation);
+                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                foreach (var argument in Arguments)
-                {
-                    if (argument != null)
-                    {
-                        yield return argument;
-                    }
-                }
+                return _lazyChildren;
             }
         }
-        public abstract IOperation Operation { get; }
+
+        public IOperation Operation { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.DynamicInvocation;
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDynamicInvocation(this);
@@ -355,86 +308,34 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed partial class DynamicInvocationOperation : BaseDynamicInvocationOperation, IDynamicInvocationOperation
+    internal sealed partial class DynamicIndexerAccessOperation : HasDynamicArgumentsExpression, IDynamicIndexerAccessOperation
     {
-        public DynamicInvocationOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        public DynamicIndexerAccessOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+            base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
             Operation = SetParentOperation(operation, this);
-            Arguments = SetParentOperation(arguments, this);
-        }
-        public override IOperation Operation { get; }
-        public override ImmutableArray<IOperation> Arguments { get; }
-    }
-
-    internal abstract class LazyDynamicInvocationOperation : BaseDynamicInvocationOperation, IDynamicInvocationOperation
-    {
-        private IOperation _lazyOperationInterlocked = s_unset;
-        private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
-
-        public LazyDynamicInvocationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
-        {
         }
 
-        protected abstract IOperation CreateOperation();
-        protected abstract ImmutableArray<IOperation> CreateArguments();
+        public IOperation Operation { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.DynamicIndexerAccess;
 
-        public override IOperation Operation
-        {
-            get
-            {
-                if (_lazyOperationInterlocked == s_unset)
-                {
-                    IOperation operation = CreateOperation();
-                    SetParentOperation(operation, this);
-                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, operation, s_unset);
-                }
-
-                return _lazyOperationInterlocked;
-            }
-        }
-
-        public override ImmutableArray<IOperation> Arguments
-        {
-            get
-            {
-                if (_lazyArgumentsInterlocked.IsDefault)
-                {
-                    ImmutableArray<IOperation> arguments = CreateArguments();
-                    SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArgumentsInterlocked, arguments);
-                }
-
-                return _lazyArgumentsInterlocked;
-            }
-        }
-    }
-
-    internal abstract partial class BaseDynamicIndexerAccessOperation : HasDynamicArgumentsExpression, IDynamicIndexerAccessOperation
-    {
-        public BaseDynamicIndexerAccessOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(OperationKind.DynamicIndexerAccess, argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Operation != null)
+                if (_lazyChildren is null)
                 {
-                    yield return Operation;
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    builder.AddIfNotNull(Operation);
+                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
                 }
-                foreach (var argument in Arguments)
-                {
-                    if (argument != null)
-                    {
-                        yield return argument;
-                    }
-                }
+                return _lazyChildren;
             }
         }
-        public abstract IOperation Operation { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDynamicIndexerAccess(this);
@@ -445,63 +346,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed partial class DynamicIndexerAccessOperation : BaseDynamicIndexerAccessOperation, IDynamicIndexerAccessOperation
-    {
-        public DynamicIndexerAccessOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Operation = SetParentOperation(operation, this);
-            Arguments = SetParentOperation(arguments, this);
-        }
-        public override IOperation Operation { get; }
-        public override ImmutableArray<IOperation> Arguments { get; }
-    }
-
-    internal abstract class LazyDynamicIndexerAccessOperation : BaseDynamicIndexerAccessOperation, IDynamicIndexerAccessOperation
-    {
-        private IOperation _lazyOperationInterlocked = s_unset;
-        private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
-
-        public LazyDynamicIndexerAccessOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        protected abstract IOperation CreateOperation();
-        protected abstract ImmutableArray<IOperation> CreateArguments();
-
-        public override IOperation Operation
-        {
-            get
-            {
-                if (_lazyOperationInterlocked == s_unset)
-                {
-                    IOperation operation = CreateOperation();
-                    SetParentOperation(operation, this);
-                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, operation, s_unset);
-                }
-
-                return _lazyOperationInterlocked;
-            }
-        }
-
-        public override ImmutableArray<IOperation> Arguments
-        {
-            get
-            {
-                if (_lazyArgumentsInterlocked.IsDefault)
-                {
-                    ImmutableArray<IOperation> arguments = CreateArguments();
-                    SetParentOperation(arguments, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArgumentsInterlocked, arguments);
-                }
-
-                return _lazyArgumentsInterlocked;
-            }
-        }
-    }
-
-#nullable enable
     internal sealed partial class ForEachLoopOperation
     {
         public override LoopKind LoopKind => LoopKind.ForEach;
