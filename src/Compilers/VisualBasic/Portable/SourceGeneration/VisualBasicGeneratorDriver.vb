@@ -38,6 +38,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), Optional additionalTexts As ImmutableArray(Of AdditionalText) = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider = Nothing) As VisualBasicGeneratorDriver
             Return New VisualBasicGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts)
         End Function
+
+        Friend Overrides Function CreateSourcesCollection() As AdditionalSourcesCollection
+            Return New AdditionalSourcesCollection(".vb")
+        End Function
+
     End Class
 
 End Namespace
