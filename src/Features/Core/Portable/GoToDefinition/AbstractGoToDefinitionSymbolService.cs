@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,11 +15,11 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
     {
         protected abstract ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation);
 
-        public async Task<(ISymbol, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, bool includeType, CancellationToken cancellationToken)
+        public async Task<(ISymbol?, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, bool includeType, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, workspace, cancellationToken).ConfigureAwait(false);
             var symbol = GetSymbol(semanticInfo, includeType);
 
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             return (FindRelatedExplicitlyDeclaredSymbol(symbol, semanticModel.Compilation), semanticInfo.Span);
         }
 
-        private static ISymbol GetSymbol(TokenSemanticInfo semanticInfo, bool includeType)
+        private static ISymbol? GetSymbol(TokenSemanticInfo semanticInfo, bool includeType)
         {
             // Prefer references to declarations. It's more likely that the user is attempting to 
             // go to a definition at some other location, rather than the definition they're on. 
