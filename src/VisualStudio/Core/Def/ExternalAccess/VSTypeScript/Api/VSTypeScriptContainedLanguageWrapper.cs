@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
     {
         private readonly ContainedLanguage _underlyingObject;
 
+        [Obsolete("Remove once TypeScript has stopped using this.", error: true)]
         public VSTypeScriptContainedLanguageWrapper(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
@@ -35,6 +36,33 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
                 workspace,
                 project.Id,
                 project.VisualStudioProject,
+                filePath,
+                languageServiceGuid,
+                vbHelperFormattingRule: null);
+        }
+
+        public VSTypeScriptContainedLanguageWrapper(
+            IVsTextBufferCoordinator bufferCoordinator,
+            IComponentModel componentModel,
+            VSTypeScriptVisualStudioProjectWrapper project,
+            IVsHierarchy hierarchy,
+            uint itemid,
+            Guid languageServiceGuid)
+        {
+            if (project.IsDefault)
+            {
+                throw new ArgumentException($"A non-default {nameof(VSTypeScriptVisualStudioProjectWrapper)} is required.");
+            }
+
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
+
+            _underlyingObject = new ContainedLanguage(
+                bufferCoordinator,
+                componentModel,
+                workspace,
+                project.Project!.Id, // ! is safe due to IsDefault check.
+                project.Project,
                 filePath,
                 languageServiceGuid,
                 vbHelperFormattingRule: null);

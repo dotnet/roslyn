@@ -7,6 +7,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
@@ -35,14 +36,17 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
             return false;
         }
 
-        internal AbstractProject Project
-            => _underlyingObject.Project;
+        public void Dispose()
+            => _underlyingObject.Dispose();
+
+        public ITextBuffer SubjectBuffer
+            => _underlyingObject.SubjectBuffer;
+
+        public IVsContainedLanguageHost Host
+            => _underlyingObject.ContainedLanguageHost;
 
         internal IVisualStudioHostDocument HostDocument
             => _underlyingObject;
-
-        internal IVsContainedLanguageHost Host
-            => _underlyingObject.ContainedLanguageHost;
 
     }
 }
