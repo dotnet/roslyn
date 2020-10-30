@@ -149,7 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
-            var solution = document.Project.Solution;
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
             if (commitKey == ';' && IsAutoAddParenthesisBySemicolonEnabled(document))
             {
