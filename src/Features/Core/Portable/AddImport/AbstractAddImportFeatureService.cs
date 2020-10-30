@@ -380,7 +380,6 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             static bool ContainsPathComponent(PortableExecutableReference reference, string pathComponent)
             {
-                Contract.ThrowIfNull(reference.FilePath);
                 return PathUtilities.ContainsPathComponent(reference.FilePath, pathComponent, ignoreCase: true);
             }
         }
