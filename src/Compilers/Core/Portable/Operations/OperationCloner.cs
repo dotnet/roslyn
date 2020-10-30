@@ -77,41 +77,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InterpolationOperation(Visit(operation.Expression), Visit(operation.Alignment), Visit(operation.FormatString), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitConstantPattern(IConstantPatternOperation operation, object argument)
-        {
-            return new ConstantPatternOperation(operation.InputType, operation.NarrowedType, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
-        }
-
-        public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, object argument)
-        {
-            return new DeclarationPatternOperation(
-                operation.MatchedType,
-                operation.MatchesNull,
-                operation.DeclaredSymbol,
-                operation.InputType,
-                operation.NarrowedType,
-                ((Operation)operation).OwningSemanticModel,
-                operation.Syntax,
-                operation.Type,
-                operation.GetConstantValue(),
-                operation.IsImplicit);
-        }
-
-        public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
-        {
-            return new RecursivePatternOperation(
-                operation.InputType,
-                operation.NarrowedType,
-                operation.MatchedType,
-                operation.DeconstructSymbol,
-                VisitArray(operation.DeconstructionSubpatterns),
-                VisitArray(operation.PropertySubpatterns),
-                operation.DeclaredSymbol,
-                ((Operation)operation).OwningSemanticModel,
-                operation.Syntax,
-                operation.IsImplicit);
-        }
-
         public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, object argument)
         {
             return new ConstructorBodyOperation(operation.Locals, ((Operation)operation).OwningSemanticModel, operation.Syntax, Visit(operation.Initializer), Visit(operation.BlockBody), Visit(operation.ExpressionBody));
@@ -120,11 +85,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, object argument)
         {
             return new MethodBodyOperation(((Operation)operation).OwningSemanticModel, operation.Syntax, Visit(operation.BlockBody), Visit(operation.ExpressionBody));
-        }
-
-        public override IOperation VisitDiscardPattern(IDiscardPatternOperation operation, object argument)
-        {
-            return new DiscardPatternOperation(operation.InputType, operation.NarrowedType, operation.SemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object argument)

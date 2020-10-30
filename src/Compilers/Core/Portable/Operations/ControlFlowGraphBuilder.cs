@@ -6765,11 +6765,10 @@ oneMoreTime:
         {
             return new TranslatedQueryOperation(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
-#nullable disable
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)
         {
-            return new ConstantPatternOperation(operation.InputType, operation.NarrowedType, Visit(operation.Value), semanticModel: null,
+            return new ConstantPatternOperation(Visit(operation.Value), operation.InputType, operation.NarrowedType, semanticModel: null,
                 syntax: operation.Syntax, isImplicit: IsImplicit(operation));
         }
 
@@ -6782,8 +6781,6 @@ oneMoreTime:
                 narrowedType: operation.NarrowedType,
                 semanticModel: null,
                 syntax: operation.Syntax,
-                type: operation.Type,
-                constantValue: null,
                 isImplicit: IsImplicit(operation));
         }
 
@@ -6797,8 +6794,6 @@ oneMoreTime:
                 narrowedType: operation.NarrowedType,
                 semanticModel: null,
                 syntax: operation.Syntax,
-                type: operation.Type,
-                constantValue: null,
                 isImplicit: IsImplicit(operation));
         }
 
@@ -6810,8 +6805,6 @@ oneMoreTime:
                 narrowedType: operation.NarrowedType,
                 semanticModel: null,
                 syntax: operation.Syntax,
-                type: operation.Type,
-                constantValue: null,
                 isImplicit: IsImplicit(operation));
         }
 
@@ -6823,19 +6816,17 @@ oneMoreTime:
                 narrowedType: operation.NarrowedType,
                 semanticModel: null,
                 syntax: operation.Syntax,
-                type: operation.Type,
-                constantValue: null,
                 isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, int? captureIdForResult)
         {
             return new DeclarationPatternOperation(
-                inputType: operation.InputType,
-                narrowedType: operation.NarrowedType,
-                matchedType: operation.MatchedType,
-                operation.DeclaredSymbol,
+                operation.MatchedType,
                 operation.MatchesNull,
+                operation.DeclaredSymbol,
+                operation.InputType,
+                operation.NarrowedType,
                 semanticModel: null,
                 operation.Syntax,
                 IsImplicit(operation));
@@ -6844,19 +6835,18 @@ oneMoreTime:
         public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, int? argument)
         {
             return new RecursivePatternOperation(
-                inputType: operation.InputType,
-                narrowedType: operation.NarrowedType,
-                matchedType: operation.MatchedType,
+                operation.MatchedType,
                 operation.DeconstructSymbol,
                 operation.DeconstructionSubpatterns.SelectAsArray(p => (IPatternOperation)Visit(p)),
                 operation.PropertySubpatterns.SelectAsArray(p => (IPropertySubpatternOperation)Visit(p)),
                 operation.DeclaredSymbol,
+                operation.InputType,
+                operation.NarrowedType,
                 semanticModel: null,
                 operation.Syntax,
                 IsImplicit(operation));
         }
 
-#nullable enable
         public override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, int? argument)
         {
             return new PropertySubpatternOperation(

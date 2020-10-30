@@ -22,9 +22,6 @@ namespace IOperationGenerator
             "IInterpolatedStringContentOperation",
             "IInterpolatedStringTextOperation",
             "IInterpolationOperation",
-            "IPatternOperation",
-            "IConstantPatternOperation",
-            "IDeclarationPatternOperation",
             "IMethodBodyBaseOperation",
             "IMethodBodyOperation",
             "IConstructorBodyOperation",
@@ -34,12 +31,6 @@ namespace IOperationGenerator
             "ICaughtExceptionOperation",
             "IStaticLocalInitializationSemaphoreOperation",
             "IFlowAnonymousFunctionOperation",
-            "IRecursivePatternOperation",
-            "IDiscardPatternOperation",
-            "INegatedPatternOperation",
-            "IBinaryPatternOperation",
-            "ITypePatternOperation",
-            "IRelationalPatternOperation",
         };
     }
 }

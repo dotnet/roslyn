@@ -2398,7 +2398,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="MatchedType" Type="ITypeSymbol">
+    <Property Name="MatchedType" Type="ITypeSymbol?">
       <Comments>
         <summary>
           The type explicitly specified, or null if it was inferred (e.g. using <code>var</code> in C#).
@@ -2414,7 +2414,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="DeclaredSymbol" Type="ISymbol">
+    <Property Name="DeclaredSymbol" Type="ISymbol?">
       <Comments>
         <summary>Symbol declared by the pattern, if any.</summary>
       </Comments>
@@ -2720,7 +2720,7 @@
         <summary>The type accepted for the recursive pattern.</summary>
       </Comments>
     </Property>
-    <Property Name="DeconstructSymbol" Type="ISymbol">
+    <Property Name="DeconstructSymbol" Type="ISymbol?">
       <Comments>
         <summary>
           The symbol, if any, used for the fetching values for subpatterns. This is either a <code>Deconstruct</code>
@@ -2739,7 +2739,7 @@
         <summary>This contains the (symbol, property) pairs within a property subpattern.</summary>
       </Comments>
     </Property>
-    <Property Name="DeclaredSymbol" Type="ISymbol">
+    <Property Name="DeclaredSymbol" Type="ISymbol?">
       <Comments>
         <summary>Symbol declared by the pattern.</summary>
       </Comments>

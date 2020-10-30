@@ -542,44 +542,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 #nullable disable
 
-    internal sealed partial class ConstantPatternOperation : BaseConstantPatternOperation, IConstantPatternOperation
-    {
-        public ConstantPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            this(value, inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        { }
-    }
-
-    internal sealed partial class DeclarationPatternOperation : BasePatternOperation, IDeclarationPatternOperation
-    {
-        public DeclarationPatternOperation(
-            ITypeSymbol inputType,
-            ITypeSymbol narrowedType,
-            ITypeSymbol matchedType,
-            ISymbol declaredSymbol,
-            bool matchesNull,
-            SemanticModel semanticModel,
-            SyntaxNode syntax,
-            bool isImplicit)
-            : this(matchedType, matchesNull, declaredSymbol, inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        { }
-    }
-
-    internal sealed partial class RecursivePatternOperation : BaseRecursivePatternOperation
-    {
-        public RecursivePatternOperation(
-            ITypeSymbol inputType,
-            ITypeSymbol narrowedType,
-            ITypeSymbol matchedType,
-            ISymbol deconstructSymbol,
-            ImmutableArray<IPatternOperation> deconstructionSubpatterns,
-            ImmutableArray<IPropertySubpatternOperation> propertySubpatterns,
-            ISymbol declaredSymbol, SemanticModel semanticModel,
-            SyntaxNode syntax,
-            bool isImplicit) :
-            this(matchedType, deconstructSymbol, deconstructionSubpatterns, propertySubpatterns, declaredSymbol, inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        { }
-    }
-
     internal sealed partial class FlowCaptureReferenceOperation : OperationOld, IFlowCaptureReferenceOperation
     {
         public FlowCaptureReferenceOperation(int id, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue) :
@@ -685,13 +647,5 @@ namespace Microsoft.CodeAnalysis.Operations
                                         IOperation initializer, IBlockOperation blockBody, IBlockOperation expressionBody) :
             this(locals, initializer, blockBody, expressionBody, semanticModel, syntax, type: null, constantValue: null, isImplicit: false)
         { }
-    }
-
-    internal sealed partial class DiscardPatternOperation : BasePatternOperation, IDiscardPatternOperation
-    {
-        public DiscardPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            this(inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        { }
-
     }
 }
