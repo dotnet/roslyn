@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
             var documentId = document != null
                 ? document.Id
-                : project.Documents.FirstOrDefault(d => d.FilePath == originalFile)?.Id;
+                : project.State.DocumentStates.FirstOrDefault(d => d.Value.FilePath == originalFile).Key;
 
             return new DiagnosticDataLocation(documentId, sourceSpan,
                 originalFile, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
