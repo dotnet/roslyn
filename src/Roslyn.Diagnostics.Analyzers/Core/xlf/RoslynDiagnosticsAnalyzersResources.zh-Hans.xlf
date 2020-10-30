@@ -292,6 +292,21 @@
         <target state="translated">删除多余的空白行</target>
         <note />
       </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefDescription">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefMessage">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefTitle">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply 'PartNotDiscoverableAttribute'</source>
         <target state="translated">应用 "PartNotDiscoverableAttribute"</target>
