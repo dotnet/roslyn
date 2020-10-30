@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         IOperation Operand { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a exception instance passed by an execution environment to an exception filter or handler.
     /// This node is produced only as part of a <see cref="ControlFlowGraph" />.
@@ -96,6 +97,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     public interface ICaughtExceptionOperation : IOperation
     {
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents the check during initialization of a VB static local that is initialized on the first call of the function, and never again.
     /// If the semaphore operation returns true, the static local has not yet been initialized, and the initializer will be run. If it returns
@@ -117,6 +120,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         ILocalSymbol Local { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents an anonymous function operation in context of a <see cref="ControlFlowGraph" />.
     /// <para>

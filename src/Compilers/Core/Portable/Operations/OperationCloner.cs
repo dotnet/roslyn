@@ -59,14 +59,13 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             throw ExceptionUtilities.Unreachable;
         }
-#nullable disable
 
-        public override IOperation VisitCaughtException(ICaughtExceptionOperation operation, object argument)
+        public override IOperation VisitCaughtException(ICaughtExceptionOperation operation, object? argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, object argument)
+        public override IOperation VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, object? argument)
         {
             throw ExceptionUtilities.Unreachable;
         }

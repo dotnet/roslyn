@@ -12,8 +12,6 @@ namespace IOperationGenerator
         private static readonly HashSet<string> UnportedTypes = new()
         {
             "IInvalidOperation",
-            "ICaughtExceptionOperation",
-            "IStaticLocalInitializationSemaphoreOperation",
             "IFlowAnonymousFunctionOperation",
         };
     }

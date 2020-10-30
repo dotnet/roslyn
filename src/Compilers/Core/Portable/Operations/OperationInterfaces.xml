@@ -2574,7 +2574,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICaughtExceptionOperation" Base="IOperation" Namespace="FlowAnalysis">
+  <Node Name="ICaughtExceptionOperation" Base="IOperation" Namespace="FlowAnalysis" SkipInCloner="true" HasType="true">
     <Comments>
       <summary>
         Represents a exception instance passed by an execution environment to an exception filter or handler.
@@ -2582,7 +2582,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IStaticLocalInitializationSemaphoreOperation" Base="IOperation" Namespace="FlowAnalysis">
+  <Node Name="IStaticLocalInitializationSemaphoreOperation" Base="IOperation" Namespace="FlowAnalysis" SkipInCloner="true" HasType="true">
     <Comments>
       <summary>
         Represents the check during initialization of a VB static local that is initialized on the first call of the function, and never again.

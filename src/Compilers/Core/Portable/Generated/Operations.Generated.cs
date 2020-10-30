@@ -6464,26 +6464,40 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitIsNull(this, argument);
     }
     #nullable disable
-    internal sealed partial class CaughtExceptionOperation : OperationOld, ICaughtExceptionOperation
+    #nullable enable
+    internal sealed partial class CaughtExceptionOperation : Operation, ICaughtExceptionOperation
     {
-        internal CaughtExceptionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.CaughtException, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal CaughtExceptionOperation(SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Type = type;
+        }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.CaughtException;
         public override void Accept(OperationVisitor visitor) => visitor.VisitCaughtException(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitCaughtException(this, argument);
     }
-    internal sealed partial class StaticLocalInitializationSemaphoreOperation : OperationOld, IStaticLocalInitializationSemaphoreOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class StaticLocalInitializationSemaphoreOperation : Operation, IStaticLocalInitializationSemaphoreOperation
     {
-        internal StaticLocalInitializationSemaphoreOperation(ILocalSymbol local, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.StaticLocalInitializationSemaphore, semanticModel, syntax, type, constantValue, isImplicit)
+        internal StaticLocalInitializationSemaphoreOperation(ILocalSymbol local, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Local = local;
+            Type = type;
         }
         public ILocalSymbol Local { get; }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.StaticLocalInitializationSemaphore;
         public override void Accept(OperationVisitor visitor) => visitor.VisitStaticLocalInitializationSemaphore(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitStaticLocalInitializationSemaphore(this, argument);
     }
+    #nullable disable
     #nullable enable
     internal sealed partial class CoalesceAssignmentOperation : BaseAssignmentOperation, ICoalesceAssignmentOperation
     {

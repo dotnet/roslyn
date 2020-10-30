@@ -410,22 +410,20 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(operand != null);
         }
     }
-#nullable disable
 
-    internal sealed partial class CaughtExceptionOperation : OperationOld, ICaughtExceptionOperation
+    internal sealed partial class CaughtExceptionOperation
     {
         public CaughtExceptionOperation(SyntaxNode syntax, ITypeSymbol type) :
-            this(semanticModel: null, syntax: syntax, type: type, constantValue: null, isImplicit: true)
+            this(semanticModel: null, syntax: syntax, type: type, isImplicit: true)
         {
         }
     }
 
-    internal sealed partial class StaticLocalInitializationSemaphoreOperation : OperationOld, IStaticLocalInitializationSemaphoreOperation
+    internal sealed partial class StaticLocalInitializationSemaphoreOperation
     {
         public StaticLocalInitializationSemaphoreOperation(ILocalSymbol local, SyntaxNode syntax, ITypeSymbol type) :
-            base(OperationKind.StaticLocalInitializationSemaphore, semanticModel: null, syntax, type, constantValue: null, isImplicit: true)
+            this(local, semanticModel: null, syntax, type, isImplicit: true)
         {
-            Local = local;
         }
     }
 }
