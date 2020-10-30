@@ -254,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each template In builder
                 Dim nameAndIndex = template.NameAndIndex
                 Dim key = template.GetAnonymousTypeKey()
-                Dim value = New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template)
+                Dim value = New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template.GetCciAdapter())
                 result.Add(key, value)
             Next
             builder.Free()
