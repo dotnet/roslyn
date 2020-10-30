@@ -392,38 +392,16 @@ namespace Microsoft.CodeAnalysis.Operations
         {
         }
     }
-#nullable disable
 
-    internal sealed partial class FlowCaptureOperation : OperationOld, IFlowCaptureOperation
+    internal sealed partial class FlowCaptureOperation
     {
         public FlowCaptureOperation(int id, SyntaxNode syntax, IOperation value) :
-            base(OperationKind.FlowCapture, semanticModel: null, syntax: syntax, type: null, constantValue: null, isImplicit: true)
+            this(new CaptureId(id), value, semanticModel: null, syntax: syntax, isImplicit: true)
         {
             Debug.Assert(value != null);
-            Id = new CaptureId(id);
-            Value = SetParentOperation(value, this);
-        }
-
-        public CaptureId Id { get; }
-        public IOperation Value { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return Value;
-            }
-        }
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitFlowCapture(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitFlowCapture(this, argument);
         }
     }
+#nullable disable
 
     internal sealed partial class IsNullOperation : OperationOld, IIsNullOperation
     {

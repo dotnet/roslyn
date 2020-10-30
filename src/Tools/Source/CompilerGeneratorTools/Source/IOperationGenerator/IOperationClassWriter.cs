@@ -1107,7 +1107,7 @@ namespace IOperationGenerator
             {
                 const string internalName = "internalOperation";
 
-                if (UnportedTypes.Contains(node.Name) || node.SkipClassGeneration)
+                if (UnportedTypes.Contains(node.Name) || node.SkipClassGeneration || node.SkipInCloner)
                 {
                     continue;
                 }

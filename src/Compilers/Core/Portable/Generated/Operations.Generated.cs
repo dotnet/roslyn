@@ -6382,6 +6382,38 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     #nullable disable
     #nullable enable
+    internal sealed partial class FlowCaptureOperation : Operation, IFlowCaptureOperation
+    {
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal FlowCaptureOperation(CaptureId id, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Id = id;
+            Value = SetParentOperation(value, this);
+        }
+        public CaptureId Id { get; }
+        public IOperation Value { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
+                    if (Value is not null) builder.Add(Value);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
+            }
+        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.FlowCapture;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitFlowCapture(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitFlowCapture(this, argument);
+    }
+    #nullable disable
+    #nullable enable
     internal sealed partial class FlowCaptureReferenceOperation : Operation, IFlowCaptureReferenceOperation
     {
         internal FlowCaptureReferenceOperation(CaptureId id, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)

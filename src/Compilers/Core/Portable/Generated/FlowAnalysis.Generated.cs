@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     #region Interfaces
+    #nullable enable
     /// <summary>
     /// Represents that an intermediate result is being captured.
     /// This node is produced only as part of a <see cref="ControlFlowGraph" />.
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         IOperation Value { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents a point of use of an intermediate result captured earlier.

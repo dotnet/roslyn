@@ -2526,7 +2526,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IFlowCaptureOperation" Base="IOperation" Namespace="FlowAnalysis" SkipClassGeneration="true">
+  <Node Name="IFlowCaptureOperation" Base="IOperation" Namespace="FlowAnalysis" SkipInCloner="true">
     <Comments>
       <summary>
         Represents that an intermediate result is being captured.

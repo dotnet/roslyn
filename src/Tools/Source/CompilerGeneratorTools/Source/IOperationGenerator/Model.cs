@@ -75,6 +75,10 @@ namespace IOperationGenerator
         public string? SkipChildrenGenerationText;
         public bool SkipChildrenGeneration => SkipChildrenGenerationText == "true";
 
+        [XmlAttribute(AttributeName = "SkipInCloner")]
+        public string? SkipInClonerText;
+        public bool SkipInCloner => SkipInClonerText == "true";
+
         [XmlAttribute]
         public string? ChildrenOrder;
 

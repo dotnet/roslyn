@@ -49,10 +49,12 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object argument)
+#nullable enable
+        public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object? argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
+#nullable disable
 
         public override IOperation VisitIsNull(IIsNullOperation operation, object argument)
         {
