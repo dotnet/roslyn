@@ -214,10 +214,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             private static INavigateToSearchService? GetSearchService(Project project)
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 var legacySearchService = project.GetLanguageService<INavigateToSeINavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdatearchService>();
                 return legacySearchService != null
                     ? new WrappedNavigateToSearchService(legacySearchService)
                     : project.GetLanguageService<INavigateToSearchService>();
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             private void ReportMatchResult(Project project, INavigateToSearchResult result)

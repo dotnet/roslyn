@@ -15,12 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         {
             private class WrappedNavigateToSearchService : INavigateToSearchService
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 private readonly INavigateToSeINavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdatearchService _legacySearchService;
 
                 public WrappedNavigateToSearchService(INavigateToSeINavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdatearchService legacySearchService)
                 {
                     _legacySearchService = legacySearchService;
                 }
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 public IImmutableSet<string> KindsProvided => _legacySearchService.KindsProvided;
 
