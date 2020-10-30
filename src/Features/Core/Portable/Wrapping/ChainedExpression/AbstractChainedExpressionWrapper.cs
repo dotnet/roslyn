@@ -7,8 +7,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -273,56 +275,72 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         }
 
         /// <summary>
-        /// Walks down <paramref name="node"/> decomposing it into the individual tokens
-        /// and nodes we want to look for chunks in.
+        /// Walks down <paramref name="node"/> using a stack, decomposing it into the individual 
+        /// tokens and nodes we want to look for chunks in. 
         /// </summary>
         private void Decompose(SyntaxNode node, ArrayBuilder<SyntaxNodeOrToken> pieces)
         {
-            // Recursion can get us into trouble with deeply chained statements. Let's
-            // use a queue instead.
-            var queue = SharedPools.Default<Queue<SyntaxNode>>().AllocateAndClear();
+            var stack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
             try
             {
-                queue.Enqueue(node);
+                SyntaxToken? token = null;
 
-                while (queue.Count > 0)
+                // We'll start with the node that was passed in. If it was null, we will fall through
+                // since null nodes are never relevant when building up the sequence of pieces in chained
+                // expressions.
+                while (stack.Count > 0 || node != null)
                 {
-                    node = queue.Dequeue();
-
-                    // Ignore null nodes, they are never relevant when building up the sequence of
-                    // pieces in this chained expression.
-                    if (node is null)
+                    // The first time through, we already have a node. After that, we will get our
+                    // node by popping a container from the stack and deconstructing it.
+                    if (node == null)
                     {
-                        continue;
-                    }
-
-                    // We've hit some node that can't be decomposed further (like an argument list,
-                    // or name node).  Just add directly to the pieces list.
-                    if (!IsDecomposableChainPart(node))
-                    {
-                        pieces.Add(node);
-                        continue;
-                    }
-
-                    // For everything else that is a chain part, just decompose into its constituent 
-                    // parts and add to the pieces array.
-                    foreach (var child in node.ChildNodesAndTokens())
-                    {
-                        if (child.IsNode)
+                        var item = stack.Pop();
+                        if (item.IsNode)
                         {
-                            queue.Enqueue(child.AsNode());
+                            node = item.AsNode();
+                            token = null;
                         }
                         else
                         {
-                            pieces.Add(child.AsToken());
+                            token = item.AsToken();
                         }
+                    }
+                    if (node != null)
+                    {
+                        // We've hit some node that can't be decomposed further (like an argument list,
+                        // or name node).  Just add directly to the pieces list.
+                        if (!IsDecomposableChainPart(node))
+                        {
+                            pieces.Add(node);
+                        }
+                        else
+                        {
+                            // For everything else that is a chain part, just decompose into its constituent 
+                            // parts and add to the pieces array.
+                            foreach (var child in node.ChildNodesAndTokens())
+                            {
+                                if (child != null)
+                                {
+                                    stack.Push(child);
+                                }
+                            }
+                        }
+                        node = null;
+                    }
+                    else if (token.HasValue)
+                    {
+                        pieces.Add(token.Value);
+                        token = null;
                     }
                 }
             }
             finally
             {
-                SharedPools.Default<Queue<SyntaxNode>>().ClearAndFree(queue);
+                SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(stack);
             }
+            // Our stack-based approach results in a collection in the reverse order from previous
+            // behavior.
+            pieces.ReverseContents();
         }
     }
 }
