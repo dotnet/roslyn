@@ -1501,9 +1501,9 @@ namespace Roslyn.Diagnostics.Analyzers
                 ConfiguredValueTaskAwaitableT = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable1);
             }
 
-            internal bool IsNonCopyableType(ITypeSymbol symbol)
+            internal bool IsNonCopyableType([NotNullWhen(true)] ITypeSymbol? symbol)
             {
-                if (!symbol.IsValueType)
+                if (symbol is not { IsValueType: true })
                 {
                     return false;
                 }

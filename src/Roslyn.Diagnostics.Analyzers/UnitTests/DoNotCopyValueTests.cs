@@ -17,6 +17,28 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class DoNotCopyValueTests
     {
         [Fact]
+        public async Task TestSliceOfString()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+                TestCode = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    void M()
+    {
+        var local = """"[..];
+        local = """"[..];
+    }
+}
+",
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestAcquireFromReturnByValue()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
