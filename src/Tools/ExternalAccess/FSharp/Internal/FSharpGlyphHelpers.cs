@@ -212,22 +212,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal
                         return FSharpGlyph.Namespace;
                     }
                 case Microsoft.CodeAnalysis.Glyph.MethodPublic:
-                case Microsoft.CodeAnalysis.Glyph.ConstructorPublic:
                     {
                         return FSharpGlyph.MethodPublic;
                     }
                 case Microsoft.CodeAnalysis.Glyph.MethodProtected:
-                case Microsoft.CodeAnalysis.Glyph.ConstructorProtected:
                     {
                         return FSharpGlyph.MethodProtected;
                     }
                 case Microsoft.CodeAnalysis.Glyph.MethodPrivate:
-                case Microsoft.CodeAnalysis.Glyph.ConstructorPrivate:
                     {
                         return FSharpGlyph.MethodPrivate;
                     }
                 case Microsoft.CodeAnalysis.Glyph.MethodInternal:
-                case Microsoft.CodeAnalysis.Glyph.ConstructorInternal:
                     {
                         return FSharpGlyph.MethodInternal;
                     }
@@ -322,6 +318,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal
                 case Microsoft.CodeAnalysis.Glyph.TargetTypeMatch:
                     {
                         return FSharpGlyph.TargetTypeMatch;
+                    }
+                case Microsoft.CodeAnalysis.Glyph.ConstructorPublic:
+                    {
+                        return FSharpGlyph.ConstructorPublic;
+                    }
+                case Microsoft.CodeAnalysis.Glyph.ConstructorProtected:
+                    {
+                        return FSharpGlyph.ConstructorProtected;
+                    }
+                case Microsoft.CodeAnalysis.Glyph.ConstructorPrivate:
+                    {
+                        return FSharpGlyph.ConstructorPrivate;
+                    }
+                case Microsoft.CodeAnalysis.Glyph.ConstructorInternal:
+                    {
+                        return FSharpGlyph.ConstructorInternal;
                     }
                 default:
                     {
@@ -637,6 +649,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal
                 case FSharpGlyph.TargetTypeMatch:
                     {
                         return Microsoft.CodeAnalysis.Glyph.TargetTypeMatch;
+                    }
+                case FSharpGlyph.ConstructorPublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstructorPublic;
+                    }
+                case FSharpGlyph.ConstructorProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstructorProtected;
+                    }
+                case FSharpGlyph.ConstructorPrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstructorPrivate;
+                    }
+                case FSharpGlyph.ConstructorInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstructorInternal;
                     }
                 default:
                     {

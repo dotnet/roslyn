@@ -235,13 +235,13 @@ End Class
 ]]></Text>.Value,
 expectedHierarchicalLayout:=<Text><![CDATA[
 ClassInternal C1
-  ConstantPrivate i1 As IntegerConstant
+  ConstantPrivate i1 As Integer Constant
   MethodPublic S1()
-    Local i2Constant
+    Local i2 Constant
 ]]></Text>.Value,
 expectedNonHierarchicalLayout:=<Text><![CDATA[
 ClassInternal C1
-  ConstantPrivate i1 As IntegerConstant
+  ConstantPrivate i1 As Integer Constant
   MethodPublic S1()
 ]]></Text>.Value)
         End Function

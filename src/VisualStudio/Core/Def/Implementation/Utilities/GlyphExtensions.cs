@@ -112,6 +112,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 case Glyph.MethodProtected:
                 case Glyph.MethodPrivate:
                 case Glyph.MethodInternal:
+                case Glyph.ConstructorPublic:
+                case Glyph.ConstructorProtected:
+                case Glyph.ConstructorPrivate:
+                case Glyph.ConstructorInternal:
                     return StandardGlyphGroup.GlyphGroupMethod;
 
                 case Glyph.ModulePublic:

@@ -338,6 +338,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
                     {
                         return FSharpGlyph.TargetTypeMatch;
                     }
+                case Microsoft.CodeAnalysis.Glyph.ConstructorPublic:
+                    {
+                        return FSharpGlyph.ConstructorPublic;
+                    }
+                case Microsoft.CodeAnalysis.Glyph.ConstructorProtected:
+                    {
+                        return FSharpGlyph.ConstructorProtected;
+                    }
+                case Microsoft.CodeAnalysis.Glyph.ConstructorPrivate:
+                    {
+                        return FSharpGlyph.ConstructorPrivate;
+                    }
+                case Microsoft.CodeAnalysis.Glyph.ConstructorInternal:
+                    {
+                        return FSharpGlyph.ConstructorInternal;
+                    }
                 default:
                     {
                         throw ExceptionUtilities.UnexpectedValue(glyph);
@@ -652,6 +668,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
                 case FSharpGlyph.TargetTypeMatch:
                     {
                         return Microsoft.CodeAnalysis.Glyph.TargetTypeMatch;
+                    }
+                case FSharpGlyph.ConstructorPublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstructorPublic;
+                    }
+                case FSharpGlyph.ConstructorProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstructorProtected;
+                    }
+                case FSharpGlyph.ConstructorPrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstructorPrivate;
+                    }
+                case FSharpGlyph.ConstructorInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstructorInternal;
                     }
                 default:
                     {

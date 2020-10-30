@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             {
                 GenerateTextEdit(@"private const int V = 1;
 
-", new LSP.Range { Start = new Position(2, 4), End = new Position(2, 4) }),
+    ", new LSP.Range { Start = new Position(2, 4), End = new Position(2, 4) }),
                 GenerateTextEdit("V", new LSP.Range { Start = new Position(4, 16), End = new Position(4, 17) })
             };
 
