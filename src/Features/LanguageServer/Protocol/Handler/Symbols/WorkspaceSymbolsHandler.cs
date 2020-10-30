@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 using var progress = BufferedProgress.Create(request.PartialResultToken);
 
-                var searchService = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
+                var searchService = project.LanguageServices.GetService<INavigateToSearchService>();
                 if (searchService != null)
                 {
                     // TODO - Update Kinds Provided to return all necessary symbols.

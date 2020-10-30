@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal partial class NavigateToItemProvider
     {
-        private class Searcher
+        private partial class Searcher
         {
             private readonly Solution _solution;
             private readonly IAsynchronousOperationListener _asyncListener;
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private readonly string _searchPattern;
             private readonly bool _searchCurrentDocument;
             private readonly IImmutableSet<string> _kinds;
-            private readonly Document _currentDocument;
+            private readonly Document? _currentDocument;
             private readonly ProgressTracker _progress;
             private readonly CancellationToken _cancellationToken;
 
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
                 if (_searchCurrentDocument)
                 {
-                    var documentService = _solution.Workspace.Services.GetService<IDocumentTrackingService>();
+                    var documentService = _solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
                     var activeId = documentService.TryGetActiveDocument();
                     _currentDocument = activeId != null ? _solution.GetDocument(activeId) : null;
                 }
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
                 finally
                 {
-                    var service = _solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+                    var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
                     if (_callback is INavigateToCallback2 callback2 &&
                         !await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false))
                     {
@@ -193,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 {
                     using (cacheService.EnableCaching(project.Id))
                     {
-                        var service = TryGetNavigateToSearchService(project);
+                        var service = GetSearchService(project);
                         if (service != null)
                         {
                             var searchTask = _currentDocument != null
@@ -211,6 +210,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         }
                     }
                 }
+            }
+
+            private static INavigateToSearchService? GetSearchService(Project project)
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                var legacySearchService = project.GetLanguageService<INavigateToSeINavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdatearchService>();
+                return legacySearchService != null
+                    ? new WrappedNavigateToSearchService(legacySearchService)
+                    : project.GetLanguageService<INavigateToSearchService>();
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
