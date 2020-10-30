@@ -27,7 +27,7 @@ Next the build needs to be updated to reflect this change in version for the pac
 > .\change-all.ps1 -version "26418.00" 
 ```
 
-Before uploading the packages to myget please do a local build to validate the changes.  In order to do this the 
+Before uploading the packages to Azure DevOps please do a local build to validate the changes.  In order to do this the 
 following line needs to be added to NuGet.config.  Do not merge this change, it is for testing only.  
 
 ``` xml
@@ -43,8 +43,8 @@ Given this entry we can quickly run the following developer flow to validate the
 > Test.cmd
 ```
 
-Assuming this all passes then revert the change to NuGet.config, upload the packages to the roslyn-tools feed of 
-myget and submit the result of `change-all.ps1` as a PR. 
+Assuming this all passes then revert the change to NuGet.config, upload the packages to the [public vs-impl feed](https://dev.azure.com/azure-public/vside/_packaging?_a=feed&feed=vs-impl) 
+and submit the result of `change-all.ps1` as a PR. 
 
 
 
