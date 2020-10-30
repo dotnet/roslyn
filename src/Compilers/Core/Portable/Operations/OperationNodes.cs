@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -136,25 +137,25 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class FlowAnonymousFunctionOperation : OperationOld, IFlowAnonymousFunctionOperation
+#nullable enable
+    internal sealed class FlowAnonymousFunctionOperation : Operation, IFlowAnonymousFunctionOperation
     {
         public readonly ControlFlowGraphBuilder.Context Context;
         public readonly IAnonymousFunctionOperation Original;
 
         public FlowAnonymousFunctionOperation(in ControlFlowGraphBuilder.Context context, IAnonymousFunctionOperation original, bool isImplicit) :
-            base(OperationKind.FlowAnonymousFunction, semanticModel: null, original.Syntax, original.Type, original.GetConstantValue(), isImplicit)
+            base(semanticModel: null, original.Syntax, isImplicit)
         {
             Context = context;
             Original = original;
         }
         public IMethodSymbol Symbol => Original.Symbol;
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                return ImmutableArray<IOperation>.Empty;
-            }
-        }
+        public override IEnumerable<IOperation> Children => SpecializedCollections.EmptyEnumerable<IOperation>();
+
+        public override OperationKind Kind => OperationKind.FlowAnonymousFunction;
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFlowAnonymousFunction(this);
@@ -165,7 +166,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-#nullable enable
     internal abstract partial class BaseMemberReferenceOperation : IMemberReferenceOperation
     {
         public abstract ISymbol Member { get; }

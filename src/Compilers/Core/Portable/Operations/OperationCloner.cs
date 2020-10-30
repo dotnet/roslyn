@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Operations
             return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.GetConstantValue(), operation.IsImplicit, operation.Type);
         }
 
-        public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object argument)
+#nullable enable
+        public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object? argument)
         {
             var anonymous = (FlowAnonymousFunctionOperation)operation;
             return new FlowAnonymousFunctionOperation(in anonymous.Context, anonymous.Original, operation.IsImplicit);
         }
 
-#nullable enable
         public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, object? argument)
         {
             return new DynamicObjectCreationOperation(Visit(operation.Initializer), VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.IsImplicit);

@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         ILocalSymbol Local { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents an anonymous function operation in context of a <see cref="ControlFlowGraph" />.
     /// <para>
@@ -146,5 +147,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         IMethodSymbol Symbol { get; }
     }
+    #nullable disable
     #endregion
 }
