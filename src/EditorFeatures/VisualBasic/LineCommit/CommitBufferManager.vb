@@ -140,13 +140,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Try
         End Sub
 
+        ''' <summary>
+        ''' UseSemantics is set when the entire SpanToFormat should be formatted using semantics,
+        ''' otherwise SpanToFormat will be syntacticly formatted (ex. spacing fixed).
+        ''' If SpanToSemanticFormat is not Nothing it will be semantically formatted before SpanToFormat,
+        ''' SpanToSemanticFormat will be a single statement.
+        ''' </summary>
         Private Structure FormattingInfo
-            ' This is the original flag to enable semantic formating on a span
+#Disable Warning IDE1006 ' Naming Styles
             Public UseSemantics As Boolean
-            ' This is the total span to format, the span may or may not be semantically formated
             Public SpanToFormat As SnapshotSpan
-            ' This is a span that will always be semantically formated
             Public SpanToSemanticFormat? As SnapshotSpan
+#Enable Warning IDE1006 ' Naming Styles
         End Structure
 
         Private Sub FormatSpan(isExplicitFormat As Boolean, dirtyRegion As SnapshotSpan, spanToFormat As SnapshotSpan, useSemantics As Boolean, cancellationToken As CancellationToken)
