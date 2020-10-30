@@ -78,21 +78,4 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_lateInvocation.ArgumentsOpt)
         End Function
     End Class
-
-    Friend NotInheritable Class VisualBasicLazyVariableDeclarationGroupOperation
-        Inherits LazyVariableDeclarationGroupOperation
-
-        Private ReadOnly _operationFactory As VisualBasicOperationFactory
-        Private ReadOnly _localDeclarations As IBoundLocalDeclarations
-
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, localDeclarations As IBoundLocalDeclarations, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
-            _operationFactory = operationFactory
-            _localDeclarations = localDeclarations
-        End Sub
-
-        Protected Overrides Function CreateDeclarations() As ImmutableArray(Of IVariableDeclarationOperation)
-            Return _operationFactory.GetVariableDeclarationStatementVariables(_localDeclarations.Declarations)
-        End Function
-    End Class
 End Namespace

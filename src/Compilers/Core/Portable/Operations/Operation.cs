@@ -23,10 +23,6 @@ namespace Microsoft.CodeAnalysis
             operations: ImmutableArray<IOperation>.Empty, locals: default, semanticModel: null, syntax: null!, isImplicit: true);
         protected static readonly IObjectOrCollectionInitializerOperation s_unsetObjectOrCollectionInitializer = new ObjectOrCollectionInitializerOperation(
             initializers: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null!, type: null, isImplicit: true);
-        protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(
-            declarations: ImmutableArray<IVariableDeclarationOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
-        protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(
-            locals: ImmutableArray<ILocalSymbol>.Empty, value: null!, semanticModel: null, syntax: null!,  isImplicit: false);
         private readonly SemanticModel? _owningSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once

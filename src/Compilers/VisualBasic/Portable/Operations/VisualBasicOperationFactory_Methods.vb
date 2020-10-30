@@ -447,13 +447,11 @@ Namespace Microsoft.CodeAnalysis.Operations
                 End If
 
                 builder.Add(New VariableDeclarationOperation(declarators,
-                                                         initializer,
-                                                         ImmutableArray(Of IOperation).Empty,
-                                                         _semanticModel,
-                                                         declarationGroup.Key,
-                                                         type:=Nothing,
-                                                         constantValue:=Nothing,
-                                                         isImplicit:=False))
+                                                             initializer,
+                                                             ImmutableArray(Of IOperation).Empty,
+                                                             _semanticModel,
+                                                             declarationGroup.Key,
+                                                             isImplicit:=False))
             Next
 
             Return builder.ToImmutableAndFree()
@@ -469,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Dim ignoredArguments = ImmutableArray(Of IOperation).Empty
 
-            Return New VariableDeclaratorOperation(boundLocalDeclaration.LocalSymbol, initializer, ignoredArguments, _semanticModel, boundLocalDeclaration.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
+            Return New VariableDeclaratorOperation(boundLocalDeclaration.LocalSymbol, initializer, ignoredArguments, _semanticModel, boundLocalDeclaration.Syntax, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
         End Function
 
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationGroupOperation
@@ -477,8 +475,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                             GetVariableDeclarationStatementVariables(resourceList),
                             _semanticModel,
                             syntax,
-                            type:=Nothing,
-                            constantValue:=Nothing,
                             isImplicit:=False) ' Declaration is always explicit
         End Function
 

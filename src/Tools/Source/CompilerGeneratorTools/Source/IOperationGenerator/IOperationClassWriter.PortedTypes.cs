@@ -12,13 +12,10 @@ namespace IOperationGenerator
         private static readonly HashSet<string> UnportedTypes = new()
         {
             "IInvalidOperation",
-            "IVariableDeclarationGroupOperation",
             "IDynamicObjectCreationOperation",
             "IDynamicMemberReferenceOperation",
             "IDynamicInvocationOperation",
             "IDynamicIndexerAccessOperation",
-            "IVariableDeclaratorOperation",
-            "IVariableDeclarationOperation",
             "IFlowCaptureOperation",
             "IFlowCaptureReferenceOperation",
             "IIsNullOperation",

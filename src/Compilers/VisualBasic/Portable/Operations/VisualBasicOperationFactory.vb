@@ -1244,7 +1244,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim localOpt As LocalSymbol = boundForStatement.DeclaredOrInferredLocalOpt
             Dim controlVariable As BoundExpression = boundForStatement.ControlVariable
             Return If(localOpt IsNot Nothing,
-                New VariableDeclaratorOperation(localOpt, initializer:=Nothing, ignoredArguments:=ImmutableArray(Of IOperation).Empty, semanticModel:=_semanticModel, syntax:=controlVariable.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundForStatement.WasCompilerGenerated),
+                New VariableDeclaratorOperation(localOpt, initializer:=Nothing, ignoredArguments:=ImmutableArray(Of IOperation).Empty, semanticModel:=_semanticModel, syntax:=controlVariable.Syntax, isImplicit:=boundForStatement.WasCompilerGenerated),
                 Create(controlVariable))
         End Function
 
@@ -1262,7 +1262,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             If boundCatchBlock.LocalOpt IsNot Nothing AndAlso
                         (boundCatchBlock.ExceptionSourceOpt?.Kind = BoundKind.Local).GetValueOrDefault() AndAlso
                         boundCatchBlock.LocalOpt Is DirectCast(boundCatchBlock.ExceptionSourceOpt, BoundLocal).LocalSymbol Then
-                Return New VariableDeclaratorOperation(boundCatchBlock.LocalOpt, initializer:=Nothing, ignoredArguments:=ImmutableArray(Of IOperation).Empty, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=False)
+                Return New VariableDeclaratorOperation(boundCatchBlock.LocalOpt, initializer:=Nothing, ignoredArguments:=ImmutableArray(Of IOperation).Empty, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax, isImplicit:=False)
             Else
                 Return Create(boundCatchBlock.ExceptionSourceOpt)
             End If
@@ -1342,20 +1342,19 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationGroupOperation
+            Dim declarations As ImmutableArray(Of IVariableDeclarationOperation) = GetVariableDeclarationStatementVariables(boundDimStatement.LocalDeclarations)
             Dim syntax As SyntaxNode = boundDimStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Dim isImplicit As Boolean = boundDimStatement.WasCompilerGenerated
-            Return New VisualBasicLazyVariableDeclarationGroupOperation(Me, boundDimStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New VariableDeclarationGroupOperation(declarations, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundLocalDeclarationOperation(boundLocalDeclaration As BoundLocalDeclaration) As IVariableDeclarationGroupOperation
+            Dim declarations As ImmutableArray(Of IVariableDeclarationOperation) =
+                GetVariableDeclarationStatementVariables(ImmutableArray.Create(Of BoundLocalDeclarationBase)(boundLocalDeclaration))
             Dim syntax As SyntaxNode = boundLocalDeclaration.Syntax
-            Dim type As ITypeSymbol = Nothing
-            Dim constantValue As ConstantValue = Nothing
             Debug.Assert(boundLocalDeclaration.WasCompilerGenerated)
             Dim isImplicit As Boolean = True
-            Return New VisualBasicLazyVariableDeclarationGroupOperation(Me, boundLocalDeclaration, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New VariableDeclarationGroupOperation(declarations, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundYieldStatementOperation(boundYieldStatement As BoundYieldStatement) As IReturnOperation

@@ -1985,7 +1985,7 @@
         <summary>Symbol declared by this variable declaration</summary>
       </Comments>
     </Property>
-    <Property Name="Initializer" Type="IVariableInitializerOperation">
+    <Property Name="Initializer" Type="IVariableInitializerOperation?">
       <Comments>
         <summary>Optional initializer of the variable.</summary>
         <remarks>
@@ -2030,7 +2030,7 @@
         </remarks>
       </Comments>
     </Property>
-    <Property Name="Initializer" Type="IVariableInitializerOperation">
+    <Property Name="Initializer" Type="IVariableInitializerOperation?">
       <Comments>
         <summary>Optional initializer of the variable.</summary>
         <remarks>In C#, this will always be null.</remarks>
