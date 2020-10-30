@@ -1271,8 +1271,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 _ => 1,
             };
 
+        private static SyntaxNode EnsureRecordDeclarationHasBody(SyntaxNode declaration)
+        {
+            if (declaration is RecordDeclarationSyntax recordDeclaration)
+            {
+                return recordDeclaration
+                    .WithSemicolonToken(default)
+                    .WithOpenBraceToken(recordDeclaration.OpenBraceToken == default ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken) : recordDeclaration.OpenBraceToken)
+                    .WithCloseBraceToken(recordDeclaration.CloseBraceToken == default ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken) : recordDeclaration.CloseBraceToken);
+            }
+
+            return declaration;
+        }
+
         public override SyntaxNode InsertMembers(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> members)
         {
+            declaration = EnsureRecordDeclarationHasBody(declaration);
             var newMembers = this.AsMembersOf(declaration, members);
 
             var existingMembers = this.GetMembers(declaration);

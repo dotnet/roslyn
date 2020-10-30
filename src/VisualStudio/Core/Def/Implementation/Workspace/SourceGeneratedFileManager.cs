@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
+        private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffintizedObject;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IVsRunningDocumentTable _runningDocumentTable;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
@@ -55,6 +56,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = new();
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
 
+        private readonly Dictionary<Guid, GeneratedFileDirectoryInfo> _directoryInfoOnDiskByContainingDirectoryId = new();
+
+        /// <summary>
+        /// When we have to put a placeholder file on disk, we put it in a directory named by a GUID. We store information we need in
+        /// <see cref="_directoryInfoOnDiskByContainingDirectoryId"/>, so that way we don't have to pack the information into the path itself.
+        /// If we put the GUIDs and string names directly as components of the path, we quickly run into MAX_PATH. If we had a way to do virtual
+        /// monikers that don't run into MAX_PATH issues then we absolutely would want to get rid of this.
+        /// </summary>
+        private class GeneratedFileDirectoryInfo
+        {
+            public GeneratedFileDirectoryInfo(string generatorAssemblyName, string generatorTypeName)
+            {
+                GeneratorAssemblyName = generatorAssemblyName;
+                GeneratorTypeName = generatorTypeName;
+            }
+
+            public string GeneratorAssemblyName { get; }
+            public string GeneratorTypeName { get; }
+        }
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SourceGeneratedFileManager(
@@ -68,8 +89,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
+            _foregroundThreadAffintizedObject = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
             _textDocumentFactoryService = textDocumentFactoryService;
-            _temporaryDirectory = Path.Combine(Path.GetTempPath(), "VisualStudioSourceGeneratedDocuments");
+            _temporaryDirectory = Path.Combine(Path.GetTempPath(), "VSGeneratedDocuments");
             _visualStudioWorkspace = visualStudioWorkspace;
             _visualStudioDocumentNavigationService = visualStudioDocumentNavigationService;
 
@@ -89,19 +111,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public void NavigateToSourceGeneratedFile(Project project, ISourceGenerator generator, string generatedSourceHintName, TextSpan sourceSpan)
         {
+            _foregroundThreadAffintizedObject.AssertIsForeground();
+
             // We will create an file name to represent this generated file; the Visual Studio shell APIs imply you can use a URI,
             // but most URIs are blocked other than file:// and http://; they also get extra handling to attempt to download the file so
             // those aren't really usable anyways.
 
             var generatorType = generator.GetType();
+            var generatorAssemblyName = generatorType.Assembly.GetName().Name ?? string.Empty;
+            var generatorFullName = generatorType.FullName;
 
-            // The file name we generate here is chosen to match the compiler's choice, so the debugger can recognize the files should match.
-            // This can only be changed if the compiler changes the algorithm as well.
+            // Do we have a directory we can put this in?
+            Guid? guidForDirectory = null;
+
+            foreach (var (existingGuid, existingInformation) in _directoryInfoOnDiskByContainingDirectoryId)
+            {
+                if (existingInformation.GeneratorAssemblyName == generatorAssemblyName &&
+                    existingInformation.GeneratorTypeName == generatorFullName)
+                {
+                    guidForDirectory = existingGuid;
+                    break;
+                }
+            }
+
+            if (guidForDirectory == null)
+            {
+                guidForDirectory = Guid.NewGuid();
+                _directoryInfoOnDiskByContainingDirectoryId.Add(guidForDirectory.Value, new GeneratedFileDirectoryInfo(generatorAssemblyName, generatorFullName));
+            }
+
+            // The file name speciically is chosen to match the compiler's choice, so the debugger can recognize the files should match.
+            // This can only be changed if the compiler changes the algorithm as well. The directory itself we can of course change.
             var temporaryFilePath = Path.Combine(
                 _temporaryDirectory,
                 project.Id.Id.ToString(),
-                generatorType.Assembly.GetName().Name ?? string.Empty,
-                generatorType.FullName,
+                guidForDirectory.Value.ToString(),
                 generatedSourceHintName);
 
             Directory.CreateDirectory(Path.GetDirectoryName(temporaryFilePath));
@@ -133,39 +177,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        public bool TryParseGeneratedFilePath(
+        public bool TryGetGeneratedFileInformation(
             string filePath,
             [NotNullWhen(true)] out ProjectId? projectId,
             [NotNullWhen(true)] out string? generatorTypeName,
             [NotNullWhen(true)] out string? generatorAssemblyName,
             [NotNullWhen(true)] out string? generatedSourceHintName)
         {
+            _foregroundThreadAffintizedObject.AssertIsForeground();
+
+            projectId = null;
+            generatorTypeName = null;
+            generatorAssemblyName = null;
+            generatedSourceHintName = null;
+
             if (!filePath.StartsWith(_temporaryDirectory))
             {
-                projectId = null;
-                generatorTypeName = null;
-                generatorAssemblyName = null;
-                generatedSourceHintName = null;
                 return false;
             }
 
             var fileInfo = new FileInfo(filePath);
-            var generatorDir = fileInfo.Directory;
-            var assemblyDir = generatorDir.Parent;
-            var projectDir = assemblyDir.Parent;
+            if (!Guid.TryParse(fileInfo.Directory.Name, out var guid) ||
+                !_directoryInfoOnDiskByContainingDirectoryId.TryGetValue(guid, out var directoryInfo))
+            {
+                return false;
+            }
 
-            generatorTypeName = generatorDir.Name;
-            generatorAssemblyName = assemblyDir.Name;
+            projectId = ProjectId.CreateFromSerialized(Guid.Parse(fileInfo.Directory.Parent.Name));
+            generatorTypeName = directoryInfo.GeneratorTypeName;
+            generatorAssemblyName = directoryInfo.GeneratorAssemblyName;
             generatedSourceHintName = fileInfo.Name;
-
-            projectId = ProjectId.CreateFromSerialized(Guid.Parse(projectDir.Name));
 
             return true;
         }
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame)
         {
-            if (TryParseGeneratedFilePath(moniker, out var projectId, out var generatorTypeName, out var generatorAssemblyName, out var generatedSourceHintName))
+            if (TryGetGeneratedFileInformation(moniker, out var projectId, out var generatorTypeName, out var generatorAssemblyName, out var generatedSourceHintName))
             {
                 // Attach to the text buffer if we haven't already
                 if (!_openFiles.TryGetValue(moniker, out OpenSourceGeneratedFile openFile))
