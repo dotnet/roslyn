@@ -17,19 +17,21 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     /// <summary>
-    /// Language client responsible for C# / VB LSP support locally (outside of liveshare / codespaces).
+    /// Language client responsible for handling C# / VB LSP requests in any scenario (both local and codespaces).
+    /// This powers "LSP only" features (e.g. cntrl+Q code search) that do not use traditional editor APIs.
+    /// It is always activated whenever roslyn is activated.
     /// </summary>
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Export(typeof(ILanguageClient))]
-    [Export(typeof(VisualStudioInProcLanguageClient))]
-    internal class VisualStudioInProcLanguageClient : AbstractInProcLanguageClient
+    [Export(typeof(AlwaysActivateInProcLanguageClient))]
+    internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
         private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public VisualStudioInProcLanguageClient(
+        public AlwaysActivateInProcLanguageClient(
             IGlobalOptionService globalOptionService,
             LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
