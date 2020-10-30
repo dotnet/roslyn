@@ -5054,14 +5054,12 @@ oneMoreTime:
                 }
             }
         }
-#nullable disable
 
         private static FlowCaptureReferenceOperation GetCaptureReference(int id, IOperation underlying)
         {
             return new FlowCaptureReferenceOperation(id, underlying.Syntax, underlying.Type, underlying.GetConstantValue());
         }
 
-#nullable enable
         internal override IOperation VisitAggregateQuery(IAggregateQueryOperation operation, int? captureIdForResult)
         {
             SpillEvalStack();

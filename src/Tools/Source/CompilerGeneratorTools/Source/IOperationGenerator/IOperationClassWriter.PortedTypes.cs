@@ -13,7 +13,6 @@ namespace IOperationGenerator
         {
             "IInvalidOperation",
             "IFlowCaptureOperation",
-            "IFlowCaptureReferenceOperation",
             "IIsNullOperation",
             "ICaughtExceptionOperation",
             "IStaticLocalInitializationSemaphoreOperation",

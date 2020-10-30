@@ -384,22 +384,15 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override LoopKind LoopKind => LoopKind.While;
     }
-#nullable disable
 
-    internal sealed partial class FlowCaptureReferenceOperation : OperationOld, IFlowCaptureReferenceOperation
+    internal sealed partial class FlowCaptureReferenceOperation
     {
-        public FlowCaptureReferenceOperation(int id, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue) :
-            base(OperationKind.FlowCaptureReference, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
+        public FlowCaptureReferenceOperation(int id, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue) :
+            this(new CaptureId(id), semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
-            Id = new CaptureId(id);
-        }
-
-        public FlowCaptureReferenceOperation(CaptureId id, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue) :
-            base(OperationKind.FlowCaptureReference, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
-        {
-            Id = id;
         }
     }
+#nullable disable
 
     internal sealed partial class FlowCaptureOperation : OperationOld, IFlowCaptureOperation
     {

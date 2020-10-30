@@ -54,11 +54,6 @@ namespace Microsoft.CodeAnalysis.Operations
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object argument)
-        {
-            return new FlowCaptureReferenceOperation(operation.Id, operation.Syntax, operation.Type, constantValue: operation.GetConstantValue());
-        }
-
         public override IOperation VisitIsNull(IIsNullOperation operation, object argument)
         {
             throw ExceptionUtilities.Unreachable;

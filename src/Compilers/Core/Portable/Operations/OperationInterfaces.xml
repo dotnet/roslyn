@@ -2544,7 +2544,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IFlowCaptureReferenceOperation" Base="IOperation" Namespace="FlowAnalysis">
+  <Node Name="IFlowCaptureReferenceOperation" Base="IOperation" Namespace="FlowAnalysis" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a point of use of an intermediate result captured earlier.

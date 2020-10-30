@@ -6381,18 +6381,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDiscardOperation(this, argument);
     }
     #nullable disable
-    internal sealed partial class FlowCaptureReferenceOperation : OperationOld, IFlowCaptureReferenceOperation
+    #nullable enable
+    internal sealed partial class FlowCaptureReferenceOperation : Operation, IFlowCaptureReferenceOperation
     {
-        internal FlowCaptureReferenceOperation(CaptureId id, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.FlowCaptureReference, semanticModel, syntax, type, constantValue, isImplicit)
+        internal FlowCaptureReferenceOperation(CaptureId id, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
         {
             Id = id;
+            OperationConstantValue = constantValue;
+            Type = type;
         }
         public CaptureId Id { get; }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.FlowCaptureReference;
         public override void Accept(OperationVisitor visitor) => visitor.VisitFlowCaptureReference(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitFlowCaptureReference(this, argument);
     }
+    #nullable disable
     internal sealed partial class CaughtExceptionOperation : OperationOld, ICaughtExceptionOperation
     {
         internal CaughtExceptionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
@@ -7488,6 +7495,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (DiscardOperation)operation;
             return new DiscardOperation(internalOperation.DiscardSymbol, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object? argument)
+        {
+            var internalOperation = (FlowCaptureReferenceOperation)operation;
+            return new FlowCaptureReferenceOperation(internalOperation.Id, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, object? argument)
         {

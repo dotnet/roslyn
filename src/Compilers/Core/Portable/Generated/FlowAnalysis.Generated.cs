@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         IOperation Value { get; }
     }
+    #nullable enable
     /// <summary>
     /// Represents a point of use of an intermediate result captured earlier.
     /// The fact of capturing the result is represented by <see cref="IFlowCaptureOperation" />.
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         CaptureId Id { get; }
     }
+    #nullable disable
     /// <summary>
     /// Represents result of checking whether the <see cref="Operand" /> is null.
     /// For reference types this checks if the <see cref="Operand" /> is a null reference,
