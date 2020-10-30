@@ -13,12 +13,9 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -51,7 +48,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             SnapshotSpan span,
             InlineHint hint,
             InlineHintsTaggerProvider taggerProvider)
-            : base(adornment, removalCallback: null, PositionAffinity.Predecessor)
+            : base(adornment,
+                   removalCallback: null,
+                   topSpace: null,
+                   baseline: null,
+                   textHeight: textView.LineHeight,
+                   bottomSpace: null,
+                   PositionAffinity.Predecessor)
         {
             _textView = textView;
             _span = span;
@@ -112,18 +115,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             bool classify)
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
-            // page. Calculates a font size 1/4 smaller than the font size of the rest of the editor
+            // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
+            // well with VS's 
+            const double ShrinkRatio = 3.0 / 4.0;
+
             var block = new TextBlock
             {
                 FontFamily = format.Typeface.FontFamily,
-                FontSize = format.FontRenderingEmSize - (0.25 * format.FontRenderingEmSize),
+                FontSize = 0.75 * format.FontRenderingEmSize,// Math.Max(1, Math.Floor(0.75 * format.FontRenderingEmSize)),
                 FontStyle = FontStyles.Normal,
                 Foreground = format.ForegroundBrush,
 
                 // Adds a little bit of padding to the left of the text relative to the border
                 // to make the text seem more balanced in the border
                 Padding = new Thickness(left: 1, top: 0, right: 1, bottom: 0),
-                VerticalAlignment = VerticalAlignment.Center,
+                // VerticalAlignment = VerticalAlignment.Center,
             };
 
             var (trimmedTexts, leftPadding, rightPadding) = Trim(taggedTexts);
@@ -156,15 +162,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 Background = format.BackgroundBrush,
                 Child = block,
                 CornerRadius = new CornerRadius(2),
-                Height = textView.LineHeight - (0.25 * textView.LineHeight),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(left, top: -0.20 * textView.LineHeight, right, bottom: 0),
-                Padding = new Thickness(1),
-
+                Height = textView.LineHeight - 6, // (textView.LineHeight + 1) - 6, //  Math.Max(0, Math.Floor(0.75 * textView.LineHeight)),
+                                                  //HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = // new Thickness(left, top: 1, right, bottom: 0),
+                new Thickness(left, top: 3, right, bottom: 0),
+                ////new Thickness(left, top: 0, right, bottom: 2),
+                //Padding = new Thickness(0),
                 // Need to set SnapsToDevicePixels and UseLayoutRounding to avoid unnecessary reformatting
-                SnapsToDevicePixels = textView.VisualElement.SnapsToDevicePixels,
                 UseLayoutRounding = textView.VisualElement.UseLayoutRounding,
-                VerticalAlignment = VerticalAlignment.Center
+                SnapsToDevicePixels = textView.VisualElement.SnapsToDevicePixels,
             };
 
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
