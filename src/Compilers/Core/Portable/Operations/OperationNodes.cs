@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -18,12 +16,20 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
     /// </summary>
-    internal abstract class BaseNoneOperation : OperationOld
+    internal sealed class NoneOperation : Operation
     {
-        protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, ConstantValue constantValue, bool isImplicit, ITypeSymbol type) :
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+        public NoneOperation(ImmutableArray<IOperation> children, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit) :
+            base(semanticModel, syntax, isImplicit)
         {
+            Children = SetParentOperation(children, this);
+            Type = type;
+            OperationConstantValue = constantValue;
         }
+
+        public override IEnumerable<IOperation> Children { get; }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue { get; }
+        public override OperationKind Kind => OperationKind.None;
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -36,46 +42,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal class NoneOperation : BaseNoneOperation
-    {
-        public NoneOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, ConstantValue constantValue, bool isImplicit, ITypeSymbol type) :
-            base(semanticModel, syntax, constantValue, isImplicit, type)
-        {
-            Children = SetParentOperation(children, this);
-        }
-
-        public override IEnumerable<IOperation> Children { get; }
-    }
-
-    internal abstract class LazyNoneOperation : BaseNoneOperation
-    {
-        private ImmutableArray<IOperation> _lazyChildrenInterlocked;
-
-        public LazyNoneOperation(SemanticModel semanticModel, SyntaxNode node, ConstantValue constantValue, bool isImplicit, ITypeSymbol type) :
-            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit, type)
-        {
-        }
-
-        protected abstract ImmutableArray<IOperation> GetChildren();
-
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                if (_lazyChildrenInterlocked.IsDefault)
-                {
-                    ImmutableArray<IOperation> children = GetChildren();
-                    SetParentOperation(children, this);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyChildrenInterlocked, children);
-                }
-
-                return _lazyChildrenInterlocked;
-            }
-
-        }
-    }
-
-#nullable enable
     internal partial class ConversionOperation
     {
         public IMethodSymbol? OperatorMethod => Conversion.MethodSymbol;

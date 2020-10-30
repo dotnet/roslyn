@@ -347,7 +347,8 @@ namespace Microsoft.CodeAnalysis.Operations
                         }
                     }
 
-                    return new CSharpLazyNoneOperation(this, boundNode, _semanticModel, boundNode.Syntax, constantValue, isImplicit: isImplicit, type: null);
+                    ImmutableArray<IOperation> children = GetIOperationChildren(boundNode);
+                    return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: null, constantValue, isImplicit: isImplicit);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(boundNode.Kind);
@@ -376,7 +377,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundNode.Syntax,
                 isImplicit: boundNode.WasCompilerGenerated);
         }
-#nullable disable
 
         internal ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
         {
@@ -388,21 +388,20 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             var builder = ArrayBuilder<IOperation>.GetInstance(children.Length);
-            foreach (BoundNode childNode in children)
+            foreach (BoundNode? childNode in children)
             {
-                IOperation operation = Create(childNode);
-                if (operation == null)
+                if (childNode == null)
                 {
                     continue;
                 }
 
+                IOperation operation = Create(childNode);
                 builder.Add(operation);
             }
 
             return builder.ToImmutableAndFree();
         }
 
-#nullable enable
         internal ImmutableArray<IVariableDeclaratorOperation> CreateVariableDeclarator(BoundNode declaration, SyntaxNode declarationSyntax)
         {
             switch (declaration.Kind)
@@ -471,14 +470,16 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundFunctionPointerInvocation.GetPublicTypeSymbol();
             SyntaxNode syntax = boundFunctionPointerInvocation.Syntax;
             bool isImplicit = boundFunctionPointerInvocation.WasCompilerGenerated;
+            ImmutableArray<IOperation> children;
 
             if (boundFunctionPointerInvocation.ResultKind != LookupResultKind.Viable)
             {
-                var children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundFunctionPointerInvocation).InvalidNodeChildren);
+                children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundFunctionPointerInvocation).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
             }
 
-            return new CSharpLazyNoneOperation(this, boundFunctionPointerInvocation, _semanticModel, syntax, constantValue: null, isImplicit, type);
+            children = GetIOperationChildren(boundFunctionPointerInvocation);
+            return new NoneOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
         }
 
 #nullable disable

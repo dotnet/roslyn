@@ -6187,7 +6187,6 @@ oneMoreTime:
         {
             return VisitPreservingTupleOperations(operation);
         }
-#nullable disable
 
         internal override IOperation VisitNoneOperation(IOperation operation, int? captureIdForResult)
         {
@@ -6205,16 +6204,15 @@ oneMoreTime:
         {
             Debug.Assert(_currentStatement == operation);
             VisitStatements(operation.Children.ToImmutableArray());
-            return new NoneOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.GetConstantValue(), IsImplicit(operation), operation.Type);
+            return new NoneOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         private IOperation VisitNoneOperationExpression(IOperation operation)
         {
             return PopStackFrame(PushStackFrame(),
-                                 new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.GetConstantValue(), IsImplicit(operation), operation.Type));
+                                 new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
         }
 
-#nullable enable
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
         {
             // We visit and rewrite the interpolation parts in two phases:

@@ -3,25 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
-#nullable disable
     {
-        public IOperation Visit(IOperation operation)
+        [return: NotNullIfNotNull("operation")]
+        public IOperation? Visit(IOperation? operation)
         {
             return Visit(operation, argument: null);
         }
 
-        internal override IOperation VisitNoneOperation(IOperation operation, object argument)
+        internal override IOperation VisitNoneOperation(IOperation operation, object? argument)
         {
-            return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.GetConstantValue(), operation.IsImplicit, operation.Type);
+            return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-#nullable enable
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object? argument)
         {
             var anonymous = (FlowAnonymousFunctionOperation)operation;
@@ -42,14 +42,12 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new DynamicIndexerAccessOperation(Visit(operation.Operation), VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.IsImplicit);
         }
-#nullable disable
 
-        public override IOperation VisitInvalid(IInvalidOperation operation, object argument)
+        public override IOperation VisitInvalid(IInvalidOperation operation, object? argument)
         {
             return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-#nullable enable
         public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object? argument)
         {
             throw ExceptionUtilities.Unreachable;
