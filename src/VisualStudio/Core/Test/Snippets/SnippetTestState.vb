@@ -183,7 +183,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Throw New NotImplementedException()
             End Function
 
-            Friend Overrides Function AddImports(document As Document, position As Integer, snippetNode As XElement, placeSystemNamespaceFirst As Boolean, cancellationToken As CancellationToken) As Document
+            Friend Overrides Function AddImports(document As Document, position As Integer, snippetNode As XElement, placeSystemNamespaceFirst As Boolean, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Document
                 Return document
             End Function
         End Class

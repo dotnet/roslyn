@@ -8,16 +8,17 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal class NavigateToSearcher
+    internal partial class NavigateToSearcher
     {
         private readonly Solution _solution;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -122,9 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 // make sure we only process this project if we didn't already process it above.
                 if (processedProjects.Add(currentProject))
-                {
                     tasks.Add(Task.Run(() => SearchAsync(currentProject, priorityDocs.ToImmutableArray()), _cancellationToken));
-                }
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -135,9 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 // make sure we only process this project if we didn't already process it above.
                 if (processedProjects.Add(currentProject))
-                {
                     tasks.Add(Task.Run(() => SearchAsync(currentProject, ImmutableArray<Document>.Empty), _cancellationToken));
-                }
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -167,16 +164,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private async Task SearchCoreAsync(Project project, ImmutableArray<Document> priorityDocuments)
         {
             if (_searchCurrentDocument && _currentDocument?.Project != project)
-            {
                 return;
-            }
 
             var cacheService = project.Solution.Services.CacheService;
             if (cacheService != null)
             {
                 using (cacheService.EnableCaching(project.Id))
                 {
-                    var service = TryGetNavigateToSearchService(project);
+                    var service = GetSearchService(project);
                     if (service != null)
                     {
                         var searchTask = _currentDocument != null
@@ -196,44 +191,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
         }
 
-        public static INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate? TryGetNavigateToSearchService(Project project)
+        private static INavigateToSearchService? GetSearchService(Project project)
         {
-            var service = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
-            if (service != null)
-            {
-                return service;
-            }
-
 #pragma warning disable CS0618 // Type or member is obsolete
-#pragma warning disable CS0612 // Type or member is obsolete
-            var legacyService = project.LanguageServices.GetService<INavigateToSearchService>();
-            if (legacyService != null)
-            {
-                return new ShimNavigateToSearchService(legacyService);
-            }
-#pragma warning restore CS0612 // Type or member is obsolete
+            var legacySearchService = project.GetLanguageService<INavigateToSeINavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdatearchService>();
+            return legacySearchService != null
+                ? new WrappedNavigateToSearchService(legacySearchService)
+                : project.GetLanguageService<INavigateToSearchService>();
 #pragma warning restore CS0618 // Type or member is obsolete
-
-            return null;
-        }
-
-        [Obsolete("https://github.com/dotnet/roslyn/issues/28343")]
-        private class ShimNavigateToSearchService : INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate
-        {
-            private readonly INavigateToSearchService _navigateToSearchService;
-
-            public ShimNavigateToSearchService(INavigateToSearchService navigateToSearchService)
-                => _navigateToSearchService = navigateToSearchService;
-
-            public IImmutableSet<string> KindsProvided => ImmutableHashSet.Create<string>(StringComparer.Ordinal);
-
-            public bool CanFilter => false;
-
-            public Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-                => _navigateToSearchService.SearchDocumentAsync(document, searchPattern, cancellationToken);
-
-            public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-                => _navigateToSearchService.SearchProjectAsync(project, searchPattern, cancellationToken);
         }
     }
 }
