@@ -159,9 +159,10 @@ class C
 {{
     GCHandle field;
 
-    void M()
+    void M(bool condition)
     {{
         {csharpFieldReference} = GCHandle.Alloc(new object());
+        {csharpFieldReference} = condition ? GCHandle.Alloc(new object()) : GCHandle.Alloc(new object());
     }}
 }}
 ");
@@ -174,8 +175,9 @@ Imports System.Runtime.InteropServices
 Class C
     Dim field As GCHandle
 
-    Sub M()
+    Sub M(condition As Boolean)
         {visualBasicFieldReference} = GCHandle.Alloc(New Object())
+        {visualBasicFieldReference} = If(condition, GCHandle.Alloc(New Object()), GCHandle.Alloc(New Object()))
     End Sub
 End Class");
             }

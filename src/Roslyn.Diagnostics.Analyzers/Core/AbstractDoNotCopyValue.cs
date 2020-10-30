@@ -327,6 +327,12 @@ namespace Roslyn.Diagnostics.Analyzers
                     CheckTypeInUnsupportedContext(operation);
                 }
 
+                var currentIsHandled = _handledOperations.Contains(operation);
+                var handledWhenTrue = currentIsHandled ? operation.WhenTrue : null;
+                var handledWhenFalse = currentIsHandled ? operation.WhenFalse : null;
+                using var _1 = TryAddForVisit(_handledOperations, handledWhenTrue, out _);
+                using var _2 = TryAddForVisit(_handledOperations, handledWhenFalse, out _);
+
                 base.VisitConditional(operation);
             }
 
