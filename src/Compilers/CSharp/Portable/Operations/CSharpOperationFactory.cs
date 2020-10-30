@@ -354,15 +354,29 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+#nullable enable
         private IMethodBodyOperation CreateMethodBodyOperation(BoundNonConstructorMethodBody boundNode)
         {
-            return new CSharpLazyMethodBodyOperation(this, boundNode, _semanticModel, boundNode.Syntax);
+            return new MethodBodyOperation(
+                (IBlockOperation?)Create(boundNode.BlockBody),
+                (IBlockOperation?)Create(boundNode.ExpressionBody),
+                 _semanticModel,
+                 boundNode.Syntax,
+                 isImplicit: boundNode.WasCompilerGenerated);
         }
 
         private IConstructorBodyOperation CreateConstructorBodyOperation(BoundConstructorMethodBody boundNode)
         {
-            return new CSharpLazyConstructorBodyOperation(this, boundNode, boundNode.Locals.GetPublicSymbols(), _semanticModel, boundNode.Syntax);
+            return new ConstructorBodyOperation(
+                boundNode.Locals.GetPublicSymbols(),
+                Create(boundNode.Initializer),
+                (IBlockOperation?)Create(boundNode.BlockBody),
+                (IBlockOperation?)Create(boundNode.ExpressionBody),
+                _semanticModel,
+                boundNode.Syntax,
+                isImplicit: boundNode.WasCompilerGenerated);
         }
+#nullable disable
 
         internal ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
         {

@@ -2897,6 +2897,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation RightOperand { get; }
     }
     #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a method body operation.
     /// <para>
@@ -2913,12 +2914,14 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Method body corresponding to BaseMethodDeclarationSyntax.Body or AccessorDeclarationSyntax.Body
         /// </summary>
-        IBlockOperation BlockBody { get; }
+        IBlockOperation? BlockBody { get; }
         /// <summary>
         /// Method body corresponding to BaseMethodDeclarationSyntax.ExpressionBody or AccessorDeclarationSyntax.ExpressionBody
         /// </summary>
-        IBlockOperation ExpressionBody { get; }
+        IBlockOperation? ExpressionBody { get; }
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a method body operation.
     /// <para>
@@ -2938,6 +2941,8 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IMethodBodyOperation : IMethodBodyBaseOperation
     {
     }
+    #nullable disable
+    #nullable enable
     /// <summary>
     /// Represents a constructor method body operation.
     /// <para>
@@ -2963,8 +2968,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Constructor initializer, if any.
         /// </summary>
-        IOperation Initializer { get; }
+        IOperation? Initializer { get; }
     }
+    #nullable disable
     #nullable enable
     /// <summary>
     /// Represents a discard operation.
@@ -6388,158 +6394,80 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTupleBinaryOperator(this, argument);
     }
     #nullable disable
-    internal abstract partial class BaseMethodBodyBaseOperation : OperationOld, IMethodBodyBaseOperation
+    #nullable enable
+    internal abstract partial class BaseMethodBodyBaseOperation : Operation, IMethodBodyBaseOperation
     {
-        protected BaseMethodBodyBaseOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IBlockOperation BlockBody { get; }
-        public abstract IBlockOperation ExpressionBody { get; }
+        protected BaseMethodBodyBaseOperation(IBlockOperation? blockBody, IBlockOperation? expressionBody, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            BlockBody = SetParentOperation(blockBody, this);
+            ExpressionBody = SetParentOperation(expressionBody, this);
+        }
+        public IBlockOperation? BlockBody { get; }
+        public IBlockOperation? ExpressionBody { get; }
     }
-    internal abstract partial class BaseMethodBodyOperation : BaseMethodBodyBaseOperation, IMethodBodyOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class MethodBodyOperation : BaseMethodBodyBaseOperation, IMethodBodyOperation
     {
-        internal BaseMethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.MethodBody, semanticModel, syntax, type, constantValue, isImplicit) { }
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal MethodBodyOperation(IBlockOperation? blockBody, IBlockOperation? expressionBody, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(blockBody, expressionBody, semanticModel, syntax, isImplicit) { }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (BlockBody is object) yield return BlockBody;
-                if (ExpressionBody is object) yield return ExpressionBody;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
+                    if (BlockBody is not null) builder.Add(BlockBody);
+                    if (ExpressionBody is not null) builder.Add(ExpressionBody);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.MethodBody;
         public override void Accept(OperationVisitor visitor) => visitor.VisitMethodBodyOperation(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitMethodBodyOperation(this, argument);
     }
-    internal sealed partial class MethodBodyOperation : BaseMethodBodyOperation, IMethodBodyOperation
+    #nullable disable
+    #nullable enable
+    internal sealed partial class ConstructorBodyOperation : BaseMethodBodyBaseOperation, IConstructorBodyOperation
     {
-        internal MethodBodyOperation(IBlockOperation blockBody, IBlockOperation expressionBody, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            BlockBody = SetParentOperation(blockBody, this);
-            ExpressionBody = SetParentOperation(expressionBody, this);
-        }
-        public override IBlockOperation BlockBody { get; }
-        public override IBlockOperation ExpressionBody { get; }
-    }
-    internal abstract partial class LazyMethodBodyOperation : BaseMethodBodyOperation, IMethodBodyOperation
-    {
-        private IBlockOperation _lazyBlockBody = s_unsetBlock;
-        private IBlockOperation _lazyExpressionBody = s_unsetBlock;
-        internal LazyMethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IBlockOperation CreateBlockBody();
-        public override IBlockOperation BlockBody
-        {
-            get
-            {
-                if (_lazyBlockBody == s_unsetBlock)
-                {
-                    IBlockOperation blockBody = CreateBlockBody();
-                    SetParentOperation(blockBody, this);
-                    Interlocked.CompareExchange(ref _lazyBlockBody, blockBody, s_unsetBlock);
-                }
-                return _lazyBlockBody;
-            }
-        }
-        protected abstract IBlockOperation CreateExpressionBody();
-        public override IBlockOperation ExpressionBody
-        {
-            get
-            {
-                if (_lazyExpressionBody == s_unsetBlock)
-                {
-                    IBlockOperation expressionBody = CreateExpressionBody();
-                    SetParentOperation(expressionBody, this);
-                    Interlocked.CompareExchange(ref _lazyExpressionBody, expressionBody, s_unsetBlock);
-                }
-                return _lazyExpressionBody;
-            }
-        }
-    }
-    internal abstract partial class BaseConstructorBodyOperation : BaseMethodBodyBaseOperation, IConstructorBodyOperation
-    {
-        internal BaseConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(OperationKind.ConstructorBody, semanticModel, syntax, type, constantValue, isImplicit)
+        private IEnumerable<IOperation>? _lazyChildren;
+        internal ConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, IOperation? initializer, IBlockOperation? blockBody, IBlockOperation? expressionBody, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(blockBody, expressionBody, semanticModel, syntax, isImplicit)
         {
             Locals = locals;
+            Initializer = SetParentOperation(initializer, this);
         }
         public ImmutableArray<ILocalSymbol> Locals { get; }
-        public abstract IOperation Initializer { get; }
+        public IOperation? Initializer { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Initializer is object) yield return Initializer;
-                if (BlockBody is object) yield return BlockBody;
-                if (ExpressionBody is object) yield return ExpressionBody;
+                if (_lazyChildren is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
+                    if (Initializer is not null) builder.Add(Initializer);
+                    if (BlockBody is not null) builder.Add(BlockBody);
+                    if (ExpressionBody is not null) builder.Add(ExpressionBody);
+                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
+                }
+                return _lazyChildren;
             }
         }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.ConstructorBody;
         public override void Accept(OperationVisitor visitor) => visitor.VisitConstructorBodyOperation(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitConstructorBodyOperation(this, argument);
     }
-    internal sealed partial class ConstructorBodyOperation : BaseConstructorBodyOperation, IConstructorBodyOperation
-    {
-        internal ConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, IOperation initializer, IBlockOperation blockBody, IBlockOperation expressionBody, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Initializer = SetParentOperation(initializer, this);
-            BlockBody = SetParentOperation(blockBody, this);
-            ExpressionBody = SetParentOperation(expressionBody, this);
-        }
-        public override IOperation Initializer { get; }
-        public override IBlockOperation BlockBody { get; }
-        public override IBlockOperation ExpressionBody { get; }
-    }
-    internal abstract partial class LazyConstructorBodyOperation : BaseConstructorBodyOperation, IConstructorBodyOperation
-    {
-        private IOperation _lazyInitializer = s_unset;
-        private IBlockOperation _lazyBlockBody = s_unsetBlock;
-        private IBlockOperation _lazyExpressionBody = s_unsetBlock;
-        internal LazyConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(locals, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateInitializer();
-        public override IOperation Initializer
-        {
-            get
-            {
-                if (_lazyInitializer == s_unset)
-                {
-                    IOperation initializer = CreateInitializer();
-                    SetParentOperation(initializer, this);
-                    Interlocked.CompareExchange(ref _lazyInitializer, initializer, s_unset);
-                }
-                return _lazyInitializer;
-            }
-        }
-        protected abstract IBlockOperation CreateBlockBody();
-        public override IBlockOperation BlockBody
-        {
-            get
-            {
-                if (_lazyBlockBody == s_unsetBlock)
-                {
-                    IBlockOperation blockBody = CreateBlockBody();
-                    SetParentOperation(blockBody, this);
-                    Interlocked.CompareExchange(ref _lazyBlockBody, blockBody, s_unsetBlock);
-                }
-                return _lazyBlockBody;
-            }
-        }
-        protected abstract IBlockOperation CreateExpressionBody();
-        public override IBlockOperation ExpressionBody
-        {
-            get
-            {
-                if (_lazyExpressionBody == s_unsetBlock)
-                {
-                    IBlockOperation expressionBody = CreateExpressionBody();
-                    SetParentOperation(expressionBody, this);
-                    Interlocked.CompareExchange(ref _lazyExpressionBody, expressionBody, s_unsetBlock);
-                }
-                return _lazyExpressionBody;
-            }
-        }
-    }
+    #nullable disable
     #nullable enable
     internal sealed partial class DiscardOperation : Operation, IDiscardOperation
     {
@@ -7630,6 +7558,16 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (TupleBinaryOperation)operation;
             return new TupleBinaryOperation(internalOperation.OperatorKind, Visit(internalOperation.LeftOperand), Visit(internalOperation.RightOperand), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, object? argument)
+        {
+            var internalOperation = (MethodBodyOperation)operation;
+            return new MethodBodyOperation(Visit(internalOperation.BlockBody), Visit(internalOperation.ExpressionBody), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, object? argument)
+        {
+            var internalOperation = (ConstructorBodyOperation)operation;
+            return new ConstructorBodyOperation(internalOperation.Locals, Visit(internalOperation.Initializer), Visit(internalOperation.BlockBody), Visit(internalOperation.ExpressionBody), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, object? argument)
         {

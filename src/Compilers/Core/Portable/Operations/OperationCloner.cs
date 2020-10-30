@@ -67,16 +67,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
-        public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, object argument)
-        {
-            return new ConstructorBodyOperation(operation.Locals, ((Operation)operation).OwningSemanticModel, operation.Syntax, Visit(operation.Initializer), Visit(operation.BlockBody), Visit(operation.ExpressionBody));
-        }
-
-        public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, object argument)
-        {
-            return new MethodBodyOperation(((Operation)operation).OwningSemanticModel, operation.Syntax, Visit(operation.BlockBody), Visit(operation.ExpressionBody));
-        }
-
         public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object argument)
         {
             throw ExceptionUtilities.Unreachable;

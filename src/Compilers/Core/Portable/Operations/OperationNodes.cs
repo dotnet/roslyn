@@ -633,19 +633,4 @@ namespace Microsoft.CodeAnalysis.Operations
             Local = local;
         }
     }
-
-    internal sealed partial class MethodBodyOperation : BaseMethodBodyOperation
-    {
-        public MethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax, IBlockOperation blockBody, IBlockOperation expressionBody) :
-            this(blockBody, expressionBody, semanticModel, syntax, type: null, constantValue: null, isImplicit: false)
-        { }
-    }
-
-    internal sealed partial class ConstructorBodyOperation : BaseConstructorBodyOperation
-    {
-        public ConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax,
-                                        IOperation initializer, IBlockOperation blockBody, IBlockOperation expressionBody) :
-            this(locals, initializer, blockBody, expressionBody, semanticModel, syntax, type: null, constantValue: null, isImplicit: false)
-        { }
-    }
 }

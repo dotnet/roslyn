@@ -2460,12 +2460,12 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="BlockBody" Type="IBlockOperation">
+    <Property Name="BlockBody" Type="IBlockOperation?">
       <Comments>
         <summary>Method body corresponding to BaseMethodDeclarationSyntax.Body or AccessorDeclarationSyntax.Body</summary>
       </Comments>
     </Property>
-    <Property Name="ExpressionBody" Type="IBlockOperation">
+    <Property Name="ExpressionBody" Type="IBlockOperation?">
       <Comments>
         <summary>Method body corresponding to BaseMethodDeclarationSyntax.ExpressionBody or AccessorDeclarationSyntax.ExpressionBody</summary>
       </Comments>
@@ -2505,7 +2505,7 @@
         <summary>Local declarations contained within the <see cref="Initializer" />.</summary>
       </Comments>
     </Property>
-    <Property Name="Initializer" Type="IOperation">
+    <Property Name="Initializer" Type="IOperation?">
       <Comments>
         <summary>Constructor initializer, if any.</summary>
       </Comments>

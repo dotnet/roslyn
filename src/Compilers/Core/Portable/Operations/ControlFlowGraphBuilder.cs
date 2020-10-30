@@ -1435,9 +1435,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             _currentImplicitInstance = previousInitializedInstance;
             return FinishVisitingStatement(operation);
         }
-#nullable disable
 
-        public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)
+        public override IOperation? VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -1454,7 +1453,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, int? captureIdForResult)
+        public override IOperation? VisitMethodBodyOperation(IMethodBodyOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -1468,7 +1467,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             VisitMethodBodies(operation.BlockBody, operation.ExpressionBody);
         }
 
-#nullable enable
         private void VisitMethodBodies(IBlockOperation? blockBody, IBlockOperation? expressionBody)
         {
             if (blockBody != null)
