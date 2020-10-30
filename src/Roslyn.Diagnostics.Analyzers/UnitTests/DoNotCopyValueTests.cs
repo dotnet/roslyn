@@ -778,7 +778,7 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
         }
 
         [Fact]
-        public async Task AllowCustomForeachEnumeratorDisposableObject()
+        public async Task AllowCustomForeachEnumeratorDisposableObject1()
         {
             var source = @"
 using System;
@@ -809,6 +809,108 @@ struct CannotCopy : IDisposable
 }
 
 internal sealed class NonCopyableAttribute : System.Attribute { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task AllowCustomForeachEnumeratorDisposableObject2()
+        {
+            var source = @"
+using System;
+using System.Runtime.InteropServices;
+
+class C
+{
+    void Method()
+    {
+        using (var cannotCopy = new CannotCopy())
+        {
+            foreach (var obj in cannotCopy)
+            {
+            }
+        }
+    }
+}
+
+[NonCopyable]
+struct CannotCopy : IDisposable
+{
+    public void Dispose() => throw null;
+    public Enumerator GetEnumerator() => throw null;
+
+    public struct Enumerator
+    {
+        public object Current => throw null;
+        public bool MoveNext() => throw null;
+    }
+}
+
+internal sealed class NonCopyableAttribute : System.Attribute { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("new CannotCopy()")]
+        [InlineData("default(CannotCopy)")]
+        [InlineData("CannotCopy.Create()")]
+        [InlineData("CannotCopy.Empty")]
+        public async Task AllowDisposableObject(string creation)
+        {
+            var source = $@"
+using System;
+using System.Runtime.InteropServices;
+
+class C
+{{
+    void UsingStatement()
+    {{
+        using ({creation})
+        {{
+        }}
+    }}
+
+    void UsingStatementWithVariable()
+    {{
+        using (var cannotCopy = {creation})
+        {{
+        }}
+    }}
+
+    void UsingStatementWithDiscard()
+    {{
+        using (_ = {creation})
+        {{
+        }}
+    }}
+
+    void UsingDeclarationStatement()
+    {{
+        using var cannotCopy = {creation};
+    }}
+}}
+
+[NonCopyable]
+struct CannotCopy : IDisposable
+{{
+    public static CannotCopy Empty => throw null;
+    public static CannotCopy Create() => throw null;
+
+    public void Dispose() => throw null;
+}}
+
+internal sealed class NonCopyableAttribute : System.Attribute {{ }}
 ";
 
             await new VerifyCS.Test

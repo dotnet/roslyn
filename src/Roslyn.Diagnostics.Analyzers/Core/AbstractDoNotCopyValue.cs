@@ -1083,6 +1083,15 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
 
                 CheckTypeInUnsupportedContext(operation);
+
+                var resource = operation.Resources;
+                if (Acquire(resource) != RefKind.None)
+                {
+                    // Not yet handled
+                    resource = null;
+                }
+
+                using var releaser = TryAddForVisit(_handledOperations, resource, out _);
                 base.VisitUsing(operation);
             }
 
