@@ -657,14 +657,15 @@ End Class
                     Assert.Null(errorMessage)
                     testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
-  // Code size       13 (0xd)
+  // Code size       14 (0xe)
   .maxstack  2
   .locals init (T V_0) //F
   IL_0000:  ldstr      ""x""
-  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Integer)(String) As Integer""
-  IL_000a:  ldc.i4.0
-  IL_000b:  stind.i4
-  IL_000c:  ret
+  IL_0005:  call       ""ByRef Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Integer)(String) As Integer""
+  IL_000a:  ldind.i4
+  IL_000b:  ldc.i4.0
+  IL_000c:  stind.i4
+  IL_000d:  ret
 }")
                     testData = New CompilationTestData()
                     context.CompileExpression(
@@ -676,13 +677,14 @@ End Class
                     Assert.Null(errorMessage)
                     testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
-  // Code size       16 (0x10)
+  // Code size       17 (0x11)
   .maxstack  1
   .locals init (T V_0) //F
   IL_0000:  ldstr      ""x""
-  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Integer)(String) As Integer""
-  IL_000a:  call       ""Function C.F(Of Integer)(ByRef Integer) As Integer""
-  IL_000f:  ret
+  IL_0005:  call       ""ByRef Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Integer)(String) As Integer""
+  IL_000a:  ldind.i4
+  IL_000b:  call       ""Function C.F(Of Integer)(ByRef Integer) As Integer""
+  IL_0010:  ret
 }")
 
                     ' Implicitly declared variable
@@ -696,7 +698,7 @@ End Class
                     Assert.Null(errorMessage)
                     testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
-  // Code size       43 (0x2b)
+  // Code size       44 (0x2c)
   .maxstack  4
   .locals init (T V_0, //F
                 System.Guid V_1)
@@ -709,10 +711,11 @@ End Class
   IL_0018:  ldnull
   IL_0019:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String, System.Guid, Byte())""
   IL_001e:  ldstr      ""y""
-  IL_0023:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
-  IL_0028:  ldnull
-  IL_0029:  stind.ref
-  IL_002a:  ret
+  IL_0023:  call       ""ByRef Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
+  IL_0028:  ldind.ref
+  IL_0029:  ldnull
+  IL_002a:  stind.ref
+  IL_002b:  ret
 }")
                     testData = New CompilationTestData()
                     context.CompileExpression(
@@ -724,7 +727,7 @@ End Class
                     Assert.Null(errorMessage)
                     testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
-  // Code size       47 (0x2f)
+  // Code size       48 (0x30)
   .maxstack  4
   .locals init (T V_0, //F
                 System.Guid V_1)
@@ -737,10 +740,11 @@ End Class
   IL_0018:  ldnull
   IL_0019:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String, System.Guid, Byte())""
   IL_001e:  ldstr      ""y""
-  IL_0023:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
-  IL_0028:  call       ""Function C.F(Of Object)(ByRef Object) As Object""
-  IL_002d:  pop
-  IL_002e:  ret
+  IL_0023:  call       ""ByRef Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
+  IL_0028:  ldind.ref
+  IL_0029:  call       ""Function C.F(Of Object)(ByRef Object) As Object""
+  IL_002e:  pop
+  IL_002f:  ret
 }")
                 End Sub)
         End Sub

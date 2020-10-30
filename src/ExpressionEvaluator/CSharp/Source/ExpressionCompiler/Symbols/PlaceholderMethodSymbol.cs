@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// Represents an intrinsic debugger method with byref return type.
     /// </summary>
     internal sealed class PlaceholderMethodSymbol : MethodSymbol
-#if !DEBUG
-        , Cci.ISignature
-#endif
     {
         internal delegate ImmutableArray<TypeParameterSymbol> GetTypeParameters(PlaceholderMethodSymbol method);
         internal delegate ImmutableArray<ParameterSymbol> GetParameters(PlaceholderMethodSymbol method);
@@ -156,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override RefKind RefKind
         {
-            get { return RefKind.None; }
+            get { return RefKind.Ref; }
         }
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations
@@ -170,23 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
-#if !DEBUG
-        bool Cci.ISignature.ReturnValueIsByRef
-        {
-            get { return true; }
-        }
-
-        // This should be inherited from the base class implementation, but it does not currently work with Nullable
+        // This does not currently work with Nullable
         // Reference Types.
         // https://github.com/dotnet/roslyn/issues/39167
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(this.RefCustomModifiers);
-            }
-        }
-#endif
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }

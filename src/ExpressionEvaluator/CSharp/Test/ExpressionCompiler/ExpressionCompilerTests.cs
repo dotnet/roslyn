@@ -6404,7 +6404,7 @@ class C
                 Assert.Null(error);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
-  // Code size       43 (0x2b)
+  // Code size       44 (0x2c)
   .maxstack  4
   .locals init (int V_0, //a
                 System.Guid V_1)
@@ -6417,10 +6417,11 @@ class C
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_001e:  ldstr      ""b""
-  IL_0023:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_0028:  ldc.i4.0
-  IL_0029:  stind.i4
-  IL_002a:  ret
+  IL_0023:  call       ""ref int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0028:  ldind.i4
+  IL_0029:  ldc.i4.0
+  IL_002a:  stind.i4
+  IL_002b:  ret
 }");
 
                 testData = new CompilationTestData();
@@ -6652,7 +6653,7 @@ class C
             var methodData = testData.GetMethodData("<>x.<>m0");
             methodData.VerifyIL(
 @"{
-  // Code size       46 (0x2e)
+  // Code size       47 (0x2f)
   .maxstack  4
   .locals init (System.Guid V_0)
   IL_0000:  ldtoken    ""int""
@@ -6664,9 +6665,10 @@ class C
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_001e:  ldstr      ""z""
-  IL_0023:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_0028:  call       ""object C.Test(out int)""
-  IL_002d:  ret
+  IL_0023:  call       ""ref int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0028:  ldind.i4
+  IL_0029:  call       ""object C.Test(out int)""
+  IL_002e:  ret
 }");
         }
 

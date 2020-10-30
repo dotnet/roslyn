@@ -402,7 +402,7 @@ End Class"
                                CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=False)
                                methodData.VerifyIL(
            "{
-  // Code size       48 (0x30)
+  // Code size       49 (0x31)
   .maxstack  4
   .locals init (System.ValueTuple(Of Integer, Integer) V_0, //x
                 System.Guid V_1)
@@ -415,11 +415,12 @@ End Class"
   IL_0018:  ldnull
   IL_0019:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String, System.Guid, Byte())""
   IL_001e:  ldstr      ""y""
-  IL_0023:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
-  IL_0028:  ldloc.0
-  IL_0029:  box        ""System.ValueTuple(Of Integer, Integer)""
-  IL_002e:  stind.ref
-  IL_002f:  ret
+  IL_0023:  call       ""ByRef Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
+  IL_0028:  ldind.ref
+  IL_0029:  ldloc.0
+  IL_002a:  box        ""System.ValueTuple(Of Integer, Integer)""
+  IL_002f:  stind.ref
+  IL_0030:  ret
 }")
                            End Sub)
         End Sub

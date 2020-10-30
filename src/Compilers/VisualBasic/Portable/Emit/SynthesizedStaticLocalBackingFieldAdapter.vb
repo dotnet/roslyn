@@ -6,9 +6,24 @@ Imports System.Threading
 Imports Microsoft.Cci
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+#If DEBUG Then
+    Partial Friend Class SynthesizedStaticLocalBackingFieldAdapter
+        Inherits FieldSymbolAdapter
+#Else
     Partial Friend Class SynthesizedStaticLocalBackingField
+#End If
         Implements IContextualNamedEntity
 
+#If DEBUG Then
+
+        Friend Sub New(underlyingFieldSymbol As SynthesizedStaticLocalBackingField)
+            MyBase.New(underlyingFieldSymbol)
+        End Sub
+
+    End Class
+
+    Partial Friend Class SynthesizedStaticLocalBackingField
+#End If
         Private _metadataWriter As MetadataWriter
         Private _nameToEmit As String
 
@@ -19,22 +34,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IFieldReferenceIsContextualNamedEntity As Boolean
+        Friend Overrides ReadOnly Property IsContextualNamedEntity As Boolean
             Get
                 Return True
             End Get
         End Property
 
-        Private Sub AssociateWithMetadataWriter(metadataWriter As MetadataWriter) Implements IContextualNamedEntity.AssociateWithMetadataWriter
+        Friend Sub AssociateWithMetadataWriter(metadataWriter As MetadataWriter)
 
             Interlocked.CompareExchange(_metadataWriter, metadataWriter, Nothing)
             Debug.Assert(metadataWriter Is _metadataWriter)
 
             If _nameToEmit Is Nothing Then
                 Dim declaringMethod = DirectCast(Me.ImplicitlyDefinedBy.ContainingSymbol, MethodSymbol)
-                Dim signature = GeneratedNames.MakeSignatureString(metadataWriter.GetMethodSignature(declaringMethod))
+                Dim signature = GeneratedNames.MakeSignatureString(metadataWriter.GetMethodSignature(declaringMethod.GetCciAdapter()))
                 _nameToEmit = GeneratedNames.MakeStaticLocalFieldName(declaringMethod.Name, signature, Name)
             End If
+        End Sub
+
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class SynthesizedStaticLocalBackingFieldAdapter
+#End If
+
+        Private Sub IContextualNamedEntity_AssociateWithMetadataWriter(metadataWriter As MetadataWriter) Implements IContextualNamedEntity.AssociateWithMetadataWriter
+            DirectCast(AdaptedFieldSymbol, SynthesizedStaticLocalBackingField).AssociateWithMetadataWriter(metadataWriter)
         End Sub
 
     End Class

@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     ''' </summary>
     Friend NotInheritable Class PlaceholderMethodSymbol
         Inherits SynthesizedMethodBase
-        Implements Cci.ISignature
 
         Friend Delegate Function GetTypeParameters(method As PlaceholderMethodSymbol) As ImmutableArray(Of TypeParameterSymbol)
         Friend Delegate Function GetParameters(method As PlaceholderMethodSymbol) As ImmutableArray(Of ParameterSymbol)
@@ -111,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Private ReadOnly Property ReturnValueIsByRef As Boolean Implements Cci.ISignature.ReturnValueIsByRef
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
             Get
                 Return True
             End Get

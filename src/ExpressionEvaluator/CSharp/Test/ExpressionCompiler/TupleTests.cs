@@ -399,7 +399,7 @@ class C
                 CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: false);
                 methodData.VerifyIL(
 @"{
-  // Code size       64 (0x40)
+  // Code size       69 (0x45)
   .maxstack  6
   .locals init (System.ValueTuple<int, int> V_0) //x
   IL_0000:  ldtoken    ""System.ValueTuple<int, int>""
@@ -414,10 +414,11 @@ class C
   IL_0025:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_002a:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_002f:  ldstr      ""y""
-  IL_0034:  call       ""System.ValueTuple<int, int> Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<System.ValueTuple<int, int>>(string)""
-  IL_0039:  ldloc.0
-  IL_003a:  stobj      ""System.ValueTuple<int, int>""
-  IL_003f:  ret
+  IL_0034:  call       ""ref System.ValueTuple<int, int> Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<System.ValueTuple<int, int>>(string)""
+  IL_0039:  ldobj      ""System.ValueTuple<int, int>""
+  IL_003e:  ldloc.0
+  IL_003f:  stobj      ""System.ValueTuple<int, int>""
+  IL_0044:  ret
 }");
             });
         }

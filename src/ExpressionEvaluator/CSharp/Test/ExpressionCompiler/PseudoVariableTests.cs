@@ -771,18 +771,19 @@ class C
                 Assert.Null(error);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
-  // Code size       16 (0x10)
+  // Code size       17 (0x11)
   .maxstack  3
   .locals init (T V_0,
                 int V_1)
   IL_0000:  ldstr      ""x""
-  IL_0005:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_000a:  ldc.i4.1
-  IL_000b:  dup
-  IL_000c:  stloc.1
-  IL_000d:  stind.i4
-  IL_000e:  ldloc.1
-  IL_000f:  ret
+  IL_0005:  call       ""ref int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_000a:  ldind.i4
+  IL_000b:  ldc.i4.1
+  IL_000c:  dup
+  IL_000d:  stloc.1
+  IL_000e:  stind.i4
+  IL_000f:  ldloc.1
+  IL_0010:  ret
 }");
                 testData = new CompilationTestData();
                 var result = context.CompileExpression(
@@ -794,13 +795,14 @@ class C
                 Assert.Null(error);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
-  // Code size       16 (0x10)
+  // Code size       17 (0x11)
   .maxstack  1
   .locals init (T V_0)
   IL_0000:  ldstr      ""x""
-  IL_0005:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_000a:  call       ""int C.F<int>(ref int)""
-  IL_000f:  ret
+  IL_0005:  call       ""ref int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_000a:  ldind.i4
+  IL_000b:  call       ""int C.F<int>(ref int)""
+  IL_0010:  ret
 }");
             });
         }
@@ -837,18 +839,19 @@ class C
                     testData);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       25 (0x19)
+  // Code size       30 (0x1e)
   .maxstack  3
   .locals init (object V_0)
   IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""S Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<S>(string)""
-  IL_000a:  ldc.i4.1
-  IL_000b:  box        ""int""
-  IL_0010:  dup
-  IL_0011:  stloc.0
-  IL_0012:  stfld      ""object S.F""
-  IL_0017:  ldloc.0
-  IL_0018:  ret
+  IL_0005:  call       ""ref S Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<S>(string)""
+  IL_000a:  ldobj      ""S""
+  IL_000f:  ldc.i4.1
+  IL_0010:  box        ""int""
+  IL_0015:  dup
+  IL_0016:  stloc.0
+  IL_0017:  stfld      ""object S.F""
+  IL_001c:  ldloc.0
+  IL_001d:  ret
 }");
             });
         }
@@ -883,21 +886,22 @@ class C
                     testData);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       24 (0x18)
+  // Code size       29 (0x1d)
   .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""S Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<S>(string)""
-  IL_000a:  ldflda     ""int S.F""
-  IL_000f:  dup
-  IL_0010:  ldind.i4
-  IL_0011:  ldc.i4.2
-  IL_0012:  add
-  IL_0013:  dup
-  IL_0014:  stloc.0
-  IL_0015:  stind.i4
-  IL_0016:  ldloc.0
-  IL_0017:  ret
+  IL_0005:  call       ""ref S Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<S>(string)""
+  IL_000a:  ldobj      ""S""
+  IL_000f:  ldflda     ""int S.F""
+  IL_0014:  dup
+  IL_0015:  ldind.i4
+  IL_0016:  ldc.i4.2
+  IL_0017:  add
+  IL_0018:  dup
+  IL_0019:  stloc.0
+  IL_001a:  stind.i4
+  IL_001b:  ldloc.0
+  IL_001c:  ret
 }");
             });
         }
