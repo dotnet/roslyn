@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             => new(Kind, s_fromSpecialTypes.GetOrAdd(specialType, CreateFromSpecialTypes));
 
         public static SpecialType GetSpecialType(SyntaxAnnotation annotation)
-            => s_toSpecialTypes.GetOrAdd(annotation.Data, CreateToSpecialTypes);
+            => s_toSpecialTypes.GetOrAdd(annotation.Data!, CreateToSpecialTypes);
 
         private static string CreateFromSpecialTypes(SpecialType arg)
             => arg.ToString();

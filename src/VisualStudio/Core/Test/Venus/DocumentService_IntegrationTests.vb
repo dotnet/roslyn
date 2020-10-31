@@ -263,6 +263,8 @@ class { }
 
                 Public Shared ReadOnly Instance As SpanMapper = New SpanMapper()
 
+                Public ReadOnly Property SupportsMappingImportDirectives As Boolean = False Implements ISpanMappingService.SupportsMappingImportDirectives
+
                 Public Async Function MapSpansAsync(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of MappedSpanResult)) Implements ISpanMappingService.MapSpansAsync
                     Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
                     Dim testDocument = testWorkspace.GetTestDocument(document.Id)

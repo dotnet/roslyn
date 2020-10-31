@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // check empty since this could be called to clear up existing diagnostics
             service.DiagnosticsUpdated += (s, a) =>
             {
-                var diagnostics = a.GetDiagnostics(workspace, forPullDiagnostics: false);
+                var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 Assert.Empty(diagnostics);
             };
 
@@ -192,7 +192,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var compilationDiagnostic = false;
             service.DiagnosticsUpdated += (s, a) =>
             {
-                var diagnostics = a.GetDiagnostics(workspace, forPullDiagnostics: false);
+                var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 var diagnostic = Assert.Single(diagnostics);
                 Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
 
@@ -241,7 +241,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
             {
-                var diagnostics = a.GetDiagnostics(workspace, forPullDiagnostics: false);
+                var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 (syntax, semantic) = resultSetter(syntax, semantic, diagnostics);
             };
 
@@ -283,7 +283,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             {
                 if (workspace.IsDocumentOpen(a.DocumentId))
                 {
-                    var diagnostics = a.GetDiagnostics(workspace, forPullDiagnostics: false);
+                    var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                     // check the diagnostics are reported
                     Assert.Equal(document.Id, a.DocumentId);
                     Assert.Equal(1, diagnostics.Length);
@@ -293,7 +293,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 if (a.DocumentId == document.Id && !workspace.IsDocumentOpen(a.DocumentId))
                 {
                     // check the diagnostics reported are cleared
-                    var diagnostics = a.GetDiagnostics(workspace, forPullDiagnostics: false);
+                    var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                     Assert.Equal(0, diagnostics.Length);
                 }
             };
@@ -350,7 +350,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
             {
-                var diagnostics = a.GetDiagnostics(workspace, forPullDiagnostics: false);
+                var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 switch (diagnostics.Length)
                 {
                     case 0:
@@ -463,7 +463,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var called = false;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                var diagnostics = e.GetDiagnostics(workspace, forPullDiagnostics: false);
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 if (diagnostics.Length == 0)
                 {
                     return;
@@ -565,7 +565,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var called = false;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                var diagnostics = e.GetDiagnostics(workspace, forPullDiagnostics: false);
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 if (diagnostics.Length == 0)
                 {
                     return;
@@ -621,7 +621,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var diagnostics = new ConcurrentSet<DiagnosticData>();
             service.DiagnosticsUpdated += (s, e) =>
             {
-                diagnostics.AddRange(e.GetDiagnostics(workspace, forPullDiagnostics: false));
+                diagnostics.AddRange(e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode));
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -714,7 +714,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             DiagnosticData diagnostic = null;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                var diagnostics = e.GetDiagnostics(workspace, forPullDiagnostics: false);
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 if (diagnostics.Length == 0)
                 {
                     return;
@@ -819,7 +819,7 @@ class A
             service.DiagnosticsUpdated += (s, e) =>
             {
                 diagnostics.AddRange(
-                    e.GetDiagnostics(workspace, forPullDiagnostics: false)
+                    e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode)
                      .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
                      .OrderBy(d => d.GetTextSpan()));
             };
@@ -896,7 +896,7 @@ class A
             DiagnosticData diagnostic = null;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                var diagnostics = e.GetDiagnostics(workspace, forPullDiagnostics: false);
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 if (diagnostics.IsEmpty)
                 {
                     return;

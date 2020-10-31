@@ -1,3 +1,5 @@
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CompilationEnd = "CompilationEnd" -> string
+static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
+static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool

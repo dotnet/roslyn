@@ -2886,6 +2886,16 @@
         <target state="needs-review-translation">null을 허용하지 않는 필드가 초기화되지 않았습니다. nullable로 선언하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter">
+        <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter_Title">
+        <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter is unread. Did you forget to use it to initialize the property with that name?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
         <source>Use of unassigned local variable '{0}'</source>
         <target state="new">Use of unassigned local variable '{0}'</target>

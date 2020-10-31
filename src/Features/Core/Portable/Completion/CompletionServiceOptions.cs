@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -21,5 +19,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public static readonly Option2<bool> DisallowAddingImports
             = new(nameof(CompletionServiceOptions), nameof(DisallowAddingImports), defaultValue: false);
+
+        /// <summary>
+        /// Timeout value used for time-boxing completion of unimported extension methods.
+        /// Value less than 0 means no timebox; value == 0 means immediate timeout (for testing purpose)
+        /// </summary>
+        public static readonly Option2<int> TimeoutInMillisecondsForExtensionMethodImportCompletion
+            = new(nameof(CompletionServiceOptions), nameof(TimeoutInMillisecondsForExtensionMethodImportCompletion), defaultValue: 500);
     }
 }
