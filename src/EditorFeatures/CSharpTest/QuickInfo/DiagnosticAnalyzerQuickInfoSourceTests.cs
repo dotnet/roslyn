@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task ErrorTileIsShownOnDisablePragma()
+        public async Task ErrorTitleIsShownOnDisablePragma()
         {
             await TestInMethodAsync(
 @"
