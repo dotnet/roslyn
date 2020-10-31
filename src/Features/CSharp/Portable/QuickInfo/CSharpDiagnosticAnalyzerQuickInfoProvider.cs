@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 {
                     Parent: PragmaWarningDirectiveTriviaSyntax,
                     RawKind: (int)SyntaxKind.NumericLiteralExpression,
-                } identifier => identifier,
+                } literal => literal,
                 _ => null,
             };
             if (errorCodeExpression == null)
