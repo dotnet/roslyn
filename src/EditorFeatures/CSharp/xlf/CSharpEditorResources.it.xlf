@@ -47,6 +47,11 @@
         <target state="translated">È stato trovato un solo assembly: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">Genera sottoscrizione di eventi</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">Carica da: '{0}'</target>
