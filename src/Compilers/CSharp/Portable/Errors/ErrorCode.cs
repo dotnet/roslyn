@@ -1924,6 +1924,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_EqualityContractRequiresGetter = 8906,
 
+        WRN_UnreadRecordParameter = 8907,
+
         #endregion diagnostics introduced for C# 9.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
