@@ -49,20 +49,35 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
         private QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)
         {
-            var errorCode = token.Parent switch
+            var errorCodeExpression = token.Parent switch
             {
                 PragmaWarningDirectiveTriviaSyntax directive
                     => token.IsKind(SyntaxKind.EndOfDirectiveToken)
-                        ? directive.ErrorCodes.LastOrDefault() as IdentifierNameSyntax
-                        : directive.ErrorCodes.FirstOrDefault() as IdentifierNameSyntax,
-                IdentifierNameSyntax { Parent: PragmaWarningDirectiveTriviaSyntax _ } identifier
-                    => identifier,
+                        ? directive.ErrorCodes.LastOrDefault()
+                        : directive.ErrorCodes.FirstOrDefault(),
+                IdentifierNameSyntax { Parent: PragmaWarningDirectiveTriviaSyntax } identifier => identifier,
+                LiteralExpressionSyntax
+                {
+                    Parent: PragmaWarningDirectiveTriviaSyntax,
+                    RawKind: (int)SyntaxKind.NumericLiteralExpression,
+                } identifier => identifier,
                 _ => null,
             };
+            if (errorCodeExpression == null)
+            {
+                return null;
+            }
 
+            var errorCode = errorCodeExpression switch
+            {
+                IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText,
+                LiteralExpressionSyntax { RawKind: (int)SyntaxKind.NumericLiteralExpression } literal => literal.Token.ValueText,
+                _ => null,
+            };
             if (errorCode != null)
             {
-                return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode.Identifier.ValueText, errorCode.Span);
+                errorCode = errorCode.FormatPragmaWarningErrorCode();
+                return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, errorCodeExpression.Span);
             }
 
             return null;
