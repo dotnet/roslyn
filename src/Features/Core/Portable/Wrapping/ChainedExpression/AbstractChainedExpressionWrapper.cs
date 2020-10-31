@@ -298,8 +298,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                     var currentNode = nodeOrToken.AsNode();
                     if (!IsDecomposableChainPart(currentNode))
                     {
-                        // We've hit some node that can't be decomposed further (like an argument list,
-                        // or name node).  Just add directly to the pieces list.
+                        // We've hit some node that can't be decomposed further (like an argument list, or name node).
+                        // Just add directly to the pieces list.
                         pieces.Add(currentNode);
                         continue;
                     }
