@@ -108,7 +108,7 @@ namespace RunTests
             try
             {
                 var commandLineArguments = GetCommandLineArguments(assemblyInfo);
-                var resultsFilePath = GetResultsFilePath(assemblyInfo);
+                var resultsFilePath = GetResultsFilePath(assemblyInfo, Options.IncludeHtml ? "html" : "xml");
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
                 var processResultList = new List<ProcessResult>();
                 ProcessInfo? procDumpProcessInfo = null;
