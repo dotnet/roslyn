@@ -102,6 +102,11 @@
         <target state="translated">Impossible d'utiliser une collection de type dynamique dans un foreach asynchrone</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadFieldTypeInRecord">
+        <source>The type '{0}' may not be used for a field of a record.</source>
+        <target state="new">The type '{0}' may not be used for a field of a record.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
         <source>Function pointer '{0}' does not take {1} arguments</source>
         <target state="new">Function pointer '{0}' does not take {1} arguments</target>
