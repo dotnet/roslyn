@@ -61,16 +61,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(0, "https://github.com/dotnet/roslyn/issues/0")]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [InlineData("CS0219")]
-        [InlineData("219")]
-        [InlineData("0219")]
+        [InlineData("CS0219$$")]
+        [InlineData("219$$")]
+        [InlineData("0219$$")]
+        [InlineData("CS02$$19")]
+        [InlineData("2$$19")]
+        [InlineData("02$$19")]
         public async Task PragmaWarningCompilerWarningSyntaxKinds(string warning)
         {
             // Reference: https://docs.microsoft.com/en-US/dotnet/csharp/language-reference/preprocessor-directives/preprocessor-pragma-warning
             // "A comma-separated list of warning numbers. The "CS" prefix is optional."
             await TestInMethodAsync(
 @$"
-#pragma warning disable {warning}$$
+#pragma warning disable {warning}
 ", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
