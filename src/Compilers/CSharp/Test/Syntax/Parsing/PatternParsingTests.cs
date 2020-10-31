@@ -11763,6 +11763,57 @@ switch (e)
         [Fact]
         public void ConditionalAsConstantPatternInSwitchStatement()
         {
+            UsingStatement(@"switch(a) { case a?x:y: break; }",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CaseSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ConditionalExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAsConstantPatternInSwitchStatement_Parenthesized()
+        {
             UsingStatement(@"switch(a) { case (a?x:y): break; }",
                 TestOptions.RegularWithPatternCombinators
             );
