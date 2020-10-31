@@ -102,6 +102,11 @@
         <target state="translated">No se puede usar una colección de tipo dinámico en una instrucción foreach asincrónica.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadFieldTypeInRecord">
+        <source>The type '{0}' may not be used for a field of a record.</source>
+        <target state="new">The type '{0}' may not be used for a field of a record.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
         <source>Function pointer '{0}' does not take {1} arguments</source>
         <target state="translated">El puntero de función "{0}" no toma {1} argumentos.</target>
@@ -2884,6 +2889,16 @@
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
         <target state="translated">Un campo que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere la posibilidad de declararlo como que admite un valor NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter">
+        <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter_Title">
+        <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter is unread. Did you forget to use it to initialize the property with that name?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">

@@ -102,6 +102,11 @@
         <target state="translated">無法在非同步 foreach 中使用動態類型的集合</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadFieldTypeInRecord">
+        <source>The type '{0}' may not be used for a field of a record.</source>
+        <target state="new">The type '{0}' may not be used for a field of a record.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
         <source>Function pointer '{0}' does not take {1} arguments</source>
         <target state="translated">函式指標 '{0}' 不接受 {1} 個引數</target>
@@ -2884,6 +2889,16 @@
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
         <target state="translated">退出建構函式時，不可為 Null 的欄位必須包含非 Null 值。請考慮宣告為可為 Null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter">
+        <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter_Title">
+        <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter is unread. Did you forget to use it to initialize the property with that name?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">

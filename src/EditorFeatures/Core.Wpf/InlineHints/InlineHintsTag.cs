@@ -13,12 +13,9 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -51,7 +48,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             SnapshotSpan span,
             InlineHint hint,
             InlineHintsTaggerProvider taggerProvider)
-            : base(adornment, removalCallback: null, PositionAffinity.Predecessor)
+            : base(adornment,
+                   removalCallback: null,
+                   topSpace: null,
+                   baseline: null,
+                   // Make the adornment take up the entire line height.  This will cause it to overlap the line
+                   // highlighting box on both the top and bottom.  Below, when we create the border object, we will
+                   // actually give it a margin so that places itself within the highlight lines properly.
+                   textHeight: textView.LineHeight,
+                   bottomSpace: null,
+                   PositionAffinity.Predecessor)
         {
             _textView = textView;
             _span = span;
@@ -112,11 +118,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             bool classify)
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
-            // page. Calculates a font size 1/4 smaller than the font size of the rest of the editor
+            // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
+            // well with VS at any zoom level or font size.
+
             var block = new TextBlock
             {
                 FontFamily = format.Typeface.FontFamily,
-                FontSize = format.FontRenderingEmSize - (0.25 * format.FontRenderingEmSize),
+                FontSize = 0.75 * format.FontRenderingEmSize,
                 FontStyle = FontStyles.Normal,
                 Foreground = format.ForegroundBrush,
 
@@ -142,9 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 block.Inlines.Add(run);
             }
 
-            // Encapsulates the textblock within a border. Sets the height of the border to be 3/4 of the original 
-            // height. Gets foreground/background colors from the options menu. The margin is the distance from the 
-            // adornment to the text and pushing the adornment upwards to create a separation when on a specific line
+            // Encapsulates the textblock within a border. Gets foreground/background colors from the options menu.
 
             // If the tag is started or followed by a space, we trim that off but represent the space as buffer on hte
             // left or right side.
@@ -156,15 +162,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 Background = format.BackgroundBrush,
                 Child = block,
                 CornerRadius = new CornerRadius(2),
-                Height = textView.LineHeight - (0.25 * textView.LineHeight),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(left, top: -0.20 * textView.LineHeight, right, bottom: 0),
-                Padding = new Thickness(1),
 
-                // Need to set SnapsToDevicePixels and UseLayoutRounding to avoid unnecessary reformatting
-                SnapsToDevicePixels = textView.VisualElement.SnapsToDevicePixels,
-                UseLayoutRounding = textView.VisualElement.UseLayoutRounding,
-                VerticalAlignment = VerticalAlignment.Center
+                // Place 3 pixels above/below the border object.  This works well as the highlighting lines are 2px
+                // each, giving us 1 px of space on both side of the inline tag and them.  This gives the inline tag
+                // an appropriate floating-halfway feeling on the line.
+                Margin = new Thickness(left, top: 3, right, bottom: 3),
             };
 
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties

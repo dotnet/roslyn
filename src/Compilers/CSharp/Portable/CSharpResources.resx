@@ -6576,7 +6576,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
+  <data name="ERR_BadFieldTypeInRecord" xml:space="preserve">
+    <value>The type '{0}' may not be used for a field of a record.</value>
+  </data>
   <data name="ERR_FunctionPointersCannotBeCalledWithNamedArguments" xml:space="preserve">
     <value>A function pointer cannot be called with named arguments.</value>
+  </data>
+  <data name="WRN_UnreadRecordParameter" xml:space="preserve">
+    <value>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</value>
+  </data>
+  <data name="WRN_UnreadRecordParameter_Title" xml:space="preserve">
+    <value>Parameter is unread. Did you forget to use it to initialize the property with that name?</value>
   </data>
 </root>
