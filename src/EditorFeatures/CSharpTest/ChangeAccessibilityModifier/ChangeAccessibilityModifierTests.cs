@@ -29,22 +29,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeAccessibilityModi
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        [Fact]
-        public async Task TestProperty()
+        [Theory]
+        [InlineData("public", 0)]
+        [InlineData("protected", 1)]
+        [InlineData("internal", 2)]
+        [InlineData("internal protected", 3)]
+        [InlineData("private protected", 4)]
+        public async Task TestProperty(string accessibility, int index)
         {
-            const string initial = @"
+            var initial = @"
 abstract class C
 {
     abstract string [|Prop|] { get; }
 }
 ";
-            const string expected = @"
+            var expected = $@"
+abstract class C
+{{
+    {accessibility} abstract string Prop {{ get; }}
+}}
+";
+            await TestInRegularAndScriptAsync(initial, expected, index: index);
+        }
+
+        [Theory]
+        [InlineData("public", 0)]
+        [InlineData("protected", 1)]
+        [InlineData("internal", 2)]
+        [InlineData("internal protected", 3)]
+        [InlineData("private protected", 4)]
+        public async Task TestMethod(string accessibility, int index)
+        {
+            var initial = @"
 abstract class C
 {
-    public abstract string Prop { get; }
+    abstract string [|M|]();
 }
 ";
-            await TestInRegularAndScriptAsync(initial, expected);
+            var expected = $@"
+abstract class C
+{{
+    {accessibility} abstract string M();
+}}
+";
+            await TestInRegularAndScriptAsync(initial, expected, index: index);
+        }
+
+        [Fact]
+        public async Task TestNotOnOverride()
+        {
+            var initial = @"
+abstract class C
+{
+    override string [|ToString|]();
+}
+";
+            await TestMissingAsync(initial);
         }
     }
 }

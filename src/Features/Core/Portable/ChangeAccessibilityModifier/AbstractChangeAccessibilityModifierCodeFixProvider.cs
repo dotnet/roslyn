@@ -46,7 +46,19 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
                     ImmutableArray.Create<CodeAction>(
                         new MyCodeAction(
                             "Use 'public' accessibility",
-                            ct => ChangeAccessibilityAsync(document, diagnosticNode, Accessibility.Public, ct))),
+                            ct => ChangeAccessibilityAsync(document, diagnosticNode, Accessibility.Public, ct)),
+                        new MyCodeAction(
+                            "Use 'protected' accessibility",
+                            ct => ChangeAccessibilityAsync(document, diagnosticNode, Accessibility.Protected, ct)),
+                        new MyCodeAction(
+                            "Use 'internal' accessibility",
+                            ct => ChangeAccessibilityAsync(document, diagnosticNode, Accessibility.Internal, ct)),
+                        new MyCodeAction(
+                            "Use 'protected internal' accessibility",
+                            ct => ChangeAccessibilityAsync(document, diagnosticNode, Accessibility.ProtectedOrInternal, ct)),
+                        new MyCodeAction(
+                            "Use 'private protected' accessibility",
+                            ct => ChangeAccessibilityAsync(document, diagnosticNode, Accessibility.ProtectedAndInternal, ct))),
                     isInlinable: true),
                 diagnostic);
         }
