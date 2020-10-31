@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var parameterType = f.Type;
                         if (parameterType.IsUnsafe())
                         {
-                            diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.Locations[0], parameterType);
+                            diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.Locations.FirstOrNone(), parameterType);
                             foundBadField = true;
                         }
                         else if (parameterType.IsRestrictedType())

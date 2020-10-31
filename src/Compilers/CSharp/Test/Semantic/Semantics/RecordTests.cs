@@ -919,6 +919,61 @@ public unsafe record C
                 );
         }
 
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        public void RestrictedTypesAndPointerTypes_NominalMembers_AutoProperties()
+        {
+            var src = @"
+public class C<T> { }
+public static class C2 { }
+public ref struct RefLike{}
+
+public unsafe record C
+{
+    public int* f1 { get; set; } // 1
+    public int*[] f2 { get; set; } // 2
+    public C<int*[]> f3 { get; set; }
+    public delegate*<int, int> f4 { get; set; } // 3
+    public void f5 { get; set; } // 4
+    public C2 f6 { get; set; } // 5, 6
+    public System.ArgIterator f7 { get; set; } // 6
+    public System.TypedReference f8 { get; set; } // 7
+    public RefLike f9 { get; set; } // 8
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (8,17): error CS8908: The type 'int*' may not be used for a field of a record.
+                //     public int* f1 { get; set; } // 1
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f1").WithArguments("int*").WithLocation(8, 17),
+                // (9,19): error CS8908: The type 'int*[]' may not be used for a field of a record.
+                //     public int*[] f2 { get; set; } // 2
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f2").WithArguments("int*[]").WithLocation(9, 19),
+                // (11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                //     public delegate*<int, int> f4 { get; set; } // 3
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f4").WithArguments("delegate*<int, int>").WithLocation(11, 32),
+                // (12,17): error CS0547: 'C.f5': property or indexer cannot have void type
+                //     public void f5 { get; set; } // 4
+                Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(12, 17),
+                // (13,20): error CS0722: 'C2': static types cannot be used as return types
+                //     public C2 f6 { get; set; } // 5, 6
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("C2").WithLocation(13, 20),
+                // (13,25): error CS0721: 'C2': static types cannot be used as parameters
+                //     public C2 f6 { get; set; } // 5, 6
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("C2").WithLocation(13, 25),
+                // (14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //     public System.ArgIterator f7 { get; set; } // 6
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
+                // (15,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     public System.TypedReference f8 { get; set; } // 7
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(15, 12),
+                // (16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
+                //     public RefLike f9 { get; set; } // 8
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)
+                );
+        }
+
         [Fact]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_PointerTypeAllowedForParameterAndProperty()
