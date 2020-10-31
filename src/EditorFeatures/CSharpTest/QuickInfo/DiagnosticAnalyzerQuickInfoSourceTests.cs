@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
-        [WorkItem(0, "https://github.com/dotnet/roslyn/issues/0")]
+        [WorkItem(49102, "https://github.com/dotnet/roslyn/issues/49102")]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [InlineData("CS0219$$")]
         [InlineData("219$$")]
