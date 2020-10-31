@@ -77,6 +77,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
+        [WorkItem(49102, "https://github.com/dotnet/roslyn/issues/49102")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("#pragma warning $$CS0219", null)]
+        [InlineData("#pragma warning disable$$", null)]
+        [InlineData("#pragma warning disable $$true", null)]
+        public async Task PragmaWarningDoesNotThrowInBrokenSyntax(string pragma, int? errorCode)
+        {
+            var expectedDescription = errorCode is int errorCodeValue
+                ? GetFormattedErrorTitle((ErrorCode)errorCodeValue)
+                : "";
+            await TestInMethodAsync(
+@$"
+{pragma}
+", expectedDescription);
+        }
+
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [InlineData("#pragma warning disable $$CS0162", (int)ErrorCode.WRN_UnreachableCode)]
