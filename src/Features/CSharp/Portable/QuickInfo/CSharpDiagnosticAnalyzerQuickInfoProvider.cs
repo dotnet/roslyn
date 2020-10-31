@@ -74,13 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 LiteralExpressionSyntax { RawKind: (int)SyntaxKind.NumericLiteralExpression } literal => literal.Token.ValueText,
                 _ => null,
             };
-            if (errorCode != null)
+            if (errorCode == null)
             {
-                errorCode = errorCode.FormatPragmaWarningErrorCode();
-                return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, errorCodeExpression.Span);
+                return null;
             }
 
-            return null;
+            errorCode = errorCode.FormatPragmaWarningErrorCode();
+            return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, errorCodeExpression.Span);
         }
 
         private async Task<QuickInfoItem?> GetQuickInfoForSuppressMessageAttributeAsync(
