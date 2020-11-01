@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declaredSymbol = semanticModel.GetDeclaredSymbol(diagnosticNode, cancellationToken);
-            if (!declaredSymbol.IsAbstract && !declaredSymbol.IsVirtual)
+            if (declaredSymbol is { IsOverride: true } or not (IPropertySymbol or IMethodSymbol or IEventSymbol))
             {
                 return;
             }
