@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AliasAmbiguousType = nameof(AliasAmbiguousType);
         public const string ApplyNamingStyle = nameof(ApplyNamingStyle);
         public const string AddBraces = nameof(AddBraces);
+        public const string ChangeAccessibilityModifier = nameof(ChangeAccessibilityModifier);
         public const string ChangeReturnType = nameof(ChangeReturnType);
         public const string ChangeToYield = nameof(ChangeToYield);
         public const string ConfigureCodeStyleOption = nameof(ConfigureCodeStyleOption);

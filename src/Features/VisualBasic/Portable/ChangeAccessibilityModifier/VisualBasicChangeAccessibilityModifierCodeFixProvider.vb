@@ -5,8 +5,12 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ChangeAccessibilityModifier
+Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.VisualBasic
 
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ChangeAccessibilityModifier), [Shared]>
 Friend Class VisualBasicChangeAccessibilityModifierCodeFixProvider
     Inherits AbstractChangeAccessibilityModifierCodeFixProvider
 
@@ -23,4 +27,8 @@ Friend Class VisualBasicChangeAccessibilityModifierCodeFixProvider
 
     Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
         ImmutableArray.Create(BC31408, BC30266)
+
+    Protected Overrides Function GetText(accessibility As Accessibility) As String
+        Return SyntaxFacts.GetText(accessibility)
+    End Function
 End Class

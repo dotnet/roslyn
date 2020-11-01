@@ -175,6 +175,16 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">&lt;pomiń&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_accessibility">
+        <source>Change accessibility</source>
+        <target state="new">Change accessibility</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_accessibility_to_0">
+        <source>Change accessibility to '{0}'</source>
+        <target state="new">Change accessibility to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
         <target state="translated">Zmień przestrzeń nazw na „{0}”</target>

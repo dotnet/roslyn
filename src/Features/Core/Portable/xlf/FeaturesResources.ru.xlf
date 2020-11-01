@@ -175,6 +175,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">&lt;пропустить&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_accessibility">
+        <source>Change accessibility</source>
+        <target state="new">Change accessibility</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_accessibility_to_0">
+        <source>Change accessibility to '{0}'</source>
+        <target state="new">Change accessibility to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
         <target state="translated">Изменить пространство имен на "{0}"</target>

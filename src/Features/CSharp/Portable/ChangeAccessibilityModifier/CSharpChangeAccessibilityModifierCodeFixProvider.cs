@@ -6,9 +6,11 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeAccessibilityModifier;
+using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeAccessibilityModifier
 {
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ChangeAccessibilityModifier), Shared]
     internal class CSharpChangeAccessibilityModifierCodeFixProvider : AbstractChangeAccessibilityModifierCodeFixProvider
     {
         /// <summary>
@@ -28,5 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeAccessibilityModifier
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS0621);
+
+        protected override string GetText(Accessibility accessibility)
+            => SyntaxFacts.GetText(accessibility);
     }
 }

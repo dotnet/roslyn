@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
 {
     internal abstract class AbstractChangeAccessibilityModifierCodeFixProvider : CodeFixProvider
     {
+        private readonly string _title = FeaturesResources.Change_accessibility;
+        private readonly string _titleFormat = FeaturesResources.Change_accessibility_to_0;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -65,46 +68,34 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
                     return;
                 }
 
-                context.RegisterCodeFix(
-                    new MyCodeAction("Use '' accessibility",
-                    ct => ChangeAccessibilityAsync(document, diagnosticNode, accessibility, ct)),
-                    diagnostic);
+                context.RegisterCodeFix(CreateAction(accessibility), diagnostic);
                 return;
             }
 
             context.RegisterCodeFix(
                 new MyNestedAction(
-                    "Change accessibility",
-                    ImmutableArray.Create<CodeAction>(
-                        new MyCodeAction(
-                            "Use 'public' accessibility",
-                            ct => ChangeAccessibilityAsync(document, diagnosticNode, Accessibility.Public, ct)),
-                        new MyCodeAction(
-                            "Use 'protected' accessibility",
-                            ct => ChangeAccessibilityAsync(document, diagnosticNode, Accessibility.Protected, ct)),
-                        new MyCodeAction(
-                            "Use 'internal' accessibility",
-                            ct => ChangeAccessibilityAsync(document, diagnosticNode, Accessibility.Internal, ct)),
-                        new MyCodeAction(
-                            "Use 'protected internal' accessibility",
-                            ct => ChangeAccessibilityAsync(document, diagnosticNode, Accessibility.ProtectedOrInternal, ct)),
-                        new MyCodeAction(
-                            "Use 'private protected' accessibility",
-                            ct => ChangeAccessibilityAsync(document, diagnosticNode, Accessibility.ProtectedAndInternal, ct))),
+                    _title,
+                    ImmutableArray.Create(
+                        CreateAction(Accessibility.Public),
+                        CreateAction(Accessibility.Protected),
+                        CreateAction(Accessibility.Internal),
+                        CreateAction(Accessibility.ProtectedOrInternal),
+                        CreateAction(Accessibility.ProtectedAndInternal)),
                     isInlinable: true),
                 diagnostic);
+
+            CodeAction CreateAction(Accessibility accessibility)
+                => new MyCodeAction(
+                    string.Format(_titleFormat, GetText(accessibility)),
+                    async ct =>
+                    {
+                        var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+                        editor.SetAccessibility(diagnosticNode, accessibility);
+                        return editor.GetChangedDocument();
+                    });
         }
 
-        private static async Task<Document> ChangeAccessibilityAsync(
-            Document document,
-            SyntaxNode declaration,
-            Accessibility accessibility,
-            CancellationToken cancellationToken)
-        {
-            var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            editor.SetAccessibility(declaration, accessibility);
-            return editor.GetChangedDocument();
-        }
+        protected abstract string GetText(Accessibility accessibility);
 
         private class MyNestedAction : CodeAction.CodeActionWithNestedActions
         {
