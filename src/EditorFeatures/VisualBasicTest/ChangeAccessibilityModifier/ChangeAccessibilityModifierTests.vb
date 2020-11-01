@@ -66,14 +66,45 @@ End Class
         End Function
 
         <Fact>
-        Public Async Function TestNotOnOverride() As Task
+        Public Async Function TestPublicOverride() As Task
             Dim initial = "
 MustInherit Class C
     Private Overrides Function [|ToString|]() As String
     End Function
 End Class
 "
-            Await TestMissingAsync(initial)
+            Dim expected = "
+MustInherit Class C
+    Public Overrides Function ToString() As String
+    End Function
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
+        End Function
+
+        <Fact>
+        Public Async Function TestProtectedOverride() As Task
+            Dim initial = "
+MustInherit Class C
+    Protected MustOverride ReadOnly Property Prop As String
+End Class
+Class D
+    Inherits C
+
+    Overrides ReadOnly Property [|Prop|] As String
+End Class
+"
+            Dim expected = "
+MustInherit Class C
+    Protected MustOverride ReadOnly Property Prop As String
+End Class
+Class D
+    Inherits C
+
+    Protected Overrides ReadOnly Property Prop As String
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
         End Function
     End Class
 End Namespace

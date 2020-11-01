@@ -12,6 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeAccessibilityModifier
     internal class CSharpChangeAccessibilityModifierCodeFixProvider : AbstractChangeAccessibilityModifierCodeFixProvider
     {
         /// <summary>
+        /// 'identifier': cannot change access modifiers when overriding 'accessibility' inherited member 'modifier'
+        /// </summary>
+        private const string CS0507 = nameof(CS0507);
+        /// <summary>
         /// 'identifier': virtual or abstract members cannot be private
         /// </summary>
         private const string CS0621 = nameof(CS0621);

@@ -34,12 +34,44 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declaredSymbol = semanticModel.GetDeclaredSymbol(diagnosticNode, cancellationToken);
-            if (declaredSymbol is { IsOverride: true } or not (IPropertySymbol or IMethodSymbol or IEventSymbol))
+            if (declaredSymbol is not (IPropertySymbol or IMethodSymbol or IEventSymbol))
             {
                 return;
             }
 
             var diagnostic = context.Diagnostics[0];
+
+            if (declaredSymbol.IsOverride)
+            {
+                // only show accessibility of base definition for override
+                var original = declaredSymbol.GetOverriddenMember();
+                if (original is null)
+                {
+                    return;
+                }
+
+                var accessibility = original.ComputeResultantAccessibility(declaredSymbol.ContainingType);
+
+                if (accessibility == Accessibility.Internal
+                    && !original.ContainingAssembly.GivesAccessTo(declaredSymbol.ContainingAssembly))
+                {
+                    // not able to override inaccessible member - return
+                    return;
+                }
+
+                if (accessibility == Accessibility.Private)
+                {
+                    // should be unreachable - return for robustness
+                    return;
+                }
+
+                context.RegisterCodeFix(
+                    new MyCodeAction("Use '' accessibility",
+                    ct => ChangeAccessibilityAsync(document, diagnosticNode, accessibility, ct)),
+                    diagnostic);
+                return;
+            }
+
             context.RegisterCodeFix(
                 new MyNestedAction(
                     "Change accessibility",

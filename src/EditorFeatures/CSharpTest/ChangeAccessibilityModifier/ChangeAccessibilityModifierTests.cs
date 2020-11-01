@@ -76,7 +76,7 @@ abstract class C
         }
 
         [Fact]
-        public async Task TestNotOnOverride()
+        public async Task TestPublicOverride()
         {
             var initial = @"
 abstract class C
@@ -84,7 +84,39 @@ abstract class C
     override string [|ToString|]();
 }
 ";
-            await TestMissingAsync(initial);
+            var expected = @"
+abstract class C
+{
+    public override string ToString();
+}
+";
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact]
+        public async Task TestProtectedOverride()
+        {
+            var initial = @"
+abstract class B
+{
+    protected abstract string Prop { get; }
+}
+class D : B
+{
+    override string [|Prop|] { get; }
+}
+";
+            var expected = @"
+abstract class B
+{
+    protected abstract string Prop { get; }
+}
+class D : B
+{
+    protected override string Prop { get; }
+}
+";
+            await TestInRegularAndScriptAsync(initial, expected);
         }
     }
 }
