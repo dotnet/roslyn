@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider)
-            : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, diagnosticsClientName: null)
+            : base(languageServerProtocol, workspace, diagnosticService: null, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
             _globalOptionService = globalOptionService;
         }
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         protected internal override VSServerCapabilities GetCapabilities()
             => new VSServerCapabilities
             {
-                SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.LspPullDiagnostics),
+                SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode) == DiagnosticMode.Pull,
             };
     }
 }

@@ -153,14 +153,14 @@ namespace RunTests
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "traits=", "xUnit traits to include (semicolon delimited)", (string s) => traits = s },
-                { "noTraits=", "xUnit traits to exclude (semicolon delimited)", (string s) => noTraits = s },
+                { "notraits=", "xUnit traits to exclude (semicolon delimited)", (string s) => noTraits = s },
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
                 { "out=", "Test result file directory", (string s) => resultFileDirectory = s },
                 { "logs=", "Log file directory", (string s) => logFileDirectory = s },
-                { "secondaryLogs=", "Log secondary file directory", (string s) => logFileSecondaryDirectory = s },
+                { "secondarylogs=", "Log secondary file directory", (string s) => logFileSecondaryDirectory = s },
                 { "display=", "Display", (Display d) => display = d },
-                { "procdumpPath=", "Path to procdump", (string s) => procDumpFilePath = s },
-                { "useProcdump", "Whether or not to use procdump", o => useProcDump = o is object },
+                { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },
+                { "useprocdump", "Whether or not to use procdump", o => useProcDump = o is object },
                 { "retry", "Retry failed test a few times", o => retry = o is object },
             };
 

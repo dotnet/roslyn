@@ -205,9 +205,10 @@
   <Target Name="GeneratePkgDefServiceRegistrations"
           BeforeTargets="GeneratePkgDef">
     <ItemGroup>
-      <!-- Add registrations for both 32-bit and 64-bit -->
+      <!-- Add registrations for 32-bit, 64-bit, and 64-bit Server GC -->
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64S')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
 
       <PkgDefBrokeredService Include="@(InProcService)" ProfferingPackageId="$(RoslynPackageGuid)" />
     </ItemGroup>

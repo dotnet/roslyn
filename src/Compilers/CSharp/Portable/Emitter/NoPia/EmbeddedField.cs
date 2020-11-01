@@ -14,7 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedField : EmbeddedTypesManager.CommonEmbeddedField
     {
-        public EmbeddedField(EmbeddedType containingType, FieldSymbol underlyingField) :
+        public EmbeddedField(EmbeddedType containingType,
+#if DEBUG
+            FieldSymbolAdapter
+#else
+            FieldSymbol
+#endif
+                underlyingField) :
             base(containingType, underlyingField)
         {
         }
@@ -29,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return UnderlyingField.GetCustomAttributesToEmit(moduleBuilder);
+            return UnderlyingField.AdaptedFieldSymbol.GetCustomAttributesToEmit(moduleBuilder);
         }
 
         protected override MetadataConstant GetCompileTimeValue(EmitContext context)
@@ -41,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingField.IsMetadataConstant;
+                return UnderlyingField.AdaptedFieldSymbol.IsMetadataConstant;
             }
         }
 
@@ -49,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingField.IsNotSerialized;
+                return UnderlyingField.AdaptedFieldSymbol.IsNotSerialized;
             }
         }
 
@@ -57,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingField.IsReadOnly;
+                return UnderlyingField.AdaptedFieldSymbol.IsReadOnly;
             }
         }
 
@@ -65,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingField.HasRuntimeSpecialName;
+                return UnderlyingField.AdaptedFieldSymbol.HasRuntimeSpecialName;
             }
         }
 
@@ -73,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingField.HasSpecialName;
+                return UnderlyingField.AdaptedFieldSymbol.HasSpecialName;
             }
         }
 
@@ -81,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingField.IsStatic;
+                return UnderlyingField.AdaptedFieldSymbol.IsStatic;
             }
         }
 
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingField.IsMarshalledExplicitly;
+                return UnderlyingField.AdaptedFieldSymbol.IsMarshalledExplicitly;
             }
         }
 
@@ -97,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingField.MarshallingInformation;
+                return UnderlyingField.AdaptedFieldSymbol.MarshallingInformation;
             }
         }
 
@@ -105,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingField.MarshallingDescriptor;
+                return UnderlyingField.AdaptedFieldSymbol.MarshallingDescriptor;
             }
         }
 
@@ -113,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingField.TypeLayoutOffset;
+                return UnderlyingField.AdaptedFieldSymbol.TypeLayoutOffset;
             }
         }
 
@@ -121,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return PEModuleBuilder.MemberVisibility(UnderlyingField);
+                return PEModuleBuilder.MemberVisibility(UnderlyingField.AdaptedFieldSymbol);
             }
         }
 
@@ -129,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingField.MetadataName;
+                return UnderlyingField.AdaptedFieldSymbol.MetadataName;
             }
         }
     }
