@@ -13,7 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol, Cci.IReference
+    internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol
+#if !DEBUG
+        , Cci.IReference
+#endif
     {
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces;
         private ImmutableArray<Symbol> _lazyMembers;
@@ -182,11 +185,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode() => _underlyingType.GetHashCode();
 
+
+#if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             // Emit should use underlying symbol only.
             throw ExceptionUtilities.Unreachable;
         }
+#endif 
 
         private ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeSymbol>? basesBeingResolved)
         {
@@ -273,7 +279,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed class NativeIntegerMethodSymbol : WrappedMethodSymbol, Cci.IReference
+    internal sealed class NativeIntegerMethodSymbol : WrappedMethodSymbol
+#if !DEBUG
+        , Cci.IReference
+#endif
     {
         private readonly NativeIntegerTypeSymbol _container;
         private readonly NativeIntegerPropertySymbol? _associatedSymbol;
@@ -328,14 +337,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode() => UnderlyingMethod.GetHashCode();
 
+#if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             // Emit should use underlying symbol only.
             throw ExceptionUtilities.Unreachable;
         }
+#endif 
     }
 
-    internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol, Cci.IReference
+    internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol
+#if !DEBUG
+        , Cci.IReference
+#endif
     {
         private readonly NativeIntegerTypeSymbol _containingType;
         private readonly NativeIntegerMethodSymbol _container;
@@ -357,14 +371,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode() => _underlyingParameter.GetHashCode();
 
+#if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             // Emit should use underlying symbol only.
             throw ExceptionUtilities.Unreachable;
         }
+#endif
     }
 
-    internal sealed class NativeIntegerPropertySymbol : WrappedPropertySymbol, Cci.IReference
+    internal sealed class NativeIntegerPropertySymbol : WrappedPropertySymbol
+#if !DEBUG
+        , Cci.IReference
+#endif
     {
         private readonly NativeIntegerTypeSymbol _container;
 
@@ -401,10 +420,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode() => _underlyingProperty.GetHashCode();
 
+#if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             // Emit should use underlying symbol only.
             throw ExceptionUtilities.Unreachable;
         }
+#endif
     }
 }

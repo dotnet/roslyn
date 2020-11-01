@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -24,7 +22,7 @@ namespace Roslyn.Utilities
     internal static partial class TaskExtensions
     {
 #if DEBUG
-        private static readonly Lazy<Func<Thread, bool>> s_isThreadPoolThread = new(
+        private static readonly Lazy<Func<Thread, bool>?> s_isThreadPoolThread = new(
             () =>
             {
                 var property = typeof(Thread).GetTypeInfo().GetDeclaredProperty("IsThreadPoolThread");
@@ -89,7 +87,7 @@ namespace Roslyn.Utilities
             }
             catch (AggregateException ex)
             {
-                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                ExceptionDispatchInfo.Capture(ex.InnerException ?? ex).Throw();
             }
             return task.Result;
         }
@@ -538,7 +536,7 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
-        internal static void ReportNonFatalError(Task task, object continuationFunction)
+        internal static void ReportNonFatalError(Task task, object? continuationFunction)
         {
             task.ContinueWith(ReportNonFatalErrorWorker, continuationFunction,
                CancellationToken.None,
@@ -547,11 +545,11 @@ namespace Roslyn.Utilities
         }
 
         [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
-        private static void ReportNonFatalErrorWorker(Task task, object continuationFunction)
+        private static void ReportNonFatalErrorWorker(Task task, object? continuationFunction)
         {
-            var exception = task.Exception;
-            var methodInfo = ((Delegate)continuationFunction).GetMethodInfo();
-            exception.Data["ContinuationFunction"] = methodInfo.DeclaringType.FullName + "::" + methodInfo.Name;
+            var exception = task.Exception!;
+            var methodInfo = ((Delegate)continuationFunction!).GetMethodInfo();
+            exception.Data["ContinuationFunction"] = (methodInfo?.DeclaringType?.FullName ?? "?") + "::" + (methodInfo?.Name ?? "?");
 
             // In case of a crash with ExecutionEngineException w/o call stack it might be possible to get the stack trace using WinDbg:
             // > !threads // find thread with System.ExecutionEngineException
@@ -565,7 +563,7 @@ namespace Roslyn.Utilities
 
         public static Task ReportNonFatalErrorAsync(this Task task)
         {
-            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception),
+            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);

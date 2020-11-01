@@ -59,13 +59,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
                     .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
 
+                var textDiffService = renamedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
                 using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var documentEdits);
                 foreach (var docId in changedDocuments)
                 {
                     var oldDoc = oldSolution.GetRequiredDocument(docId);
                     var newDoc = renamedSolution.GetRequiredDocument(docId);
 
-                    var textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
+                    var textChanges = await textDiffService.GetTextChangesAsync(oldDoc, newDoc, cancellationToken).ConfigureAwait(false);
                     var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var textDocumentEdit = new TextDocumentEdit
                     {

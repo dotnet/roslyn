@@ -170,12 +170,26 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
+        Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
         string Cci.INamedEntity.Name
         {
             get
             {
                 return s_name;
             }
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these CCi objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these CCi objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
         }
 
         /// <summary>
@@ -219,6 +233,8 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 return null;
             }
+
+            Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
 
             string Cci.INamedEntity.Name => s_identity.Name;
         }
