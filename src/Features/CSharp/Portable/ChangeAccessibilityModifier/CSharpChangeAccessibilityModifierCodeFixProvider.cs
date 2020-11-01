@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeAccessibilityModifier
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(CS0621);
+            => ImmutableArray.Create(CS0621, CS0507);
 
         protected override string GetText(Accessibility accessibility)
             => SyntaxFacts.GetText(accessibility);

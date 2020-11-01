@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -18,24 +16,22 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
 {
     internal abstract class AbstractChangeAccessibilityModifierCodeFixProvider : CodeFixProvider
     {
-        private readonly string _title = FeaturesResources.Change_accessibility;
-        private readonly string _titleFormat = FeaturesResources.Change_accessibility_to_0;
+        protected abstract string GetText(Accessibility accessibility);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            // Innermost: We are looking for an IdentifierName. IdentifierName is sometimes at the same span as its parent (e.g. SimpleBaseTypeSyntax).
-            var diagnosticNode = root.FindNode(context.Span, getInnermostNodeForTie: true);
+            var diagnosticNode = root.FindNode(context.Span);
             if (!syntaxFacts.IsDeclaration(diagnosticNode))
             {
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declaredSymbol = semanticModel.GetDeclaredSymbol(diagnosticNode, cancellationToken);
             if (declaredSymbol is not (IPropertySymbol or IMethodSymbol or IEventSymbol))
             {
@@ -74,33 +70,39 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
 
             context.RegisterCodeFix(
                 new MyNestedAction(
-                    _title,
+                    FeaturesResources.Change_accessibility,
                     ImmutableArray.Create(
                         CreateAction(Accessibility.Public),
                         CreateAction(Accessibility.Protected),
                         CreateAction(Accessibility.Internal),
                         CreateAction(Accessibility.ProtectedOrInternal),
                         CreateAction(Accessibility.ProtectedAndInternal)),
-                    isInlinable: true),
+                    isInlinable: false),
                 diagnostic);
+
+            return;
 
             CodeAction CreateAction(Accessibility accessibility)
                 => new MyCodeAction(
-                    string.Format(_titleFormat, GetText(accessibility)),
-                    async ct =>
-                    {
-                        var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                        editor.SetAccessibility(diagnosticNode, accessibility);
-                        return editor.GetChangedDocument();
-                    });
+                    string.Format(FeaturesResources.Change_accessibility_to_0, GetText(accessibility)),
+                    ct => ChangeAccessibilityAsync(accessibility, document, diagnosticNode, ct));
         }
 
-        protected abstract string GetText(Accessibility accessibility);
+        private static async Task<Document> ChangeAccessibilityAsync(
+            Accessibility accessibility,
+            Document document,
+            SyntaxNode declaration,
+            CancellationToken cancellationToken)
+        {
+            var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            editor.SetAccessibility(declaration, accessibility);
+            return editor.GetChangedDocument();
+        }
 
         private class MyNestedAction : CodeAction.CodeActionWithNestedActions
         {
             public MyNestedAction(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
-                : base(title, nestedActions, isInlinable, CodeActionPriority.High)
+                : base(title, nestedActions, isInlinable)
             {
             }
         }
