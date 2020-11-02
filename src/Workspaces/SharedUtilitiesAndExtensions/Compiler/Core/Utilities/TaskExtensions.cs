@@ -51,6 +51,12 @@ namespace Roslyn.Utilities
         }
 #endif
 
+        public static T CompletedResult<T>(this Task<T> task)
+        {
+            Contract.ThrowIfFalse(task.IsCompleted);
+            return task.GetAwaiter().GetResult();
+        }
+
         public static T WaitAndGetResult<T>(this Task<T> task, CancellationToken cancellationToken)
         {
 #if DEBUG

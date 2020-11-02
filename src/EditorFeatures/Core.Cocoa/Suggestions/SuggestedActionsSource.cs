@@ -1071,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public async Task<ISuggestedActionCategorySet> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
-                if (_workspaceStatusService != null && !await _workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
+                if (_workspaceStatusService != null && !_workspaceStatusService.IsFullyLoaded)
                 {
                     // never show light bulb if solution is not fully loaded yet
                     return null;

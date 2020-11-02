@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -28,16 +25,14 @@ namespace Microsoft.CodeAnalysis.Host
             remove { }
         }
 
+        // by default, we are always fully loaded
+        public bool IsFullyLoaded => true;
+
+        // by default, we are always fully loaded
         public Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
         {
             // by the default, we are always fully loaded
             return Task.CompletedTask;
-        }
-
-        public Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
-        {
-            // by the default, we are always fully loaded
-            return SpecializedTasks.True;
         }
     }
 }

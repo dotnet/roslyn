@@ -62,8 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
 
                 // If we're not fully loaded, then we don't want to cache classifications.  The classifications we have
                 // will likely not be accurate.  And, if we shutdown after that, we'll have cached incomplete classifications.
-                var isFullyLoaded = await statusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-                if (!isFullyLoaded)
+                if (!statusService.IsFullyLoaded)
                     return;
 
                 await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(

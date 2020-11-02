@@ -93,8 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 finally
                 {
                     var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-                    if (_callback is INavigateToCallback2 callback2 &&
-                        !await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false))
+                    if (_callback is INavigateToCallback2 callback2 && !service.IsFullyLoaded)
                     {
                         // providing this extra information will make UI to show indication to users
                         // that result might not contain full data

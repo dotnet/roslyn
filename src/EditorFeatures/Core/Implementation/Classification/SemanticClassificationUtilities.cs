@@ -164,14 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             CancellationToken cancellationToken)
         {
             var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-
-            // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
-            // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
-            // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
-            // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
-            // fully loaded.
-            var isFullyLoadedTask = workspaceStatusService.IsFullyLoadedAsync(cancellationToken);
-            var isFullyLoaded = isFullyLoadedTask.IsCompleted && isFullyLoadedTask.GetAwaiter().GetResult();
+            var isFullyLoaded = workspaceStatusService.IsFullyLoaded;
 
             // If we're not fully loaded try to read from the cache instead so that classifications appear up to date.
             // New code will not be semantically classified, but will eventually when the project fully loads.
