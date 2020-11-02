@@ -769,7 +769,7 @@ class Test<T> where T : unmanaged
 {
 }";
 
-            CreateCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.DebugDll.WithOutputKind(outputKind)).VerifyDiagnostics(
                 // (9,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(9, 12));
@@ -792,7 +792,7 @@ class Test<T> where T : unmanaged
 {
 }";
 
-            CreateCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.DebugDll.WithOutputKind(outputKind)).VerifyDiagnostics(
                 // (9,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(9, 12));
@@ -812,7 +812,7 @@ class Test<T> where T : unmanaged
 {
 }";
 
-            CreateCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.DebugDll.WithOutputKind(outputKind)).VerifyDiagnostics(
                 // (6,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(6, 12));

@@ -15,8 +15,8 @@ namespace Microsoft.Cci
 {
     internal abstract class ReferenceIndexerBase : MetadataVisitor
     {
-        private readonly HashSet<IReferenceOrISignatureEquivalent> _alreadySeen = new();
-        private readonly HashSet<IReferenceOrISignatureEquivalent> _alreadyHasToken = new();
+        private readonly HashSet<IReferenceOrISignature> _alreadySeen = new();
+        private readonly HashSet<IReferenceOrISignature> _alreadyHasToken = new();
         protected bool typeReferenceNeedsToken;
 
         internal ReferenceIndexerBase(EmitContext context)
@@ -49,7 +49,7 @@ namespace Microsoft.Cci
 
         public override void Visit(IFieldReference fieldReference)
         {
-            if (!_alreadySeen.Add(new IReferenceOrISignatureEquivalent(fieldReference)))
+            if (!_alreadySeen.Add(new IReferenceOrISignature(fieldReference)))
             {
                 return;
             }
@@ -128,7 +128,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            if (!_alreadySeen.Add(new IReferenceOrISignatureEquivalent(methodReference)))
+            if (!_alreadySeen.Add(new IReferenceOrISignature(methodReference)))
             {
                 return;
             }
@@ -396,7 +396,7 @@ namespace Microsoft.Cci
         // Returns true if we need to look at the children, false otherwise.
         private bool VisitTypeReference(ITypeReference typeReference)
         {
-            if (!_alreadySeen.Add(new IReferenceOrISignatureEquivalent(typeReference)))
+            if (!_alreadySeen.Add(new IReferenceOrISignature(typeReference)))
             {
                 if (!this.typeReferenceNeedsToken)
                 {
@@ -404,7 +404,7 @@ namespace Microsoft.Cci
                 }
 
                 this.typeReferenceNeedsToken = false;
-                if (!_alreadyHasToken.Add(new IReferenceOrISignatureEquivalent(typeReference)))
+                if (!_alreadyHasToken.Add(new IReferenceOrISignature(typeReference)))
                 {
                     return false;
                 }
@@ -422,13 +422,13 @@ namespace Microsoft.Cci
                 if (specializedNestedTypeReference != null)
                 {
                     INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.GetUnspecializedVersion(Context);
-                    if (_alreadyHasToken.Add(new IReferenceOrISignatureEquivalent(unspecializedNestedTypeReference)))
+                    if (_alreadyHasToken.Add(new IReferenceOrISignature(unspecializedNestedTypeReference)))
                     {
                         RecordTypeReference(unspecializedNestedTypeReference);
                     }
                 }
 
-                if (this.typeReferenceNeedsToken && _alreadyHasToken.Add(new IReferenceOrISignatureEquivalent(typeReference)))
+                if (this.typeReferenceNeedsToken && _alreadyHasToken.Add(new IReferenceOrISignature(typeReference)))
                 {
                     RecordTypeReference(typeReference);
                 }

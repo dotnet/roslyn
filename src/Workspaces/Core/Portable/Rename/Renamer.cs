@@ -144,7 +144,6 @@ namespace Microsoft.CodeAnalysis.Rename
                                 options,
                                 nonConflictSymbolIds,
                                 cancellationToken),
-                            callbackTarget: null,
                             cancellationToken).ConfigureAwait(false);
 
                         if (result.HasValue && result.Value != null)

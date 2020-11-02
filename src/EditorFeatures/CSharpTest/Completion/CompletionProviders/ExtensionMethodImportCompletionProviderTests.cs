@@ -26,16 +26,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
 
+        // -1 would disable timebox, whereas 0 means always timeout.
+        private int TimeoutInMilliseconds { get; set; } = -1;
+
         private bool IsExpandedCompletion { get; set; } = true;
 
-        private bool HideAdvancedMembers { get; set; } = false;
+        private bool HideAdvancedMembers { get; set; }
 
         protected override OptionSet WithChangedOptions(OptionSet options)
         {
             return options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
+                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
+                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds);
         }
 
         protected override TestComposition GetComposition()
@@ -1882,6 +1886,44 @@ namespace Foo
                         "Bar",
                         inlineDescription: "Foo");
             }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestTimeBox()
+        {
+            var file1 = @"
+using System;
+
+namespace Foo
+{
+    public static class ExtensionClass
+    {
+        public static bool ExtentionMethod(this int x)
+            => true;
+    }
+}";
+            var file2 = @"
+using System;
+
+namespace Baz
+{
+    public class Bat
+    {
+        public void M(int x)
+        {
+            x.$$
+        }
+    }
+}";
+
+            IsExpandedCompletion = false;
+            TimeoutInMilliseconds = 0; //timeout immediately
+            var markup = GetMarkup(file2, file1, ReferenceType.None);
+
+            await VerifyImportItemIsAbsentAsync(
+                 markup,
+                 "ExtentionMethod",
+                 inlineDescription: "Foo");
         }
 
         private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)

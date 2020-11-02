@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (dynamicSiteCount > 0)
             {
-                sideEffects.AddRange(dynamicSiteInitializers);
+                sideEffects.AddRange(dynamicSiteInitializers!);
                 dynamicSiteInitializers!.Free();
             }
 

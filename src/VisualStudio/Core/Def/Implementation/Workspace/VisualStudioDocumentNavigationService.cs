@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     throw new ArgumentOutOfRangeException();
                 }
-                catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
+                catch (ArgumentOutOfRangeException e) when (FatalError.ReportAndCatch(e))
                 {
                 }
 
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     throw new ArgumentOutOfRangeException();
                 }
-                catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
+                catch (ArgumentOutOfRangeException e) when (FatalError.ReportAndCatch(e))
                 {
                 }
 
@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     {
                         throw new ArgumentOutOfRangeException();
                     }
-                    catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
+                    catch (ArgumentOutOfRangeException e) when (FatalError.ReportAndCatch(e))
                     {
                     }
                 }
@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     {
                         throw new ArgumentOutOfRangeException();
                     }
-                    catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
+                    catch (ArgumentOutOfRangeException e) when (FatalError.ReportAndCatch(e))
                     {
                     }
                 }

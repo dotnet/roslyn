@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeMemberReference> _memberRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
-        private readonly HeapOrReferenceIndex<ITypeReference> _typeRefIndex;
+        private readonly TypeReferenceIndex _typeRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
         private readonly HeapOrReferenceIndex<BlobHandle> _standAloneSignatureIndex;
         private readonly Dictionary<IMethodDefinition, AddedOrChangedMethodInfo> _addedOrChangedMethods;
@@ -94,11 +94,11 @@ namespace Microsoft.CodeAnalysis.Emit
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this, lastRowId: sizes[(int)TableIndex.ModuleRef]);
             _memberRefIndex = new InstanceAndStructuralReferenceIndex<ITypeMemberReference>(this, new MemberRefComparer(this), lastRowId: sizes[(int)TableIndex.MemberRef]);
             _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this), lastRowId: sizes[(int)TableIndex.MethodSpec]);
-            _typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this, lastRowId: sizes[(int)TableIndex.TypeRef]);
+            _typeRefIndex = new TypeReferenceIndex(this, lastRowId: sizes[(int)TableIndex.TypeRef]);
             _typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this), lastRowId: sizes[(int)TableIndex.TypeSpec]);
             _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobHandle>(this, lastRowId: sizes[(int)TableIndex.StandAloneSig]);
 
-            _addedOrChangedMethods = new Dictionary<IMethodDefinition, AddedOrChangedMethodInfo>();
+            _addedOrChangedMethods = new Dictionary<IMethodDefinition, AddedOrChangedMethodInfo>(Cci.SymbolEquivalentEqualityComparer.Instance);
         }
 
         private static MetadataBuilder MakeTablesBuilder(EmitBaseline previousGeneration)
@@ -163,11 +163,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 module,
                 baseline.Ordinal + 1,
                 encId,
-                typesAdded: AddRange(_previousGeneration.TypesAdded, _typeDefs.GetAdded()),
-                eventsAdded: AddRange(_previousGeneration.EventsAdded, _eventDefs.GetAdded()),
-                fieldsAdded: AddRange(_previousGeneration.FieldsAdded, _fieldDefs.GetAdded()),
-                methodsAdded: AddRange(_previousGeneration.MethodsAdded, _methodDefs.GetAdded()),
-                propertiesAdded: AddRange(_previousGeneration.PropertiesAdded, _propertyDefs.GetAdded()),
+                typesAdded: AddRange(_previousGeneration.TypesAdded, _typeDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
+                eventsAdded: AddRange(_previousGeneration.EventsAdded, _eventDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
+                fieldsAdded: AddRange(_previousGeneration.FieldsAdded, _fieldDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
+                methodsAdded: AddRange(_previousGeneration.MethodsAdded, _methodDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
+                propertiesAdded: AddRange(_previousGeneration.PropertiesAdded, _propertyDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
                 eventMapAdded: AddRange(_previousGeneration.EventMapAdded, _eventMap.GetAdded()),
                 propertyMapAdded: AddRange(_previousGeneration.PropertyMapAdded, _propertyMap.GetAdded()),
                 methodImplsAdded: AddRange(_previousGeneration.MethodImplsAdded, _methodImpls.GetAdded()),
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 localSignatureProvider: baseline.LocalSignatureProvider);
         }
 
-        private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, bool replace = false)
+        private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, bool replace = false, IEqualityComparer<K> comparer = null)
         {
             if (previous.Count == 0)
             {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return previous;
             }
 
-            var result = new Dictionary<K, V>();
+            var result = new Dictionary<K, V>(comparer);
             foreach (var pair in previous)
             {
                 result.Add(pair.Key, pair.Value);
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         private bool AddDefIfNecessary<T>(DefinitionIndex<T> defIndex, T def)
-            where T : IDefinition
+            where T : class, IDefinition
         {
             switch (_changes.GetChange(def))
             {
@@ -606,12 +606,12 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var typeRef in GetTypeRefs())
             {
-                ReportReferencesToAddedSymbol(typeRef as ISymbolInternal);
+                ReportReferencesToAddedSymbol(typeRef.GetInternalSymbol());
             }
 
             foreach (var memberRef in GetMemberRefs())
             {
-                ReportReferencesToAddedSymbol(memberRef as ISymbolInternal);
+                ReportReferencesToAddedSymbol(memberRef.GetInternalSymbol());
             }
         }
 
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // local type is already translated, but not recursively
             ITypeReference translatedType = localDef.Type;
-            ITypeSymbolInternal typeSymbol = translatedType as ITypeSymbolInternal;
+            ITypeSymbolInternal typeSymbol = translatedType.GetInternalSymbol() as ITypeSymbolInternal;
             if (typeSymbol != null)
             {
                 translatedType = Context.Module.EncTranslateType(typeSymbol, Context.Diagnostics);
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.Emit
             EditAndContinueOperation addCode,
             EventOrPropertyMapIndex map,
             TableIndex mapTable)
-            where T : ITypeDefinitionMember
+            where T : class, ITypeDefinitionMember
         {
             foreach (var member in index.GetRows())
             {
@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.Emit
             DefinitionIndex<T> index,
             TableIndex tableIndex,
             EditAndContinueOperation addCode)
-            where T : ITypeDefinitionMember
+            where T : class, ITypeDefinitionMember
         {
             foreach (var member in index.GetRows())
             {
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         private void PopulateEncLogTableRows<T>(DefinitionIndex<T> index, TableIndex tableIndex)
-            where T : IDefinition
+            where T : class, IDefinition
         {
             foreach (var member in index.GetRows())
             {
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         private static void AddDefinitionTokens<T>(ArrayBuilder<EntityHandle> tokens, DefinitionIndex<T> index, TableIndex tableIndex)
-            where T : IDefinition
+            where T : class, IDefinition
         {
             foreach (var member in index.GetRows())
             {
@@ -1014,9 +1014,9 @@ namespace Microsoft.CodeAnalysis.Emit
             private readonly int _firstRowId; // First row in this generation.
             private bool _frozen;
 
-            public DefinitionIndexBase(int lastRowId)
+            public DefinitionIndexBase(int lastRowId, IEqualityComparer<T> comparer = null)
             {
-                this.added = new Dictionary<T, int>();
+                this.added = new Dictionary<T, int>(comparer);
                 this.rows = new List<T>();
                 _firstRowId = lastRowId + 1;
             }
@@ -1091,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        private sealed class DefinitionIndex<T> : DefinitionIndexBase<T> where T : IDefinition
+        private sealed class DefinitionIndex<T> : DefinitionIndexBase<T> where T : class, IDefinition
         {
             public delegate bool TryGetExistingIndex(T item, out int index);
 
@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.Emit
             private readonly Dictionary<int, T> _map;
 
             public DefinitionIndex(TryGetExistingIndex tryGetExistingIndex, int lastRowId)
-                : base(lastRowId)
+                : base(lastRowId, ReferenceEqualityComparer.Instance)
             {
                 _tryGetExistingIndex = tryGetExistingIndex;
                 _map = new Dictionary<int, T>();
@@ -1319,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private sealed class ParameterDefinitionIndex : DefinitionIndexBase<IParameterDefinition>
         {
             public ParameterDefinitionIndex(int lastRowId)
-                : base(lastRowId)
+                : base(lastRowId, ReferenceEqualityComparer.Instance)
             {
             }
 
@@ -1341,7 +1341,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private sealed class GenericParameterIndex : DefinitionIndexBase<IGenericParameter>
         {
             public GenericParameterIndex(int lastRowId)
-                : base(lastRowId)
+                : base(lastRowId, ReferenceEqualityComparer.Instance)
             {
             }
 

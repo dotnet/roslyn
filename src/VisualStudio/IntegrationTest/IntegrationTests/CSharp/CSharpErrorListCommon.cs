@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -54,14 +56,19 @@ class C
                     column: 24)
             };
             var actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
+
             var target = VisualStudio.ErrorList.NavigateToErrorListItem(0);
             Assert.Equal(expectedContents[0], target);
             VisualStudio.Editor.Verify.CaretPosition(25);
             VisualStudio.SolutionExplorer.BuildSolution();
             VisualStudio.ErrorList.ShowErrorList();
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
         }
 
         public virtual void ErrorLevelWarning()
@@ -86,7 +93,9 @@ class C
                     column: 13)
             };
             var actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
         }
 
         public virtual void ErrorsDuringMethodBodyEditing()
@@ -104,7 +113,9 @@ class Program2
             VisualStudio.ErrorList.ShowErrorList();
             var expectedContents = new ErrorListItem[] { };
             var actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
 
             VisualStudio.Editor.Activate();
             VisualStudio.Editor.PlaceCaret("a = aa", charsOffset: -1);
@@ -120,7 +131,9 @@ class Program2
                     column: 13)
             };
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
 
             VisualStudio.Editor.Activate();
             VisualStudio.Editor.PlaceCaret("aa = aa", charsOffset: -1);
@@ -128,7 +141,9 @@ class Program2
             VisualStudio.ErrorList.ShowErrorList();
             expectedContents = new ErrorListItem[] { };
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
         }
 
         public virtual void ErrorsAfterClosingFile()
@@ -146,7 +161,9 @@ class Program2
             VisualStudio.ErrorList.ShowErrorList();
             var expectedContents = new ErrorListItem[] { };
             var actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
 
             VisualStudio.Editor.Activate();
             VisualStudio.Editor.PlaceCaret("a = aa", charsOffset: -1);
@@ -162,7 +179,9 @@ class Program2
                     column: 13)
             };
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
 
             // Close the current document and verify diagnostics for closed document are not removed from error list.
             VisualStudio.SolutionExplorer.SaveAll();
@@ -170,7 +189,9 @@ class Program2
             VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.F4, ShiftState.Ctrl));
             VisualStudio.ErrorList.ShowErrorList();
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
         }
     }
 }
