@@ -1,5 +1,6 @@
 parameters:
   windowsPool: Hosted Windows 2019 with VS2019
+  includeMacOS:
 
 jobs:
 - job: Windows
@@ -26,6 +27,7 @@ jobs:
   - template: expand-template.yml
 
 - job: macOS
+  condition: ${{ parameters.includeMacOS }}
   pool:
     vmImage: macOS-10.15
   steps:
@@ -50,4 +52,6 @@ jobs:
     parameters:
       initArgs: -NoRestore
   - template: publish-codecoverage.yml
+    parameters:
+      includeMacOS: ${{ parameters.includeMacOS }}
   - template: publish-deployables.yml
