@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     debugInfoReaderProvider.Dispose();
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: unexpected exception: {1}", sourceFilePath, e.Message);
             }

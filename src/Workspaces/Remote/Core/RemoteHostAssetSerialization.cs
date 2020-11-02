@@ -140,6 +140,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
+            Debug.Assert(!checksums.Contains(Checksum.Null));
+
             using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(out var results);
 
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
@@ -159,6 +161,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
+
+                // we should not request null assets:
+                Debug.Assert(result != null);
 
                 results.Add((responseChecksum, result));
             }

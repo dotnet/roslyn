@@ -55,7 +55,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />

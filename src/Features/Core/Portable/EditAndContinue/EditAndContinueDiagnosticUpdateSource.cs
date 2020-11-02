@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (documentDiagnosticData.Count > 0)
             {
-                foreach (var (documentId, diagnosticData) in documentDiagnosticData.ToDictionary(data => data.DocumentId))
+                foreach (var (documentId, diagnosticData) in documentDiagnosticData.ToDictionary(data => data.DocumentId!))
                 {
                     var diagnosticGroupId = (this, documentId, projectId);
 

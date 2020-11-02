@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public static string? GetClassification(this ITypeSymbol type)
             => type.TypeKind switch
             {
-                TypeKind.Class => ClassificationTypeNames.ClassName,
+                TypeKind.Class => type.IsRecord ? ClassificationTypeNames.RecordName : ClassificationTypeNames.ClassName,
                 TypeKind.Module => ClassificationTypeNames.ModuleName,
                 TypeKind.Struct => ClassificationTypeNames.StructName,
                 TypeKind.Interface => ClassificationTypeNames.InterfaceName,

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             if (_pooledObject != null)
             {
                 _releaser(_pool, _pooledObject);
-                _pooledObject = null;
+                _pooledObject = null!;
             }
         }
 
@@ -72,6 +70,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static PooledObject<Dictionary<TKey, TValue>> Create<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool)
+            where TKey : notnull
         {
             return new PooledObject<Dictionary<TKey, TValue>>(
                 pool,
@@ -114,9 +113,11 @@ namespace Microsoft.CodeAnalysis
             => pool.ClearAndFree(obj);
 
         private static Dictionary<TKey, TValue> Allocator<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool)
+            where TKey : notnull
             => pool.AllocateAndClear();
 
         private static void Releaser<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool, Dictionary<TKey, TValue> obj)
+            where TKey : notnull
             => pool.ClearAndFree(obj);
 
         private static List<TItem> Allocator<TItem>(ObjectPool<List<TItem>> pool)

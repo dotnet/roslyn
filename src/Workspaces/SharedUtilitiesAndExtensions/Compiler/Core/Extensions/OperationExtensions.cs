@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -215,13 +215,13 @@ namespace Microsoft.CodeAnalysis
             return ValueUsageInfo.Read;
         }
 
-        public static RefKind GetRefKind(this IReturnOperation operation, ISymbol containingSymbol)
+        public static RefKind GetRefKind(this IReturnOperation? operation, ISymbol containingSymbol)
         {
             var containingMethod = TryGetContainingAnonymousFunctionOrLocalFunction(operation) ?? (containingSymbol as IMethodSymbol);
             return containingMethod?.RefKind ?? RefKind.None;
         }
 
-        public static IMethodSymbol TryGetContainingAnonymousFunctionOrLocalFunction(this IOperation operation)
+        public static IMethodSymbol? TryGetContainingAnonymousFunctionOrLocalFunction(this IOperation? operation)
         {
             operation = operation?.Parent;
             while (operation != null)
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        public static bool IsInLeftOfDeconstructionAssignment(this IOperation operation, out IDeconstructionAssignmentOperation deconstructionAssignment)
+        public static bool IsInLeftOfDeconstructionAssignment(this IOperation operation, [NotNullWhen(true)] out IDeconstructionAssignmentOperation? deconstructionAssignment)
         {
             deconstructionAssignment = null;
 
@@ -339,10 +339,10 @@ namespace Microsoft.CodeAnalysis
         public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate)
             => operationBlock.HasAnyOperationDescendant(predicate, out _);
 
-        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate, out IOperation foundOperation)
+        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate, [NotNullWhen(true)] out IOperation? foundOperation)
         {
-            Debug.Assert(operationBlock != null);
-            Debug.Assert(predicate != null);
+            RoslynDebug.AssertNotNull(operationBlock);
+            RoslynDebug.AssertNotNull(predicate);
             foreach (var descendant in operationBlock.DescendantsAndSelf())
             {
                 if (predicate(descendant))

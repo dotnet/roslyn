@@ -1398,15 +1398,16 @@ End Class",
 Public Class MyAttribute
     Inherits System.Attribute
     Private v As Integer
-    Private v1 As Integer
+    Private v1 As Boolean
+    Private v2 As Integer
 
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
 
-    Public Sub New(v As Integer, v1 As Integer)
-        Me.New(v)
+    Public Sub New(v1 As Boolean, v2 As Integer)
         Me.v1 = v1
+        Me.v2 = v2
     End Sub
 End Class
 <MyAttribute(True, 2)>

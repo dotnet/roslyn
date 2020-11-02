@@ -502,12 +502,6 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
-        /// </summary> 
-        bool IsImplicitlyDeclared { get; }
-
-        /// <summary>
         /// True if this method has a non empty collection of SecurityAttributes or the System.Security.SuppressUnmanagedCodeSecurityAttribute.
         /// </summary>
         bool HasDeclarativeSecurity { get; }

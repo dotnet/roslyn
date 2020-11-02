@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     if (methodSymbol.Name.StartsWith(prefix))
                     {
-                        var suffix = methodSymbol.Name.Substring(prefix.Length);
+                        var suffix = methodSymbol.Name[prefix.Length..];
                         return suffix.Length > 0 &&
                             methodSymbol.ContainingType.GetMembers(suffix).Any(m => m is IPropertySymbol);
                     }

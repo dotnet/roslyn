@@ -261,6 +261,7 @@ class X
                         case ErrorCode.WRN_RecordNamedDisallowed:
                         case ErrorCode.WRN_ParameterNotNullIfNotNull:
                         case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                        case ErrorCode.WRN_UnreadRecordParameter:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -334,6 +335,7 @@ class X
                         case ErrorCode.WRN_ParameterDisallowsNull:
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                         case ErrorCode.WRN_IsPatternAlways:
+                        case ErrorCode.WRN_AnalyzerReferencesFramework:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -413,6 +415,8 @@ class X
                     ErrorCode.WRN_ReturnTypeIsStaticClass,
                     ErrorCode.WRN_RecordNamedDisallowed,
                     ErrorCode.WRN_RecordEqualsWithoutGetHashCode,
+                    ErrorCode.WRN_AnalyzerReferencesFramework,
+                    ErrorCode.WRN_UnreadRecordParameter,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

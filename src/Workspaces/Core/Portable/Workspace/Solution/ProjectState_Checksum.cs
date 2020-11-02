@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                         new AnalyzerConfigDocumentChecksumCollection(analyzerConfigDocumentChecksums));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

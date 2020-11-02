@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        private const string DefaultParameterName = "p";
+        public const string DefaultParameterName = "p";
         private const string DefaultBuiltInParameterName = "v";
 
         public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
@@ -614,10 +614,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool IsEnumType(this ITypeSymbol type)
+        public static bool IsEnumType([NotNullWhen(true)] this ITypeSymbol? type)
             => IsEnumType(type, out _);
 
-        public static bool IsEnumType(this ITypeSymbol type, [NotNullWhen(true)] out INamedTypeSymbol? enumType)
+        public static bool IsEnumType([NotNullWhen(true)] this ITypeSymbol? type, [NotNullWhen(true)] out INamedTypeSymbol? enumType)
         {
             if (type != null && type.IsValueType && type.TypeKind == TypeKind.Enum)
             {

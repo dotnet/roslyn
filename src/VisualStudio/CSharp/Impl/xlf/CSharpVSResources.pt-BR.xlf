@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">Mostrar automaticamente a lista de conclusão nas listas de argumentos (experimental)</target>
+        <target state="needs-review-translation">Mostrar automaticamente a lista de conclusão nas listas de argumentos (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -61,6 +61,11 @@
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">Em operadores relacionais:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
+        <source>Insert // at the start of new lines when writing // comments</source>
+        <target state="new">Insert // at the start of new lines when writing // comments</target>
+        <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
@@ -117,9 +122,14 @@
         <target state="translated">Remover Usos Desnecessários</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_new_expressions">
+        <source>Show hints for 'new' expressions</source>
+        <target state="new">Show hints for 'new' expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="translated">Mostrar itens de namespaces não importados (experimental)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="needs-review-translation">Mostrar itens de namespaces não importados (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -22,15 +21,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal readonly struct RunRequest
     {
         public string Language { get; }
-        public string CurrentDirectory { get; }
-        public string TempDirectory { get; }
-        public string LibDirectory { get; }
+        public string? WorkingDirectory { get; }
+        public string? TempDirectory { get; }
+        public string? LibDirectory { get; }
         public string[] Arguments { get; }
 
-        public RunRequest(string language, string currentDirectory, string tempDirectory, string libDirectory, string[] arguments)
+        public RunRequest(string language, string? workingDirectory, string? tempDirectory, string? libDirectory, string[] arguments)
         {
             Language = language;
-            CurrentDirectory = currentDirectory;
+            WorkingDirectory = workingDirectory;
             TempDirectory = tempDirectory;
             LibDirectory = libDirectory;
             Arguments = arguments;
@@ -69,9 +68,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, AnalyzerAssemblyLoader);
         }
 
-        public bool TryCreateCompiler(RunRequest request, out CommonCompiler compiler)
+        public bool TryCreateCompiler(RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)
         {
-            var buildPaths = new BuildPaths(ClientDirectory, request.CurrentDirectory, SdkDirectory, request.TempDirectory);
             switch (request.Language)
             {
                 case LanguageNames.CSharp:
@@ -100,8 +98,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             Log($@"
 Run Compilation
-  CurrentDirectory = '{request.CurrentDirectory}
+  CurrentDirectory = '{request.WorkingDirectory}
   LIB = '{request.LibDirectory}'");
+
+            // Compiler server must be provided with a valid current directory in order to correctly 
+            // resolve files in the compilation
+            if (string.IsNullOrEmpty(request.WorkingDirectory))
+            {
+                return new RejectedBuildResponse("Missing temp directory");
+            }
 
             // Compiler server must be provided with a valid temporary directory in order to correctly
             // isolate signing between compilations.
@@ -110,14 +115,15 @@ Run Compilation
                 return new RejectedBuildResponse("Missing temp directory");
             }
 
-            CommonCompiler compiler;
-            if (!TryCreateCompiler(request, out compiler))
+            var buildPaths = new BuildPaths(ClientDirectory, request.WorkingDirectory, SdkDirectory, request.TempDirectory);
+            CommonCompiler? compiler;
+            if (!TryCreateCompiler(request, buildPaths, out compiler))
             {
                 return new RejectedBuildResponse($"Cannot create compiler for language id {request.Language}");
             }
 
             bool utf8output = compiler.Arguments.Utf8Output;
-            if (!CheckAnalyzers(request.CurrentDirectory, compiler.Arguments.AnalyzerReferences))
+            if (!CheckAnalyzers(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences))
             {
                 return new AnalyzerInconsistencyBuildResponse();
             }

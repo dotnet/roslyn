@@ -35,5 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Function IReferenceAsDefinition(context As EmitContext) As Cci.IDefinition Implements Cci.IReference.AsDefinition
             Return Nothing
         End Function
+
+        Private Function IReferenceGetInternalSymbol() As CodeAnalysis.Symbols.ISymbolInternal Implements Cci.IReference.GetInternalSymbol
+            Return UnderlyingSymbol
+        End Function
     End Class
 End Namespace

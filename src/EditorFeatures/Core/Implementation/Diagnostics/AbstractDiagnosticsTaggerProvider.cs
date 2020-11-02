@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
-            var buckets = _diagnosticService.GetDiagnosticBuckets(
-                workspace, document.Project.Id, document.Id, context.CancellationToken);
+            var buckets = _diagnosticService.GetPushDiagnosticBuckets(
+                workspace, document.Project.Id, document.Id, InternalDiagnosticsOptions.NormalDiagnosticMode, context.CancellationToken);
 
             foreach (var bucket in buckets)
             {
@@ -170,8 +170,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             try
             {
                 var id = bucket.Id;
-                var diagnostics = _diagnosticService.GetDiagnostics(
-                    workspace, document.Project.Id, document.Id, id, includeSuppressedDiagnostics: false, cancellationToken);
+                var diagnostics = _diagnosticService.GetPushDiagnostics(
+                    workspace, document.Project.Id, document.Id, id,
+                    includeSuppressedDiagnostics: false,
+                    diagnosticMode: InternalDiagnosticsOptions.NormalDiagnosticMode,
+                    cancellationToken);
 
                 var isLiveUpdate = id is ISupportLiveUpdate;
 
@@ -227,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     }
                 }
             }
-            catch (ArgumentOutOfRangeException ex) when (FatalError.ReportWithoutCrash(ex))
+            catch (ArgumentOutOfRangeException ex) when (FatalError.ReportAndCatch(ex))
             {
                 // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=428328&_a=edit&triage=false
                 // explicitly report NFW to find out what is causing us for out of range.

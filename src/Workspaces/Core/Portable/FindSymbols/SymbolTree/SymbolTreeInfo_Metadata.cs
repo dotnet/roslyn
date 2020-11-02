@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static Task<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution, PortableExecutableReference reference,
             bool loadOnly, CancellationToken cancellationToken)
         {
@@ -79,7 +79,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
         /// Note:  will never return null;
         /// </summary>
-        public static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             Checksum checksum,
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference),
                 keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(solution, checksum, filePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(solution, checksum, filePath, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfFalse(result != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
             return result;

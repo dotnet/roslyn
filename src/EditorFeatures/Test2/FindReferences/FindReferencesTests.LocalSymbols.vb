@@ -295,7 +295,7 @@ End Module
 #End Region
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_01(kind As TestKind, host As TestHost) As Task
@@ -327,7 +327,7 @@ static class Program
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_02(kind As TestKind, host As TestHost) As Task
@@ -359,7 +359,7 @@ static class Program
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_03(kind As TestKind, host As TestHost) As Task
@@ -391,7 +391,7 @@ static class Program
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_04(kind As TestKind, host As TestHost) As Task
@@ -423,7 +423,7 @@ static class Program
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_01(kind As TestKind, host As TestHost) As Task
@@ -453,7 +453,7 @@ End Module
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_02(kind As TestKind, host As TestHost) As Task
@@ -483,7 +483,7 @@ End Module
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_03(kind As TestKind, host As TestHost) As Task
@@ -513,7 +513,7 @@ End Module
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_04(kind As TestKind, host As TestHost) As Task

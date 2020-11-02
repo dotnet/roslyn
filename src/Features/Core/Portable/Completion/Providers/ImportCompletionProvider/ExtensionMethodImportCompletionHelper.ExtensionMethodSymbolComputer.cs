@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 foreach (var peReference in GetAllRelevantPeReferences())
                 {
                     tasks.Add(Task.Run(()
-                        => SymbolTreeInfo.GetInfoForMetadataReferenceAsync(Solution, peReference, loadOnly: false, cancellationToken), cancellationToken));
+                        => SymbolTreeInfo.GetInfoForMetadataReferenceAsync(Solution, peReference, loadOnly: false, cancellationToken).AsTask(), cancellationToken));
                 }
 
                 return Task.WhenAll(tasks.ToImmutable());
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromPeReferenceAsync(
                         peReference,
                         forceIndexCreation,
-                        cancellationToken), cancellationToken));
+                        cancellationToken).AsTask(), cancellationToken));
                 }
 
                 foreach (var project in GetAllRelevantProjects())
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     : GetExtensionMethodsForSymbolsFromDifferentCompilation(matchingMethodSymbols, cancellationToken);
             }
 
-            private async Task<ImmutableArray<IMethodSymbol>?> GetExtensionMethodSymbolsFromPeReferenceAsync(
+            private async ValueTask<ImmutableArray<IMethodSymbol>?> GetExtensionMethodSymbolsFromPeReferenceAsync(
                 PortableExecutableReference peReference,
                 bool forceIndexCreation,
                 CancellationToken cancellationToken)
