@@ -2813,7 +2813,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Change_accessibility_to_0" xml:space="preserve">
     <value>Change accessibility to '{0}'</value>
   </data>
-  <data name="Change_accessibility" xml:space="preserve">
-    <value>Change accessibility</value>
+  <data name="Change_accessibility_to" xml:space="preserve">
+    <value>Change accessibility to</value>
   </data>
 </root>

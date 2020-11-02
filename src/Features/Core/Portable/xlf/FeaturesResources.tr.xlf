@@ -175,9 +175,9 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">&lt;atla&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Change_accessibility">
-        <source>Change accessibility</source>
-        <target state="new">Change accessibility</target>
+      <trans-unit id="Change_accessibility_to">
+        <source>Change accessibility to</source>
+        <target state="new">Change accessibility to</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_accessibility_to_0">

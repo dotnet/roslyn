@@ -64,13 +64,17 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
                     return;
                 }
 
-                context.RegisterCodeFix(CreateAction(accessibility), diagnostic);
+                context.RegisterCodeFix(
+                    new MyCodeAction(
+                        string.Format(FeaturesResources.Change_accessibility_to_0, GetText(accessibility)),
+                        ct => ChangeAccessibilityAsync(accessibility, document, diagnosticNode, ct)),
+                    diagnostic);
                 return;
             }
 
             context.RegisterCodeFix(
                 new MyNestedAction(
-                    FeaturesResources.Change_accessibility,
+                    FeaturesResources.Change_accessibility_to,
                     ImmutableArray.Create(
                         CreateAction(Accessibility.Public),
                         CreateAction(Accessibility.Protected),
@@ -84,7 +88,7 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
 
             CodeAction CreateAction(Accessibility accessibility)
                 => new MyCodeAction(
-                    string.Format(FeaturesResources.Change_accessibility_to_0, GetText(accessibility)),
+                    GetText(accessibility),
                     ct => ChangeAccessibilityAsync(accessibility, document, diagnosticNode, ct));
         }
 
