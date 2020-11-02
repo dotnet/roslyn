@@ -36,7 +36,7 @@ param (
   [switch][Alias('bl')]$binaryLog,
   [switch]$buildServerLog,
   [switch]$ci,
-  [switch]$procdump,
+  [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
@@ -98,7 +98,7 @@ function Print-Usage() {
   Write-Host "  -bootstrap                Build using a bootstrap compilers"
   Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
-  Write-Host "  -procdump                 Monitor test runs with procdump"
+  Write-Host "  -collectDumps             Collect dumps from test runs"
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
@@ -151,7 +151,7 @@ function Process-Arguments() {
 
   if ($officialBuildId) {
     $script:useGlobalNuGetCache = $false
-    $script:procdump = $true
+    $script:collectDumps = $true
     $script:testDesktop = ![System.Boolean]::Parse($officialSkipTests)
     $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
   } else {
@@ -328,12 +328,6 @@ function TestUsingOptimizedRunner() {
       # Minimize all windows to avoid interference during integration test runs
       $shell = New-Object -ComObject "Shell.Application"
       $shell.MinimizeAll()
-
-      # Set registry to take dump automatically when test process crashes
-      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f
-      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpType /t REG_DWORD /d 2
-      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpCount /t REG_DWORD /d 2
-      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpFolder /t REG_SZ /d "$LogDir"
     }
   }
 
@@ -401,10 +395,10 @@ function TestUsingOptimizedRunner() {
     }
   }
 
-  if ($procdump) {
+  if ($collectDumps) {
     $procdumpFilePath = Ensure-ProcDump
     $args += " --procdumppath $procDumpFilePath"
-    $args += " --useprocdump";
+    $args += " --collectdumps";
   }
 
   if ($test64) {

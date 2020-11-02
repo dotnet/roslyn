@@ -161,20 +161,6 @@ namespace RunTests
                     cancellationToken: cancellationToken);
                 Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {assemblyInfo.DisplayName}");
 
-                // Now that xunit is running we should kick off a procDump process if it was specified
-                if (Options.ProcDumpInfo != null)
-                {
-                    var procDumpInfo = Options.ProcDumpInfo.Value;
-                    var procDumpStartInfo = ProcessRunner.CreateProcessStartInfo(
-                        procDumpInfo.ProcDumpFilePath,
-                        ProcDumpUtil.GetProcDumpCommandLine(dotnetProcessInfo.Id, procDumpInfo.DumpDirectory),
-                        captureOutput: true,
-                        displayWindow: false);
-                    Directory.CreateDirectory(procDumpInfo.DumpDirectory);
-                    procDumpProcessInfo = ProcessRunner.CreateProcess(procDumpStartInfo, cancellationToken: cancellationToken);
-                    Logger.Log($"Create procdump process with id {procDumpProcessInfo.Value.Id} for xunit {dotnetProcessInfo.Id} for test {assemblyInfo.DisplayName}");
-                }
-
                 var xunitProcessResult = await dotnetProcessInfo.Result;
                 var span = DateTime.UtcNow - start;
 
