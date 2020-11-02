@@ -53,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 {
                     Change = TextDocumentSyncKind.None
                 },
+                SupportsDiagnosticRequests = true,
             };
     }
 }
