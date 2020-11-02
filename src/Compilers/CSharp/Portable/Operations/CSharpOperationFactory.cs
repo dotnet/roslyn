@@ -1963,13 +1963,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundTupleExpression.Syntax;
             bool isImplicit = boundTupleExpression.WasCompilerGenerated;
             ITypeSymbol? type = boundTupleExpression.GetPublicTypeSymbol();
-            TypeSymbol? naturalType = boundTupleExpression switch
-            {
-                BoundTupleLiteral { Type: var t } => t,
-                BoundConvertedTupleLiteral { SourceTuple: { Type: var t } } => t,
-                BoundConvertedTupleLiteral => null,
-                { Kind: var kind } => throw ExceptionUtilities.UnexpectedValue(kind)
-            };
+
             if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
                 syntax = declarationExpressionSyntax.Designation;
@@ -1979,6 +1973,14 @@ namespace Microsoft.CodeAnalysis.Operations
                     return new DeclarationExpressionOperation(tupleOperation, _semanticModel, declarationExpressionSyntax, type, isImplicit: false);
                 }
             }
+
+            TypeSymbol? naturalType = boundTupleExpression switch
+            {
+                BoundTupleLiteral { Type: var t } => t,
+                BoundConvertedTupleLiteral { SourceTuple: { Type: var t } } => t,
+                BoundConvertedTupleLiteral => null,
+                { Kind: var kind } => throw ExceptionUtilities.UnexpectedValue(kind)
+            };
 
             ImmutableArray<IOperation> elements = CreateFromArray<BoundExpression, IOperation>(boundTupleExpression.Arguments);
             return new TupleOperation(elements, naturalType.GetPublicSymbol(), _semanticModel, syntax, type, isImplicit);
