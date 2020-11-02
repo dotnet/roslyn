@@ -289,6 +289,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 sortText,
                 insertionText,
                 filterText,
+                displayTextPrefix: null,
+                glyph: null,
                 supportedPlatforms,
                 properties,
                 tags);
@@ -303,26 +305,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string sortText = null,
             string insertionText = null,
             string filterText = null,
-            SupportedPlatformData supportedPlatforms = null,
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
-        {
-            return CreateWorker(
-                displayText, displayTextSuffix, symbols, rules, contextPosition,
-                s_addSymbolEncoding, sortText, insertionText,
-                filterText, supportedPlatforms, properties, tags);
-        }
-
-        public static CompletionItem CreateWithSymbolId(
-            string displayText,
-            string displayTextSuffix,
-            string displayTextPrefix,
-            IReadOnlyList<ISymbol> symbols,
-            CompletionItemRules rules,
-            int contextPosition,
-            string sortText = null,
-            string insertionText = null,
-            string filterText = null,
+            string displayTextPrefix = null,
             Glyph? glyph = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
@@ -331,8 +314,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
                 s_addSymbolEncoding, sortText, insertionText,
-                filterText, supportedPlatforms, properties, tags, displayTextPrefix,
-                glyph);
+                filterText, supportedPlatforms, properties, tags, displayTextPrefix, glyph);
         }
 
         public static CompletionItem CreateWithNameAndKind(
