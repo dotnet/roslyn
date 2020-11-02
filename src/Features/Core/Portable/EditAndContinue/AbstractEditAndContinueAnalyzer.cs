@@ -3067,6 +3067,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // a rude edit would be reported in syntax analysis phase.
                     RoslynDebug.Assert(newLambdaInfo.Match != null && newLambdaInfo.NewBody != null);
 
+                    ReportLambdaAttributeRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, diagnostics, cancellationToken);
+
                     ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, diagnostics, out var hasErrors, cancellationToken);
                     anySignatureErrors |= hasErrors;
                 }
@@ -3708,6 +3710,37 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        protected virtual void ReportLambdaAttributeRudeEdits(SemanticModel oldModel,
+            SyntaxNode oldLambdaBody,
+            SemanticModel newModel,
+            SyntaxNode newLambdaBody,
+            List<RudeEditDiagnostic> diagnostics,
+            CancellationToken cancellationToken)
+        {
+            var newLambda = GetLambda(newLambdaBody);
+            var oldLambda = GetLambda(oldLambdaBody);
+
+            Debug.Assert(IsNestedFunction(newLambda) == IsNestedFunction(oldLambda));
+
+            // queries are analyzed separately
+            if (!IsNestedFunction(newLambda))
+            {
+                return;
+            }
+
+            var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
+            var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
+
+            if (!oldLambdaSymbol.GetAttributes().SequenceEqual(newLambdaSymbol.GetAttributes()))
+            {
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.ChangingLambdaAttributes,
+                    GetDiagnosticSpan(newLambda, EditKind.Update),
+                    newLambda,
+                    new[] { GetDisplayName(newLambda) }));
+            }
+        }
+
         protected virtual void ReportLambdaSignatureRudeEdits(
             SemanticModel oldModel,
             SyntaxNode oldLambdaBody,
@@ -3741,10 +3774,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             else if (!s_assemblyEqualityComparer.ReturnTypeEquals(oldLambdaSymbol, newLambdaSymbol))
             {
                 rudeEdit = RudeEditKind.ChangingLambdaReturnType;
-            }
-            else if (!oldLambdaSymbol.GetAttributes().SequenceEqual(newLambdaSymbol.GetAttributes()))
-            {
-                rudeEdit = RudeEditKind.ChangingLambdaAttributes;
             }
             else
             {
