@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     if (!_progressStageStatus.IsCompleted)
                         return false;
 
-                    var status = _progressStageStatus.Task.CompletedResult();
+                    var status = _progressStageStatus.Task.GetCompletedResult();
                     if (status is null)
                         return false;
 

@@ -51,9 +51,25 @@ namespace Roslyn.Utilities
         }
 #endif
 
-        public static T CompletedResult<T>(this Task<T> task)
+        /// <summary>
+        /// Gets the <see cref="Task{TResult}.Result"/> of a completed <see cref="Task{TResult}"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>This method can be used in cases where blocking operations are not allowed, but a
+        /// <see cref="Task{TResult}"/> is known to already be complete.</para>
+        /// </remarks>
+        /// <typeparam name="TResult">The type of the result produced by the <see cref="Task{TResult}"/>.</typeparam>
+        /// <param name="task">The completed task.</param>
+        /// <returns>The result value of the <see cref="Task{TResult}"/>.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="task"/> is <see langword="null"/>.</exception>
+        /// <exception cref="InvalidOperationException">If <paramref name="task"/> is not completed.</exception>
+        public static TResult GetCompletedResult<TResult>(this Task<TResult> task)
         {
-            Contract.ThrowIfFalse(task.IsCompleted);
+            if (task is null)
+                throw new ArgumentNullException(nameof(task));
+            if (!task.IsCompleted)
+                throw new InvalidOperationException();
+
             return task.GetAwaiter().GetResult();
         }
 
