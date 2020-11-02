@@ -217,10 +217,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 // Analyzer dependency:
                 // 1. Must be an Analyzer file reference (we don't understand other analyzer dependencies).
                 // 2. Mush have no diagnostic analyzers.
-                // 3. Must have non-null full path.
-                // 4. Must not have any assembly or analyzer load failures.
+                // 3. Must have no source generators.
+                // 4. Must have non-null full path.
+                // 5. Must not have any assembly or analyzer load failures.
                 if (analyzerReference is AnalyzerFileReference &&
                     analyzerReference.GetAnalyzers(project.Language).IsDefaultOrEmpty &&
+                    analyzerReference.GetGenerators().IsDefaultOrEmpty &&
                     analyzerReference.FullPath != null &&
                     !analyzersWithLoadErrors.Contains(analyzerReference.FullPath))
                 {
