@@ -3067,10 +3067,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // a rude edit would be reported in syntax analysis phase.
                     RoslynDebug.Assert(newLambdaInfo.Match != null && newLambdaInfo.NewBody != null);
 
-                    ReportLambdaAttributeRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, diagnostics, cancellationToken);
-
                     ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, diagnostics, out var hasErrors, cancellationToken);
                     anySignatureErrors |= hasErrors;
+
+                    ReportLambdaAttributeRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, diagnostics, hasErrors, cancellationToken);
                 }
 
                 ArrayBuilder<SyntaxNode>? lazyNewErroneousClauses = null;
@@ -3715,6 +3715,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
             List<RudeEditDiagnostic> diagnostics,
+            bool hadSignatureEdits,
             CancellationToken cancellationToken)
         {
             var newLambda = GetLambda(newLambdaBody);
@@ -3731,8 +3732,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
             var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
 
+            var reportDiagnostic = false;
             if (!oldLambdaSymbol.GetAttributes().SequenceEqual(newLambdaSymbol.GetAttributes()) ||
                 !oldLambdaSymbol.GetReturnTypeAttributes().SequenceEqual(newLambdaSymbol.GetReturnTypeAttributes()))
+            {
+                reportDiagnostic = true;
+            }
+
+            // If the old and new signatures are the same then we are safe to compare parameter attributes more easily
+            if (!hadSignatureEdits)
+            {
+                for (var i = 0; i < oldLambdaSymbol.Parameters.Length; i++)
+                {
+                    if (!oldLambdaSymbol.Parameters[i].GetAttributes().SequenceEqual(newLambdaSymbol.Parameters[i].GetAttributes()))
+                    {
+                        reportDiagnostic = true;
+                        break;
+                    }
+                }
+            }
+
+            if (reportDiagnostic)
             {
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.Update,

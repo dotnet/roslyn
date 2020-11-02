@@ -3940,6 +3940,51 @@ class C
         }
 
         [Fact]
+        public void MethodUpdate_LocalFunctionParameter_AddAttribute()
+        {
+            var src1 = "class C { void M() { void L(int i) { } } }";
+            var src2 = "class C { void M() { void L([A]int i) { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { void L(int i) { } }]@10 -> [void M() { void L([A]int i) { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+        }
+
+        [Fact]
+        public void MethodUpdate_LocalFunctionParameter_RemoveAttribute()
+        {
+            var src1 = "class C { void M() { void L([A]int i) { } } }";
+            var src2 = "class C { void M() { void L(int i) { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { void L([A]int i) { } }]@10 -> [void M() { void L(int i) { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+        }
+
+        [Fact]
+        public void MethodUpdate_LocalFunctionParameter_ReorderAttribute()
+        {
+            var src1 = "class C { void M() { void L([A, B]int i) { } } }";
+            var src2 = "class C { void M() { void L([B, A]int i) { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { void L([A, B]int i) { } }]@10 -> [void M() { void L([B, A]int i) { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+        }
+
+        [Fact]
         public void Method_ReadOnlyRef_Parameter_InsertWhole()
         {
             var src1 = "class Test { }";
