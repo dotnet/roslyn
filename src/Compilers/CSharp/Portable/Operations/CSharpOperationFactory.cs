@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -34,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Operations
             _cachedCreateInternal = CreateInternal;
         }
 
-#nullable enable
         [return: NotNullIfNotNull("boundNode")]
         public IOperation? Create(BoundNode? boundNode)
         {
@@ -67,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             return builder.ToImmutableAndFree();
         }
-#nullable disable
 
         internal IOperation CreateInternal(BoundNode boundNode)
         {
@@ -334,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.TypeOrValueExpression:
                 case BoundKind.IndexOrRangePatternIndexerAccess:
 
-                    ConstantValue constantValue = (boundNode as BoundExpression)?.ConstantValue;
+                    ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValue;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
                     if (!isImplicit)
@@ -355,7 +351,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-#nullable enable
         private IMethodBodyOperation CreateMethodBodyOperation(BoundNonConstructorMethodBody boundNode)
         {
             return new MethodBodyOperation(
@@ -482,7 +477,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new NoneOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
         }
 
-#nullable disable
         private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)
         {
             return new AddressOfOperation(
@@ -499,14 +493,18 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 case BoundKind.LocalDeclaration:
                     {
-                        return CreateFromArray<BoundExpression, IOperation>(((BoundLocalDeclaration)declaration).DeclaredTypeOpt.BoundDimensionsOpt);
+                        BoundTypeExpression? declaredTypeOpt = ((BoundLocalDeclaration)declaration).DeclaredTypeOpt;
+                        Debug.Assert(declaredTypeOpt != null);
+                        return CreateFromArray<BoundExpression, IOperation>(declaredTypeOpt.BoundDimensionsOpt);
                     }
                 case BoundKind.MultipleLocalDeclarations:
                 case BoundKind.UsingLocalDeclarations:
                     {
                         var declarations = ((BoundMultipleLocalDeclarationsBase)declaration).LocalDeclarations;
+                        BoundTypeExpression? declaredTypeOpt = declarations[0].DeclaredTypeOpt;
+                        Debug.Assert(declarations.Length == 0 || declaredTypeOpt != null);
                         var dimensions = declarations.Length > 0
-                            ? declarations[0].DeclaredTypeOpt.BoundDimensionsOpt
+                            ? declaredTypeOpt!.BoundDimensionsOpt
                             : ImmutableArray<BoundExpression>.Empty;
                         return CreateFromArray<BoundExpression, IOperation>(dimensions);
                     }
@@ -515,7 +513,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-#nullable enable
         internal IOperation CreateBoundLocalOperation(BoundLocal boundLocal, bool createDeclaration = true)
         {
             ILocalSymbol local = boundLocal.LocalSymbol.GetPublicSymbol();
@@ -2243,7 +2240,6 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundQueryClause.WasCompilerGenerated;
             return new TranslatedQueryOperation(operation, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IOperation CreateBoundRangeVariableOperation(BoundRangeVariable boundRangeVariable)
         {
@@ -2251,7 +2247,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return Create(boundRangeVariable.Value);
         }
 
-#nullable enable
         private IOperation CreateBoundDiscardExpressionOperation(BoundDiscardExpression boundNode)
         {
             return new DiscardOperation(

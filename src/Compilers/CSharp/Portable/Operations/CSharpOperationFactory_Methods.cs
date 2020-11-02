@@ -1,8 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
-#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed partial class CSharpOperationFactory
     {
-        internal ImmutableArray<BoundStatement> ToStatements(BoundStatement statement)
+        internal ImmutableArray<BoundStatement> ToStatements(BoundStatement? statement)
         {
             if (statement == null)
             {
@@ -32,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return ImmutableArray.Create(statement);
         }
 
-#nullable enable
         private IInstanceReferenceOperation CreateImplicitReceiver(SyntaxNode syntax, TypeSymbol type) =>
             new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type.GetPublicSymbol(), isImplicit: true);
 
@@ -139,7 +136,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return new EventReferenceOperation(@event, instance, _semanticModel, eventAccessSyntax, @event.Type, isImplicit);
         }
-#nullable disable
 
         internal IOperation CreateDelegateTargetOperation(BoundNode delegateNode)
         {
@@ -150,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
                     // overload resolution succeeded. The resulting method could be invalid for other reasons, but we don't
                     // hide the resolved method.
+                    Debug.Assert(boundConversion.SymbolOpt is not null);
                     return CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand,
                                                                        boundConversion.SymbolOpt,
                                                                        boundConversion.SuppressVirtualCalls);
@@ -179,7 +176,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-#nullable enable
         internal IOperation CreateMemberInitializerInitializedMember(BoundNode initializedMember)
         {
 
@@ -337,9 +333,8 @@ namespace Microsoft.CodeAnalysis.Operations
                  argsToParamsOpt: argumentsToParametersOpt,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
-#nullable disable
 
-        internal static ImmutableArray<BoundNode> CreateInvalidChildrenFromArgumentsExpression(BoundNode receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression additionalNodeOpt = null)
+        internal static ImmutableArray<BoundNode> CreateInvalidChildrenFromArgumentsExpression(BoundNode? receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression? additionalNodeOpt = null)
         {
             var builder = ArrayBuilder<BoundNode>.GetInstance();
 
@@ -359,7 +354,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return builder.ToImmutableAndFree();
         }
 
-#nullable enable
         internal ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<BoundAnonymousPropertyDeclaration> declarations,
