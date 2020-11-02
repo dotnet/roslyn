@@ -73,51 +73,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal abstract partial class BaseArgumentOperation
-    {
-        internal BaseArgumentOperation(ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversion, IConvertibleConversion outConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            InConversionConvertibleOpt = inConversion;
-            OutConversionConvertibleOpt = outConversion;
-        }
-
-        internal IConvertibleConversion InConversionConvertibleOpt { get; }
-        internal IConvertibleConversion OutConversionConvertibleOpt { get; }
-        public CommonConversion InConversion => InConversionConvertibleOpt?.ToCommonConversion() ?? Identity();
-        public CommonConversion OutConversion => OutConversionConvertibleOpt?.ToCommonConversion() ?? Identity();
-
-        private static CommonConversion Identity()
-        {
-            return new CommonConversion(exists: true, isIdentity: true, isNumeric: false, isReference: false, methodSymbol: null, isImplicit: true, isNullable: false);
-        }
-    }
-
-    internal sealed partial class ArgumentOperation
-    {
-        public ArgumentOperation(IOperation value, ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        {
-            Value = SetParentOperation(value, this);
-        }
-    }
-
-
-    internal abstract partial class LazyArgumentOperation
-    {
-        public LazyArgumentOperation(ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        { }
-    }
-
-    internal sealed partial class ArrayInitializerOperation : BaseArrayInitializerOperation, IArrayInitializerOperation
-    {
-        public ArrayInitializerOperation(ImmutableArray<IOperation> elementValues, SemanticModel semanticModel, SyntaxNode syntax, ConstantValue constantValue, bool isImplicit) :
-            this(elementValues, semanticModel, syntax, type: null, constantValue, isImplicit)
-        { }
-
-    }
-
     internal abstract partial class BaseConversionOperation : OperationOld, IConversionOperation
     {
         public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
@@ -328,51 +283,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public DefaultCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(CaseKind.Default, label, semanticModel, syntax, type, constantValue, isImplicit)
         { }
-    }
-
-    internal abstract partial class BaseSwitchCaseOperation
-    {
-        /// <summary>
-        /// Optional combined logical condition that accounts for all <see cref="Clauses"/>.
-        /// An instance of <see cref="IPlaceholderOperation"/> with kind <see cref="PlaceholderKind.SwitchOperationExpression"/>
-        /// is used to refer to the <see cref="ISwitchOperation.Value"/> in context of this expression.
-        /// It is not part of <see cref="Children"/> list and likely contains duplicate nodes for
-        /// nodes exposed by <see cref="Clauses"/>, like <see cref="ISingleValueCaseClauseOperation.Value"/>,
-        /// etc.
-        /// Never set for C# at the moment.
-        /// </summary>
-        public abstract IOperation Condition { get; }
-    }
-
-    internal sealed partial class SwitchCaseOperation : BaseSwitchCaseOperation, ISwitchCaseOperation
-    {
-        public SwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, IOperation condition, ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
-            this(clauses, body, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Condition = SetParentOperation(condition, null);
-        }
-
-        public override IOperation Condition { get; }
-    }
-
-    internal abstract partial class LazySwitchCaseOperation
-    {
-        private IOperation _lazyConditionInterlocked = s_unset;
-        protected abstract IOperation CreateCondition();
-        public override IOperation Condition
-        {
-            get
-            {
-                if (_lazyConditionInterlocked == s_unset)
-                {
-                    IOperation condition = CreateCondition();
-                    SetParentOperation(condition, null);
-                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, condition, s_unset);
-                }
-
-                return _lazyConditionInterlocked;
-            }
-        }
     }
 
     internal abstract partial class HasDynamicArgumentsExpression : OperationOld
@@ -737,18 +647,6 @@ namespace Microsoft.CodeAnalysis.Operations
         { }
     }
 
-    internal sealed partial class PropertySubpatternOperation : BasePropertySubpatternOperation
-    {
-        public PropertySubpatternOperation(
-            IOperation member,
-            IPatternOperation pattern,
-            SemanticModel semanticModel,
-            SyntaxNode syntax,
-            bool isImplicit) :
-            this(member, pattern, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        { }
-    }
-
     internal abstract partial class BasePatternCaseClauseOperation : BaseCaseClauseOperation, IPatternCaseClauseOperation
     {
         protected BasePatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
@@ -837,33 +735,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 return _lazyGuardExpressionInterlocked;
             }
         }
-    }
-
-    internal sealed partial class SwitchExpressionOperation : BaseSwitchExpressionOperation
-    {
-        public SwitchExpressionOperation(
-            ITypeSymbol type,
-            IOperation value,
-            ImmutableArray<ISwitchExpressionArmOperation> arms,
-            SemanticModel semanticModel,
-            SyntaxNode syntax,
-            bool isImplicit) :
-            this(value, arms, semanticModel, syntax, type, constantValue: null, isImplicit)
-        { }
-    }
-
-    internal sealed partial class SwitchExpressionArmOperation : BaseSwitchExpressionArmOperation
-    {
-        public SwitchExpressionArmOperation(
-            ImmutableArray<ILocalSymbol> locals,
-            IPatternOperation pattern,
-            IOperation guard,
-            IOperation value,
-            SemanticModel semanticModel,
-            SyntaxNode syntax,
-            bool isImplicit) :
-            this(pattern, guard, value, locals, semanticModel, syntax, type: null, constantValue: null, isImplicit)
-        { }
     }
 
     internal sealed partial class FlowCaptureReferenceOperation : OperationOld, IFlowCaptureReferenceOperation
@@ -979,12 +850,5 @@ namespace Microsoft.CodeAnalysis.Operations
             this(inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         { }
 
-    }
-
-    internal sealed partial class RangeOperation : BaseRangeOperation
-    {
-        public RangeOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand, IMethodSymbol symbol, bool isImplicit) :
-            this(leftOperand, rightOperand, isLifted, method: symbol, semanticModel, syntax, type, constantValue: null, isImplicit)
-        { }
     }
 }

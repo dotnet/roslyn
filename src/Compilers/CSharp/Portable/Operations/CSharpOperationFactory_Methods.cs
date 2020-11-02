@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed partial class CSharpOperationFactory
     {
-        private static readonly IConvertibleConversion s_boxedIdentityConversion = Conversion.Identity;
-
         internal ImmutableArray<BoundStatement> ToStatements(BoundStatement statement)
         {
             if (statement == null)
@@ -36,41 +34,23 @@ namespace Microsoft.CodeAnalysis.Operations
 #nullable enable
         private IInstanceReferenceOperation CreateImplicitReceiver(SyntaxNode syntax, TypeSymbol type) =>
             new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type.GetPublicSymbol(), isImplicit: true);
-#nullable disable
 
-        internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
+        internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol? parameter, BoundExpression expression)
         {
             // put argument syntax to argument operation
-
-            if (expression.Syntax?.Parent is ArgumentSyntax argument)
-            {
-                // if argument syntax doesn't exist, this operation is implicit
-                return new CSharpLazyArgumentOperation(this,
-                    expression,
-                    kind,
-                    s_boxedIdentityConversion,
-                    s_boxedIdentityConversion,
-                    parameter,
-                    semanticModel: _semanticModel,
-                    syntax: argument,
-                    isImplicit: expression.WasCompilerGenerated);
-            }
-            else
-            {
-                // We have to create the argument child eagerly here, as we need to use its syntax for this node, but the BoundExpression
-                // syntax may not be the correct syntax in certain scenarios (such as query clauses that need to be skipped).
-                IOperation value = Create(expression);
-                return new ArgumentOperation(
-                    value,
-                    kind,
-                    parameter,
-                    s_boxedIdentityConversion,
-                    s_boxedIdentityConversion,
-                    _semanticModel,
-                    value.Syntax,
-                    isImplicit: true);
-            }
+            IOperation value = Create(expression);
+            (SyntaxNode syntax, bool isImplicit) = expression.Syntax is { Parent: ArgumentSyntax parent } ? (parent, expression.WasCompilerGenerated) : (value.Syntax, true);
+            return new ArgumentOperation(
+                kind,
+                parameter,
+                value,
+                OperationFactory.IdentityConversion,
+                OperationFactory.IdentityConversion,
+                _semanticModel,
+                syntax,
+                isImplicit);
         }
+#nullable disable
 
         internal IVariableInitializerOperation CreateVariableDeclaratorInitializer(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {

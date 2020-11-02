@@ -1714,7 +1714,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IAddressOfOperation" Base="IOperation">
+  <Node Name="IAddressOfOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an operation that creates a pointer value by taking the address of a reference.
@@ -1730,7 +1730,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IIsPatternOperation" Base="IOperation" ChildrenOrder="Value,Pattern">
+  <Node Name="IIsPatternOperation" Base="IOperation" ChildrenOrder="Value,Pattern" HasType="true">
     <Comments>
       <summary>
         Represents an operation that tests if a value matches a specific pattern.
@@ -1751,7 +1751,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IIncrementOrDecrementOperation" Base="IOperation">
+  <Node Name="IIncrementOrDecrementOperation" Base="IOperation" HasType="true">
     <OperationKind>
       <Entry Name="Increment" Value="0x42" ExtraDescription="This is used as an increment operator"/>
       <Entry Name="Decrement" Value="0x44" ExtraDescription="This is used as a decrement operator"/>
@@ -1796,13 +1796,13 @@
         <summary>Target of the assignment.</summary>
       </Comments>
     </Property>
-    <Property Name="OperatorMethod" Type="IMethodSymbol">
+    <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>
     </Property>
   </Node>
-  <Node Name="IThrowOperation" Base="IOperation">
+  <Node Name="IThrowOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents an operation to throw an exception.
@@ -1814,7 +1814,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Exception" Type="IOperation">
+    <Property Name="Exception" Type="IOperation?">
       <Comments>
         <summary>Instance of an exception being thrown.</summary>
       </Comments>
@@ -1831,7 +1831,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IDeclarationExpressionOperation" Base="IOperation">
+  <Node Name="IDeclarationExpressionOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a declaration expression operation. Unlike a regular variable declaration <see cref="IVariableDeclaratorOperation" /> and <see cref="IVariableDeclarationOperation" />, this operation represents an "expression" declaring a variable.
@@ -2061,9 +2061,9 @@
         <summary>Kind of argument.</summary>
       </Comments>
     </Property>
-    <Property Name="Parameter" Type="IParameterSymbol">
+    <Property Name="Parameter" Type="IParameterSymbol?">
       <Comments>
-        <summary>Parameter the argument matches.</summary>
+        <summary>Parameter the argument matches. This can be null for __arglist parameters.</summary>
       </Comments>
     </Property>
     <Property Name="Value" Type="IOperation">
@@ -2071,12 +2071,12 @@
         <summary>Value supplied for the argument.</summary>
       </Comments>
     </Property>
-    <Property Name="InConversion" Type="CommonConversion" SkipGeneration="true">
+    <Property Name="InConversion" Type="CommonConversion">
       <Comments>
         <summary>Information of the conversion applied to the argument value passing it into the target method. Applicable only to VB Reference arguments.</summary>
       </Comments>
     </Property>
-    <Property Name="OutConversion" Type="CommonConversion" SkipGeneration="true">
+    <Property Name="OutConversion" Type="CommonConversion">
       <Comments>
         <summary>Information of the conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.</summary>
       </Comments>
@@ -2093,7 +2093,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="ExceptionDeclarationOrExpression" Type="IOperation">
+    <Property Name="ExceptionDeclarationOrExpression" Type="IOperation?">
       <Comments>
         <summary>
           Optional source for exception. This could be any of the following operation:
@@ -2116,7 +2116,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="Filter" Type="IOperation">
+    <Property Name="Filter" Type="IOperation?">
       <Comments>
         <summary>Filter operation to be executed to determine whether to handle the exception.</summary>
       </Comments>
@@ -2153,7 +2153,7 @@
         <summary>Locals declared within the switch case section scoped to the section.</summary>
       </Comments>
     </Property>
-    <Property Name="Condition" Type="IOperation" Internal="true" SkipGeneration="true">
+    <Property Name="Condition" Type="IOperation?" Internal="true">
       <Comments>
         <summary>
           Optional combined logical condition that accounts for all <see cref="Clauses"/>.
@@ -2420,7 +2420,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ITupleBinaryOperation" Base="IOperation" VisitorName="VisitTupleBinaryOperator" ChildrenOrder="LeftOperand,RightOperand">
+  <Node Name="ITupleBinaryOperation" Base="IOperation" VisitorName="VisitTupleBinaryOperator" ChildrenOrder="LeftOperand,RightOperand" HasType="true">
     <OperationKind>
       <Entry Name="TupleBinary" Value="0x57" />
       <Entry Name="TupleBinaryOperator" Value="0x57" EditorBrowsable="false" ExtraDescription="Use &lt;see cref=&quot;TupleBinary&quot;/&gt; instead." />
@@ -2630,7 +2630,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IRangeOperation" Base="IOperation" VisitorName="VisitRangeOperation" ChildrenOrder="LeftOperand,RightOperand">
+  <Node Name="IRangeOperation" Base="IOperation" VisitorName="VisitRangeOperation" ChildrenOrder="LeftOperand,RightOperand" HasType="true">
     <Comments>
       <summary>
         Represents a range operation.
@@ -2640,12 +2640,12 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="LeftOperand" Type="IOperation">
+    <Property Name="LeftOperand" Type="IOperation?">
       <Comments>
         <summary>Left operand.</summary>
       </Comments>
     </Property>
-    <Property Name="RightOperand" Type="IOperation">
+    <Property Name="RightOperand" Type="IOperation?">
       <Comments>
         <summary>Right operand.</summary>
       </Comments>
@@ -2660,7 +2660,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="Method" Type="IMethodSymbol">
+    <Property Name="Method" Type="IMethodSymbol?">
       <Comments>
         <summary>
           Factory method used to create this Range value. Can be null if appropriate
@@ -2755,7 +2755,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="ISwitchExpressionOperation" Base="IOperation" ChildrenOrder="Value,Arms">
+  <Node Name="ISwitchExpressionOperation" Base="IOperation" ChildrenOrder="Value,Arms" HasType="true">
     <Comments>
       <summary>
         Represents a switch expression.
@@ -2785,7 +2785,7 @@
         <summary>The pattern to match.</summary>
       </Comments>
     </Property>
-    <Property Name="Guard" Type="IOperation">
+    <Property Name="Guard" Type="IOperation?">
       <Comments>
         <summary>Guard (when clause expression) associated with the switch arm, if any.</summary>
       </Comments>
@@ -2822,7 +2822,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IAggregateQueryOperation" Base="IOperation" Internal="true" ChildrenOrder="Group,Aggregation">
+  <Node Name="IAggregateQueryOperation" Base="IOperation" Internal="true" ChildrenOrder="Group,Aggregation" HasType="true">
     <Comments>
       <summary>Represents a standalone VB query Aggregate operation with more than one item in Into clause.</summary>
     </Comments>
@@ -2830,6 +2830,7 @@
     <Property Name="Aggregation" Type="IOperation" />
   </Node>
   <Node Name="IFixedOperation" Base="IOperation" Internal="true" SkipInVisitor="true" ChildrenOrder="Variables,Body">
+    <!-- Making this public is tracked by https://github.com/dotnet/roslyn/issues/21281 -->
     <Comments>
       <summary>Represents a C# fixed statement.</summary>
     </Comments>
@@ -2849,7 +2850,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="INoPiaObjectCreationOperation" Base="IOperation" Internal="true">
+  <Node Name="INoPiaObjectCreationOperation" Base="IOperation" Internal="true" HasType="true">
     <Comments>
       <summary>
         Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
@@ -2860,7 +2861,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">
+    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation?">
       <Comments>
         <summary>Object or collection initializer, if any.</summary>
       </Comments>
@@ -2875,7 +2876,7 @@
     </Comments>
     <Property Name="PlaceholderKind" Type="PlaceholderKind" />
   </Node>
-  <Node Name="IPointerIndirectionReferenceOperation" Base="IOperation" Internal="true">
+  <Node Name="IPointerIndirectionReferenceOperation" Base="IOperation" SkipClassGeneration="true" Internal="true" HasType="true">
     <Comments>
       <summary>
         Represents a reference through a pointer.
@@ -3015,7 +3016,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IWithOperation" Base="IOperation" ChildrenOrder="Operand,Initializer">
+  <Node Name="IWithOperation" Base="IOperation" ChildrenOrder="Operand,Initializer" HasType="true">
     <Comments>
       <summary>
         Represents cloning of an object instance.
@@ -3030,9 +3031,9 @@
         <summary>Operand to be cloned.</summary>
       </Comments>
     </Property>
-    <Property Name="CloneMethod" Type="IMethodSymbol">
+    <Property Name="CloneMethod" Type="IMethodSymbol?">
       <Comments>
-        <summary>Clone method to be invoked on the value.</summary>
+        <summary>Clone method to be invoked on the value. This can be null in error scenarios.</summary>
       </Comments>
     </Property>
     <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             => operation switch
             {
                 IReturnOperation { ReturnedValue: { } value } => (ExpressionSyntax)value.Syntax,
-                IThrowOperation op => ThrowExpression((ExpressionSyntax)op.Exception.Syntax),
+                IThrowOperation { Exception: { } exception } => ThrowExpression((ExpressionSyntax)exception.Syntax),
                 IBlockOperation op => AsExpressionSyntax(op.Operations.Single()),
                 var v => throw ExceptionUtilities.UnexpectedValue(v.Kind)
             };
