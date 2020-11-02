@@ -76,8 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 
             var indexVariable = CreateUniqueName(foreachInfo.SemanticFacts, model, foreachStatement.Statement, "i", cancellationToken);
 
+            // do not cast when the element is identity - fixes 'var x in T![]' under nullable context
+            var foreachStatementInfo = model.GetForEachStatementInfo(foreachStatement);
+            var donotCastElement = foreachStatementInfo.ElementConversion.IsIdentity;
+
             // put variable statement in body
-            var bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariable, indexVariable);
+            var bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariable, indexVariable, donotCastElement);
 
             // create for statement from foreach statement
             var forStatement = SyntaxFactory.ForStatement(
@@ -111,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
         }
 
         private StatementSyntax GetForLoopBody(
-            SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode collectionVariableName, SyntaxToken indexVariable)
+            SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode collectionVariableName, SyntaxToken indexVariable, bool donotCastElement)
         {
             var foreachStatement = foreachInfo.ForEachStatement;
             if (foreachStatement.Statement is EmptyStatementSyntax)
@@ -122,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             // create variable statement
             var variableStatement = AddItemVariableDeclaration(
                 generator, foreachInfo.ForEachElementType.GenerateTypeSyntax(),
-                foreachStatement.Identifier, foreachInfo.ForEachElementType, collectionVariableName, indexVariable);
+                foreachStatement.Identifier, donotCastElement ? null : foreachInfo.ForEachElementType,
+                collectionVariableName, indexVariable);
 
             var bodyBlock = foreachStatement.Statement is BlockSyntax block ? block : SyntaxFactory.Block(foreachStatement.Statement);
             if (bodyBlock.Statements.Count == 0)
