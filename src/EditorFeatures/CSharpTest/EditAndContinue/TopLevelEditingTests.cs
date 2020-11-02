@@ -3861,7 +3861,7 @@ class C
                 "Update [void M() { void L() { } }]@10 -> [void M() { [A]void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.ChangingLambdaAttributes, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
         }
 
         [Fact]
@@ -3876,7 +3876,7 @@ class C
                 "Update [void M() { [A]void L() { } }]@10 -> [void M() { void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.ChangingLambdaAttributes, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
         }
 
         [Fact]
@@ -3891,7 +3891,7 @@ class C
                 "Update [void M() { [A, B]void L() { } }]@10 -> [void M() { [B, A]void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.ChangingLambdaAttributes, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
         }
 
         [Fact]

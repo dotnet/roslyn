@@ -3734,7 +3734,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (!oldLambdaSymbol.GetAttributes().SequenceEqual(newLambdaSymbol.GetAttributes()))
             {
                 diagnostics.Add(new RudeEditDiagnostic(
-                    RudeEditKind.ChangingLambdaAttributes,
+                    RudeEditKind.Update,
                     GetDiagnosticSpan(newLambda, EditKind.Update),
                     newLambda,
                     new[] { GetDisplayName(newLambda) }));
