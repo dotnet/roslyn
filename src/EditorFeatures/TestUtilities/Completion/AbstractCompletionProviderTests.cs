@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, displayTextPrefix, matchingFilters, flags);
+                displayTextPrefix, inlineDescription, matchingFilters, flags);
         }
 
         private protected Task VerifyAtEndOfFileAsync(
