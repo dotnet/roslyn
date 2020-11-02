@@ -390,6 +390,7 @@ function TestUsingOptimizedRunner() {
   if ($ci) {
     if ($testVsi) {
       $args += " --timeout 110"
+      $args += " --sequential"
     } else {
       $args += " --timeout 90"
     }

@@ -123,7 +123,6 @@ namespace RunTests
         {
             string? dotnetFilePath = null;
             var platform = "x64";
-            var testVsi = false;
             var includeHtml = false;
             var targetFramework = "net472";
             var sequential = false;
@@ -141,7 +140,6 @@ namespace RunTests
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
                 { "platform=", "Platform to test: x86 or x64", (string s) => platform = s },
                 { "tfm=", "Target framework to test", (string s) => targetFramework = s },
-                { "testvsi", "Test Visual Studio", o => testVsi = o is object },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "traits=", "xUnit traits to include (semicolon delimited)", (string s) => traits = s },

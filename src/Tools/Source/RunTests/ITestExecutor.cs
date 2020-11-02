@@ -16,10 +16,9 @@ namespace RunTests
         internal string? Trait { get; }
         internal string? NoTrait { get; }
         internal bool IncludeHtml { get; }
-        internal bool TestVsi { get; }
         internal bool Retry { get; }
 
-        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? trait, string? noTrait, bool includeHtml, bool testVsi, bool retry)
+        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? trait, string? noTrait, bool includeHtml, bool retry)
         {
             DotnetFilePath = dotnetFilePath;
             ProcDumpInfo = procDumpInfo;
@@ -27,7 +26,6 @@ namespace RunTests
             Trait = trait;
             NoTrait = noTrait;
             IncludeHtml = includeHtml;
-            TestVsi = testVsi;
             Retry = retry;
         }
     }

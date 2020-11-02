@@ -353,7 +353,6 @@ namespace RunTests
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 includeHtml: options.IncludeHtml,
-                testVsi: options.TestVsi,
                 retry: options.Retry);
             return new ProcessTestExecutor(testExecutionOptions);
         }
