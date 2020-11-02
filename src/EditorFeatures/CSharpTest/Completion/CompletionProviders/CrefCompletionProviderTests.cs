@@ -35,16 +35,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            string displayTextPrefix, string inlineDescription = null,
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             await VerifyAtPositionAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
                 matchingFilters, flags);
 
             await VerifyAtEndOfFileAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
                 matchingFilters, flags);
 
             // Items cannot be partially written if we're checking for their absence,
@@ -54,12 +55,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 await VerifyAtPosition_ItemPartiallyWrittenAsync(
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                    inlineDescription, matchingFilters);
+                    displayTextPrefix, inlineDescription, matchingFilters);
 
                 await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                    inlineDescription, matchingFilters);
+                    displayTextPrefix, inlineDescription, matchingFilters);
             }
         }
 
