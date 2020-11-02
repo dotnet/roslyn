@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -150,6 +151,9 @@ namespace Analyzer.Utilities.Extensions
         private static readonly PropertyInfo? s_syntaxTreeDiagnosticOptionsProperty =
             typeof(SyntaxTree).GetTypeInfo().GetDeclaredProperty("DiagnosticOptions");
 
+        private static readonly PropertyInfo? s_compilationOptionsSyntaxTreeOptionsProviderProperty =
+            typeof(CompilationOptions).GetTypeInfo().GetDeclaredProperty("SyntaxTreeOptionsProvider");
+
         public static void ReportNoLocationDiagnostic(
             this CompilationAnalysisContext context,
             DiagnosticDescriptor rule,
@@ -184,7 +188,12 @@ namespace Analyzer.Utilities.Extensions
 
             DiagnosticSeverity? GetEffectiveSeverity()
             {
-                if (s_syntaxTreeDiagnosticOptionsProperty == null)
+                // Microsoft.CodeAnalysis version >= 3.7 exposes options through 'CompilationOptions.SyntaxTreeOptionsProvider.TryGetDiagnosticValue'
+                // Microsoft.CodeAnalysis version 3.3 - 3.7 exposes options through 'SyntaxTree.DiagnosticOptions'. This API is deprecated in 3.7.
+
+                var syntaxTreeOptionsProvider = s_compilationOptionsSyntaxTreeOptionsProviderProperty?.GetValue(compilation.Options);
+                var syntaxTreeOptionsProviderTryGetDiagnosticValueMethod = syntaxTreeOptionsProvider?.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == "TryGetDiagnosticValue");
+                if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod == null && s_syntaxTreeDiagnosticOptionsProperty == null)
                 {
                     return rule.DefaultSeverity;
                 }
@@ -192,24 +201,61 @@ namespace Analyzer.Utilities.Extensions
                 ReportDiagnostic? overriddenSeverity = null;
                 foreach (var tree in compilation.SyntaxTrees)
                 {
-                    var options = (ImmutableDictionary<string, ReportDiagnostic>)s_syntaxTreeDiagnosticOptionsProperty.GetValue(tree)!;
-                    if (options.TryGetValue(rule.Id, out var configuredValue))
-                    {
-                        if (configuredValue == ReportDiagnostic.Suppress)
-                        {
-                            // Any suppression entry always wins.
-                            return null;
-                        }
+                    ReportDiagnostic? configuredValue = null;
 
-                        if (overriddenSeverity == null)
+                    // Prefer 'CompilationOptions.SyntaxTreeOptionsProvider', if available.
+                    if (s_compilationOptionsSyntaxTreeOptionsProviderProperty != null)
+                    {
+                        if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod != null)
                         {
-                            overriddenSeverity = configuredValue;
+                            // public abstract bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, out ReportDiagnostic severity);
+                            // public abstract bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
+                            object?[] parameters;
+                            if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod.GetParameters().Length == 3)
+                            {
+                                parameters = new object?[] { tree, rule.Id, null };
+                            }
+                            else
+                            {
+                                parameters = new object?[] { tree, rule.Id, CancellationToken.None, null };
+                            }
+
+                            if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod.Invoke(syntaxTreeOptionsProvider, parameters) is true &&
+                                parameters.Last() is ReportDiagnostic value)
+                            {
+                                configuredValue = value;
+                            }
                         }
-                        else if (overriddenSeverity.Value.IsLessSevereThan(configuredValue))
+                    }
+                    else
+                    {
+                        RoslynDebug.Assert(s_syntaxTreeDiagnosticOptionsProperty != null);
+                        var options = (ImmutableDictionary<string, ReportDiagnostic>)s_syntaxTreeDiagnosticOptionsProperty.GetValue(tree)!;
+                        if (options.TryGetValue(rule.Id, out var value))
                         {
-                            // Choose the most severe value for conflicts.
-                            overriddenSeverity = configuredValue;
+                            configuredValue = value;
                         }
+                    }
+
+                    if (configuredValue == null)
+                    {
+                        continue;
+                    }
+
+                    if (configuredValue == ReportDiagnostic.Suppress)
+                    {
+                        // Any suppression entry always wins.
+                        return null;
+                    }
+
+                    if (overriddenSeverity == null)
+                    {
+                        overriddenSeverity = configuredValue;
+                    }
+                    else if (overriddenSeverity.Value.IsLessSevereThan(configuredValue.Value))
+                    {
+                        // Choose the most severe value for conflicts.
+                        overriddenSeverity = configuredValue;
                     }
                 }
 
