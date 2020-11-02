@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Gets or creates a control flow graph for the given <paramref name="localFunction"/> defined in
         /// the given <paramref name="controlFlowGraph"/> or any of it's parent control flow graphs.
         /// </summary>
-        public static ControlFlowGraph GetLocalFunctionControlFlowGraphInScope(this ControlFlowGraph controlFlowGraph, IMethodSymbol localFunction, CancellationToken cancellationToken = default)
+        public static ControlFlowGraph GetLocalFunctionControlFlowGraphInScope([DisallowNull] this ControlFlowGraph? controlFlowGraph, IMethodSymbol localFunction, CancellationToken cancellationToken = default)
         {
             if (controlFlowGraph == null)
             {
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             do
             {
-                if (controlFlowGraph.TryGetLocalFunctionControlFlowGraph(localFunction, cancellationToken, out ControlFlowGraph localFunctionControlFlowGraph))
+                if (controlFlowGraph.TryGetLocalFunctionControlFlowGraph(localFunction, cancellationToken, out ControlFlowGraph? localFunctionControlFlowGraph))
                 {
                     return localFunctionControlFlowGraph;
                 }
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Gets or creates a control flow graph for the given <paramref name="anonymousFunction"/> defined in
         /// the given <paramref name="controlFlowGraph"/> or any of it's parent control flow graphs.
         /// </summary>
-        public static ControlFlowGraph GetAnonymousFunctionControlFlowGraphInScope(this ControlFlowGraph controlFlowGraph, IFlowAnonymousFunctionOperation anonymousFunction, CancellationToken cancellationToken = default)
+        public static ControlFlowGraph GetAnonymousFunctionControlFlowGraphInScope([DisallowNull] this ControlFlowGraph? controlFlowGraph, IFlowAnonymousFunctionOperation anonymousFunction, CancellationToken cancellationToken = default)
         {
             if (controlFlowGraph == null)
             {
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             do
             {
-                if (controlFlowGraph.TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, cancellationToken, out ControlFlowGraph localFunctionControlFlowGraph))
+                if (controlFlowGraph.TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, cancellationToken, out ControlFlowGraph? localFunctionControlFlowGraph))
                 {
                     return localFunctionControlFlowGraph;
                 }

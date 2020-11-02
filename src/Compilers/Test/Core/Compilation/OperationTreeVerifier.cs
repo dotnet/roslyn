@@ -578,10 +578,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (userDefinedInfo != null)
             {
-                _ = userDefinedInfo.Addition.Value;
-                _ = userDefinedInfo.Subtraction.Value;
-                _ = userDefinedInfo.LessThanOrEqual.Value;
-                _ = userDefinedInfo.GreaterThanOrEqual.Value;
+                _ = userDefinedInfo.Addition;
+                _ = userDefinedInfo.Subtraction;
+                _ = userDefinedInfo.LessThanOrEqual;
+                _ = userDefinedInfo.GreaterThanOrEqual;
             }
         }
 

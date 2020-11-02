@@ -275,10 +275,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (userDefinedInfo != null)
             {
-                VerifySubTree(userDefinedInfo.Addition.Value);
-                VerifySubTree(userDefinedInfo.Subtraction.Value);
-                VerifySubTree(userDefinedInfo.LessThanOrEqual.Value);
-                VerifySubTree(userDefinedInfo.GreaterThanOrEqual.Value);
+                VerifySubTree(userDefinedInfo.Addition);
+                VerifySubTree(userDefinedInfo.Subtraction);
+                VerifySubTree(userDefinedInfo.LessThanOrEqual);
+                VerifySubTree(userDefinedInfo.GreaterThanOrEqual);
             }
 
             IEnumerable<IOperation> children;
