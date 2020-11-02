@@ -55,27 +55,33 @@ namespace RunTests
                 }
             }
 
-            // Setup cancellation for ctrl-c key presses
-            using var cts = new CancellationTokenSource();
-            Console.CancelKeyPress += delegate
+            try
             {
-                cts.Cancel();
+                // Setup cancellation for ctrl-c key presses
+                using var cts = new CancellationTokenSource();
+                Console.CancelKeyPress += delegate
+                {
+                    cts.Cancel();
+                    DisableRegistryDumpCollection();
+                };
+
+                int result;
+                if (options.Timeout is { } timeout)
+                {
+                    result = await RunAsync(options, timeout, cts.Token);
+                }
+                else
+                {
+                    result = await RunAsync(options, cts.Token);
+                }
+
+                CheckTotalDumpFilesSize();
+                return result;
+            }
+            finally
+            {
                 DisableRegistryDumpCollection();
-            };
-
-            int result;
-            if (options.Timeout is { } timeout)
-            {
-                result = await RunAsync(options, timeout, cts.Token);
             }
-            else
-            {
-                result = await RunAsync(options, cts.Token);
-            }
-
-            CheckTotalDumpFilesSize();
-            DisableRegistryDumpCollection();
-            return result;
 
             void DisableRegistryDumpCollection()
             {
