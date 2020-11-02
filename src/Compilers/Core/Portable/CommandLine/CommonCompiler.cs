@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis
                                     Directory.CreateDirectory(Path.GetDirectoryName(path));
                                 }
 
-                                var fileStream = OpenFile(path, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                                var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                                 if (fileStream is object)
                                 {
                                     using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis
 
                                 newTree = newTree.WithFilePath(fullPath);
 
-                                var fileStream = OpenFile(fullPath, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                                var fileStream = OpenFile(fullPath, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                                 if (fileStream is not null)
                                 {
                                     using var disposer = new NoThrowStreamDisposer(fileStream, fullPath, diagnostics, MessageProvider);
