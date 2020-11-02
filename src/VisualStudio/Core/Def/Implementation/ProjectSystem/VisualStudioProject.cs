@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-        private readonly IWorkspaceTelemetryService? _telemetryService;
+        private readonly IWorkspaceTelemetryService _telemetryService;
         private readonly IWorkspaceStatusService? _workspaceStatusService;
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
-            _telemetryService = _workspace.Services.GetService<IWorkspaceTelemetryService>();
+            _telemetryService = _workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
             _workspaceStatusService = _workspace.Services.GetService<IWorkspaceStatusService>();
 
             Id = id;
@@ -210,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
 
                 // We only log telemetry during solution open
-                if (logThrowAwayTelemetry && _telemetryService?.HasActiveSession == true && !isFullyLoaded)
+                if (logThrowAwayTelemetry && _telemetryService.HasActiveSession && !isFullyLoaded)
                 {
                     TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
                 }

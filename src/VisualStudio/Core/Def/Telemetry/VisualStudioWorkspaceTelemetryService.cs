@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
-    [ExportWorkspaceService(typeof(IWorkspaceTelemetryService)), Shared]
+    [ExportWorkspaceService(typeof(IWorkspaceTelemetryService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
     {
         private readonly VisualStudioWorkspace _workspace;

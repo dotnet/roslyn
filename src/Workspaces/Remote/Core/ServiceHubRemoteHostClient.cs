@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
         private readonly ConnectionPools? _connectionPools;
+        private readonly IWorkspaceTelemetryService _workspaceTelemetryService;
 
         private ServiceHubRemoteHostClient(
             HostWorkspaceServices services,
@@ -54,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 capacity: ConnectionPoolCapacity);
 
             // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
-            services.GetService<IWorkspaceTelemetryService>()?.RegisterUnexpectedExceptionLogger(hubClient.Logger);
+            _workspaceTelemetryService = services.GetRequiredService<IWorkspaceTelemetryService>();
+            _workspaceTelemetryService.RegisterUnexpectedExceptionLogger(hubClient.Logger);
 
             _services = services;
             _serviceBroker = serviceBroker;
@@ -221,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             _connectionPools?.Dispose();
 
-            _services.GetService<IWorkspaceTelemetryService>()?.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
+            _workspaceTelemetryService.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
             _hubClient.Dispose();
 
             _serviceBrokerClient.Dispose();
