@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return m;
         }
 
-        internal override bool HasPossibleWellKnownCloneMethod()
+        internal sealed override bool HasPossibleWellKnownCloneMethod()
             => MemberNames.Contains(WellKnownMemberNames.CloneMethodName);
 
         internal override FieldSymbol FixedElementField

@@ -543,8 +543,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new PublicModel.ErrorTypeSymbol(this, nullableAnnotation);
         }
 
-        internal override bool IsRecord => false;
-        internal override bool HasPossibleWellKnownCloneMethod() => false;
+        internal sealed override bool IsRecord => false;
+        internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
     }
 
     internal abstract class SubstitutedErrorTypeSymbol : ErrorTypeSymbol
