@@ -341,8 +341,6 @@ function TestUsingOptimizedRunner() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  $secondaryLogDir = Join-Path (Join-Path $ArtifactsDir "log2") $configuration
-  Create-Directory $secondaryLogDir
   $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
   $binDir = Join-Path $ArtifactsDir "bin" 
   $runTests = GetProjectOutputBinary "RunTests.exe"
@@ -356,7 +354,6 @@ function TestUsingOptimizedRunner() {
   $args += " --dotnet `"$dotnetExe`""
   $args += " --out `"$testResultsDir`""
   $args += " --logs `"$LogDir`""
-  $args += " --secondarylogs `"$secondaryLogDir`""
   $args += " --tfm net472"
 
   if ($testDesktop -or $testIOperation) {

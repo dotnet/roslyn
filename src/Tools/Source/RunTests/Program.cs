@@ -220,17 +220,14 @@ namespace RunTests
             }
 
             ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
-            var procDumpInfo = GetProcDumpInfo(options);
-            if (procDumpInfo != null)
+            if (GetProcDumpInfo(options) is { } procDumpInfo)
             {
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
                 {
-                    var dumpDir = PrimaryProcessNames.Contains(proc.ProcessName)
-                        ? procDumpInfo.Value.DumpDirectory
-                        : procDumpInfo.Value.SecondaryDumpDirectory;
+                    var dumpDir = procDumpInfo.DumpDirectory;
                     var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    await DumpProcess(proc, procDumpInfo.Value.ProcDumpFilePath, dumpFilePath);
+                    await DumpProcess(proc, procDumpInfo.ProcDumpFilePath, dumpFilePath);
                     counter++;
                 }
             }
@@ -246,7 +243,7 @@ namespace RunTests
         {
             if (!string.IsNullOrEmpty(options.ProcDumpFilePath))
             {
-                return new ProcDumpInfo(options.ProcDumpFilePath, options.LogFilesDirectory, options.LogFilesSecondaryDirectory);
+                return new ProcDumpInfo(options.ProcDumpFilePath, options.LogFilesDirectory);
             }
 
             return null;

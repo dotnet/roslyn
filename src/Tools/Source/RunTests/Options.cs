@@ -103,25 +103,18 @@ namespace RunTests
         /// </summary>
         public string LogFilesDirectory { get; set; }
 
-        /// <summary>
-        /// Directory to hold secondary dump files created while running tests.
-        /// </summary>
-        public string LogFilesSecondaryDirectory { get; set; }
-
         public string Platform { get; set; }
 
         public Options(
             string dotnetFilePath,
             string testResultsDirectory,
             string logFilesDirectory,
-            string logFilesSecondaryDirectory,
             string targetFramework,
             string platform)
         {
             DotnetFilePath = dotnetFilePath;
             TestResultsDirectory = testResultsDirectory;
             LogFilesDirectory = logFilesDirectory;
-            LogFilesSecondaryDirectory = logFilesSecondaryDirectory;
             TargetFramework = targetFramework;
             Platform = platform;
         }
@@ -140,7 +133,6 @@ namespace RunTests
             int? timeout = null;
             string resultFileDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults");
             string? logFileDirectory = null;
-            string? logFileSecondaryDirectory = null;
             var display = Display.None;
             var useProcDump = false;
             string? procDumpFilePath = null;
@@ -157,7 +149,6 @@ namespace RunTests
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
                 { "out=", "Test result file directory", (string s) => resultFileDirectory = s },
                 { "logs=", "Log file directory", (string s) => logFileDirectory = s },
-                { "secondarylogs=", "Log secondary file directory", (string s) => logFileSecondaryDirectory = s },
                 { "display=", "Display", (Display d) => display = d },
                 { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },
                 { "useprocdump", "Whether or not to use procdump", o => useProcDump = o is object },
@@ -199,13 +190,10 @@ namespace RunTests
                 logFileDirectory = resultFileDirectory;
             }
 
-            logFileSecondaryDirectory ??= logFileDirectory;
-
             return new Options(
                 dotnetFilePath: dotnetFilePath,
                 testResultsDirectory: resultFileDirectory,
                 logFilesDirectory: logFileDirectory,
-                logFilesSecondaryDirectory: logFileSecondaryDirectory,
                 targetFramework: targetFramework,
                 platform: platform)
             {
