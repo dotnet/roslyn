@@ -1303,7 +1303,7 @@ End Class")
     End Property
 End Class",
 "Class C
-    Public ReadOnly Property Condition As Integer(,) = New Integer(,) {{ 1, 2 }, { 3, 4 }}
+    Public ReadOnly Property Condition As Integer(,) = {{ 1, 2 }, { 3, 4 }}
 End Class")
         End Function
     End Class
