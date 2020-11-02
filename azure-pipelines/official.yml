@@ -38,7 +38,7 @@ stages:
   jobs:
   - template: build.yml
     parameters:
-      windowsPool: VSEng-MicroBuildVS2019
+      windowsPool: VSEngSS-MicroBuild2019
 
 - stage: symbol_archive
   displayName: Symbol archival
