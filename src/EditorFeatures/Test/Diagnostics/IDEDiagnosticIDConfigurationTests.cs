@@ -385,6 +385,9 @@ dotnet_diagnostic.IDE0083.severity = %value%
 # IDE0090
 dotnet_diagnostic.IDE0090.severity = %value%
 
+# IDE0110
+dotnet_diagnostic.IDE0110.severity = %value%
+
 # IDE0100
 dotnet_diagnostic.IDE0100.severity = %value%
 
@@ -947,6 +950,9 @@ csharp_style_prefer_not_pattern = true
 
 # IDE0090, ImplicitObjectCreationWhenTypeIsApparent
 csharp_style_implicit_object_creation_when_type_is_apparent = true
+
+# IDE0110
+No editorconfig based code style option
 
 # IDE0100
 No editorconfig based code style option
