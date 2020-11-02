@@ -123,7 +123,7 @@ public class Program
         c.$$
     }
 }
-", "float", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+", "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -145,7 +145,7 @@ public class Program
         c.fl$$
     }
 }
-", "float", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+", "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -164,7 +164,7 @@ public class Program
         public async Task ExplicitUserDefinedConversionDifferentExpressions(string expression, bool shouldSuggestConversion)
         {
             Func<string, string, Task> verifyFunc = shouldSuggestConversion
-                ? (markup, expectedItem) => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: ")")
+                ? (markup, expectedItem) => VerifyItemExistsAsync(markup, expectedItem, displayTextPrefix: "(", displayTextSuffix: ")")
                 : (markup, expectedItem) => VerifyItemIsAbsentAsync(markup, expectedItem);
 
             await verifyFunc(@$"
@@ -851,7 +851,7 @@ public class Program
         s.$$
     }
 }
-", "int", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+", "int", displayTextPrefix: "(", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1010,7 +1010,7 @@ public class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(Markup, "int", displayTextSuffix: ")",
+            await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
@@ -1040,7 +1040,7 @@ public class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(Markup, "int", displayTextSuffix: "?)",
+            await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: "?)",
                 glyph: (int)Glyph.Operator,
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
@@ -1120,7 +1120,7 @@ public class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(Markup, "byte", displayTextSuffix: ")",
+            await VerifyItemExistsAsync(Markup, "byte", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
@@ -1142,7 +1142,7 @@ public class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(Markup, "byte", displayTextSuffix: "?)",
+            await VerifyItemExistsAsync(Markup, "byte", displayTextPrefix: "(", displayTextSuffix: "?)",
                 glyph: (int)Glyph.Operator,
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
@@ -1271,7 +1271,7 @@ public class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(Markup, "int", displayTextSuffix: ")",
+            await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
@@ -1294,7 +1294,7 @@ public class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(Markup, "int", displayTextSuffix: "?)",
+            await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: "?)",
                 glyph: (int)Glyph.Operator,
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
@@ -1323,7 +1323,7 @@ namespace A.C
     }
 }
 ";
-            await VerifyItemExistsAsync(Markup, "int", displayTextSuffix: ")",
+            await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
@@ -1341,7 +1341,7 @@ namespace A.C
         public async Task ExplicitBuiltInEnumConversionToIntAreOffered(string expression, bool conversionIsOffered)
         {
             Func<string, Task> verifyFunc = conversionIsOffered
-                ? markup => VerifyItemExistsAsync(markup, "int", displayTextSuffix: ")")
+                ? markup => VerifyItemExistsAsync(markup, "int", displayTextPrefix: "(", displayTextSuffix: ")")
                 : markup => VerifyNoItemsExistAsync(markup);
             await verifyFunc(@$"
 public enum E {{ One }}
@@ -1376,7 +1376,7 @@ public class Program
         var i = d.$$
     }
 }
-", "int", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+", "int", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1395,7 +1395,7 @@ public class Program
         var i = test.$$
     }}
 }}
-", expected, displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+", expected, displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
     }
 }
