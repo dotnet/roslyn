@@ -205,11 +205,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Si se cambia "{0}" a "{1}", la sesión de depuración no podrá continuar porque cambia la forma de la máquina de estados.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_attributes_defined_on_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the attributes defined on '{0}' will prevent the debug session from continuing.</source>
-        <target state="new">Changing the attributes defined on '{0}' will prevent the debug session from continuing.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configurar el estilo de código de {0}</target>

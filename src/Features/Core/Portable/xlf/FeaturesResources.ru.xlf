@@ -205,11 +205,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Изменение "{0}" на "{1}" сделает продолжение сеанса отладки невозможным, так как меняет форму конечной машины.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_attributes_defined_on_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the attributes defined on '{0}' will prevent the debug session from continuing.</source>
-        <target state="new">Changing the attributes defined on '{0}' will prevent the debug session from continuing.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Настройка стиля кода {0}</target>

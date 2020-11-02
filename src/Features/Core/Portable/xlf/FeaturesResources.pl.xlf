@@ -205,11 +205,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zmiana elementu „{0}” na „{1}” uniemożliwi kontynuowanie sesji debugowania, ponieważ powoduje zmianę kształtu automatu stanów.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_attributes_defined_on_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the attributes defined on '{0}' will prevent the debug session from continuing.</source>
-        <target state="new">Changing the attributes defined on '{0}' will prevent the debug session from continuing.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Konfiguruj styl kodu {0}</target>

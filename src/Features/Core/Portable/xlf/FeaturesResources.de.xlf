@@ -205,11 +205,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Die Änderung von "{0}" in "{1}" verhindert, dass die Debugsitzung fortgesetzt wird, weil sich dadurch die Form des Zustandsautomaten verändert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_attributes_defined_on_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the attributes defined on '{0}' will prevent the debug session from continuing.</source>
-        <target state="new">Changing the attributes defined on '{0}' will prevent the debug session from continuing.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Codeformat "{0}" konfigurieren</target>

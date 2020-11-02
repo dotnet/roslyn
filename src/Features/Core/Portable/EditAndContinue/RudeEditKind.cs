@@ -116,7 +116,5 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         MemberBodyInternalError = 88,
         SourceFileTooBig = 89,
         MemberBodyTooBig = 90,
-
-        ChangingLambdaAttributes = 91,
     }
 }

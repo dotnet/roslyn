@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.ChangingCapturedVariableScope, nameof(FeaturesResources.Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ChangingLambdaParameters, nameof(FeaturesResources.Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ChangingLambdaReturnType, nameof(FeaturesResources.Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.ChangingLambdaAttributes, nameof(FeaturesResources.Changing_the_attributes_defined_on_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ChangingQueryLambdaType, nameof(FeaturesResources.Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.AccessingCapturedVariableInLambda, nameof(FeaturesResources.Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.NotAccessingCapturedVariableInLambda, nameof(FeaturesResources.Ceasing_to_access_captured_variable_0_in_1_will_prevent_the_debug_session_from_continuing));
