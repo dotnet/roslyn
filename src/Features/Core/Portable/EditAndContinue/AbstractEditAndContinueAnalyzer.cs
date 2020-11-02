@@ -3731,7 +3731,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
             var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
 
-            if (!oldLambdaSymbol.GetAttributes().SequenceEqual(newLambdaSymbol.GetAttributes()))
+            if (!oldLambdaSymbol.GetAttributes().SequenceEqual(newLambdaSymbol.GetAttributes()) ||
+                !oldLambdaSymbol.GetReturnTypeAttributes().SequenceEqual(newLambdaSymbol.GetReturnTypeAttributes()))
             {
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.Update,

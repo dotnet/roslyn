@@ -3895,6 +3895,51 @@ class C
         }
 
         [Fact]
+        public void MethodUpdate_LocalFunctionReturnType_AddAttribute()
+        {
+            var src1 = "class C { void M() { int L() { return 1; } } }";
+            var src2 = "class C { void M() { [return: A]int L() { return 1; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { int L() { return 1; } }]@10 -> [void M() { [return: A]int L() { return 1; } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+        }
+
+        [Fact]
+        public void MethodUpdate_LocalFunctionReturnType_RemoveAttribute()
+        {
+            var src1 = "class C { void M() { [return: A]int L() { return 1; } } }";
+            var src2 = "class C { void M() { int L() { return 1; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { [return: A]int L() { return 1; } }]@10 -> [void M() { int L() { return 1; } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+        }
+
+        [Fact]
+        public void MethodUpdate_LocalFunctionReturnType_ReorderAttribute()
+        {
+            var src1 = "class C { void M() { [return: A, B]int L() { return 1; } } }";
+            var src2 = "class C { void M() { [return: B, A]int L() { return 1; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { [return: A, B]int L() { return 1; } }]@10 -> [void M() { [return: B, A]int L() { return 1; } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+        }
+
+        [Fact]
         public void Method_ReadOnlyRef_Parameter_InsertWhole()
         {
             var src1 = "class Test { }";
