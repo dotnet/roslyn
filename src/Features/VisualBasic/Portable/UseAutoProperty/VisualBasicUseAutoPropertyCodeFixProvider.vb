@@ -71,8 +71,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                     arrayType.ElementType.GenerateTypeSyntax(),
                     initializer.arrayBounds,
                     If(TryCast(initializer.equalsValue?.Value, CollectionInitializerSyntax), SyntaxFactory.CollectionInitializer()))
-                statement = statement.WithTrailingTrivia(SyntaxFactory.Space) _
-                    .WithInitializer(SyntaxFactory.EqualsValue(arrayCreation))
+                statement = statement.WithTrailingTrivia(SyntaxFactory.Space).
+                                      WithInitializer(SyntaxFactory.EqualsValue(arrayCreation))
             End If
 
             Return statement
