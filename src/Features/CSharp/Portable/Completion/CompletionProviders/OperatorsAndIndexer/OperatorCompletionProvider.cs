@@ -83,16 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static bool IsExcludedOperator(IMethodSymbol m)
-        {
-            switch (m.Name)
+            => m.Name switch
             {
-                case WellKnownMemberNames.FalseOperatorName:
-                case WellKnownMemberNames.TrueOperatorName:
-                    return true;
-                default:
-                    return false;
-            }
-        }
+                WellKnownMemberNames.TrueOperatorName or
+                WellKnownMemberNames.FalseOperatorName => true,
+                _ => false,
+            };
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
         {
