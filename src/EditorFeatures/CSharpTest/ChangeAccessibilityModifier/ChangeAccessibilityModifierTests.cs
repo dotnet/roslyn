@@ -116,5 +116,31 @@ class D : B
 ";
             await TestInRegularAndScriptAsync(initial, expected);
         }
+
+        [Fact]
+        public async Task TestProtectedOverrideWithAccessibility()
+        {
+            var initial = @"
+abstract class B
+{
+    protected abstract string Prop { get; }
+}
+class D : B
+{
+    public override string [|Prop|] { get; }
+}
+";
+            var expected = @"
+abstract class B
+{
+    protected abstract string Prop { get; }
+}
+class D : B
+{
+    protected override string Prop { get; }
+}
+";
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
     }
 }
