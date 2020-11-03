@@ -34,7 +34,7 @@ jobs:
       displayName: Prepare Transport Payload
       inputs:
         filePath: eng/transport-payload.ps1
-        arguments: -mode pack -repoDirectory $(Build.SourcesDirectory) -transportDirectory $(Build.SourcesDirectory\artifacts\transport
+        arguments: -mode pack -repoDirectory $(Build.SourcesDirectory) -transportDirectory $(Build.SourcesDirectory)\artifacts\transport
 
     - task: PublishPipelineArtifact@1
       displayName: Publish Transport Payload
