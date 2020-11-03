@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
 
         internal AdditionalSourcesCollection(string fileExtension)
         {
-            Debug.Assert(fileExtension.StartsWith('.'));
+            Debug.Assert(fileExtension.Length > 0 && fileExtension[0] == '.');
             _sourcesAdded = ArrayBuilder<GeneratedSourceText>.GetInstance();
             _fileExtension = fileExtension;
         }
