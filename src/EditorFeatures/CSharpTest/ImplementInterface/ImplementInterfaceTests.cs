@@ -8779,5 +8779,32 @@ class D : B<int>
     }
 }");
         }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnconstrainedGenericNullable2()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface B<T>
+{
+    T? M();
+}
+
+class D<T> : [|B<T>|] where T : struct
+{
+}",
+@"interface B<T>
+{
+    T? M();
+}
+
+class D<T> : B<T> where T : struct
+{
+    public T M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
     }
 }

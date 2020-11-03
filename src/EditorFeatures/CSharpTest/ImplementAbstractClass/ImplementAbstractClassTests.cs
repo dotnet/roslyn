@@ -1938,5 +1938,32 @@ class D : B<int>
     }
 }");
         }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable2()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D<T>|] : B<T> where T : struct
+{
+}",
+@"abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D<T> : B<T> where T : struct
+{
+    public override T M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
     }
 }
