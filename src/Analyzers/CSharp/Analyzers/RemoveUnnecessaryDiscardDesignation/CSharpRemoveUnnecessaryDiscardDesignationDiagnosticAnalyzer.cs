@@ -61,12 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
 
             void Report(DiscardDesignationSyntax discard)
             {
-                context.ReportDiagnostic(DiagnosticHelper.Create(
+                context.ReportDiagnostic(Diagnostic.Create(
                     this.Descriptor,
-                    discard.GetLocation(),
-                    ReportDiagnostic.Default,
-                    SpecializedCollections.EmptyEnumerable<Location>(),
-                    ImmutableDictionary<string, string>.Empty));
+                    discard.GetLocation()));
             }
         }
     }
