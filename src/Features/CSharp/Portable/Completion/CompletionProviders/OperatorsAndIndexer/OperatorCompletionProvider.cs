@@ -90,7 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 _ => false,
             };
 
-        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
+        internal override async Task<CompletionChange> GetChangeAsync(
+            Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey,
+            bool disallowAddingImports, CancellationToken cancellationToken)
         {
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
             var symbol = (IMethodSymbol)symbols.Single();
@@ -101,12 +103,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (operatorPosition.HasFlag(OperatorPosition.Infix))
             {
-                return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $" {operatorSign} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
+                return await ReplaceDotAndTokenAfterWithTextAsync(
+                    document, item, text: $" {operatorSign} ", removeConditionalAccess: true, positionOffset: 0,
+                    cancellationToken).ConfigureAwait(false);
             }
+
             if (operatorPosition.HasFlag(OperatorPosition.Postfix))
             {
-                return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $"{operatorSign} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
+                return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $"{operatorSign} ",
+                    removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
             }
+
             if (operatorPosition.HasFlag(OperatorPosition.Prefix))
             {
                 var position = SymbolCompletionItem.GetContextPosition(item);
@@ -114,7 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var (_, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(position, root);
 
                 var rootExpression = GetRootExpressionOfToken(potentialDotTokenLeftOfCursor);
-                // base.ProvideCompletionsAsync checks GetParentExpressionOfToken is not null. If GetRootExpressionOfToken returns something, so does GetParentExpressionOfToken.
+                // base.ProvideCompletionsAsync checks GetParentExpressionOfToken is not null.
+                // If GetRootExpressionOfToken returns something, so does GetParentExpressionOfToken.
                 Contract.ThrowIfNull(rootExpression);
 
                 var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, rootExpression.Span.End);
