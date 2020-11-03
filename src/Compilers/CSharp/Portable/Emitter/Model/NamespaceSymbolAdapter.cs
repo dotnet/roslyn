@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.INamespace
     {
         Cci.INamespace Cci.INamespace.ContainingNamespace => AdaptedNamespaceSymbol.ContainingNamespace?.GetCciAdapter();
+
         string Cci.INamedEntity.Name => AdaptedNamespaceSymbol.MetadataName;
 
         CodeAnalysis.Symbols.INamespaceSymbolInternal Cci.INamespace.GetInternalSymbol() => AdaptedNamespaceSymbol;
