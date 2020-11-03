@@ -7,7 +7,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.CustomControls"
              xmlns:utilities="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <Thickness x:Key="SelectDependantsAndSelectPublicButtonPadding">2, 4, 4, 2</Thickness>
@@ -67,7 +67,8 @@
                                 Content="{Binding ElementName=MemberSelectionControl, Path=MembersHeader}"
                                 DataContext="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext}"
                                 IsThreeState="{Binding ThreeStateEnable, UpdateSourceTrigger=PropertyChanged}"
-                                IsChecked="{Binding SelectAllCheckBoxState, UpdateSourceTrigger=PropertyChanged}" />
+                                IsChecked="{Binding SelectAllCheckBoxState, UpdateSourceTrigger=PropertyChanged}" 
+                                IsTabStop="False" />
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -76,7 +77,8 @@
                                 HorizontalAlignment="Left"
                                 MinWidth="186"
                                 Width="Auto"
-                                Margin="5, 2, 0, 2">
+                                Margin="5, 2, 0, 2"
+                                Focusable="False">
                                 <CheckBox
                                     AutomationProperties.Name="{Binding SymbolAutomationText}"
                                     AutomationProperties.AutomationId="{Binding SymbolName}"
