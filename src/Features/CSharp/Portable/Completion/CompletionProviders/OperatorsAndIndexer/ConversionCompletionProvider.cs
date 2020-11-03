@@ -132,12 +132,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private void AddCompletionItemsForSpecialTypes(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol fromType, bool containerIsNullable, int position, ImmutableArray<SpecialType> specialTypes)
+        private void AddCompletionItemsForSpecialTypes(
+            ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol fromType,
+            bool containerIsNullable, int position, ImmutableArray<SpecialType> specialTypes)
         {
             var conversionCompletionItems = from specialType in specialTypes
                                             let targetTypeSymbol = semanticModel.Compilation.GetSpecialType(specialType)
                                             let targetTypeName = targetTypeSymbol.ToMinimalDisplayString(semanticModel, position)
-                                            select CreateSymbolCompletionItem(targetTypeName, targetTypeIsNullable: containerIsNullable, position, fromType, targetTypeSymbol);
+                                            select CreateSymbolCompletionItem(
+                                                targetTypeName, targetTypeIsNullable: containerIsNullable, position,
+                                                fromType, targetTypeSymbol);
             builder.AddRange(conversionCompletionItems);
         }
 
@@ -168,13 +172,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<CompletionDescription> GetBuiltInConversionDescriptionAsync(Document document, CompletionItem item, INamedTypeSymbol fromType, ITypeSymbol toType, CancellationToken cancellationToken)
+        private static async Task<CompletionDescription> GetBuiltInConversionDescriptionAsync(Document document,
+            CompletionItem item, INamedTypeSymbol fromType, ITypeSymbol toType, CancellationToken cancellationToken)
         {
             var symbol = new BuiltinOperatorMethodSymbol(toType, fromType);
             return await SymbolCompletionItem.GetDescriptionForSymbolsAsync(item, document, new ISymbol[] { symbol }.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
         }
 
-        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
+        internal override async Task<CompletionChange> GetChangeAsync(
+            Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey,
+            bool disallowAddingImports, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
             Contract.ThrowIfFalse(item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var typeName));
@@ -198,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (rootExpression is null || parentExpression is null)
             {
                 // ProvideCompletionsAsync only adds CompletionItems, if GetParentExpressionOfToken returns an expression.
-                // if GetParentExpressionOfToken returns an Expression, then should GetRootExpressionOfToken return an Expression too.
+                // If GetParentExpressionOfToken returns an Expression, then GetRootExpressionOfToken should return an Expression too.
                 throw ExceptionUtilities.Unreachable;
             }
 
@@ -217,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var fromRootToParentWithInsertedClosingBracket = fromRootToParent.Insert(parentExpression.Span.End - rootExpression.SpanStart, ")");
             var conversion = $"(({typeName}){fromRootToParentWithInsertedClosingBracket}";
             var newPosition = spanToReplace.Start + conversion.Length - cursorPositionOffset;
+
             return CompletionChange.Create(new TextChange(spanToReplace, conversion), newPosition);
         }
     }
