@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -84,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 return;
             }
-            var isAccessedByConditionalAccess = expression.GetRootConditionalAccessExpression() is not null;
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(expression.SpanStart, cancellationToken).ConfigureAwait(false);
             var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
+            var isAccessedByConditionalAccess = expression.GetRootConditionalAccessExpression() is not null;
             var completionItems = GetCompletionItemsForTypeSymbol(semanticModel, container, position, isAccessedByConditionalAccess, cancellationToken);
             context.AddItems(completionItems);
         }
@@ -156,21 +157,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        protected static async Task<CompletionChange?> ReplaceDotAndTokenAfterWithTextAsync(Document document, CompletionItem item, string text, bool removeConditionalAccess, int positionOffset, CancellationToken cancellationToken)
+        protected static async Task<CompletionChange> ReplaceDotAndTokenAfterWithTextAsync(Document document, CompletionItem item, string text, bool removeConditionalAccess, int positionOffset, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var tokenAtPosition = root.FindTokenOnLeftOfPosition(position);
-            var token = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
-            if (token.IsKind(SyntaxKind.DotToken))
-            {
-                var replacementStart = GetReplacementStart(removeConditionalAccess, token);
-                var newPosition = replacementStart + text.Length + positionOffset;
-                var replaceSpan = TextSpan.FromBounds(replacementStart, tokenAtPosition.Span.End);
-                return CompletionChange.Create(new TextChange(replaceSpan, text), newPosition);
-            }
+            var (tokenAtPosition, token) = FindTokensAtPosition(position, root);
+            Contract.ThrowIfFalse(token.IsKind(SyntaxKind.DotToken)); // ProvideCompletionsAsync bails out, if token is not a DotToken
 
-            return null;
+            var replacementStart = GetReplacementStart(removeConditionalAccess, token);
+            var newPosition = replacementStart + text.Length + positionOffset;
+            var replaceSpan = TextSpan.FromBounds(replacementStart, tokenAtPosition.Span.End);
+
+            return CompletionChange.Create(new TextChange(replaceSpan, text), newPosition);
         }
 
         private static int GetReplacementStart(bool removeConditionalAccess, SyntaxToken token)
