@@ -67,11 +67,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return ImmutableArray<CompletionItem>.Empty;
         }
 
-        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
+        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item,
+            TextSpan completionListSpan, char? commitKey, bool disallowAddingImports,
+            CancellationToken cancellationToken)
         {
-            return
-                await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: "[]", removeConditionalAccess: false, positionOffset: -1, cancellationToken).ConfigureAwait(false) ??
-                await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
+            return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: "[]", removeConditionalAccess: false,
+                positionOffset: -1, cancellationToken).ConfigureAwait(false);
         }
     }
 }
