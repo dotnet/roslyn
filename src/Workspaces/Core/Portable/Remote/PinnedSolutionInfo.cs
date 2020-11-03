@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// This later used to find matching solution between VS and remote host
         /// </summary>
         [DataMember(Order = 0)]
-        public readonly int ScopeId;
+        public readonly RemoteAssetScopeId ScopeId;
 
         /// <summary>
         /// This indicates whether this scope is for primary branch or not (not forked solution)
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
         [DataMember(Order = 3)]
         public readonly Checksum SolutionChecksum;
 
-        public PinnedSolutionInfo(int scopeId, bool fromPrimaryBranch, int workspaceVersion, Checksum solutionChecksum)
+        public PinnedSolutionInfo(RemoteAssetScopeId scopeId, bool fromPrimaryBranch, int workspaceVersion, Checksum solutionChecksum)
         {
             ScopeId = scopeId;
             FromPrimaryBranch = fromPrimaryBranch;

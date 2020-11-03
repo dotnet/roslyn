@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         /// <summary>
         /// Remote API.
         /// </summary>
-        public Task GetAssetsAsync(int scopeId, Checksum[] checksums, string pipeName, CancellationToken cancellationToken)
+        public Task GetAssetsAsync(RemoteAssetScopeId scopeId, Checksum[] checksums, string pipeName, CancellationToken cancellationToken)
             => RemoteEndPoint.WriteDataToNamedPipeAsync(
                 pipeName,
                 (scopeId, checksums),

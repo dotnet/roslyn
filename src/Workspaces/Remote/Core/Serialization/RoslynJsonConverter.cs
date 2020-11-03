@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
 
-                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, (int)workspaceVersion, checksum);
+                return new PinnedSolutionInfo(new RemoteAssetScopeId((int)scopeId), fromPrimaryBranch, (int)workspaceVersion, checksum);
             }
 
             protected override void WriteValue(JsonWriter writer, PinnedSolutionInfo scope, JsonSerializer serializer)
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 writer.WriteStartObject();
 
                 writer.WritePropertyName("scopeId");
-                writer.WriteValue(scope.ScopeId);
+                writer.WriteValue(scope.ScopeId.Id);
 
                 writer.WritePropertyName("primary");
                 writer.WriteValue(scope.FromPrimaryBranch);

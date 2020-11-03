@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed class AssetProvider : AbstractAssetProvider
     {
         private readonly ISerializerService _serializerService;
-        private readonly int _scopeId;
+        private readonly RemoteAssetScopeId _scopeId;
         private readonly SolutionAssetCache _assetCache;
         private readonly IAssetSource _assetSource;
 
-        public AssetProvider(int scopeId, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
+        public AssetProvider(RemoteAssetScopeId scopeId, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
         {
             _scopeId = scopeId;
             _assetCache = assetCache;

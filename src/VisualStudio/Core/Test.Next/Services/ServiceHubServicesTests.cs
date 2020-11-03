@@ -184,7 +184,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             map ??= new Dictionary<Checksum, object>();
             await solution.AppendAssetMapAsync(map, CancellationToken.None);
 
-            var sessionId = 0;
+            var sessionId = new RemoteAssetScopeId(0);
             var storage = new SolutionAssetCache();
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 

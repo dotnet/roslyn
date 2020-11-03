@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _client = client;
         }
 
-        public async ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(RemoteAssetScopeId scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
             await TaskScheduler.Default;

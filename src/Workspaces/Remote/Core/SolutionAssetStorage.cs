@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Map from solution checksum scope id to its associated <see cref="SolutionState"/>.
         /// </summary>
-        private readonly ConcurrentDictionary<int, SolutionState> _solutionStates;
+        private readonly ConcurrentDictionary<RemoteAssetScopeId, SolutionState> _solutionStates;
 
         public SolutionAssetStorage()
         {
-            _solutionStates = new ConcurrentDictionary<int, SolutionState>(concurrencyLevel: 2, capacity: 10);
+            _solutionStates = new ConcurrentDictionary<RemoteAssetScopeId, SolutionState>(concurrencyLevel: 2, capacity: 10);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var solutionState = solution.State;
             var solutionChecksum = await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-            var id = Interlocked.Increment(ref s_scopeId);
+            var id = new RemoteAssetScopeId(Interlocked.Increment(ref s_scopeId));
             var solutionInfo = new PinnedSolutionInfo(
                 id,
                 fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Retrieve asset of a specified <paramref name="checksum"/> available within <paramref name="scopeId"/> scope from the storage.
         /// </summary>
-        public async ValueTask<SolutionAsset?> GetAssetAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<SolutionAsset?> GetAssetAsync(RemoteAssetScopeId scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
             if (checksum == Checksum.Null)
             {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Retrieve assets of specified <paramref name="checksums"/> available within <paramref name="scopeId"/> scope from the storage.
         /// </summary>
-        public async ValueTask<IReadOnlyDictionary<Checksum, SolutionAsset>> GetAssetsAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask<IReadOnlyDictionary<Checksum, SolutionAsset>> GetAssetsAsync(RemoteAssetScopeId scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
             using var checksumsToFind = Creator.CreateChecksumSet(checksums);
 

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         internal static readonly PipeOptions PipeOptionsWithUnlimitedWriterBuffer = new(pauseWriterThreshold: long.MaxValue);
 
-        public static async Task WriteDataAsync(ObjectWriter writer, SolutionAssetStorage assetStorage, ISerializerService serializer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
+        public static async Task WriteDataAsync(ObjectWriter writer, SolutionAssetStorage assetStorage, ISerializerService serializer, RemoteAssetScopeId scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
             SolutionAsset? singleAsset = null;
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.Remote
             SolutionAsset? singleAsset,
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
             ISerializerService serializer,
-            int scopeId,
+            RemoteAssetScopeId scopeId,
             Checksum[] checksums,
             CancellationToken cancellationToken)
         {
-            writer.WriteInt32(scopeId);
+            writer.WriteInt32(scopeId.Id);
 
             // special case
             if (checksums.Length == 0)
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(PipeReader pipeReader, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(PipeReader pipeReader, RemoteAssetScopeId scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             // We can cancel at entry, but once the pipe operations are scheduled we rely on both operations running to
             // avoid deadlocks (the exception handler in 'copyTask' ensures progress is made in the blocking read).
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, RemoteAssetScopeId scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             Debug.Assert(!checksums.Contains(Checksum.Null));
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
-            var responseScopeId = reader.ReadInt32();
+            var responseScopeId = new RemoteAssetScopeId(reader.ReadInt32());
             Contract.ThrowIfFalse(scopeId == responseScopeId);
 
             var count = reader.ReadInt32();

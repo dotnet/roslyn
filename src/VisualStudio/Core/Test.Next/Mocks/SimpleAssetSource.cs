@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         }
 
         public ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(
-            int serviceId, ISet<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
+            RemoteAssetScopeId scopeId, ISet<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
         {
             var results = new List<(Checksum, object)>();
 
