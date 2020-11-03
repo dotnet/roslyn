@@ -33,12 +33,13 @@ jobs:
     - task: DownloadPipelineArtifact@2
       inputs:
         artifact: ${{ parameters.transportArtifactName }}
-        path: '$(Build.SourcesDirectory)\artifacts\bin' 
+        path: '$(Build.SourcesDirectory)\artifacts\transport' 
 
     - task: PowerShell@2 
       displayName: Rehydrate Unit Tests Environment
       inputs:
-        filePath: eng/rehydrate-transport-payload.ps1
+        filePath: eng/transport-payload.ps1
+        arguments: -mode unpack -repoDirectory $(Build.SourcesDirectory) -transportDirectory $(Build.SourcesDirectory\artifacts\transport
 
     - task: PowerShell@2 
       displayName: Run Unit Tests

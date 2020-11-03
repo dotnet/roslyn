@@ -33,11 +33,11 @@ jobs:
     - task: PowerShell@2 
       displayName: Prepare Transport Payload
       inputs:
-        filePath: eng/prepare-transport-payload.ps1
-        arguments: -configuration ${{ parameters.configuration }} '$(Build.SourceDirectory)\artifacts\transport'
+        filePath: eng/transport-payload.ps1
+        arguments: -mode pack -repoDirectory $(Build.SourcesDirectory) -transportDirectory $(Build.SourcesDirectory\artifacts\transport
 
     - task: PublishPipelineArtifact@1
-      displayName: Publish Test Payload
+      displayName: Publish Transport Payload
       inputs:
         targetPath: '$(Build.SourcesDirectory)\artifacts\transport'
         artifactName: ${{ parameters.transportArtifactName }}
