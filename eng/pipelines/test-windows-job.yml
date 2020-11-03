@@ -41,7 +41,7 @@ jobs:
     - task: PowerShell@2 
       displayName: Rehydrate Unit Tests Environment
       inputs:
-        filePath: eng/transport-payload.ps1
+        filePath: '$(Build.SourcesDirectory)\artifacts\transport\eng\transport-payload.ps1'
         arguments: -mode unpack -repoDirectory $(Build.SourcesDirectory) -transportDirectory $(Build.SourcesDirectory\artifacts\transport
 
     - task: PowerShell@2 
