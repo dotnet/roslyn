@@ -29,18 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static readonly ImmutableArray<SpecialType> s_builtInEnumConversionTargets = new[]
             {
-                SpecialType.System_SByte,
-                SpecialType.System_Byte,
-                SpecialType.System_Int16,
-                SpecialType.System_UInt16,
-                SpecialType.System_Int32,
-                SpecialType.System_UInt32,
-                SpecialType.System_Int64,
-                SpecialType.System_UInt64,
-                SpecialType.System_Char,
-                SpecialType.System_Single,
-                SpecialType.System_Double,
-                SpecialType.System_Decimal,
+                // Presorted alphabetical to reduce sorting cost of the completion items. 
+                SpecialType.System_Byte,    // byte
+                SpecialType.System_Char,    // char
+                SpecialType.System_Decimal, // decimal
+                SpecialType.System_Double,  // double
+                SpecialType.System_Single,  // float
+                SpecialType.System_Int32,   // int
+                SpecialType.System_Int64,   // long
+                SpecialType.System_SByte,   // sbyte
+                SpecialType.System_Int16,   // short
+                SpecialType.System_UInt32,  // uint
+                SpecialType.System_UInt64,  // ulong
+                SpecialType.System_UInt16,  // ushort
             }.ToImmutableArray();
 
         [ImportingConstructor]
