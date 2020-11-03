@@ -107,7 +107,7 @@ jobs:
     buildJobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    testArguments: --testCoreClr
+    testArguments: 
     queueName: 'BuildPool.Ubuntu.1604.amd64.Open'
 
 - template: eng/pipelines/test-unix-job.yml
@@ -117,7 +117,7 @@ jobs:
     buildJobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    testArguments: --testCoreClr
+    testArguments: 
     vmImageName: 'macOS-10.14'
 
 # Build Correctness Jobs
