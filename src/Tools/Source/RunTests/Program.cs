@@ -10,9 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using RestSharp;
 using System.Collections.Immutable;
-using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
@@ -299,7 +297,7 @@ namespace RunTests
                 var include = false;
                 foreach (var pattern in options.IncludeFilter)
                 {
-                    if (Regex.IsMatch(name, pattern))
+                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
                     {
                         include = true;
                     }
@@ -312,7 +310,7 @@ namespace RunTests
 
                 foreach (var pattern in options.ExcludeFilter)
                 {
-                    if (Regex.IsMatch(name, pattern))
+                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
                     {
                         continue;
                     }

@@ -47,7 +47,7 @@ namespace RunTests
         /// <summary>
         /// The set of target frameorks that should be probed for test assemblies.
         /// </summary>
-        public List<string> TargetFrameworks { get; set; }
+        public List<string> TargetFrameworks { get; set; } = new List<string>();
 
         public List<string> IncludeFilter { get; set; } = new List<string>();
 
@@ -118,10 +118,7 @@ namespace RunTests
             string? dotnetFilePath = null;
             var platform = "x64";
             var includeHtml = false;
-            var targetFrameworks = new List<string>()
-            {
-                "net472"
-            };
+            var targetFrameworks = new List<string>();
             var configuration = "Debug";
             var includeFilter = new List<string>();
             var excludeFilter = new List<string>();
@@ -175,6 +172,11 @@ namespace RunTests
             if (includeFilter.Count == 0)
             {
                 includeFilter.Add(".*UnitTests.*");
+            }
+
+            if (targetFrameworks.Count == 0)
+            {
+                targetFrameworks.Add("net472");
             }
 
             if (artifactsPath is null || !Directory.Exists(artifactsPath))

@@ -316,7 +316,7 @@ function GetIbcDropName() {
 }
 
 # Core function for running our unit / integration tests tests
-function TestUsingOptimizedRunner() {
+function TestUsingRunTests() {
 
   # Tests need to locate .NET Core SDK
   $dotnet = InitializeDotNetCli
@@ -337,7 +337,7 @@ function TestUsingOptimizedRunner() {
 
   $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
   $binDir = Join-Path $ArtifactsDir "bin" 
-  $runTests = GetProjectOutputBinary "RunTests.exe"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red 
@@ -348,52 +348,31 @@ function TestUsingOptimizedRunner() {
   $args += " --dotnet `"$dotnetExe`""
   $args += " --out `"$testResultsDir`""
   $args += " --logs `"$LogDir`""
-  $args += " --tfm net472"
+  $args += " --configuration $configuration"
 
+  if ($testCoreClr) {
+    $args += " --tfm net5.0"
+    $args += " --tfm netcoreapp3.1"
+    $args += " --sequential"
+    $args += " --include '\.UnitTests'"
+    $args += " --timeout 90"
+  }
   if ($testDesktop -or $testIOperation) {
-    if ($test32) {
-      $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" $binDir
-    } else {
-      $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" -Exclude "*InteractiveHost*" $binDir
+    $args += " --tfm net472"
+    $args += " --include '\.UnitTests'"
+    $args += " --timeout 90"
+
+    if (-not $test32) {
+      $args += " --exclude '\.InteractiveHost'"
     }
+
   } elseif ($testVsi) {
-    # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
-    # integration tests in CI.
-    if ($ci) {
-      $dlls += @(Get-Item (GetProjectOutputBinary "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
-      $args += " --retry"
-    }
-
-    $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
-    $args += " --testvsi"
-  } else {
-    $dlls = Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir
-    $args += " --trait:Feature=NetCore"
-  }
-
-  # Exclude out the multi-targetted netcore app projects
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*netcoreapp.*") }
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*net5.0.*") }
-
-  # Exclude out the ref assemblies
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
-
-  if ($configuration -eq 'Debug') {
-    $excludedConfiguration = 'Release'
-  } else {
-    $excludedConfiguration = 'Debug'
-  }
-
-  $dlls = $dlls | ?{ -not (($_.FullName -match ".*\\$excludedConfiguration\\.*") -or ($_.FullName -match ".*/$excludedConfiguration/.*")) }
-
-  if ($ci) {
-    if ($testVsi) {
-      $args += " --timeout 110"
-      $args += " --sequential"
-    } else {
-      $args += " --timeout 90"
-    }
+    $args += " --timeout 110"
+    $args += " --tfm net472"
+    $args += " --retry"
+    $args += " --sequential"
+    $args += " --include '\.IntegrationTests'"
+    $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
   }
 
   if ($collectDumps) {
@@ -413,12 +392,9 @@ function TestUsingOptimizedRunner() {
     $args += " --sequential"
   }
 
-  foreach ($dll in $dlls) {
-    $args += " $dll"
-  }
-
   try {
-    Exec-Console $runTests $args
+    Write-Host "$runTests $args"
+    Exec-Console $dotnetExe "$runTests $args"
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($testIOperation) {
@@ -639,14 +615,14 @@ try {
     throw $_
   }
 
-  if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
+  if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish) {
     BuildSolution
   }
 
   try
   {
-    if ($testDesktop -or $testVsi -or $testIOperation) {
-      TestUsingOptimizedRunner
+    if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr) {
+      TestUsingRunTests
     }
   }
   catch
