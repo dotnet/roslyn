@@ -22,12 +22,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
 {
     [ExportCodeFixProvider(LanguageNames.CSharp,
-        Name = nameof(RemoveUnnecessaryDiscardDesignationCodeFixProvider)), Shared]
-    internal partial class RemoveUnnecessaryDiscardDesignationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+        Name = nameof(CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider)), Shared]
+    internal partial class CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoveUnnecessaryDiscardDesignationCodeFixProvider()
+        public CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider()
         {
         }
 
