@@ -151,13 +151,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var syntaxNode = token.Parent;
             return syntaxNode switch
             {
-                MemberAccessExpressionSyntax memberAccess => memberAccess.Expression.GetRootConditionalAccessExpression() ?? (ExpressionSyntax)memberAccess,
-                MemberBindingExpressionSyntax memberBinding => memberBinding.GetRootConditionalAccessExpression(),
+                MemberAccessExpressionSyntax memberAccess
+                    => memberAccess.Expression.GetRootConditionalAccessExpression() ?? (ExpressionSyntax)memberAccess,
+                MemberBindingExpressionSyntax memberBinding
+                    => memberBinding.GetRootConditionalAccessExpression(),
                 _ => null,
             };
         }
 
-        protected static async Task<CompletionChange> ReplaceDotAndTokenAfterWithTextAsync(Document document, CompletionItem item, string text, bool removeConditionalAccess, int positionOffset, CancellationToken cancellationToken)
+        protected static async Task<CompletionChange> ReplaceDotAndTokenAfterWithTextAsync(Document document,
+            CompletionItem item, string text, bool removeConditionalAccess, int positionOffset,
+            CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
@@ -176,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var replacementStart = token.SpanStart;
             if (removeConditionalAccess)
             {
-                if (token.Parent is MemberBindingExpressionSyntax memberBinding && memberBinding.GetParentConditionalAccessExpression() is { } conditional)
+                if (token.Parent is MemberBindingExpressionSyntax memberBinding &&
+                    memberBinding.GetParentConditionalAccessExpression() is { } conditional)
                 {
                     replacementStart = conditional.OperatorToken.SpanStart;
                 }
