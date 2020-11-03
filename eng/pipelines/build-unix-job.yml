@@ -3,7 +3,7 @@ parameters:
 - name: jobName
   type: string
   default: ''
-- name: testArtifactName
+- name: transportArtifactName
   type: string
   default: ''
 - name: configuration
@@ -38,7 +38,7 @@ jobs:
       displayName: 'Publish Build'
       inputs:
         targetPath: '$(Build.SourcesDirectory)/artifacts/bin'
-        artifactName: ${{ parameters.testArtifactName }}
+        artifactName: ${{ parameters.transportArtifactName }}
 
     - template: publish-logs.yml
       parameters:
