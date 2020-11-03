@@ -18,7 +18,9 @@ function Pack() {
 
   # Next prepare the eng directory
   Write-Host "Copying eng directory"
-  Copy-Item -Recurse -Force "$repoDirectory\eng\*" (Join-Path $transportDirectory "eng")
+  $engDirectory = Join-Path $transportDirectory "eng"
+  Create-Directory $engDirectory
+  Copy-Item -Recurse -Force "$repoDirectory\eng\*" $engDirectory
 
   # Next record the global.json file
   Write-Host "Copying global.json"
@@ -35,7 +37,7 @@ function Unpack() {
   Copy-Item -Recurse -Force (Join-Path $transportDirectory "eng") (Join-Path $repoDirectory "eng")
 
   Write-Host "Copying test payload"
-  Create-Directory "artifacts\bin" | Out-Null
+  Create-Directory "artifacts\bin"
   Move-Item "$transportDirectory\testPayload\*" (Join-Path $repoDirectory "artifacts\bin")
 
   # Now that the environment is restored, lets use it to finish rebuilding
