@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public static ImmutableArray<SpecialType>? GetBuiltInNumericConversions(this ITypeSymbol container)
         {
             // Source: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-numeric-conversions
+            // Sorted alphabetical
             return container.SpecialType switch
             {
                 SpecialType.System_SByte => new[] {
