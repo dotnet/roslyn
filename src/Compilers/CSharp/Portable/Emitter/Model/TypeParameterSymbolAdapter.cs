@@ -28,55 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.IGenericMethodParameter,
         Cci.IGenericTypeParameter
     {
-#if DEBUG
-        internal TypeParameterSymbolAdapter(TypeParameterSymbol underlyingTypeParameterSymbol)
-        {
-            AdaptedTypeParameterSymbol = underlyingTypeParameterSymbol;
-        }
-
-        internal sealed override Symbol AdaptedSymbol => AdaptedTypeParameterSymbol;
-        internal TypeParameterSymbol AdaptedTypeParameterSymbol { get; }
-#else
-        internal TypeParameterSymbol AdaptedTypeParameterSymbol => this;
-#endif
-    }
-
-    internal partial class TypeParameterSymbol
-    {
-#if DEBUG
-        private TypeParameterSymbolAdapter _lazyAdapter;
-
-        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
-#endif
-        internal new
-#if DEBUG
-            TypeParameterSymbolAdapter
-#else
-            TypeParameterSymbol
-#endif
-            GetCciAdapter()
-        {
-#if DEBUG
-            if (_lazyAdapter is null)
-            {
-                return InterlockedOperations.Initialize(ref _lazyAdapter, new TypeParameterSymbolAdapter(this));
-            }
-
-            return _lazyAdapter;
-#else
-            return this;
-#endif
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        TypeParameterSymbolAdapter
-#else
-        TypeParameterSymbol
-#endif
-    {
-
         bool Cci.ITypeReference.IsEnum
         {
             get { return false; }
@@ -395,4 +346,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
     }
+
+    internal partial class TypeParameterSymbol
+    {
+#if DEBUG
+        private TypeParameterSymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new TypeParameterSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new TypeParameterSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal TypeParameterSymbol AdaptedTypeParameterSymbol => this;
+
+        internal new TypeParameterSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif
+    }
+
+#if DEBUG
+    internal partial class TypeParameterSymbolAdapter
+    {
+        internal TypeParameterSymbolAdapter(TypeParameterSymbol underlyingTypeParameterSymbol)
+        {
+            AdaptedTypeParameterSymbol = underlyingTypeParameterSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedTypeParameterSymbol;
+        internal TypeParameterSymbol AdaptedTypeParameterSymbol { get; }
+    }
+#endif
 }

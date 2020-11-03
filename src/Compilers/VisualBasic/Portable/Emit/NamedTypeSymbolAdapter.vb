@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #If DEBUG Then
-    Partial Friend NotInheritable Class NamedTypeSymbolAdapter
+    Partial Friend Class NamedTypeSymbolAdapter
         Inherits SymbolAdapter
 #Else
     Partial Friend Class NamedTypeSymbol
@@ -30,54 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IGenericTypeInstanceReference
         Implements ISpecializedNestedTypeReference
 
-#If DEBUG Then
-        Friend ReadOnly Property AdaptedNamedTypeSymbol As NamedTypeSymbol
-
-        Friend Sub New(underlyingNamedTypeSymbol As NamedTypeSymbol)
-            AdaptedNamedTypeSymbol = underlyingNamedTypeSymbol
-        End Sub
-
-        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
-            Get
-                Return AdaptedNamedTypeSymbol
-            End Get
-        End Property
-#Else
-        Friend ReadOnly Property AdaptedNamedTypeSymbol As NamedTypeSymbol
-            Get
-                Return Me
-            End Get
-        End Property
-#End If
-
-    End Class
-
-    Partial Friend Class NamedTypeSymbol
-#If DEBUG Then
-        Private _lazyAdapter As NamedTypeSymbolAdapter
-
-        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
-            Return GetCciAdapter()
-        End Function
-
-        Friend Shadows Function GetCciAdapter() As NamedTypeSymbolAdapter
-            If _lazyAdapter Is Nothing Then
-                Return InterlockedOperations.Initialize(_lazyAdapter, New NamedTypeSymbolAdapter(Me))
-            End If
-
-            Return _lazyAdapter
-        End Function
-#Else
-        Friend Shadows Function GetCciAdapter() As NamedTypeSymbol
-            return Me
-        End Function
-#End If
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbolAdapter
-#End If
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements ITypeReference.IsEnum
             Get
                 Debug.Assert(Not AdaptedNamedTypeSymbol.IsAnonymousType)
@@ -304,28 +256,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Function
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbol
-#End If
-
-        Friend Overridable Iterator Function GetEventsToEmit() As IEnumerable(Of EventSymbol)
-            CheckDefinitionInvariant()
-
-            For Each member In Me.GetMembersForCci()
-                If member.Kind = SymbolKind.Event Then
-                    Yield DirectCast(member, EventSymbol)
-                End If
-            Next
-        End Function
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbolAdapter
-#End If
-
         Private Function ITypeDefinitionGetExplicitImplementationOverrides(context As EmitContext) As IEnumerable(Of Cci.MethodImplementation) Implements ITypeDefinition.GetExplicitImplementationOverrides
             Debug.Assert(Not AdaptedNamedTypeSymbol.IsAnonymousType)
             'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
@@ -423,20 +353,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbol
-#End If
-
-        Friend MustOverride Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbolAdapter
-#End If
-
         Private ReadOnly Property ITypeDefinitionGenericParameters As IEnumerable(Of IGenericTypeParameter) Implements ITypeDefinition.GenericParameters
             Get
                 Debug.Assert(Not AdaptedNamedTypeSymbol.IsAnonymousType)
@@ -485,25 +401,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbol
-#End If
-
-        ''' <summary>
-        ''' Should return Nothing if there are none.
-        ''' </summary>
-        Friend Overridable Function GetSynthesizedImplements() As IEnumerable(Of NamedTypeSymbol)
-            Return Nothing
-        End Function
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbolAdapter
-#End If
-
         Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) _
             As IEnumerable(Of Cci.TypeReferenceWithAttributes) Implements ITypeDefinition.Interfaces
             Debug.Assert(Not AdaptedNamedTypeSymbol.IsAnonymousType)
@@ -520,46 +417,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Function
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbol
-#End If
-
-
-        Friend Overridable Function GetInterfacesToEmit() As IEnumerable(Of NamedTypeSymbol)
-            Debug.Assert(IsDefinition)
-            Debug.Assert(TypeOf ContainingModule Is SourceModuleSymbol)
-
-            ' Synthesized implements should go first. Currently they are used only by
-            ' ComClass feature, which depends on the order of implemented interfaces.
-            Dim synthesized As IEnumerable(Of NamedTypeSymbol) = GetSynthesizedImplements()
-
-            ' If this type implements I, and the base class also implements interface I, and this class
-            ' does not implement all the members of I, then do not emit I as an interface. This prevents
-            ' the CLR from using implicit interface implementation.
-            Dim interfaces = Me.InterfacesNoUseSiteDiagnostics
-            If interfaces.IsEmpty Then
-                Return If(synthesized, SpecializedCollections.EmptyEnumerable(Of NamedTypeSymbol)())
-            End If
-
-            Dim base = Me.BaseTypeNoUseSiteDiagnostics
-            Dim result As IEnumerable(Of NamedTypeSymbol) =
-                interfaces.Where(Function(sym As NamedTypeSymbol) As Boolean
-                                     Return Not (base IsNot Nothing AndAlso
-                                                 base.ImplementsInterface(sym, EqualsIgnoringComparer.InstanceCLRSignatureCompare, Nothing) AndAlso
-                                                 Not Me.ImplementsAllMembersOfInterface(sym))
-                                 End Function)
-
-            Return If(synthesized Is Nothing, result, synthesized.Concat(result))
-        End Function
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbolAdapter
-#End If
-
         Private ReadOnly Property ITypeDefinitionIsAbstract As Boolean Implements ITypeDefinition.IsAbstract
             Get
                 Debug.Assert(Not AdaptedNamedTypeSymbol.IsAnonymousType)
@@ -571,25 +428,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return AdaptedNamedTypeSymbol.IsMetadataAbstract
             End Get
         End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbol
-#End If
-
-        Friend Overridable ReadOnly Property IsMetadataAbstract As Boolean
-            Get
-                CheckDefinitionInvariant()
-                Return Me.IsMustInherit OrElse Me.IsInterface
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbolADapter
-#End If
 
         Private ReadOnly Property ITypeDefinitionIsBeforeFieldInit As Boolean Implements ITypeDefinition.IsBeforeFieldInit
             Get
@@ -769,35 +607,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbol
-#End If
-
-        Friend Overridable ReadOnly Property IsMetadataSealed As Boolean
-            Get
-                CheckDefinitionInvariant()
-
-                If Me.IsNotInheritable Then
-                    Return True
-                End If
-
-                Select Case Me.TypeKind
-                    Case TypeKind.Module, TypeKind.Enum, TypeKind.Structure
-                        Return True
-                    Case Else
-                        Return False
-                End Select
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbolAdapter
-#End If
-
         Private ReadOnly Property ITypeDefinitionLayout As LayoutKind Implements ITypeDefinition.Layout
             Get
                 Debug.Assert(Not AdaptedNamedTypeSymbol.IsAnonymousType)
@@ -806,22 +615,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return AdaptedNamedTypeSymbol.Layout.Kind
             End Get
         End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbol
-#End If
-
-        Friend Overridable Function GetMembersForCci() As ImmutableArray(Of Symbol)
-            Return Me.GetMembers()
-        End Function
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbolAdapter
-#End If
 
         Private Iterator Function ITypeDefinitionGetMethods(context As EmitContext) As IEnumerable(Of IMethodDefinition) Implements ITypeDefinition.GetMethods
             Debug.Assert(Not AdaptedNamedTypeSymbol.IsAnonymousType)
@@ -847,34 +640,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
             End If
         End Function
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbol
-#End If
-
-
-        Friend Overridable Iterator Function GetMethodsToEmit() As IEnumerable(Of MethodSymbol)
-            For Each member In Me.GetMembersForCci()
-                If member.Kind = SymbolKind.Method Then
-                    Dim method As MethodSymbol = DirectCast(member, MethodSymbol)
-
-                    ' Don't emit:
-                    '  (a) Partial methods without an implementation part
-                    '  (b) The default value type constructor - the runtime handles that
-                    If Not method.IsPartialWithoutImplementation() AndAlso Not method.IsDefaultValueTypeConstructor() Then
-                        Yield method
-                    End If
-                End If
-            Next
-        End Function
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbolAdapter
-#End If
 
         Private Function ITypeDefinitionGetNestedTypes(context As EmitContext) As IEnumerable(Of INestedTypeDefinition) Implements ITypeDefinition.GetNestedTypes
             Debug.Assert(Not AdaptedNamedTypeSymbol.IsAnonymousType)
@@ -940,28 +705,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
             End If
         End Function
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbol
-#End If
-
-        Friend Overridable Iterator Function GetPropertiesToEmit() As IEnumerable(Of PropertySymbol)
-            CheckDefinitionInvariant()
-
-            For Each member In Me.GetMembersForCci()
-                If member.Kind = SymbolKind.Property Then
-                    Yield DirectCast(member, PropertySymbol)
-                End If
-            Next
-        End Function
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class NamedTypeSymbolAdapter
-#End If
 
         Private ReadOnly Property ITypeDefinitionSecurityAttributes As IEnumerable(Of SecurityAttribute) Implements ITypeDefinition.SecurityAttributes
             Get
@@ -1112,4 +855,147 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
     End Class
+
+    Partial Friend Class NamedTypeSymbol
+#If DEBUG Then
+        Private _lazyAdapter As NamedTypeSymbolAdapter
+
+        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
+            Return GetCciAdapter()
+        End Function
+
+        Friend Shadows Function GetCciAdapter() As NamedTypeSymbolAdapter
+            If _lazyAdapter Is Nothing Then
+                Return InterlockedOperations.Initialize(_lazyAdapter, New NamedTypeSymbolAdapter(Me))
+            End If
+
+            Return _lazyAdapter
+        End Function
+#Else
+        Friend ReadOnly Property AdaptedNamedTypeSymbol As NamedTypeSymbol
+            Get
+                Return Me
+            End Get
+        End Property
+
+        Friend Shadows Function GetCciAdapter() As NamedTypeSymbol
+            Return Me
+        End Function
+#End If
+
+        Friend Overridable Iterator Function GetEventsToEmit() As IEnumerable(Of EventSymbol)
+            CheckDefinitionInvariant()
+
+            For Each member In Me.GetMembersForCci()
+                If member.Kind = SymbolKind.Event Then
+                    Yield DirectCast(member, EventSymbol)
+                End If
+            Next
+        End Function
+
+        Friend MustOverride Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
+
+        ''' <summary>
+        ''' Should return Nothing if there are none.
+        ''' </summary>
+        Friend Overridable Function GetSynthesizedImplements() As IEnumerable(Of NamedTypeSymbol)
+            Return Nothing
+        End Function
+
+        Friend Overridable Function GetInterfacesToEmit() As IEnumerable(Of NamedTypeSymbol)
+            Debug.Assert(IsDefinition)
+            Debug.Assert(TypeOf ContainingModule Is SourceModuleSymbol)
+
+            ' Synthesized implements should go first. Currently they are used only by
+            ' ComClass feature, which depends on the order of implemented interfaces.
+            Dim synthesized As IEnumerable(Of NamedTypeSymbol) = GetSynthesizedImplements()
+
+            ' If this type implements I, and the base class also implements interface I, and this class
+            ' does not implement all the members of I, then do not emit I as an interface. This prevents
+            ' the CLR from using implicit interface implementation.
+            Dim interfaces = Me.InterfacesNoUseSiteDiagnostics
+            If interfaces.IsEmpty Then
+                Return If(synthesized, SpecializedCollections.EmptyEnumerable(Of NamedTypeSymbol)())
+            End If
+
+            Dim base = Me.BaseTypeNoUseSiteDiagnostics
+            Dim result As IEnumerable(Of NamedTypeSymbol) =
+                interfaces.Where(Function(sym As NamedTypeSymbol) As Boolean
+                                     Return Not (base IsNot Nothing AndAlso
+                                                 base.ImplementsInterface(sym, EqualsIgnoringComparer.InstanceCLRSignatureCompare, Nothing) AndAlso
+                                                 Not Me.ImplementsAllMembersOfInterface(sym))
+                                 End Function)
+
+            Return If(synthesized Is Nothing, result, synthesized.Concat(result))
+        End Function
+
+        Friend Overridable ReadOnly Property IsMetadataAbstract As Boolean
+            Get
+                CheckDefinitionInvariant()
+                Return Me.IsMustInherit OrElse Me.IsInterface
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property IsMetadataSealed As Boolean
+            Get
+                CheckDefinitionInvariant()
+
+                If Me.IsNotInheritable Then
+                    Return True
+                End If
+
+                Select Case Me.TypeKind
+                    Case TypeKind.Module, TypeKind.Enum, TypeKind.Structure
+                        Return True
+                    Case Else
+                        Return False
+                End Select
+            End Get
+        End Property
+
+        Friend Overridable Function GetMembersForCci() As ImmutableArray(Of Symbol)
+            Return Me.GetMembers()
+        End Function
+
+        Friend Overridable Iterator Function GetMethodsToEmit() As IEnumerable(Of MethodSymbol)
+            For Each member In Me.GetMembersForCci()
+                If member.Kind = SymbolKind.Method Then
+                    Dim method As MethodSymbol = DirectCast(member, MethodSymbol)
+
+                    ' Don't emit:
+                    '  (a) Partial methods without an implementation part
+                    '  (b) The default value type constructor - the runtime handles that
+                    If Not method.IsPartialWithoutImplementation() AndAlso Not method.IsDefaultValueTypeConstructor() Then
+                        Yield method
+                    End If
+                End If
+            Next
+        End Function
+
+        Friend Overridable Iterator Function GetPropertiesToEmit() As IEnumerable(Of PropertySymbol)
+            CheckDefinitionInvariant()
+
+            For Each member In Me.GetMembersForCci()
+                If member.Kind = SymbolKind.Property Then
+                    Yield DirectCast(member, PropertySymbol)
+                End If
+            Next
+        End Function
+    End Class
+
+#If DEBUG Then
+    Partial Friend NotInheritable Class NamedTypeSymbolAdapter
+        Friend ReadOnly Property AdaptedNamedTypeSymbol As NamedTypeSymbol
+
+        Friend Sub New(underlyingNamedTypeSymbol As NamedTypeSymbol)
+            AdaptedNamedTypeSymbol = underlyingNamedTypeSymbol
+        End Sub
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return AdaptedNamedTypeSymbol
+            End Get
+        End Property
+    End Class
+#End If
 End Namespace

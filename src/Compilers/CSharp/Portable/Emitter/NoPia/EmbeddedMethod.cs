@@ -11,17 +11,15 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Cci = Microsoft.Cci;
 
+#if !DEBUG
+using MethodSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedMethod : EmbeddedTypesManager.CommonEmbeddedMethod
     {
-        public EmbeddedMethod(EmbeddedType containingType,
-#if DEBUG
-            MethodSymbolAdapter
-#else
-            MethodSymbol
-#endif
-                underlyingMethod) :
+        public EmbeddedMethod(EmbeddedType containingType, MethodSymbolAdapter underlyingMethod) :
             base(containingType, underlyingMethod)
         {
         }
