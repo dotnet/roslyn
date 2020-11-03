@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer, DiagnosticAnalyzerAttribute> _diagnosticAnalyzers;
-        private readonly Extensions<ISourceGenerator,GeneratorAttribute> _generators;
+        private readonly Extensions<ISourceGenerator, GeneratorAttribute> _generators;
 
         private string? _lazyDisplay;
         private object? _lazyIdentity;
