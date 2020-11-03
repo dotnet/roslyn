@@ -27,6 +27,11 @@
         <target state="translated">대리자 호출을 간단하게 만들 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Discard_can_be_removed">
+        <source>Discard can be removed</source>
+        <target state="new">Discard can be removed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">인덱싱은 단순화될 수 있습니다.</target>
@@ -80,6 +85,11 @@
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
         <target state="translated">불필요한 비표시 오류(Suppression) 연산자 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnessary_discard">
+        <source>Remove unnecessary discard</source>
+        <target state="new">Remove unnecessary discard</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">

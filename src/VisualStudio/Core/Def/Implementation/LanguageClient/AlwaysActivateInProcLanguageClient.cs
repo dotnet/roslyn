@@ -17,19 +17,21 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     /// <summary>
-    /// Language client responsible for exposing pull diagnostics.  Expected to run in all scenarios where the host
-    /// supports pull diagnostics (including VS and liveshare).
+    /// Language client responsible for handling C# / VB LSP requests in any scenario (both local and codespaces).
+    /// This powers "LSP only" features (e.g. cntrl+Q code search) that do not use traditional editor APIs.
+    /// It is always activated whenever roslyn is activated.
     /// </summary>
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Export(typeof(ILanguageClient))]
-    internal class PullDiagnosticsInProcLanguageClient : AbstractInProcLanguageClient
+    [Export(typeof(AlwaysActivateInProcLanguageClient))]
+    internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
         private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public PullDiagnosticsInProcLanguageClient(
+        public AlwaysActivateInProcLanguageClient(
             IGlobalOptionService globalOptionService,
             LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
@@ -41,12 +43,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         }
 
         public override string Name
-            => ServicesVSResources.CSharp_Visual_Basic_Diagnostics_Language_Client;
+            => ServicesVSResources.CSharp_Visual_Basic_Language_Server_Client;
 
         protected internal override VSServerCapabilities GetCapabilities()
             => new VSServerCapabilities
             {
                 SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode) == DiagnosticMode.Pull,
+                // This flag ensures that cntrl+, search locally uses the old editor APIs so that only cntrl+Q search is powered via LSP.
+                DisableGoToWorkspaceSymbols = true,
+                WorkspaceSymbolProvider = true,
             };
     }
 }
