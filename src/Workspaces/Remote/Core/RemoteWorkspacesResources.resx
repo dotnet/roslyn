@@ -189,4 +189,7 @@
   <data name="FeatureName_AssetSynchronization" xml:space="preserve">
     <value>Asset synchronization</value>
   </data>
+  <data name="Scope_0_has_been_invalidated" xml:space="preserve">
+    <value>Scope '{0}' has been invalidated.</value>
+  </data>
 </root>

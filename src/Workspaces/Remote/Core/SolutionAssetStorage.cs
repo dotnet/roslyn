@@ -51,18 +51,28 @@ namespace Microsoft.CodeAnalysis.Remote
             return new Scope(this, solutionInfo);
         }
 
+        private SolutionState GetSolutionState(RemoteAssetScopeId scopeId)
+        {
+            if (!_solutionStates.TryGetValue(scopeId, out var state))
+                throw new InvalidOperationException(string.Format(RemoteWorkspacesResources.Scope_0_has_been_invalidated, scopeId));
+
+            return state;
+        }
+
         /// <summary>
         /// Retrieve asset of a specified <paramref name="checksum"/> available within <paramref name="scopeId"/> scope from the storage.
         /// </summary>
         public async ValueTask<SolutionAsset?> GetAssetAsync(RemoteAssetScopeId scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
+            var solutionState = GetSolutionState(scopeId);
+
             if (checksum == Checksum.Null)
             {
                 // check nil case
                 return SolutionAsset.Null;
             }
 
-            var remotableData = await FindAssetAsync(_solutionStates[scopeId], checksum, cancellationToken).ConfigureAwait(false);
+            var remotableData = await FindAssetAsync(solutionState, checksum, cancellationToken).ConfigureAwait(false);
             if (remotableData != null)
             {
                 return remotableData;
@@ -83,6 +93,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async ValueTask<IReadOnlyDictionary<Checksum, SolutionAsset>> GetAssetsAsync(RemoteAssetScopeId scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
+            var solutionState = GetSolutionState(scopeId);
+
             using var checksumsToFind = Creator.CreateChecksumSet(checksums);
 
             var numberOfChecksumsToSearch = checksumsToFind.Object.Count;
@@ -93,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 result[Checksum.Null] = SolutionAsset.Null;
             }
 
-            await FindAssetsAsync(_solutionStates[scopeId], checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
+            await FindAssetsAsync(solutionState, checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
             if (result.Count == numberOfChecksumsToSearch)
             {
                 // no checksum left to find
