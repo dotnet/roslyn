@@ -74,6 +74,51 @@ abstract class C
         }
 
         [Fact]
+        public async Task TestEvent()
+        {
+            var initial = @"
+using System;
+
+abstract class C
+{
+    abstract event Action [|E|];
+}
+";
+            var expected = @"
+using System;
+
+abstract class C
+{
+    public abstract event Action E;
+}
+";
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact]
+        public async Task TestEventMultiple()
+        {
+            var initial = @"
+using System;
+
+abstract class C
+{
+    abstract event Action [|E|], E2;
+}
+";
+            var expected = @"
+using System;
+
+abstract class C
+{
+    public abstract event Action E;
+    abstract event Action E2;
+}
+";
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact]
         public async Task TestPublicOverride()
         {
             var initial = @"

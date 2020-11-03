@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
     {
         protected abstract string GetText(Accessibility accessibility);
 
+        protected virtual SyntaxNode GetActualNodeToUpdate(SyntaxNode diagnosticNode) => diagnosticNode;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
                 return;
             }
 
+            diagnosticNode = GetActualNodeToUpdate(diagnosticNode);
             var diagnostic = context.Diagnostics[0];
 
             if (declaredSymbol.IsOverride)

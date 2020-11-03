@@ -7,6 +7,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeAccessibilityModifier;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeAccessibilityModifier
 {
@@ -33,5 +34,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeAccessibilityModifier
 
         protected override string GetText(Accessibility accessibility)
             => SyntaxFacts.GetText(accessibility);
+
+        protected override SyntaxNode GetActualNodeToUpdate(SyntaxNode diagnosticNode)
+        {
+            if (diagnosticNode is VariableDeclaratorSyntax
+                {
+                    Parent: VariableDeclarationSyntax
+                    {
+                        Variables: { Count: 1 },
+                        Parent: EventFieldDeclarationSyntax ef
+                    }
+                })
+            {
+                // SyntaxEditor.SetAccessibility doesn't accept the only 1 variable in event declarator
+                // return the parent event declarator
+                return ef;
+            }
+
+            return diagnosticNode;
+        }
     }
 }
