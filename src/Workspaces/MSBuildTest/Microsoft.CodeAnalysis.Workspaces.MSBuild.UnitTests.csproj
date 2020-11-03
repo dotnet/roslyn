@@ -51,6 +51,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\**\*.*" />
+    <EmbeddedResource Include="..\..\..\eng\test-resources\*.*">
+      <LogicalName>Microsoft.CodeAnalysis.MSBuild.UnitTests.Resources.%(FileName)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Resources\**\*.*" />
