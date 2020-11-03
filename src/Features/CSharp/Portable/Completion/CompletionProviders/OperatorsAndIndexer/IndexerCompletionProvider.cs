@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     displayText: "this",
                     displayTextSuffix: "[]",
                     filterText: "this",
-                    sortText: SortText(),
+                    sortText: "this",
                     symbols: indexerList,
                     rules: CompletionItemRules.Default,
                     contextPosition: position);
