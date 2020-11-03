@@ -59,7 +59,10 @@ try {
     exit 1
   }
 
-  Create-Directory $repoDirectory | Out-Null
+  if (!(Test-Path $repoDirectory)) {
+    New-Item -path $repoDirectory -force -itemType "Directory" | Out-Null
+  }
+
   Push-Location $repoDirectory
 
   if ($mode -eq "pack")
