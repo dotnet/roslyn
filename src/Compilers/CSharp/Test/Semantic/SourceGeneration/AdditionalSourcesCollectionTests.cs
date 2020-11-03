@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             var sources = asc.ToImmutableAndFree();
             Assert.True(sources[0].HintName.EndsWith(".vb"));
-
         }
 
         [Theory]
