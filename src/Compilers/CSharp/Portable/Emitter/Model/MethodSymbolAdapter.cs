@@ -54,26 +54,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private MethodSymbolAdapter _lazyAdapter;
 
         protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
-#endif
-        internal new
-#if DEBUG
-            MethodSymbolAdapter
-#else
-            MethodSymbol
-#endif
-            GetCciAdapter()
+
+        internal new MethodSymbolAdapter GetCciAdapter()
         {
-#if DEBUG
             if (_lazyAdapter is null)
             {
-                return InterlockedOperations.Initialize(ref _lazyAdapter, new MethodSymbolAdapter(this));
+                return InterlockedOperations.Initialize(ref _lazyAdapter, CreateCciAdapter());
             }
 
             return _lazyAdapter;
-#else
-            return this;
-#endif
         }
+
+        protected virtual MethodSymbolAdapter CreateCciAdapter()
+        {
+            return new MethodSymbolAdapter(this);
+        }
+#else
+        internal new MethodSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif 
     }
 
     internal partial class

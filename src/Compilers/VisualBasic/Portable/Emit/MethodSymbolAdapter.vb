@@ -10,7 +10,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+#If DEBUG Then
+    Partial Friend Class MethodSymbolAdapter
+        Inherits SymbolAdapter
+#Else
     Partial Friend Class MethodSymbol
+#End If
         Implements Cci.ITypeMemberReference
         Implements Cci.IMethodReference
         Implements Cci.IGenericMethodInstanceReference
@@ -18,13 +23,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements Cci.ITypeDefinitionMember
         Implements Cci.IMethodDefinition
 
+#If DEBUG Then
+        Friend ReadOnly Property AdaptedMethodSymbol As MethodSymbol
+
+        Friend Sub New(underlyingMethodSymbol As MethodSymbol)
+            AdaptedMethodSymbol = underlyingMethodSymbol
+        End Sub
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return AdaptedMethodSymbol
+            End Get
+        End Property
+#Else
+        Friend ReadOnly Property AdaptedMethodSymbol As MethodSymbol
+            Get
+                Return Me
+            End Get
+        End Property
+#End If
+
+    End Class
+
+    Partial Friend Class MethodSymbol
+#If DEBUG Then
+        Private _lazyAdapter As MethodSymbolAdapter
+
+        Protected NotOverridable Overrides Function GetCciAdapterImpl() As SymbolAdapter
+            Return GetCciAdapter()
+        End Function
+
+        Friend Shadows Function GetCciAdapter() As MethodSymbolAdapter
+            If _lazyAdapter Is Nothing Then
+                Return InterlockedOperations.Initialize(_lazyAdapter, Me.CreateCciAdapter())
+            End If
+
+            Return _lazyAdapter
+        End Function
+
+        Protected Overridable Function CreateCciAdapter() As MethodSymbolAdapter
+            Return New MethodSymbolAdapter(Me)
+        End Function
+#Else
+        Friend Shadows Function GetCciAdapter() As MethodSymbol
+            return Me
+        End Function
+#End If
+
         Public Const DisableJITOptimizationFlags As MethodImplAttributes = MethodImplAttributes.NoInlining Or MethodImplAttributes.NoOptimization
+
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbolAdapter
+#End If
 
         Private ReadOnly Property IMethodReferenceAsGenericMethodInstanceReference As Cci.IGenericMethodInstanceReference Implements Cci.IMethodReference.AsGenericMethodInstanceReference
             Get
                 Debug.Assert(Me.IsDefinitionOrDistinct())
 
-                If Not Me.IsDefinition AndAlso Me.IsGenericMethod AndAlso Me IsNot Me.ConstructedFrom Then
+                If Not AdaptedMethodSymbol.IsDefinition AndAlso AdaptedMethodSymbol.IsGenericMethod AndAlso AdaptedMethodSymbol IsNot AdaptedMethodSymbol.ConstructedFrom Then
                     Return Me
                 End If
 
@@ -36,8 +94,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Debug.Assert(Me.IsDefinitionOrDistinct())
 
-                If Not Me.IsDefinition AndAlso (Not Me.IsGenericMethod OrElse Me Is Me.ConstructedFrom) Then
-                    Debug.Assert(Me.ContainingType IsNot Nothing AndAlso IsOrInGenericType(Me.ContainingType))
+                If Not AdaptedMethodSymbol.IsDefinition AndAlso (Not AdaptedMethodSymbol.IsGenericMethod OrElse AdaptedMethodSymbol Is AdaptedMethodSymbol.ConstructedFrom) Then
+                    Debug.Assert(AdaptedMethodSymbol.ContainingType IsNot Nothing AndAlso IsOrInGenericType(AdaptedMethodSymbol.ContainingType))
                     Return Me
                 End If
 
@@ -53,22 +111,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
-            If Not Me.IsDefinition Then
-                Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
-            ElseIf TypeOf Me Is SynthesizedGlobalMethodBase Then
+            If Not AdaptedMethodSymbol.IsDefinition Then
+                Return moduleBeingBuilt.Translate(AdaptedMethodSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            ElseIf TypeOf AdaptedMethodSymbol Is SynthesizedGlobalMethodBase Then
                 Dim privateImplClass = moduleBeingBuilt.GetPrivateImplClass(syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
                 Debug.Assert(privateImplClass IsNot Nothing)
                 Return privateImplClass
             End If
 
-            Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics, needDeclaration:=True)
+            Return moduleBeingBuilt.Translate(AdaptedMethodSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics, needDeclaration:=True)
         End Function
 
         Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) ' Implements IReference.Dispatch
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
-            If Not Me.IsDefinition Then
-                If Me.IsGenericMethod AndAlso Me IsNot Me.ConstructedFrom Then
+            If Not AdaptedMethodSymbol.IsDefinition Then
+                If AdaptedMethodSymbol.IsGenericMethod AndAlso AdaptedMethodSymbol IsNot AdaptedMethodSymbol.ConstructedFrom Then
                     Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
                     visitor.Visit(DirectCast(Me, Cci.IGenericMethodInstanceReference))
                 Else
@@ -77,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Else
                 Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(visitor.Context.Module, PEModuleBuilder)
-                If Me.ContainingModule = moduleBeingBuilt.SourceModule Then
+                If AdaptedMethodSymbol.ContainingModule = moduleBeingBuilt.SourceModule Then
                     Debug.Assert((DirectCast(Me, Cci.IMethodReference)).GetResolvedMethod(visitor.Context) IsNot Nothing)
                     visitor.Visit(DirectCast(Me, Cci.IMethodDefinition))
                 Else
@@ -88,31 +146,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property INamedEntityName As String Implements Cci.INamedEntity.Name
             Get
-                Return Me.MetadataName
+                Return AdaptedMethodSymbol.MetadataName
             End Get
         End Property
 
         Private ReadOnly Property IMethodReferenceAcceptsExtraArguments As Boolean Implements Cci.IMethodReference.AcceptsExtraArguments
             Get
-                Return Me.IsVararg
+                Return AdaptedMethodSymbol.IsVararg
             End Get
         End Property
 
         Private ReadOnly Property IMethodReferenceGenericParameterCount As UShort Implements Cci.IMethodReference.GenericParameterCount
             Get
-                Return CType(Me.Arity, UShort)
+                Return CType(AdaptedMethodSymbol.Arity, UShort)
             End Get
         End Property
 
         Private ReadOnly Property IMethodReferenceIsGeneric As Boolean Implements Cci.IMethodReference.IsGeneric
             Get
-                Return Me.IsGenericMethod
+                Return AdaptedMethodSymbol.IsGenericMethod
             End Get
         End Property
 
         Private ReadOnly Property IMethodReferenceParameterCount As UShort Implements Cci.ISignature.ParameterCount
             Get
-                Return CType(Me.ParameterCount, UShort)
+                Return CType(AdaptedMethodSymbol.ParameterCount, UShort)
             End Get
         End Property
 
@@ -125,9 +183,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Can't be generic instantiation
             ' must be declared in the module we are building
-            If Me.IsDefinition AndAlso
-                Me.ContainingModule = moduleBeingBuilt.SourceModule Then
-                Debug.Assert(Me.PartialDefinitionPart Is Nothing) ' must be definition
+            If AdaptedMethodSymbol.IsDefinition AndAlso
+                AdaptedMethodSymbol.ContainingModule = moduleBeingBuilt.SourceModule Then
+                Debug.Assert(AdaptedMethodSymbol.PartialDefinitionPart Is Nothing) ' must be definition
                 Return Me
             End If
 
@@ -142,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ISignatureCallingConvention As Cci.CallingConvention Implements Cci.ISignature.CallingConvention
             Get
-                Return Me.CallingConvention
+                Return AdaptedMethodSymbol.CallingConvention
             End Get
         End Property
 
@@ -151,46 +209,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(Me.IsDefinitionOrDistinct())
 #If DEBUG Then
-            For Each p In Me.Parameters
+            For Each p In AdaptedMethodSymbol.Parameters
                 Debug.Assert(p Is p.OriginalDefinition)
             Next
 #End If
 
-            If Me.IsDefinition AndAlso Me.ContainingModule = moduleBeingBuilt.SourceModule Then
+            If AdaptedMethodSymbol.IsDefinition AndAlso AdaptedMethodSymbol.ContainingModule = moduleBeingBuilt.SourceModule Then
                 Return EnumerateDefinitionParameters()
             Else
-                Return moduleBeingBuilt.Translate(Me.Parameters)
+                Return moduleBeingBuilt.Translate(AdaptedMethodSymbol.Parameters)
             End If
         End Function
 
         Private Function EnumerateDefinitionParameters() As ImmutableArray(Of Cci.IParameterTypeInformation)
-            Debug.Assert(Me.Parameters.All(Function(p) p.IsDefinition))
-
-            Return StaticCast(Of Cci.IParameterTypeInformation).From(Me.Parameters)
+            Debug.Assert(AdaptedMethodSymbol.Parameters.All(Function(p) p.IsDefinition))
+#If DEBUG Then
+            Return AdaptedMethodSymbol.Parameters.SelectAsArray(Of Cci.IParameterTypeInformation)(Function(p) p.GetCciAdapter())
+#Else
+            Return StaticCast(Of Cci.IParameterTypeInformation).From(AdaptedMethodSymbol.Parameters)
+#End If
         End Function
 
         Private ReadOnly Property ISignatureReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.ISignature.ReturnValueCustomModifiers
             Get
-                Return Me.ReturnTypeCustomModifiers.As(Of Cci.ICustomModifier)
+                Return AdaptedMethodSymbol.ReturnTypeCustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
         Private ReadOnly Property ISignatureRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.ISignature.RefCustomModifiers
             Get
-                Return Me.RefCustomModifiers.As(Of Cci.ICustomModifier)
+                Return AdaptedMethodSymbol.RefCustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
         Private ReadOnly Property ISignatureReturnValueIsByRef As Boolean Implements Cci.ISignature.ReturnValueIsByRef
             Get
-                Return ReturnsByRef
+                Return AdaptedMethodSymbol.ReturnsByRef
             End Get
         End Property
 
         Private Function ISignatureGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.ISignature.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
-            Dim returnType As TypeSymbol = Me.ReturnType
+            Dim returnType As TypeSymbol = AdaptedMethodSymbol.ReturnType
             Return moduleBeingBuilt.Translate(returnType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
@@ -199,37 +260,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
 
-            Return From arg In Me.TypeArguments
+            Return From arg In AdaptedMethodSymbol.TypeArguments
                    Select moduleBeingBuilt.Translate(arg, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private Function IGenericMethodInstanceReferenceGetGenericMethod(context As EmitContext) As Cci.IMethodReference Implements Cci.IGenericMethodInstanceReference.GetGenericMethod
             Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
 
-            If Me.OriginalDefinition IsNot Me.ConstructedFrom Then
-                Return Me.ConstructedFrom
-            End If
-
-            Dim container As NamedTypeSymbol = Me.ContainingType
+            Dim container As NamedTypeSymbol = AdaptedMethodSymbol.ContainingType
 
             If (Not container.IsOrInGenericType()) Then
-                Return Me.OriginalDefinition
                 ' NoPia method might come through here.
                 Return DirectCast(context.Module, PEModuleBuilder).Translate(
-                    Me.OriginalDefinition,
+                    AdaptedMethodSymbol.OriginalDefinition,
                     DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
                     context.Diagnostics,
                     needDeclaration:=True)
             End If
 
-            Dim methodSymbol As MethodSymbol = Me.ConstructedFrom
+            Dim methodSymbol As MethodSymbol = AdaptedMethodSymbol.ConstructedFrom
             Return New SpecializedMethodReference(methodSymbol)
         End Function
 
         Private ReadOnly Property ISpecializedMethodReferenceUnspecializedVersion As Cci.IMethodReference Implements Cci.ISpecializedMethodReference.UnspecializedVersion
             Get
                 Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsSpecializedMethodReference IsNot Nothing)
-                Return Me.OriginalDefinition
+                Return AdaptedMethodSymbol.OriginalDefinition.GetCciAdapter()
             End Get
         End Property
 
@@ -237,55 +293,65 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 CheckDefinitionInvariant()
 
-                Dim synthesizedGlobalMethod = TryCast(Me, SynthesizedGlobalMethodBase)
+                Dim synthesizedGlobalMethod = TryCast(AdaptedMethodSymbol, SynthesizedGlobalMethodBase)
                 If synthesizedGlobalMethod IsNot Nothing Then
                     Return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType
                 End If
 
-                Return Me.ContainingType
+                Return AdaptedMethodSymbol.ContainingType.GetCciAdapter()
             End Get
         End Property
 
         Private ReadOnly Property ITypeDefinitionMemberVisibility As Cci.TypeMemberVisibility Implements Cci.ITypeDefinitionMember.Visibility
             Get
                 CheckDefinitionInvariant()
-                Return PEModuleBuilder.MemberVisibility(Me)
+                Return PEModuleBuilder.MemberVisibility(AdaptedMethodSymbol)
             End Get
         End Property
 
         Private Function IMethodDefinitionGetBody(context As EmitContext) As Cci.IMethodBody Implements Cci.IMethodDefinition.GetBody
             CheckDefinitionInvariant()
-            Return (DirectCast(context.Module, PEModuleBuilder)).GetMethodBody(Me)
+            Return (DirectCast(context.Module, PEModuleBuilder)).GetMethodBody(AdaptedMethodSymbol)
         End Function
 
         Private ReadOnly Property IMethodDefinitionGenericParameters As IEnumerable(Of Cci.IGenericMethodParameter) Implements Cci.IMethodDefinition.GenericParameters
             Get
                 CheckDefinitionInvariant()
-                Debug.Assert(Me.TypeParameters.All(Function(param) param Is param.OriginalDefinition))
-                Return Me.TypeParameters
+                Debug.Assert(AdaptedMethodSymbol.TypeParameters.All(Function(param) param Is param.OriginalDefinition))
+#If DEBUG Then
+                Return AdaptedMethodSymbol.TypeParameters.Select(Function(t) t.GetCciAdapter())
+#Else
+                Return AdaptedMethodSymbol.TypeParameters
+#End If
             End Get
         End Property
 
         Private ReadOnly Property IMethodDefinitionHasDeclarativeSecurity As Boolean Implements Cci.IMethodDefinition.HasDeclarativeSecurity
             Get
                 CheckDefinitionInvariant()
-                Return Me.HasDeclarativeSecurity
+                Return AdaptedMethodSymbol.HasDeclarativeSecurity
             End Get
         End Property
 
         Private ReadOnly Property IMethodDefinitionIsAbstract As Boolean Implements Cci.IMethodDefinition.IsAbstract
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsMustOverride
+                Return AdaptedMethodSymbol.IsMustOverride
             End Get
         End Property
 
         Private ReadOnly Property IMethodDefinitionIsAccessCheckedOnOverride As Boolean Implements Cci.IMethodDefinition.IsAccessCheckedOnOverride
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsAccessCheckedOnOverride
+                Return AdaptedMethodSymbol.IsAccessCheckedOnOverride
             End Get
         End Property
+
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbol
+#End If
 
         Friend Overridable ReadOnly Property IsAccessCheckedOnOverride As Boolean
             Get
@@ -294,19 +360,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbolAdapter
+#End If
+
         Private ReadOnly Property IMethodDefinitionIsConstructor As Boolean Implements Cci.IMethodDefinition.IsConstructor
             Get
                 CheckDefinitionInvariant()
-                Return Me.MethodKind = MethodKind.Constructor
+                Return AdaptedMethodSymbol.MethodKind = MethodKind.Constructor
             End Get
         End Property
 
         Private ReadOnly Property IMethodDefinitionIsExternal As Boolean Implements Cci.IMethodDefinition.IsExternal
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsExternal
+                Return AdaptedMethodSymbol.IsExternal
             End Get
         End Property
+
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbol
+#End If
 
         Friend Overridable ReadOnly Property IsExternal As Boolean
             Get
@@ -315,18 +393,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbolAdapter
+#End If
+
         Private Function IMethodDefinitionGetImplementationOptions(context As EmitContext) As MethodImplAttributes Implements Cci.IMethodDefinition.GetImplementationAttributes
             CheckDefinitionInvariant()
-            Return Me.ImplementationAttributes Or
-                   If(DirectCast(context.Module, PEModuleBuilder).JITOptimizationIsDisabled(Me), DisableJITOptimizationFlags, Nothing)
+            Return AdaptedMethodSymbol.ImplementationAttributes Or
+                   If(DirectCast(context.Module, PEModuleBuilder).JITOptimizationIsDisabled(AdaptedMethodSymbol), MethodSymbol.DisableJITOptimizationFlags, Nothing)
         End Function
 
         Private ReadOnly Property IMethodDefinitionIsHiddenBySignature As Boolean Implements Cci.IMethodDefinition.IsHiddenBySignature
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsHiddenBySignature
+                Return AdaptedMethodSymbol.IsHiddenBySignature
             End Get
         End Property
+
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbol
+#End If
 
         Friend Overridable ReadOnly Property IsHiddenBySignature As Boolean
             Get
@@ -335,12 +425,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbolAdapter
+#End If
+
         Private ReadOnly Property IMethodDefinitionIsNewSlot As Boolean Implements Cci.IMethodDefinition.IsNewSlot
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsMetadataNewSlot()
+                Return AdaptedMethodSymbol.IsMetadataNewSlot()
             End Get
         End Property
+
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbol
+#End If
 
         ''' <summary>
         ''' This method indicates whether or not the runtime will regard the method
@@ -361,26 +463,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbolAdapter
+#End If
+
         Private ReadOnly Property IMethodDefinitionIsPlatformInvoke As Boolean Implements Cci.IMethodDefinition.IsPlatformInvoke
             Get
                 CheckDefinitionInvariant()
-                Return Me.GetDllImportData() IsNot Nothing
+                Return AdaptedMethodSymbol.GetDllImportData() IsNot Nothing
             End Get
         End Property
 
         Private ReadOnly Property IMethodDefinitionPlatformInvokeData As Cci.IPlatformInvokeInformation Implements Cci.IMethodDefinition.PlatformInvokeData
             Get
                 CheckDefinitionInvariant()
-                Return Me.GetDllImportData()
+                Return AdaptedMethodSymbol.GetDllImportData()
             End Get
         End Property
 
         Private ReadOnly Property IMethodDefinitionIsRuntimeSpecial As Boolean Implements Cci.IMethodDefinition.IsRuntimeSpecial
             Get
                 CheckDefinitionInvariant()
-                Return Me.HasRuntimeSpecialName
+                Return AdaptedMethodSymbol.HasRuntimeSpecialName
             End Get
         End Property
+
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbol
+#End If
 
         Friend Overridable ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
@@ -395,12 +509,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbolAdapter
+#End If
+
         Private ReadOnly Property IMethodDefinitionIsSealed As Boolean Implements Cci.IMethodDefinition.IsSealed
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsMetadataFinal
+                Return AdaptedMethodSymbol.IsMetadataFinal
             End Get
         End Property
+
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbol
+#End If
 
         Friend Overridable ReadOnly Property IsMetadataFinal As Boolean
             Get
@@ -411,24 +537,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbolAdapter
+#End If
+
         Private ReadOnly Property IMethodDefinitionIsSpecialName As Boolean Implements Cci.IMethodDefinition.IsSpecialName
             Get
                 CheckDefinitionInvariant()
-                Return Me.HasSpecialName
+                Return AdaptedMethodSymbol.HasSpecialName
             End Get
         End Property
 
         Private ReadOnly Property IMethodDefinitionIsStatic As Boolean Implements Cci.IMethodDefinition.IsStatic
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsShared
+                Return AdaptedMethodSymbol.IsShared
             End Get
         End Property
 
         Private ReadOnly Property IMethodDefinitionIsVirtual As Boolean Implements Cci.IMethodDefinition.IsVirtual
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsMetadataVirtual()
+                Return AdaptedMethodSymbol.IsMetadataVirtual()
             End Get
         End Property
 
@@ -437,11 +569,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 CheckDefinitionInvariant()
 
 #If DEBUG Then
-                For Each p In Me.Parameters
+                For Each p In AdaptedMethodSymbol.Parameters
                     Debug.Assert(p Is p.OriginalDefinition)
                 Next
+
+                Return AdaptedMethodSymbol.Parameters.SelectAsArray(Of Cci.IParameterDefinition)(Function(p) p.GetCciAdapter())
+#Else
+                Return StaticCast(Of Cci.IParameterDefinition).From(AdaptedMethodSymbol.Parameters)
 #End If
-                Return StaticCast(Of Cci.IParameterDefinition).From(Me.Parameters)
             End Get
         End Property
 
@@ -458,20 +593,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim userDefined As ImmutableArray(Of VisualBasicAttributeData)
             Dim synthesized As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
 
-            userDefined = Me.GetReturnTypeAttributes()
-            Me.AddSynthesizedReturnTypeAttributes(synthesized)
+            userDefined = AdaptedMethodSymbol.GetReturnTypeAttributes()
+            AdaptedMethodSymbol.AddSynthesizedReturnTypeAttributes(synthesized)
 
             ' Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             ' all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
-            Return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType:=True, emittingAssemblyAttributesInNetModule:=False)
+            Return AdaptedMethodSymbol.GetCustomAttributesToEmit(userDefined, synthesized, isReturnType:=True, emittingAssemblyAttributesInNetModule:=False)
         End Function
 
         Private ReadOnly Property IMethodDefinitionReturnValueIsMarshalledExplicitly As Boolean Implements Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly
             Get
                 CheckDefinitionInvariant()
-                Return Me.ReturnValueIsMarshalledExplicitly
+                Return AdaptedMethodSymbol.ReturnValueIsMarshalledExplicitly
             End Get
         End Property
+
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbol
+#End If
 
         Friend Overridable ReadOnly Property ReturnValueIsMarshalledExplicitly As Boolean
             Get
@@ -480,19 +621,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbolAdapter
+#End If
+
         Private ReadOnly Property IMethodDefinitionReturnValueMarshallingInformation As Cci.IMarshallingInformation Implements Cci.IMethodDefinition.ReturnValueMarshallingInformation
             Get
                 CheckDefinitionInvariant()
-                Return ReturnTypeMarshallingInformation
+                Return AdaptedMethodSymbol.ReturnTypeMarshallingInformation
             End Get
         End Property
 
         Private ReadOnly Property IMethodDefinitionReturnValueMarshallingDescriptor As ImmutableArray(Of Byte) Implements Cci.IMethodDefinition.ReturnValueMarshallingDescriptor
             Get
                 CheckDefinitionInvariant()
-                Return ReturnValueMarshallingDescriptor
+                Return AdaptedMethodSymbol.ReturnValueMarshallingDescriptor
             End Get
         End Property
+
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbol
+#End If
 
         Friend Overridable ReadOnly Property ReturnValueMarshallingDescriptor As ImmutableArray(Of Byte)
             Get
@@ -501,11 +654,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+#If DEBUG Then
+    End Class
+
+    Partial Friend Class MethodSymbolAdapter
+#End If
+
         Private ReadOnly Property IMethodDefinitionSecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) Implements Cci.IMethodDefinition.SecurityAttributes
             Get
                 CheckDefinitionInvariant()
-                Debug.Assert(Me.HasDeclarativeSecurity)
-                Dim securityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Me.GetSecurityInformation()
+                Debug.Assert(AdaptedMethodSymbol.HasDeclarativeSecurity)
+                Dim securityAttributes As IEnumerable(Of Cci.SecurityAttribute) = AdaptedMethodSymbol.GetSecurityInformation()
                 Debug.Assert(securityAttributes IsNot Nothing)
                 Return securityAttributes
             End Get
@@ -513,7 +672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodDefinition_ContainingNamespace As Cci.INamespace Implements Cci.IMethodDefinition.ContainingNamespace
             Get
-                Return ContainingNamespace
+                Return AdaptedMethodSymbol.ContainingNamespace.GetCciAdapter()
             End Get
         End Property
     End Class
