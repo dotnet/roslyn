@@ -8752,5 +8752,32 @@ record C : [|I|] // hello
 }
 ");
         }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnconstrainedGenericNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface B<T>
+{
+    T? M();
+}
+
+class D : [|B<int>|]
+{
+}",
+@"interface B<T>
+{
+    T? M();
+}
+
+class D : B<int>
+{
+    public int M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
     }
 }

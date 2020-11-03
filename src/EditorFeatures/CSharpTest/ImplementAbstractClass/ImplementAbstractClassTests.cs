@@ -1911,5 +1911,32 @@ record B(int i) : A
     }
 }", parseOptions: TestOptions.RegularPreview);
         }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D|] : B<int>
+{
+}",
+@"abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D : B<int>
+{
+    public override int M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
     }
 }
