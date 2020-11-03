@@ -8,7 +8,7 @@ parameters:
 - name: buildJobName
   type: string
   default: ''
-- name: testArtifactName
+- name: transportArtifactName
   type: string
   default: ''
 - name: configuration
@@ -41,7 +41,7 @@ jobs:
 
     - task: DownloadPipelineArtifact@2
       inputs:
-        artifact: ${{ parameters.testArtifactName }}
+        artifact: ${{ parameters.transportArtifactName }}
         path: '$(Build.SourcesDirectory)/artifacts/bin' 
 
     # Work around for files not maintaining permissions after pipeline download

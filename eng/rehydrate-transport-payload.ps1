@@ -1,5 +1,10 @@
+# This script will be called on the test machine when the transport payload is 
+# still in the raw unzipped form. The job of this script is to undo the packing
+# that prepare-transport-payload did
 [CmdletBinding(PositionalBinding=$false)]
-param ()
+param (
+  [string]$transportDirectory = "",
+  [string]$targetDirectory = "")
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"

@@ -3,7 +3,7 @@ parameters:
 - name: jobName
   type: string
   default: ''
-- name: testArtifactName
+- name: transportArtifactName
   type: string
   default: ''
 - name: configuration
@@ -31,16 +31,16 @@ jobs:
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog 
 
     - task: PowerShell@2 
-      displayName: Prepare Unit Tests
+      displayName: Prepare Transport Payload
       inputs:
-        filePath: eng/prepare-tests.ps1
-        arguments: -configuration ${{ parameters.configuration }}
+        filePath: eng/prepare-transport-payload.ps1
+        arguments: -configuration ${{ parameters.configuration }} '$(Build.SourceDirectory)\artifacts\transport'
 
     - task: PublishPipelineArtifact@1
       displayName: Publish Test Payload
       inputs:
-        targetPath: '$(Build.SourcesDirectory)\artifacts\testPayload'
-        artifactName: ${{ parameters.testArtifactName }}
+        targetPath: '$(Build.SourcesDirectory)\artifacts\transport'
+        artifactName: ${{ parameters.transportArtifactName }}
 
     - template: publish-logs.yml
       parameters:

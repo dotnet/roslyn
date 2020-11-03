@@ -9,7 +9,7 @@ parameters:
 - name: buildJobName
   type: string
   default: ''
-- name: testArtifactName
+- name: transportArtifactName
   type: string
   default: ''
 - name: configuration
@@ -32,13 +32,13 @@ jobs:
   steps:
     - task: DownloadPipelineArtifact@2
       inputs:
-        artifact: ${{ parameters.testArtifactName }}
+        artifact: ${{ parameters.transportArtifactName }}
         path: '$(Build.SourcesDirectory)\artifacts\bin' 
 
     - task: PowerShell@2 
       displayName: Rehydrate Unit Tests Environment
       inputs:
-        filePath: eng/rehydrate-tests.ps1
+        filePath: eng/rehydrate-transport-payload.ps1
 
     - task: PowerShell@2 
       displayName: Run Unit Tests
