@@ -560,16 +560,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // First, do a check to see if there are even any members named <Clone>$. If we have to actually find the clone
-                // method, it can be expensive, because we have to load all the members. MemberNames just loads the strings, which
-                // is much cheaper.
-                if (!MemberNames.Contains(WellKnownMemberNames.CloneMethodName))
-                {
-                    return false;
-                }
-
-                // There exists a member named <Clone>$. We still need to check to see if it's actually a valid clone method, but
-                // there's no getting around that now.
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 return SynthesizedRecordClone.FindValidCloneMethod(this, ref useSiteDiagnostics) != null;
             }
@@ -1428,6 +1418,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return m;
         }
+
+        internal sealed override bool HasPossibleWellKnownCloneMethod()
+            => MemberNames.Contains(WellKnownMemberNames.CloneMethodName);
 
         internal override FieldSymbol FixedElementField
         {

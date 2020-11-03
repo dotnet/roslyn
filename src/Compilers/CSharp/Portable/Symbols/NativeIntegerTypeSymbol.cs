@@ -163,7 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => _underlyingType;
 
-        internal override bool IsRecord => false;
+        internal sealed override bool IsRecord => false;
+        internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 
         internal override bool Equals(TypeSymbol? other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
         {
