@@ -4,7 +4,7 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics
 {
-    public class XamlDiagnostic
+    internal class XamlDiagnostic
     {
         public string? Code { get; set; }
         public string? Message { get; set; }

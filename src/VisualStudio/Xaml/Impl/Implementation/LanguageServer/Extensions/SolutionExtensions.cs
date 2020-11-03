@@ -15,6 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     internal static class SolutionExtensions
     {
         public static IEnumerable<Project> GetXamlProjects(this Solution solution)
-            => solution.Projects.Where(p => !p.SupportsCompilation && p.Language == StringConstants.XamlLanguageName);
+            => solution.Projects.Where(p => p.Language == StringConstants.XamlLanguageName);
     }
 }

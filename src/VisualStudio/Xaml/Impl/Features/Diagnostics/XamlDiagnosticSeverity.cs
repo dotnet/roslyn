@@ -4,7 +4,7 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics
 {
-    public enum XamlDiagnosticSeverity
+    internal enum XamlDiagnosticSeverity
     {
         /// <summary>
         /// Represents an error.

@@ -93,12 +93,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             // Go through the documents that we need to process and call XamlPullDiagnosticService to get the diagnostic report
             foreach (var document in GetDocuments(context))
             {
-                SourceText text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var documentId = ProtocolConversions.DocumentToTextDocumentIdentifier(document);
 
                 // If we can get a previousId of the document, use it, 
                 // otherwise use null as the previousId to pass into the XamlPullDiagnosticService
-                var previousResultId = documentToPreviousResultId.ContainsKey(document) ? documentToPreviousResultId[document] : null;
+                var previousResultId = documentToPreviousResultId.TryGetValue(document, out var id) ? id : null;
 
                 // Call XamlPullDiagnosticService to get the diagnostic report for this document.
                 // We will compute what to report inside XamlPullDiagnosticService, for example, whether we should keep using the previousId or use a new resultId,
@@ -110,13 +110,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                             diagnosticReport.ResultId));
             }
 
-            return null;
+            return progress.GetValues();
         }
 
         /// <summary>
         /// Convert XamlDiagnostics to VSDiagnostics
         /// </summary>
-        private static VSDiagnostic[]? ConvertToVSDiagnostics(XamlDiagnostic[]? xamlDiagnostics, Document document, SourceText text)
+        private static VSDiagnostic[]? ConvertToVSDiagnostics(ImmutableArray<XamlDiagnostic>? xamlDiagnostics, Document document, SourceText text)
         {
             if (xamlDiagnostics == null)
             {
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
 
             var project = document.Project;
-            return xamlDiagnostics.Select(d => new VSDiagnostic()
+            return xamlDiagnostics.Value.Select(d => new VSDiagnostic()
             {
                 Code = d.Code,
                 Message = d.Message ?? string.Empty,
@@ -156,6 +156,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 _ => throw ExceptionUtilities.UnexpectedValue(severity),
             };
 
+        /// <summary>
+        /// If you make change in this method, please also update the corresponding file in
+        /// src\Features\LanguageServer\Protocol\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
+        /// </summary>
         private static DiagnosticTag[] ConvertTags(XamlDiagnostic diagnostic)
         {
             using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
