@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
                                 isPattern,
                                 (current, _) =>
                                 {
-                                    var currentIsPattern = (IsPatternExpressionSyntax)isPattern;
+                                    var currentIsPattern = (IsPatternExpressionSyntax)current;
                                     return SyntaxFactory.BinaryExpression(
                                         SyntaxKind.IsExpression,
                                         currentIsPattern.Expression,
