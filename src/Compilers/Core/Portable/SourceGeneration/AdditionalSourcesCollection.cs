@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis
 
         internal AdditionalSourcesCollection(string fileExtension)
         {
+            Debug.Assert(fileExtension.StartsWith('.'));
             _sourcesAdded = ArrayBuilder<GeneratedSourceText>.GetInstance();
             _fileExtension = fileExtension;
         }
