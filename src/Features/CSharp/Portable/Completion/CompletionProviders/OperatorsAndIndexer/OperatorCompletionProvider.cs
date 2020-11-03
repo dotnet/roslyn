@@ -93,49 +93,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
         {
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-            var symbol = symbols.Length == 1
-                ? symbols[0] as IMethodSymbol
-                : null;
-            if (symbol is not null)
+            var symbol = (IMethodSymbol)symbols.Single();
+            Contract.ThrowIfFalse(symbol.IsUserDefinedOperator());
+
+            var operatorPosition = symbol.GetOperatorPosition();
+            var operatorSign = symbol.GetOperatorSignOfOperator();
+
+            if (operatorPosition.HasFlag(OperatorPosition.Infix))
             {
-                Contract.ThrowIfFalse(symbol.IsUserDefinedOperator());
-                var operatorPosition = symbol.GetOperatorPosition();
-                var operatorSign = symbol.GetOperatorSignOfOperator();
-                if (operatorPosition.HasFlag(OperatorPosition.Infix))
-                {
-                    var change = await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $" {operatorSign} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
-                    if (change is not null)
-                    {
-                        return change;
-                    }
-                }
-                if (operatorPosition.HasFlag(OperatorPosition.Postfix))
-                {
-                    var change = await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $"{operatorSign} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
-                    if (change is not null)
-                    {
-                        return change;
-                    }
-                }
-                if (operatorPosition.HasFlag(OperatorPosition.Prefix))
-                {
-                    var position = SymbolCompletionItem.GetContextPosition(item);
-                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var (_, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(position, root);
-                    var rootExpression = GetRootExpressionOfToken(potentialDotTokenLeftOfCursor);
-                    if (rootExpression is not null)
-                    {
-                        var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, rootExpression.Span.End);
-                        var cursorPositionOffset = spanToReplace.End - position;
-                        var fromRootToParent = rootExpression.ToString();
-                        var prefixed = $"{operatorSign}{fromRootToParent}";
-                        var newPosition = spanToReplace.Start + prefixed.Length - cursorPositionOffset;
-                        return CompletionChange.Create(new TextChange(spanToReplace, prefixed), newPosition);
-                    }
-                }
+                return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $" {operatorSign} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
+            }
+            if (operatorPosition.HasFlag(OperatorPosition.Postfix))
+            {
+                return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $"{operatorSign} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
+            }
+            if (operatorPosition.HasFlag(OperatorPosition.Prefix))
+            {
+                var position = SymbolCompletionItem.GetContextPosition(item);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var (_, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(position, root);
+
+                var rootExpression = GetRootExpressionOfToken(potentialDotTokenLeftOfCursor);
+                // base.ProvideCompletionsAsync checks GetParentExpressionOfToken is not null. If GetRootExpressionOfToken returns something, so does GetParentExpressionOfToken.
+                Contract.ThrowIfNull(rootExpression);
+
+                var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, rootExpression.Span.End);
+                var cursorPositionOffset = spanToReplace.End - position;
+                var fromRootToParent = rootExpression.ToString();
+                var prefixed = $"{operatorSign}{fromRootToParent}";
+                var newPosition = spanToReplace.Start + prefixed.Length - cursorPositionOffset;
+                return CompletionChange.Create(new TextChange(spanToReplace, prefixed), newPosition);
             }
 
-            return await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }
