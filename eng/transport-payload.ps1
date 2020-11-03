@@ -36,12 +36,12 @@ function Unpack() {
   Write-Host "Copying eng"
   Copy-Item -Recurse -Force (Join-Path $transportDirectory "eng") (Join-Path $repoDirectory "eng")
 
+  # Now that the environment is restored, lets use it to finish rebuilding
+  . (Join-Path $repoDirectory "eng\build-utils.ps1")
+
   Write-Host "Copying test payload"
   Create-Directory "artifacts\bin"
   Move-Item "$transportDirectory\testPayload\*" (Join-Path $repoDirectory "artifacts\bin")
-
-  # Now that the environment is restored, lets use it to finish rebuilding
-  . (Join-Path $repoDirectory "eng\build-utils.ps1")
 
   Push-Location "artifacts\bin"
   & .\rehydrate.cmd
