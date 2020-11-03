@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return ReportSymbolInformationAsync(result, cancellationToken);
             }
 
-            public void Done(bool isFullyLoaded = true)
+            public void Done(bool isFullyLoaded)
             {
                 // do nothing, we already await the SearchAsync method which calls this in a finally right before returning.
                 // used by non-LSP editor API.

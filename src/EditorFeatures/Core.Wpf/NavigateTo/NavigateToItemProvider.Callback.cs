@@ -14,18 +14,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal partial class NavigateToItemProvider
     {
-        private class VisualStudioNavigateToCallback : INavigateToSearchCallback
+        private class NavigateToItemProviderCallback : INavigateToSearchCallback
         {
             private readonly INavigateToItemDisplayFactory _displayFactory;
             private readonly INavigateToCallback _callback;
 
-            public VisualStudioNavigateToCallback(INavigateToItemDisplayFactory displayFactory, INavigateToCallback callback)
+            public NavigateToItemProviderCallback(INavigateToItemDisplayFactory displayFactory, INavigateToCallback callback)
             {
                 _displayFactory = displayFactory;
                 _callback = callback;
             }
 
-            public void Done(bool isFullyLoaded = true)
+            public void Done(bool isFullyLoaded)
             {
                 if (!isFullyLoaded && _callback is INavigateToCallback2 callback2)
                 {

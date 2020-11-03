@@ -98,8 +98,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             var activeDocument = docTrackingService.GetActiveDocument(_solution);
             var visibleDocs = docTrackingService.GetVisibleDocuments(_solution)
-                                                .Where(d => d != activeDocument)
-                                                .ToImmutableArray();
+                                                .WhereAsArray(d => d != activeDocument);
 
             // First, if there's an active document, search that project first, prioritizing
             // that active document and all visible documents from it.
