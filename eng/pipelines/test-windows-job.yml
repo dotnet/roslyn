@@ -30,7 +30,8 @@ jobs:
     queue: ${{ parameters.queueName }}
   timeoutInMinutes: 120
   steps:
-    -checkout: none
+
+    - checkout: none
 
     - task: DownloadPipelineArtifact@2
       inputs:
