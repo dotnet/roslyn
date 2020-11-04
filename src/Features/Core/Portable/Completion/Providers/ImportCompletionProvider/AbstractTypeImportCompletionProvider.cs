@@ -42,15 +42,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
                 else
                 {
-                    var isParenthesisCompletionEnable = IsAutoAddParenthesisBySemicolonEnabled(completionContext.Document);
                     foreach (var items in itemsFromAllAssemblies)
                     {
-                        AddItems(isParenthesisCompletionEnable
-                            ? AttachParenthesisCompletionProperties(syntaxContext, items).ToImmutableArray()
-                            : items,
-                            completionContext,
-                            namespacesInScope,
-                            telemetryCounter);
+                        AddItems(items, completionContext, namespacesInScope, telemetryCounter);
                     }
                 }
 
@@ -68,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // We can return cached item directly, item's span will be fixed by completion service.
                     // On the other hand, because of this (i.e. mutating the  span of cached item for each run),
-                    // the provider can not be used as a service by components that might be run in parallel 
+                    // the provider can not be used as a service by components that might be run in parallel
                     // with completion, which would be a race.
                     completionContext.AddItem(item);
                     counter.ItemsCount++;

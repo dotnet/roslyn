@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return False
         End Function
 
-        Protected Overrides Function AttachParenthesisCompletionProperties(syntaxContext As SyntaxContext, items As IEnumerable(Of CompletionItem)) As IEnumerable(Of CompletionItem)
-            Return items
+        Protected Overrides Function ShouldProvideParenthesisCompletionAsync(document As Document, position As Integer, symbol As ISymbol, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of Boolean)
+            Return Task.FromResult(False)
         End Function
     End Class
 End Namespace

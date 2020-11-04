@@ -11,8 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -60,10 +62,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        protected override IEnumerable<CompletionItem> AttachParenthesisCompletionProperties(SyntaxContext syntaxContext, IEnumerable<CompletionItem> items)
+        protected override async Task<bool> ShouldProvideParenthesisCompletionAsync(
+            Document document,
+            int position,
+            ISymbol? symbol,
+            char? commitKey,
+            CancellationToken cancellationToken)
         {
-            var isInferredTypeDelegate = syntaxContext.InferredTypes.Any(type => type.IsDelegateType());
-            return items.Select(item => ImportCompletionItem.CreateItemWithProvideParenthesisCompletion(item, !isInferredTypeDelegate));
+            if (commitKey == ';')
+            {
+                var typeInferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+                var inferredTypes = typeInferenceService.InferTypes(semanticModel, position, cancellationToken);
+                return !inferredTypes.Any(type => type.IsDelegateType());
+            }
+
+            return false;
         }
     }
 }

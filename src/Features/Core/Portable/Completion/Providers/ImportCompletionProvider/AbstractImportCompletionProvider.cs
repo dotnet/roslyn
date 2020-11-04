@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
-        protected abstract IEnumerable<CompletionItem> AttachParenthesisCompletionProperties(SyntaxContext syntaxContext, IEnumerable<CompletionItem> items);
+        protected abstract Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, int position, ISymbol? symbol, char? commitKey, CancellationToken cancellationToken);
 
         // For telemetry reporting
         protected abstract void LogCommit();
@@ -129,14 +129,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = ImportCompletionItem.GetSymbol(completionItem, compilation);
 
-            var provideParenthesisCompletion = commitKey == ';' && ImportCompletionItem.GetProvideParenthesisCompletion(completionItem);
+            var provideParenthesisCompletion = await ShouldProvideParenthesisCompletionAsync(
+                document,
+                completionItem.Span.Start,
+                symbol,
+                commitKey,
+                cancellationToken).ConfigureAwait(false);
             var insertText = provideParenthesisCompletion
                 ? string.Concat(completionItem.DisplayText, "()", commitKey)
                 : completionItem.DisplayText;
-
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = ImportCompletionItem.GetSymbol(completionItem, compilation);
 
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {

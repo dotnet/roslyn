@@ -273,50 +273,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
-            if (IsAutoAddParenthesisBySemicolonEnabled(completionContext.Document))
+            var rules = CreateCompletionItemRules(completionContext, symbols, context, preselect);
+            var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
+            var isObjectCreationTypeContext = context switch
             {
-                var rules = CreateCompletionItemRules(completionContext, symbols, context, preselect);
-                var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
-                var isObjectCreationTypeContext = context switch
-                {
-                    CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
-                    _ => false
-                };
+                CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
+                _ => false
+            };
 
-                var shouldProvideParenthesisCompletion = symbols.All(symbol => symbol switch
-                {
-                    IMethodSymbol => !isInferredTypeDelegate,
-                    ITypeSymbol => isObjectCreationTypeContext,
-                    IAliasSymbol => isObjectCreationTypeContext,
-                    _ => false
-                });
-                var properties = ImmutableDictionary<string, string>.Empty
-                    .Add("ProvideParenthesisCompletion", shouldProvideParenthesisCompletion.ToString());
-
-                return SymbolCompletionItem.CreateWithNameKindAndId(
-                    displayText: displayText,
-                    displayTextSuffix: displayTextSuffix,
-                    symbols: symbols,
-                    // Always preselect
-                    rules: rules,
-                    contextPosition: context.Position,
-                    insertionText: insertionText,
-                    filterText: GetFilterText(symbols[0], displayText, context),
-                    supportedPlatforms: supportedPlatformData,
-                    properties: properties);
-            }
-            else
+            var shouldProvideParenthesisCompletion = symbols.All(symbol => symbol switch
             {
-                return base.CreateItem(
-                    completionContext,
-                    displayText,
-                    displayTextSuffix,
-                    insertionText,
-                    symbols,
-                    context,
-                    preselect,
-                    supportedPlatformData);
+                IMethodSymbol => !isInferredTypeDelegate,
+                ITypeSymbol => isObjectCreationTypeContext,
+                IAliasSymbol => isObjectCreationTypeContext,
+                _ => false
+            });
+
+            var properties = ImmutableDictionary<string, string>.Empty
+                .Add("ProvideParenthesisCompletion", shouldProvideParenthesisCompletion.ToString());
+
+            return SymbolCompletionItem.CreateWithSymbolId(
+                displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
+                symbols: symbols,
+                // Always preselect
+                rules: rules,
+                contextPosition: context.Position,
+                insertionText: insertionText,
+                filterText: GetFilterText(symbols[0], displayText, context),
+                supportedPlatforms: supportedPlatformData,
+                properties: properties);
+        }
+
+        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
+            Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            var position = SymbolCompletionItem.GetContextPosition(item);
+            var restoredSymbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+            var symbol = restoredSymbols[0];
+            var name = symbol.Name;
+            var kind = symbol.Kind;
+            var isGeneric = symbol.GetArity() > 0;
+            var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
+            var options = document.Project.Solution.Workspace.Options;
+            var totalSymbols = await base.GetPerContextSymbolsAsync(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            foreach (var (documentId, syntaxContext, symbols) in totalSymbols)
+            {
+                var bestSymbols = symbols.WhereAsArray(
+                    s => kind != null && s.Kind == kind && s.Name == name && isGeneric == (s.GetArity() > 0));
+
+                if (bestSymbols.Any())
+                {
+                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);
+                }
             }
+
+            return CompletionDescription.Empty;
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)

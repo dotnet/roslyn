@@ -23,10 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public static async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            // Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
+            // Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to
             // reach outside of the span and ended up with "node not within syntax tree" error from the speculative model.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
     }
 }
+

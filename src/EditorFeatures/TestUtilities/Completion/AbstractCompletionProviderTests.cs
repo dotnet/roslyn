@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         protected Task VerifyItemWithAliasedMetadataReferencesAsync(string markup, string metadataAlias, string expectedItem, int expectedSymbols,
-                                                   string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
+            string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
         {
             var xmlString = CreateMarkupForProjectWithAliasedMetadataReference(markup, metadataAlias, "", sourceLanguage, referencedLanguage);
 

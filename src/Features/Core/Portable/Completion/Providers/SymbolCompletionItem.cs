@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncoding = AddSymbolEncoding;
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolInfo = AddSymbolInfo;
-        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncodingAndInfo = AddSymbolEncodingAndInfo;
 
         private static CompletionItem CreateWorker(
             string displayText,
@@ -323,25 +322,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
                 s_addSymbolInfo, sortText, insertionText,
-                filterText, supportedPlatforms, properties, tags);
-        }
-
-        public static CompletionItem CreateWithNameKindAndId(
-            string displayText,
-            string displayTextSuffix,
-            IReadOnlyList<ISymbol> symbols,
-            CompletionItemRules rules,
-            int contextPosition,
-            string sortText = null,
-            string insertionText = null,
-            string filterText = null,
-            SupportedPlatformData supportedPlatforms = null,
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
-        {
-            return CreateWorker(
-                displayText, displayTextSuffix, symbols, rules, contextPosition,
-                s_addSymbolEncodingAndInfo, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }
 

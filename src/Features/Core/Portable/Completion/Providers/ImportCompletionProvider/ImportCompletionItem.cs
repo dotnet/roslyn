@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // Use "<display name> <namespace>" as sort text. The space before namespace makes items with identical display name
-            // but from different namespace all show up in the list, it also makes sure item with shorter name shows first, 
-            // e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
+            // but from different namespace all show up in the list, it also makes sure item with shorter name shows first,
+            // e.g. 'SomeType` before 'SomeTypeWithLongerName'.
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, name, containingNamespace);
 
@@ -106,20 +106,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static string GetContainingNamespace(CompletionItem item)
             => item.InlineDescription;
-
-        public static CompletionItem CreateItemWithProvideParenthesisCompletion(CompletionItem item, bool provideParenthesisCompletion)
-            => item.AddProperty("ProvideParenthesisCompletion", provideParenthesisCompletion.ToString());
-
-        public static bool GetProvideParenthesisCompletion(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("ProvideParenthesisCompletion", out var value)
-                && bool.TryParse(value, out var result))
-            {
-                return result;
-            }
-
-            return false;
-        }
 
         public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
@@ -184,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName) ? attributeFullName : item.DisplayText;
             var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, typeName);
 
-            // We choose not to display the number of "type overloads" for simplicity. 
+            // We choose not to display the number of "type overloads" for simplicity.
             // Otherwise, we need additional logic to track internal and public visible
             // types separately, and cache both completion items.
             if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
