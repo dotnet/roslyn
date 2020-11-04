@@ -8758,7 +8758,9 @@ record C : [|I|] // hello
         public async Task TestUnconstrainedGenericNullable()
         {
             await TestInRegularAndScriptAsync(
-@"interface B<T>
+@"#nullable enable
+
+interface B<T>
 {
     T? M();
 }
@@ -8766,7 +8768,9 @@ record C : [|I|] // hello
 class D : [|B<int>|]
 {
 }",
-@"interface B<T>
+@"#nullable enable
+
+interface B<T>
 {
     T? M();
 }
@@ -8785,7 +8789,9 @@ class D : B<int>
         public async Task TestUnconstrainedGenericNullable2()
         {
             await TestInRegularAndScriptAsync(
-@"interface B<T>
+@"#nullable enable
+
+interface B<T>
 {
     T? M();
 }
@@ -8793,7 +8799,9 @@ class D : B<int>
 class D<T> : [|B<T>|] where T : struct
 {
 }",
-@"interface B<T>
+@"#nullable enable
+
+interface B<T>
 {
     T? M();
 }
@@ -8805,6 +8813,73 @@ class D<T> : B<T> where T : struct
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable_Tuple()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+interface B<T>
+{
+    T? M();
+}
+
+class D<T> : [|B<(T, T)>|]
+{
+}",
+@"#nullable enable
+
+interface B<T>
+{
+    T? M();
+}
+
+class D<T> : B<(T, T)>
+{
+    public (T, T) M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [InlineData("", "T")]
+        [InlineData(" where T : class", "T")]
+        [InlineData("", "T?")]
+        [InlineData(" where T : class", "T?")]
+        [InlineData(" where T : struct", "T?")]
+        public async Task TestUnconstrainedGenericNullable_NoRegression(string constraint, string passToBase)
+        {
+            await TestInRegularAndScriptAsync(
+$@"#nullable enable
+
+interface B<T>
+{{
+    T? M();
+}}
+
+class D<T> : [|B<{passToBase}>|]{constraint}
+{{
+}}",
+$@"#nullable enable
+
+interface B<T>
+{{
+    T? M();
+}}
+
+class D<T> : B<{passToBase}>{constraint}
+{{
+    public T? M()
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
         }
     }
 }
