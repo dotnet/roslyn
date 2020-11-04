@@ -1917,7 +1917,9 @@ record B(int i) : A
         public async Task TestUnconstrainedGenericNullable()
         {
             await TestAllOptionsOffAsync(
-@"abstract class B<T>
+@"#nullable enable
+
+abstract class B<T>
 {
     public abstract T? M();
 }
@@ -1925,7 +1927,9 @@ record B(int i) : A
 class [|D|] : B<int>
 {
 }",
-@"abstract class B<T>
+@"#nullable enable
+
+abstract class B<T>
 {
     public abstract T? M();
 }
@@ -1944,7 +1948,9 @@ class D : B<int>
         public async Task TestUnconstrainedGenericNullable2()
         {
             await TestAllOptionsOffAsync(
-@"abstract class B<T>
+@"#nullable enable
+
+abstract class B<T>
 {
     public abstract T? M();
 }
@@ -1952,7 +1958,9 @@ class D : B<int>
 class [|D<T>|] : B<T> where T : struct
 {
 }",
-@"abstract class B<T>
+@"#nullable enable
+
+abstract class B<T>
 {
     public abstract T? M();
 }
@@ -1964,6 +1972,73 @@ class D<T> : B<T> where T : struct
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable_Tuple()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D<T>|] : B<(T, T)>
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D<T> : B<(T, T)>
+{
+    public override (T, T) M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [InlineData("", "T")]
+        [InlineData(" where T : class", "T")]
+        [InlineData("", "T?")]
+        [InlineData(" where T : class", "T?")]
+        [InlineData(" where T : struct", "T?")]
+        public async Task TestUnconstrainedGenericNullable_NoRegression(string constraint, string passToBase)
+        {
+            await TestAllOptionsOffAsync(
+$@"#nullable enable
+
+abstract class B<T>
+{{
+    public abstract T? M();
+}}
+
+class [|D<T>|] : B<{passToBase}>{constraint}
+{{
+}}",
+$@"#nullable enable
+
+abstract class B<T>
+{{
+    public abstract T? M();
+}}
+
+class D<T> : B<{passToBase}>{constraint}
+{{
+    public override T? M()
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
         }
     }
 }
