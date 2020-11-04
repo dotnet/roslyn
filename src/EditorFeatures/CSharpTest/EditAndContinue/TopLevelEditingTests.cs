@@ -3861,7 +3861,7 @@ class C
                 "Update [void M() { void L() { } }]@10 -> [void M() { [A]void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
         }
 
         [Fact]
@@ -3876,7 +3876,7 @@ class C
                 "Update [void M() { [A]void L() { } }]@10 -> [void M() { void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
         }
 
         [Fact]
@@ -3891,7 +3891,7 @@ class C
                 "Update [void M() { [A, B]void L() { } }]@10 -> [void M() { [B, A]void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
         }
 
         [Fact]
@@ -3906,7 +3906,7 @@ class C
                 "Update [void M() { int L() { return 1; } }]@10 -> [void M() { [return: A]int L() { return 1; } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
         }
 
         [Fact]
@@ -3921,7 +3921,7 @@ class C
                 "Update [void M() { [return: A]int L() { return 1; } }]@10 -> [void M() { int L() { return 1; } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
         }
 
         [Fact]
@@ -3936,7 +3936,7 @@ class C
                 "Update [void M() { [return: A, B]int L() { return 1; } }]@10 -> [void M() { [return: B, A]int L() { return 1; } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
         }
 
         [Fact]
@@ -3951,7 +3951,7 @@ class C
                 "Update [void M() { void L(int i) { } }]@10 -> [void M() { void L([A]int i) { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
         }
 
         [Fact]
@@ -3966,7 +3966,7 @@ class C
                 "Update [void M() { void L([A]int i) { } }]@10 -> [void M() { void L(int i) { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
         }
 
         [Fact]
@@ -3981,7 +3981,7 @@ class C
                 "Update [void M() { void L([A, B]int i) { } }]@10 -> [void M() { void L([B, A]int i) { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", "local function") });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
         }
 
         [Fact]
