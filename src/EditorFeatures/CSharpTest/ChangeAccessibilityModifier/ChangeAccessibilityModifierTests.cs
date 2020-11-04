@@ -207,7 +207,7 @@ abstract class B
 
     abstract event Action Event;
 
-    override string ToString() => """"; // Not touched because of equivalence key
+    override string ToString() => """"; // not touched because of equivalence key
 
     abstract event Action<int> Event1, Event2; // multi-var event declaration is intentially not supported by FixAll
 }
