@@ -4360,9 +4360,9 @@ class C
 
         [WorkItem(40555, "https://github.com/dotnet/roslyn/issues/40555")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingOnLocalFunctionHeader_Identifier()
+        public async Task TestOnLocalFunctionHeader_Identifier()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            var input = @"
 using System;
 class C
 {
@@ -4375,14 +4375,34 @@ class C
             }
         });
     }
-}");
+}";
+            var expected = @"
+using System;
+class C
+{
+    void M(Action a)
+    {
+        M({|Rename:NewMethod|}());
+
+        static Action NewMethod()
+        {
+            return () =>
+            {
+                void F(int x)
+                {
+                }
+            };
+        }
+    }
+}";
+            await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
         }
 
         [WorkItem(40555, "https://github.com/dotnet/roslyn/issues/40555")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingOnLocalFunctionHeader_Identifier_ExpressionBody()
+        public async Task TestOnLocalFunctionHeader_Identifier_ExpressionBody()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            var input = @"
 using System;
 class C
 {
@@ -4393,7 +4413,25 @@ class C
             int [|F|](int x) => 1;
         });
     }
-}");
+}";
+            var expected = @"
+using System;
+class C
+{
+    void M(Action a)
+    {
+        M({|Rename:NewMethod|}());
+
+        static Action NewMethod()
+        {
+            return () =>
+            {
+                int F(int x) => 1;
+            };
+        }
+    }
+}";
+            await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
         }
 
         [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
@@ -4788,7 +4826,7 @@ class C
             }
         }
     }
-}");
+}", codeActionIndex: 1);
         }
 
         [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/45422")]
@@ -4811,30 +4849,7 @@ class C
             }|]
         }
     }
-}");
-        }
-
-        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/45422")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingWhenNoValidStatementsInSelection()
-        {
-            await TestMissingInRegularAndScriptAsync(@"
-class C
-{
-    static void M()
-    {
-        if (true)
-        [|{
-            static void L()
-            {
-                static void L2()
-                {
-                    var x = 1;
-                }
-            }
-        }|]
-    }
-}");
+}", codeActionIndex: 1);
         }
     }
 }
