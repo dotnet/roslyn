@@ -328,6 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
+            internal override bool IsRecord => false;
+
             internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
             {
                 Debug.Assert(isValueTypeOverrideOpt == null);
@@ -345,6 +347,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this.TypeDescriptor.GetHashCode();
             }
+
+            internal override bool HasPossibleWellKnownCloneMethod() => false;
         }
     }
 }

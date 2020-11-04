@@ -21,18 +21,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         where TLanguageKindEnum : struct
         where TParenthesizedExpressionSyntax : SyntaxNode
     {
-
-        /// <summary>
-        /// A diagnostic descriptor used to squiggle and message the span.
-        /// </summary>
-        private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptorWithId(
-                IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
-                new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                isUnnecessary: true);
-
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_diagnosticDescriptor))
+            : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
+                  new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                  new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                  isUnnecessary: true)
         {
         }
 
@@ -117,7 +110,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 parenthesizedExpression.GetLastToken().GetLocation());
 
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                s_diagnosticDescriptor,
+                Descriptor,
                 GetDiagnosticSquiggleLocation(parenthesizedExpression, context.CancellationToken),
                 severity,
                 additionalLocations,

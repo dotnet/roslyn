@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
@@ -170,5 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool ITypeSymbol.IsRefLikeType => UnderlyingTypeSymbol.IsRefLikeType;
 
         bool ITypeSymbol.IsReadOnly => UnderlyingTypeSymbol.IsReadOnly;
+
+        bool ITypeSymbol.IsRecord => UnderlyingTypeSymbol.IsRecord;
     }
 }

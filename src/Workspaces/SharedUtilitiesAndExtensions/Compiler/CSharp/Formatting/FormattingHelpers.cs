@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return leading.Substring(0, lastNewLinePos);
         }
 
-        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(this SyntaxNode node)
+        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(this SyntaxNode? node)
             => node.GetBraces();
 
         public static bool IsValidBracePair(this (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)

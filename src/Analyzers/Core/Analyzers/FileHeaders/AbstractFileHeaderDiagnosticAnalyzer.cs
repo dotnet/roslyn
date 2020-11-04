@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 return;
             }
 
-            if (!context.Options.TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, tree, out string fileHeaderTemplate)
+            if (!context.Options.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out var fileHeaderTemplate)
                 || string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 return;

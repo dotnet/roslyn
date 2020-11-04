@@ -24,8 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
     Partial Friend Class VisualBasicGenerateTypeService
         Inherits AbstractGenerateTypeService(Of VisualBasicGenerateTypeService, SimpleNameSyntax, ObjectCreationExpressionSyntax, ExpressionSyntax, TypeBlockSyntax, ArgumentSyntax)
 
-        Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
-
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
@@ -212,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                             If nameOrMemberAccessExpression.Parent IsNot Nothing AndAlso TypeOf nameOrMemberAccessExpression.Parent Is QualifiedNameSyntax Then
                                 Return True
                             Else
-                                throw ExceptionUtilities.Unreachable
+                                Throw ExceptionUtilities.Unreachable
                             End If
                         Else
                             ' Case : NSOrSomething.GenType
@@ -719,43 +717,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
             propertySymbol = GenerateProperty(propertyName, typeSymbol)
             Return propertySymbol IsNot Nothing
-        End Function
-
-        Friend Overrides Function GetDelegatingConstructor(document As SemanticDocument,
-                                                           objectCreation As ObjectCreationExpressionSyntax,
-                                                           namedType As INamedTypeSymbol,
-                                                           candidates As ISet(Of IMethodSymbol),
-                                                           cancellationToken As CancellationToken) As IMethodSymbol
-            Dim model = document.SemanticModel
-            Dim oldNode = objectCreation _
-                .AncestorsAndSelf(ascendOutOfTrivia:=False) _
-                .Where(Function(node) SpeculationAnalyzer.CanSpeculateOnNode(node)) _
-                .LastOrDefault()
-
-            Dim typeNameToReplace = objectCreation.Type
-            Dim newTypeName = namedType.GenerateTypeSyntax()
-            Dim newObjectCreation = objectCreation.WithType(newTypeName).WithAdditionalAnnotations(s_annotation)
-            Dim newNode = oldNode.ReplaceNode(objectCreation, newObjectCreation)
-
-            Dim speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(oldNode, newNode, model)
-            If speculativeModel IsNot Nothing Then
-                newObjectCreation = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), ObjectCreationExpressionSyntax)
-                Dim symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken)
-                Dim parameterTypes As IList(Of ITypeSymbol) = GetSpeculativeArgumentTypes(speculativeModel, newObjectCreation)
-                Return GenerateConstructorHelpers.GetDelegatingConstructor(
-                    document, symbolInfo, candidates, namedType, parameterTypes)
-            End If
-
-            Return Nothing
-        End Function
-
-        Private Shared Function GetSpeculativeArgumentTypes(model As SemanticModel, newObjectCreation As ObjectCreationExpressionSyntax) As IList(Of ITypeSymbol)
-            Return If(newObjectCreation.ArgumentList Is Nothing,
-                      SpecializedCollections.EmptyList(Of ITypeSymbol),
-                      newObjectCreation.ArgumentList.Arguments.Select(
-                          Function(a)
-                              Return If(a.GetExpression() Is Nothing, Nothing, model.GetTypeInfo(a.GetExpression()).ConvertedType)
-                          End Function).ToList())
         End Function
     End Class
 End Namespace

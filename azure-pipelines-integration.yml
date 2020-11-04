@@ -18,7 +18,7 @@ jobs:
 - job: VS_Integration
   pool:
     name: NetCorePublic-Pool
-    queue: buildpool.windows.10.amd64.vs2019.pre.open
+    queue: $(queueName)
   strategy:
     maxParallel: 4
     matrix:
@@ -37,8 +37,11 @@ jobs:
   timeoutInMinutes: 135
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testVsi -oop64bit:$$(_oop64bit)
+    - task: PowerShell@2
       displayName: Build and Test
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -restore -build -pack -sign -publish -binaryLog -configuration $(_configuration) -prepareMachine -testVsi -oop64bit:$$(_oop64bit) -collectDumps
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
@@ -54,15 +57,6 @@ jobs:
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
         ArtifactName: '$(System.JobAttempt)-Logs $(_configuration) OOP64_$(_oop64bit) $(Build.BuildNumber)'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Secondary Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log2\$(_configuration)'
-        ArtifactName: '$(System.JobAttempt)-Secondary Logs $(_configuration) OOP64_$(_oop64bit) $(Build.BuildNumber)'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())

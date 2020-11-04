@@ -4480,5 +4480,42 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function TestWithLinkedFile() As Task
+            Await TestInRegularAndScript1Async(
+"<Workspace>
+    <Project Language='Visual Basic' CommonReferences='true' AssemblyName='LinkedProj' Name='VBProj.1'>
+        <Document FilePath='C.vb'>
+imports System
+public class Goo
+    public sub Bar()
+        dim targets = new List(of object)()
+        dim [||]newItems as List(of Goo) = new List(of Goo)()
+        targets.Add(newItems)
+    end sub
+end class
+        </Document>
+    </Project>
+    <Project Language='Visual Basic' CommonReferences='true' AssemblyName='LinkedProj' Name='VBProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='VBProj.1' LinkFilePath='C.vb'/>
+    </Project>
+</Workspace>",
+"<Workspace>
+    <Project Language='Visual Basic' CommonReferences='true' AssemblyName='LinkedProj' Name='VBProj.1'>
+        <Document FilePath='C.vb'>
+imports System
+public class Goo
+    public sub Bar()
+        dim targets = new List(of object)()
+        targets.Add(new List(of Goo)())
+    end sub
+end class
+        </Document>
+    </Project>
+    <Project Language='Visual Basic' CommonReferences='true' AssemblyName='LinkedProj' Name='VBProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='VBProj.1' LinkFilePath='C.vb'/>
+    </Project>
+</Workspace>")
+        End Function
     End Class
 End Namespace

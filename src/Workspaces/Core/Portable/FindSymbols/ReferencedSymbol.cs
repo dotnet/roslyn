@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
@@ -28,16 +29,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public ISymbol Definition { get; }
 
         /// <summary>
+        /// Same as <see cref="Locations"/> but exposed as an <see cref="ImmutableArray{T}"/> for performance.
+        /// </summary>
+        internal ImmutableArray<ReferenceLocation> LocationsArray { get; }
+
+        /// <summary>
         /// The set of reference locations in the solution.
         /// </summary>
-        public IEnumerable<ReferenceLocation> Locations { get; }
+        public IEnumerable<ReferenceLocation> Locations => LocationsArray;
 
         internal ReferencedSymbol(
             ISymbol definition,
-            IEnumerable<ReferenceLocation> locations)
+            ImmutableArray<ReferenceLocation> locations)
         {
             this.Definition = definition;
-            this.Locations = (locations ?? SpecializedCollections.EmptyEnumerable<ReferenceLocation>()).ToReadOnlyCollection();
+            this.LocationsArray = locations.NullToEmpty();
         }
 
         private string GetDebuggerDisplay()

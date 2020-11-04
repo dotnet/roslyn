@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal enum OperatorPlacementWhenWrappingPreference
@@ -23,8 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public static Optional<OperatorPlacementWhenWrappingPreference> Parse(string optionString)
         {
-            if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
-                    optionString, out var value, out _))
+            if (CodeStyleHelpers.TryGetCodeStyleValue(optionString, out var value))
             {
                 switch (value)
                 {

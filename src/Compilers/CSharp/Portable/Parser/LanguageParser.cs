@@ -11586,9 +11586,9 @@ tryAgain:
             TypeSyntax type = null;
             InitializerExpressionSyntax initializer = null;
 
-            if (IsTargetTypedObjectCreation())
+            if (IsImplicitObjectCreation())
             {
-                @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureTargetTypedObjectCreation);
+                @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureImplicitObjectCreation);
             }
             else
             {
@@ -11630,7 +11630,7 @@ tryAgain:
                 : (ExpressionSyntax)_syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
         }
 
-        private bool IsTargetTypedObjectCreation()
+        private bool IsImplicitObjectCreation()
         {
             // The caller is expected to have consumed the new keyword.
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)

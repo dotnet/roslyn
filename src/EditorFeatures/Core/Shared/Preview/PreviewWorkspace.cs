@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 {
     internal class PreviewWorkspace : Workspace
     {
-        private ISolutionCrawlerRegistrationService _registrationService;
+        private ISolutionCrawlerRegistrationService? _registrationService;
 
         public PreviewWorkspace()
         : base(MefHostServices.DefaultHost, WorkspaceKind.Preview)
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 return;
             }
 
-            var document = this.CurrentSolution.GetDocument(documentId);
+            var document = this.CurrentSolution.GetRequiredDocument(documentId);
             var text = document.GetTextSynchronously(CancellationToken.None);
 
             this.OnDocumentOpened(documentId, text.Container);
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
         public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
-            var document = this.CurrentSolution.GetAdditionalDocument(documentId);
+            var document = this.CurrentSolution.GetRequiredAdditionalDocument(documentId);
             var text = document.GetTextSynchronously(CancellationToken.None);
 
             this.OnAdditionalDocumentOpened(documentId, text.Container);
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
         public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
         {
-            var document = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
+            var document = this.CurrentSolution.GetRequiredAnalyzerConfigDocument(documentId);
             var text = document.GetTextSynchronously(CancellationToken.None);
 
             this.OnAnalyzerConfigDocumentOpened(documentId, text.Container);
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
         public override void CloseDocument(DocumentId documentId)
         {
-            var document = this.CurrentSolution.GetDocument(documentId);
+            var document = this.CurrentSolution.GetRequiredDocument(documentId);
             var text = document.GetTextSynchronously(CancellationToken.None);
             var version = document.GetTextVersionSynchronously(CancellationToken.None);
 
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
         public override void CloseAdditionalDocument(DocumentId documentId)
         {
-            var document = this.CurrentSolution.GetAdditionalDocument(documentId);
+            var document = this.CurrentSolution.GetRequiredAdditionalDocument(documentId);
             var text = document.GetTextSynchronously(CancellationToken.None);
             var version = document.GetTextVersionSynchronously(CancellationToken.None);
 
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
         public override void CloseAnalyzerConfigDocument(DocumentId documentId)
         {
-            var document = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
+            var document = this.CurrentSolution.GetRequiredAnalyzerConfigDocument(documentId);
             var text = document.GetTextSynchronously(CancellationToken.None);
             var version = document.GetTextVersionSynchronously(CancellationToken.None);
 

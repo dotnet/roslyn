@@ -55,7 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                var shell = (IVsShell7)await _serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+                var shell = (IVsShell7?)await _serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+                Assumes.Present(shell);
                 await shell.LoadPackageAsync(typeof(RoslynPackage).GUID);
 
                 if (ErrorHandler.Succeeded(((IVsShell)shell).IsPackageLoaded(typeof(RoslynPackage).GUID, out var package)))
