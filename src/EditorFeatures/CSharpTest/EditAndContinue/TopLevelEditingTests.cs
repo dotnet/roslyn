@@ -7401,7 +7401,6 @@ class C
                 "Update [Node* left]@21 -> [Node left]@14");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Node left", FeaturesResources.field),
                 Diagnostic(RudeEditKind.TypeUpdate, "Node left", FeaturesResources.field));
         }
 
