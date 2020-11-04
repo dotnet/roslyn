@@ -106,5 +106,90 @@ End Class
 "
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
+
+        <Theory>
+        <InlineData("Public", 0)>
+        <InlineData("Protected", 1)>
+        <InlineData("Friend", 2)>
+        <InlineData("Friend Protected", 3)>
+        <InlineData("Private Protected", 4)>
+        Public Async Function TestFixAll(accessibility As String, index As Integer) As Task
+            Dim initial = "
+MustInherit Class C
+    Private {|FixAllInDocument:MustOverride|} ReadOnly Property Prop As String
+
+    Private MustOverride Sub M()
+
+    Private MustOverride Property Indexer(index As Integer) As String
+
+    Private Overrides Function ToString() As String
+        Return Nothing
+    End Function
+End Class
+"
+            Dim expected = $"
+MustInherit Class C
+    {accessibility} MustOverride ReadOnly Property Prop As String
+
+    {accessibility} MustOverride Sub M()
+
+    {accessibility} MustOverride Property Indexer(index As Integer) As String
+
+    Private Overrides Function ToString() As String
+        Return Nothing
+    End Function
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected, index:=index)
+        End Function
+
+        <Fact>
+        Public Async Function TestFixAllOverride() As Task
+            Dim initial = "
+MustInherit Class B
+    Public MustOverride Sub Foo()
+
+    Protected MustOverride Sub Boo()
+
+    Private Overridable Sub Bar()
+    End Sub
+End Class
+Class D
+    Inherits B
+
+    Private Overrides Sub {|FixAllInDocument:Foo|}()
+    End Sub
+
+    Overrides Sub Boo()
+    End Sub
+
+    Overrides Sub Bar()
+    End Sub
+End Class
+"
+            Dim expected = "
+MustInherit Class B
+    Public MustOverride Sub Foo()
+
+    Protected MustOverride Sub Boo()
+
+    Private Overridable Sub Bar()
+    End Sub
+End Class
+Class D
+    Inherits B
+
+    Public Overrides Sub Foo()
+    End Sub
+
+    Protected Overrides Sub Boo()
+    End Sub
+
+    Overrides Sub Bar()
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
+        End Function
     End Class
 End Namespace

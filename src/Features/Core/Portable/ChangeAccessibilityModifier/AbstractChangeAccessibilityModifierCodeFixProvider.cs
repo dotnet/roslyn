@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
 
         protected virtual SyntaxNode GetActualNodeToUpdate(SyntaxNode diagnosticNode) => diagnosticNode;
 
+        public override FixAllProvider? GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -70,7 +72,8 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
                 context.RegisterCodeFix(
                     new MyCodeAction(
                         string.Format(FeaturesResources.Change_accessibility_to_0, GetText(accessibility)),
-                        ct => ChangeAccessibilityAsync(accessibility, document, diagnosticNode, ct)),
+                        ct => ChangeAccessibilityAsync(accessibility, document, diagnosticNode, ct),
+                        "ChangeAccessibility_Abstract"),
                     diagnostic);
                 return;
             }
@@ -92,7 +95,8 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
             CodeAction CreateAction(Accessibility accessibility)
                 => new MyCodeAction(
                     GetText(accessibility),
-                    ct => ChangeAccessibilityAsync(accessibility, document, diagnosticNode, ct));
+                    ct => ChangeAccessibilityAsync(accessibility, document, diagnosticNode, ct),
+                    $"ChangeAccessibility_{accessibility}");
         }
 
         private static async Task<Document> ChangeAccessibilityAsync(
@@ -116,8 +120,8 @@ namespace Microsoft.CodeAnalysis.ChangeAccessibilityModifier
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }
