@@ -942,6 +942,10 @@ End Enum
 Class C
     Public ReadOnly Property NumberOfResult1() String Integer JohnDoe WwwIIWww Wow
     Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
+
+    Public ReadOnly Property NumberOfResult3() ' With comment - no errors.
+    Public ReadOnly Property NumberOfResult4() _
+        As Integer ' No error with line continuation.
 End Class
     </file>
 </compilation>)
