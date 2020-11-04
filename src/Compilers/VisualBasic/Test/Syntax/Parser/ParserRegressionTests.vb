@@ -937,14 +937,14 @@ End Enum
     <Fact, WorkItem(48587, "https://github.com/dotnet/roslyn/issues/48587")>
     Public Sub ParseTrailingTextAfterPropertyWithParentheses()
         Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
-  <compilation name="ParseTrailingTextAfterPropertyWithParentheses">
+<compilation name="ParseTrailingTextAfterPropertyWithParentheses">
     <file name="a.b">
 Class C
     Public ReadOnly Property NumberOfResult1() String Integer JohnDoe WwwIIWww Wow
     Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
 End Class
     </file>
-  </compilation>)
+</compilation>)
         CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
     End Sub
 End Class
