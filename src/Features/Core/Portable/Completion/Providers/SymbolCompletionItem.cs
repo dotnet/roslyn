@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default,
             string displayTextPrefix = null,
+            string inlineDescription = null,
             Glyph? glyph = null)
         {
             var props = properties ?? ImmutableDictionary<string, string>.Empty;
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 displayTextPrefix: displayTextPrefix,
+                inlineDescription: inlineDescription,
                 rules: rules,
                 filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : firstSymbol.Name),
                 sortText: sortText ?? firstSymbol.Name,
@@ -290,6 +292,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 insertionText,
                 filterText,
                 displayTextPrefix: null,
+                inlineDescription: null,
                 glyph: null,
                 supportedPlatforms,
                 properties,
@@ -306,6 +309,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string insertionText = null,
             string filterText = null,
             string displayTextPrefix = null,
+            string inlineDescription = null,
             Glyph? glyph = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
@@ -314,7 +318,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
                 s_addSymbolEncoding, sortText, insertionText,
-                filterText, supportedPlatforms, properties, tags, displayTextPrefix, glyph);
+                filterText, supportedPlatforms, properties, tags, displayTextPrefix,
+                inlineDescription, glyph);
         }
 
         public static CompletionItem CreateWithNameAndKind(
