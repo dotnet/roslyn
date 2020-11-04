@@ -936,15 +936,15 @@ End Enum
 
     <Fact, WorkItem(48587, "https://github.com/dotnet/roslyn/issues/48587")>
     Public Sub ParseTrailingTextAfterPropertyWithParentheses()
-        ParseAndVerify(<![CDATA[
+        Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+  <compilation name="ParseTrailingTextAfterPropertyWithParentheses">
+    <file name="a.b">
 Class C
     Public ReadOnly Property NumberOfResult1() String Integer JohnDoe WwwIIWww Wow
     Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
 End Class
-]]>,
-<errors>
-    <error id="30205"/>
-    <error id="30205"/>
-</errors>)
+    </file>
+  </compilation>)
+        CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
     End Sub
 End Class
