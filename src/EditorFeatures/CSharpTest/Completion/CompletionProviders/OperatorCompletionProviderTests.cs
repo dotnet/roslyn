@@ -113,7 +113,7 @@ public class Program
         c.$$;
     }
 }
-", "+", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+", "+", inlineDescription: "a + b", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -131,7 +131,7 @@ public class Program
         public async Task OperatorSuggestionOnPartiallyWrittenMember(string expression, bool isOffered)
         {
             var verifyAction = isOffered
-                ? new Func<string, Task>(markup => VerifyItemExistsAsync(markup, "+"))
+                ? new Func<string, Task>(markup => VerifyItemExistsAsync(markup, "+", inlineDescription: "a + b"))
                 : new Func<string, Task>(markup => VerifyNoItemsExistAsync(markup));
             await verifyAction(@$"
 public class C
@@ -613,8 +613,11 @@ public class Program
         s.$$
     }}
 }}";
-            await VerifyItemExistsAsync(string.Format(template, $"public static S operator {operatorSign}(S _)"), operatorSign);
-            await VerifyItemExistsAsync(string.Format(template, $"public static bool operator {operatorSign}(S _)"), operatorSign);
+            var inlineDescription = operatorSign.Length == 1
+                ? $"{operatorSign}a"
+                : $"a{operatorSign}";
+            await VerifyItemExistsAsync(string.Format(template, $"public static S operator {operatorSign}(S _)"), operatorSign, inlineDescription: inlineDescription);
+            await VerifyItemExistsAsync(string.Format(template, $"public static bool operator {operatorSign}(S _)"), operatorSign, inlineDescription: inlineDescription);
             await VerifyNoItemsExistAsync(string.Format(template, $"public static object operator {operatorSign}(S _)"));
             await VerifyNoItemsExistAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b, S c)"));
         }
@@ -638,8 +641,9 @@ public class Program
         s.$$
     }}
 }}";
-            await VerifyItemExistsAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b)"), operatorSign);
-            await VerifyItemExistsAsync(string.Format(template, $"public static int operator {operatorSign}(S a, S b)"), operatorSign);
+            var inlineDescription = $"a {operatorSign} b";
+            await VerifyItemExistsAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b)"), operatorSign, inlineDescription: inlineDescription);
+            await VerifyItemExistsAsync(string.Format(template, $"public static int operator {operatorSign}(S a, S b)"), operatorSign, inlineDescription: inlineDescription);
             await VerifyNoItemsExistAsync(string.Format(template, $"public static object operator {operatorSign}(S a, S b)"));
             await VerifyNoItemsExistAsync(string.Format(template, $"public static S operator {operatorSign}(S a, object b)"));
             await VerifyNoItemsExistAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b, S c)"));
@@ -664,7 +668,7 @@ public class Program
         s.$$
     }}
 }}";
-            await VerifyItemExistsAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, S b)"), operatorSign);
+            await VerifyItemExistsAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, S b)"), operatorSign, inlineDescription: $"a { operatorSign } b");
             await VerifyNoItemsExistAsync(string.Format(template, $"public static int operator {operatorSign}(S a, S b)"));
             await VerifyNoItemsExistAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, S b, S c)"));
             await VerifyNoItemsExistAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, object b)"));
@@ -722,7 +726,7 @@ public class Program
         var d = new Derived();
         d.$$
     }
-}", "+", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+}", "+", inlineDescription: "a + b", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -740,7 +744,7 @@ public class Program
         var r = new R();
         r.$$
     }
-}", "==", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+}", "==", inlineDescription: "a == b", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
     }
 }

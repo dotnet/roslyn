@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             where m.IsUserDefinedOperator() && !IsExcludedOperator(m) && (containerIsNullable ? m.IsLiftable() : true)
                             select SymbolCompletionItem.CreateWithSymbolId(
                                 displayText: m.GetOperatorSignOfOperator(),
+                                displayTextSuffix: null,
+                                inlineDescription: m.GetOperatorName(),
                                 filterText: "",
                                 sortText: SortText($"{m.GetOperatorSortIndex():000}"),
                                 symbols: ImmutableList.Create(m),
