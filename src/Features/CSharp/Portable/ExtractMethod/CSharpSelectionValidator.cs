@@ -182,7 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 };
             }
 
-            if (!firstTokenInSelection.UnderValidContext() || !lastTokenInSelection.UnderValidContext())
+            if (!firstTokenInSelection.UnderValidContext() || !lastTokenInSelection.UnderValidContext() ||
+                !SelectionContainsValidStatement(root, adjustedSpan))
             {
                 return new SelectionInfo
                 {
@@ -226,6 +227,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 FirstTokenInOriginalSpan = firstTokenInSelection,
                 LastTokenInOriginalSpan = lastTokenInSelection
             };
+        }
+
+        private static bool SelectionContainsValidStatement(SyntaxNode root, TextSpan adjustedSpan)
+        {
+            // Extracting a method or local function always introduces a call to that method or function.
+            // There are some scenarios where it is impossible to add a call, e.g. if the selection
+            // consists of only a local function. In these cases, we should not offer to extract.
+
+            // If the selection is just a local function, do not offer to extract.
+            var topLevelSelectedNode = root.FindNode(adjustedSpan);
+            if (topLevelSelectedNode.IsKind(SyntaxKind.LocalFunctionStatement))
+            {
+                return false;
+            }
+
+            // If the selection is a block, check to see if the selection contains a valid non-local function
+            // statement.
+            if (topLevelSelectedNode.IsKind(SyntaxKind.Block) &&
+                !topLevelSelectedNode.ChildNodes().Any(n => !n.IsKind(SyntaxKind.LocalFunctionStatement)
+                                                            && adjustedSpan.Contains(n.Span)))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static SelectionInfo CheckErrorCasesAndAppendDescriptions(
