@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
                 .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, DisallowAddingImports)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
-                .WithChangedOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolon, LanguageNames.CSharp, true);
+                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
         }
 
         protected override TestComposition GetComposition()

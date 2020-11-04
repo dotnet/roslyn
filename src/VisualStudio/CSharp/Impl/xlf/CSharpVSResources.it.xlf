@@ -172,11 +172,6 @@
         <target state="translated">Formatta automaticamente dopo _operazione Incolla</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon">
-        <source>Automatically format _statement on ;</source>
-        <target state="translated">Formatta automaticamente i_struzione dopo ;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
         <source>Place members in anonymous types on new line</source>
         <target state="translated">Inserisci membri di tipi anonimi in una nuova riga</target>

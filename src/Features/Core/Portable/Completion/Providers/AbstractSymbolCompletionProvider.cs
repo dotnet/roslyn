@@ -61,24 +61,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
-        private bool IsInsertFullMethodCallExperimentEnabled(Workspace workspace)
-        {
-            if (!_isInsertFullMethodCallExperimentEnabled.HasValue)
-            {
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                _isInsertFullMethodCallExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InsertFullMethodCall);
-            }
-
-            return _isInsertFullMethodCallExperimentEnabled == true;
-        }
-
-        protected bool IsAutoAddParenthesisBySemicolonEnabled(Document document)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var option = workspace.Options.GetOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolon, document.Project.Language);
-            return option == true || (option == null && IsInsertFullMethodCallExperimentEnabled(workspace));
-        }
-
         /// <param name="typeConvertibilityCache">A cache to use for repeated lookups. This should be created with <see cref="SymbolEqualityComparer.Default"/>
         /// because we ignore nullability.</param>
         private static bool ShouldIncludeInTargetTypedCompletionList(
@@ -140,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         /// <summary>
-        /// Given a list of symbols, and a mapping from each symbol to its original SemanticModel, 
+        /// Given a list of symbols, and a mapping from each symbol to its original SemanticModel,
         /// creates the list of completion items for them.
         /// </summary>
         private ImmutableArray<CompletionItem> CreateItems(
@@ -153,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Lazy<ImmutableArray<ITypeSymbol>> inferredTypes,
             TelemetryCounter telemetryCounter)
         {
-            // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
+            // We might get symbol w/o name but CanBeReferencedByName is still set to true,
             // need to filter them out.
             // https://github.com/dotnet/roslyn/issues/47690
             var symbolGroups = from symbol in symbols

@@ -132,9 +132,6 @@
   <data name="Automatically_format_on_paste" xml:space="preserve">
     <value>Automatically format on _paste</value>
   </data>
-  <data name="Automatically_format_statement_on_semicolon" xml:space="preserve">
-    <value>Automatically format _statement on ;</value>
-  </data>
   <data name="Place_members_in_anonymous_types_on_new_line" xml:space="preserve">
     <value>Place members in anonymous types on new line</value>
   </data>

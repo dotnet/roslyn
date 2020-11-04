@@ -172,11 +172,6 @@
         <target state="translated">_Yapıştırırken otomatik olarak biçimlendir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon">
-        <source>Automatically format _statement on ;</source>
-        <target state="translated">; girildiğinde _deyimi otomatik biçimlendir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
         <source>Place members in anonymous types on new line</source>
         <target state="translated">Anonim türlerdeki üyeleri yeni satıra yerleştir</target>

@@ -172,11 +172,6 @@
         <target state="translated">粘贴时自动设置格式(_P)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon">
-        <source>Automatically format _statement on ;</source>
-        <target state="translated">输入 ; 时自动设置语句格式(_S)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
         <source>Place members in anonymous types on new line</source>
         <target state="translated">将匿名类型中的成员置于新行</target>

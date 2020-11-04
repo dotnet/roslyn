@@ -48,24 +48,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isImportCompletionExperimentEnabled == true;
         }
 
-        private bool IsInsertFullMethodCallExperimentEnabled(Workspace workspace)
-        {
-            if (!_isInsertFullMethodCallExperimentEnabled.HasValue)
-            {
-                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
-                _isInsertFullMethodCallExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InsertFullMethodCall);
-            }
-
-            return _isInsertFullMethodCallExperimentEnabled == true;
-        }
-
-        protected bool IsAutoAddParenthesisBySemicolonEnabled(Document document)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var option = workspace.Options.GetOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolon, document.Project.Language);
-            return option == true || (option == null && IsInsertFullMethodCallExperimentEnabled(workspace));
-        }
-
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             var cancellationToken = completionContext.CancellationToken;

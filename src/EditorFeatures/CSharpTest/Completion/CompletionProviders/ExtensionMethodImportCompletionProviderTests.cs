@@ -33,15 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool HideAdvancedMembers { get; set; }
 
-        private bool AutomaticallyAddParenthesisBySemicolon { get; set; } = true;
-
         protected override OptionSet WithChangedOptions(OptionSet options)
         {
             return options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                    .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                    .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
-                    .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds)
-                    .WithChangedOption(CompletionOptions.AutomaticallyAddParenthesisBySemicolon, LanguageNames.CSharp, AutomaticallyAddParenthesisBySemicolon);
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
+                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
+                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds);
         }
 
         protected override TestComposition GetComposition()
