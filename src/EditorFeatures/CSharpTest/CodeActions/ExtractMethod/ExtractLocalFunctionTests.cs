@@ -4360,9 +4360,9 @@ class C
 
         [WorkItem(40555, "https://github.com/dotnet/roslyn/issues/40555")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestOnLocalFunctionHeader_Identifier()
+        public async Task TestMissingOnLocalFunctionHeader_Identifier()
         {
-            var input = @"
+            await TestMissingInRegularAndScriptAsync(@"
 using System;
 class C
 {
@@ -4375,34 +4375,14 @@ class C
             }
         });
     }
-}";
-            var expected = @"
-using System;
-class C
-{
-    void M(Action a)
-    {
-        M({|Rename:NewMethod|}());
-
-        static Action NewMethod()
-        {
-            return () =>
-            {
-                void F(int x)
-                {
-                }
-            };
-        }
-    }
-}";
-            await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+}");
         }
 
         [WorkItem(40555, "https://github.com/dotnet/roslyn/issues/40555")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestOnLocalFunctionHeader_Identifier_ExpressionBody()
+        public async Task TestMissingOnLocalFunctionHeader_Identifier_ExpressionBody()
         {
-            var input = @"
+            await TestMissingInRegularAndScriptAsync(@"
 using System;
 class C
 {
@@ -4413,25 +4393,7 @@ class C
             int [|F|](int x) => 1;
         });
     }
-}";
-            var expected = @"
-using System;
-class C
-{
-    void M(Action a)
-    {
-        M({|Rename:NewMethod|}());
-
-        static Action NewMethod()
-        {
-            return () =>
-            {
-                int F(int x) => 1;
-            };
-        }
-    }
-}";
-            await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+}");
         }
 
         [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
@@ -4710,7 +4672,7 @@ class C : B
         }
 
         [WorkItem(22150, "https://github.com/dotnet/roslyn/issues/22150")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task ExtractLocalFunctionToLocalFunction()
         {
             var code = @"
@@ -4745,7 +4707,7 @@ class C
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TopLevelStatement_ArgumentInInvocation()
         {
             var code = @"
@@ -4763,7 +4725,7 @@ static string NewMethod()
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TopLevelStatement_InBlock_ArgumentInInvocation()
         {
             var code = @"
@@ -4786,7 +4748,7 @@ static string NewMethod()
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TopLevelStatement_ArgumentInInvocation_InInteractive()
         {
             var code = @"
@@ -4803,6 +4765,76 @@ System.Console.WriteLine([|""string""|]);
 }";
 
             await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+        }
+
+        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/45422")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingOnExtractLocalFunction()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class C
+{
+    static void M()
+    {
+        if (true)
+        {
+            static void L()
+            {
+               [|
+                static void L2()
+                {
+                    var x = 1;
+                }|]
+            }
+        }
+    }
+}");
+        }
+
+        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/45422")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingOnExtractLocalFunctionWithExtraBrace()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class C
+{
+    static void M()
+    {
+        if (true)
+        {
+            static void L()
+            {
+                [|static void L2()
+                {
+                    var x = 1;
+                }
+            }|]
+        }
+    }
+}");
+        }
+
+        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/45422")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingWhenNoValidStatementsInSelection()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class C
+{
+    static void M()
+    {
+        if (true)
+        [|{
+            static void L()
+            {
+                static void L2()
+                {
+                    var x = 1;
+                }
+            }
+        }|]
+    }
+}");
         }
     }
 }
