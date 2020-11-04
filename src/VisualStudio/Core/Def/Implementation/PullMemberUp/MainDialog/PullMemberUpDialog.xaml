@@ -100,11 +100,9 @@
             Grid.Row="2"
             MinHeight="200"
             MinWidth="250"
-            Focusable="False"
-            IsTabStop="False"
             BorderThickness="0">
 
-            <ContentControl Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" IsTabStop="False" />
+            <ContentControl Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" />
         </GroupBox>
         <StackPanel
             Grid.Row="3"
