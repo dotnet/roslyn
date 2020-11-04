@@ -8183,7 +8183,7 @@ class A
     {
         class Action { }
     }
-    static global::System.Action a = [|() => { global::System.Console.WriteLine(); }|];
+    static global::System.Action a = () => { global::System.Console.WriteLine(); [|}|];
 }";
             var expected = @"class Program
 {
@@ -8642,13 +8642,13 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public async Task ExtractMethodSelectionOnStruct()
+        public async Task ExtractMethodExpandSelectionOnStruct()
         {
             var code = @"using System;
 
 struct Goo
 {
-    static Action a = [|() => { Console.WriteLine(); }|];
+    static Action a = () => { Console.WriteLine(); [|}|];
 }";
 
             var expected = @"using System;
@@ -8676,7 +8676,7 @@ struct Goo
     {
         class Action { }
     }
-    static global::System.Action a = [|() => { global::System.Console.WriteLine(); }|];
+    static global::System.Action a = () => { global::System.Console.WriteLine(); [|}|];
     static void Main(string[] args)
     {
     }
