@@ -8642,7 +8642,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public async Task ExtractMethodExpandSelectionOnStruct()
+        public async Task ExtractMethodSelectionOnStruct()
         {
             var code = @"using System;
 
