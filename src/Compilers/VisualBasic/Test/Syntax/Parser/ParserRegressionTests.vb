@@ -952,11 +952,11 @@ End Class
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC30205: End of statement expected.
-Public ReadOnly Property NumberOfResult1() String Integer JohnDoe WwwIIWww Wow
-                                           ~~~~~~
+    Public ReadOnly Property NumberOfResult1() String Integer JohnDoe WwwIIWww Wow
+                                               ~~~~~~
 BC30205: End of statement expected.
-Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
-                                           ~~~~
+    Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
+                                               ~~~~
 </errors>)
     End Sub
 End Class
