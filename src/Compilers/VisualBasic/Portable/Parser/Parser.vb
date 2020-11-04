@@ -4181,16 +4181,6 @@ checkNullable:
 
             If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
                 propertyParameters = ParseParameters(openParen, closeParen)
-
-                ' If we blow up on the parameters try to resume on the AS, =, or Implements
-                ' TODO - GreenSepList knows its error count. Expose it instead of recomputing it.
-                If propertyParameters.Count = 0 Then
-                    Dim unexpected = ResyncAt({SyntaxKind.AsKeyword, SyntaxKind.ImplementsKeyword, SyntaxKind.EqualsToken})
-                    If unexpected.Count > 0 Then
-                        closeParen = closeParen.AddTrailingSyntax(unexpected, ERRID.ERR_ExpectedEOS)
-                    End If
-                End If
-
                 optionalParameters = SyntaxFactory.ParameterList(openParen, propertyParameters, closeParen)
             Else
                 If ident.ContainsDiagnostics Then
