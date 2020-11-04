@@ -49,26 +49,21 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
         private QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)
         {
-            var errorCodeExpression = token.Parent switch
+            var errorCodeNode = token.Parent switch
             {
                 PragmaWarningDirectiveTriviaSyntax directive
                     => token.IsKind(SyntaxKind.EndOfDirectiveToken)
                         ? directive.ErrorCodes.LastOrDefault()
                         : directive.ErrorCodes.FirstOrDefault(),
-                IdentifierNameSyntax { Parent: PragmaWarningDirectiveTriviaSyntax } identifier => identifier,
-                LiteralExpressionSyntax
-                {
-                    Parent: PragmaWarningDirectiveTriviaSyntax,
-                    RawKind: (int)SyntaxKind.NumericLiteralExpression,
-                } literal => literal,
+                { Parent: PragmaWarningDirectiveTriviaSyntax } node => node,
                 _ => null,
             };
-            if (errorCodeExpression == null)
+            if (errorCodeNode == null)
             {
                 return null;
             }
 
-            var errorCode = errorCodeExpression switch
+            var errorCode = errorCodeNode switch
             {
                 IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText,
                 LiteralExpressionSyntax { RawKind: (int)SyntaxKind.NumericLiteralExpression } literal => literal.Token.ValueText,
@@ -80,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             errorCode = errorCode.FormatPragmaWarningErrorCode();
-            return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, errorCodeExpression.Span);
+            return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, errorCodeNode.Span);
         }
 
         private async Task<QuickInfoItem?> GetQuickInfoForSuppressMessageAttributeAsync(
@@ -100,8 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                         Parent: AttributeSyntax
                         {
                             Name: var attributeName
-                        } _
-                    } _
+                        }
+                    }
                 } argument when
                     attributeName.IsSuppressMessageAttribute() &&
                     (argument.NameColon is null
