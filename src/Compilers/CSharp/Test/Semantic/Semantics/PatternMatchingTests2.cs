@@ -2975,5 +2975,27 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "switch").WithArguments("switch").WithLocation(6, 13)
                 );
         }
+
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
+        public void NullableTypePattern()
+        {
+            var source = @"
+class C
+{
+    void F(object o)
+    {
+        _ = o switch { (int?) => 1, _ => 0 };
+        _ = o switch { int? => 1, _ => 0 };
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,25): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         _ = o switch { (int?) => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(6, 25),
+                // (7,24): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         _ = o switch { int? => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(7, 24)
+                );
+        }
     }
 }
