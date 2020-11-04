@@ -40,6 +40,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
         {
+            // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
+            // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
+            // document-diagnostics instead.
+            if (context.ClientName != null)
+                return ImmutableArray<Document>.Empty;
+
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
 
             var solution = context.Solution;
