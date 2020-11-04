@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ILspSolutionProvider _solutionProvider;
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
+        private readonly DocumentChangeTracker _documentChangeTracker;
 
         public CancellationToken CancellationToken => _cancelSource.Token;
 
@@ -70,6 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _solutionProvider = solutionProvider;
             _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
+            _documentChangeTracker = new DocumentChangeTracker();
 
             // Start the queue processing
             _ = ProcessQueueAsync();
@@ -162,9 +164,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task ProcessQueueAsync()
         {
-            // Keep track of solution state modifications made by LSP requests
-            Solution? lastMutatedSolution = null;
-
             try
             {
                 while (!_cancelSource.IsCancellationRequested)
@@ -174,37 +173,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Create a linked cancellation token to cancel any requests in progress when this shuts down
                     var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
 
-                    // The "current" solution can be updated by non-LSP actions, so we need it, but we also need
-                    // to merge in the changes from any mutations that have been applied to open documents
-                    var (document, solution) = _solutionProvider.GetDocumentAndSolution(work.TextDocument, work.ClientName);
-                    solution = MergeChanges(solution, lastMutatedSolution);
+                    var context = CreateRequestContext(work);
 
                     if (work.MutatesSolutionState)
                     {
-                        Solution? mutatedSolution = null;
-                        var context = new RequestContext(solution, work.ClientCapabilities, work.ClientName, document, s => mutatedSolution = s);
-
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        var ranToCompletion = false;
-                        try
-                        {
-                            ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            // Since the cancellationToken passed to the callback is a linked source it could be cancelled
-                            // without the queue token being cancelled, but ranToCompletion will be false so no need to
-                            // do anything special here.
-                            RoslynDebug.Assert(ranToCompletion == false);
-                        }
+                        var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
-                        // If the handling of the request failed, the exception will bubble back up to the caller, but we
-                        // still need to react to it here by throwing away solution updates
-                        if (ranToCompletion)
-                        {
-                            lastMutatedSolution = mutatedSolution ?? lastMutatedSolution;
-                        }
-                        else
+                        // If the handling of the request failed, the exception will bubble back up to the caller, and we
+                        // request shutdown because we're in an invalid state
+                        if (!ranToCompletion)
                         {
                             OnRequestServerShutdown($"An error occured processing a mutating request and the solution is in an invalid state. Check LSP client logs for any error information.");
                             break;
@@ -212,8 +190,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                     else
                     {
-                        var context = new RequestContext(solution, work.ClientCapabilities, work.ClientName, document, null);
-
                         // Non mutating are fire-and-forget because they are by definition readonly. Any errors
                         // will be sent back to the client but we can still capture errors in queue processing
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
@@ -259,11 +235,64 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private static Solution MergeChanges(Solution solution, Solution? mutatedSolution)
+        private RequestContext CreateRequestContext(QueueItem queueItem)
         {
-            // TODO: Merge in changes to the solution that have been received from didChange LSP methods
-            // https://github.com/dotnet/roslyn/issues/45427
-            return mutatedSolution ?? solution;
+            // This method asks the solution provider for a solution, and then updates it based on the state of the world
+            // as we know it. You may look at this and think "why doesn't the solution provider keep track of the state
+            // then it can just provide the right solutions" and at first glance that is appealing, but there are two big
+            // benefits to this queue tracking documents separately:
+            //
+            // 1. Since this queue manages the execution of handlers, we can ensure that the document state tracker
+            //    is only used from mutating request handlers, or outside of any handlers, and therefore we know
+            //    that calls to it cannot overlap, and it doesn't have to worry about threading.
+            //
+            // 2. We specifically only want the updated solution at the start of a request. If the solution provider
+            //    handed out "the right" solution, then a request could ask it for something at the start of processing
+            //    and at the end of processing, and get different results each time.
+
+            // There are multiple possible solutions that we could be interested in, so we need to find the document
+            // first and then get the solution from there. If we're not given a document, this will return the default
+            // solution
+            var (documentId, solution) = _solutionProvider.GetDocumentAndSolution(queueItem.TextDocument, queueItem.ClientName);
+
+            // Now we can update the solution to represent the LSP view of the world, with any text changes we received
+            solution = GetSolutionWithReplacedDocuments(solution);
+
+            // If we got a document id back, we pull it out of our updated solution so the handler is operating on the latest
+            // document text. If document id is null here, this will just return null
+            var document = solution.GetDocument(documentId);
+
+            DocumentChangeTracker? trackerToUse = null;
+            if (queueItem.MutatesSolutionState)
+            {
+                // Logically, if a mutating request fails we don't want to take its mutations, so giving it the "real" tracker
+                // is a bad idea, but since we tear down the queue for any error anyway, the document tracker will be emptied
+                // and no future requests will be handled, so we don't need to do anything special here.
+                trackerToUse = _documentChangeTracker;
+            }
+
+            return new RequestContext(solution, queueItem.ClientCapabilities, queueItem.ClientName, document, trackerToUse);
+        }
+
+        /// <summary>
+        /// Gets a solution that represents the workspace view of the world (as passed in via the solution parameter)
+        /// but with document text for any open documents updated to match the LSP view of the world. This makes
+        /// the LSP server the source of truth for all document text, but all other changes come from the workspace
+        /// </summary>
+        private Solution GetSolutionWithReplacedDocuments(Solution solution)
+        {
+            foreach (var (uri, text) in _documentChangeTracker.GetTrackedDocuments())
+            {
+                var documentIds = solution.GetDocumentIds(uri);
+
+                // We are tracking documents from multiple solutions, so this might not be one we care about
+                if (!documentIds.IsEmpty)
+                {
+                    solution = solution.WithDocumentText(documentIds, text);
+                }
+            }
+
+            return solution;
         }
     }
 }
