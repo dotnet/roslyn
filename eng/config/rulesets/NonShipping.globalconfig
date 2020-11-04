@@ -8,7 +8,6 @@ dotnet_diagnostic.CA2007.severity = none
 # Mark constant field as 'const' instead of static readonly - not useful for tests
 dotnet_diagnostic.CA1802.severity = none
 
-dotnet_diagnostic.RS1001.severity = none
 # CodeFix providers should override GetFixAllProvider - suppress for non-shipping/test projects
 dotnet_diagnostic.RS1016.severity = none
 # DiagnosticId must be unique across analyzers - suppress for non-shipping/test projects

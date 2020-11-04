@@ -107,9 +107,11 @@
 
   <!-- Global Analyzer Config -->
   <ItemGroup>
-    <!-- Always include Shipping.globalconfig -->
-    <EditorConfigFiles Include="$(RepositoryEngineeringDir)config\rulesets\Shipping.globalconfig" />
-    <!-- Include NonShipping.globalconfig (which can override earlier configuration files) for non-shipping projects -->
+    <!-- Always include Common.globalconfig -->
+    <EditorConfigFiles Include="$(RepositoryEngineeringDir)config\rulesets\Common.globalconfig" />
+    <!-- Include Shipping.globalconfig for shipping projects -->
+    <EditorConfigFiles Condition="'$(IsShipping)' == 'true'" Include="$(RepositoryEngineeringDir)config\rulesets\Shipping.globalconfig" />
+    <!-- Include NonShipping.globalconfig for non-shipping projects -->
     <EditorConfigFiles Condition="'$(IsShipping)' != 'true'" Include="$(RepositoryEngineeringDir)config\rulesets\NonShipping.globalconfig" />
   </ItemGroup>
 
