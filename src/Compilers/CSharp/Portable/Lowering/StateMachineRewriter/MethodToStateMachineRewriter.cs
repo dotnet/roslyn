@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression HoistRefInitialization(LocalSymbol local, BoundAssignmentOperator node)
         {
             Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
-            Debug.Assert(local.SyntaxOpt != null);
+            Debug.Assert(local.GetDeclaratorSyntax() != null);
             Debug.Assert(this.OriginalMethod.IsAsync);
 
             var right = (BoundExpression)Visit(node.Right);
