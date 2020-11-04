@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     {
         public static IEnumerable<object[]> AllServiceDescriptors
             => ServiceDescriptors.Instance.GetTestAccessor().Descriptors
-                .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptor32, descriptor.Value.descriptor64 });
+                .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptor32, descriptor.Value.descriptor64, descriptor.Value.descriptor64ServerGC });
 
         private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
         {
@@ -165,11 +165,15 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         [Theory]
         [MemberData(nameof(AllServiceDescriptors))]
-        internal void GetFeatureDisplayName(Type serviceInterface, ServiceDescriptor descriptor32, ServiceDescriptor descriptor64)
+        internal void GetFeatureDisplayName(Type serviceInterface, ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)
         {
             Assert.NotNull(serviceInterface);
-            Assert.NotEmpty(descriptor32.GetFeatureDisplayName());
-            Assert.NotEmpty(descriptor64.GetFeatureDisplayName());
+
+            var expectedName = descriptor32.GetFeatureDisplayName();
+            Assert.NotEmpty(expectedName);
+
+            Assert.Equal(expectedName, descriptor64.GetFeatureDisplayName());
+            Assert.Equal(expectedName, descriptor64ServerGC.GetFeatureDisplayName());
         }
 
         [Fact]
