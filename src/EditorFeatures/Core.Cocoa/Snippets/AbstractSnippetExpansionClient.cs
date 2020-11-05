@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// </summary>
         private static bool SetEndPositionIfNoneSpecified(IExpansionSession pSession)
         {
-            if (!(pSession.GetSnippetNode() is XElement snippetNode))
+            if (pSession.GetSnippetNode() is not XElement snippetNode)
             {
                 return false;
             }
