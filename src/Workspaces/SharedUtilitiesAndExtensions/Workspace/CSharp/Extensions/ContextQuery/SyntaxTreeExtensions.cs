@@ -2999,7 +2999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 leftHandBinding = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken);
             }
             else if (token.Parent.IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName) &&
-                token.Parent.IsParentKind(SyntaxKind.IsExpression))
+                (token.Parent.IsParentKind(SyntaxKind.IsExpression) || token.Parent.IsParentKind(SyntaxKind.DeclarationPattern)))
             {
                 // The right-hand side of an is expression could be an enum
                 leftHandBinding = semanticModel.GetSymbolInfo(qualifiedName.Left, cancellationToken);
