@@ -51,7 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public abstract IExpansionFunction GetExpansionFunction(XElement xmlFunctionNode, string fieldName);
         protected abstract ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract void AddImports(Document document, int position, XElement snippetNode, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken);
 
         public void FormatSpan(SnapshotSpan span)
         {
@@ -386,8 +385,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var documentOptions = documentWithImports.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
             var allowInHiddenRegions = documentWithImports.CanAddImportsInHiddenRegions();
-
-            AddImports(documentWithImports, position, snippetNode, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
         }
 
         protected static bool TryGetSnippetFunctionInfo(XElement xmlFunctionNode, out string snippetFunctionName, out string param)

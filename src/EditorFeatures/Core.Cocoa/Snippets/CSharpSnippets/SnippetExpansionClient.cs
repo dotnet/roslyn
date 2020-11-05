@@ -75,27 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             }
         }
 
-        internal override void AddImports(
-            Document document, int position, XElement snippetNode,
-            bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
-        {
-            var importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName));
-            if (importsNode == null ||
-                !importsNode.HasElements)
-            {
-                return;
-            }
-
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            var contextLocation = root.FindToken(position).Parent;
-
-            var newUsingDirectives = GetUsingDirectivesToAdd(snippetNode, importsNode);
-            if (!newUsingDirectives.Any())
-            {
-                return;
-            }
-        }
-
         private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(XElement snippetNode, XElement importsNode)
         {
             var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
