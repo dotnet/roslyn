@@ -30,9 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
 
-        protected bool indentCaretOnCommit;
-        protected int indentDepth;
-        protected bool earlyEndExpansionHappened;
+        protected bool _indentCaretOnCommit;
+        protected int _indentDepth;
+        protected bool _earlyEndExpansionHappened;
 
         internal IExpansionSession? ExpansionSession;
 
@@ -139,18 +139,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 if (lineText.Trim() == string.Empty)
                 {
-                    indentCaretOnCommit = true;
+                    _indentCaretOnCommit = true;
 
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
                         var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
                     }
                     else
                     {
                         // If we don't have a document, then just guess the typical default TabSize value.
-                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize: 4);
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize: 4);
                     }
 
                     SubjectBuffer.Delete(new Span(line.Start.Position, line.Length));
@@ -212,9 +212,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// <param name="point"></param>
         internal void PositionCaretForEditingInternal(string endLineText, SnapshotPoint point)
         {
-            if (indentCaretOnCommit && endLineText == string.Empty)
+            if (_indentCaretOnCommit && endLineText == string.Empty)
             {
-                ITextViewExtensions.TryMoveCaretToAndEnsureVisible(TextView, new VirtualSnapshotPoint(point, indentDepth));
+                ITextViewExtensions.TryMoveCaretToAndEnsureVisible(TextView, new VirtualSnapshotPoint(point, _indentDepth));
             }
         }
 
@@ -312,11 +312,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             if (ExpansionSession == null)
             {
-                earlyEndExpansionHappened = true;
+                _earlyEndExpansionHappened = true;
             }
 
             ExpansionSession = null;
-            indentCaretOnCommit = false;
+            _indentCaretOnCommit = false;
         }
 
         public void OnAfterInsertion(IExpansionSession pSession)
@@ -342,17 +342,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var textSpan = TextView.Caret.Position.BufferPosition;
 
             var expansion = ExpansionServiceProvider.GetExpansionService(TextView);
-            earlyEndExpansionHappened = false;
+            _earlyEndExpansionHappened = false;
             ExpansionSession = expansion.InsertNamedExpansion(title, pszPath, new SnapshotSpan(textSpan, 0), this, LanguageServiceGuid, false);
 
-            if (earlyEndExpansionHappened)
+            if (_earlyEndExpansionHappened)
             {
                 // EndExpansion was called before InsertNamedExpansion returned, so set
                 // expansionSession to null to indicate that there is no active expansion
                 // session. This can occur when the snippet inserted doesn't have any expansion
                 // fields.
                 ExpansionSession = null;
-                earlyEndExpansionHappened = false;
+                _earlyEndExpansionHappened = false;
             }
         }
 

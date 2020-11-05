@@ -14,11 +14,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     {
         private readonly ITextBuffer _subjectBuffer;
 
-        protected AbstractSnippetExpansionClient snippetExpansionClient;
+        protected AbstractSnippetExpansionClient _snippetExpansionClient;
 
         public AbstractSnippetFunction(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer)
         {
-            this.snippetExpansionClient = snippetExpansionClient;
+            _snippetExpansionClient = snippetExpansionClient;
             _subjectBuffer = subjectBuffer;
         }
 

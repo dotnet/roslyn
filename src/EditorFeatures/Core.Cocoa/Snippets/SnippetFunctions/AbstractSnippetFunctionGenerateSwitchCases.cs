@@ -78,11 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
                 return false;
             }
 
-            Contract.ThrowIfNull(snippetExpansionClient.ExpansionSession);
+            Contract.ThrowIfNull(_snippetExpansionClient.ExpansionSession);
 
-            var surfaceBufferFieldSpan = snippetExpansionClient.ExpansionSession.GetFieldSpan(CaseGenerationLocationField);
+            var surfaceBufferFieldSpan = _snippetExpansionClient.ExpansionSession.GetFieldSpan(CaseGenerationLocationField);
 
-            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan, out var subjectBufferFieldSpan))
+            if (!_snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan, out var subjectBufferFieldSpan))
             {
                 return false;
             }

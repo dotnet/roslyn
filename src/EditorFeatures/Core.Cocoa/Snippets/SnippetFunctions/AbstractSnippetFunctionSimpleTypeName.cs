@@ -54,11 +54,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
             documentWithFullyQualifiedTypeName = null;
             updatedTextSpan = default;
 
-            Contract.ThrowIfNull(snippetExpansionClient.ExpansionSession);
+            Contract.ThrowIfNull(_snippetExpansionClient.ExpansionSession);
 
-            var surfaceBufferFieldSpan = snippetExpansionClient.ExpansionSession.GetFieldSpan(_fieldName);
+            var surfaceBufferFieldSpan = _snippetExpansionClient.ExpansionSession.GetFieldSpan(_fieldName);
 
-            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan, out var subjectBufferFieldSpan))
+            if (!_snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan, out var subjectBufferFieldSpan))
             {
                 return false;
             }

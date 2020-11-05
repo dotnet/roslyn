@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         ICommandHandler<InsertSnippetCommandArgs>
     {
         protected readonly IExpansionServiceProvider ExpansionServiceProvider;
-        protected readonly IExpansionManager expansionManager;
+        protected readonly IExpansionManager ExpansionManager;
 
         public string DisplayName => FeaturesResources.Snippets;
 
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             : base(threadingContext)
         {
             this.ExpansionServiceProvider = expansionServiceProvider;
-            this.expansionManager = expansionManager;
+            this.ExpansionManager = expansionManager;
         }
 
         protected abstract AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer);

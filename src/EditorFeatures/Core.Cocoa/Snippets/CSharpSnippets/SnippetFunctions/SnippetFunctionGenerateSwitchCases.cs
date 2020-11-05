@@ -52,9 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
                 return false;
             }
 
-            Contract.ThrowIfNull(snippetExpansionClient.ExpansionSession);
+            Contract.ThrowIfNull(_snippetExpansionClient.ExpansionSession);
 
-            var subjectBufferFieldSpan = snippetExpansionClient.ExpansionSession.GetFieldSpan(SwitchExpressionField);
+            var subjectBufferFieldSpan = _snippetExpansionClient.ExpansionSession.GetFieldSpan(SwitchExpressionField);
 
             var expressionSpan = subjectBufferFieldSpan.Span.ToTextSpan();
 
