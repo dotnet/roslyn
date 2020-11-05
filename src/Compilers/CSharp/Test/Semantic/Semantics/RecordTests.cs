@@ -26987,11 +26987,6 @@ namespace System.Runtime.CompilerServices
 ";
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var parameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().First();
-
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
@@ -27069,6 +27064,41 @@ namespace System.Runtime.CompilerServices
 
         [Fact]
         [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_EmptyParameterList()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+public record C();
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(
+@"<member name=""T:C"">
+    <summary>Summary</summary>
+</member>
+", cMember.GetDocumentationCommentXml());
+
+            var constructor = cMember.GetMembers(".ctor").First();
+            Assert.Equal(
+@"<member name=""M:C.#ctor"">
+    <summary>Summary</summary>
+</member>
+", constructor.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Partial()
         {
             var src = @"
@@ -27100,10 +27130,6 @@ namespace System.Runtime.CompilerServices
 ";
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-
             comp.VerifyDiagnostics(
                 // (14,23): warning CS1591: Missing XML comment for publicly visible type or member 'E.E(int)'
                 // public partial record E(int I1);
@@ -27200,10 +27226,6 @@ namespace System.Runtime.CompilerServices
 ";
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-
             comp.VerifyDiagnostics(
                 // (2,23): warning CS1591: Missing XML comment for publicly visible type or member 'C.C(int)'
                 // public partial record C(int I1);
