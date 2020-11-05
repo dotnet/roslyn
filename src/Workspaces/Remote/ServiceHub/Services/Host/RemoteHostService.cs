@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        async ValueTask<ImmutableArray<(Checksum, object)>> IAssetSource.GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        async ValueTask<ImmutableArray<(Checksum, object)>> IAssetSource.GetAssetsAsync(RemoteAssetScopeId scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             return await RunServiceAsync(() =>
             {

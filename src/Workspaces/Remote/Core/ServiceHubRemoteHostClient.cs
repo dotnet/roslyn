@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API.
         /// </summary>
-        public async Task GetAssetsAsync(int scopeId, Checksum[] checksums, string pipeName, CancellationToken cancellationToken)
+        public async Task GetAssetsAsync(RemoteAssetScopeId scopeId, Checksum[] checksums, string pipeName, CancellationToken cancellationToken)
         {
             try
             {

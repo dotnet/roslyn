@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private async Task TestAssetAsync(object data)
         {
-            var sessionId = 0;
+            var sessionId = new RemoteAssetScopeId(0);
             var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
 
             using var workspace = TestWorkspace.CreateCSharp(file: @"");
@@ -77,7 +77,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var remoteWorkspace = CreateRemoteWorkspace();
 
-            var sessionId = 0;
+            var sessionId = new RemoteAssetScopeId(0);
             var storage = new SolutionAssetCache();
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
@@ -105,7 +105,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var remoteWorkspace = CreateRemoteWorkspace();
 
-            var sessionId = 0;
+            var sessionId = new RemoteAssetScopeId(0);
             var storage = new SolutionAssetCache();
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
@@ -130,7 +130,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var remoteWorkspace = CreateRemoteWorkspace();
 
-            var sessionId = 0;
+            var sessionId = new RemoteAssetScopeId(0);
             var storage = new SolutionAssetCache();
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 

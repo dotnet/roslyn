@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _services = services;
         }
 
-        public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
+        public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, RemoteAssetScopeId scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();

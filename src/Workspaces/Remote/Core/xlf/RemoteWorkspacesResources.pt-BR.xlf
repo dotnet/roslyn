@@ -122,6 +122,11 @@
         <target state="new">Feature '{0}' is currently unavailable since {1} is shutting down.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Scope_0_has_been_invalidated">
+        <source>Scope '{0}' has been invalidated.</source>
+        <target state="new">Scope '{0}' has been invalidated.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

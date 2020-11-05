@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Map from solution checksum scope id to its associated <see cref="SolutionState"/>.
         /// </summary>
-        private readonly ConcurrentDictionary<int, SolutionState> _solutionStates;
+        private readonly ConcurrentDictionary<RemoteAssetScopeId, SolutionState> _solutionStates;
 
         public SolutionAssetStorage()
         {
-            _solutionStates = new ConcurrentDictionary<int, SolutionState>(concurrencyLevel: 2, capacity: 10);
+            _solutionStates = new ConcurrentDictionary<RemoteAssetScopeId, SolutionState>(concurrencyLevel: 2, capacity: 10);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var solutionState = solution.State;
             var solutionChecksum = await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-            var id = Interlocked.Increment(ref s_scopeId);
+            var id = new RemoteAssetScopeId(Interlocked.Increment(ref s_scopeId));
             var solutionInfo = new PinnedSolutionInfo(
                 id,
                 fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
@@ -51,18 +51,28 @@ namespace Microsoft.CodeAnalysis.Remote
             return new Scope(this, solutionInfo);
         }
 
+        private SolutionState GetSolutionState(RemoteAssetScopeId scopeId)
+        {
+            if (!_solutionStates.TryGetValue(scopeId, out var state))
+                throw new InvalidOperationException(string.Format(RemoteWorkspacesResources.Scope_0_has_been_invalidated, scopeId));
+
+            return state;
+        }
+
         /// <summary>
         /// Retrieve asset of a specified <paramref name="checksum"/> available within <paramref name="scopeId"/> scope from the storage.
         /// </summary>
-        public async ValueTask<SolutionAsset?> GetAssetAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<SolutionAsset?> GetAssetAsync(RemoteAssetScopeId scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
+            var solutionState = GetSolutionState(scopeId);
+
             if (checksum == Checksum.Null)
             {
                 // check nil case
                 return SolutionAsset.Null;
             }
 
-            var remotableData = await FindAssetAsync(_solutionStates[scopeId], checksum, cancellationToken).ConfigureAwait(false);
+            var remotableData = await FindAssetAsync(solutionState, checksum, cancellationToken).ConfigureAwait(false);
             if (remotableData != null)
             {
                 return remotableData;
@@ -81,8 +91,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Retrieve assets of specified <paramref name="checksums"/> available within <paramref name="scopeId"/> scope from the storage.
         /// </summary>
-        public async ValueTask<IReadOnlyDictionary<Checksum, SolutionAsset>> GetAssetsAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask<IReadOnlyDictionary<Checksum, SolutionAsset>> GetAssetsAsync(RemoteAssetScopeId scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
+            var solutionState = GetSolutionState(scopeId);
+
             using var checksumsToFind = Creator.CreateChecksumSet(checksums);
 
             var numberOfChecksumsToSearch = checksumsToFind.Object.Count;
@@ -93,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 result[Checksum.Null] = SolutionAsset.Null;
             }
 
-            await FindAssetsAsync(_solutionStates[scopeId], checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
+            await FindAssetsAsync(solutionState, checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
             if (result.Count == numberOfChecksumsToSearch)
             {
                 // no checksum left to find
