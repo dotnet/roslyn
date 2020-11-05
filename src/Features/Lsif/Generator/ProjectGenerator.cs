@@ -6,28 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
-    internal class CompilerInvocation
+    internal static class ProjectGenerator
     {
-        public Compilation Compilation { get; }
-        public HostLanguageServices LanguageServices { get; internal set; }
-        public string ProjectFilePath { get; internal set; }
-
-        public CompilerInvocation(Compilation compilation, HostLanguageServices languageServices, string projectFilePath)
-        {
-            Compilation = compilation;
-            LanguageServices = languageServices;
-            ProjectFilePath = projectFilePath;
-        }
-
-        public static async Task<CompilerInvocation> CreateFromJsonAsync(string jsonContents)
+        public static Project CreateProjectFromCompilerInvocationJson(string jsonContents)
         {
             var invocationInfo = JsonConvert.DeserializeObject<CompilerInvocationInfo>(jsonContents);
 
@@ -93,11 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 additionalDocuments: parsedCommandLine.AdditionalFiles.Select(f => CreateDocumentInfo(unmappedPath: f.Path)))
                 .WithAnalyzerConfigDocuments(parsedCommandLine.AnalyzerConfigPaths.Select(CreateDocumentInfo));
 
-            workspace.AddProject(projectInfo);
-
-            var compilation = await workspace.CurrentSolution.GetProject(projectId)!.GetRequiredCompilationAsync(CancellationToken.None);
-
-            return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath);
+            return workspace.AddProject(projectInfo);
 
             // Local methods:
             DocumentInfo CreateDocumentInfo(string unmappedPath)

@@ -3,16 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
-using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
@@ -26,9 +28,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             _lsifJsonWriter = lsifJsonWriter;
         }
 
-        public void GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices)
+        public void GenerateForProject(Project project, Compilation compilation)
         {
-            var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
+            var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(project.FilePath), _idFactory);
             _lsifJsonWriter.Write(projectVertex);
             _lsifJsonWriter.Write(new Event(Event.EventKind.Begin, projectVertex.GetId(), _idFactory));
 
@@ -40,23 +42,27 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var topLevelSymbolsWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
             var topLevelSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(topLevelSymbolsWriter, compilation, _idFactory);
 
-            Parallel.ForEach(compilation.SyntaxTrees, syntaxTree =>
+            var tasks = ArrayBuilder<Task>.GetInstance(project.DocumentIds.Count);
+            foreach (var document in project.Documents)
             {
-                var semanticModel = compilation.GetSemanticModel(syntaxTree);
+                tasks.Add(Task.Run(async () =>
+                {
+                    // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
+                    // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
+                    // LSIF file. Because of the rule that vertices must be written before they're used by an edge, we'll flush any top-
+                    // level symbol result sets made first, since the document contents will point to that. Parallel calls to CopyAndEmpty
+                    // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
+                    // is preserved.
+                    var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
+                    var documentId = await GenerateForDocumentAsync(document, compilation, project.LanguageServices, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
+                    topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
+                    documentWriter.FlushToUnderlyingAndEmpty();
 
-                // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
-                // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
-                // LSIF file. Becasue of the rule that vertices must be written before they're used by an edge, we'll flush any top-
-                // level symbol result sets made first, since the document contents will point to that. Parallel calls to CopyAndEmpty
-                // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
-                // is preserved.
-                var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
-                var documentId = GenerateForDocument(semanticModel, languageServices, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
-                topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
-                documentWriter.FlushToUnderlyingAndEmpty();
+                    documentIds.Add(documentId);
+                }, CancellationToken.None));
+            }
 
-                documentIds.Add(documentId);
-            });
+            Task.WaitAll(tasks.ToArrayAndFree());
 
             _lsifJsonWriter.Write(Edge.Create("contains", projectVertex.GetId(), documentIds.ToArray(), _idFactory));
 
@@ -74,14 +80,16 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// lets us link symbols across files, and will only talk about "top level" symbols that aren't things like locals that can't
         /// leak outside a file.
         /// </remarks>
-        private static Id<Graph.LsifDocument> GenerateForDocument(
-            SemanticModel semanticModel,
+        private static async Task<Id<Graph.LsifDocument>> GenerateForDocumentAsync(
+            Document document,
+            Compilation compilation,
             HostLanguageServices languageServices,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
             IdFactory idFactory)
         {
-            var syntaxTree = semanticModel.SyntaxTree;
+            var syntaxTree = (await document.GetSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false))!;
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
             var sourceText = semanticModel.SyntaxTree.GetText();
             var syntaxFactsService = languageServices.GetRequiredService<ISyntaxFactsService>();
             var semanticFactsService = languageServices.GetRequiredService<ISemanticFactsService>();
@@ -155,7 +163,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // For now, we will link the range to the original definition, preferring the definition, as this is the symbol
                     // that would be used if we invoke a feature on this range. This is analogous to the logic in
                     // SymbolFinder.FindSymbolAtPositionAsync where if a token is both a reference and definition we'll prefer the
-                    // definition. Once we start supporting hover we'll hae to remove the "original defintion" part of this, since
+                    // definition. Once we start supporting hover we'll have to remove the "original definition" part of this, since
                     // since we show different contents for different constructed types there.
                     var symbolForLinkedResultSet = (declaredSymbol ?? referencedSymbol)!.OriginalDefinition;
                     var symbolForLinkedResultSetId = symbolResultsTracker.GetResultSetIdForSymbol(symbolForLinkedResultSet);
@@ -180,8 +188,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             }
 
             lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
-            lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
 
+            // Write the folding ranges for the document.
+            var foldingRanges = await FoldingRangesHelper.GetFoldingRangesAsync(document, CancellationToken.None);
+            var foldingRangeResult = new FoldingRangeResult(foldingRanges, idFactory);
+            lsifJsonWriter.Write(foldingRangeResult);
+            lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentFoldingRangeName, documentVertex.GetId(), foldingRangeResult.GetId(), idFactory));
+
+            lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
             return documentVertex.GetId();
         }
 
