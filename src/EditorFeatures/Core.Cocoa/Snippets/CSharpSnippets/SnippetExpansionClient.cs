@@ -50,17 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 throw new ArgumentException();
             }
 
-            switch (snippetFunctionName)
+            return snippetFunctionName switch
             {
-                case "SimpleTypeName":
-                    return new SnippetFunctionSimpleTypeName(this, SubjectBuffer, fieldName, param);
-                case "ClassName":
-                    return new SnippetFunctionClassName(this, SubjectBuffer, fieldName);
-                case "GenerateSwitchCases":
-                    return new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, fieldName, param);
-                default:
-                    return null;
-            }
+                "SimpleTypeName" => new SnippetFunctionSimpleTypeName(this, SubjectBuffer, fieldName, param),
+                "ClassName" => new SnippetFunctionClassName(this, SubjectBuffer, fieldName),
+                "GenerateSwitchCases" => new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, fieldName, param),
+                _ => null,
+            };
         }
     }
 }
