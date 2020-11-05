@@ -942,9 +942,12 @@ End Enum
 Class C
     Public ReadOnly Property NumberOfResult1() String Integer JohnDoe WwwIIWww Wow
     Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
+    Public ReadOnly Property NumberOfResult3() UnexpectedToken ' With comment.
+    Public ReadOnly Property NumberOfResult4() UnexpectedToken _
+        As Integer ' with line continuation and comment.
 
-    Public ReadOnly Property NumberOfResult3() ' With comment - no errors.
-    Public ReadOnly Property NumberOfResult4() _
+    Public ReadOnly Property NumberOfResult5() ' With comment - no errors.
+    Public ReadOnly Property NumberOfResult6() _
         As Integer ' No error with line continuation.
 End Class
     </file>
@@ -957,6 +960,10 @@ BC30205: End of statement expected.
 BC30205: End of statement expected.
     Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
                                                ~~~~
+    Public ReadOnly Property NumberOfResult3() UnexpectedToken ' With comment.
+                                               ~~~~~~~~~~~~~~~
+    Public ReadOnly Property NumberOfResult4() UnexpectedToken _
+                                               ~~~~~~~~~~~~~~~
 </errors>)
     End Sub
 End Class
