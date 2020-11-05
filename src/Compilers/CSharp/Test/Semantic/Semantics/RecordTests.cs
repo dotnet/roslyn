@@ -27298,5 +27298,52 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
             Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Nested()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+public class Outer
+{
+    /// <summary>Summary</summary>
+    /// <param name=""I1"">Description for I1</param>
+    public record C(int I1);
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
+            Assert.Equal(
+@"<member name=""T:Outer.C"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", cMember.GetDocumentationCommentXml());
+
+            var constructor = cMember.GetMembers(".ctor").First();
+            Assert.Equal(
+@"<member name=""M:Outer.C.#ctor(System.Int32)"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", constructor.GetDocumentationCommentXml());
+
+            Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
+
+            var property = cMember.GetMembers("I1").Single();
+            Assert.Equal("", property.GetDocumentationCommentXml());
+        }
     }
 }
