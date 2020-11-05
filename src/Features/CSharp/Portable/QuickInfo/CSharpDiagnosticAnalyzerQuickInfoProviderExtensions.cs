@@ -6,7 +6,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -49,41 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 : checkId.Substring(0, position);
             errorCode = errorCode.Trim();
             return errorCode;
-        }
-
-        public static string FormatPragmaWarningErrorCode(this string errorCode)
-        {
-            // https://docs.microsoft.com/en-US/dotnet/csharp/language-reference/preprocessor-directives/preprocessor-pragma-warning
-            // warning-list: A comma-separated list of warning numbers. The "CS" prefix is optional.
-            // We expect a single errorCode from the warning-list in the form of CS0219, 0219 or 219
-            // We return: CS0219
-            errorCode = errorCode.Trim();
-            if (errorCode.StartsWithLetter())
-            {
-                return errorCode;
-            }
-
-            if (int.TryParse(errorCode, out var errorNumber))
-            {
-                return $"CS{errorNumber:0000}";
-            }
-
-            return errorCode;
-        }
-
-        public static bool StartsWithLetter(this string text)
-        {
-            if (text.Length > 0)
-            {
-                return char.GetUnicodeCategory(text[0]) is
-                    UnicodeCategory.UppercaseLetter or
-                    UnicodeCategory.LowercaseLetter or
-                    UnicodeCategory.TitlecaseLetter or
-                    UnicodeCategory.ModifierLetter or
-                    UnicodeCategory.OtherLetter;
-            }
-
-            return false;
         }
     }
 }

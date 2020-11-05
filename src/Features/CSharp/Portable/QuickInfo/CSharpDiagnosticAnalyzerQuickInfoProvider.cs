@@ -58,23 +58,31 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 { Parent: PragmaWarningDirectiveTriviaSyntax } node => node,
                 _ => null,
             };
-            if (errorCodeNode == null)
+            if (errorCodeNode is null)
             {
                 return null;
             }
 
+            // https://docs.microsoft.com/en-US/dotnet/csharp/language-reference/preprocessor-directives/preprocessor-pragma-warning
+            // warning-list: A comma-separated list of warning numbers. The "CS" prefix is optional.
+            // errorCodeNode is single error code from the comma separated list
             var errorCode = errorCodeNode switch
             {
+                // case CS0219 or SA0012:
                 IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText,
-                LiteralExpressionSyntax { RawKind: (int)SyntaxKind.NumericLiteralExpression } literal => literal.Token.ValueText,
+                // case 0219 or 219:
+                // Take the number and add the "CS" prefix.
+                LiteralExpressionSyntax { RawKind: (int)SyntaxKind.NumericLiteralExpression } literal
+                    => int.TryParse(literal.Token.ValueText, out var errorCodeNumber)
+                        ? $"CS{errorCodeNumber:0000}"
+                        : literal.Token.ValueText,
                 _ => null,
             };
-            if (errorCode == null)
+            if (errorCode is null)
             {
                 return null;
             }
 
-            errorCode = errorCode.FormatPragmaWarningErrorCode();
             return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, errorCodeNode.Span);
         }
 

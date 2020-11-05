@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [InlineData("#pragma warning $$CS0219", null)]
         [InlineData("#pragma warning disable$$", null)]
         [InlineData("#pragma warning disable $$true", null)]
+        [InlineData("#pragma warning disable $$219.0", (int)ErrorCode.WRN_UnreferencedVarAssg)]
+        [InlineData("#pragma warning disable $$219.5", (int)ErrorCode.WRN_UnreferencedVarAssg)]
         public async Task PragmaWarningDoesNotThrowInBrokenSyntax(string pragma, int? errorCode)
         {
             var expectedDescription = errorCode is int errorCodeValue
