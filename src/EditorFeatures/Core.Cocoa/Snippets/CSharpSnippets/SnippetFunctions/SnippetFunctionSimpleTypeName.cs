@@ -18,8 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
 {
     internal sealed class SnippetFunctionSimpleTypeName : AbstractSnippetFunctionSimpleTypeName
     {
-        public SnippetFunctionSimpleTypeName(SnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string fieldName, string fullyQualifiedName)
-            : base(snippetExpansionClient, textView, subjectBuffer, fieldName, fullyQualifiedName)
+        public SnippetFunctionSimpleTypeName(SnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string fieldName, string fullyQualifiedName)
+            : base(snippetExpansionClient, subjectBuffer, fieldName, fullyQualifiedName)
         {
         }
 
