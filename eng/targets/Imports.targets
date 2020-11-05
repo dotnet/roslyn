@@ -100,11 +100,6 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
 
-  <!-- Rulesets -->
-  <PropertyGroup Condition="'$(CodeAnalysisRuleSet)' == ''">
-    <CodeAnalysisRuleSet>$(RepositoryEngineeringDir)config\rulesets\Empty.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-
   <!-- Global Analyzer Config -->
   <ItemGroup>
     <!-- Always include Common.globalconfig -->
