@@ -74,40 +74,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     return null;
             }
         }
-
-        private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(XElement snippetNode, XElement importsNode)
-        {
-            var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
-            var existingUsings = (IEnumerable<UsingDirectiveSyntax>)null;// contextLocation.GetEnclosingUsingDirectives();
-            var newUsings = new List<UsingDirectiveSyntax>();
-
-            foreach (var import in importsNode.Elements(XName.Get("Import", snippetNode.Name.NamespaceName)))
-            {
-                var namespaceElement = import.Element(namespaceXmlName);
-                if (namespaceElement == null)
-                {
-                    continue;
-                }
-
-                var namespaceToImport = namespaceElement.Value.Trim();
-                if (string.IsNullOrEmpty(namespaceToImport))
-                {
-                    continue;
-                }
-
-                var candidateUsing = SyntaxFactory.ParseCompilationUnit("using " + namespaceToImport + ";").DescendantNodes().OfType<UsingDirectiveSyntax>().FirstOrDefault();
-                if (candidateUsing == null)
-                {
-                    continue;
-                }
-
-                if (!existingUsings.Any(u => u.IsEquivalentTo(candidateUsing, topLevel: false)))
-                {
-                    newUsings.Add(candidateUsing.WithAdditionalAnnotations(Formatter.Annotation).WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
-                }
-            }
-
-            return newUsings;
-        }
     }
 }
