@@ -960,8 +960,10 @@ BC30205: End of statement expected.
 BC30205: End of statement expected.
     Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
                                                ~~~~
+BC30205: End of statement expected.
     Public ReadOnly Property NumberOfResult3() UnexpectedToken ' With comment.
                                                ~~~~~~~~~~~~~~~
+BC30205: End of statement expected.
     Public ReadOnly Property NumberOfResult4() UnexpectedToken _
                                                ~~~~~~~~~~~~~~~
 </errors>)
