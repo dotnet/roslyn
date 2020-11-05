@@ -21,17 +21,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     // ILanguageClient requires MEF v1 and two can't be mixed exported in 1 class.
     [Export]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class VisualStudioOOPConnectionEventListener : IEventListener<object>
+    internal class AlwaysActiveLanguageClientEventListener : IEventListener<object>
     {
-        private readonly VisualStudioOOPConnectionLanguageClient _languageClient;
+        private readonly AlwaysActivateInProcLanguageClient _languageClient;
         private readonly Lazy<ILanguageClientBroker> _languageClientBroker;
 
         private readonly IAsynchronousOperationListener _asynchronousOperationListener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioOOPConnectionEventListener(
-            VisualStudioOOPConnectionLanguageClient languageClient,
+        public AlwaysActiveLanguageClientEventListener(
+            AlwaysActivateInProcLanguageClient languageClient,
             Lazy<ILanguageClientBroker> languageClientBroker,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         /// <summary>
         /// LSP clients do not necessarily know which language servers (and when) to activate as they are language
-        /// agnostic.  We know we can provide <see cref="VisualStudioOOPConnectionLanguageClient"/> as soon as the
+        /// agnostic.  We know we can provide <see cref="AlwaysActivateInProcLanguageClient"/> as soon as the
         /// workspace is started, so tell the <see cref="ILanguageClientBroker"/> to start loading it.
         /// </summary>
         public void StartListening(Workspace workspace, object serviceOpt)

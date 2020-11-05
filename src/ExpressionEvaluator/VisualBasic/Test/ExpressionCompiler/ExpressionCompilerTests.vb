@@ -2034,7 +2034,7 @@ End Function, Func(Of E(Of T)))()")
             Assert.Equal(locals.Length, 2)
             ' All locals of type E(Of T) with type argument T from <>x(Of T).
             For Each local In locals
-                Dim localType = DirectCast(local.Type, NamedTypeSymbol)
+                Dim localType = DirectCast(local.Type.GetInternalSymbol(), NamedTypeSymbol)
                 Dim typeArg = localType.TypeArguments(0)
                 Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType)
             Next
@@ -2089,7 +2089,7 @@ End Class"
             Assert.Equal(returnType.ContainingSymbol, method)
 
             Dim locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder()
-            Assert.Equal(method, DirectCast(locals.Single().Type, TypeSymbol).ContainingSymbol)
+            Assert.Equal(method, DirectCast(locals.Single().Type.GetInternalSymbol(), TypeSymbol).ContainingSymbol)
 
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -2145,13 +2145,13 @@ End Class"
 }
 "
                     AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL)
-                    Assert.Equal(Cci.CallingConvention.Generic, (DirectCast(methodData.Method, Cci.IMethodDefinition)).CallingConvention)
+                    Assert.Equal(Cci.CallingConvention.Generic, (DirectCast(methodData.Method.GetCciAdapter(), Cci.IMethodDefinition)).CallingConvention)
 
                     context = CreateMethodContext(runtime, "A.B.M2")
                     testData = New CompilationTestData()
                     context.CompileExpression("If(GetType(T), GetType(U))", errorMessage, testData)
                     methodData = testData.GetMethodData("<>x(Of T, U, V).<>m0")
-                    Assert.Equal(Cci.CallingConvention.Default, (DirectCast(methodData.Method, Cci.IMethodDefinition)).CallingConvention)
+                    Assert.Equal(Cci.CallingConvention.Default, (DirectCast(methodData.Method.GetCciAdapter(), Cci.IMethodDefinition)).CallingConvention)
                 End Sub)
         End Sub
 

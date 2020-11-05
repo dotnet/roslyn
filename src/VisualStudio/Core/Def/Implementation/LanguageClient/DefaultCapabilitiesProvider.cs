@@ -75,7 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 ExecuteCommandProvider = new ExecuteCommandOptions(),
                 TextDocumentSync = new TextDocumentSyncOptions
                 {
-                    Change = TextDocumentSyncKind.None
+                    Change = TextDocumentSyncKind.Incremental,
+                    OpenClose = true
                 },
 
                 // Always support hover - if any LSP client for a content type advertises support,
