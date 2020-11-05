@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics.CodeAnalysis;
 
@@ -19,10 +18,6 @@ namespace Microsoft.CodeAnalysis
     internal abstract class Operation : IOperation
     {
         protected static readonly IOperation s_unset = new EmptyOperation(semanticModel: null, syntax: null!, isImplicit: true);
-        protected static readonly IBlockOperation s_unsetBlock = new BlockOperation(
-            operations: ImmutableArray<IOperation>.Empty, locals: default, semanticModel: null, syntax: null!, isImplicit: true);
-        protected static readonly IObjectOrCollectionInitializerOperation s_unsetObjectOrCollectionInitializer = new ObjectOrCollectionInitializerOperation(
-            initializers: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null!, type: null, isImplicit: true);
         private readonly SemanticModel? _owningSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once
@@ -61,11 +56,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_parentDoNotAccessDirectly == s_unset)
-                {
-                    SetParentOperation(SearchParentOperation());
-                }
-
+                Debug.Assert(_parentDoNotAccessDirectly != s_unset, "Attempt to access parent node before construction is complete!");
                 return _parentDoNotAccessDirectly;
             }
         }
@@ -145,9 +136,7 @@ namespace Microsoft.CodeAnalysis
                 ((Operation)parent).OwningSemanticModel == null || OwningSemanticModel == null);
 
             // make sure given parent and one we already have is same if we have one already
-            // This assert is violated in the presence of threading races, tracked by https://github.com/dotnet/roslyn/issues/35818
-            // As it's occasionally hitting in test runs, we're commenting out the assert pending fix.
-            //Debug.Assert(result == s_unset || result == parent);
+            Debug.Assert(result == s_unset || result == parent);
         }
 
         [return: NotNullIfNotNull("operation")]
@@ -169,16 +158,14 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var operation in operations)
             {
-                // Due to lazy construction of nodes, it's very possible that two threads might see lists where
-                // the first operation in an array is reference equal between the arrays, but the second operation
-                // is not reference equal. This difference is generally not observable from a user perspective (unless
-                // they're doing their own reference equality), and fixing it by removing laziness from IOperation
-                // entirely is tracked by https://github.com/dotnet/roslyn/issues/35818. Until then, however, we've
-                // seen real world examples where bailing out of the entire set operation causes infinite loops when
-                // searching for a parent operation, so we only skip setting the parent for a single node at a time.
                 if ((operation as Operation)?._parentDoNotAccessDirectly != s_unset)
                 {
+#if DEBUG
+                    VerifyParentOperation(parent, operation);
                     continue;
+#else
+                    break;
+#endif
                 }
 
                 // go through slowest path
@@ -189,7 +176,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [Conditional("DEBUG")]
-        internal static void VerifyParentOperation(IOperation parent, IOperation child)
+        internal static void VerifyParentOperation(IOperation? parent, IOperation child)
         {
             if (child is object)
             {
@@ -198,7 +185,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [Conditional("DEBUG")]
-        internal static void VerifyParentOperation<T>(IOperation parent, ImmutableArray<T> children) where T : IOperation
+        internal static void VerifyParentOperation<T>(IOperation? parent, ImmutableArray<T> children) where T : IOperation
         {
             Debug.Assert(!children.IsDefault);
             foreach (var child in children)
@@ -209,109 +196,5 @@ namespace Microsoft.CodeAnalysis
 
         private static readonly ObjectPool<Queue<IOperation>> s_queuePool =
             new ObjectPool<Queue<IOperation>>(() => new Queue<IOperation>(), 10);
-
-        private IOperation? WalkDownOperationToFindParent(HashSet<IOperation> operationAlreadyProcessed, IOperation root)
-        {
-            void EnqueueChildOperations(Queue<IOperation> queue, IOperation parent)
-            {
-                // for now, children can return null. once we fix the issue, children should never return null
-                // https://github.com/dotnet/roslyn/issues/21196
-                foreach (var o in parent.Children.WhereNotNull())
-                {
-                    queue.Enqueue(o);
-                }
-            }
-
-            var operationQueue = s_queuePool.Allocate();
-
-            try
-            {
-                EnqueueChildOperations(operationQueue, root);
-
-                // walk down the tree to find parent operation
-                // every operation returned by the queue should already have Parent operation set
-                while (operationQueue.Count > 0)
-                {
-                    var operation = operationQueue.Dequeue();
-
-                    if (!operationAlreadyProcessed.Add(operation))
-                    {
-                        // don't process IOperation we already processed otherwise,
-                        // we can walk down same tree multiple times
-                        continue;
-                    }
-
-                    if (operation == this)
-                    {
-                        // parent found
-                        return operation.Parent;
-                    }
-
-                    // It can't filter visiting children by node span since IOperation
-                    // might have children which belong to sibling but not direct spine
-                    // of sub tree.
-
-                    // queue children so that we can do breadth first search
-                    EnqueueChildOperations(operationQueue, operation);
-                }
-
-                return null;
-            }
-            finally
-            {
-                operationQueue.Clear();
-                s_queuePool.Free(operationQueue);
-            }
-        }
-
-        // internal for testing
-        internal IOperation? SearchParentOperation()
-        {
-            var operationAlreadyProcessed = PooledHashSet<IOperation>.GetInstance();
-            Debug.Assert(OwningSemanticModel is object);
-
-            if (OwningSemanticModel.Root == Syntax)
-            {
-                // this is the root
-                return null;
-            }
-
-            var currentCandidate = Syntax.Parent;
-
-            try
-            {
-                while (currentCandidate != null)
-                {
-                    // get operation
-                    var tree = OwningSemanticModel.GetOperation(currentCandidate);
-                    if (tree != null)
-                    {
-                        // walk down operation tree to see whether this tree contains parent of this operation
-                        var parent = WalkDownOperationToFindParent(operationAlreadyProcessed, tree);
-                        if (parent != null)
-                        {
-                            return parent;
-                        }
-                    }
-
-                    if (OwningSemanticModel.Root == currentCandidate)
-                    {
-                        // reached top of parent chain
-                        break;
-                    }
-
-                    // move up the tree
-                    currentCandidate = currentCandidate.Parent;
-                }
-
-                // root node. there is no parent
-                return null;
-            }
-            finally
-            {
-                // put the hashset back to the pool
-                operationAlreadyProcessed.Free();
-            }
-        }
     }
 }

@@ -179,14 +179,12 @@ namespace Microsoft.CodeAnalysis.Operations
         internal IOperation CreateMemberInitializerInitializedMember(BoundNode initializedMember)
         {
 
-            switch (initializedMember.Kind)
+            switch (initializedMember)
             {
-                case BoundKind.ObjectInitializerMember:
-                    return _nodeMap.GetOrAdd(initializedMember, key =>
-                        CreateBoundObjectInitializerMemberOperation((BoundObjectInitializerMember)key, isObjectOrCollectionInitializer: true));
-                case BoundKind.DynamicObjectInitializerMember:
-                    return _nodeMap.GetOrAdd(initializedMember, key =>
-                        CreateBoundDynamicObjectInitializerMemberOperation((BoundDynamicObjectInitializerMember)key));
+                case BoundObjectInitializerMember objectInitializer:
+                    return CreateBoundObjectInitializerMemberOperation(objectInitializer, isObjectOrCollectionInitializer: true);
+                case BoundDynamicObjectInitializerMember dynamicInitializer:
+                    return CreateBoundDynamicObjectInitializerMemberOperation(dynamicInitializer);
                 default:
                     return Create(initializedMember);
             }

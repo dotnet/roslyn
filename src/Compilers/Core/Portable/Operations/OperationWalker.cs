@@ -54,4 +54,57 @@ namespace Microsoft.CodeAnalysis.Operations
             VisitArray(operation.Children);
         }
     }
+
+    /// <summary>
+    /// Represents a <see cref="OperationVisitor{TArgument, TResult}"/> that descends an entire <see cref="IOperation"/> tree
+    /// visiting each IOperation and its child IOperation nodes in depth-first order. Returns null.
+    /// </summary>
+    public abstract class OperationWalker<TArgument> : OperationVisitor<TArgument, object?>
+    {
+        private int _recursionDepth;
+
+        internal void VisitArray<T>(IEnumerable<T> operations, TArgument argument) where T : IOperation
+        {
+            foreach (var operation in operations)
+            {
+                VisitOperationArrayElement(operation, argument);
+            }
+        }
+
+        internal void VisitOperationArrayElement<T>(T operation, TArgument argument) where T : IOperation
+        {
+            Visit(operation, argument);
+        }
+
+        public override object? Visit(IOperation? operation, TArgument argument)
+        {
+            if (operation != null)
+            {
+                _recursionDepth++;
+                try
+                {
+                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                    operation.Accept(this, argument);
+                }
+                finally
+                {
+                    _recursionDepth--;
+                }
+            }
+
+            return null;
+        }
+
+        public override object? DefaultVisit(IOperation operation, TArgument argument)
+        {
+            VisitArray(operation.Children, argument);
+            return null;
+        }
+
+        internal override object? VisitNoneOperation(IOperation operation, TArgument argument)
+        {
+            VisitArray(operation.Children, argument);
+            return null;
+        }
+    }
 }

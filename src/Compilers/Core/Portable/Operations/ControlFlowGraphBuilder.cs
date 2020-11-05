@@ -6982,12 +6982,7 @@ oneMoreTime:
             StartVisitingStatement(operation);
 
             // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
-            BlockOperation logicalBlock = new BlockOperation(
-                operations: statements,
-                locals: ImmutableArray<ILocalSymbol>.Empty,
-                ((Operation)operation).OwningSemanticModel,
-                operation.Syntax,
-                isImplicit: true);
+            BlockOperation logicalBlock = BlockOperation.CreateTemporaryBlock(statements, ((Operation)operation).OwningSemanticModel!, operation.Syntax);
 
             HandleUsingOperationParts(
                 resources: operation.DeclarationGroup,

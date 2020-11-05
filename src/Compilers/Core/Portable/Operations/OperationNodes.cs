@@ -363,4 +363,20 @@ namespace Microsoft.CodeAnalysis.Operations
         {
         }
     }
+
+    internal sealed partial class BlockOperation
+    {
+        public static BlockOperation CreateTemporaryBlock(ImmutableArray<IOperation> statements, SemanticModel semanticModel, SyntaxNode syntax)
+            => new(statements, semanticModel, syntax);
+
+        private BlockOperation(ImmutableArray<IOperation> statements, SemanticModel semanticModel, SyntaxNode syntax)
+            : base(semanticModel, syntax, isImplicit: true)
+        {
+            // Intentionally skipping SetParentOperation: this is used by CreateTemporaryBlock for the purposes of the
+            // control flow factory, to temporarily create a new block for use in emulating the "block" a using variable
+            // declaration introduces.
+            Operations = statements;
+            Locals = ImmutableArray<ILocalSymbol>.Empty;
+        }
+    }
 }
