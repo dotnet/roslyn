@@ -6242,6 +6242,31 @@ class C
             End Using
         End Function
 
+        <WorkItem(49185, "https://github.com/dotnet/roslyn/issues/49185")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+Public Async Function TypingDotsAfterIntReadOnlySpan(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C 
+{
+    void Foo(ReadOnlySpan<char> url)
+    {
+        int startIndex = 0, endIndex = 0;
+        var span = url[startIndex$$] //<-- type `..` after startIndex
+    }
+}
+]]></Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var span = url[startIndex..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
