@@ -387,13 +387,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
             var allowInHiddenRegions = documentWithImports.CanAddImportsInHiddenRegions();
 
-            documentWithImports = AddImports(documentWithImports, position, snippetNode, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
-            AddReferences(documentWithImports.Project, snippetNode);
+            _ = AddImports(documentWithImports, position, snippetNode, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
+            AddReferences(snippetNode);
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-        private static void AddReferences(Project originalProject, XElement snippetNode)
-#pragma warning restore IDE0060 // Remove unused parameter
+        private static void AddReferences(XElement snippetNode)
         {
             var referencesNode = snippetNode.Element(XName.Get("References", snippetNode.Name.NamespaceName));
             if (referencesNode == null)
