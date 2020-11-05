@@ -95,13 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            // In Venus/Razor, inserting imports statements into the subject buffer does not work.
-            // Instead, we add the imports through the contained language host.
-            if (TryAddImportsToContainedDocument(document, newUsingDirectives.Where(u => u.Alias == null).Select(u => u.Name.ToString())))
-            {
-                return document;
-            }
-
             var addImportService = document.GetLanguageService<IAddImportsService>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
             var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
