@@ -26991,7 +26991,6 @@ namespace System.Runtime.CompilerServices
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var parameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().First();
-            var i1 = model.GetDeclaredSymbol(parameter);
 
             comp.VerifyDiagnostics();
 
@@ -27066,6 +27065,216 @@ namespace System.Runtime.CompilerServices
     <summary>Property summary</summary>
 </member>
 ", property.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Partial()
+        {
+            var src = @"
+public partial record C;
+
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public partial record C(int I1);
+
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public partial record D(int I1);
+
+public partial record D;
+
+public partial record E(int I1);
+
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public partial record E;
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            comp.VerifyDiagnostics(
+                // (14,23): warning CS1591: Missing XML comment for publicly visible type or member 'E.E(int)'
+                // public partial record E(int I1);
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "E").WithArguments("E.E(int)").WithLocation(14, 23),
+                // (17,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
+                // /// <param name="I1">Description for I1</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(17, 18)
+                );
+
+            var c = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(
+@"<member name=""T:C"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", c.GetDocumentationCommentXml());
+
+            var cConstructor = c.GetMembers(".ctor").First();
+            Assert.Equal(
+@"<member name=""M:C.#ctor(System.Int32)"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", cConstructor.GetDocumentationCommentXml());
+
+            Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
+            Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+
+            var d = comp.GetMember<NamedTypeSymbol>("D");
+            Assert.Equal(
+@"<member name=""T:D"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", d.GetDocumentationCommentXml());
+
+            var dConstructor = d.GetMembers(".ctor").First();
+            Assert.Equal(
+@"<member name=""M:D.#ctor(System.Int32)"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", dConstructor.GetDocumentationCommentXml());
+
+            Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
+            Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            Assert.Equal(
+@"<member name=""T:E"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", e.GetDocumentationCommentXml());
+
+            var eConstructor = e.GetMembers(".ctor").First();
+            Assert.Equal("", eConstructor.GetDocumentationCommentXml());
+            Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
+            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Partial_DuplicateParameterList()
+        {
+            var src = @"
+public partial record C(int I1);
+
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public partial record C(int I1);
+
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public partial record D(int I1);
+
+public partial record D(int I1);
+
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public partial record E(int I1);
+
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public partial record E(int I1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            comp.VerifyDiagnostics(
+                // (2,23): warning CS1591: Missing XML comment for publicly visible type or member 'C.C(int)'
+                // public partial record C(int I1);
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C.C(int)").WithLocation(2, 23),
+                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // public partial record C(int I1);
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(6, 24),
+                // (12,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // public partial record D(int I1);
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(12, 24),
+                // (19,12): warning CS1571: XML comment has a duplicate param tag for 'I1'
+                // /// <param name="I1">Description for I1</param>
+                Diagnostic(ErrorCode.WRN_DuplicateParamTag, @"name=""I1""").WithArguments("I1").WithLocation(19, 12),
+                // (20,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // public partial record E(int I1);
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(20, 24)
+                );
+
+            var c = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(
+@"<member name=""T:C"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", c.GetDocumentationCommentXml());
+
+            var cConstructor = c.GetMembers(".ctor").First();
+            Assert.Equal(1, cConstructor.DeclaringSyntaxReferences.Count());
+            Assert.Equal("", cConstructor.GetDocumentationCommentXml());
+            Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
+            Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+
+            var d = comp.GetMember<NamedTypeSymbol>("D");
+            Assert.Equal(
+@"<member name=""T:D"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", d.GetDocumentationCommentXml());
+
+            var dConstructor = d.GetMembers(".ctor").First();
+            Assert.Equal(
+@"<member name=""M:D.#ctor(System.Int32)"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", dConstructor.GetDocumentationCommentXml());
+
+            Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
+            Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            Assert.Equal(
+@"<member name=""T:E"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", e.GetDocumentationCommentXml());
+
+            var eConstructor = e.GetMembers(".ctor").First();
+            Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
+            Assert.Equal(
+@"<member name=""M:E.#ctor(System.Int32)"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", eConstructor.GetDocumentationCommentXml());
+            Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
+            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
     }
 }
