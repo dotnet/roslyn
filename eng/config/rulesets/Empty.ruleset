@@ -1,4 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Empty rule set file" Description="This is a placeholder file. See *.globalconfig for analyzer configuration." ToolsVersion="14.0">
-  <IncludeAll Action="Hidden" />
-</RuleSet>
