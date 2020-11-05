@@ -2999,10 +2999,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 leftHandBinding = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken);
             }
             else if (token.Parent.IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName) &&
-                (token.Parent.IsParentKind(SyntaxKind.IsExpression) || token.Parent.IsParentKind(SyntaxKind.DeclarationPattern)))
+                token.Parent.IsParentKind(SyntaxKind.IsExpression, out BinaryExpressionSyntax? binaryExpression) &&
+                binaryExpression.Right == qualifiedName)
             {
                 // The right-hand side of an is expression could be an enum
                 leftHandBinding = semanticModel.GetSymbolInfo(qualifiedName.Left, cancellationToken);
+            }
+            else if (token.Parent.IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName1) &&
+                token.Parent.IsParentKind(SyntaxKind.DeclarationPattern, out DeclarationPatternSyntax? declarationExpression) &&
+                declarationExpression.Type == qualifiedName1)
+            {
+                // The right-hand side of an is declaration expression could be an enum
+                leftHandBinding = semanticModel.GetSymbolInfo(qualifiedName1.Left, cancellationToken);
             }
             else
             {
