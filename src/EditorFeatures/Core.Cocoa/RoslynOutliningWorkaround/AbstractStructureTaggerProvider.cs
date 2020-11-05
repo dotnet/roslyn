@@ -94,6 +94,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
+                // Let LSP handle producing tags in the cloud scenario
+                var workspaceContextService = documentSnapshotSpan.Document.Project.Solution.Workspace.Services.GetService<IWorkspaceContextService>();
+                if (workspaceContextService != null && workspaceContextService.IsCloudEnvironmentClient())
+                {
+                    return;
+                }
+
                 var outliningService = AbstractStructureTaggerProvider<TRegionTag>.TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {
@@ -119,6 +126,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
+                // Let LSP handle producing tags in the cloud scenario
+                var workspaceContextService = documentSnapshotSpan.Document.Project.Solution.Workspace.Services.GetService<IWorkspaceContextService>();
+                if (workspaceContextService != null && workspaceContextService.IsCloudEnvironmentClient())
+                {
+                    return;
+                }
+
                 var outliningService = AbstractStructureTaggerProvider<TRegionTag>.TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {
