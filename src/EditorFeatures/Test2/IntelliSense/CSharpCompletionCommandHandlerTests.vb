@@ -6245,7 +6245,7 @@ class C
         <WorkItem(49185, "https://github.com/dotnet/roslyn/issues/49185")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
-Public Async Function TypingDotsAfterIntReadOnlySpan(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function TypingDotsAfterIntReadOnlySpan(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 class C 
