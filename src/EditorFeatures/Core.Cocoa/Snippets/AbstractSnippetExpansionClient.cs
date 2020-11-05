@@ -388,53 +388,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var allowInHiddenRegions = documentWithImports.CanAddImportsInHiddenRegions();
 
             _ = AddImports(documentWithImports, position, snippetNode, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
-            AddReferences(snippetNode);
-        }
-
-        private static void AddReferences(XElement snippetNode)
-        {
-            var referencesNode = snippetNode.Element(XName.Get("References", snippetNode.Name.NamespaceName));
-            if (referencesNode == null)
-            {
-                return;
-            }
-            throw new NotImplementedException();
-            //var existingReferenceNames = originalProject.MetadataReferences.Select(r => Path.GetFileNameWithoutExtension(r.Display));
-            //var workspace = originalProject.Solution.Workspace;
-            //var projectId = originalProject.Id;
-
-            //var assemblyXmlName = XName.Get("Assembly", snippetNode.Name.NamespaceName);
-            //var failedReferenceAdditions = new List<string>();
-            //var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
-
-            //foreach (var reference in referencesNode.Elements(XName.Get("Reference", snippetNode.Name.NamespaceName)))
-            //{
-            //    // Note: URL references are not supported
-            //    var assemblyElement = reference.Element(assemblyXmlName);
-
-            //    var assemblyName = assemblyElement != null ? assemblyElement.Value.Trim() : null;
-
-            //    if (string.IsNullOrEmpty(assemblyName))
-            //    {
-            //        continue;
-            //    }
-
-            //    if (visualStudioWorkspace == null ||
-            //        !visualStudioWorkspace.TryAddReferenceToProject(projectId, assemblyName))
-            //    {
-            //        failedReferenceAdditions.Add(assemblyName);
-            //    }
-            //}
-
-            //if (failedReferenceAdditions.Any())
-            //{
-            //    var notificationService = workspace.Services.GetService<INotificationService>();
-            //    notificationService.SendNotification(
-            //        string.Format(ServicesVSResources.The_following_references_were_not_found_0_Please_locate_and_add_them_manually, Environment.NewLine)
-            //        + Environment.NewLine + Environment.NewLine
-            //        + string.Join(Environment.NewLine, failedReferenceAdditions),
-            //        severity: NotificationSeverity.Warning);
-            //}
         }
 
         protected static bool TryAddImportsToContainedDocument(Document document, IEnumerable<string> memberImportsNamespaces)
