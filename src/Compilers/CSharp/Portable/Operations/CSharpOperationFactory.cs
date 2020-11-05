@@ -1925,13 +1925,21 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IExpressionStatementOperation CreateBoundExpressionStatementOperation(BoundExpressionStatement boundExpressionStatement)
         {
-            IOperation expression = Create(boundExpressionStatement.Expression);
-            SyntaxNode syntax = boundExpressionStatement.Syntax;
-
             // lambda body can point to expression directly and binder can insert expression statement there. and end up statement pointing to
             // expression syntax node since there is no statement syntax node to point to. this will mark such one as implicit since it doesn't
             // actually exist in code
             bool isImplicit = boundExpressionStatement.WasCompilerGenerated || boundExpressionStatement.Syntax == boundExpressionStatement.Expression.Syntax;
+            SyntaxNode syntax = boundExpressionStatement.Syntax;
+
+            // If we're creating the tree for a speculatively-bound constructor initializer, there can be a bound sequence as the child node here
+            // that corresponds to the lifetime of any declared variables.
+            IOperation expression = Create(boundExpressionStatement.Expression);
+            if (boundExpressionStatement.Expression is BoundSequence sequence)
+            {
+                Debug.Assert(boundExpressionStatement.Syntax == sequence.Value.Syntax);
+                isImplicit = true;
+            }
+
             return new ExpressionStatementOperation(expression, _semanticModel, syntax, isImplicit);
         }
 
