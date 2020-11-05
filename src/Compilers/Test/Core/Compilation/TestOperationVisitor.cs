@@ -1134,14 +1134,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitRelationalPattern(IRelationalPatternOperation operation)
         {
             Assert.Equal(OperationKind.RelationalPattern, operation.Kind);
-            Assert.True(operation.OperatorKind switch
-            {
-                Operations.BinaryOperatorKind.LessThan => true,
-                Operations.BinaryOperatorKind.LessThanOrEqual => true,
-                Operations.BinaryOperatorKind.GreaterThan => true,
-                Operations.BinaryOperatorKind.GreaterThanOrEqual => true,
-                _ => false,
-            });
+            Assert.True(operation.OperatorKind is Operations.BinaryOperatorKind.LessThan or
+                                                  Operations.BinaryOperatorKind.LessThanOrEqual or
+                                                  Operations.BinaryOperatorKind.GreaterThan or
+                                                  Operations.BinaryOperatorKind.GreaterThanOrEqual or
+                                                  Operations.BinaryOperatorKind.Equals or // Error cases
+                                                  Operations.BinaryOperatorKind.NotEquals);
             VisitPatternCommon(operation);
             Assert.Same(operation.Value, operation.Children.Single());
         }

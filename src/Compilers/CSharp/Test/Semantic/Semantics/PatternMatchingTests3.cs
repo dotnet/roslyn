@@ -2979,12 +2979,12 @@ class C
             var source = @"
 class C
 {
-    public int M(uint c) => c switch
+    public int M(uint c) => /*<bind>*/c switch
     {
         == 0 => 1,
         != 2 => 2,
         _ => 7
-    };
+    }/*</bind>*/;
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
@@ -2995,6 +2995,38 @@ class C
                 //         != 2 => 2,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 9)
                 );
+
+            VerifyOperationTreeForTest<SwitchExpressionSyntax>(compilation, @"
+ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'c switch ... }')
+  Value: 
+    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.UInt32) (Syntax: 'c')
+  Arms(3):
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '== 0 => 1')
+        Pattern: 
+          IRelationalPatternOperation (BinaryOperatorKind.Equals) (OperationKind.RelationalPattern, Type: null, IsInvalid) (Syntax: '== 0') (InputType: System.UInt32, NarrowedType: System.UInt32)
+            Value: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 0, IsImplicit) (Syntax: '0')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '!= 2 => 2')
+        Pattern: 
+          IRelationalPatternOperation (BinaryOperatorKind.Equals) (OperationKind.RelationalPattern, Type: null, IsInvalid) (Syntax: '!= 2') (InputType: System.UInt32, NarrowedType: System.UInt32)
+            Value: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => 7')
+        Pattern: 
+          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.UInt32, NarrowedType: System.UInt32)
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7) (Syntax: '7')
+");
         }
 
         [Fact]
