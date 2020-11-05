@@ -6,13 +6,13 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.MakeClassAbstract
+Imports Microsoft.CodeAnalysis.MakeTypeAbstract
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.MakeClassAbstract
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicMakeClassAbstractCodeFixProvider)), [Shared]>
-    Friend NotInheritable Class VisualBasicMakeClassAbstractCodeFixProvider
-        Inherits AbstractMakeClassAbstractCodeFixProvider(Of ClassStatementSyntax)
+Namespace Microsoft.CodeAnalysis.VisualBasic.MakeTypeAbstract
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicMakeTypeAbstractCodeFixProvider)), [Shared]>
+    Friend NotInheritable Class VisualBasicMakeTypeAbstractCodeFixProvider
+        Inherits AbstractMakeTypeAbstractCodeFixProvider(Of ClassStatementSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -24,14 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeClassAbstract
                 "BC31411"
             )
 
-        Protected Overrides Function IsValidRefactoringContext(node As SyntaxNode, ByRef classDeclaration As ClassStatementSyntax) As Boolean
+        Protected Overrides Function IsValidRefactoringContext(node As SyntaxNode, ByRef typeDeclaration As ClassStatementSyntax) As Boolean
             If node Is Nothing OrElse Not (node.IsKind(SyntaxKind.ClassStatement)) Then
                 Return False
             End If
 
-            classDeclaration = CType(node, ClassStatementSyntax)
+            typeDeclaration = CType(node, ClassStatementSyntax)
 
-            Return Not (classDeclaration.Modifiers.Any(SyntaxKind.MustInheritKeyword) OrElse classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword))
+            Return Not (typeDeclaration.Modifiers.Any(SyntaxKind.MustInheritKeyword) OrElse typeDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword))
         End Function
     End Class
 End Namespace
