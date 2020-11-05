@@ -74,11 +74,38 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
         }
 
-        public static CompletionItem AddSymbolEncodingAndInfo(IReadOnlyList<ISymbol> symbols, CompletionItem item)
-            => AddSymbolInfo(symbols, AddSymbolEncoding(symbols, item));
-
         public static CompletionItem AddProvideParenthesisCompletion(CompletionItem item, bool provideParenthesisCompletion)
             => item.AddProperty("ProvideParenthesisCompletion", provideParenthesisCompletion.ToString());
+
+        public static CompletionItem AddNamespace(CompletionItem item, string @namespace)
+            => item.AddProperty("Namespace", @namespace);
+
+        public static CompletionItem AddHasParameter(CompletionItem item, bool hasParameter)
+            => item.AddProperty("HasParameter", hasParameter.ToString());
+
+        public static bool GetSymbolHasParameter(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("HasParameter", out var value)
+                && bool.TryParse(value, out var result))
+            {
+                return result;
+            }
+
+            return false;
+        }
+
+        public static INamedTypeSymbol GetNamedTypeSymbol(CompletionItem item, Compilation compilation)
+        {
+            var name = GetSymbolName(item);
+            var @namespace = GetNamespace(item);
+            if (name != null && @namespace != null)
+            {
+                var fullyQualifiedName = @namespace.Length == 0 ? name : @namespace + name;
+                return compilation.GetTypeByMetadataName(fullyQualifiedName);
+            }
+
+            return null;
+        }
 
         public static bool GetProvideParenthesisCompletion(CompletionItem item)
         {
@@ -325,6 +352,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterText, supportedPlatforms, properties, tags);
         }
 
+
         internal static string GetSymbolName(CompletionItem item)
             => item.Properties.TryGetValue("SymbolName", out var name) ? name : null;
 
@@ -333,6 +361,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         internal static bool GetSymbolIsGeneric(CompletionItem item)
             => item.Properties.TryGetValue("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
+
+        internal static string GetNamespace(CompletionItem item)
+            => item.Properties.TryGetValue("SymbolNamespace", out var @namespace) ? @namespace : null;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)

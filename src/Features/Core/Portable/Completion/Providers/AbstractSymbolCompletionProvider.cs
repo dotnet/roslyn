@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly object s_cacheGate = new();
 
         private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
-        private bool? _isInsertFullMethodCallExperimentEnabled = null;
 
         protected AbstractSymbolCompletionProvider()
         {

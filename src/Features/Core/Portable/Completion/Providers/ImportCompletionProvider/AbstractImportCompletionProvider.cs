@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private bool? _isImportCompletionExperimentEnabled = null;
 
-        private bool? _isInsertFullMethodCallExperimentEnabled = null;
-
         private bool IsTypeImportCompletionExperimentEnabled(Workspace workspace)
         {
             if (!_isImportCompletionExperimentEnabled.HasValue)

@@ -289,10 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 _ => false
             });
 
-            var properties = ImmutableDictionary<string, string>.Empty
-                .Add("ProvideParenthesisCompletion", shouldProvideParenthesisCompletion.ToString());
-
-            return SymbolCompletionItem.CreateWithSymbolId(
+            var item = SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 symbols: symbols,
@@ -301,34 +298,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 contextPosition: context.Position,
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
-                supportedPlatforms: supportedPlatformData,
-                properties: properties);
-        }
+                supportedPlatforms: supportedPlatformData);
 
-        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            var position = SymbolCompletionItem.GetContextPosition(item);
-            var restoredSymbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-            var symbol = restoredSymbols[0];
-            var name = symbol.Name;
-            var kind = symbol.Kind;
-            var isGeneric = symbol.GetArity() > 0;
-            var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
-            var options = document.Project.Solution.Workspace.Options;
-            var totalSymbols = await base.GetPerContextSymbolsAsync(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            foreach (var (documentId, syntaxContext, symbols) in totalSymbols)
+            if (shouldProvideParenthesisCompletion)
             {
-                var bestSymbols = symbols.WhereAsArray(
-                    s => kind != null && s.Kind == kind && s.Name == name && isGeneric == (s.GetArity() > 0));
-
-                if (bestSymbols.Any())
+                item = symbols[0] switch
                 {
-                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);
-                }
+                    ITypeSymbol typeSymbol => SymbolCompletionItem.AddNamespace(item, typeSymbol.ContainingNamespace.MetadataName),
+                    IAliasSymbol aliasSymbol => SymbolCompletionItem.AddNamespace(item, aliasSymbol.Target.ContainingNamespace.MetadataName),
+                    IMethodSymbol methodSymbol => SymbolCompletionItem.AddHasParameter(item, methodSymbol.Parameters.Length > 0),
+                    _ => item
+                };
+
+                item = SymbolCompletionItem.AddProvideParenthesisCompletion(item, true);
             }
 
-            return CompletionDescription.Empty;
+            return item;
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
@@ -336,13 +321,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
             if (commitKey == ';' && SymbolCompletionItem.GetProvideParenthesisCompletion(item))
             {
-                var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+                var symbolKind = SymbolCompletionItem.GetKind(item);
                 var textChange = new TextChange(item.Span, string.Concat(insertionText + "()", commitKey));
-                var putCaretBetweenParenthesis = symbols.All(ShouldPutCaretBetweenParenthesis);
                 var endOfInsertionText = item.Span.Start + insertionText.Length;
-                return CompletionChange.Create(textChange,
-                    putCaretBetweenParenthesis ? endOfInsertionText + 1 : endOfInsertionText + 3,
-                    includesCommitCharacter: true);
+                var caretPosition = endOfInsertionText + 3;
+                if (symbolKind == SymbolKind.NamedType || symbolKind == SymbolKind.Alias)
+                {
+                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var typeSymbol = SymbolCompletionItem.GetNamedTypeSymbol(item, compilation);
+                    if (typeSymbol != null && ShouldPutCaretBetweenParenthesis(typeSymbol))
+                    {
+                        caretPosition = endOfInsertionText + 1;
+                    }
+                }
+                else if (symbolKind == SymbolKind.Method && SymbolCompletionItem.GetSymbolHasParameter(item))
+                {
+                    caretPosition = endOfInsertionText + 1;
+                }
+
+                return CompletionChange.Create(textChange, caretPosition, includesCommitCharacter: true);
             }
 
             var insertionTextChange = new TextChange(item.Span, insertionText);
