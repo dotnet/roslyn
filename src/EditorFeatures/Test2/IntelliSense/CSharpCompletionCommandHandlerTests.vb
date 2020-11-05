@@ -6263,7 +6263,7 @@ class C
                 Await state.AssertCompletionSession()
                 Assert.True(state.IsSoftSelected())
                 state.SendTypeChars(".")
-                Assert.Contains("var span = url[startIndex..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("var span = url[startIndex..] //<-- type .. after startIndex", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
