@@ -26993,11 +26993,7 @@ namespace System.Runtime.CompilerServices
             var parameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().First();
             var i1 = model.GetDeclaredSymbol(parameter);
 
-            comp.VerifyDiagnostics(
-                // (4,21): warning CS1591: Missing XML comment for publicly visible type or member 'C.I1'
-                // public record C(int I1);
-                Diagnostic(ErrorCode.WRN_MissingXMLComment, "I1").WithArguments("C.I1").WithLocation(4, 21)
-                );
+            comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
             Assert.Equal(

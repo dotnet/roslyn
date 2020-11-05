@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Report the error at a location in the tree that was parsing doc comments.
                     Location location = GetLocationInTreeReportingDocumentationCommentDiagnostics(symbol);
-                    if (location != null)
+                    if (location != null && symbol is not SynthesizedRecordPropertySymbol)
                     {
                         _diagnostics.Add(ErrorCode.WRN_MissingXMLComment, location, symbol);
                     }
