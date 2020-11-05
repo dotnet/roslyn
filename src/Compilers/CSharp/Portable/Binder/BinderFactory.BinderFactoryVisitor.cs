@@ -1141,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (memberSyntax is RecordDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } recordDeclSyntax)
                 {
-                    Binder outerBinder = VisitCore(memberSyntax.Parent);
+                    Binder outerBinder = VisitCore(memberSyntax);
                     SourceNamedTypeSymbol recordType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember(recordDeclSyntax);
                     var primaryConstructor = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
                     Debug.Assert(primaryConstructor is not null);
