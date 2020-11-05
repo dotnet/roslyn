@@ -23,61 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements Cci.ITypeDefinitionMember
         Implements Cci.IMethodDefinition
 
-#If DEBUG Then
-        Friend ReadOnly Property AdaptedMethodSymbol As MethodSymbol
-
-        Friend Sub New(underlyingMethodSymbol As MethodSymbol)
-            AdaptedMethodSymbol = underlyingMethodSymbol
-        End Sub
-
-        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
-            Get
-                Return AdaptedMethodSymbol
-            End Get
-        End Property
-#Else
-        Friend ReadOnly Property AdaptedMethodSymbol As MethodSymbol
-            Get
-                Return Me
-            End Get
-        End Property
-#End If
-
-    End Class
-
-    Partial Friend Class MethodSymbol
-#If DEBUG Then
-        Private _lazyAdapter As MethodSymbolAdapter
-
-        Protected NotOverridable Overrides Function GetCciAdapterImpl() As SymbolAdapter
-            Return GetCciAdapter()
-        End Function
-
-        Friend Shadows Function GetCciAdapter() As MethodSymbolAdapter
-            If _lazyAdapter Is Nothing Then
-                Return InterlockedOperations.Initialize(_lazyAdapter, Me.CreateCciAdapter())
-            End If
-
-            Return _lazyAdapter
-        End Function
-
-        Protected Overridable Function CreateCciAdapter() As MethodSymbolAdapter
-            Return New MethodSymbolAdapter(Me)
-        End Function
-#Else
-        Friend Shadows Function GetCciAdapter() As MethodSymbol
-            return Me
-        End Function
-#End If
-
-        Public Const DisableJITOptimizationFlags As MethodImplAttributes = MethodImplAttributes.NoInlining Or MethodImplAttributes.NoOptimization
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbolAdapter
-#End If
-
         Private ReadOnly Property IMethodReferenceAsGenericMethodInstanceReference As Cci.IGenericMethodInstanceReference Implements Cci.IMethodReference.AsGenericMethodInstanceReference
             Get
                 Debug.Assert(Me.IsDefinitionOrDistinct())
@@ -347,25 +292,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbol
-#End If
-
-        Friend Overridable ReadOnly Property IsAccessCheckedOnOverride As Boolean
-            Get
-                CheckDefinitionInvariant()
-                Return Me.IsMetadataVirtual ' VB always sets this for methods where virtual is set.
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbolAdapter
-#End If
-
         Private ReadOnly Property IMethodDefinitionIsConstructor As Boolean Implements Cci.IMethodDefinition.IsConstructor
             Get
                 CheckDefinitionInvariant()
@@ -380,25 +306,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbol
-#End If
-
-        Friend Overridable ReadOnly Property IsExternal As Boolean
-            Get
-                CheckDefinitionInvariant()
-                Return Me.IsExternalMethod
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbolAdapter
-#End If
-
         Private Function IMethodDefinitionGetImplementationOptions(context As EmitContext) As MethodImplAttributes Implements Cci.IMethodDefinition.GetImplementationAttributes
             CheckDefinitionInvariant()
             Return AdaptedMethodSymbol.ImplementationAttributes Or
@@ -412,62 +319,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbol
-#End If
-
-        Friend Overridable ReadOnly Property IsHiddenBySignature As Boolean
-            Get
-                CheckDefinitionInvariant()
-                Return Me.IsOverloads
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbolAdapter
-#End If
-
         Private ReadOnly Property IMethodDefinitionIsNewSlot As Boolean Implements Cci.IMethodDefinition.IsNewSlot
             Get
                 CheckDefinitionInvariant()
                 Return AdaptedMethodSymbol.IsMetadataNewSlot()
             End Get
         End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbol
-#End If
-
-        ''' <summary>
-        ''' This method indicates whether or not the runtime will regard the method
-        ''' as newslot (as indicated by the presence of the "newslot" modifier in the
-        ''' signature).
-        ''' WARN WARN WARN: We won't have a final value for this until declaration
-        ''' diagnostics have been computed for all <see cref="SourceMemberContainerTypeSymbol"/>s,
-        ''' so pass ignoringInterfaceImplementationChanges: True if you need a value sooner
-        ''' and aren't concerned about tweaks made to satisfy interface implementation 
-        ''' requirements.
-        ''' NOTE: Not ignoring changes can only result in a value that is more true.
-        ''' </summary>
-        Friend Overridable Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
-            If Me.IsOverrides Then
-                Return OverrideHidingHelper.RequiresExplicitOverride(Me)
-            Else
-                Return Me.IsMetadataVirtual
-            End If
-        End Function
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbolAdapter
-#End If
 
         Private ReadOnly Property IMethodDefinitionIsPlatformInvoke As Boolean Implements Cci.IMethodDefinition.IsPlatformInvoke
             Get
@@ -490,58 +347,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbol
-#End If
-
-        Friend Overridable ReadOnly Property HasRuntimeSpecialName As Boolean
-            Get
-                CheckDefinitionInvariant()
-                Dim result = Me.MethodKind = MethodKind.Constructor OrElse
-                             Me.MethodKind = MethodKind.SharedConstructor
-
-                ' runtime-special must be special:
-                Debug.Assert(Not result OrElse HasSpecialName)
-
-                Return result
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbolAdapter
-#End If
-
         Private ReadOnly Property IMethodDefinitionIsSealed As Boolean Implements Cci.IMethodDefinition.IsSealed
             Get
                 CheckDefinitionInvariant()
                 Return AdaptedMethodSymbol.IsMetadataFinal
             End Get
         End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbol
-#End If
-
-        Friend Overridable ReadOnly Property IsMetadataFinal As Boolean
-            Get
-                ' If we are metadata virtual, but not language virtual, set the "final" bit (i.e., interface
-                ' implementation methods). Also do it if we are explicitly marked "NotOverridable".
-                Return Me.IsNotOverridable OrElse
-                    (Me.IsMetadataVirtual AndAlso Not (Me.IsOverridable OrElse Me.IsMustOverride OrElse Me.IsOverrides))
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbolAdapter
-#End If
 
         Private ReadOnly Property IMethodDefinitionIsSpecialName As Boolean Implements Cci.IMethodDefinition.IsSpecialName
             Get
@@ -608,25 +419,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbol
-#End If
-
-        Friend Overridable ReadOnly Property ReturnValueIsMarshalledExplicitly As Boolean
-            Get
-                CheckDefinitionInvariant()
-                Return ReturnTypeMarshallingInformation IsNot Nothing
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbolAdapter
-#End If
-
         Private ReadOnly Property IMethodDefinitionReturnValueMarshallingInformation As Cci.IMarshallingInformation Implements Cci.IMethodDefinition.ReturnValueMarshallingInformation
             Get
                 CheckDefinitionInvariant()
@@ -640,25 +432,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return AdaptedMethodSymbol.ReturnValueMarshallingDescriptor
             End Get
         End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbol
-#End If
-
-        Friend Overridable ReadOnly Property ReturnValueMarshallingDescriptor As ImmutableArray(Of Byte)
-            Get
-                CheckDefinitionInvariant()
-                Return Nothing
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class MethodSymbolAdapter
-#End If
 
         Private ReadOnly Property IMethodDefinitionSecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) Implements Cci.IMethodDefinition.SecurityAttributes
             Get
@@ -676,4 +449,130 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
     End Class
+
+    Partial Friend Class MethodSymbol
+#If DEBUG Then
+        Private _lazyAdapter As MethodSymbolAdapter
+
+        Protected NotOverridable Overrides Function GetCciAdapterImpl() As SymbolAdapter
+            Return GetCciAdapter()
+        End Function
+
+        Friend Shadows Function GetCciAdapter() As MethodSymbolAdapter
+            If _lazyAdapter Is Nothing Then
+                Return InterlockedOperations.Initialize(_lazyAdapter, Me.CreateCciAdapter())
+            End If
+
+            Return _lazyAdapter
+        End Function
+
+        Protected Overridable Function CreateCciAdapter() As MethodSymbolAdapter
+            Return New MethodSymbolAdapter(Me)
+        End Function
+#Else
+        Friend ReadOnly Property AdaptedMethodSymbol As MethodSymbol
+            Get
+                Return Me
+            End Get
+        End Property
+
+        Friend Shadows Function GetCciAdapter() As MethodSymbol
+            Return Me
+        End Function
+#End If
+
+        Public Const DisableJITOptimizationFlags As MethodImplAttributes = MethodImplAttributes.NoInlining Or MethodImplAttributes.NoOptimization
+
+        Friend Overridable ReadOnly Property IsAccessCheckedOnOverride As Boolean
+            Get
+                CheckDefinitionInvariant()
+                Return Me.IsMetadataVirtual ' VB always sets this for methods where virtual is set.
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property IsExternal As Boolean
+            Get
+                CheckDefinitionInvariant()
+                Return Me.IsExternalMethod
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property IsHiddenBySignature As Boolean
+            Get
+                CheckDefinitionInvariant()
+                Return Me.IsOverloads
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' This method indicates whether or not the runtime will regard the method
+        ''' as newslot (as indicated by the presence of the "newslot" modifier in the
+        ''' signature).
+        ''' WARN WARN WARN: We won't have a final value for this until declaration
+        ''' diagnostics have been computed for all <see cref="SourceMemberContainerTypeSymbol"/>s,
+        ''' so pass ignoringInterfaceImplementationChanges: True if you need a value sooner
+        ''' and aren't concerned about tweaks made to satisfy interface implementation 
+        ''' requirements.
+        ''' NOTE: Not ignoring changes can only result in a value that is more true.
+        ''' </summary>
+        Friend Overridable Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
+            If Me.IsOverrides Then
+                Return OverrideHidingHelper.RequiresExplicitOverride(Me)
+            Else
+                Return Me.IsMetadataVirtual
+            End If
+        End Function
+
+        Friend Overridable ReadOnly Property HasRuntimeSpecialName As Boolean
+            Get
+                CheckDefinitionInvariant()
+                Dim result = Me.MethodKind = MethodKind.Constructor OrElse
+                             Me.MethodKind = MethodKind.SharedConstructor
+
+                ' runtime-special must be special:
+                Debug.Assert(Not result OrElse HasSpecialName)
+
+                Return result
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property IsMetadataFinal As Boolean
+            Get
+                ' If we are metadata virtual, but not language virtual, set the "final" bit (i.e., interface
+                ' implementation methods). Also do it if we are explicitly marked "NotOverridable".
+                Return Me.IsNotOverridable OrElse
+                    (Me.IsMetadataVirtual AndAlso Not (Me.IsOverridable OrElse Me.IsMustOverride OrElse Me.IsOverrides))
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property ReturnValueIsMarshalledExplicitly As Boolean
+            Get
+                CheckDefinitionInvariant()
+                Return ReturnTypeMarshallingInformation IsNot Nothing
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property ReturnValueMarshallingDescriptor As ImmutableArray(Of Byte)
+            Get
+                CheckDefinitionInvariant()
+                Return Nothing
+            End Get
+        End Property
+    End Class
+
+#If DEBUG Then
+    Partial Friend Class MethodSymbolAdapter
+        Friend ReadOnly Property AdaptedMethodSymbol As MethodSymbol
+
+        Friend Sub New(underlyingMethodSymbol As MethodSymbol)
+            AdaptedMethodSymbol = underlyingMethodSymbol
+        End Sub
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return AdaptedMethodSymbol
+            End Get
+        End Property
+    End Class
+#End If
 End Namespace
