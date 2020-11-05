@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             }
         }
 
-        internal override Document AddImports(
+        internal override void AddImports(
             Document document, int position, XElement snippetNode,
             bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             if (importsNode == null ||
                 !importsNode.HasElements)
             {
-                return document;
+                return;
             }
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
@@ -92,14 +92,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode, cancellationToken);
             if (!newUsingDirectives.Any())
             {
-                return document;
+                return;
             }
 
             // In Venus/Razor, inserting imports statements into the subject buffer does not work.
             // Instead, we add the imports through the contained language host.
             if (TryAddImportsToContainedDocument(document, newUsingDirectives.Where(u => u.Alias == null).Select(u => u.Name.ToString())))
             {
-                return document;
+                return;
             }
 
             var addImportService = document.GetLanguageService<IAddImportsService>();
@@ -111,8 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
             var formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             document.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
-
-            return formattedDocument;
         }
 
         private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
