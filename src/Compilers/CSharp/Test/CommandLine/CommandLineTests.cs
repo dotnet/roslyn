@@ -13246,8 +13246,7 @@ dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}");
             }
         }
 
-        // can't load a coreclr targeting generator on net framework / mono
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a coreclr targeting generator on net framework / mono")]
         public void TestGeneratorsCantTargetNetFramework()
         {
             var directory = Temp.CreateDirectory();
