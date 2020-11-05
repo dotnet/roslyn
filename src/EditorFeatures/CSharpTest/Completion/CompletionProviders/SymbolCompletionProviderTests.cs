@@ -10788,6 +10788,35 @@ class C
 
         [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterPatternMatchWithDeclaration()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m is RankedMusicians.$$ r)
+            {
+            }
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EnumMemberAfterPropertyPatternMatch()
         {
             var markup =
@@ -10839,7 +10868,7 @@ class C
 
         [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task EnumMemberAfterPatternMatch_Normal()
+        public async Task EnumMemberAfterBinaryExpression()
         {
             var markup =
 @"namespace N
@@ -10855,6 +10884,35 @@ class C
 		void M(RankedMusicians m)
 		{
 			if (m == RankedMusicians.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterBinaryExpressionWithDeclaration()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m == RankedMusicians.$$ r)
+            {
+            }
 		}
 	}
 }";
