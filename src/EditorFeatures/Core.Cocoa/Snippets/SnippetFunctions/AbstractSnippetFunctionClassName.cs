@@ -5,6 +5,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
@@ -28,6 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 return;
             }
+
+            Contract.ThrowIfNull(snippetExpansionClient.ExpansionSession);
 
             var surfaceBufferFieldSpan = snippetExpansionClient.ExpansionSession.GetFieldSpan(FieldName);
 

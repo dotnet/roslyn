@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
@@ -35,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected int indentDepth;
         protected bool earlyEndExpansionHappened;
 
-        internal IExpansionSession ExpansionSession;
+        internal IExpansionSession? ExpansionSession;
 
         public AbstractSnippetExpansionClient(IThreadingContext threadingContext, IContentType languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IExpansionServiceProvider expansionServiceProvider)
             : base(threadingContext)
@@ -46,8 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             this.ExpansionServiceProvider = expansionServiceProvider;
         }
 
-        public abstract IExpansionFunction GetExpansionFunction(XElement xmlFunctionNode, string fieldName);
-        protected abstract ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan();
+        public abstract IExpansionFunction? GetExpansionFunction(XElement xmlFunctionNode, string fieldName);
+        protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
 
         public void FormatSpan(SnapshotSpan span)
         {
@@ -79,6 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
+            Contract.ThrowIfNull(ExpansionSession);
+
             // Insert empty comment and track end position
             var snippetTrackingSpan = snippetSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
@@ -99,8 +100,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
         }
 
-        private void SetNewEndPosition(ITrackingSpan endTrackingSpan)
+        private void SetNewEndPosition(ITrackingSpan? endTrackingSpan)
         {
+            Contract.ThrowIfNull(ExpansionSession);
+
             if (SetEndPositionIfNoneSpecified(ExpansionSession))
             {
                 return;
@@ -120,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
         }
 
-        private void CleanUpEndLocation(ITrackingSpan endTrackingSpan)
+        private void CleanUpEndLocation(ITrackingSpan? endTrackingSpan)
         {
             if (endTrackingSpan != null)
             {
@@ -353,7 +356,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
         }
 
-        protected static bool TryGetSnippetFunctionInfo(XElement xmlFunctionNode, out string snippetFunctionName, out string param)
+        protected static bool TryGetSnippetFunctionInfo(XElement xmlFunctionNode, [NotNullWhen(returnValue: true)] out string? snippetFunctionName, [NotNullWhen(returnValue: true)] out string? param)
         {
             if (xmlFunctionNode.Value.IndexOf('(') == -1 ||
                 xmlFunctionNode.Value.IndexOf(')') == -1 ||

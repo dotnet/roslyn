@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             _subjectBuffer = subjectBuffer;
         }
 
-        protected bool TryGetDocument(out Document document)
+        protected bool TryGetDocument([NotNullWhen(returnValue: true)] out Document? document)
         {
             document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             return document != null;

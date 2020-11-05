@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -45,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             }
         }
 
-        protected override bool TryGetEnumTypeSymbol(CancellationToken cancellationToken, out ITypeSymbol typeSymbol)
+        protected override bool TryGetEnumTypeSymbol(CancellationToken cancellationToken, [NotNullWhen(returnValue: true)] out ITypeSymbol? typeSymbol)
         {
             typeSymbol = null;
             if (!TryGetDocument(out var document))
@@ -53,11 +52,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
                 return false;
             }
 
+            Contract.ThrowIfNull(snippetExpansionClient.ExpansionSession);
+
             var subjectBufferFieldSpan = snippetExpansionClient.ExpansionSession.GetFieldSpan(SwitchExpressionField);
 
             var expressionSpan = subjectBufferFieldSpan.Span.ToTextSpan();
 
-            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
+            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             var token = syntaxTree.FindTokenOnRightOfPosition(expressionSpan.Start, cancellationToken);
             var expressionNode = token.GetAncestor(n => n.Span == expressionSpan);
 
@@ -67,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             }
 
             var model = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            typeSymbol = model.GetTypeInfo(expressionNode, cancellationToken).Type;
+            typeSymbol = model?.GetTypeInfo(expressionNode, cancellationToken).Type;
 
             return typeSymbol != null;
         }
@@ -84,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             var textWithCaseAdded = document.GetTextSynchronously(cancellationToken).WithChanges(textChange);
             var documentWithCaseAdded = document.WithText(textWithCaseAdded);
 
-            var syntaxRoot = documentWithCaseAdded.GetSyntaxRootSynchronously(cancellationToken);
+            var syntaxRoot = documentWithCaseAdded.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var nodeToReplace = syntaxRoot.DescendantNodes().FirstOrDefault(n => n.Span == typeSpanToAnnotate);
 
             if (nodeToReplace == null)
@@ -96,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             var documentWithAnnotations = documentWithCaseAdded.WithSyntaxRoot(updatedRoot);
 
             var simplifiedDocument = Simplifier.ReduceAsync(documentWithAnnotations, cancellationToken: cancellationToken).Result;
-            simplifiedTypeName = simplifiedDocument.GetSyntaxRootSynchronously(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString();
+            simplifiedTypeName = simplifiedDocument.GetRequiredSyntaxRootSynchronously(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString();
             return true;
         }
     }

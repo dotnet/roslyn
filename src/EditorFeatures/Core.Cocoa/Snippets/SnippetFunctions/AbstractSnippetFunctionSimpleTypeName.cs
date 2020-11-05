@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions
@@ -49,10 +49,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
             hasCurrentValue = true;
         }
 
-        private bool TryGetDocumentWithFullyQualifiedTypeName(Document document, out TextSpan updatedTextSpan, out Document documentWithFullyQualifiedTypeName)
+        private bool TryGetDocumentWithFullyQualifiedTypeName(Document document, out TextSpan updatedTextSpan, [NotNullWhen(returnValue: true)] out Document? documentWithFullyQualifiedTypeName)
         {
             documentWithFullyQualifiedTypeName = null;
             updatedTextSpan = default;
+
+            Contract.ThrowIfNull(snippetExpansionClient.ExpansionSession);
 
             var surfaceBufferFieldSpan = snippetExpansionClient.ExpansionSession.GetFieldSpan(_fieldName);
 

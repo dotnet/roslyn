@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
                 ? switchExpressionField.Substring(1, switchExpressionField.Length - 2) : switchExpressionField;
         }
 
-        protected abstract bool TryGetEnumTypeSymbol(CancellationToken cancellationToken, out ITypeSymbol typeSymbol);
+        protected abstract bool TryGetEnumTypeSymbol(CancellationToken cancellationToken, [NotNullWhen(returnValue: true)] out ITypeSymbol? typeSymbol);
         protected abstract bool TryGetSimplifiedTypeNameInCaseContext(Document document, string fullyQualifiedTypeName, string firstEnumMemberName, int startPosition, int endPosition, CancellationToken cancellationToken, out string simplifiedTypeName);
 
         protected override bool FieldChanged(string field)
@@ -76,6 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
             {
                 return false;
             }
+
+            Contract.ThrowIfNull(snippetExpansionClient.ExpansionSession);
 
             var surfaceBufferFieldSpan = snippetExpansionClient.ExpansionSession.GetFieldSpan(CaseGenerationLocationField);
 

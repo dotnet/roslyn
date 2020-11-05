@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -13,6 +11,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Expansion;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
@@ -25,8 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         /// <returns>The tracking span of the inserted "/**/" if there is an $end$ location, null
         /// otherwise.</returns>
-        protected override ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan()
+        protected override ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan()
         {
+            Contract.ThrowIfNull(ExpansionSession);
+
             var endSpanInSurfaceBuffer = ExpansionSession.EndSpan;
             if (!TryGetSubjectBufferSpan(endSpanInSurfaceBuffer, out var subjectBufferEndSpan))
             {
@@ -42,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             return SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(commentSpan, SpanTrackingMode.EdgeExclusive);
         }
 
-        public override IExpansionFunction GetExpansionFunction(XElement xmlFunctionNode, string fieldName)
+        public override IExpansionFunction? GetExpansionFunction(XElement xmlFunctionNode, string fieldName)
         {
             if (!TryGetSnippetFunctionInfo(xmlFunctionNode, out var snippetFunctionName, out var param))
             {
