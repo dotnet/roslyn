@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property WRN_AnalyzerReferencesFramework As Integer
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return ERRID.WRN_AnalyzerReferencesFramework
             End Get
         End Property
 

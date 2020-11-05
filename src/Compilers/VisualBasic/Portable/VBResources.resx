@@ -5604,4 +5604,11 @@
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
   </data>
+  <data name="WRN_AnalyzerReferencesFramework" xml:space="preserve">
+    <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+    <comment>{1} is the type that was loaded, {0} is the containing assembly.</comment>
+  </data>
+  <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
+    <value>The loaded assembly references .NET Framework, which is not supported.</value>
+  </data>
 </root>

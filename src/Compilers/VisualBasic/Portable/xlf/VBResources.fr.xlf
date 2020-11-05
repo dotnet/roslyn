@@ -463,6 +463,16 @@
         <target state="translated">L'argument de type ne peut pas être Nothing</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
         <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</target>
