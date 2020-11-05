@@ -5,7 +5,6 @@
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
