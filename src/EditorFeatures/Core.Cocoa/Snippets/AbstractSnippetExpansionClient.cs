@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected int _indentDepth;
         protected bool _earlyEndExpansionHappened;
 
-        internal IExpansionSession? ExpansionSession;
+        public IExpansionSession? ExpansionSession { get; private set; }
 
         public AbstractSnippetExpansionClient(IThreadingContext threadingContext, IContentType languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IExpansionServiceProvider expansionServiceProvider)
             : base(threadingContext)
