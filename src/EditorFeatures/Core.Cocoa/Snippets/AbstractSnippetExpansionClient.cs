@@ -54,8 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public void FormatSpan(SnapshotSpan span)
         {
-            // Formatting a snippet isn't cancellable.
-            var cancellationToken = CancellationToken.None;
             // At this point, the $selection$ token has been replaced with the selected text and
             // declarations have been replaced with their default text. We need to format the 
             // inserted snippet text while carefully handling $end$ position (where the caret goes
