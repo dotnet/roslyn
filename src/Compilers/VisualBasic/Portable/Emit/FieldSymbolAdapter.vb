@@ -21,65 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements ITypeDefinitionMember
         Implements ISpecializedFieldReference
 
-#If DEBUG Then
-        Friend ReadOnly Property AdaptedFieldSymbol As FieldSymbol
-
-        Protected Sub New(underlyingFieldSymbol As FieldSymbol)
-            AdaptedFieldSymbol = underlyingFieldSymbol
-        End Sub
-
-        Friend Shared Function Create(underlyingFieldSymbol As FieldSymbol) As FieldSymbolAdapter
-            Dim synthesizedStaticLocalBackingField = TryCast(underlyingFieldSymbol, SynthesizedStaticLocalBackingField)
-
-            If synthesizedStaticLocalBackingField IsNot Nothing Then
-                Return New SynthesizedStaticLocalBackingFieldAdapter(synthesizedStaticLocalBackingField)
-            End If
-
-            Return New FieldSymbolAdapter(underlyingFieldSymbol)
-        End Function
-
-        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
-            Get
-                Return AdaptedFieldSymbol
-            End Get
-        End Property
-#Else
-        Friend ReadOnly Property AdaptedFieldSymbol As FieldSymbol
-            Get
-                Return Me
-            End Get
-        End Property
-#End If
-
-    End Class
-
-    Partial Friend Class FieldSymbol
-#If DEBUG Then
-        Private _lazyAdapter As FieldSymbolAdapter
-
-        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
-            Return GetCciAdapter()
-        End Function
-
-        Friend Shadows Function GetCciAdapter() As FieldSymbolAdapter
-            If _lazyAdapter Is Nothing Then
-                Return InterlockedOperations.Initialize(_lazyAdapter, FieldSymbolAdapter.Create(Me))
-            End If
-
-            Return _lazyAdapter
-        End Function
-#Else
-        Friend Shadows Function GetCciAdapter() As FieldSymbol
-            return Me
-        End Function
-#End If
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class FieldSymbolAdapter
-#End If
-
         Private Function IFieldReferenceGetType(context As EmitContext) As ITypeReference Implements IFieldReference.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim customModifiers = AdaptedFieldSymbol.CustomModifiers
@@ -149,23 +90,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class FieldSymbol
-#End If
-
-        Friend Overridable ReadOnly Property IsContextualNamedEntity As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class FieldSymbolAdapter
-#End If
         Private ReadOnly Property IFieldReference_IsContextualNamedEntity As Boolean Implements IFieldReference.IsContextualNamedEntity
             Get
                 Return AdaptedFieldSymbol.IsContextualNamedEntity
@@ -253,25 +177,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class FieldSymbol
-#End If
-
-        Friend Overridable ReadOnly Property IsMarshalledExplicitly As Boolean
-            Get
-                CheckDefinitionInvariant()
-                Return Me.MarshallingInformation IsNot Nothing
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class FieldSymbolAdapter
-#End If
-
         Private ReadOnly Property IFieldDefinitionMarshallingInformation As IMarshallingInformation Implements IFieldDefinition.MarshallingInformation
             Get
                 CheckDefinitionInvariant()
@@ -285,25 +190,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return AdaptedFieldSymbol.MarshallingDescriptor
             End Get
         End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class FieldSymbol
-#End If
-
-        Friend Overridable ReadOnly Property MarshallingDescriptor As ImmutableArray(Of Byte)
-            Get
-                CheckDefinitionInvariant()
-                Return Nothing
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class FieldSymbolAdapter
-#End If
 
         Private ReadOnly Property IFieldDefinitionOffset As Integer Implements IFieldDefinition.Offset
             Get
@@ -333,4 +219,78 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
     End Class
+
+    Partial Friend Class FieldSymbol
+#If DEBUG Then
+        Private _lazyAdapter As FieldSymbolAdapter
+
+        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
+            Return GetCciAdapter()
+        End Function
+
+        Friend Shadows Function GetCciAdapter() As FieldSymbolAdapter
+            If _lazyAdapter Is Nothing Then
+                Return InterlockedOperations.Initialize(_lazyAdapter, FieldSymbolAdapter.Create(Me))
+            End If
+
+            Return _lazyAdapter
+        End Function
+#Else
+        Friend ReadOnly Property AdaptedFieldSymbol As FieldSymbol
+            Get
+                Return Me
+            End Get
+        End Property
+
+        Friend Shadows Function GetCciAdapter() As FieldSymbol
+            Return Me
+        End Function
+#End If
+
+        Friend Overridable ReadOnly Property IsContextualNamedEntity As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property IsMarshalledExplicitly As Boolean
+            Get
+                CheckDefinitionInvariant()
+                Return Me.MarshallingInformation IsNot Nothing
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property MarshallingDescriptor As ImmutableArray(Of Byte)
+            Get
+                CheckDefinitionInvariant()
+                Return Nothing
+            End Get
+        End Property
+    End Class
+
+#If DEBUG Then
+    Partial Friend Class FieldSymbolAdapter
+        Friend ReadOnly Property AdaptedFieldSymbol As FieldSymbol
+
+        Protected Sub New(underlyingFieldSymbol As FieldSymbol)
+            AdaptedFieldSymbol = underlyingFieldSymbol
+        End Sub
+
+        Friend Shared Function Create(underlyingFieldSymbol As FieldSymbol) As FieldSymbolAdapter
+            Dim synthesizedStaticLocalBackingField = TryCast(underlyingFieldSymbol, SynthesizedStaticLocalBackingField)
+
+            If synthesizedStaticLocalBackingField IsNot Nothing Then
+                Return New SynthesizedStaticLocalBackingFieldAdapter(synthesizedStaticLocalBackingField)
+            End If
+
+            Return New FieldSymbolAdapter(underlyingFieldSymbol)
+        End Function
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return AdaptedFieldSymbol
+            End Get
+        End Property
+    End Class
+#End If
 End Namespace
