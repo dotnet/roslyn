@@ -100,14 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 CleanUpEndLocation(endPositionTrackingSpan);
 
-                // Unfortunately, this is the only place we can safely add references and imports
-                // specified in the snippet xml. In OnBeforeInsertion we have no guarantee that the
-                // snippet xml will be available, and changing the buffer during OnAfterInsertion can
-                // cause the underlying tracking spans to get out of sync.
-                var currentStartPosition = snippetTrackingSpan.GetStartPoint(SubjectBuffer.CurrentSnapshot).Position;
-                AddReferencesAndImports(
-                    ExpansionSession, currentStartPosition, cancellationToken);
-
                 SetNewEndPosition(endPositionTrackingSpan);
             }
         }
@@ -364,27 +356,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 ExpansionSession = null;
                 earlyEndExpansionHappened = false;
             }
-        }
-
-        private void AddReferencesAndImports(
-            IExpansionSession pSession,
-            int position,
-            CancellationToken cancellationToken)
-        {
-            if (!(pSession.GetSnippetNode() is XElement snippetNode))
-            {
-                return;
-            }
-
-            var documentWithImports = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (documentWithImports == null)
-            {
-                return;
-            }
-
-            var documentOptions = documentWithImports.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-            var allowInHiddenRegions = documentWithImports.CanAddImportsInHiddenRegions();
         }
 
         protected static bool TryGetSnippetFunctionInfo(XElement xmlFunctionNode, out string snippetFunctionName, out string param)
