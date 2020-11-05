@@ -251,10 +251,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool AreNullableAnnotationsEnabled(SyntaxToken token)
         {
             RoslynDebug.Assert(token.SyntaxTree is object);
-            if ((Flags & BinderFlags.IgnoreNullableContext) != 0)
-            {
-                return false;
-            }
             return AreNullableAnnotationsEnabled(token.SyntaxTree, token.SpanStart);
         }
 

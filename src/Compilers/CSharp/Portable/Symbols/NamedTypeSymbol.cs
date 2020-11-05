@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var typeArgument in result)
             {
-                AddDefinitionUseSiteDiagnostics(typeArgument, ref useSiteDiagnostics);
+                typeArgument.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             }
 
             return result;
@@ -74,13 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeWithAnnotations TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var result = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[index];
-            AddDefinitionUseSiteDiagnostics(result, ref useSiteDiagnostics);
+            result.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             return result;
-        }
-
-        private static void AddDefinitionUseSiteDiagnostics(TypeWithAnnotations type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            type.DefaultType.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
         }
 
         /// <summary>
