@@ -10,7 +10,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog"
-    xmlns:controls="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.CustomControls"
     mc:Ignorable="d"
     WindowStartupLocation="CenterOwner"
     Height="498"
