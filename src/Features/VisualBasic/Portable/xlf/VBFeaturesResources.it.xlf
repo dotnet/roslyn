@@ -855,7 +855,7 @@ Iterator Function(&lt;elencoParametri&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Performs_an_arithmetic_right_shift_on_a_bit_pattern">
         <source>Performs an arithmetic right shift on a bit pattern</source>
-        <target state="translated">Esegue uno scorrimento aritmetico a destra in uno schema di bit.</target>
+        <target state="translated">Esegue uno scorrimento aritmetico a destra in uno schema di bit</target>
         <note />
       </trans-unit>
       <trans-unit id="Declares_a_Set_property_procedure_that_is_used_to_assign_a_value_to_a_property">

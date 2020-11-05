@@ -162,7 +162,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
         <source>&lt;infer&gt;</source>
-        <target state="translated">&lt;infer&gt;</target>
+        <target state="translated">&lt;deduci&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
@@ -347,7 +347,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
-        <target state="new">Extract base class...</target>
+        <target state="translated">Estrai classe di base...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -502,12 +502,12 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Inline_0">
         <source>Inline '{0}'</source>
-        <target state="new">Inline '{0}'</target>
+        <target state="translated">Imposta '{0}' come inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
-        <target state="new">Inline and keep '{0}'</target>
+        <target state="translated">Imposta come inline e mantieni '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -542,7 +542,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
-        <target state="new">Make class 'abstract'</target>
+        <target state="translated">Rendi la classe 'abstract'</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
@@ -607,17 +607,17 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
+        <target state="translated">Se si modifica il corpo di '{0}', la sessione di debug non potrà continuare perché il corpo contiene troppe istruzioni.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
+        <target state="translated">Se si modifica il corpo di '{0}', la sessione di debug non potrà continuare a causa dell'errore interno {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
         <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
+        <target state="translated">Se si modifica il file di origine '{0}', la sessione di debug non potrà continuare perché le dimensioni del file sono eccessive.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -642,7 +642,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Se si modifica il file di origine {0}, la sessione di debug non potrà continuare a causa di errore interno: {1}.</target>
+        <target state="translated">Se si modifica il file di origine '{0}', la sessione di debug non potrà continuare a causa dell'errore interno {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -682,7 +682,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Pull_members_up_to_new_base_class">
         <source>Pull member(s) up to new base class...</source>
-        <target state="new">Pull member(s) up to new base class...</target>
+        <target state="translated">Esegui pull dei membri fino alla nuova classe di base...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -1013,7 +1013,7 @@ L'ancoraggio $ corrisponde a \n, ma non a \r\n (combinazione di ritorno a capo e
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="new">expression</target>
+        <target state="translated">espressione</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1283,7 +1283,7 @@ L'ancoraggio $ corrisponde a \n, ma non a \r\n (combinazione di ritorno a capo e
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="new">name</target>
+        <target state="translated">nome</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1383,7 +1383,7 @@ Due o più intervalli di caratteri possono essere concatenati. Ad esempio, per s
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="new">no</target>
+        <target state="translated">no</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1766,7 +1766,7 @@ Se viene specificato il comportamento conforme a ECMAScript, \w equivale a [a-zA
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="new">yes</target>
+        <target state="translated">sì</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -1832,7 +1832,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
-        <target state="new">Remove 'async' modifier</target>
+        <target state="translated">Rimuovi il modificatore 'async'</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2102,12 +2102,12 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="new">'{0}' is not null here.</target>
+        <target state="translated">'{0}' non è Null in questo punto.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="new">'{0}' may be null here.</target>
+        <target state="translated">'{0}' può essere Null in questo punto.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
@@ -3552,7 +3552,7 @@ Continuare?</target>
       </trans-unit>
       <trans-unit id="property_">
         <source>property</source>
-        <target state="translated">Proprietà.</target>
+        <target state="translated">proprietà</target>
         <note />
       </trans-unit>
       <trans-unit id="event_accessor">

@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
-        <target state="new">Apply file header preferences</target>
+        <target state="translated">Dateiheadereinstellungen anwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
@@ -644,7 +644,7 @@
       </trans-unit>
       <trans-unit id="_0_does_not_contain_a_constructor_that_takes_that_many_arguments">
         <source>'{0}' does not contain a constructor that takes that many arguments.</source>
-        <target state="translated">'"{0}" enthält keinen Konstruktor, der viele Argumente verwendet.</target>
+        <target state="translated">"{0}" enthält keinen Konstruktor, der viele Argumente verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_name_0_does_not_exist_in_the_current_context">

@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider">
         <source>Error creating instance of CodeFixProvider</source>
-        <target state="new">Error creating instance of CodeFixProvider</target>
+        <target state="translated">Si è verificato un errore durante la creazione dell'istanza di CodeFixProvider</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
         <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <target state="translated">Si è verificato un errore durante la creazione dell'istanza di CodeFixProvider '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -994,7 +994,7 @@
       </trans-unit>
       <trans-unit id="Not_a_source_error_line_column_unavailable">
         <source>Not a source error, line/column unavailable</source>
-        <target state="translated">L'errore non dipende dall'origine. La riga o la colonna non è disponibile.</target>
+        <target state="translated">L'errore non dipende dall'origine. La riga o la colonna non è disponibile</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
@@ -1100,7 +1100,7 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Per correggere l'errore, non verranno creati i parametri "out/ref" dello struct. 
+        <target state="translated">Per correggere l'errore, non verranno creati i parametri "out/ref" dello struct.
 Continuare?</target>
         <note />
       </trans-unit>
