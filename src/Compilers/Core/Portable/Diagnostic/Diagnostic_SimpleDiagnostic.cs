@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                 _descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
                 _severity = severity;
                 _warningLevel = warningLevel;
-                _location = location ?? Location.None;
+                _location = TreeTracker.GetPreTransformationLocation(location ?? Location.None);
                 _additionalLocations = additionalLocations?.ToImmutableArray() ?? SpecializedCollections.EmptyReadOnlyList<Location>();
                 _messageArgs = messageArgs ?? Array.Empty<object?>();
                 _properties = properties ?? ImmutableDictionary<string, string?>.Empty;
