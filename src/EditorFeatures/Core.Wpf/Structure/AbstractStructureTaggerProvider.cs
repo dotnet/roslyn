@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -95,8 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             try
             {
                 // Let LSP handle producing tags in the cloud scenario
-                var workspaceContextService = documentSnapshotSpan.Document.Project.Solution.Workspace.Services.GetService<IWorkspaceContextService>();
-                if (workspaceContextService != null && workspaceContextService.IsCloudEnvironmentClient())
+                if (documentSnapshotSpan.Document.IsInCloudEnvironmentClientContext())
                 {
                     return;
                 }
@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             try
             {
                 // Let LSP handle producing tags in the cloud scenario
-                var workspaceContextService = documentSnapshotSpan.Document.Project.Solution.Workspace.Services.GetService<IWorkspaceContextService>();
-                if (workspaceContextService != null && workspaceContextService.IsCloudEnvironmentClient())
+                if (documentSnapshotSpan.Document.IsInCloudEnvironmentClientContext())
                 {
                     return;
                 }
