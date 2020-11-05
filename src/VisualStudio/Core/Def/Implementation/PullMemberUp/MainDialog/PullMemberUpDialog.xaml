@@ -71,7 +71,7 @@
                 Margin="0, 5, 0, 0"
                 AutomationProperties.Name="{Binding DestinationTreeViewAutomationText}"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                ItemsSource="{Binding Destinations}"
+                ItemsSource="{Binding DestinationTreeNodeViewModel.BaseTypeNodes}"
                 ItemContainerStyle="{StaticResource TreeViewItemStyle}"
                 SelectedItemChanged="Destination_SelectedItemChanged">
                 <TreeView.ItemTemplate>

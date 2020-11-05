@@ -42,11 +42,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
 
         private void DeselectAllButton_Click(object sender, RoutedEventArgs e)
             => ViewModel.DeselectAll();
-
-        private void MemberSelectionCheckBox_Checked(object sender, RoutedEventArgs e)
-            => ViewModel.UpdateSelectAllCheckBoxState();
-
-        private void MemberSelectionCheckBox_Unchecked(object sender, RoutedEventArgs e)
-            => ViewModel.UpdateSelectAllCheckBoxState();
     }
 }

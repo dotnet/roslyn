@@ -62,8 +62,6 @@
                                     AutomationProperties.Name="{Binding SymbolAutomationText}"
                                     AutomationProperties.AutomationId="{Binding SymbolName}"
                                     IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
-                                    Checked="MemberSelectionCheckBox_Checked"
-                                    Unchecked="MemberSelectionCheckBox_Unchecked"
                                     Width="Auto"
                                     IsEnabled="{Binding IsCheckable, UpdateSourceTrigger=PropertyChanged}"
                                     Focusable="True"
