@@ -4710,7 +4710,7 @@ class C : B
         }
 
         [WorkItem(22150, "https://github.com/dotnet/roslyn/issues/22150")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task ExtractLocalFunctionToLocalFunction()
         {
             var code = @"
@@ -4745,7 +4745,7 @@ class C
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TopLevelStatement_ArgumentInInvocation()
         {
             var code = @"
@@ -4763,7 +4763,7 @@ static string NewMethod()
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TopLevelStatement_InBlock_ArgumentInInvocation()
         {
             var code = @"
@@ -4786,7 +4786,7 @@ static string NewMethod()
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TopLevelStatement_ArgumentInInvocation_InInteractive()
         {
             var code = @"
@@ -4803,6 +4803,53 @@ System.Console.WriteLine([|""string""|]);
 }";
 
             await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+        }
+
+        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/45422")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingOnExtractLocalFunction()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class C
+{
+    static void M()
+    {
+        if (true)
+        {
+            static void L()
+            {
+               [|
+                static void L2()
+                {
+                    var x = 1;
+                }|]
+            }
+        }
+    }
+}", codeActionIndex: 1);
+        }
+
+        [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/45422")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingOnExtractLocalFunctionWithExtraBrace()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class C
+{
+    static void M()
+    {
+        if (true)
+        {
+            static void L()
+            {
+                [|static void L2()
+                {
+                    var x = 1;
+                }
+            }|]
+        }
+    }
+}", codeActionIndex: 1);
         }
     }
 }

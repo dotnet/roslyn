@@ -649,6 +649,9 @@ Do you want to continue?</value>
   <data name="Unknown_error_occurred" xml:space="preserve">
     <value>Unknown error occurred</value>
   </data>
+  <data name="No_valid_location_to_insert_method_call" xml:space="preserve">
+    <value>No valid location to insert method call.</value>
+  </data>
   <data name="Available" xml:space="preserve">
     <value>Available</value>
   </data>
