@@ -33,8 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// <summary>
     /// The base class of both the Roslyn editor factories.
     /// </summary>
-    internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactoryNotify
+    internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
     {
+        private const string FormPhysicalViewName = "Form";
+        private const string CodePhysicalViewName = "Code";
         private readonly IComponentModel _componentModel;
         private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
         private bool _encoding;
@@ -90,29 +92,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
-
             // Do we need to create a text buffer?
             if (textBuffer == null)
             {
-                var contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
-                var contentType = contentTypeRegistryService.GetContentType(ContentTypeName);
-                textBuffer = editorAdaptersFactoryService.CreateVsTextBufferAdapter(_oleServiceProvider, contentType);
-
-                if (_encoding)
+                try
                 {
-                    if (textBuffer is IVsUserData userData)
+                    textBuffer = GetDocumentData(grfCreateDoc, pszMkDocument, vsHierarchy, itemid) as IVsTextBuffer;
+                    if (textBuffer == null)
                     {
-                        // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
-                        var hresult = userData.SetData(
-                            VSConstants.VsTextBufferUserDataGuid.VsBufferEncodingPromptOnLoad_guid,
-                            (uint)__PROMPTONLOADFLAGS.codepagePrompt);
-
-                        if (ErrorHandler.Failed(hresult))
-                        {
-                            return hresult;
-                        }
+                        return VSConstants.E_FAIL;
                     }
+                }
+                catch (Exception e)
+                {
+                    return Marshal.GetHRForException(e);
                 }
             }
 
@@ -130,41 +123,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case "Form":
 
                     // We must create the WinForms designer here
-                    var loaderName = GetWinFormsLoaderName(vsHierarchy);
-                    var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
-                    var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
-                    if (designerLoader is null)
-                    {
-                        goto case "Code";
-                    }
-
-                    try
-                    {
-                        designerLoader.Initialize(_oleServiceProvider, vsHierarchy, (int)itemid, (IVsTextLines)textBuffer);
-                        pbstrEditorCaption = designerLoader.GetEditorCaption((int)readOnlyStatus);
-
-                        var designer = designerService.CreateDesigner(_oleServiceProvider, designerLoader);
-                        ppunkDocView = Marshal.GetIUnknownForObject(designer.View);
-                        pguidCmdUI = designer.CommandGuid;
-                    }
-                    catch
-                    {
-                        designerLoader.Dispose();
-                        throw;
-                    }
-
+                    (pbstrEditorCaption, pguidCmdUI, ppunkDocView) = GetWinFormsDesignerData(vsHierarchy, itemid, textBuffer, readOnlyStatus, initializeView: true);
                     break;
 
                 case "Code":
 
-                    var codeWindow = editorAdaptersFactoryService.CreateVsCodeWindowAdapter(_oleServiceProvider);
-                    codeWindow.SetBuffer((IVsTextLines)textBuffer);
-
-                    codeWindow.GetEditorCaption(readOnlyStatus, out pbstrEditorCaption);
-
-                    ppunkDocView = Marshal.GetIUnknownForObject(codeWindow);
-                    pguidCmdUI = VSConstants.GUID_TextEditorFactory;
-
+                    (pbstrEditorCaption, pguidCmdUI, ppunkDocView) = GetCodeEditorData(textBuffer, readOnlyStatus, initializeView: true);
                     break;
 
                 default:
@@ -177,7 +141,87 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
-        private string? GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
+        public object GetDocumentData(uint grfCreate, string pszMkDocument, IVsHierarchy pHier, uint itemid)
+        {
+            var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+            var contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
+            var contentType = contentTypeRegistryService.GetContentType(ContentTypeName);
+            IVsTextBuffer? textBuffer = editorAdaptersFactoryService.CreateVsTextBufferAdapter(_oleServiceProvider, contentType);
+
+            if (_encoding)
+            {
+                if (textBuffer is IVsUserData userData)
+                {
+                    // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
+                    var hresult = userData.SetData(
+                        VSConstants.VsTextBufferUserDataGuid.VsBufferEncodingPromptOnLoad_guid,
+                        (uint)__PROMPTONLOADFLAGS.codepagePrompt);
+
+                    if (ErrorHandler.Failed(hresult))
+                    {
+                        Marshal.ThrowExceptionForHR(hresult);
+                    }
+                }
+            }
+
+            return textBuffer;
+        }
+
+        public object GetDocumentView(uint grfCreate, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, uint itemid)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetEditorCaption(string pszMkDocument, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, out Guid pguidCmdUI)
+        {
+            var physicalView = pszPhysicalView ?? CodePhysicalViewName;
+            var readOnlyStatus = READONLYSTATUS.ROSTATUS_NotReadOnly;
+
+            IVsTextBuffer? textBuffer = null;
+            if (punkDocData != IntPtr.Zero)
+            {
+                var docData = Marshal.GetObjectForIUnknown(punkDocData);
+                textBuffer = docData as IVsTextBuffer;
+
+                if (textBuffer != null)
+                {
+                    if (ErrorHandler.Succeeded(textBuffer.GetStateFlags(out var textBufferFlags)) &&
+                        0 != (textBufferFlags & ((uint)BUFFERSTATEFLAGS.BSF_FILESYS_READONLY | (uint)BUFFERSTATEFLAGS.BSF_USER_READONLY)))
+                    {
+                        readOnlyStatus = READONLYSTATUS.ROSTATUS_ReadOnly;
+                    }
+                }
+            }
+
+            string editorCaption;
+            switch (physicalView)
+            {
+                case FormPhysicalViewName:
+
+                    (editorCaption, pguidCmdUI, _) = GetWinFormsDesignerData(pHier, itemid: 0, textBuffer, readOnlyStatus, initializeView: false);
+                    break;
+
+                case CodePhysicalViewName:
+
+                    (editorCaption, pguidCmdUI, _) = GetCodeEditorData(textBuffer, readOnlyStatus, initializeView: false);
+                    break;
+
+                default:
+                    pguidCmdUI = Guid.Empty;
+                    editorCaption = string.Empty;
+                    break;
+            }
+
+            return editorCaption;
+        }
+
+        public bool ShouldDeferUntilIntellisenseIsReady(uint grfCreate, string pszMkDocument, string pszPhysicalView)
+        {
+            return FormPhysicalViewName.Equals(pszPhysicalView, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string? GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
         {
             const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
             const string NewLoaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
@@ -205,6 +249,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             return LoaderName;
+        }
+
+        private (string, Guid, IntPtr) GetWinFormsDesignerData(IVsHierarchy vsHierarchy, uint itemid, IVsTextBuffer? textBuffer, READONLYSTATUS readOnlyStatus, bool initializeView)
+        {
+            var loaderName = GetWinFormsLoaderName(vsHierarchy);
+            var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
+            var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
+            if (designerLoader is null)
+            {
+                return GetCodeEditorData(textBuffer, readOnlyStatus, initializeView);
+            }
+
+            try
+            {
+                if (initializeView)
+                {
+                    designerLoader.Initialize(_oleServiceProvider, vsHierarchy, (int)itemid, textBuffer as IVsTextLines);
+                }
+                var editorCaption = designerLoader.GetEditorCaption((int)readOnlyStatus);
+
+                var designer = designerService.CreateDesigner(_oleServiceProvider, designerLoader);
+
+                var documentView = initializeView ? Marshal.GetIUnknownForObject(designer.View) : IntPtr.Zero;
+                var commandUI = designer.CommandGuid;
+
+                return (editorCaption, commandUI, documentView);
+            }
+            catch
+            {
+                designerLoader.Dispose();
+                throw;
+            }
+        }
+
+        private (string, Guid, IntPtr) GetCodeEditorData(IVsTextBuffer? textBuffer, READONLYSTATUS readOnlyStatus, bool initializeView)
+        {
+            var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var codeWindow = editorAdaptersFactoryService.CreateVsCodeWindowAdapter(_oleServiceProvider);
+
+            if (initializeView)
+            {
+                codeWindow.SetBuffer(textBuffer as IVsTextLines);
+            }
+
+            codeWindow.GetEditorCaption(readOnlyStatus, out var editorCaption);
+
+            var documentView = initializeView ? Marshal.GetIUnknownForObject(codeWindow) : IntPtr.Zero;
+            var commandUI = VSConstants.GUID_TextEditorFactory;
+
+            return (editorCaption, commandUI, documentView);
         }
 
         public int MapLogicalView(ref Guid rguidLogicalView, out string? pbstrPhysicalView)
