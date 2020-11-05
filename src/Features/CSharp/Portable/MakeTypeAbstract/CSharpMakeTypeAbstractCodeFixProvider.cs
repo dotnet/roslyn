@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
                     break;
 
                 default:
+                    typeDeclaration = null;
                     return false;
             }
 
