@@ -5,11 +5,9 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -40,6 +38,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 format,
                 "A",
                 SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact, WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public void TestRecordNameOnlySimple()
+        {
+            var text = "record A {}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("A", 0).Single();
+
+            var format = new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "A",
+                SymbolDisplayPartKind.RecordName);
+        }
+
+        [Fact, WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public void TestRecordNameOnlyComplex()
+        {
+            var text = @"
+namespace N1 {
+    namespace N2.N3 {
+        record R1 {
+            record R2 {} } } }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetNestedNamespace("N1").
+                GetNestedNamespace("N2").
+                GetNestedNamespace("N3").
+                GetTypeMembers("R1").Single().
+                GetTypeMembers("R2").Single();
+
+            var format = new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "R2",
+                SymbolDisplayPartKind.RecordName);
         }
 
         [Fact]
@@ -7605,7 +7650,7 @@ record Person(string First, string Last);
                 "record Person",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.ClassName);
+                SymbolDisplayPartKind.RecordName);
         }
     }
 }

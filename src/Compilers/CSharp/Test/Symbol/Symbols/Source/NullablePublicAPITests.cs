@@ -1534,6 +1534,62 @@ class C
             }
         }
 
+        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        public void SpeculativeGetTypeInfo_Constructor()
+        {
+            var source = @"
+class C
+{
+    public string Prop { get; set; }
+    public C()
+    {
+        if (Prop != null)
+        {
+            Prop.ToString();
+        }
+
+        Prop?.ToString();
+
+        Prop = """";
+        var s2 = Prop == null ? """" : Prop;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Prop").WithLocation(5, 12));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var ifStatement = root.DescendantNodes().OfType<IfStatementSyntax>().Single();
+            var conditionalAccessExpression = root.DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single();
+            var ternary = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+
+            var newReference = (IdentifierNameSyntax)SyntaxFactory.ParseExpression(@"Prop");
+            var newCoalesce = (AssignmentExpressionSyntax)SyntaxFactory.ParseExpression(@"Prop ??= """"");
+
+            verifySpeculativeTypeInfo(ifStatement.SpanStart, PublicNullableFlowState.MaybeNull);
+            verifySpeculativeTypeInfo(ifStatement.Statement.SpanStart, PublicNullableFlowState.NotNull);
+
+            verifySpeculativeTypeInfo(conditionalAccessExpression.SpanStart, PublicNullableFlowState.MaybeNull);
+            verifySpeculativeTypeInfo(conditionalAccessExpression.WhenNotNull.SpanStart, PublicNullableFlowState.NotNull);
+
+            verifySpeculativeTypeInfo(ternary.WhenTrue.SpanStart, PublicNullableFlowState.MaybeNull);
+            verifySpeculativeTypeInfo(ternary.WhenFalse.SpanStart, PublicNullableFlowState.NotNull);
+
+            void verifySpeculativeTypeInfo(int position, PublicNullableFlowState expectedFlowState)
+            {
+                var specTypeInfo = model.GetSpeculativeTypeInfo(position, newReference, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(expectedFlowState, specTypeInfo.Nullability.FlowState);
+                specTypeInfo = model.GetSpeculativeTypeInfo(position, newCoalesce, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(PublicNullableFlowState.NotNull, specTypeInfo.Nullability.FlowState);
+            }
+        }
+
         [Fact, WorkItem(45398, "https://github.com/dotnet/roslyn/issues/45398")]
         public void VarInLambda_GetTypeInfo()
         {

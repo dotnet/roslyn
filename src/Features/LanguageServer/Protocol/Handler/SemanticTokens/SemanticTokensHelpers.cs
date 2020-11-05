@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationTypeNames.MethodName,
             ClassificationTypeNames.ModuleName,
             ClassificationTypeNames.OperatorOverloaded,
+            ClassificationTypeNames.RecordName,
 
             // Preprocessor
             ClassificationTypeNames.PreprocessorKeyword,

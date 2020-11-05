@@ -17,12 +17,10 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed class SolutionAssetSource : IAssetSource
     {
         private readonly ServiceBrokerClient _client;
-        private readonly CancellationTokenSource _clientDisconnectedSource;
 
-        public SolutionAssetSource(ServiceBrokerClient client, CancellationTokenSource clientDisconnectedSource)
+        public SolutionAssetSource(ServiceBrokerClient client)
         {
             _client = client;
-            _clientDisconnectedSource = clientDisconnectedSource;
         }
 
         public async ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using var provider = await _client.GetProxyAsync<ISolutionAssetProvider>(SolutionAssetProvider.ServiceDescriptor, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(provider.Proxy);
 
-            return await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy, _clientDisconnectedSource).InvokeAsync(
+            return await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy).InvokeAsync(
                 (proxy, pipeWriter, cancellationToken) => proxy.GetAssetsAsync(pipeWriter, scopeId, checksums.ToArray(), cancellationToken),
                 (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, scopeId, checksums, serializerService, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using var provider = await _client.GetProxyAsync<ISolutionAssetProvider>(SolutionAssetProvider.ServiceDescriptor, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(provider.Proxy);
 
-            return await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy, _clientDisconnectedSource).InvokeAsync(
+            return await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy).InvokeAsync(
                 (self, cancellationToken) => provider.Proxy.IsExperimentEnabledAsync(experimentName, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }

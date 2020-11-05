@@ -7486,6 +7486,17 @@ struct C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RecordDestructor()
+        {
+            var markup = @"
+record C
+{
+   ~$$
+}";
+            await VerifyItemExistsAsync(markup, "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldAvailableInBothLinkedFiles()
         {
             var markup = @"<Workspace>
@@ -9579,7 +9590,7 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task NoCompletionInLocalFuncGenericParamList()
         {
@@ -9595,7 +9606,7 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task CompletionForAwaitWithoutAsync()
         {
@@ -9697,7 +9708,7 @@ class C
         [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription()
         {
             await VerifyItemExistsAsync(@"
@@ -9715,7 +9726,7 @@ class C
         [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription2()
         {
             await VerifyItemExistsAsync(@"
@@ -10715,7 +10726,7 @@ public class C
         [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionInStaticMethod()
         {
             await VerifyItemExistsAsync(@"
@@ -10746,6 +10757,169 @@ class C
             await VerifyItemIsAbsentAsync(
                 markup, "",
                 matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterPatternMatch()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m is RankedMusicians.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterPatternMatchWithDeclaration()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m is RankedMusicians.$$ r)
+            {
+            }
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterPropertyPatternMatch()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+        public RankedMusicians R;
+
+		void M(C m)
+		{
+			if (m is { R: RankedMusicians.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ChildClassAfterPatternMatch()
+        {
+            var markup =
+@"namespace N
+{
+	public class D { public class E { } }
+
+	class C
+	{
+		void M(object m)
+		{
+			if (m is D.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "E");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterBinaryExpression()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m == RankedMusicians.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterBinaryExpressionWithDeclaration()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m == RankedMusicians.$$ r)
+            {
+            }
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
         }
     }
 }

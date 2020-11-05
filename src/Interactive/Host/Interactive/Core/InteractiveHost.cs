@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // The user reset the process during initialization. 
                 // The reset operation will recreate the process.
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return initializedService.InitializationResult;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

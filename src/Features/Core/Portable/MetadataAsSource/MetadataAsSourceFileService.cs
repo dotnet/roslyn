@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                 useDecompiler = false;
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
                         {
                             useDecompiler = false;
                         }
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
         {
-            MetadataAsSourceGeneratedFileInfo fileInfo;
+            MetadataAsSourceGeneratedFileInfo? fileInfo;
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {

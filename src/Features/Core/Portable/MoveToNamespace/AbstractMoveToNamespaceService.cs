@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 ? 0
                 : symbol.ContainingNamespace.ToDisplayString().Length + 1;
 
-            return $"{targetNamespace}.{symbol.ToDisplayString().Substring(offset)}";
+            return $"{targetNamespace}.{symbol.ToDisplayString()[offset..]}";
         }
 
         private static readonly SymbolDisplayFormat QualifiedNamespaceFormat = new(

@@ -328,4 +328,10 @@
   <data name="Remove_redundant_equality" xml:space="preserve">
     <value>Remove redundant equality</value>
   </data>
+  <data name="Use_decrement_operator" xml:space="preserve">
+    <value>Use '--' operator</value>
+  </data>
+  <data name="Use_increment_operator" xml:space="preserve">
+    <value>Use '++' operator</value>
+  </data>
 </root>

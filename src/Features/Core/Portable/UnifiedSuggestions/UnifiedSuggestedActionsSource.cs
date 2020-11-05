@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 categoryName: null,
                 actions: fixAllSuggestedActions.ToImmutable(),
                 title: CodeFixesResources.Fix_all_occurrences_in,
-                priority: UnifiedSuggestedActionSetPriority.None,
+                priority: UnifiedSuggestedActionSetPriority.Lowest,
                 applicableToSpan: null);
         }
 
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// <see cref="UnifiedSuggestedActionSetPriority.Medium"/> by default.
         /// The only exception is the case where a <see cref="UnifiedSuggestedActionSet"/> only contains suppression fixes -
         /// the priority of such <see cref="UnifiedSuggestedActionSet"/>s is set to
-        /// <see cref="UnifiedSuggestedActionSetPriority.None"/> so that suppression fixes
+        /// <see cref="UnifiedSuggestedActionSetPriority.Lowest"/> so that suppression fixes
         /// always show up last after all other fixes (and refactorings) for the selected line of code.
         /// </remarks>
         private static ImmutableArray<UnifiedSuggestedActionSet> PrioritizeFixGroups(
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 var bulkConfigurationSet = new UnifiedSuggestedActionSet(
                     UnifiedPredefinedSuggestedActionCategoryNames.CodeFix, bulkConfigurationActions.ToArray(),
-                    title: null, priority: UnifiedSuggestedActionSetPriority.None, applicableToSpan: null);
+                    title: null, priority: UnifiedSuggestedActionSetPriority.Lowest, applicableToSpan: null);
                 suppressionSets.Add(bulkConfigurationSet);
             }
 
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     category,
                     actions: SpecializedCollections.SingletonEnumerable(wrappingSuggestedAction),
                     title: CodeFixesResources.Suppress_or_Configure_issues,
-                    priority: UnifiedSuggestedActionSetPriority.None,
+                    priority: UnifiedSuggestedActionSetPriority.Lowest,
                     applicableToSpan: span);
                 sets = sets.Add(wrappingSet);
             }
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     }
                 }
 
-                var combinedSpan = minStart >= 0 ? new TextSpan(minStart, maxEnd) : (TextSpan?)null;
+                var combinedSpan = minStart >= 0 ? TextSpan.FromBounds(minStart, maxEnd) : (TextSpan?)null;
                 return (combinedSpan, category);
             }
         }
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         private static UnifiedSuggestedActionSetPriority GetUnifiedSuggestedActionSetPriority(CodeActionPriority key)
             => key switch
             {
-                CodeActionPriority.None => UnifiedSuggestedActionSetPriority.None,
+                CodeActionPriority.Lowest => UnifiedSuggestedActionSetPriority.Lowest,
                 CodeActionPriority.Low => UnifiedSuggestedActionSetPriority.Low,
                 CodeActionPriority.Medium => UnifiedSuggestedActionSetPriority.Medium,
                 CodeActionPriority.High => UnifiedSuggestedActionSetPriority.High,

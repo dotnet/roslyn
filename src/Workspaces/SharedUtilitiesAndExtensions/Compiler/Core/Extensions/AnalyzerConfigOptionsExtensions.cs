@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
@@ -48,19 +47,19 @@ namespace Microsoft.CodeAnalysis
                 //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
                 //  2. Attempting to access an option which is not exposed from any option provider, i.e. IOptionProvider.Options.
                 Debug.Fail("Failed to find a .editorconfig key for the option.");
-                value = (T)option.DefaultValue;
+                value = (T)option.DefaultValue!;
             }
 
             return value;
         }
 
         public static bool TryGetEditorConfigOptionOrDefault<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, out T value)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, useDefaultIfMissing: true, out value);
+            => TryGetEditorConfigOption(analyzerConfigOptions, option, useDefaultIfMissing: true, out value!);
 
-        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, out T value)
+        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, [MaybeNullWhen(false)] out T value)
             => TryGetEditorConfigOption(analyzerConfigOptions, option, useDefaultIfMissing: false, out value);
 
-        private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, bool useDefaultIfMissing, out T value)
+        private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, bool useDefaultIfMissing, out T? value)
         {
             var hasEditorConfigStorage = false;
             foreach (var storageLocation in option.StorageLocations)

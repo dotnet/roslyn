@@ -50,6 +50,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 assetMap = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
             }
 
+            // We can cancel early, but once the pipe operations are scheduled we rely on both operations running to
+            // avoid deadlocks (the exception handler in 'task1' ensures progress is made in 'task2').
+            cancellationToken.ThrowIfCancellationRequested();
+            var mustNotCancelToken = CancellationToken.None;
+
             // Work around the lack of async stream writing in ObjectWriter, which is required when writing to the RPC pipe.
             // Run two tasks - the first synchronously writes to a local pipe and the second asynchronosly transfers the data to the RPC pipe.
             //
@@ -57,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // (non-contiguous) memory allocated for the underlying buffers. The amount of memory is bounded by the total size of the serialized assets.
             var localPipe = new Pipe(RemoteHostAssetSerialization.PipeOptionsWithUnlimitedWriterBuffer);
 
-            Task.Run(() =>
+            var task1 = Task.Run(() =>
             {
                 try
                 {
@@ -65,16 +70,18 @@ namespace Microsoft.CodeAnalysis.Remote
                     using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
                     RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, scopeId, checksums, cancellationToken);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     // no-op
                 }
-            }, cancellationToken).Forget();
+            }, mustNotCancelToken);
 
             // Complete RPC once we send the initial piece of data and start waiting for the writer to send more,
             // so the client can start reading from the stream. Once CopyPipeDataAsync completes the pipeWriter
             // the corresponding client-side pipeReader will complete and the data transfer will be finished.
-            CopyPipeDataAsync().Forget();
+            var task2 = CopyPipeDataAsync();
+
+            await Task.WhenAll(task1, task2).ConfigureAwait(false);
 
             async Task CopyPipeDataAsync()
             {
@@ -85,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (Exception e)
                 {
-                    FatalError.ReportWithoutCrashUnlessCanceled(e, cancellationToken);
+                    FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken);
                     exception = e;
                 }
                 finally
@@ -97,6 +104,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => new ValueTask<bool>(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+            => ValueTaskFactory.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
     }
 }

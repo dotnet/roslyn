@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName, mutatesSolutionState: false)]
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
-        private readonly ImmutableHashSet<string> _csharpTriggerCharacters;
-        private readonly ImmutableHashSet<string> _vbTriggerCharacters;
+        private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
+        private readonly ImmutableHashSet<char> _vbTriggerCharacters;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
         {
             _csharpTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
-                lz => GetTriggerCharacters(lz.Value)).Select(c => c.ToString()).ToImmutableHashSet();
+                lz => GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
             _vbTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.VisualBasic).SelectMany(
-                lz => GetTriggerCharacters(lz.Value)).Select(c => c.ToString()).ToImmutableHashSet();
+                lz => GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
@@ -54,9 +54,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // C# and VB share the same LSP language server, and thus share the same default trigger characters.
             // We need to ensure the trigger character is valid in the document's language. For example, the '{'
             // character, while a trigger character in VB, is not a trigger character in C#.
-            var triggerCharacter = char.Parse(request.Context.TriggerCharacter);
-            if (request.Context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter && !char.IsLetterOrDigit(triggerCharacter) &&
-                !IsValidTriggerCharacterForDocument(document, request.Context.TriggerCharacter))
+            if (request.Context != null &&
+                request.Context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter &&
+                !char.TryParse(request.Context.TriggerCharacter, out var triggerCharacter) &&
+                !char.IsLetterOrDigit(triggerCharacter) &&
+                !IsValidTriggerCharacterForDocument(document, triggerCharacter))
             {
                 return null;
             }
@@ -82,8 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
             // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
-            var triggerKind = ProtocolConversions.LSPToRoslynCompletionTriggerKind(request.Context.TriggerKind);
-            var completionTrigger = new CompletionTrigger(triggerKind, triggerCharacter);
+            var completionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(request.Context);
 
             var list = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
@@ -97,11 +98,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return new LSP.VSCompletionList
             {
                 Items = list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability, completionTrigger, commitCharactersRuleCache)).ToArray(),
-                SuggesstionMode = list.SuggestionModeItem != null,
+                SuggestionMode = list.SuggestionModeItem != null,
             };
 
             // Local functions
-            bool IsValidTriggerCharacterForDocument(Document document, string triggerCharacter)
+            bool IsValidTriggerCharacterForDocument(Document document, char triggerCharacter)
             {
                 if (document.Project.Language == LanguageNames.CSharp)
                 {
@@ -159,8 +160,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         CompletionTrigger = completionTrigger,
                     },
                     Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
-                    CommitCharacters = GetCommitCharacters(item, commitCharacterRulesCache)
                 };
+                var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache);
+                if (commitCharacters != null)
+                {
+                    completionItem.CommitCharacters = commitCharacters;
+                }
 
                 return completionItem;
             }

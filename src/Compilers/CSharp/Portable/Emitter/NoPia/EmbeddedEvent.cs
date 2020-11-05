@@ -11,21 +11,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedEvent : EmbeddedTypesManager.CommonEmbeddedEvent
     {
-        public EmbeddedEvent(EventSymbol underlyingEvent, EmbeddedMethod adder, EmbeddedMethod remover) :
+        public EmbeddedEvent(
+#if DEBUG
+            EventSymbolAdapter
+#else
+            EventSymbol
+#endif
+                underlyingEvent,
+            EmbeddedMethod adder, EmbeddedMethod remover) :
             base(underlyingEvent, adder, remover, null)
         {
         }
 
         protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return UnderlyingEvent.GetCustomAttributesToEmit(moduleBuilder);
+            return UnderlyingEvent.AdaptedEventSymbol.GetCustomAttributesToEmit(moduleBuilder);
         }
 
         protected override bool IsRuntimeSpecial
         {
             get
             {
-                return UnderlyingEvent.HasRuntimeSpecialName;
+                return UnderlyingEvent.AdaptedEventSymbol.HasRuntimeSpecialName;
             }
         }
 
@@ -33,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingEvent.HasSpecialName;
+                return UnderlyingEvent.AdaptedEventSymbol.HasSpecialName;
             }
         }
 
         protected override Cci.ITypeReference GetType(PEModuleBuilder moduleBuilder, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            return moduleBuilder.Translate(UnderlyingEvent.Type, syntaxNodeOpt, diagnostics);
+            return moduleBuilder.Translate(UnderlyingEvent.AdaptedEventSymbol.Type, syntaxNodeOpt, diagnostics);
         }
 
         protected override EmbeddedType ContainingType
@@ -51,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return PEModuleBuilder.MemberVisibility(UnderlyingEvent);
+                return PEModuleBuilder.MemberVisibility(UnderlyingEvent.AdaptedEventSymbol);
             }
         }
 
@@ -59,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingEvent.MetadataName;
+                return UnderlyingEvent.AdaptedEventSymbol.MetadataName;
             }
         }
 
@@ -69,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             // a paired method living on its source interface. The ComAwareEventInfo class expects to find this 
             // method through reflection. If we embed an event, therefore, we must ensure that the associated source
             // interface method is also included, even if it is not otherwise referenced in the embedding project.
-            NamedTypeSymbol underlyingContainingType = ContainingType.UnderlyingNamedType;
+            NamedTypeSymbol underlyingContainingType = ContainingType.UnderlyingNamedType.AdaptedNamedTypeSymbol;
 
             foreach (var attrData in underlyingContainingType.GetAttributes())
             {
@@ -101,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                         if ((object)sourceInterface == null)
                         {
                             // ERRID_SourceInterfaceMustBeInterface/ERR_MissingSourceInterface
-                            EmbeddedTypesManager.Error(diagnostics, ErrorCode.ERR_MissingSourceInterface, syntaxNodeOpt, underlyingContainingType, UnderlyingEvent);
+                            EmbeddedTypesManager.Error(diagnostics, ErrorCode.ERR_MissingSourceInterface, syntaxNodeOpt, underlyingContainingType, UnderlyingEvent.AdaptedEventSymbol);
                         }
                         else
                         {
@@ -110,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                             diagnostics.Add(syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location, useSiteDiagnostics);
 
                             // ERRID_EventNoPIANoBackingMember/ERR_MissingMethodOnSourceInterface
-                            EmbeddedTypesManager.Error(diagnostics, ErrorCode.ERR_MissingMethodOnSourceInterface, syntaxNodeOpt, sourceInterface, UnderlyingEvent.MetadataName, UnderlyingEvent);
+                            EmbeddedTypesManager.Error(diagnostics, ErrorCode.ERR_MissingMethodOnSourceInterface, syntaxNodeOpt, sourceInterface, UnderlyingEvent.AdaptedEventSymbol.MetadataName, UnderlyingEvent.AdaptedEventSymbol);
                         }
                     }
 
@@ -122,11 +129,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         private bool EmbedMatchingInterfaceMethods(NamedTypeSymbol sourceInterface, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             bool foundMatch = false;
-            foreach (Symbol m in sourceInterface.GetMembers(UnderlyingEvent.MetadataName))
+            foreach (Symbol m in sourceInterface.GetMembers(UnderlyingEvent.AdaptedEventSymbol.MetadataName))
             {
                 if (m.Kind == SymbolKind.Method)
                 {
-                    TypeManager.EmbedMethodIfNeedTo((MethodSymbol)m, syntaxNodeOpt, diagnostics);
+                    TypeManager.EmbedMethodIfNeedTo(((MethodSymbol)m).GetCciAdapter(), syntaxNodeOpt, diagnostics);
                     foundMatch = true;
                 }
             }
