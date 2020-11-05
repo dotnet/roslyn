@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var contextLocation = root.FindToken(position).Parent;
 
-            var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode, cancellationToken);
+            var newUsingDirectives = GetUsingDirectivesToAdd(snippetNode, importsNode);
             if (!newUsingDirectives.Any())
             {
                 return;
@@ -113,12 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             document.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
         }
 
-        private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
-#pragma warning disable IDE0060 // Remove unused parameter
-#pragma warning disable IDE0060 // Remove unused parameter
-            SyntaxNode contextLocation, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore IDE0060 // Remove unused parameter
+        private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(XElement snippetNode, XElement importsNode)
         {
             var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
             var existingUsings = (IEnumerable<UsingDirectiveSyntax>)null;// contextLocation.GetEnclosingUsingDirectives();
