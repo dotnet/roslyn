@@ -154,12 +154,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
             return newUsings;
         }
-
-#pragma warning disable IDE0051 // Remove unused private members
-        private static string GetAliasName(UsingDirectiveSyntax usingDirective)
-#pragma warning restore IDE0051 // Remove unused private members
-        {
-            return (usingDirective.Alias == null || usingDirective.Alias.Name == null) ? null : usingDirective.Alias.Name.ToString();
-        }
     }
 }
