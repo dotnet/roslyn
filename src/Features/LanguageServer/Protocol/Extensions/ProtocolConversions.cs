@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -27,6 +24,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class ProtocolConversions
     {
+        // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same way
+        // which can confuse users
         public static readonly Dictionary<string, LSP.CompletionItemKind> RoslynTagToCompletionItemKind = new Dictionary<string, LSP.CompletionItemKind>()
         {
             { WellKnownTags.Public, LSP.CompletionItemKind.Keyword },
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.Assembly, LSP.CompletionItemKind.File },
             { WellKnownTags.Class, LSP.CompletionItemKind.Class },
             { WellKnownTags.Constant, LSP.CompletionItemKind.Constant },
-            { WellKnownTags.Delegate, LSP.CompletionItemKind.Function },
+            { WellKnownTags.Delegate, LSP.CompletionItemKind.Method },
             { WellKnownTags.Enum, LSP.CompletionItemKind.Enum },
             { WellKnownTags.EnumMember, LSP.CompletionItemKind.EnumMember },
             { WellKnownTags.Event, LSP.CompletionItemKind.Event },
@@ -70,18 +69,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
-        public static Completion.CompletionTriggerKind LSPToRoslynCompletionTriggerKind(LSP.CompletionTriggerKind triggerKind)
+        public static Completion.CompletionTrigger LSPToRoslynCompletionTrigger(LSP.CompletionContext? context)
         {
-            switch (triggerKind)
+            if (context == null)
             {
-                case LSP.CompletionTriggerKind.Invoked:
-                    return Completion.CompletionTriggerKind.Invoke;
-                case LSP.CompletionTriggerKind.TriggerCharacter:
-                    return Completion.CompletionTriggerKind.Insertion;
-                default:
-                    // LSP added a TriggerKind that we need to support.
-                    Logger.Log(FunctionId.LSPCompletion_MissingLSPCompletionTriggerKind);
-                    return Completion.CompletionTriggerKind.Invoke;
+                // Some LSP clients don't support sending extra context, so all we can do is invoke
+                return Completion.CompletionTrigger.Invoke;
+            }
+            else if (context.TriggerKind == LSP.CompletionTriggerKind.Invoked)
+            {
+                return Completion.CompletionTrigger.Invoke;
+            }
+            else if (context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter)
+            {
+                Contract.ThrowIfNull(context.TriggerCharacter);
+                return Completion.CompletionTrigger.CreateInsertionTrigger(char.Parse(context.TriggerCharacter));
+            }
+            else
+            {
+                // LSP added a TriggerKind that we need to support.
+                Logger.Log(FunctionId.LSPCompletion_MissingLSPCompletionTriggerKind);
+                return Completion.CompletionTrigger.Invoke;
             }
         }
 
@@ -121,12 +129,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText text)
         {
+            Contract.ThrowIfNull(textChange.NewText);
             return new LSP.TextEdit
             {
                 NewText = textChange.NewText,
                 Range = TextSpanToRange(textChange.Span, text)
             };
         }
+
+        public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangeEvent changeEvent, SourceText text)
+            => new TextChange(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
 
         public static LSP.Position LinePositionToPosition(LinePosition linePosition)
             => new LSP.Position { Line = linePosition.Line, Character = linePosition.Character };
@@ -207,25 +219,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 };
 
                 return location;
-            }
-        }
-
-        public static LSP.DiagnosticSeverity DiagnosticSeverityToLspDiagnositcSeverity(DiagnosticSeverity severity)
-        {
-            switch (severity)
-            {
-                // TO-DO: Add new LSP diagnostic severity for hidden diagnostics
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1063158
-                case DiagnosticSeverity.Hidden:
-                    return LSP.DiagnosticSeverity.Hint;
-                case DiagnosticSeverity.Info:
-                    return LSP.DiagnosticSeverity.Hint;
-                case DiagnosticSeverity.Warning:
-                    return LSP.DiagnosticSeverity.Warning;
-                case DiagnosticSeverity.Error:
-                    return LSP.DiagnosticSeverity.Error;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(severity);
             }
         }
 
@@ -346,7 +339,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 case Glyph.DelegateProtected:
                 case Glyph.DelegatePrivate:
                 case Glyph.DelegateInternal:
-                    return LSP.SymbolKind.Function;
                 case Glyph.ExtensionMethodPublic:
                 case Glyph.ExtensionMethodProtected:
                 case Glyph.ExtensionMethodPrivate:
@@ -375,9 +367,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     return Glyph.None;
                 case LSP.CompletionItemKind.Method:
                 case LSP.CompletionItemKind.Constructor:
+                case LSP.CompletionItemKind.Function:    // We don't use Function, but map it just in case. It has the same icon as Method in VS and VS Code
                     return Glyph.MethodPublic;
-                case LSP.CompletionItemKind.Function:
-                    return Glyph.DelegatePublic;
                 case LSP.CompletionItemKind.Field:
                     return Glyph.FieldPublic;
                 case LSP.CompletionItemKind.Variable:

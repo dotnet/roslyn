@@ -118,7 +118,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <ConditionalWpfFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/48870")>
+        <Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function ExecutedUnexecutedLocals() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -389,7 +390,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <ConditionalWpfFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/48870")>
+        <Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function InstructionPointerInForeach() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -728,6 +730,32 @@ $$</Document>
                 state.SendTypeChars(".")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.False(state.HasSuggestedItem())
+            End Using
+        End Function
+
+        <WorkItem(1163608, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163608")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function TestItemDescription() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, True)
+                state.SendTypeChars("arg")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("args")
+                Dim description = Await state.GetSelectedItemDescriptionAsync()
+                Assert.Contains("args", description.Text)
+                state.SendTab()
+                Assert.Contains("args", state.GetCurrentViewLineText())
             End Using
         End Function
     End Class

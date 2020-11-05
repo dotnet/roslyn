@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -122,6 +120,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             IEnumerable<SyntaxNode> newImports,
             SyntaxGenerator generator,
             bool placeSystemNamespaceFirst,
+            bool allowInHiddenRegions,
             CancellationToken cancellationToken)
         {
             contextLocation ??= root;
@@ -139,19 +138,17 @@ namespace Microsoft.CodeAnalysis.AddImports
                 out var externContainer, out var usingContainer, out var aliasContainer, out var staticUsingContainer);
 
             var newRoot = Rewrite(
-                externAliases, usingDirectives, staticUsingDirectives,
-                aliasDirectives, externContainer, usingContainer,
-                staticUsingContainer, aliasContainer,
-                placeSystemNamespaceFirst, root, cancellationToken);
+                externAliases, usingDirectives, staticUsingDirectives, aliasDirectives,
+                externContainer, usingContainer, staticUsingContainer, aliasContainer,
+                placeSystemNamespaceFirst, allowInHiddenRegions, root, cancellationToken);
 
             return newRoot;
         }
 
         protected abstract SyntaxNode Rewrite(
-            TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] staticUsingDirectives,
-            TUsingOrAliasSyntax[] aliasDirectives, SyntaxNode externContainer, SyntaxNode usingContainer,
-            SyntaxNode staticUsingContainer, SyntaxNode aliasContainer, bool placeSystemNamespaceFirst, SyntaxNode root,
-            CancellationToken cancellationToken);
+            TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] staticUsingDirectives, TUsingOrAliasSyntax[] aliasDirectives,
+            SyntaxNode externContainer, SyntaxNode usingContainer, SyntaxNode staticUsingContainer, SyntaxNode aliasContainer,
+            bool placeSystemNamespaceFirst, bool allowInHiddenRegions, SyntaxNode root, CancellationToken cancellationToken);
 
         private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
         {

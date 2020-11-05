@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -79,7 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new InlineRenameSessionInfo(renameInfo.LocalizedErrorMessage);
             }
 
-            var snapshot = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).FindCorrespondingEditorTextSnapshot();
+            var snapshot = document.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
+            Contract.ThrowIfNull(snapshot, "The document used for starting the inline rename session should still be open and associated with a snapshot.");
+
             ActiveSession = new InlineRenameSession(
                 _threadingContext,
                 this,

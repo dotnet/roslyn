@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,7 +13,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -140,15 +140,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // +1 for project itself
                 var count = documentAnalysisScope != null ? 1 : project.DocumentIds.Count + 1;
 
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.CodeAnalysis,
-                    nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                    solution: null,
-                    new object[] { analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache), count },
-                    callbackTarget: null,
+                var performanceInfo = analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache).ToImmutableArray();
+
+                _ = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
+                    (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
             {
                 // ignore all, this is fire and forget method
             }
@@ -193,33 +191,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 project.Id,
                 analyzerMap.Keys.ToArray());
 
-            return await client.RunRemoteAsync(
-                WellKnownServiceHubService.CodeAnalysis,
-                nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
+            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
                 solution,
-                new object[] { argument },
-                callbackTarget: null,
-                (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, documentAnalysisScope, project, c),
+                invocation: (service, solutionInfo, cancellationToken) => service.CalculateDiagnosticsAsync(solutionInfo, argument, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-        }
 
-        private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(
-            Stream stream,
-            Dictionary<string, DiagnosticAnalyzer> analyzerMap,
-            DocumentAnalysisScope? documentAnalysisScope,
-            Project project,
-            CancellationToken cancellationToken)
-        {
+            if (!result.HasValue)
+            {
+                return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+            }
+
             // handling of cancellation and exception
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
+            var documentIds = (documentAnalysisScope != null) ? ImmutableHashSet.Create(documentAnalysisScope.TextDocument.Id) : null;
 
-            // We only get a reader for data transmitted between live processes.
-            // This data should always be correct as we're never persisting the data between sessions.
-            Contract.ThrowIfNull(reader);
-
-            return DiagnosticResultSerializer.ReadDiagnosticAnalysisResults(reader, analyzerMap, documentAnalysisScope, project, version, cancellationToken);
+            return new DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>(
+                result.Value.Diagnostics.ToImmutableDictionary(
+                    entry => analyzerMap[entry.analyzerId],
+                    entry => DiagnosticAnalysisResult.Create(
+                        project,
+                        version,
+                        syntaxLocalMap: Hydrate(entry.diagnosticMap.Syntax, project),
+                        semanticLocalMap: Hydrate(entry.diagnosticMap.Semantic, project),
+                        nonLocalMap: Hydrate(entry.diagnosticMap.NonLocal, project),
+                        others: entry.diagnosticMap.Other,
+                        documentIds)),
+                result.Value.Telemetry.ToImmutableDictionary(entry => analyzerMap[entry.analyzerId], entry => entry.telemetry));
         }
+
+        // TODO: filter in OOP https://github.com/dotnet/roslyn/issues/47859
+        private static ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Hydrate(ImmutableArray<(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)> diagnosticByDocument, Project project)
+            => diagnosticByDocument
+                .Where(entry => project.GetTextDocument(entry.documentId)?.SupportsDiagnostics() == true)
+                .ToImmutableDictionary(entry => entry.documentId, entry => entry.diagnostics);
     }
 }

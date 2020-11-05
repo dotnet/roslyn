@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> clauses,
+            bool canIgnoreNullableContext,
             ref IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride,
             DiagnosticBag diagnostics,
             bool isForOverride = false)
@@ -66,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(ordinal >= 0);
                     Debug.Assert(ordinal < n);
 
-                    (TypeParameterConstraintClause constraintClause, ArrayBuilder<TypeConstraintSyntax>? typeConstraintNodes) = this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, isForOverride, diagnostics);
+                    (TypeParameterConstraintClause constraintClause, ArrayBuilder<TypeConstraintSyntax>? typeConstraintNodes) =
+                        this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, isForOverride, canIgnoreNullableContext: canIgnoreNullableContext, diagnostics);
                     if (results[ordinal] == null)
                     {
                         results[ordinal] = constraintClause;
@@ -117,7 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind and return a single type parameter constraint clause along with syntax nodes corresponding to type constraints.
         /// </summary>
-        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>?) BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, DiagnosticBag diagnostics)
+        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>?) BindTypeParameterConstraints(
+            TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, bool canIgnoreNullableContext, DiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
             ArrayBuilder<TypeWithAnnotations>? constraintTypes = null;
@@ -307,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!isForOverride ||
                          (constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType)) != (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType));
 
-            return (TypeParameterConstraintClause.Create(constraints, constraintTypes?.ToImmutableAndFree() ?? ImmutableArray<TypeWithAnnotations>.Empty), syntaxBuilder);
+            return (TypeParameterConstraintClause.Create(constraints, constraintTypes?.ToImmutableAndFree() ?? ImmutableArray<TypeWithAnnotations>.Empty, canIgnoreNullableContext), syntaxBuilder);
 
             static void reportOverrideWithConstraints(ref bool reportedOverrideWithConstraints, TypeParameterConstraintSyntax syntax, DiagnosticBag diagnostics)
             {
@@ -390,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (constraintTypeBuilder.Count < n)
                 {
-                    return TypeParameterConstraintClause.Create(constraintClause.Constraints, constraintTypeBuilder.ToImmutableAndFree());
+                    return TypeParameterConstraintClause.Create(constraintClause.Constraints, constraintTypeBuilder.ToImmutableAndFree(), constraintClause.IgnoresNullableContext);
                 }
 
                 constraintTypeBuilder.Free();

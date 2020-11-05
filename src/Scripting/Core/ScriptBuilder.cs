@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private readonly InteractiveAssemblyLoader _assemblyLoader;
 
-        private static EmitOptions s_EmitOptionsWithDebuggingInformation = new EmitOptions(
+        private static readonly EmitOptions s_EmitOptionsWithDebuggingInformation = new EmitOptions(
             debugInformationFormat: PdbHelpers.GetPlatformSpecificDebugInformationFormat(),
             pdbChecksumAlgorithm: default(HashAlgorithmName));
 

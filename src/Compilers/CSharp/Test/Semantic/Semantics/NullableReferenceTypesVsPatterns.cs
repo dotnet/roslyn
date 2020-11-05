@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2066,7 +2068,12 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                );
+                // (13,17): warning CS8602: Dereference of a possibly null reference.
+                //                 c.c.c.c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c").WithLocation(13, 17),
+                // (13,17): warning CS8602: Dereference of a possibly null reference.
+                //                 c.c.c.c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c.c").WithLocation(13, 17));
         }
 
         [Fact]

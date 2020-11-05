@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class SynthesizedConstructorSymbol
+    Partial Friend Class SynthesizedConstructorSymbol
         Inherits SynthesizedConstructorBase
 
         Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock

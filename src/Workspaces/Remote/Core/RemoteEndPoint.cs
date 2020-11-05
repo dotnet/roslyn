@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -57,9 +55,6 @@ namespace Microsoft.CodeAnalysis.Remote
             _logger = logger;
 
             var jsonFormatter = new JsonMessageFormatter();
-
-            // disable interpreting of strings as DateTime during deserialization:
-            jsonFormatter.JsonSerializer.DateParseHandling = DateParseHandling.None;
 
             if (jsonConverters != null)
             {
@@ -196,16 +191,22 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if invoke throws an exception, make sure we raise cancellation.
                 RaiseCancellationIfInvokeFailed(task, linkedCancellationSource, cancellationToken);
 
-                // wait for asset source to respond
-                await pipe.WaitForConnectionAsync(linkedCancellationSource.Token).ConfigureAwait(false);
+                var task2 = Task.Run(async () =>
+                {
+                    // wait for asset source to respond
+                    await pipe.WaitForConnectionAsync(linkedCancellationSource.Token).ConfigureAwait(false);
 
-                // run user task with direct stream
-                var result = await dataReader(stream, linkedCancellationSource.Token).ConfigureAwait(false);
+                    // run user task with direct stream
+                    return await dataReader(stream, linkedCancellationSource.Token).ConfigureAwait(false);
+                }, linkedCancellationSource.Token);
 
-                // wait task to finish
-                await task.ConfigureAwait(false);
+                // Wait for all tasks to finish. If we return while one of the tasks is still in flight, the task would
+                // operate as a fire-and-forget operation where the caller might release state objects still in use by
+                // the task.
+                await Task.WhenAll(task, task2).ConfigureAwait(false);
 
-                return result;
+                Debug.Assert(task2.Status == TaskStatus.RanToCompletion);
+                return task2.Result;
             }
             catch (Exception ex) when (!logError || ReportUnlessCanceled(ex, linkedCancellationSource.Token, cancellationToken))
             {
@@ -364,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static void ReportNonFatalWatson(Exception exception)
         {
-            FatalError.ReportWithoutCrash(exception);
+            FatalError.ReportAndCatch(exception);
         }
 
         private SoftCrashException CreateSoftCrashException(Exception ex, CancellationToken cancellationToken)
@@ -390,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (e != null)
             {
-                LogError($@"Stream disconnected unexpectedly:  {e.Reason}, '{e.Description}', LastMessage: {e.LastMessage}, Exception: {e.Exception?.Message}");
+                LogError($@"Stream disconnected unexpectedly:  {e.Reason}, '{e.Description}', Exception: {e.Exception?.Message}");
             }
         }
 

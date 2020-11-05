@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Linq;
@@ -19,19 +17,21 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspMethod(LSP.Methods.TextDocumentRenameName), Shared]
-    internal class RenameHandler : AbstractRequestHandler<LSP.RenameParams, WorkspaceEdit?>
+    [ExportLspMethod(LSP.Methods.TextDocumentRenameName, mutatesSolutionState: false), Shared]
+    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public RenameHandler()
         {
         }
 
-        public override async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
+
+        public async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
         {
             WorkspaceEdit? workspaceEdit = null;
-            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document != null)
             {
                 var oldSolution = document.Project.Solution;
@@ -59,13 +59,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
                     .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
 
+                var textDiffService = renamedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
                 using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var documentEdits);
                 foreach (var docId in changedDocuments)
                 {
                     var oldDoc = oldSolution.GetRequiredDocument(docId);
                     var newDoc = renamedSolution.GetRequiredDocument(docId);
 
-                    var textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
+                    var textChanges = await textDiffService.GetTextChangesAsync(oldDoc, newDoc, cancellationToken).ConfigureAwait(false);
                     var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var textDocumentEdit = new TextDocumentEdit
                     {

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundAggregateClause
+    Partial Friend Class BoundAggregateClause
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
                 Return UnderlyingExpression.ExpressionSymbol

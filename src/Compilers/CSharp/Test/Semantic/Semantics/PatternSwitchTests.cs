@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -3241,6 +3243,33 @@ static class Ex
                 // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //         _ = q switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
+
+        [Fact]
+        public void MultiplePathsToState_01()
+        {
+            var source =
+@"class Sample
+{
+    void M(int a, int b)
+    {
+        _ = (a, b) switch
+        {
+            (0, 0) => 0,
+            (0, 1) => 1,
+            (0, 2) => 2,
+
+            (1, 0) => 5,
+            (1, 1) => 6,
+            (1, 2) => 7,
+
+            _ => 10,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
                 );
         }
     }

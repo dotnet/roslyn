@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     ' //============ Methods to encapsulate scanning ========================
     ' //
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         ' File: Scanner.h
         ' Lines: 301 - 301

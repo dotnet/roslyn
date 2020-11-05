@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -76,12 +78,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            using var connection = await client.CreateConnectionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
-            await connection.RunRemoteAsync(
-                nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
-                solution: null,
-                new object[] { "emptySource", Path.GetTempPath() },
-                CancellationToken.None);
+            using var connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(callbackTarget: mock);
+            Assert.True(await connection.TryInvokeAsync(
+                (service, callbackId, cancellationToken) => service.UpdateContinuouslyAsync(callbackId, "emptySource", Path.GetTempPath(), cancellationToken),
+                CancellationToken.None));
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             // register local service
             TestService testService = null;
-            client.RegisterService(serviceName, (s, p) =>
+            client.RegisterService(serviceName, (s, p, o) =>
             {
                 testService = new TestService(s, p);
                 return testService;
@@ -152,8 +152,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MockLogService : ISymbolSearchLogService
         {
-            public Task LogExceptionAsync(string exception, string text) => Task.CompletedTask;
-            public Task LogInfoAsync(string text) => Task.CompletedTask;
+            public ValueTask LogExceptionAsync(string exception, string text, CancellationToken cancellationToken) => default;
+            public ValueTask LogInfoAsync(string text, CancellationToken cancellationToken) => default;
         }
     }
 }

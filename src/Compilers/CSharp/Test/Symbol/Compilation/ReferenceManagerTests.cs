@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -746,7 +748,7 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
             var r2 = AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemCore).GetReference(filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
             var r2_SysCore = r2.WithAliases(new[] { "SysCore" });
 
-            var compilation = CreateEmptyCompilation(tree, new[] { MscorlibRef, r1, r2_SysCore }, new CSharpCompilationOptions(OutputKind.ConsoleApplication), assemblyName: "Test");
+            var compilation = CreateEmptyCompilation(tree, new[] { MscorlibRef, r1, r2_SysCore }, TestOptions.DebugExe, assemblyName: "Test");
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 

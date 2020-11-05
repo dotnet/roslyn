@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal sealed class Boxed
         {
-            internal readonly static Boxed Sentinel = new Boxed(default);
+            internal static readonly Boxed Sentinel = new Boxed(default);
 
             internal readonly TypeWithAnnotations Value;
             internal Boxed(TypeWithAnnotations value)
@@ -216,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations makeNullableT()
                 => Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol)));
         }
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// If this is a lazy nullable type pending resolution, forces this to be resolved.
@@ -468,9 +470,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NullableAnnotation newAnnotation;
 
-            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
+            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.DefaultType) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
 
-            if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
+            if (newTypeWithModifiers.NullableAnnotation.IsAnnotated())
+            {
+                if (newTypeWithModifiers._extensions is LazyNullableTypeParameter)
+                {
+                    Debug.Assert(newCustomModifiers.IsEmpty);
+                    return newTypeWithModifiers;
+                }
+                newAnnotation = NullableAnnotation.Annotated;
+            }
+            else if (NullableAnnotation.IsAnnotated())
             {
                 newAnnotation = NullableAnnotation.Annotated;
             }
@@ -782,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (type is null)
                 {
-                    return annotation.IsAnnotated() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+                    return annotation.IsAnnotated() ? NullableFlowState.MaybeDefault : NullableFlowState.NotNull;
                 }
                 if (type.IsPossiblyNullableReferenceTypeTypeParameter())
                 {

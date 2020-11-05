@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -416,6 +418,46 @@ class C1
                 var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
                 Assert.NotNull(type);
                 Assert.StartsWith("public class CSharpClass", type.ToString(), StringComparison.Ordinal);
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(33047, "https://github.com/dotnet/roslyn/issues/33047")]
+        public async Task TestOpenProject_CSharp_GlobalPropertyShouldUnsetParentConfigurationAndPlatformDefault()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.ShouldUnsetParentConfigurationAndPlatform)
+                .WithFile(@"CSharpProject\ShouldUnsetParentConfigurationAndPlatformConditional.cs", Resources.SourceFiles.CSharp.CSharpClass));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+                var document = project.Documents.First();
+                var tree = await document.GetSyntaxTreeAsync();
+                var expectedFileName = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
+                Assert.Equal(expectedFileName, tree.FilePath);
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(33047, "https://github.com/dotnet/roslyn/issues/33047")]
+        public async Task TestOpenProject_CSharp_GlobalPropertyShouldUnsetParentConfigurationAndPlatformTrue()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.ShouldUnsetParentConfigurationAndPlatform)
+                .WithFile(@"CSharpProject\ShouldUnsetParentConfigurationAndPlatformConditional.cs", Resources.SourceFiles.CSharp.CSharpClass));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using (var workspace = CreateMSBuildWorkspace(("ShouldUnsetParentConfigurationAndPlatform", bool.TrueString)))
+            {
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+                var document = project.Documents.First();
+                var tree = await document.GetSyntaxTreeAsync();
+                var expectedFileName = GetSolutionFileName(@"CSharpProject\ShouldUnsetParentConfigurationAndPlatformConditional.cs");
+                Assert.Equal(expectedFileName, tree.FilePath);
             }
         }
 

@@ -6,9 +6,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     /// <summary>
@@ -61,7 +58,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         /// <summary>
         /// Stop accepting new connections. It will also ensure that the last return from 
-        /// <see cref="GetNextClientConnectionAsync"/> is in a completed state.
+        /// <see cref="GetNextClientConnectionAsync"/> is either already in a completed state, or has scheduled an
+        /// operation which will transition the task to a completed state.
         /// </summary>
         void EndListening();
     }

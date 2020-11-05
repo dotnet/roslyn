@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
                     // remove specified prefix
                     var prefix = rule.NamingStyle.Prefix;
                     newBaseName = newBaseName.StartsWith(prefix)
-                        ? newBaseName.Substring(prefix.Length)
+                        ? newBaseName[prefix.Length..]
                         : newBaseName;
 
                     // remove specified suffix

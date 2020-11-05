@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,7 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.Internal.VisualStudio.Shell;
+using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -123,20 +121,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             static Guid GetSolutionSessionId()
             {
-                try
-                {
-                    var solutionContext = TelemetryHelper.DataModelTelemetrySession.GetContext(SolutionContextName);
-                    var sessionIdProperty = solutionContext is object
-                        ? (string)solutionContext.SharedProperties[SolutionSessionIdPropertyName]
-                        : "";
-                    _ = Guid.TryParse(sessionIdProperty, out var solutionSessionId);
-                    return solutionSessionId;
-                }
-                catch (TypeInitializationException)
-                {
-                    // The TelemetryHelper cannot be constructed during unittests.
-                    return default;
-                }
+                var dataModelTelemetrySession = TelemetryService.DefaultSession;
+                var solutionContext = dataModelTelemetrySession.GetContext(SolutionContextName);
+                var sessionIdProperty = solutionContext is object
+                    ? (string)solutionContext.SharedProperties[SolutionSessionIdPropertyName]
+                    : "";
+                _ = Guid.TryParse(sessionIdProperty, out var solutionSessionId);
+                return solutionSessionId;
             }
         }
     }

@@ -143,6 +143,7 @@ class {|Definition:C1|}
                 Dim root = Await startDocument.GetSyntaxRootAsync()
                 Dim node = root.FindNode(originalDocument.AnnotatedSpans("Original").First()).AncestorsAndSelf().OfType(Of ClassDeclarationSyntax).First()
                 Dim results = Await codelensService.FindReferenceLocationsAsync(workspace.CurrentSolution, startDocument.Id, node, CancellationToken.None)
+                Assert.True(results.HasValue)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()
@@ -152,7 +153,7 @@ class {|Definition:C1|}
 
                 Dim actual = New List(Of (String, LinePosition, String))
 
-                For Each result In results
+                For Each result In results.Value
                     actual.Add((result.FilePath, New LinePosition(result.LineNumber, result.ColumnNumber), result.ReferenceLineText))
                 Next
 
@@ -261,6 +262,8 @@ class { }
                 Implements ISpanMappingService
 
                 Public Shared ReadOnly Instance As SpanMapper = New SpanMapper()
+
+                Public ReadOnly Property SupportsMappingImportDirectives As Boolean = False Implements ISpanMappingService.SupportsMappingImportDirectives
 
                 Public Async Function MapSpansAsync(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of MappedSpanResult)) Implements ISpanMappingService.MapSpansAsync
                     Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
@@ -400,15 +403,13 @@ class { }
             Public Sub AddCommandTarget(target As IOleCommandTarget, ByRef [next] As IOleCommandTarget) Implements IFindAllReferencesWindow.AddCommandTarget
                 Throw New NotImplementedException()
             End Sub
+#End Region
 
             Public Sub SetProgress(progress As Double) Implements IFindAllReferencesWindow.SetProgress
-                Throw New NotImplementedException()
             End Sub
 
             Public Sub SetProgress(completed As Integer, maximum As Integer) Implements IFindAllReferencesWindow.SetProgress
-                Throw New NotImplementedException()
             End Sub
-#End Region
         End Class
 
         Private Class TableDataSink

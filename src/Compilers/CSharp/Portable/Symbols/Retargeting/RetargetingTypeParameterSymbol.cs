@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -79,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool canIgnoreNullableContext)
         {
-            return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetConstraintTypes(inProgress));
+            return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetConstraintTypes(inProgress, canIgnoreNullableContext));
         }
 
         internal override bool? IsNotNullable

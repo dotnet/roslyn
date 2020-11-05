@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -555,6 +557,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return this;
             }
 
+            CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
             bool Cci.ITypeReference.IsEnum
             {
                 get
@@ -697,7 +701,19 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbolInternal)UnderlyingNamedType).GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return UnderlyingNamedType.GetInternalSymbol().GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+            }
+
+            public sealed override bool Equals(object obj)
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            }
+
+            public sealed override int GetHashCode()
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
             }
         }
     }

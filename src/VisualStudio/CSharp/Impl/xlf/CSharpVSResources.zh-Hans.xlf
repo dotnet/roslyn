@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">自动显示参数列表中的完成列表(实验性)</target>
+        <target state="needs-review-translation">自动显示参数列表中的完成列表(实验性)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -62,6 +62,11 @@
         <target state="translated">在关系运算符中: &lt;   &gt;   &lt;=   &gt;= 等同于 ==   !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
+        <source>Insert // at the start of new lines when writing // comments</source>
+        <target state="new">Insert // at the start of new lines when writing // comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
         <target state="translated">在命名空间中</target>
@@ -80,6 +85,11 @@
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
         <target state="translated">在格式设置期间执行其他代码清理</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
+        <source>Prefer implicit object creation when type is apparent</source>
+        <target state="new">Prefer implicit object creation when type is apparent</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
@@ -112,9 +122,14 @@
         <target state="translated">删除不必要的 Using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_new_expressions">
+        <source>Show hints for 'new' expressions</source>
+        <target state="new">Show hints for 'new' expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="translated">显示 unimported 命名空间中的项(实验)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="needs-review-translation">显示 unimported 命名空间中的项(实验)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

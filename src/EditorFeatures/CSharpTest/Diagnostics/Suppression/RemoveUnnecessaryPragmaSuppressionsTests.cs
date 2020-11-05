@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -27,6 +25,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppressions
 {
@@ -34,6 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
     [WorkItem(44177, "https://github.com/dotnet/roslyn/issues/44177")]
     public abstract class RemoveUnnecessaryInlineSuppressionsTests : AbstractUnncessarySuppressionDiagnosticTest
     {
+        public RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
         #region Helpers
 
         internal sealed override CodeFixProvider CodeFixProvider
@@ -107,7 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
         protected sealed class CompilationEndDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new DiagnosticDescriptor("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true,
+                    customTags: new[] { WellKnownDiagnosticTags.CompilationEnd });
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
             public override void Initialize(AnalysisContext context) =>
                 context.RegisterCompilationStartAction(context => context.RegisterCompilationEndAction(_ => { }));
@@ -119,6 +124,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
         public abstract class CompilerOrAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
         {
+            public CompilerOrAnalyzerTests(ITestOutputHelper logger)
+                : base(logger)
+            {
+            }
+
             protected abstract bool IsCompilerDiagnosticsTest { get; }
             protected abstract string VariableDeclaredButNotUsedDiagnosticId { get; }
             protected abstract string VariableAssignedButNotUsedDiagnosticId { get; }
@@ -126,8 +136,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
             public sealed class CompilerTests : CompilerOrAnalyzerTests
             {
+                public CompilerTests(ITestOutputHelper logger)
+                    : base(logger)
+                {
+                }
+
                 internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
                     => ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
+
                 protected override bool IsCompilerDiagnosticsTest => true;
                 protected override string VariableDeclaredButNotUsedDiagnosticId => "CS0168";
                 protected override string VariableAssignedButNotUsedDiagnosticId => "CS0219";
@@ -159,6 +175,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
             public sealed class AnalyzerTests : CompilerOrAnalyzerTests
             {
+                public AnalyzerTests(ITestOutputHelper logger)
+                    : base(logger)
+                {
+                }
+
                 internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
                     => ImmutableArray.Create<DiagnosticAnalyzer>(new UserDiagnosticAnalyzer(), new CompilationEndDiagnosticAnalyzer());
                 protected override bool IsCompilerDiagnosticsTest => false;
@@ -412,6 +433,33 @@ class Class
 |]", new TestParameters(options: options));
             }
 
+            [Fact, WorkItem(47288, "https://github.com/dotnet/roslyn/issues/47288")]
+            public async Task TestDoNotRemoveExcludedDiagnosticCategorySuppression()
+            {
+                var options = new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, "category: ExcludedCategory" }
+                };
+
+                await TestMissingInRegularAndScriptAsync(
+        $@"
+[|
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""ExcludedCategory"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""ExcludedCategory"", ""{VariableAssignedButNotUsedDiagnosticId}"")]
+    void M()
+    {{
+        int y;
+        y = 1;
+
+        int z = 1;
+        z++;
+    }}
+}}
+|]", new TestParameters(options: options));
+            }
+
             [Fact]
             public async Task TestDoNotRemoveDiagnosticSuppression_Attribute_OnPartialDeclarations()
             {
@@ -493,9 +541,6 @@ class Class
             [Fact]
             public async Task TestRemoveDiagnosticSuppression_Attribute_Trivia()
             {
-                // This test should not remove Comment1 and DocComment.
-                // TODO: File a bug for SyntaxEditor.RemoveNode API removing doc comment and its preceeeding trivia.
-
                 await TestInRegularAndScript1Async(
         $@"
 class Class
@@ -516,6 +561,11 @@ class Class
         @"
 class Class
 {
+    // Comment1
+    /// <summary>
+    /// DocComment
+    /// </summary>
+    // Comment2
     // Comment4
     void M()
     {
@@ -960,6 +1010,11 @@ class Class
 
         public sealed class CompilerAndAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
         {
+            public CompilerAndAnalyzerTests(ITestOutputHelper logger)
+                : base(logger)
+            {
+            }
+
             internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
                 ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer(), new UserDiagnosticAnalyzer());
 

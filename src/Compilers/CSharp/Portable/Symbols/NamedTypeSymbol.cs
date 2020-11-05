@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var typeArgument in result)
             {
-                typeArgument.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                AddDefinitionUseSiteDiagnostics(typeArgument, ref useSiteDiagnostics);
             }
 
             return result;
@@ -72,8 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeWithAnnotations TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var result = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[index];
-            result.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+            AddDefinitionUseSiteDiagnostics(result, ref useSiteDiagnostics);
             return result;
+        }
+
+        private static void AddDefinitionUseSiteDiagnostics(TypeWithAnnotations type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            type.DefaultType.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -503,6 +510,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>An ImmutableArray containing all the members of this symbol with the given name. If there are
         /// no members with this name, returns an empty ImmutableArray. Never returns null.</returns>
         public abstract override ImmutableArray<Symbol> GetMembers(string name);
+
+        /// <summary>
+        /// A lightweight check for whether this type has a possible clone method. This is less costly than GetMembers,
+        /// particularly for PE symbols, and can be used as a cheap heuristic for whether to fully search through all
+        /// members of this type for a valid clone method.
+        /// </summary>
+        internal abstract bool HasPossibleWellKnownCloneMethod();
 
         internal virtual ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
@@ -1172,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed TypeSymbol OriginalTypeSymbolDefinition
+        protected sealed override TypeSymbol OriginalTypeSymbolDefinition
         {
             get
             {

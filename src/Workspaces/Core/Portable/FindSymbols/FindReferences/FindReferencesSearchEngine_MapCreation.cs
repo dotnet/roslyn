@@ -16,9 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using DocumentMap = MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>;
-    using ProjectMap = MultiDictionary<Project, (ISymbol symbol, IReferenceFinder finder)>;
-    using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>>;
+    using DocumentMap = Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>;
+    using ProjectMap = Dictionary<Project, HashSet<(ISymbol symbol, IReferenceFinder finder)>>;
+    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var document in documents)
                     {
                         finalMap.GetOrAdd(document.Project, s_createDocumentMap)
-                                .Add(document, (symbol, finder));
+                                .MultiAdd(document, (symbol, finder));
                     }
                 }
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             if (scope == null || scope.Contains(project))
                             {
-                                projectMap.Add(project, (symbol, finder));
+                                projectMap.MultiAdd(project, (symbol, finder));
                             }
                         }
                     }
@@ -126,7 +126,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 searchSymbol = sourceSymbol;
             }
 
-            if (searchSymbol != null && result.Add(searchSymbol))
+            Contract.ThrowIfNull(searchSymbol);
+            if (result.Add(searchSymbol))
             {
                 await _progress.OnDefinitionFoundAsync(searchSymbol).ConfigureAwait(false);
 
@@ -135,12 +136,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                var finderTasks = new List<Task>();
+                using var _ = ArrayBuilder<Task>.GetInstance(out var finderTasks);
                 foreach (var f in _finders)
                 {
                     finderTasks.Add(Task.Run(async () =>
                     {
-                        var symbolTasks = new List<Task>();
+                        using var _ = ArrayBuilder<Task>.GetInstance(out var symbolTasks);
 
                         var symbols = await f.DetermineCascadedSymbolsAsync(
                             searchSymbol, _solution, projects, _options, _cancellationToken).ConfigureAwait(false);
@@ -148,8 +149,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         // Defer to the language to see if it wants to cascade here in some special way.
                         var symbolProject = _solution.GetProject(searchSymbol.ContainingAssembly);
-                        var service = symbolProject?.LanguageServices.GetService<ILanguageServiceReferenceFinder>();
-                        if (service != null)
+                        if (symbolProject?.LanguageServices.GetService<ILanguageServiceReferenceFinder>() is { } service)
                         {
                             symbols = await service.DetermineCascadedSymbolsAsync(
                                 searchSymbol, symbolProject, _cancellationToken).ConfigureAwait(false);
@@ -169,19 +169,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private void AddSymbolTasks(
             ConcurrentSet<ISymbol> result,
             ImmutableArray<ISymbol> symbols,
-            List<Task> symbolTasks)
+            ArrayBuilder<Task> symbolTasks)
         {
             if (!symbols.IsDefault)
             {
                 foreach (var child in symbols)
                 {
+                    Contract.ThrowIfNull(child);
                     _cancellationToken.ThrowIfCancellationRequested();
                     symbolTasks.Add(Task.Run(() => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken));
                 }
             }
         }
 
-        private ImmutableHashSet<Project> GetProjectScope()
+        private ImmutableHashSet<Project>? GetProjectScope()
         {
             if (_documents == null)
             {
@@ -227,6 +228,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 searchSymbol = symbol.ContainingType;
             }
 
+            Contract.ThrowIfNull(searchSymbol);
             return searchSymbol;
         }
     }

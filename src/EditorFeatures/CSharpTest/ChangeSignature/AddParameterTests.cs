@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -1237,7 +1239,7 @@ class C
 
     public void M()
     {
-        _ = new(1, 2);
+        C _ = new(1, ""y"");
     }
 }";
             var permutation = new[] {
@@ -1254,11 +1256,9 @@ class C
 
     public void M()
     {
-        _ = new(1, 2);
+        C _ = new(""y"", 34, 1);
     }
 }";
-            // Expect: _ = new(2, 34, 1);
-            // Tracked by https://github.com/dotnet/roslyn/issues/44126
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
     }
