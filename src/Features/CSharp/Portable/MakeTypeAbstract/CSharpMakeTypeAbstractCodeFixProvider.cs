@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
                 case MethodDeclarationSyntax method:
                     if (method.Body != null || method.ExpressionBody != null)
                     {
+                        typeDeclaration = null;
                         return false;
                     }
                     break;
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
                 case AccessorDeclarationSyntax accessor:
                     if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
+                        typeDeclaration = null;
                         return false;
                     }
                     break;
