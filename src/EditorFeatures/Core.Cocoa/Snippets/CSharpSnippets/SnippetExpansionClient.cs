@@ -94,23 +94,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             {
                 return;
             }
-
-            // In Venus/Razor, inserting imports statements into the subject buffer does not work.
-            // Instead, we add the imports through the contained language host.
-            if (TryAddImportsToContainedDocument(document, newUsingDirectives.Where(u => u.Alias == null).Select(u => u.Name.ToString())))
-            {
-                return;
-            }
-
-            var addImportService = document.GetLanguageService<IAddImportsService>();
-            var generator = document.GetLanguageService<SyntaxGenerator>();
-            var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
-
-            var newDocument = document.WithSyntaxRoot(newRoot);
-
-            var formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-            document.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
         }
 
         private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(XElement snippetNode, XElement importsNode)

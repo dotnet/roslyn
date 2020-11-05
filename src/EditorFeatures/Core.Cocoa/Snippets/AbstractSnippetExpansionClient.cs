@@ -390,35 +390,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             AddImports(documentWithImports, position, snippetNode, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
         }
 
-        protected static bool TryAddImportsToContainedDocument(Document document, IEnumerable<string> memberImportsNamespaces)
-        {
-            throw new NotImplementedException();
-            //var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            //if (vsWorkspace == null)
-            //{
-            //    return false;
-            //}
-
-            //var containedDocument = vsWorkspace.TryGetContainedDocument(document.Id);
-            //if (containedDocument == null)
-            //{
-            //    return false;
-            //}
-
-            //if (containedDocument.ContainedLanguageHost is IVsContainedLanguageHostInternal containedLanguageHost)
-            //{
-            //    foreach (var importClause in memberImportsNamespaces)
-            //    {
-            //        if (containedLanguageHost.InsertImportsDirective(importClause) != VSConstants.S_OK)
-            //        {
-            //            return false;
-            //        }
-            //    }
-            //}
-
-            //return true;
-        }
-
         protected static bool TryGetSnippetFunctionInfo(XElement xmlFunctionNode, out string snippetFunctionName, out string param)
         {
             if (xmlFunctionNode.Value.IndexOf('(') == -1 ||
