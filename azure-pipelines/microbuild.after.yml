@@ -1,5 +1,5 @@
 steps:
-- task: ms-vseng.MicroBuildShipTasks.7c429315-71ba-4cb3-94bb-f829c95f7915.MicroBuildCodesignVerify@2
+- task: MicroBuildCodesignVerify@2
   displayName: Verify Signed Files
   inputs:
     TargetFolders: |
@@ -9,11 +9,11 @@ steps:
   condition: succeededOrFailed()
   displayName: MicroBuild Cleanup
 
-- task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
+- task: ComponentGovernanceComponentDetection@0
   displayName: Component Detection
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
-- task: Ref12.ref12-analyze-task.ref12-analyze-task.Ref12Analyze@0
+- task: Ref12Analyze@0
   displayName: Ref12 (Codex) Analyze
   inputs:
     codexoutputroot: $(Build.ArtifactStagingDirectory)\Codex
