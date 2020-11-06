@@ -158,10 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         VSConstants.VsTextBufferUserDataGuid.VsBufferEncodingPromptOnLoad_guid,
                         (uint)__PROMPTONLOADFLAGS.codepagePrompt);
 
-                    if (ErrorHandler.Failed(hresult))
-                    {
-                        Marshal.ThrowExceptionForHR(hresult);
-                    }
+                    Marshal.ThrowExceptionForHR(hresult);
                 }
             }
 
@@ -283,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private (string, Guid, IntPtr) GetCodeEditorData(IVsTextBuffer? textBuffer, READONLYSTATUS readOnlyStatus, bool initializeView)
+        private (string editorCaption, Guid commandUI, IntPtr documentView) GetCodeEditorData(IVsTextBuffer? textBuffer, READONLYSTATUS readOnlyStatus, bool initializeView)
         {
             var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
             var codeWindow = editorAdaptersFactoryService.CreateVsCodeWindowAdapter(_oleServiceProvider);
