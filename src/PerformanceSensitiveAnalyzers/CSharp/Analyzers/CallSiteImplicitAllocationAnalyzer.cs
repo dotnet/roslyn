@@ -68,20 +68,16 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             //     static void Fun2(int i = 0, params object[] args) {}
             foreach (var argument in invocationOperation.Arguments)
             {
-                if (argument.ArgumentKind != ArgumentKind.ParamArray)
+                if (argument.ArgumentKind == ArgumentKind.ParamArray)
                 {
-                    continue;
+                    // Up to net45 the System.Array.Empty<T> singleton didn't existed so an empty params array was still causing some memory allocation.
+                    if (argument.IsImplicit &&
+                        (!compilationHasSystemArrayEmpty || (argument.Value as IArrayCreationOperation)?.Initializer.ElementValues.IsEmpty == true))
+                    {
+                        reportDiagnostic(node.CreateDiagnostic(ParamsParameterRule));
+                    }
+                    break;
                 }
-
-                bool isEmpty = (argument.Value as IArrayCreationOperation)?.Initializer.ElementValues.IsEmpty == true;
-
-                // Up to net45 the System.Array.Empty<T> singleton didn't existed so an empty params array was still causing some memory allocation.
-                if (argument.IsImplicit && (!isEmpty || !compilationHasSystemArrayEmpty))
-                {
-                    reportDiagnostic(node.CreateDiagnostic(ParamsParameterRule));
-                }
-
-                break;
             }
         }
 
