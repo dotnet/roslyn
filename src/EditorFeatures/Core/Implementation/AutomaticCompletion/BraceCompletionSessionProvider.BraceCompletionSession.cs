@@ -4,14 +4,18 @@
 
 #nullable disable
 
+using System;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities.Internal;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 {
@@ -37,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             private readonly ITextUndoHistory _undoHistory;
             private readonly IEditorOperations _editorOperations;
             private readonly IEditorBraceCompletionSession _session;
+            private readonly ISmartIndentationService _smartIndentationService;
 
             #endregion
 
@@ -45,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             public BraceCompletionSession(
                 ITextView textView, ITextBuffer subjectBuffer,
                 SnapshotPoint openingPoint, char openingBrace, char closingBrace, ITextUndoHistory undoHistory,
-                IEditorOperationsFactoryService editorOperationsFactoryService, IEditorBraceCompletionSession session)
+                IEditorOperationsFactoryService editorOperationsFactoryService, IEditorBraceCompletionSession session,
+                ISmartIndentationService smartIndentationService)
             {
                 this.TextView = textView;
                 this.SubjectBuffer = subjectBuffer;
@@ -55,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 _undoHistory = undoHistory;
                 _editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
                 _session = session;
+                _smartIndentationService = smartIndentationService;
             }
 
             #endregion
@@ -69,12 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             private void Start(CancellationToken cancellationToken)
             {
-                // this is where the caret should go after the change
-                var pos = TextView.Caret.Position.BufferPosition;
-                var beforeTrackingPoint = pos.Snapshot.CreateTrackingPoint(pos.Position, PointTrackingMode.Negative);
-
-                var snapshot = SubjectBuffer.CurrentSnapshot;
-                var closingSnapshotPoint = ClosingPoint.GetPoint(snapshot);
+                var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                 if (closingSnapshotPoint.Position < 1)
                 {
@@ -94,50 +96,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     return;
                 }
 
-                OpeningPoint = snapshot.CreateTrackingPoint(openingSnapshotPoint, PointTrackingMode.Positive);
+                OpeningPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(openingSnapshotPoint, PointTrackingMode.Positive);
 
-                if (!_session.CheckOpeningPoint(this, cancellationToken))
+                var braceResult = _session.GetBraceCompletion(this, cancellationToken);
+                if (braceResult == null)
                 {
                     EndSession();
                     return;
                 }
 
-                using var undo = CreateUndoTransaction();
+                using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, TextView, _undoHistory, _editorOperations);
 
-                // insert the closing brace
-                using (var edit = SubjectBuffer.CreateEdit())
-                {
-                    edit.Insert(closingSnapshotPoint, ClosingBrace.ToString());
-
-                    if (edit.HasFailedChanges)
-                    {
-                        Debug.Fail("Unable to insert closing brace");
-
-                        // exit without setting the closing point which will take us off the stack
-                        edit.Cancel();
-                        undo.Cancel();
-                        return;
-                    }
-                    else
-                    {
-                        snapshot = edit.ApplyAndLogExceptions();
-                    }
-                }
-
-                var beforePoint = beforeTrackingPoint.GetPoint(TextView.TextSnapshot);
+                // Apply the change to complete the brace.
+                ApplyBraceCompletionResult(braceResult.Value);
 
                 // switch from positive to negative tracking so it stays against the closing brace
-                ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(ClosingPoint.GetPoint(snapshot), PointTrackingMode.Negative);
+                ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot), PointTrackingMode.Negative);
 
-                Debug.Assert(ClosingPoint.GetPoint(snapshot).Position > 0 && (new SnapshotSpan(ClosingPoint.GetPoint(snapshot).Subtract(1), 1))
-                            .GetText().Equals(ClosingBrace.ToString()), "The closing point does not match the closing brace character");
+                var changesAfterStart = _session.GetChangesAfterCompletion(this, cancellationToken);
+                if (changesAfterStart != null)
+                {
+                    ApplyBraceCompletionResult(changesAfterStart.Value);
+                }
 
-                // move the caret back between the braces
-                TextView.Caret.MoveTo(beforePoint);
-
-                _session.AfterStart(this, cancellationToken);
-
-                undo.Complete();
+                caretPreservingTransaction.Complete();
             }
 
             public void PreBackspace(out bool handledCommand)
@@ -268,7 +250,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
                     if (closingSnapshotPoint.Position > 0 && HasNoForwardTyping(this.GetCaretPosition().Value, closingSnapshotPoint.Subtract(1)))
                     {
-                        _session.AfterReturn(this, CancellationToken.None);
+                        var changesAfterReturn = _session.GetChangesAfterReturn(this, CancellationToken.None);
+                        if (changesAfterReturn != null)
+                        {
+                            using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, TextView, _undoHistory, _editorOperations);
+                            ApplyBraceCompletionResult(changesAfterReturn.Value);
+                            caretPreservingTransaction.Complete();
+                        }
                     }
                 }
             }
@@ -361,6 +349,72 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 if (afterBrace.HasValue)
                 {
                     TextView.Caret.MoveTo(afterBrace.Value);
+                }
+            }
+
+            private void ApplyBraceCompletionResult(BraceCompletionResult result)
+            {
+                // Apply sets of edits incrementally and update the buffer on each set applied.
+                //
+                // The text changes need to be small and incremental to ensure that the
+                // opening and closing brace locations are not in the *middle* of a text change.
+                // Otherwise, the tracking points will move to the start/end
+                // of the text change span and no longer accurately reflect actual open and closing brace.
+                // That causes the brace completion session to close prematurely so overtyping and tab
+                // no longer work properly.
+                foreach (var changes in result.TextChangesPerVersion)
+                {
+                    using var edit = SubjectBuffer.CreateEdit();
+                    foreach (var change in changes)
+                    {
+                        edit.Replace(change.Span.ToSpan(), change.NewText);
+                    }
+
+                    edit.ApplyAndLogExceptions();
+
+                    Debug.Assert(SubjectBuffer.CurrentSnapshot[OpeningPoint.GetPosition(SubjectBuffer.CurrentSnapshot)] == OpeningBrace,
+                    "The opening point does not match the opening brace character");
+                    Debug.Assert(SubjectBuffer.CurrentSnapshot[ClosingPoint.GetPosition(SubjectBuffer.CurrentSnapshot) - 1] == ClosingBrace,
+                    "The closing point does not match the closing brace character");
+                }
+
+                var snapshotPoint = SubjectBuffer.CurrentSnapshot.GetPoint(result.CaretLocation);
+                var line = snapshotPoint.GetContainingLine();
+
+                if (line.GetText().IsNullOrWhiteSpace())
+                {
+                    // If the caret is on an empty line, put it at the correct indentation using virtual space.
+                    PutCaretOnLine(this, _smartIndentationService, line.LineNumber);
+                }
+                else
+                {
+                    // Not on an empty line, just put the caret at the specified location.
+                    TextView.TryMoveCaretToAndEnsureVisible(snapshotPoint);
+                }
+
+                static void PutCaretOnLine(IBraceCompletionSession session, ISmartIndentationService smartIndentationService, int lineNumber)
+                {
+                    var lineOnSubjectBuffer = session.SubjectBuffer.CurrentSnapshot.GetLineFromLineNumber(lineNumber);
+
+                    var indentation = GetDesiredIndentation(session, smartIndentationService, lineOnSubjectBuffer);
+
+                    session.TextView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(lineOnSubjectBuffer, indentation));
+                }
+
+                static int GetDesiredIndentation(IBraceCompletionSession session, ISmartIndentationService smartIndentationService, ITextSnapshotLine lineOnSubjectBuffer)
+                {
+                    // first try VS's smart indentation service
+                    var indentation = session.TextView.GetDesiredIndentation(smartIndentationService, lineOnSubjectBuffer);
+                    if (indentation.HasValue)
+                    {
+                        return indentation.Value;
+                    }
+
+                    // do poor man's indentation
+                    var openingPoint = session.OpeningPoint.GetPoint(lineOnSubjectBuffer.Snapshot);
+                    var openingSpanLine = openingPoint.GetContainingLine();
+
+                    return openingPoint - openingSpanLine.Start;
                 }
             }
 

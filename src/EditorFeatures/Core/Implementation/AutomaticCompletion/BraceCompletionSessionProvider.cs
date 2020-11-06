@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 {
@@ -31,23 +32,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
     {
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly ISmartIndentationService _smartIndentationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public BraceCompletionSessionProvider(
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            ISmartIndentationService smartIndentationService)
             : base(threadingContext)
         {
             _undoManager = undoManager;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _smartIndentationService = smartIndentationService;
         }
 
         public bool TryCreateSession(ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace, out IBraceCompletionSession session)
         {
             this.AssertIsForeground();
-
             var textSnapshot = openingPoint.Snapshot;
             var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                         session = new BraceCompletionSession(
                             textView, openingPoint.Snapshot.TextBuffer, openingPoint, openingBrace, closingBrace,
                             undoHistory, _editorOperationsFactoryService,
-                            editorSession);
+                            editorSession, _smartIndentationService);
                         return true;
                     }
                 }
@@ -73,42 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             session = null;
             return false;
-        }
-
-        public static class CurlyBrace
-        {
-            public const char OpenCharacter = '{';
-            public const char CloseCharacter = '}';
-        }
-
-        public static class Parenthesis
-        {
-            public const char OpenCharacter = '(';
-            public const char CloseCharacter = ')';
-        }
-
-        public static class Bracket
-        {
-            public const char OpenCharacter = '[';
-            public const char CloseCharacter = ']';
-        }
-
-        public static class LessAndGreaterThan
-        {
-            public const char OpenCharacter = '<';
-            public const char CloseCharacter = '>';
-        }
-
-        public static class DoubleQuote
-        {
-            public const char OpenCharacter = '"';
-            public const char CloseCharacter = '"';
-        }
-
-        public static class SingleQuote
-        {
-            public const char OpenCharacter = '\'';
-            public const char CloseCharacter = '\'';
         }
     }
 }

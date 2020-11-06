@@ -8,6 +8,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -122,8 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Formatting_TriggerOnBlockCompletion
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, value); }
+            get { return GetBooleanOption(BraceCompletionOptions.AutoFormattingOnCloseBrace); }
+            set { SetBooleanOption(BraceCompletionOptions.AutoFormattingOnCloseBrace, value); }
         }
 
         public int Formatting_TriggerOnPaste

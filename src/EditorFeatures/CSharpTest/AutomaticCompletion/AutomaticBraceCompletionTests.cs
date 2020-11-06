@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
@@ -1100,7 +1102,7 @@ class Goo
 
             var optionSet = new Dictionary<OptionKey2, object>
                             {
-                                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false },
+                                { new OptionKey2(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false },
                                 { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
                             };
             using var session = CreateSession(code, optionSet);
@@ -1223,7 +1225,7 @@ $$
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                BraceCompletionSessionProvider.CurlyBrace.OpenCharacter, BraceCompletionSessionProvider.CurlyBrace.CloseCharacter, optionSet);
+                CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, optionSet);
         }
     }
 }
