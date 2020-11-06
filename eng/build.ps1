@@ -394,6 +394,9 @@ function TestUsingOptimizedRunner() {
       $args += " --timeout 90"
     }
   }
+  else {
+    $args += " --html"
+  }
 
   if ($collectDumps) {
     $procdumpFilePath = Ensure-ProcDump

@@ -58,11 +58,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 var linePositionSpan = text.Lines.GetLinePositionSpan(span.TextSpan);
 
+                // Filter out single line spans.
+                if (linePositionSpan.Start.Line == linePositionSpan.End.Line)
+                {
+                    continue;
+                }
+
                 // TODO - Figure out which blocks should be returned as a folding range (and what kind).
                 // https://github.com/dotnet/roslyn/projects/45#card-20049168
-                var foldingRangeKind = span.Type switch
+                FoldingRangeKind? foldingRangeKind = span.Type switch
                 {
-                    BlockTypes.Comment => (FoldingRangeKind?)FoldingRangeKind.Comment,
+                    BlockTypes.Comment => FoldingRangeKind.Comment,
                     BlockTypes.Imports => FoldingRangeKind.Imports,
                     BlockTypes.PreprocessorRegion => FoldingRangeKind.Region,
                     _ => null,

@@ -29,61 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeDefinitionMember,
         Cci.IMethodDefinition
     {
-#if DEBUG
-        internal MethodSymbolAdapter(MethodSymbol underlyingMethodSymbol)
-        {
-            AdaptedMethodSymbol = underlyingMethodSymbol;
-
-            if (underlyingMethodSymbol is NativeIntegerMethodSymbol)
-            {
-                // Emit should use underlying symbol only.
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        internal sealed override Symbol AdaptedSymbol => AdaptedMethodSymbol;
-        internal MethodSymbol AdaptedMethodSymbol { get; }
-#else
-        internal MethodSymbol AdaptedMethodSymbol => this;
-#endif 
-    }
-
-    internal partial class MethodSymbol
-    {
-#if DEBUG
-        private MethodSymbolAdapter _lazyAdapter;
-
-        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
-#endif
-        internal new
-#if DEBUG
-            MethodSymbolAdapter
-#else
-            MethodSymbol
-#endif
-            GetCciAdapter()
-        {
-#if DEBUG
-            if (_lazyAdapter is null)
-            {
-                return InterlockedOperations.Initialize(ref _lazyAdapter, new MethodSymbolAdapter(this));
-            }
-
-            return _lazyAdapter;
-#else
-            return this;
-#endif
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        MethodSymbolAdapter
-#else
-        MethodSymbol
-#endif
-    {
-
         Cci.IGenericMethodInstanceReference Cci.IMethodReference.AsGenericMethodInstanceReference
         {
             get
@@ -431,36 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedMethodSymbol.IsAccessCheckedOnOverride;
             }
         }
-    }
 
-    internal partial class MethodSymbol
-    {
-        internal virtual bool IsAccessCheckedOnOverride
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-
-                // Enforce C#'s notion of internal virtual
-                // If the method is private or internal and virtual but not final
-                // Set the new bit to indicate that it can only be overridden
-                // by classes that can normally access this member.
-                Accessibility accessibility = this.DeclaredAccessibility;
-                return (accessibility == Accessibility.Private ||
-                        accessibility == Accessibility.ProtectedAndInternal ||
-                        accessibility == Accessibility.Internal)
-                       && this.IsMetadataVirtual() && !this.IsMetadataFinal;
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        MethodSymbolAdapter
-#else
-        MethodSymbol
-#endif
-    {
         bool Cci.IMethodDefinition.IsConstructor
         {
             get
@@ -479,32 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedMethodSymbol.IsExternal;
             }
         }
-    }
 
-    internal partial class MethodSymbol
-    {
-        internal virtual bool IsExternal
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-
-                // Delegate methods are implemented by the runtime.
-                // Note that we don't force methods marked with MethodImplAttributes.InternalCall or MethodImplAttributes.Runtime
-                // to be external, so it is possible to mark methods with bodies by these flags. It's up to the VM to interpret these flags
-                // and throw runtime exception if they are applied incorrectly.
-                return this.IsExtern || (object)ContainingType != null && ContainingType.TypeKind == TypeKind.Delegate;
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        MethodSymbolAdapter
-#else
-        MethodSymbol
-#endif
-    {
         bool Cci.IMethodDefinition.IsHiddenBySignature
         {
             get
@@ -522,31 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedMethodSymbol.IsMetadataNewSlot();
             }
         }
-    }
 
-    internal partial class MethodSymbol
-    {
-        /// <summary>
-        /// This method indicates whether or not the runtime will regard the method
-        /// as newslot (as indicated by the presence of the "newslot" modifier in the
-        /// signature).
-        /// WARN WARN WARN: We won't have a final value for this until declaration
-        /// diagnostics have been computed for all <see cref="SourceMemberContainerTypeSymbol"/>s, so pass
-        /// ignoringInterfaceImplementationChanges: true if you need a value sooner
-        /// and aren't concerned about tweaks made to satisfy interface implementation 
-        /// requirements.
-        /// NOTE: Not ignoring changes can only result in a value that is more true.
-        /// </summary>
-        internal abstract bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false);
-    }
-
-    internal partial class
-#if DEBUG
-        MethodSymbolAdapter
-#else
-        MethodSymbol
-#endif
-    {
         bool Cci.IMethodDefinition.IsPlatformInvoke
         {
             get
@@ -579,28 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedMethodSymbol.HasRuntimeSpecialName;
             }
         }
-    }
 
-    internal partial class MethodSymbol
-    {
-        internal virtual bool HasRuntimeSpecialName
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.MethodKind == MethodKind.Constructor
-                    || this.MethodKind == MethodKind.StaticConstructor;
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        MethodSymbolAdapter
-#else
-        MethodSymbol
-#endif
-    {
         bool Cci.IMethodDefinition.IsSealed
         {
             get
@@ -609,31 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedMethodSymbol.IsMetadataFinal;
             }
         }
-    }
 
-    internal partial class MethodSymbol
-    {
-        internal virtual bool IsMetadataFinal
-        {
-            get
-            {
-                // destructors should override this behavior
-                Debug.Assert(this.MethodKind != MethodKind.Destructor);
-
-                return this.IsSealed ||
-                    (this.IsMetadataVirtual() &&
-                     !(this.IsVirtual || this.IsOverride || this.IsAbstract || this.MethodKind == MethodKind.Destructor));
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        MethodSymbolAdapter
-#else
-        MethodSymbol
-#endif
-    {
         bool Cci.IMethodDefinition.IsSpecialName
         {
             get
@@ -660,31 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedMethodSymbol.IsMetadataVirtual();
             }
         }
-    }
 
-    internal partial class MethodSymbol
-    {
-        /// <summary>
-        /// This method indicates whether or not the runtime will regard the method
-        /// as virtual (as indicated by the presence of the "virtual" modifier in the
-        /// signature).
-        /// WARN WARN WARN: We won't have a final value for this until declaration
-        /// diagnostics have been computed for all <see cref="SourceMemberContainerTypeSymbol"/>s, so pass
-        /// ignoringInterfaceImplementationChanges: true if you need a value sooner
-        /// and aren't concerned about tweaks made to satisfy interface implementation 
-        /// requirements.
-        /// NOTE: Not ignoring changes can only result in a value that is more true.
-        /// </summary>
-        internal abstract bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false);
-    }
-
-    internal partial class
-#if DEBUG
-        MethodSymbolAdapter
-#else
-        MethodSymbol
-#endif
-    {
         ImmutableArray<Cci.IParameterDefinition> Cci.IMethodDefinition.Parameters
         {
             get
@@ -725,27 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedMethodSymbol.ReturnValueIsMarshalledExplicitly;
             }
         }
-    }
 
-    internal partial class MethodSymbol
-    {
-        internal virtual bool ReturnValueIsMarshalledExplicitly
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.ReturnValueMarshallingInformation != null;
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        MethodSymbolAdapter
-#else
-        MethodSymbol
-#endif
-    {
         Cci.IMarshallingInformation Cci.IMethodDefinition.ReturnValueMarshallingInformation
         {
             get
@@ -763,10 +541,136 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedMethodSymbol.ReturnValueMarshallingDescriptor;
             }
         }
+
+        Cci.INamespace Cci.IMethodDefinition.ContainingNamespace
+        {
+            get
+            {
+                return AdaptedMethodSymbol.ContainingNamespace.GetCciAdapter();
+            }
+        }
     }
 
     internal partial class MethodSymbol
     {
+#if DEBUG
+        private MethodSymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new MethodSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, CreateCciAdapter());
+            }
+
+            return _lazyAdapter;
+        }
+
+        protected virtual MethodSymbolAdapter CreateCciAdapter()
+        {
+            return new MethodSymbolAdapter(this);
+        }
+#else
+        internal MethodSymbol AdaptedMethodSymbol => this;
+
+        internal new MethodSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif
+
+        internal virtual bool IsAccessCheckedOnOverride
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+
+                // Enforce C#'s notion of internal virtual
+                // If the method is private or internal and virtual but not final
+                // Set the new bit to indicate that it can only be overridden
+                // by classes that can normally access this member.
+                Accessibility accessibility = this.DeclaredAccessibility;
+                return (accessibility == Accessibility.Private ||
+                        accessibility == Accessibility.ProtectedAndInternal ||
+                        accessibility == Accessibility.Internal)
+                       && this.IsMetadataVirtual() && !this.IsMetadataFinal;
+            }
+        }
+
+        internal virtual bool IsExternal
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+
+                // Delegate methods are implemented by the runtime.
+                // Note that we don't force methods marked with MethodImplAttributes.InternalCall or MethodImplAttributes.Runtime
+                // to be external, so it is possible to mark methods with bodies by these flags. It's up to the VM to interpret these flags
+                // and throw runtime exception if they are applied incorrectly.
+                return this.IsExtern || (object)ContainingType != null && ContainingType.TypeKind == TypeKind.Delegate;
+            }
+        }
+
+        /// <summary>
+        /// This method indicates whether or not the runtime will regard the method
+        /// as newslot (as indicated by the presence of the "newslot" modifier in the
+        /// signature).
+        /// WARN WARN WARN: We won't have a final value for this until declaration
+        /// diagnostics have been computed for all <see cref="SourceMemberContainerTypeSymbol"/>s, so pass
+        /// ignoringInterfaceImplementationChanges: true if you need a value sooner
+        /// and aren't concerned about tweaks made to satisfy interface implementation 
+        /// requirements.
+        /// NOTE: Not ignoring changes can only result in a value that is more true.
+        /// </summary>
+        internal abstract bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false);
+
+        internal virtual bool HasRuntimeSpecialName
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return this.MethodKind == MethodKind.Constructor
+                    || this.MethodKind == MethodKind.StaticConstructor;
+            }
+        }
+
+        internal virtual bool IsMetadataFinal
+        {
+            get
+            {
+                // destructors should override this behavior
+                Debug.Assert(this.MethodKind != MethodKind.Destructor);
+
+                return this.IsSealed ||
+                    (this.IsMetadataVirtual() &&
+                     !(this.IsVirtual || this.IsOverride || this.IsAbstract || this.MethodKind == MethodKind.Destructor));
+            }
+        }
+
+        /// <summary>
+        /// This method indicates whether or not the runtime will regard the method
+        /// as virtual (as indicated by the presence of the "virtual" modifier in the
+        /// signature).
+        /// WARN WARN WARN: We won't have a final value for this until declaration
+        /// diagnostics have been computed for all <see cref="SourceMemberContainerTypeSymbol"/>s, so pass
+        /// ignoringInterfaceImplementationChanges: true if you need a value sooner
+        /// and aren't concerned about tweaks made to satisfy interface implementation 
+        /// requirements.
+        /// NOTE: Not ignoring changes can only result in a value that is more true.
+        /// </summary>
+        internal abstract bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false);
+
+        internal virtual bool ReturnValueIsMarshalledExplicitly
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return this.ReturnValueMarshallingInformation != null;
+            }
+        }
+
         internal virtual ImmutableArray<byte> ReturnValueMarshallingDescriptor
         {
             get
@@ -777,19 +681,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal partial class
 #if DEBUG
-        MethodSymbolAdapter
-#else
-        MethodSymbol
-#endif
+    internal partial class MethodSymbolAdapter
     {
-        Cci.INamespace Cci.IMethodDefinition.ContainingNamespace
+        internal MethodSymbolAdapter(MethodSymbol underlyingMethodSymbol)
         {
-            get
+            AdaptedMethodSymbol = underlyingMethodSymbol;
+
+            if (underlyingMethodSymbol is NativeIntegerMethodSymbol)
             {
-                return AdaptedMethodSymbol.ContainingNamespace.GetCciAdapter();
+                // Emit should use underlying symbol only.
+                throw ExceptionUtilities.Unreachable;
             }
         }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedMethodSymbol;
+        internal MethodSymbol AdaptedMethodSymbol { get; }
     }
+#endif
 }

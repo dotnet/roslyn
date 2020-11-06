@@ -527,6 +527,45 @@ public partial record C
         }
 
         [Fact]
+        public void PartialRecord_DuplicateMemberNames()
+        {
+            var src = @"
+public partial record C(int X)
+{
+    public void M(int i) { }
+}
+public partial record C
+{
+    public void M(string s) { }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition });
+            var expectedMemberNames = new string[]
+            {
+                ".ctor",
+                "get_EqualityContract",
+                "EqualityContract",
+                "<X>k__BackingField",
+                "get_X",
+                "set_X",
+                "X",
+                "M",
+                "M",
+                "ToString",
+                "PrintMembers",
+                "op_Inequality",
+                "op_Equality",
+                "GetHashCode",
+                "Equals",
+                "Equals",
+                "<Clone>$",
+                ".ctor",
+                "Deconstruct"
+            };
+            AssertEx.Equal(expectedMemberNames, comp.GetMember<NamedTypeSymbol>("C").GetPublicSymbol().MemberNames);
+        }
+
+        [Fact]
         public void RecordInsideGenericType()
         {
             var src = @"
@@ -668,7 +707,7 @@ record C(int X, int Y)
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(48947, "https://github.com/dotnet/roslyn/issues/48947")]
         public void RecordProperties_05()
         {
             var src = @"
@@ -693,6 +732,31 @@ record C(int X, int X)
             };
             AssertEx.Equal(expectedMembers,
                 comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            var expectedMemberNames = new[] {
+                ".ctor",
+                "get_EqualityContract",
+                "EqualityContract",
+                "<X>k__BackingField",
+                "get_X",
+                "set_X",
+                "X",
+                "<X>k__BackingField",
+                "get_X",
+                "set_X",
+                "X",
+                "ToString",
+                "PrintMembers",
+                "op_Inequality",
+                "op_Equality",
+                "GetHashCode",
+                "Equals",
+                "Equals",
+                "<Clone>$",
+                ".ctor",
+                "Deconstruct"
+            };
+            AssertEx.Equal(expectedMemberNames, comp.GetMember<NamedTypeSymbol>("C").GetPublicSymbol().MemberNames);
         }
 
         [Fact]
@@ -9332,7 +9396,7 @@ record C(int X, int Y, int Z) : B
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }", "System.Int32 C.X { get; init; }", "System.Int32 C.Y { get; init; }" }, actualMembers);
         }
 
-        [Fact]
+        [Fact, WorkItem(48947, "https://github.com/dotnet/roslyn/issues/48947")]
         public void Inheritance_09()
         {
             var source =
@@ -9351,7 +9415,8 @@ record C(int X, int Y, int Z) : B
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(1, 30)
                 );
 
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            NamedTypeSymbol c = comp.GetMember<NamedTypeSymbol>("C");
+            var actualMembers = c.GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
                 "C..ctor(System.Int32 X, System.Int32 Y)",
@@ -9374,6 +9439,35 @@ record C(int X, int Y, int Z) : B
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+
+            var expectedMemberNames = new[] {
+                ".ctor",
+                "get_EqualityContract",
+                "EqualityContract",
+                "X",
+                "get_X",
+                "<Y>k__BackingField",
+                "Y",
+                "get_Y",
+                "ToString",
+                "PrintMembers",
+                "op_Inequality",
+                "op_Equality",
+                "GetHashCode",
+                "Equals",
+                "Equals",
+                "<Clone>$",
+                ".ctor",
+                "Deconstruct"
+            };
+            AssertEx.Equal(expectedMemberNames, c.GetPublicSymbol().MemberNames);
+
+            var expectedCtors = new[]
+            {
+                "C..ctor(System.Int32 X, System.Int32 Y)",
+                "C..ctor(C original)",
+            };
+            AssertEx.Equal(expectedCtors, c.GetPublicSymbol().Constructors.ToTestDisplayStrings());
         }
 
         [Fact]
