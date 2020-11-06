@@ -15,11 +15,15 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    // Describes a conversion operator method from containingType to returnType as if it were defined like so:
-    // public class/struct ContainingType
-    // {
-    //     public static explicit operator ReturnType(ContainingType value) => ..;
-    // }
+    /// <summary>
+    /// Describes a conversion operator method from containingType to returnType as if it were defined like so:
+    /// <code>
+    /// public class ContainingType
+    /// {
+    ///     public static explicit operator ReturnType(ContainingType value) => ...;
+    /// }
+    /// </code>
+    /// </summary>
     internal class BuiltinOperatorMethodSymbol : IMethodSymbol
     {
         public BuiltinOperatorMethodSymbol(ITypeSymbol returnType, INamedTypeSymbol containingType)
@@ -142,8 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public SignatureCallingConvention CallingConvention => SignatureCallingConvention.Default;
 
-        public ImmutableArray<INamedTypeSymbol> CallingConventionTypes => ImmutableArray<INamedTypeSymbol>.Empty;
-
         public ISymbol? AssociatedSymbol => null;
 
         public IMethodSymbol? PartialDefinitionPart => null;
@@ -197,6 +199,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public bool HasUnsupportedMetadata => false;
 
         ISymbol ISymbol.OriginalDefinition => this;
+
+        public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => throw new NotImplementedException();
 
         public void Accept(SymbolVisitor visitor)
             => visitor.VisitMethod(this);
