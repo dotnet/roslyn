@@ -314,34 +314,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return item;
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
+        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
             if (commitKey == ';' && SymbolCompletionItem.GetProvideParenthesisCompletion(item))
             {
-                var symbolKind = SymbolCompletionItem.GetKind(item);
-                var textChange = new TextChange(item.Span, string.Concat(insertionText + "()", commitKey));
-                var endOfInsertionText = item.Span.Start + insertionText.Length;
-                var caretPosition = endOfInsertionText + 3;
-                if (symbolKind == SymbolKind.NamedType || symbolKind == SymbolKind.Alias)
-                {
-                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var typeSymbol = SymbolCompletionItem.GetNamedTypeSymbol(item, compilation);
-                    if (typeSymbol != null && ShouldPutCaretBetweenParenthesis(typeSymbol))
-                    {
-                        caretPosition = endOfInsertionText + 1;
-                    }
-                }
-                else if (symbolKind == SymbolKind.Method && SymbolCompletionItem.GetSymbolHasParameter(item))
-                {
-                    caretPosition = endOfInsertionText + 1;
-                }
-
-                return CompletionChange.Create(textChange, caretPosition, includesCommitCharacter: true);
+                var text = string.Concat(insertionText + "()", commitKey);
+                var textChange = new TextChange(item.Span, text);
+                return Task.FromResult(CompletionChange.Create(
+                    textChange,
+                    item.Span.Start + text.Length,
+                    includesCommitCharacter: true));
             }
 
             var insertionTextChange = new TextChange(item.Span, insertionText);
-            return CompletionChange.Create(insertionTextChange);
+            return Task.FromResult(CompletionChange.Create(insertionTextChange));
         }
     }
 }

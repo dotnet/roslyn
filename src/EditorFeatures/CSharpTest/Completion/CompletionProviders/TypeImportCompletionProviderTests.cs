@@ -1562,7 +1562,7 @@ namespace Foo
             }
         }
 
-        [WpfFact]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCommitWithSemicolonForParameterlessConstructor()
         {
             var markup = @"
@@ -1601,57 +1601,6 @@ namespace BB
         public void M()
         {
             var c = new C();$$
-        }
-    }
-}";
-            await VerifyCustomCommitProviderAsync(markup, "C", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
-        }
-
-        [WpfFact]
-        public async Task TestCommitWithSemicolonForConstructorWithParameter()
-        {
-            var markup = @"
-namespace AA
-{
-    public class C
-    {
-        public C(int i)
-        {
-        }
-    }
-}
-
-namespace BB
-{
-    public class B
-    {
-        public void M()
-        {
-            var c = new $$
-        }
-    }
-}";
-
-            var expected = @"
-using AA;
-
-namespace AA
-{
-    public class C
-    {
-        public C(int i)
-        {
-        }
-    }
-}
-
-namespace BB
-{
-    public class B
-    {
-        public void M()
-        {
-            var c = new C($$);
         }
     }
 }";

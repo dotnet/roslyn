@@ -1945,63 +1945,6 @@ namespace BB
             await VerifyCustomCommitProviderAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact]
-        public async Task TestCommitWithSemicolonForCommonMethod()
-        {
-            var markup = @"
-public class C
-{
-}
-namespace AA
-{
-    public static class Ext
-    {
-        public static int ToInt(this C c, int i)
-            => i;
-    }
-}
-
-namespace BB
-{
-    public class B
-    {
-        public void M()
-        {
-            var c = new C();
-            c.$$
-        }
-    }
-}";
-
-            var expected = @"
-using AA;
-
-public class C
-{
-}
-namespace AA
-{
-    public static class Ext
-    {
-        public static int ToInt(this C c, int i)
-            => i;
-    }
-}
-
-namespace BB
-{
-    public class B
-    {
-        public void M()
-        {
-            var c = new C();
-            c.ToInt($$);
-        }
-    }
-}";
-            await VerifyCustomCommitProviderAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestTimeBox()
         {

@@ -124,9 +124,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
-                var textChange = new TextChange(completionListSpan, $"{containingNamespace}.{insertText}");
-                var location = GetCaretLocation(provideParenthesisCompletion, symbol, textChange);
-                return CompletionChange.Create(textChange, newPosition: location, includesCommitCharacter: provideParenthesisCompletion);
+                var completionText = $"{containingNamespace}.{insertText}";
+                var textChange = new TextChange(completionListSpan, completionText);
+                return CompletionChange.Create(
+                    textChange,
+                    newPosition: completionListSpan.Start + completionText.Length,
+                    includesCommitCharacter: provideParenthesisCompletion);
             }
 
             // Find context node so we can use it to decide where to insert using/imports.
@@ -171,26 +174,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
             var change = Utilities.Collapse(newText, builder.ToImmutableAndFree());
-            var caretLocation = GetCaretLocation(provideParenthesisCompletion, symbol, change);
-            return CompletionChange.Create(change, caretLocation, includesCommitCharacter: provideParenthesisCompletion);
-
-            static int? GetCaretLocation(bool provideParenthesisCompletion, ISymbol? symbol, TextChange change)
-            {
-                if (provideParenthesisCompletion && change.NewText != null)
-                {
-                    var endOfInsertionText = change.Span.Start + change.NewText.Length;
-                    if (symbol != null && CommonCompletionUtilities.ShouldPutCaretBetweenParenthesis(symbol))
-                    {
-                        return endOfInsertionText - 2;
-                    }
-                    else
-                    {
-                        return endOfInsertionText;
-                    }
-                }
-
-                return null;
-            }
+            return CompletionChange.Create(
+                change,
+                change.NewText != null ? change.Span.Start + change.NewText.Length : null,
+                includesCommitCharacter: provideParenthesisCompletion);
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {

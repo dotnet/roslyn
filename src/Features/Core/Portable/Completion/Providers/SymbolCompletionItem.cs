@@ -114,30 +114,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return false;
         }
 
-        public static INamedTypeSymbol GetNamedTypeSymbol(CompletionItem item, Compilation compilation)
-        {
-            var name = GetSymbolName(item);
-            if (name == null)
-            {
-                return null;
-            }
-
-            var kind = GetKind(item);
-            var targetSymbolName = GetTargetSymbolName(item);
-            if (kind == SymbolKind.Alias && targetSymbolName == null)
-            {
-                return null;
-            }
-
-            var @namespace = GetSymbolNamespace(item) ?? "";
-            var suffix = GetSymbolIsGeneric(item) ? GetAritySuffix(item) : "";
-
-            var symbolName = kind == SymbolKind.Alias
-                ? targetSymbolName + suffix
-                : name + suffix;
-            return compilation.GetTypeByMetadataName(@namespace + "." + symbolName);
-        }
-
         public static bool GetProvideParenthesisCompletion(CompletionItem item)
         {
             if (item.Properties.TryGetValue("ProvideParenthesisCompletion", out var value)

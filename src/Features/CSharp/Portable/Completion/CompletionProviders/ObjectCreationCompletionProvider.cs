@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.Completion.CommonCompletionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -147,26 +146,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return s_defaultRules;
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
+        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
             if (commitKey == ';')
             {
-                var endOfInsertionText = item.Span.Start + insertionText.Length;
-                var textChange = new TextChange(
-                    item.Span,
-                    string.Concat(insertionText, "()", commitKey));
-                var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-                var putCaretBetweenParenthesis = ShouldPutCaretBetweenParenthesis(symbols.FirstOrDefault());
+                var text = string.Concat(insertionText, "()", commitKey);
+                var textChange = new TextChange(item.Span, text);
                 var completionChange = CompletionChange.Create(
                     textChange,
-                    putCaretBetweenParenthesis ? endOfInsertionText + 1 : endOfInsertionText + 3,
+                    item.Span.Start + text.Length,
                     includesCommitCharacter: true);
-                return completionChange;
+                return Task.FromResult(completionChange);
             }
 
             var insertionTextChange = new TextChange(item.Span, insertionText);
-            return CompletionChange.Create(insertionTextChange);
+            return Task.FromResult(CompletionChange.Create(insertionTextChange));
         }
     }
 }

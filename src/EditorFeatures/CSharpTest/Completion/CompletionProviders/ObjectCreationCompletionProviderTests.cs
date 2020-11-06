@@ -678,7 +678,7 @@ namespace ConsoleApplication1
             await VerifyItemExistsAsync(markup, "List<object?>");
         }
 
-        [WpfFact]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CreateObjectAndCommitWithSemicolon()
         {
             var markup = @"
@@ -700,7 +700,7 @@ class Program
             await VerifyCustomCommitProviderAsync(markup, "object", expectedMark, commitChar: ';');
         }
 
-        [WpfFact]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CreateNullableObjectAndCommitWithSemicolon()
         {
             var markup = @"
@@ -722,7 +722,7 @@ class Program
             await VerifyCustomCommitProviderAsync(markup, "object", expectedMark, commitChar: ';');
         }
 
-        [WpfFact]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CreateStringAsLocalAndCommitWithSemicolon()
         {
             var markup = @"
@@ -738,13 +738,13 @@ class Program
 {
     void Bar()
     {
-        string o = new string($$);
+        string o = new string();$$
     }
 }";
             await VerifyCustomCommitProviderAsync(markup, "string", expectedMark, commitChar: ';');
         }
 
-        [WpfFact]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CreateGenericListAsLocalAndCommitWithSemicolon()
         {
             var markup = @"
@@ -768,7 +768,7 @@ class Program
             await VerifyCustomCommitProviderAsync(markup, "List<int>", expectedMark, commitChar: ';');
         }
 
-        [WpfFact]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CreateGenericListAsFieldAndCommitWithSemicolon()
         {
             var markup = @"
