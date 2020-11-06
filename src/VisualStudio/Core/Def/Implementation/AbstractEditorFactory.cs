@@ -248,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return LoaderName;
         }
 
-        private (string, Guid, IntPtr) GetWinFormsDesignerData(IVsHierarchy vsHierarchy, uint itemid, IVsTextBuffer? textBuffer, READONLYSTATUS readOnlyStatus, bool initializeView)
+        private (string editorCaption, Guid commandUI, IntPtr documentView) GetWinFormsDesignerData(IVsHierarchy vsHierarchy, uint itemid, IVsTextBuffer? textBuffer, READONLYSTATUS readOnlyStatus, bool initializeView)
         {
             var loaderName = GetWinFormsLoaderName(vsHierarchy);
             var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
@@ -273,10 +273,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return (editorCaption, commandUI, documentView);
             }
-            catch
+            finally
             {
                 designerLoader.Dispose();
-                throw;
             }
         }
 
