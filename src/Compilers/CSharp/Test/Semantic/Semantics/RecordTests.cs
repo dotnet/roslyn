@@ -27099,7 +27099,7 @@ namespace System.Runtime.CompilerServices
 
         [Fact]
         [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
-        public void XmlDoc_Partial()
+        public void XmlDoc_Partial_ParamListSecond()
         {
             var src = @"
 public partial record C;
@@ -27107,18 +27107,6 @@ public partial record C;
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
 public partial record C(int I1);
-
-/// <summary>Summary</summary>
-/// <param name=""I1"">Description for I1</param>
-public partial record D(int I1);
-
-public partial record D;
-
-public partial record E(int I1);
-
-/// <summary>Summary</summary>
-/// <param name=""I1"">Description for I1</param>
-public partial record E;
 
 namespace System.Runtime.CompilerServices
 {
@@ -27157,6 +27145,30 @@ namespace System.Runtime.CompilerServices
 
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
             Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Partial_ParamListFirst()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public partial record D(int I1);
+
+public partial record D;
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
 
             var d = comp.GetMember<NamedTypeSymbol>("D");
             Assert.Equal(
@@ -27176,6 +27188,37 @@ namespace System.Runtime.CompilerServices
 
             Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
             Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Partial_ParamListFirst_XmlDocSecond()
+        {
+            var src = @"
+public partial record E(int I1);
+
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public partial record E;
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (2,23): warning CS1591: Missing XML comment for publicly visible type or member 'E.E(int)'
+                // public partial record E(int I1);
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "E").WithArguments("E.E(int)").WithLocation(2, 23),
+                // (5,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
+                // /// <param name="I1">Description for I1</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(5, 18)
+                );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
             Assert.Equal(
@@ -27193,7 +27236,51 @@ namespace System.Runtime.CompilerServices
 
         [Fact]
         [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
-        public void XmlDoc_Partial_DuplicateParameterList()
+        public void XmlDoc_Partial_ParamListSecond_XmlDocFirst()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public partial record E;
+
+public partial record E(int I1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (3,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
+                // /// <param name="I1">Description for I1</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(3, 18),
+                // (6,23): warning CS1591: Missing XML comment for publicly visible type or member 'E.E(int)'
+                // public partial record E(int I1);
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "E").WithArguments("E.E(int)").WithLocation(6, 23)
+                );
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            Assert.Equal(
+@"<member name=""T:E"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", e.GetDocumentationCommentXml());
+
+            var eConstructor = e.GetMembers(".ctor").First();
+            Assert.Equal("", eConstructor.GetDocumentationCommentXml());
+            Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
+            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Partial_DuplicateParameterList_XmlDocSecond()
         {
             var src = @"
 public partial record C(int I1);
@@ -27201,20 +27288,6 @@ public partial record C(int I1);
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
 public partial record C(int I1);
-
-/// <summary>Summary</summary>
-/// <param name=""I1"">Description for I1</param>
-public partial record D(int I1);
-
-public partial record D(int I1);
-
-/// <summary>Summary</summary>
-/// <param name=""I1"">Description for I1</param>
-public partial record E(int I1);
-
-/// <summary>Summary</summary>
-/// <param name=""I1"">Description for I1</param>
-public partial record E(int I1);
 
 namespace System.Runtime.CompilerServices
 {
@@ -27232,16 +27305,7 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C.C(int)").WithLocation(2, 23),
                 // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
                 // public partial record C(int I1);
-                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(6, 24),
-                // (12,24): error CS8863: Only a single record partial declaration may have a parameter list
-                // public partial record D(int I1);
-                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(12, 24),
-                // (19,12): warning CS1571: XML comment has a duplicate param tag for 'I1'
-                // /// <param name="I1">Description for I1</param>
-                Diagnostic(ErrorCode.WRN_DuplicateParamTag, @"name=""I1""").WithArguments("I1").WithLocation(19, 12),
-                // (20,24): error CS8863: Only a single record partial declaration may have a parameter list
-                // public partial record E(int I1);
-                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(20, 24)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(6, 24)
                 );
 
             var c = comp.GetMember<NamedTypeSymbol>("C");
@@ -27257,6 +27321,34 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", cConstructor.GetDocumentationCommentXml());
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
             Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Partial_DuplicateParameterList_XmlDocFirst()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public partial record D(int I1);
+
+public partial record D(int I1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // public partial record D(int I1);
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(6, 24)
+                );
 
             var d = comp.GetMember<NamedTypeSymbol>("D");
             Assert.Equal(
@@ -27276,14 +27368,47 @@ namespace System.Runtime.CompilerServices
 
             Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
             Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Partial_DuplicateParameterList_XmlDocOnBoth()
+        {
+            var src = @"
+/// <summary>Summary1</summary>
+/// <param name=""I1"">Description1 for I1</param>
+public partial record E(int I1);
+
+/// <summary>Summary2</summary>
+/// <param name=""I1"">Description2 for I1</param>
+public partial record E(int I1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (7,12): warning CS1571: XML comment has a duplicate param tag for 'I1'
+                // /// <param name="I1">Description2 for I1</param>
+                Diagnostic(ErrorCode.WRN_DuplicateParamTag, @"name=""I1""").WithArguments("I1").WithLocation(7, 12),
+                // (8,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // public partial record E(int I1);
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(8, 24)
+                );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
             Assert.Equal(
 @"<member name=""T:E"">
-    <summary>Summary</summary>
-    <param name=""I1"">Description for I1</param>
-    <summary>Summary</summary>
-    <param name=""I1"">Description for I1</param>
+    <summary>Summary1</summary>
+    <param name=""I1"">Description1 for I1</param>
+    <summary>Summary2</summary>
+    <param name=""I1"">Description2 for I1</param>
 </member>
 ", e.GetDocumentationCommentXml());
 
@@ -27291,8 +27416,110 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal(
 @"<member name=""M:E.#ctor(System.Int32)"">
-    <summary>Summary</summary>
-    <param name=""I1"">Description for I1</param>
+    <summary>Summary1</summary>
+    <param name=""I1"">Description1 for I1</param>
+</member>
+", eConstructor.GetDocumentationCommentXml());
+            Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
+            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Partial_DifferentParameterLists_XmlDocSecond()
+        {
+            var src = @"
+public partial record E(int I1);
+
+/// <summary>Summary2</summary>
+/// <param name=""S1"">Description2 for S1</param>
+public partial record E(string S1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (2,23): warning CS1591: Missing XML comment for publicly visible type or member 'E.E(int)'
+                // public partial record E(int I1);
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "E").WithArguments("E.E(int)").WithLocation(2, 23),
+                // (5,18): warning CS1572: XML comment has a param tag for 'S1', but there is no parameter by that name
+                // /// <param name="S1">Description2 for S1</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "S1").WithArguments("S1").WithLocation(5, 18),
+                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // public partial record E(string S1);
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(string S1)").WithLocation(6, 24)
+                );
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            Assert.Equal(
+@"<member name=""T:E"">
+    <summary>Summary2</summary>
+    <param name=""S1"">Description2 for S1</param>
+</member>
+", e.GetDocumentationCommentXml());
+
+            var eConstructor = e.GetMembers(".ctor").First();
+            Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
+            Assert.Equal("", eConstructor.GetDocumentationCommentXml());
+            Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
+            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Partial_DifferentParameterLists_XmlDocOnBoth()
+        {
+            var src = @"
+/// <summary>Summary1</summary>
+/// <param name=""I1"">Description1 for I1</param>
+public partial record E(int I1);
+
+/// <summary>Summary2</summary>
+/// <param name=""S1"">Description2 for S1</param>
+public partial record E(string S1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (7,18): warning CS1572: XML comment has a param tag for 'S1', but there is no parameter by that name
+                // /// <param name="S1">Description2 for S1</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "S1").WithArguments("S1").WithLocation(7, 18),
+                // (8,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // public partial record E(string S1);
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(string S1)").WithLocation(8, 24)
+                );
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            Assert.Equal(
+@"<member name=""T:E"">
+    <summary>Summary1</summary>
+    <param name=""I1"">Description1 for I1</param>
+    <summary>Summary2</summary>
+    <param name=""S1"">Description2 for S1</param>
+</member>
+", e.GetDocumentationCommentXml());
+
+            var eConstructor = e.GetMembers(".ctor").First();
+            Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
+            Assert.Equal(
+@"<member name=""M:E.#ctor(System.Int32)"">
+    <summary>Summary1</summary>
+    <param name=""I1"">Description1 for I1</param>
 </member>
 ", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
