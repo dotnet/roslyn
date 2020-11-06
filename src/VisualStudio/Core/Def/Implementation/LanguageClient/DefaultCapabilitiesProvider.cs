@@ -62,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 DocumentHighlightProvider = true,
                 ReferencesProvider = true,
                 ProjectContextProvider = true,
+                FoldingRangeProvider = true,
                 SemanticTokensOptions = new SemanticTokensOptions
                 {
                     DocumentProvider = new SemanticTokensDocumentProviderOptions { Edits = true },
