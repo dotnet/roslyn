@@ -322,11 +322,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         }
 
         [JsonRpcMethod(Methods.WorkspaceSymbolName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SymbolInformation[]> GetWorkspaceSymbolsAsync(WorkspaceSymbolParams workspaceSymbolParams, CancellationToken cancellationToken)
+        public Task<SymbolInformation[]?> GetWorkspaceSymbolsAsync(WorkspaceSymbolParams workspaceSymbolParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return _requestHandlerProvider.ExecuteRequestAsync<WorkspaceSymbolParams, SymbolInformation[]>(_queue, Methods.WorkspaceSymbolName, workspaceSymbolParams, _clientCapabilities, _clientName, cancellationToken);
+            return _requestHandlerProvider.ExecuteRequestAsync<WorkspaceSymbolParams, SymbolInformation[]?>(_queue, Methods.WorkspaceSymbolName, workspaceSymbolParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(MSLSPMethods.ProjectContextsName, UseSingleObjectParameterDeserialization = true)]
@@ -373,6 +373,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             return _requestHandlerProvider.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>(_queue, MSLSPMethods.OnAutoInsertName,
                 autoInsertParams, _clientCapabilities, _clientName, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentDidChangeName, UseSingleObjectParameterDeserialization = true)]
+        public Task<object> HandleDocumentDidChangeAsync(DidChangeTextDocumentParams didChangeParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DidChangeTextDocumentParams, object>(_queue, Methods.TextDocumentDidChangeName,
+                didChangeParams, _clientCapabilities, _clientName, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentDidOpenName, UseSingleObjectParameterDeserialization = true)]
+        public Task<object?> HandleDocumentDidOpenAsync(DidOpenTextDocumentParams didOpenParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DidOpenTextDocumentParams, object?>(_queue, Methods.TextDocumentDidOpenName,
+                didOpenParams, _clientCapabilities, _clientName, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentDidCloseName, UseSingleObjectParameterDeserialization = true)]
+        public Task<object?> HandleDocumentDidCloseAsync(DidCloseTextDocumentParams didCloseParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DidCloseTextDocumentParams, object?>(_queue, Methods.TextDocumentDidCloseName,
+                didCloseParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         private void DiagnosticService_DiagnosticsUpdated(object _, DiagnosticsUpdatedArgs e)

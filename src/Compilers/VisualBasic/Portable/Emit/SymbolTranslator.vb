@@ -199,15 +199,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
             End If
 
-            If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics)
-            End If
-
-            Return namedTypeSymbol
+            Return If(_embeddedTypesManagerOpt?.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics), namedTypeSymbol.GetCciAdapter())
         End Function
 
         Private Function GetCciAdapter(symbol As Symbol) As Object
-            Return _genericInstanceMap.GetOrAdd(symbol, symbol)
+            Return _genericInstanceMap.GetOrAdd(symbol, Function(s) s.GetCciAdapter())
         End Function
 
         Private Sub CheckTupleUnderlyingType(namedTypeSymbol As NamedTypeSymbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
@@ -242,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate([param] As TypeParameterSymbol) As Microsoft.Cci.IGenericParameterReference
             Debug.Assert(param Is param.OriginalDefinition)
-            Return [param]
+            Return [param].GetCciAdapter()
         End Function
 
         Friend NotOverridable Overrides Function Translate(
@@ -295,10 +291,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedFieldIfNeedTo(fieldSymbol, syntaxNodeOpt, diagnostics)
+                Return _embeddedTypesManagerOpt.EmbedFieldIfNeedTo(fieldSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
             End If
 
-            Return fieldSymbol
+            Return fieldSymbol.GetCciAdapter()
         End Function
 
         Public Shared Function MemberVisibility(symbol As Symbol) As Microsoft.Cci.TypeMemberVisibility
@@ -424,10 +420,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
+                Return _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
             End If
 
-            Return methodSymbol
+            Return methodSymbol.GetCciAdapter()
         End Function
 
         Friend Overloads Function TranslateOverriddenMethodReference(methodSymbol As MethodSymbol, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Microsoft.Cci.IMethodReference
@@ -451,9 +447,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Debug.Assert(methodSymbol.IsDefinition)
 
                 If _embeddedTypesManagerOpt IsNot Nothing Then
-                    methodRef = _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
+                    methodRef = _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
                 Else
-                    methodRef = methodSymbol
+                    methodRef = methodSymbol.GetCciAdapter()
                 End If
             End If
 
@@ -467,7 +463,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(params.All(Function(p) mustBeTranslated = MustBeWrapped(p)), "either all or no parameters need translating")
 
             If (Not mustBeTranslated) Then
+#If DEBUG Then
+                Return params.SelectAsArray(Of Cci.IParameterTypeInformation)(Function(p) p.GetCciAdapter())
+#Else
                 Return StaticCast(Of Microsoft.Cci.IParameterTypeInformation).From(params)
+#End If
             End If
 
             Return TranslateAll(params)

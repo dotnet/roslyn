@@ -13,18 +13,16 @@ using System.Diagnostics;
 using Cci = Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 
+#if !DEBUG
+using ParameterSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedParameter : EmbeddedTypesManager.CommonEmbeddedParameter
     {
         public EmbeddedParameter(
-            EmbeddedTypesManager.CommonEmbeddedMember containingPropertyOrMethod,
-#if DEBUG
-            ParameterSymbolAdapter
-#else
-            ParameterSymbol
-#endif
-                underlyingParameter) :
+            EmbeddedTypesManager.CommonEmbeddedMember containingPropertyOrMethod, ParameterSymbolAdapter underlyingParameter) :
             base(containingPropertyOrMethod, underlyingParameter)
         {
             Debug.Assert(underlyingParameter.AdaptedParameterSymbol.IsDefinition);
