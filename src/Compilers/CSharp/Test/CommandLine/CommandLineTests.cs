@@ -13259,7 +13259,7 @@ class C
             var coreGenerator = emitGenerator(".NETCoreApp,Version=v5.0");
             VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + coreGenerator });
 
-            //// netstandard
+            // netstandard
             var nsGenerator = emitGenerator(".NETStandard,Version=v2.0");
             VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + nsGenerator });
 
@@ -13276,7 +13276,6 @@ class C
             // framework, suppressed
             output = VerifyOutput(directory, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850", "/analyzer:" + frameworkGenerator });
             Assert.Contains("CS8033", output);
-
             VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850,CS8033", "/analyzer:" + frameworkGenerator });
 
             string emitGenerator(string targetFramework)
