@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -46,7 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return d;
             }
-            else if (d.IsNotConfigurable())
+
+            if (TreeTracker.GetPreTransformationLocation(d.Location) is { } location)
+            {
+                d = d.WithLocation(location);
+            }
+
+            if (d.IsNotConfigurable())
             {
                 if (d.IsEnabledByDefault)
                 {

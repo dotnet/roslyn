@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var id = diagnostic.Id;
-            var location = diagnostic.Location;
+            var location = diagnostic is Diagnostic.SimpleDiagnostic simpleDiagnostic ? simpleDiagnostic.OriginalLocation : diagnostic.Location;
 
             if (IsDiagnosticGloballySuppressed(id, symbolOpt: null, isImmediatelyContainingSymbol: false, info: out info))
             {

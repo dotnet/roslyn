@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal CSDiagnostic(DiagnosticInfo info, Location location, bool isSuppressed = false)
-            : base(GetPreTransformationInfo(info), TreeTracker.GetPreTransformationLocation(location), isSuppressed)
+            : base(GetPreTransformationInfo(info), location, isSuppressed)
         {
         }
 

@@ -1000,7 +1000,7 @@ public class B
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, Diagnostic("BC101").WithLocation(1, 1));
         }
 
-        [Theory, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
+        [Theory(Skip = "RoslynEx disables this exception"), WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
         [CombinatorialData]
         public void TestReportingDiagnosticWithInvalidLocation(AnalyzerWithInvalidDiagnosticLocation.ActionKind actionKind)
         {

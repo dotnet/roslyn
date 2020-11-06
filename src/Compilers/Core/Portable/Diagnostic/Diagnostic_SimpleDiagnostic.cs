@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis
             private readonly ImmutableDictionary<string, string?> _properties;
             private readonly bool _isSuppressed;
 
+            private readonly Location? _originalLocation;
+
             private SimpleDiagnostic(
                 DiagnosticDescriptor descriptor,
                 DiagnosticSeverity severity,
@@ -38,7 +40,8 @@ namespace Microsoft.CodeAnalysis
                 IEnumerable<Location>? additionalLocations,
                 object?[]? messageArgs,
                 ImmutableDictionary<string, string?>? properties,
-                bool isSuppressed)
+                bool isSuppressed,
+                Location? originalLocation = null)
             {
                 if ((warningLevel == 0 && severity != DiagnosticSeverity.Error) ||
                     (warningLevel != 0 && severity == DiagnosticSeverity.Error))
@@ -49,11 +52,13 @@ namespace Microsoft.CodeAnalysis
                 _descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
                 _severity = severity;
                 _warningLevel = warningLevel;
-                _location = TreeTracker.GetPreTransformationLocation(location ?? Location.None);
+                _location = location ?? Location.None;
                 _additionalLocations = additionalLocations?.ToImmutableArray() ?? SpecializedCollections.EmptyReadOnlyList<Location>();
                 _messageArgs = messageArgs ?? Array.Empty<object?>();
                 _properties = properties ?? ImmutableDictionary<string, string?>.Empty;
                 _isSuppressed = isSuppressed;
+
+                _originalLocation = originalLocation;
             }
 
             internal static SimpleDiagnostic Create(
@@ -145,6 +150,8 @@ namespace Microsoft.CodeAnalysis
                 get { return _properties; }
             }
 
+            internal Location OriginalLocation => _originalLocation ?? _location;
+
             public override bool Equals(Diagnostic? obj)
             {
                 if (ReferenceEquals(this, obj))
@@ -193,7 +200,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (location != _location)
                 {
-                    return new SimpleDiagnostic(_descriptor, _severity, _warningLevel, location, _additionalLocations, _messageArgs, _properties, _isSuppressed);
+                    return new SimpleDiagnostic(_descriptor, _severity, _warningLevel, location, _additionalLocations, _messageArgs, _properties, _isSuppressed, _location);
                 }
 
                 return this;

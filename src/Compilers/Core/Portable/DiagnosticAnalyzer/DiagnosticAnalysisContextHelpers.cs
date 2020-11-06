@@ -95,11 +95,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             Debug.Assert(location.SourceTree != null);
-            if (!compilation.ContainsSyntaxTree(location.SourceTree))
-            {
-                // Disallow diagnostics with source locations outside this compilation.
-                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceTree.FilePath), "diagnostic");
-            }
+
+            // RoslynEx tree tracking means that the syntax trees don't match, so disable this check
+
+            //if (!compilation.ContainsSyntaxTree(location.SourceTree))
+            //{
+            //    // Disallow diagnostics with source locations outside this compilation.
+            //    throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceTree.FilePath), "diagnostic");
+            //}
 
             if (location.SourceSpan.End > location.SourceTree.Length)
             {
