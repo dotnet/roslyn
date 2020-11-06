@@ -72,8 +72,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Automatically_show_completion_list_in_argument_lists =>
             CSharpVSResources.Automatically_show_completion_list_in_argument_lists;
-
-        public static string Automatically_add_parenthesis_by_semicolon =>
-            CSharpVSResources.Automatically_add_parenthesis_by_semicolon;
     }
 }

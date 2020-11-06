@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         /// <summary>
-        /// Given a list of symbols, and a mapping from each symbol to its original SemanticModel,
+        /// Given a list of symbols, and a mapping from each symbol to its original SemanticModel, 
         /// creates the list of completion items for them.
         /// </summary>
         private ImmutableArray<CompletionItem> CreateItems(
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Lazy<ImmutableArray<ITypeSymbol>> inferredTypes,
             TelemetryCounter telemetryCounter)
         {
-            // We might get symbol w/o name but CanBeReferencedByName is still set to true,
+            // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
             // need to filter them out.
             // https://github.com/dotnet/roslyn/issues/47690
             var symbolGroups = from symbol in symbols

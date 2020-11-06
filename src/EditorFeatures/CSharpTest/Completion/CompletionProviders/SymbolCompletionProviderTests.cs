@@ -10933,34 +10933,5 @@ namespace Bar1
             await VerifyCustomCommitProviderAsync(markup, "Program", expected, commitChar: ';');
         }
 
-        [WpfFact]
-        public async Task CompletionWithSemicolonForGlobalNamespace()
-        {
-            var markup = @"
-class Program
-{
-    public Program(int i)
-    {
-    }
-
-    private static void Bar()
-    {
-        var o = new P$$
-    }
-}";
-            var expected = @"
-class Program
-{
-    public Program(int i)
-    {
-    }
-
-    private static void Bar()
-    {
-        var o = new Program($$);
-    }
-}";
-            await VerifyCustomCommitProviderAsync(markup, "Program", expected, commitChar: ';');
-        }
     }
 }

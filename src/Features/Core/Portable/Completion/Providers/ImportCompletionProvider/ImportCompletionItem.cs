@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return default;
             }
 
-            // Otherwise, this is a type item, so we don't have SymbolKey data. But we should still have all
+            // Otherwise, this is a type item, so we don't have SymbolKey data. But we should still have all 
             // the data to construct its full metadata name
             var containingNamespace = GetContainingNamespace(item);
             var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName) ? attributeFullName : item.DisplayText;
