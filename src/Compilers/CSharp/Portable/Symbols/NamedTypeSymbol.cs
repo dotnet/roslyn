@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Collection of names of members declared within this type.
+        /// Collection of names of members declared within this type. May return duplicates.
         /// </summary>
         public abstract IEnumerable<string> MemberNames { get; }
 

@@ -4609,7 +4609,7 @@ class Program
     static T F<T>(T t) => t;
     static T F1<T>(T? x1)
     {
-        T y1 = F(x1);
+        T y1 = F(x1); // 1
         if (x1 == null) throw null!;
         T z1 = F(x1);
         return z1;
@@ -4617,16 +4617,25 @@ class Program
     static T F2<T>(T x2)
     {
         T y2 = F(x2);
-        x2 = default;
-        T z2 = F(x2);
-        return z2; // 1
+        x2 = default; // 2
+        T z2 = F(x2); // 3
+        return z2; // 4
     }
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
+                // (7,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T y1 = F(x1); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "F(x1)").WithLocation(7, 16),
+                // (15,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x2 = default; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(15, 14),
+                // (16,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T z2 = F(x2); // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "F(x2)").WithLocation(16, 16),
                 // (17,16): warning CS8603: Possible null reference return.
-                //         return z2; // 1
+                //         return z2; // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "z2").WithLocation(17, 16));
 
             var syntaxTree = comp.SyntaxTrees[0];
