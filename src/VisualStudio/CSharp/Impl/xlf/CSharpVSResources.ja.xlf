@@ -167,6 +167,11 @@
         <target state="translated">貼り付け時にオートフォーマットする(_P)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_format_statement_on_semicolon">
+        <source>Automatically format _statement on ;</source>
+        <target state="translated">; でステートメントをオートフォーマットする(_S)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
         <source>Place members in anonymous types on new line</source>
         <target state="translated">新しい行に匿名型のメンバーを配置する</target>

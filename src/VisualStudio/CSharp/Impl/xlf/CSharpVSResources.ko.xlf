@@ -167,6 +167,11 @@
         <target state="translated">붙여넣을 때 서식 자동 지정(_P)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_format_statement_on_semicolon">
+        <source>Automatically format _statement on ;</source>
+        <target state="translated">; 입력 시 문 서식 자동 지정(_S)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
         <source>Place members in anonymous types on new line</source>
         <target state="translated">익명 형식의 멤버를 새 줄에 배치</target>

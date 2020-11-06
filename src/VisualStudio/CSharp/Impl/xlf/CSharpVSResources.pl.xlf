@@ -167,6 +167,11 @@
         <target state="translated">Automatycznie formatuj przy _wklejeniu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_format_statement_on_semicolon">
+        <source>Automatically format _statement on ;</source>
+        <target state="translated">Automatycznie formatuj _instrukcję w pozycji znaku ;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
         <source>Place members in anonymous types on new line</source>
         <target state="translated">Umieść składowe typów anonimowych w nowym wierszu</target>
