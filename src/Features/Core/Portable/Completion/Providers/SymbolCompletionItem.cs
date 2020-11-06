@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -74,14 +75,32 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
         }
 
-        public static CompletionItem AddProvideParenthesisCompletion(CompletionItem item, bool provideParenthesisCompletion)
-            => item.AddProperty("ProvideParenthesisCompletion", provideParenthesisCompletion.ToString());
+        public static CompletionItem AddProvideParenthesisCompletionInfo(CompletionItem item, ISymbol symbol)
+        {
+            item = item.AddProperty("ProvideParenthesisCompletion", true.ToString());
+            if (symbol is IMethodSymbol methodSymbol)
+            {
+                item = item.AddProperty("HasParameter", (methodSymbol.Parameters.Length > 0).ToString());
+            }
 
-        public static CompletionItem AddNamespace(CompletionItem item, string @namespace)
-            => item.AddProperty("Namespace", @namespace);
+            // We don't want to check if the symbol's constructor takes a parameter when CompletionItem is created
+            // to save time
+            if (symbol is IAliasSymbol aliasSymbol)
+            {
+                symbol = aliasSymbol.Target;
+            }
 
-        public static CompletionItem AddHasParameter(CompletionItem item, bool hasParameter)
-            => item.AddProperty("HasParameter", hasParameter.ToString());
+            if (symbol is INamedTypeSymbol namedTypeSymbol)
+            {
+                item = item.AddProperty("Namespace", namedTypeSymbol.ContainingNamespace.MetadataName);
+                if (namedTypeSymbol.Arity > 0)
+                {
+                    item = item.AddProperty("AritySuffix", AbstractDeclaredSymbolInfoFactoryService.GetMetadataAritySuffix(namedTypeSymbol.Arity));
+                }
+            }
+
+            return item;
+        }
 
         public static bool GetSymbolHasParameter(CompletionItem item)
         {
@@ -97,10 +116,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static INamedTypeSymbol GetNamedTypeSymbol(CompletionItem item, Compilation compilation)
         {
             var name = GetSymbolName(item);
-            var @namespace = GetNamespace(item);
-            if (name != null && @namespace != null)
+            var @namespace = GetSymbolNamespace(item);
+            if (name != null)
             {
-                var fullyQualifiedName = @namespace.Length == 0 ? name : @namespace + name;
+                var suffix = GetAritySuffix(item);
+                var typeName = suffix == null ? name : name + suffix;
+                var fullyQualifiedName = string.IsNullOrEmpty(@namespace) ? typeName : @namespace + "." + typeName;
                 return compilation.GetTypeByMetadataName(fullyQualifiedName);
             }
 
@@ -362,8 +383,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         internal static bool GetSymbolIsGeneric(CompletionItem item)
             => item.Properties.TryGetValue("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
 
-        internal static string GetNamespace(CompletionItem item)
-            => item.Properties.TryGetValue("SymbolNamespace", out var @namespace) ? @namespace : null;
+        private static string GetSymbolNamespace(CompletionItem item)
+            => item.Properties.TryGetValue("Namespace", out var @namespace) ? @namespace : null;
+
+        private static string GetAritySuffix(CompletionItem item)
+            => item.Properties.TryGetValue("AritySuffix", out var suffix) ? suffix : null;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)

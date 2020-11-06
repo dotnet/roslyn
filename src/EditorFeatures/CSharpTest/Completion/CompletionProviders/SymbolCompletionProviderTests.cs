@@ -10811,10 +10811,6 @@ class Program
     private void Foo()
     {
     }
-
-    private void Foo(int i)
-    {
-    }
 }";
             var expected = @"
 class Program
@@ -10825,10 +10821,6 @@ class Program
     }
     
     private void Foo()
-    {
-    }
-
-    private void Foo(int i)
     {
     }
 }";
@@ -10858,7 +10850,91 @@ class Program
         }
 
         [WpfFact]
-        public async Task CompletionWithSemicolonForConstructor()
+        public async Task CompletionWithSemicolonForGenericsType()
+        {
+            var markup = @"
+namespace Bar
+{
+    class Program<T, U, V>
+    {
+        public Program(int i)
+        {
+        }
+
+        private static void Bar()
+        {
+            var o = new P$$
+        }
+    }
+}";
+            var expected = @"
+namespace Bar
+{
+    class Program<T, U, V>
+    {
+        public Program(int i)
+        {
+        }
+
+        private static void Bar()
+        {
+            var o = new Program($$);
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "Program", expected, commitChar: ';');
+        }
+
+        [WpfFact]
+        public async Task CompletionWithSemicolonForConstructorInNestedNamespace()
+        {
+            var markup = @"
+namespace Bar1
+{
+    namespace Bar2
+    {
+        namespace Bar3
+        {
+            class Program
+            {
+                public Program(int i)
+                {
+                }
+
+                private static void Bar()
+                {
+                    var o = new P$$
+                }
+            }
+        }
+    }
+}";
+            var expected = @"
+namespace Bar1
+{
+    namespace Bar2
+    {
+        namespace Bar3
+        {
+            class Program
+            {
+                public Program(int i)
+                {
+                }
+
+                private static void Bar()
+                {
+                    var o = new Program();$$
+                }
+            }
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "Program", expected, commitChar: ';');
+        }
+
+        [WpfFact]
+        public async Task CompletionWithSemicolonForGlobalNamespace()
         {
             var markup = @"
 class Program

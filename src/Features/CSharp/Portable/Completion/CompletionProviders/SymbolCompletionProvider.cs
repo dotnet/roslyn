@@ -274,21 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SupportedPlatformData supportedPlatformData)
         {
             var rules = CreateCompletionItemRules(completionContext, symbols, context, preselect);
-            var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
-            var isObjectCreationTypeContext = context switch
-            {
-                CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
-                _ => false
-            };
-
-            var shouldProvideParenthesisCompletion = symbols.All(symbol => symbol switch
-            {
-                IMethodSymbol => !isInferredTypeDelegate,
-                ITypeSymbol => isObjectCreationTypeContext,
-                IAliasSymbol => isObjectCreationTypeContext,
-                _ => false
-            });
-
+            var symbol = symbols[0];
             var item = SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
@@ -300,17 +286,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 filterText: GetFilterText(symbols[0], displayText, context),
                 supportedPlatforms: supportedPlatformData);
 
-            if (shouldProvideParenthesisCompletion)
+            // Consider add parenthesis completion option when the completion symbol is method or
+            // namedType (used as constructor)
+            if (symbol.IsKind(SymbolKind.Method) || symbol.IsKind(SymbolKind.NamedType) || symbol.IsKind(SymbolKind.Alias))
             {
-                item = symbols[0] switch
+                var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
+                var isObjectCreationTypeContext = context switch
                 {
-                    ITypeSymbol typeSymbol => SymbolCompletionItem.AddNamespace(item, typeSymbol.ContainingNamespace.MetadataName),
-                    IAliasSymbol aliasSymbol => SymbolCompletionItem.AddNamespace(item, aliasSymbol.Target.ContainingNamespace.MetadataName),
-                    IMethodSymbol methodSymbol => SymbolCompletionItem.AddHasParameter(item, methodSymbol.Parameters.Length > 0),
-                    _ => item
+                    CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
+                    _ => false
                 };
 
-                item = SymbolCompletionItem.AddProvideParenthesisCompletion(item, true);
+                var shouldProvideParenthesisCompletion = symbol switch
+                {
+                    IMethodSymbol => !isInferredTypeDelegate,
+                    ITypeSymbol => isObjectCreationTypeContext,
+                    IAliasSymbol => isObjectCreationTypeContext,
+                    _ => false
+                };
+
+                if (shouldProvideParenthesisCompletion)
+                {
+                    item = SymbolCompletionItem.AddProvideParenthesisCompletionInfo(item, symbol);
+                }
             }
 
             return item;
