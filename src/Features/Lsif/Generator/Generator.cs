@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracki
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var topLevelSymbolsWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
             var topLevelSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(topLevelSymbolsWriter, compilation, _idFactory);
 
-            var tasks = ArrayBuilder<Task>.GetInstance(project.DocumentIds.Count);
+            using var _ = ArrayBuilder<Task>.GetInstance(project.DocumentIds.Count, out var tasks);
             foreach (var document in project.Documents)
             {
                 tasks.Add(Task.Run(async () =>
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
                     // is preserved.
                     var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
-                    var documentId = await GenerateForDocumentAsync(document, compilation, project.LanguageServices, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
+                    var documentId = await GenerateForDocumentAsync(document, project.LanguageServices, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
                     topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
                     documentWriter.FlushToUnderlyingAndEmpty();
 
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }, CancellationToken.None));
             }
 
-            Task.WaitAll(tasks.ToArrayAndFree());
+            Task.WaitAll(tasks.ToArray());
 
             _lsifJsonWriter.Write(Edge.Create("contains", projectVertex.GetId(), documentIds.ToArray(), _idFactory));
 
@@ -82,14 +83,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// </remarks>
         private static async Task<Id<Graph.LsifDocument>> GenerateForDocumentAsync(
             Document document,
-            Compilation compilation,
             HostLanguageServices languageServices,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
             IdFactory idFactory)
         {
-            var syntaxTree = (await document.GetSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false))!;
-            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None).ConfigureAwait(false);
+            var syntaxTree = semanticModel.SyntaxTree;
             var sourceText = semanticModel.SyntaxTree.GetText();
             var syntaxFactsService = languageServices.GetRequiredService<ISyntaxFactsService>();
             var semanticFactsService = languageServices.GetRequiredService<ISemanticFactsService>();
