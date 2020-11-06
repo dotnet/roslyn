@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInvertLogical = "CodeActions.InvertLogical";
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
-            public const string CodeActionsMakeClassAbstract = "CodeActions.MakeClassAbstract";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
             public const string CodeActionsMakeLocalFunctionStatic = "CodeActions.MakeLocalFunctionStatic";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
@@ -124,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsMakeRefStruct = "CodeActions.MakeRefStruct";
             public const string CodeActionsMakeStatementAsynchronous = "CodeActions.MakeStatementAsynchronous";
             public const string CodeActionsMakeStructFieldsWritable = "CodeActions.MakeStructFieldsWritable";
+            public const string CodeActionsMakeTypeAbstract = "CodeActions.MakeTypeAbstract";
             public const string CodeActionsMergeConsecutiveIfStatements = "CodeActions.MergeConsecutiveIfStatements";
             public const string CodeActionsMergeNestedIfStatements = "CodeActions.MergeNestedIfStatements";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsRemoveInKeyword = "CodeActions.RemoveInKeyword";
             public const string CodeActionsRemoveUnnecessarySuppressions = "CodeActions.RemoveUnnecessarySuppressions";
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
+            public const string CodeActionsRemoveUnnecessaryDiscardDesignation = "CodeActions.RemoveUnnecessaryDiscardDesignation";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
             public const string CodeActionsRemoveUnnecessaryParentheses = "CodeActions.RemoveUnnecessaryParentheses";
             public const string CodeActionsRemoveUnreachableCode = "CodeActions.RemoveUnreachableCode";

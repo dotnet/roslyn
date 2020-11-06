@@ -16,7 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
     public class AsynchronousOperationListenerTests
     {
-        private static readonly int s_testTimeout = (int)TimeSpan.FromSeconds(30).TotalMilliseconds;
+        /// <summary>
+        /// A delay which is not expected to be reached in practice.
+        /// </summary>
+        private static readonly TimeSpan s_unexpectedDelay = TimeSpan.FromSeconds(60);
 
         private class SleepHelper : IDisposable
         {
@@ -55,14 +58,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Task task;
                 lock (_tasks)
                 {
-                    task = Task.Factory.SafeStartNew(() =>
+                    task = Task.Factory.StartNew(() =>
                     {
                         while (true)
                         {
                             _tokenSource.Token.ThrowIfCancellationRequested();
                             Thread.Sleep(TimeSpan.FromMilliseconds(10));
                         }
-                    }, _tokenSource.Token, TaskScheduler.Default);
+                    }, _tokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
                     _tasks.Add(task);
                 }
@@ -125,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.True(done, "Should have waited for the queued operation to finish!");
         }
 
-        [Fact(/*Skip = "Throwing ContractFailure on a TPL thread?"*/)]
+        [Fact]
         public void Cancel()
         {
             using var sleepHelper = new SleepHelper();
@@ -142,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                     var asyncToken2 = listener.BeginAsyncOperation("Test");
                     var queuedTask = new Task(() =>
                         {
-                            sleepHelper.Sleep(TimeSpan.FromSeconds(5));
+                            sleepHelper.Sleep(s_unexpectedDelay);
                             continued = true;
                         });
                     asyncToken2.Dispose();
@@ -324,9 +327,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             // threadpool scheduling, we may get here before that other thread has started to run.
             // That's why each task set's a signal to say that it has begun and we first wait for
             // that, and then start waiting.
-            Assert.True(signal.Wait(s_testTimeout), "Shouldn't have hit timeout waiting for task to begin");
+            Assert.True(signal.Wait(s_unexpectedDelay), "Shouldn't have hit timeout waiting for task to begin");
             var waitTask = listener.ExpeditedWaitAsync();
-            Assert.True(waitTask.Wait(s_testTimeout), "Wait shouldn't have needed to timeout");
+            Assert.True(waitTask.Wait(s_unexpectedDelay), "Wait shouldn't have needed to timeout");
         }
 
         private static void Wait(AsynchronousOperationListener listener, ManualResetEventSlim signal1, ManualResetEventSlim signal2)
@@ -335,11 +338,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             // threadpool scheduling, we may get here before that other thread has started to run.
             // That's why each task set's a signal to say that it has begun and we first wait for
             // that, and then start waiting.
-            Assert.True(signal1.Wait(s_testTimeout), "Shouldn't have hit timeout waiting for task to begin");
-            Assert.True(signal2.Wait(s_testTimeout), "Shouldn't have hit timeout waiting for task to begin");
+            Assert.True(signal1.Wait(s_unexpectedDelay), "Shouldn't have hit timeout waiting for task to begin");
+            Assert.True(signal2.Wait(s_unexpectedDelay), "Shouldn't have hit timeout waiting for task to begin");
 
             var waitTask = listener.ExpeditedWaitAsync();
-            Assert.True(waitTask.Wait(s_testTimeout), "Wait shouldn't have needed to timeout");
+            Assert.True(waitTask.Wait(s_unexpectedDelay), "Wait shouldn't have needed to timeout");
         }
     }
 }

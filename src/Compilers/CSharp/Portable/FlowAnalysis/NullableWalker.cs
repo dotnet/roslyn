@@ -970,7 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.
                         Diagnostics.Add(ErrorCode.WRN_ParameterNotNullIfNotNull, location, outputParam.Name, inputParam.Name);
                     }
-                    else
+                    else if (CurrentSymbol is MethodSymbol { IsAsync: false })
                     {
                         // Return value must be non-null because parameter '{0}' is non-null.
                         Diagnostics.Add(ErrorCode.WRN_ReturnNotNullIfNotNull, location, inputParam.Name);

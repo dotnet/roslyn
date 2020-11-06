@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindToken(span.Start, findInsideTrivia: true)
                            .GetAncestor(n => n.Span.Contains(span) && n != root);
 
@@ -99,7 +98,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     {
                         if (CanAddImport(node, allowInHiddenRegions, cancellationToken))
                         {
-                            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                             var allSymbolReferences = await FindResultsAsync(
                                 document, semanticModel, diagnosticId, node, maxResults, symbolSearchService,
                                 searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
@@ -385,7 +384,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                 || ContainsPathComponent(reference, "NuGetPackages");
 
             static bool ContainsPathComponent(PortableExecutableReference reference, string pathComponent)
-                => PathUtilities.ContainsPathComponent(reference.FilePath, pathComponent, ignoreCase: true);
+            {
+                return PathUtilities.ContainsPathComponent(reference.FilePath, pathComponent, ignoreCase: true);
+            }
         }
 
         /// <summary>
@@ -399,16 +400,21 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private static Compilation CreateCompilation(Project project, PortableExecutableReference reference)
         {
-            var compilationService = project.LanguageServices.GetService<ICompilationFactoryService>();
+            var compilationService = project.LanguageServices.GetRequiredService<ICompilationFactoryService>();
             var compilation = compilationService.CreateCompilation("TempAssembly", compilationService.GetDefaultCompilationOptions());
             return compilation.WithReferences(reference);
         }
 
-        bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference x, PortableExecutableReference y)
-            => StringComparer.OrdinalIgnoreCase.Equals(x.FilePath ?? x.Display, y.FilePath ?? y.Display);
+        bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference? x, PortableExecutableReference? y)
+            => StringComparer.OrdinalIgnoreCase.Equals(x?.FilePath ?? x?.Display, y?.FilePath ?? y?.Display);
 
         int IEqualityComparer<PortableExecutableReference>.GetHashCode(PortableExecutableReference obj)
-            => StringComparer.OrdinalIgnoreCase.GetHashCode(obj.FilePath ?? obj.Display);
+        {
+            var identifier = obj.FilePath ?? obj.Display;
+            Contract.ThrowIfNull(identifier, "Either FilePath or Display must be non-null");
+
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(identifier);
+        }
 
         private static HashSet<Project> GetViableUnreferencedProjects(Project project)
         {
@@ -424,10 +430,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             var projectsThatTransitivelyDependOnThisProject = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(project.Id);
 
             viableProjects.RemoveAll(projectsThatTransitivelyDependOnThisProject.Select(id =>
-                solution.GetProject(id)));
+                solution.GetRequiredProject(id)));
 
             // We also aren't interested in any projects we're already directly referencing.
-            viableProjects.RemoveAll(project.ProjectReferences.Select(r => solution.GetProject(r.ProjectId)));
+            viableProjects.RemoveAll(project.ProjectReferences.Select(r => solution.GetRequiredProject(r.ProjectId)));
             return viableProjects;
         }
 
@@ -524,7 +530,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             return codeActionsBuilder.ToImmutableAndFree();
         }
 
-        private static CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService)
+        private static CodeAction? TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService)
             => fixData.Kind switch
             {
                 AddImportFixKind.ProjectSymbol => new ProjectSymbolReferenceCodeAction(document, fixData),
@@ -536,18 +542,26 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
-        private static ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
+        private static ITypeSymbol? GetAwaitInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
         {
             var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
+            if (awaitExpression is null)
+                return null;
 
+            Debug.Assert(syntaxFactsService.IsAwaitExpression(awaitExpression));
             var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(awaitExpression);
 
             return semanticModel.GetTypeInfo(innerExpression).Type;
         }
 
-        private static ITypeSymbol GetCollectionExpressionType(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
+        private static ITypeSymbol? GetCollectionExpressionType(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
         {
             var collectionExpression = FirstForeachCollectionExpressionAncestor(syntaxFactsService, node);
+
+            if (collectionExpression is null)
+            {
+                return null;
+            }
 
             return semanticModel.GetTypeInfo(collectionExpression).Type;
         }
@@ -555,10 +569,10 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected static bool AncestorOrSelfIsAwaitExpression(ISyntaxFacts syntaxFactsService, SyntaxNode node)
             => FirstAwaitExpressionAncestor(syntaxFactsService, node) != null;
 
-        private static SyntaxNode FirstAwaitExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)
+        private static SyntaxNode? FirstAwaitExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)
             => node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFacts>((n, syntaxFactsService) => syntaxFactsService.IsAwaitExpression(n), syntaxFactsService);
 
-        private static SyntaxNode FirstForeachCollectionExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)
+        private static SyntaxNode? FirstForeachCollectionExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)
             => node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFacts>((n, syntaxFactsService) => syntaxFactsService.IsExpressionOfForeach(n), syntaxFactsService);
     }
 }

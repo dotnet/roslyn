@@ -100,11 +100,15 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
 
-  <!-- Rulesets -->
-  <PropertyGroup Condition="'$(CodeAnalysisRuleSet)' == ''">
-    <CodeAnalysisRuleSet Condition="'$(IsShipping)' == 'true'">$(RepositoryEngineeringDir)config\rulesets\Shipping.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(IsShipping)' != 'true'">$(RepositoryEngineeringDir)config\rulesets\NonShipping.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+  <!-- Global Analyzer Config -->
+  <ItemGroup>
+    <!-- Always include Common.globalconfig -->
+    <EditorConfigFiles Include="$(RepositoryEngineeringDir)config\globalconfigs\Common.globalconfig" />
+    <!-- Include Shipping.globalconfig for shipping projects -->
+    <EditorConfigFiles Condition="'$(IsShipping)' == 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\Shipping.globalconfig" />
+    <!-- Include NonShipping.globalconfig for non-shipping projects -->
+    <EditorConfigFiles Condition="'$(IsShipping)' != 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\NonShipping.globalconfig" />
+  </ItemGroup>
 
   <!--
     Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
@@ -190,18 +194,7 @@
                 Condition="'%(Filename)' == 'Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes'
                   OR '%(Filename)' == 'Microsoft.VisualStudio.Threading.Analyzers.CodeFixes'"/>
     </ItemGroup>
-
-    <!--
-      Explicitly reference Humanizer prior to https://github.com/dotnet/roslyn/pull/47297
-    -->
-    <ItemGroup>
-      <Analyzer Include="$(NuGetPackageRoot)\humanizer.core\$(HumanizerCoreVersion)\lib\netstandard1.0\Humanizer.dll" />
-    </ItemGroup>
   </Target>
-
-  <ItemGroup>
-    <PackageDownload Include="Humanizer.Core" Version="[$(HumanizerCoreVersion)]" />
-  </ItemGroup>
 
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 

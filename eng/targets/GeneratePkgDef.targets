@@ -35,6 +35,7 @@
          
          Metadata:
          - ItemSpec: service name
+         - Audience ('Local'|'Process'): Microsoft.VisualStudio.Shell.ServiceBroker.ServiceAudience enum value
          - ProfferingPackageId (guid, optional): GUID of the proffering package or empty for ServiceHub services
 
       4) PkgDefBindingRedirect
@@ -85,6 +86,19 @@
       </_FileContentEntries>
 
       <PkgDefFileContent Include="@(_FileContentEntries->'%(FullFilePath)')" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Initializes metadata of PkgDefBrokeredService items.
+  -->
+  <Target Name="_InitializeBrokeredServiceEntries"
+          BeforeTargets="GeneratePkgDef">
+    <ItemGroup>
+      <PkgDefBrokeredService Update="@(PkgDefBrokeredService)">
+        <_Audience>dword:00000003</_Audience> <!-- Local -->
+        <_Audience Condition="'%(PkgDefBrokeredService.Audience)' == 'Process'">dword:00000001</_Audience>
+      </PkgDefBrokeredService>
     </ItemGroup>
   </Target>
   
@@ -214,7 +228,7 @@
 @="11AD60FC-6D87-4674-8F88-9ABE79176CBE"
 "IsServiceHub"=dword:00000001
 "ServiceLocation"="$PackageFolder$"
-"audience"=dword:00000003
+"audience"=%(PkgDefBrokeredService._Audience)
 ]]>
         </RawValue>
       </_PkgDefEntry>
@@ -223,7 +237,7 @@
         <RawValue>
           <![CDATA[[$RootKey$\BrokeredServices\%(PkgDefBrokeredService.Identity)]
 @="%(PkgDefBrokeredService.ProfferingPackageId)"
-"audience"=dword:00000003
+"audience"=%(PkgDefBrokeredService._Audience)
 ]]>
         </RawValue>
       </_PkgDefEntry>

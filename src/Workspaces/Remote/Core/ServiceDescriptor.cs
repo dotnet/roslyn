@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO.Pipelines;
 using MessagePack;
+using MessagePack.Formatters;
 using MessagePack.Resolvers;
 using Microsoft.ServiceHub.Framework;
 using Nerdbank.Streams;
@@ -33,21 +35,32 @@ namespace Microsoft.CodeAnalysis.Remote
             ProtocolMajorVersion = 3
         }.GetFrozenCopy();
 
-        private ServiceDescriptor(ServiceMoniker serviceMoniker, Type? clientInterface)
+        internal static readonly MessagePackSerializerOptions DefaultOptions = StandardResolverAllowPrivate.Options
+            .WithSecurity(MessagePackSecurity.UntrustedData.WithHashCollisionResistant(false))
+            .WithResolver(MessagePackFormatters.DefaultResolver);
+
+        private readonly Func<string, string> _featureDisplayNameProvider;
+        private readonly MessagePackSerializerOptions _options;
+
+        private ServiceDescriptor(ServiceMoniker serviceMoniker, MessagePackSerializerOptions options, Func<string, string> displayNameProvider, Type? clientInterface)
             : base(serviceMoniker, clientInterface, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader, s_multiplexingStreamOptions)
         {
+            _featureDisplayNameProvider = displayNameProvider;
+            _options = options;
         }
 
         private ServiceDescriptor(ServiceDescriptor copyFrom)
           : base(copyFrom)
         {
+            _featureDisplayNameProvider = copyFrom._featureDisplayNameProvider;
+            _options = copyFrom._options;
         }
 
-        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, Type? clientInterface)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface);
+        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, MessagePackSerializerOptions options, Func<string, string> featureDisplayNameProvider, Type? clientInterface)
+            => new ServiceDescriptor(new ServiceMoniker(serviceName), options, featureDisplayNameProvider, clientInterface);
 
-        public static ServiceDescriptor CreateInProcServiceDescriptor(string serviceName)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface: null);
+        public static ServiceDescriptor CreateInProcServiceDescriptor(string serviceName, Func<string, string> featureDisplayNameProvider)
+            => new ServiceDescriptor(new ServiceMoniker(serviceName), DefaultOptions, featureDisplayNameProvider, clientInterface: null);
 
         protected override ServiceRpcDescriptor Clone()
             => new ServiceDescriptor(this);
@@ -55,16 +68,10 @@ namespace Microsoft.CodeAnalysis.Remote
         protected override IJsonRpcMessageFormatter CreateFormatter()
             => ConfigureFormatter((MessagePackFormatter)base.CreateFormatter());
 
-        private static readonly MessagePackSerializerOptions s_options = StandardResolverAllowPrivate.Options
-            .WithSecurity(MessagePackSecurity.UntrustedData.WithHashCollisionResistant(false))
-            .WithResolver(CompositeResolver.Create(
-                MessagePackFormatters.GetFormatters(),
-                new IFormatterResolver[] { ImmutableCollectionMessagePackResolver.Instance, StandardResolverAllowPrivate.Instance }));
-
-        private static MessagePackFormatter ConfigureFormatter(MessagePackFormatter formatter)
+        private MessagePackFormatter ConfigureFormatter(MessagePackFormatter formatter)
         {
             // See https://github.com/neuecc/messagepack-csharp.
-            formatter.SetMessagePackSerializerOptions(s_options);
+            formatter.SetMessagePackSerializerOptions(_options);
             return formatter;
         }
 
@@ -76,9 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return connection;
         }
 
-        internal static class TestAccessor
-        {
-            public static MessagePackSerializerOptions Options => s_options;
-        }
+        internal string GetFeatureDisplayName()
+            => _featureDisplayNameProvider(Moniker.Name);
     }
 }
