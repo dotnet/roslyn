@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (symbol is IAliasSymbol aliasSymbol)
             {
                 symbol = aliasSymbol.Target;
+                item = item.AddProperty("TargetSymbolName", symbol.Name);
             }
 
             if (symbol is INamedTypeSymbol namedTypeSymbol)
@@ -119,9 +120,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var @namespace = GetSymbolNamespace(item);
             if (name != null)
             {
-                var suffix = GetAritySuffix(item);
-                var typeName = suffix == null ? name : name + suffix;
-                var fullyQualifiedName = string.IsNullOrEmpty(@namespace) ? typeName : @namespace + "." + typeName;
+                var kind = GetKind(item);
+                var suffix =GetAritySuffix(item) ?? "";
+                var symbolName = kind == SymbolKind.Alias ? GetTargetSymbolName(item) + suffix : name + suffix;
+                var fullyQualifiedName = string.IsNullOrEmpty(@namespace) ? symbolName : @namespace + "." + symbolName;
                 return compilation.GetTypeByMetadataName(fullyQualifiedName);
             }
 
@@ -388,6 +390,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static string GetAritySuffix(CompletionItem item)
             => item.Properties.TryGetValue("AritySuffix", out var suffix) ? suffix : null;
+
+        private static string GetTargetSymbolName(CompletionItem item)
+            => item.Properties.TryGetValue("TargetSymbolName", out var name) ? name : null;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)

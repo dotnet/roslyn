@@ -10886,6 +10886,66 @@ namespace Bar
         }
 
         [WpfFact]
+        public async Task CompletionWithSemicolonForAliasConstructor()
+        {
+            var markup = @"
+using String2 = System.String;
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = new S$$
+        }
+    }
+}";
+            var expected = @"
+using String2 = System.String;
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = new String2($$);
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "String2", expected, commitChar: ';');
+        }
+
+        [WpfFact]
+        public async Task CompletionWithSemicolonForAliasParameterlessConstructor()
+        {
+            var markup = @"
+using Builder = System.Text.StringBuilder;
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = new Buil$$
+        }
+    }
+}";
+            var expected = @"
+using Builder = System.Text.StringBuilder;
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = new Builder();$$
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markup, "Builder", expected, commitChar: ';');
+        }
+
+        [WpfFact]
         public async Task CompletionWithSemicolonForConstructorInNestedNamespace()
         {
             var markup = @"
