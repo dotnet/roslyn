@@ -383,7 +383,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterText, supportedPlatforms, properties, tags);
         }
 
-
         internal static string GetSymbolName(CompletionItem item)
             => item.Properties.TryGetValue("SymbolName", out var name) ? name : null;
 
