@@ -4,9 +4,12 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -289,10 +292,76 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
         }
 
+        internal string GetExpectedOutputForAnalyzerDiagnosticsWithJustfication(MockCSharpCompiler cmd, string justification)
+        {
+            string expectedOutput =
+@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
+{5},
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""dottedQuadFileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}"",
+{6}
+        }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
+    }}
+  ]
+}}";
+            return FormatOutputText(
+                expectedOutput,
+                cmd,
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithJustificationResultsText(cmd.Compilation, justification),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
+        }
+
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             AnalyzerDiagnosticsWithAndWithoutLocationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void SimpleCompilerDiagnosticsSuppressedWithJustification()
+        {
+            var source = @"
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category1"", ""ID1"", Justification = ""Justification1"")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""ID2"", Justification = ""Justification2"")]
+class C
+{
+}";
+            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
+            var errorLogDir = Temp.CreateDirectory();
+            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+
+            string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            // Suppressed diagnostics are only reported in the error log, not the console output.
+            Assert.DoesNotContain("Category1", actualConsoleOutput);
+            Assert.DoesNotContain("Category2", actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithJustfication(cmd, "Justification1");
+
+            Assert.Equal(expectedOutput, actualOutput);
+
+            SharedResourceHelpers.CleanupAllGeneratedFiles(sourceFile);
+            SharedResourceHelpers.CleanupAllGeneratedFiles(errorLogFile);
         }
 
         private string FormatOutputText(

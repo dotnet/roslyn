@@ -218,6 +218,61 @@ namespace Microsoft.CodeAnalysis
       ]";
             }
 
+            public static string GetExpectedV2ErrorLogWithJustificationResultsText(Compilation compilation, string justification)
+            {
+                var tree = compilation.SyntaxTrees.First();
+                var root = tree.GetRoot();
+                var expectedLineSpan = root.GetLocation().GetLineSpan();
+                var filePath = GetUriForPath(tree.FilePath);
+
+                return
+@"      ""results"": [
+        {
+          ""ruleId"": """ + Descriptor1.Id + @""",
+          ""ruleIndex"": 0,
+          ""level"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": {
+            ""text"": """ + Descriptor1.MessageFormat + @"""
+          },
+          ""suppressions"": [
+            {
+              ""kind"": ""inSource"",
+              ""justification"": """ + (justification) + @"""
+            }
+          ],
+          ""locations"": [
+            {
+              ""physicalLocation"": {
+                ""artifactLocation"": {
+                  ""uri"": """ + filePath + @"""
+                },
+                ""region"": {
+                  ""startLine"": " + (expectedLineSpan.StartLinePosition.Line + 1) + @",
+                  ""startColumn"": " + (expectedLineSpan.StartLinePosition.Character + 1) + @",
+                  ""endLine"": " + (expectedLineSpan.EndLinePosition.Line + 1) + @",
+                  ""endColumn"": " + (expectedLineSpan.EndLinePosition.Character + 1) + @"
+                }
+              }
+            }
+          ],
+          ""properties"": {
+            ""warningLevel"": 1," + GetExpectedPropertiesMapText() + @"
+          }
+        },
+        {
+          ""ruleId"": """ + Descriptor2.Id + @""",
+          ""ruleIndex"": 1,
+          ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": {
+            ""text"": """ + Descriptor2.MessageFormat + @"""
+          },
+          ""properties"": {" +
+             GetExpectedPropertiesMapText() + @"
+          }
+        }
+      ]";
+            }
+
             public static string GetExpectedV2ErrorLogRulesText()
             {
                 return
