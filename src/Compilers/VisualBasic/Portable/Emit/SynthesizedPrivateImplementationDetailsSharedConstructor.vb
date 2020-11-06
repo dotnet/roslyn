@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each payloadRoot As KeyValuePair(Of Integer, InstrumentationPayloadRootField) In _privateImplementationType.GetInstrumentationPayloadRoots()
 
                 Dim analysisKind As Integer = payloadRoot.Key
-                Dim payloadArrayType As ArrayTypeSymbol = DirectCast(payloadRoot.Value.Type, ArrayTypeSymbol)
+                Dim payloadArrayType As ArrayTypeSymbol = DirectCast(payloadRoot.Value.Type.GetInternalSymbol(), ArrayTypeSymbol)
 
                 body.Add(
                     factory.Assignment(

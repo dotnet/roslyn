@@ -9,12 +9,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal readonly struct RemoteServiceCallbackDispatcherRegistry
-
+    internal sealed class RemoteServiceCallbackDispatcherRegistry : IRemoteServiceCallbackDispatcherProvider
     {
         public sealed class ExportMetadata
         {
             public Type ServiceInterface { get; }
+
+            public ExportMetadata(Type serviceInterface)
+                => ServiceInterface = serviceInterface;
 
             public ExportMetadata(IDictionary<string, object> data)
             {

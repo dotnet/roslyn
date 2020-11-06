@@ -10,14 +10,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Cci = Microsoft.Cci;
 
+#if !DEBUG
+using TypeParameterSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.TypeParameterSymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedTypeParameter : EmbeddedTypesManager.CommonEmbeddedTypeParameter
     {
-        public EmbeddedTypeParameter(EmbeddedMethod containingMethod, TypeParameterSymbol underlyingTypeParameter) :
+        public EmbeddedTypeParameter(EmbeddedMethod containingMethod, TypeParameterSymbolAdapter underlyingTypeParameter) :
             base(containingMethod, underlyingTypeParameter)
         {
-            Debug.Assert(underlyingTypeParameter.IsDefinition);
+            Debug.Assert(underlyingTypeParameter.AdaptedTypeParameterSymbol.IsDefinition);
         }
 
         protected override IEnumerable<Cci.TypeReferenceWithAttributes> GetConstraints(EmitContext context)
@@ -29,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingTypeParameter.HasReferenceTypeConstraint;
+                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.HasReferenceTypeConstraint;
             }
         }
 
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingTypeParameter.HasValueTypeConstraint;
+                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.HasValueTypeConstraint;
             }
         }
 
@@ -45,20 +49,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingTypeParameter.HasConstructorConstraint;
+                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.HasConstructorConstraint;
             }
         }
 
         protected override string Name
         {
-            get { return UnderlyingTypeParameter.MetadataName; }
+            get { return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.MetadataName; }
         }
 
         protected override ushort Index
         {
             get
             {
-                return (ushort)UnderlyingTypeParameter.Ordinal;
+                return (ushort)UnderlyingTypeParameter.AdaptedTypeParameterSymbol.Ordinal;
             }
         }
     }

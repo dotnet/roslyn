@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -90,6 +91,11 @@ namespace Roslyn.Test.Utilities
                 Range = ProtocolConversions.LinePositionToRange(s_mappedLinePosition),
                 Uri = new Uri(s_mappedFilePath)
             };
+
+            /// <summary>
+            /// LSP tests are simulating the new razor system which does support mapping import directives.
+            /// </summary>
+            public bool SupportsMappingImportDirectives => true;
 
             public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
             {
@@ -166,17 +172,20 @@ namespace Roslyn.Test.Utilities
             return text.ToString();
         }
 
-        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string? containerName = null)
+        internal static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, Glyph glyph, string? containerName = null)
         {
-            var info = new LSP.SymbolInformation()
+            var info = new LSP.VSSymbolInformation()
             {
                 Kind = kind,
                 Name = name,
                 Location = location,
+                Icon = new ImageElement(glyph.GetImageId()),
             };
 
             if (containerName != null)
+            {
                 info.ContainerName = containerName;
+            }
 
             return info;
         }
@@ -264,7 +273,10 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         /// <returns>the solution and the annotated ranges in the document.</returns>
         protected TestWorkspace CreateTestWorkspace(string markup, out Dictionary<string, IList<LSP.Location>> locations)
-            => CreateTestWorkspace(new string[] { markup }, out locations);
+            => CreateTestWorkspace(new string[] { markup }, out locations, LanguageNames.CSharp);
+
+        protected TestWorkspace CreateVisualBasicTestWorkspace(string markup, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestWorkspace(new string[] { markup }, out locations, LanguageNames.VisualBasic);
 
         /// <summary>
         /// Create a solution with multiple documents.
@@ -273,8 +285,17 @@ namespace Roslyn.Test.Utilities
         /// the solution with the documents plus a list for each document of all annotated ranges in the document.
         /// </returns>
         protected TestWorkspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestWorkspace(markups, out locations, LanguageNames.CSharp);
+
+        private TestWorkspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations, string languageName)
         {
-            var workspace = TestWorkspace.CreateCSharp(markups, composition: Composition);
+            var workspace = languageName switch
+            {
+                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, composition: Composition),
+                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, composition: Composition),
+                _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
+            };
+
             var solution = workspace.CurrentSolution;
 
             foreach (var document in workspace.Documents)

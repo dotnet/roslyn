@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,16 +38,16 @@ namespace Microsoft.CodeAnalysis
                     from reference in _availableReferences
                     let identity = TryGetIdentity(reference)
                     where identity != null
-                    select identity));
+                    select identity!));
             }
 
-            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
+            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
             {
                 var resolvedReferences = _resolver.ResolveReference(reference, baseFilePath, properties);
-                return resolvedReferences.WhereAsArray(r => _lazyAvailableReferences.Value.Contains(TryGetIdentity(r)));
+                return resolvedReferences.WhereAsArray(r => _lazyAvailableReferences.Value.Contains(TryGetIdentity(r)!));
             }
 
-            private static AssemblyIdentity TryGetIdentity(MetadataReference metadataReference)
+            private static AssemblyIdentity? TryGetIdentity(MetadataReference metadataReference)
             {
                 var peReference = metadataReference as PortableExecutableReference;
                 if (peReference == null || peReference.Properties.Kind != MetadataImageKind.Assembly)
@@ -59,7 +57,8 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    return ((AssemblyMetadata)peReference.GetMetadataNoCopy()).GetAssembly().Identity;
+                    PEAssembly assembly = ((AssemblyMetadata)peReference.GetMetadataNoCopy()).GetAssembly()!;
+                    return assembly.Identity;
                 }
                 catch (Exception e) when (e is BadImageFormatException || e is IOException)
                 {
@@ -73,13 +72,15 @@ namespace Microsoft.CodeAnalysis
                 return _resolver.GetHashCode();
             }
 
-            public bool Equals(ExistingReferencesResolver other)
+            public bool Equals(ExistingReferencesResolver? other)
             {
-                return _resolver.Equals(other._resolver) &&
-                       _availableReferences.SequenceEqual(other._availableReferences);
+                return
+                    other is object &&
+                    _resolver.Equals(other._resolver) &&
+                    _availableReferences.SequenceEqual(other._availableReferences);
             }
 
-            public override bool Equals(object other) => Equals(other as ExistingReferencesResolver);
+            public override bool Equals(object? other) => other is ExistingReferencesResolver obj && Equals(obj);
         }
     }
 }

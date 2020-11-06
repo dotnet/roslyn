@@ -4,15 +4,12 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
@@ -50,11 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 _view.LostAggregateFocus += OnLostFocus;
             }
 
-            private static bool IsAltOrF1(KeyEventArgs args)
-                => IsAltOrF1(args.SystemKey) || IsAltOrF1(args.Key);
+            private static bool IsAlt(KeyEventArgs args)
+                => IsKey(args, Key.LeftAlt) || IsKey(args, Key.RightAlt);
 
-            private static bool IsAltOrF1(Key key)
-                => key is Key.LeftAlt or Key.RightAlt or Key.F1;
+            private static bool IsF1(KeyEventArgs args)
+                => IsKey(args, Key.F1);
+
+            private static bool IsKey(KeyEventArgs args, Key key)
+                => args.SystemKey == key || args.Key == key;
 
             private void OnViewClosed(object sender, EventArgs e)
             {
@@ -76,26 +76,26 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 base.KeyDown(args);
 
-                // if this is either of the keys, and only our chord is down, then toggle on. 
-                // otherwise toggle off if anything else is pressed down.
-                if (IsAltOrF1(args))
+                // If the user is now holding down F1, see if they're also holding down 'alt'.  If so, toggle the inline hints on.
+                if (IsF1(args) &&
+                    args.KeyboardDevice.Modifiers == ModifierKeys.Alt)
                 {
-                    if (args.KeyboardDevice.Modifiers == ModifierKeys.Alt)
-                    {
-                        ToggleOn();
-                        return;
-                    }
+                    ToggleOn();
                 }
-
-                ToggleOff();
+                else
+                {
+                    // Otherwise, on any other keypress toggle off.  Note that this will normally be non-expensive as we
+                    // will see the option is already off and immediately exit..
+                    ToggleOff();
+                }
             }
 
             public override void KeyUp(KeyEventArgs args)
             {
                 base.KeyUp(args);
 
-                // If we've lifted a key up from our chord, then turn off the inline hints.
-                if (IsAltOrF1(args))
+                // If we've lifted a key up from either character of our alt-F1 chord, then turn off the inline hints.
+                if (IsAlt(args) || IsF1(args))
                     ToggleOff();
             }
 

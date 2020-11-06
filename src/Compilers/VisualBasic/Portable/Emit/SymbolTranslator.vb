@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If namedTypeSymbol.IsUnboundGenericType Then
                     namedTypeSymbol = namedTypeSymbol.OriginalDefinition
                 Else
-                    Return namedTypeSymbol
+                    Return DirectCast(GetCciAdapter(namedTypeSymbol), Microsoft.Cci.INamedTypeReference)
                 End If
 
             ElseIf Not needDeclaration Then
@@ -199,11 +199,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
             End If
 
-            If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics)
-            End If
+            Return If(_embeddedTypesManagerOpt?.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics), namedTypeSymbol.GetCciAdapter())
+        End Function
 
-            Return namedTypeSymbol
+        Private Function GetCciAdapter(symbol As Symbol) As Object
+            Return _genericInstanceMap.GetOrAdd(symbol, Function(s) s.GetCciAdapter())
         End Function
 
         Private Sub CheckTupleUnderlyingType(namedTypeSymbol As NamedTypeSymbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate([param] As TypeParameterSymbol) As Microsoft.Cci.IGenericParameterReference
             Debug.Assert(param Is param.OriginalDefinition)
-            Return [param]
+            Return [param].GetCciAdapter()
         End Function
 
         Friend NotOverridable Overrides Function Translate(
@@ -274,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             If fieldSymbol IsNot fieldSymbol.OriginalDefinition Then
                 Debug.Assert(Not needDeclaration)
-                Return fieldSymbol
+                Return DirectCast(GetCciAdapter(fieldSymbol), Microsoft.Cci.IFieldReference)
 
             ElseIf Not needDeclaration AndAlso IsOrInGenericType(fieldSymbol.ContainingType) Then
 
@@ -291,10 +291,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedFieldIfNeedTo(fieldSymbol, syntaxNodeOpt, diagnostics)
+                Return _embeddedTypesManagerOpt.EmbedFieldIfNeedTo(fieldSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
             End If
 
-            Return fieldSymbol
+            Return fieldSymbol.GetCciAdapter()
         End Function
 
         Public Shared Function MemberVisibility(symbol As Symbol) As Microsoft.Cci.TypeMemberVisibility
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If methodSymbol.OriginalDefinition IsNot methodSymbol Then
 
                 Debug.Assert(Not needDeclaration)
-                Return methodSymbol
+                Return DirectCast(GetCciAdapter(methodSymbol), Microsoft.Cci.IMethodReference)
 
             ElseIf Not needDeclaration Then
                 Dim methodIsGeneric As Boolean = methodSymbol.IsGenericMethod
@@ -420,10 +420,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
+                Return _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
             End If
 
-            Return methodSymbol
+            Return methodSymbol.GetCciAdapter()
         End Function
 
         Friend Overloads Function TranslateOverriddenMethodReference(methodSymbol As MethodSymbol, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Microsoft.Cci.IMethodReference
@@ -447,9 +447,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Debug.Assert(methodSymbol.IsDefinition)
 
                 If _embeddedTypesManagerOpt IsNot Nothing Then
-                    methodRef = _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
+                    methodRef = _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
                 Else
-                    methodRef = methodSymbol
+                    methodRef = methodSymbol.GetCciAdapter()
                 End If
             End If
 
@@ -463,7 +463,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(params.All(Function(p) mustBeTranslated = MustBeWrapped(p)), "either all or no parameters need translating")
 
             If (Not mustBeTranslated) Then
+#If DEBUG Then
+                Return params.SelectAsArray(Of Cci.IParameterTypeInformation)(Function(p) p.GetCciAdapter())
+#Else
                 Return StaticCast(Of Microsoft.Cci.IParameterTypeInformation).From(params)
+#End If
             End If
 
             Return TranslateAll(params)
@@ -515,7 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overloads Function Translate(symbol As ArrayTypeSymbol) As Microsoft.Cci.IArrayTypeReference
-            Return symbol
+            Return DirectCast(GetCciAdapter(symbol), Microsoft.Cci.IArrayTypeReference)
         End Function
     End Class
 End Namespace
