@@ -117,17 +117,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static INamedTypeSymbol GetNamedTypeSymbol(CompletionItem item, Compilation compilation)
         {
             var name = GetSymbolName(item);
-            var @namespace = GetSymbolNamespace(item);
-            if (name != null)
+            if (name == null)
             {
-                var kind = GetKind(item);
-                var suffix =GetAritySuffix(item) ?? "";
-                var symbolName = kind == SymbolKind.Alias ? GetTargetSymbolName(item) + suffix : name + suffix;
-                var fullyQualifiedName = string.IsNullOrEmpty(@namespace) ? symbolName : @namespace + "." + symbolName;
-                return compilation.GetTypeByMetadataName(fullyQualifiedName);
+                return null;
             }
 
-            return null;
+            var kind = GetKind(item);
+            var targetSymbolName = GetTargetSymbolName(item);
+            if (kind == SymbolKind.Alias && targetSymbolName == null)
+            {
+                return null;
+            }
+
+            var @namespace = GetSymbolNamespace(item) ?? "";
+            var suffix = GetSymbolIsGeneric(item) ? GetAritySuffix(item) : "";
+
+            var symbolName = kind == SymbolKind.Alias
+                ? targetSymbolName + suffix
+                : name + suffix;
+            return compilation.GetTypeByMetadataName(@namespace + "." + symbolName);
         }
 
         public static bool GetProvideParenthesisCompletion(CompletionItem item)
