@@ -527,6 +527,45 @@ public partial record C
         }
 
         [Fact]
+        public void PartialRecord_DuplicateMemberNames()
+        {
+            var src = @"
+public partial record C(int X)
+{
+    public void M(int i) { }
+}
+public partial record C
+{
+    public void M(string s) { }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition });
+            var expectedMemberNames = new string[]
+            {
+                ".ctor",
+                "get_EqualityContract",
+                "EqualityContract",
+                "<X>k__BackingField",
+                "get_X",
+                "set_X",
+                "X",
+                "M",
+                "M",
+                "ToString",
+                "PrintMembers",
+                "op_Inequality",
+                "op_Equality",
+                "GetHashCode",
+                "Equals",
+                "Equals",
+                "<Clone>$",
+                ".ctor",
+                "Deconstruct"
+            };
+            AssertEx.Equal(expectedMemberNames, comp.GetMember<NamedTypeSymbol>("C").GetPublicSymbol().MemberNames);
+        }
+
+        [Fact]
         public void RecordInsideGenericType()
         {
             var src = @"
@@ -702,13 +741,19 @@ record C(int X, int X)
                 "get_X",
                 "set_X",
                 "X",
+                "<X>k__BackingField",
+                "get_X",
+                "set_X",
+                "X",
                 "ToString",
                 "PrintMembers",
                 "op_Inequality",
                 "op_Equality",
                 "GetHashCode",
                 "Equals",
+                "Equals",
                 "<Clone>$",
+                ".ctor",
                 "Deconstruct"
             };
             AssertEx.Equal(expectedMemberNames, comp.GetMember<NamedTypeSymbol>("C").GetPublicSymbol().MemberNames);
@@ -9160,7 +9205,9 @@ record C(int X, int Y, int Z) : B
                 "op_Equality",
                 "GetHashCode",
                 "Equals",
+                "Equals",
                 "<Clone>$",
+                ".ctor",
                 "Deconstruct"
             };
             AssertEx.Equal(expectedMemberNames, c.GetPublicSymbol().MemberNames);
