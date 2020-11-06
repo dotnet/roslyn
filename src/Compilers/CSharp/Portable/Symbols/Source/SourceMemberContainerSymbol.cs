@@ -1080,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return IsTupleType ? GetMembers().Select(m => m.Name).Distinct() : this.declaration.MemberNames;
+                return (IsTupleType || IsRecord) ? GetMembers().Select(m => m.Name) : this.declaration.MemberNames;
             }
         }
 
