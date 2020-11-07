@@ -5,13 +5,23 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToInterpolated;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertStringConcatToInterpolated
 {
     using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertStringConcatToInterpolatedRefactoringProvider>;
+
+    // Temporary work around to avoid merge conflicts with master until VS 16.8 is released
+    internal static class Traits
+    {
+        public const string Feature = nameof(Feature);
+
+        internal static class Features
+        {
+            public const string CodeActionsConvertStringConcatToInterpolated = "CodeActions.ConvertStringConcatToInterpolated";
+        }
+    }
 
     public class ConvertStringConcatToInterpolatedTests
     {
