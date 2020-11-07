@@ -150,5 +150,71 @@ class Program
                 CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertStringConcatToInterpolated)]
+        [InlineData(@"""a"" [|+|] $""b{1:000}""",
+                   @"$""ab{1:000}""")]
+        [InlineData(@"""a"" [|+|] $""b{1:000}c"" + ""d""",
+                   @"$""ab{1:000}cd""")]
+        [InlineData(@"""a"" [|+|] $@""b{1:000}c"" + ""d""",
+                   @"$""a{$@""b{1:000}c""}d""")]
+        public async Task ConcatWithInterpolatedStringGetsMerged(string before, string after)
+        {
+            var initialMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = {before};
+    }}
+}}";
+            var expectedMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = {after};
+    }}
+}}";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
+            }.RunAsync();
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertStringConcatToInterpolated)]
+        [InlineData(@"""a"" [|+|] (1 + 1)",
+                   @"$""a{1 + 1}""")]
+        [InlineData(@"""a"" [|+|] (1 + 1) + (2 + 2)",
+                   @"$""a{1 + 1}{2 + 2}""")]
+        [InlineData(@"""a"" [|+|] (true ? ""t"": ""f"")",
+                   @"$""a{(true ? ""t"": ""f"")}""")]
+        public async Task ExpressionParenthesisAreRemovedIfPossible(string before, string after)
+        {
+            var initialMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = {before};
+    }}
+}}";
+            var expectedMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = {after};
+    }}
+}}";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
+            }.RunAsync();
+        }
     }
 }

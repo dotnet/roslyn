@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
@@ -105,10 +106,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
             var interpolated = InterpolatedStringExpression(
                 Token(SyntaxKind.InterpolatedStringStartToken),
                 List(interpolatedStringContent));
-            editor.ReplaceNode(binaryExpression, interpolated);
+            var anyPotentiallyRemovableParenthesis = interpolated.Contents.Any(IsParenthesizedInterpolation);
+            var annotation = new SyntaxAnnotation("InterpolatedStringExpressionWithPotentiallyRemovableParanthesisKind");
+            if (anyPotentiallyRemovableParenthesis)
+            {
+                interpolated = interpolated.WithAdditionalAnnotations(annotation);
+            }
+            editor.ReplaceNode(binaryExpression, interpolated.WithAdditionalAnnotations(annotation));
+
+            if (anyPotentiallyRemovableParenthesis)
+            {
+                var newDocument = document.WithSyntaxRoot(editor.GetChangedRoot());
+                var newRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var interpolatedNode = (InterpolatedStringExpressionSyntax)newRoot.GetAnnotatedNodes(annotation).Single();
+                var semanticModel = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                editor = new SyntaxEditor(newRoot, CSharpSyntaxGenerator.Instance);
+                foreach (var content in interpolatedNode.Contents.Where(IsParenthesizedInterpolation).Cast<InterpolationSyntax>())
+                {
+                    var parenthesized = (ParenthesizedExpressionSyntax)content.Expression;
+                    if (parenthesized.CanRemoveParentheses(semanticModel))
+                    {
+                        editor.ReplaceNode(parenthesized, parenthesized.Expression);
+                    }
+                }
+            }
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
+
+        private static bool IsParenthesizedInterpolation(InterpolatedStringContentSyntax interpolatedStringContent)
+            => interpolatedStringContent is InterpolationSyntax { Expression: ParenthesizedExpressionSyntax };
 
         private static IEnumerable<InterpolatedStringContentSyntax> ConvertConcatPartsToInterpolatedStringContent(ImmutableArray<ExpressionSyntax> concatParts)
         {
@@ -121,16 +148,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
                         if (result.LastOrDefault() is InterpolatedStringTextSyntax text)
                         {
                             var newText = text.TextToken.ValueText + literal.Token.ValueText;
-                            result[^1] = InterpolatedStringText(Token(TriviaList(), SyntaxKind.InterpolatedStringTextToken, newText, newText, TriviaList()));
+                            result[^1] = InterpolatedStringText(InterpolatedStringTextToken(newText));
                         }
                         else
                         {
                             result.Add(InterpolatedStringText(StringLiteralTokenToInterpolatedStringTextToken(literal.Token)));
                         }
                         break;
-                    case InterpolatedStringExpressionSyntax interpolated:
-                        // TODO: inline content
-                        result.Add(Interpolation(interpolated.WithoutTrivia()));
+                    case InterpolatedStringExpressionSyntax interpolated when !interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken):
+                        foreach (var contentPart in interpolated.Contents)
+                        {
+                            if (contentPart is InterpolatedStringTextSyntax textFromOther && result.LastOrDefault() is InterpolatedStringTextSyntax previousText)
+                            {
+                                var newText = previousText.TextToken.ValueText + textFromOther.TextToken.ValueText;
+                                result[^1] = InterpolatedStringText(InterpolatedStringTextToken(newText));
+                            }
+                            else
+                            {
+                                result.Add(contentPart);
+                            }
+                        }
                         break;
                     default:
                         result.Add(Interpolation(part.WithoutTrivia()));
@@ -141,8 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
             return result;
         }
 
+        private static SyntaxToken InterpolatedStringTextToken(string text)
+            => Token(TriviaList(), SyntaxKind.InterpolatedStringTextToken, text, text, TriviaList());
+
         private static SyntaxToken StringLiteralTokenToInterpolatedStringTextToken(SyntaxToken stringLiteralToken)
-            => Token(TriviaList(), SyntaxKind.InterpolatedStringTextToken, stringLiteralToken.ValueText, stringLiteralToken.ValueText, TriviaList());
+            => InterpolatedStringTextToken(stringLiteralToken.ValueText);
 
         private static bool IsStringLiteralExpression(ExpressionSyntax? expression, [NotNullWhen(true)] out LiteralExpressionSyntax? literal)
         {
