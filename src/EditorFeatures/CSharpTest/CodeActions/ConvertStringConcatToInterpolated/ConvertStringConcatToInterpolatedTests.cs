@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertStri
     public class ConvertStringConcatToInterpolatedTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertStringConcatToInterpolated)]
-        public async Task IfExpressionAndConcatedTextAreRefacoredToInterpolated()
+        public async Task IfExpressionAndConcatedTextAreRefactoredToInterpolated()
         {
             const string InitialMarkup = @"
 class Program
@@ -38,7 +38,61 @@ class Program
             {
                 TestCode = InitialMarkup,
                 FixedCode = ExpectedMarkup,
-                CodeActionValidationMode = CodeActionValidationMode.Full,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertStringConcatToInterpolated)]
+        public async Task IfExpressionSurroundedByConcatedTextAreRefactoredToInterpolated()
+        {
+            const string InitialMarkup = @"
+class Program
+{
+    public static void Main()
+    {
+        var x = ""a"" + (true ? ""t"" : ""f"") [|+|] ""b"";
+    }
+}";
+            const string ExpectedMarkup = @"
+class Program
+{
+    public static void Main()
+    {
+        var x = $""a{(true ? ""t"" : ""f"")}b"";
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                FixedCode = ExpectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertStringConcatToInterpolated)]
+        public async Task TwoIfExpressionSurroundedByConcatedTextAreRefactoredToInterpolated()
+        {
+            const string InitialMarkup = @"
+class Program
+{
+    public static void Main()
+    {
+        var x = ""a"" + (true ? ""t"" : ""f"") [|+|] ""b"" + (false ? ""t"" : ""f"") + ""c"";
+    }
+}";
+            const string ExpectedMarkup = @"
+class Program
+{
+    public static void Main()
+    {
+        var x = $""a{(true ? ""t"" : ""f"")}b{(false ? ""t"" : ""f"")}c"";
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                FixedCode = ExpectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
     }
