@@ -286,9 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 filterText: GetFilterText(symbols[0], displayText, context),
                 supportedPlatforms: supportedPlatformData);
 
-            // Consider add parenthesis completion option when the completion symbol is method or
-            // namedType (used as constructor)
-            if (symbol.IsKind(SymbolKind.Method) || symbol.IsKind(SymbolKind.NamedType) || symbol.IsKind(SymbolKind.Alias))
+            if (symbol.IsKind(SymbolKind.Method)
+                || symbol.IsKind(SymbolKind.NamedType)
+                || (symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType))
             {
                 var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
                 var isObjectCreationTypeContext = context switch
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (shouldProvideParenthesisCompletion)
                 {
-                    item = SymbolCompletionItem.AddProvideParenthesisCompletionInfo(item, symbol);
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item, true);
                 }
             }
 
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
-            if (commitKey == ';' && SymbolCompletionItem.GetProvideParenthesisCompletion(item))
+            if (commitKey == ';' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
             {
                 var text = string.Concat(insertionText + "()", commitKey);
                 var textChange = new TextChange(item.Span, text);

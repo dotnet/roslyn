@@ -1888,7 +1888,7 @@ namespace Foo
             }
         }
 
-        [WpfFact]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCommitWithSemicolonForParemeterlessMethod()
         {
             var markup = @"

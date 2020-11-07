@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private bool? _isImportCompletionExperimentEnabled = null;
 
-        private bool IsTypeImportCompletionExperimentEnabled(Workspace workspace)
+        private bool IsExperimentEnabled(Workspace workspace)
         {
             if (!_isImportCompletionExperimentEnabled.HasValue)
             {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
                 if (importCompletionOptionValue == false ||
-                    (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(document.Project.Solution.Workspace)))
+                    (importCompletionOptionValue == null && !IsExperimentEnabled(document.Project.Solution.Workspace)))
                 {
                     return;
                 }

@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -75,48 +74,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
         }
 
-        public static CompletionItem AddProvideParenthesisCompletionInfo(CompletionItem item, ISymbol symbol)
+        public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item, bool value)
+            => item.AddProperty("ShouldProvideParenthesisCompletion", value.ToString());
+
+        public static bool GetShouldProvideParenthesisCompletion(CompletionItem item)
         {
-            item = item.AddProperty("ProvideParenthesisCompletion", true.ToString());
-            if (symbol is IMethodSymbol methodSymbol)
-            {
-                item = item.AddProperty("HasParameter", (methodSymbol.Parameters.Length > 0).ToString());
-            }
-
-            // We don't want to check if the symbol's constructor takes a parameter when CompletionItem is created
-            // to save time
-            if (symbol is IAliasSymbol aliasSymbol)
-            {
-                symbol = aliasSymbol.Target;
-                item = item.AddProperty("TargetSymbolName", symbol.Name);
-            }
-
-            if (symbol is INamedTypeSymbol namedTypeSymbol)
-            {
-                item = item.AddProperty("Namespace", namedTypeSymbol.ContainingNamespace.MetadataName);
-                if (namedTypeSymbol.Arity > 0)
-                {
-                    item = item.AddProperty("AritySuffix", AbstractDeclaredSymbolInfoFactoryService.GetMetadataAritySuffix(namedTypeSymbol.Arity));
-                }
-            }
-
-            return item;
-        }
-
-        public static bool GetSymbolHasParameter(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("HasParameter", out var value)
-                && bool.TryParse(value, out var result))
-            {
-                return result;
-            }
-
-            return false;
-        }
-
-        public static bool GetProvideParenthesisCompletion(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("ProvideParenthesisCompletion", out var value)
+            if (item.Properties.TryGetValue("ShouldProvideParenthesisCompletion", out var value)
                 && bool.TryParse(value, out var result))
             {
                 return result;
@@ -367,15 +330,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         internal static bool GetSymbolIsGeneric(CompletionItem item)
             => item.Properties.TryGetValue("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
-
-        private static string GetSymbolNamespace(CompletionItem item)
-            => item.Properties.TryGetValue("Namespace", out var @namespace) ? @namespace : null;
-
-        private static string GetAritySuffix(CompletionItem item)
-            => item.Properties.TryGetValue("AritySuffix", out var suffix) ? suffix : null;
-
-        private static string GetTargetSymbolName(CompletionItem item)
-            => item.Properties.TryGetValue("TargetSymbolName", out var name) ? name : null;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)

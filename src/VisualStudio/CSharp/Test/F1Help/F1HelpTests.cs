@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
             var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
             Assert.Equal(expectedText, actualText);
         }
-        
+
         private static async Task Test_KeywordAsync(string markup, string expectedText)
         {
             await TestAsync(markup, expectedText + "_CSharpKeyword");
