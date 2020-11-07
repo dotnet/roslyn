@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // import container (e.g. namespace/class/etc. declarations).
                 //
                 // For example, `List` and `StringBuilder` both need to be fully qualified below: 
-                //
+                // 
                 //      using CollectionOfStringBuilders = System.Collections.Generic.List<System.Text.StringBuilder>;
                 //
                 // However, if we are typing in an C# using directive that is inside a nested import container (i.e. inside a namespace declaration block), 

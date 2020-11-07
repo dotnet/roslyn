@@ -23,7 +23,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.Completion.CommonCompletionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -319,12 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
             if (commitKey == ';' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
             {
-                var text = string.Concat(insertionText + "()", commitKey);
-                var textChange = new TextChange(item.Span, text);
-                return Task.FromResult(CompletionChange.Create(
-                    textChange,
-                    item.Span.Start + text.Length,
-                    includesCommitCharacter: true));
+                return Task.FromResult(GetCompletionChangeWithParenthesis(insertionText, commitKey.Value, item.Span));
             }
 
             var insertionTextChange = new TextChange(item.Span, insertionText);

@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // Use "<display name> <namespace>" as sort text. The space before namespace makes items with identical display name
-            // but from different namespace all show up in the list, it also makes sure item with shorter name shows first,
-            // e.g. 'SomeType` before 'SomeTypeWithLongerName'.
+            // but from different namespace all show up in the list, it also makes sure item with shorter name shows first, 
+            // e.g. 'SomeType` before 'SomeTypeWithLongerName'. 
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, name, containingNamespace);
 

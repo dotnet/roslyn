@@ -151,13 +151,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var insertionText = SymbolCompletionItem.GetInsertionText(item);
             if (commitKey == ';')
             {
-                var text = string.Concat(insertionText, "()", commitKey);
-                var textChange = new TextChange(item.Span, text);
-                var completionChange = CompletionChange.Create(
-                    textChange,
-                    item.Span.Start + text.Length,
-                    includesCommitCharacter: true);
-                return Task.FromResult(completionChange);
+                return Task.FromResult(
+                    GetCompletionChangeWithParenthesis(
+                        insertionText,
+                        commitKey.Value,
+                        item.Span));
             }
 
             var insertionTextChange = new TextChange(item.Span, insertionText);
