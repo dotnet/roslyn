@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             pguidCmdUI = Guid.Empty;
             pgrfCDW = 0;
 
-            var physicalView = pszPhysicalView ?? "Code";
+            var physicalView = pszPhysicalView ?? CodePhysicalViewName;
             IVsTextBuffer? textBuffer = null;
 
             // Is this document already open? If so, let's see if it's a IVsTextBuffer we should re-use. This allows us
@@ -95,46 +95,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Do we need to create a text buffer?
             if (textBuffer == null)
             {
-                try
-                {
-                    textBuffer = GetDocumentData(grfCreateDoc, pszMkDocument, vsHierarchy, itemid) as IVsTextBuffer;
-                    if (textBuffer == null)
-                    {
-                        return VSConstants.E_FAIL;
-                    }
-                }
-                catch (Exception e)
-                {
-                    return Marshal.GetHRForException(e);
-                }
+                textBuffer = GetDocumentData(grfCreateDoc, pszMkDocument, vsHierarchy, itemid) as IVsTextBuffer;
+                Contract.ThrowIfNull(textBuffer, $"Failed to get document data for {pszMkDocument}");
             }
 
-            // If the text buffer is marked as read-only, ensure that the padlock icon is displayed
-            // next the new window's title and that [Read Only] is appended to title.
-            var readOnlyStatus = READONLYSTATUS.ROSTATUS_NotReadOnly;
-            if (ErrorHandler.Succeeded(textBuffer.GetStateFlags(out var textBufferFlags)) &&
-                0 != (textBufferFlags & ((uint)BUFFERSTATEFLAGS.BSF_FILESYS_READONLY | (uint)BUFFERSTATEFLAGS.BSF_USER_READONLY)))
-            {
-                readOnlyStatus = READONLYSTATUS.ROSTATUS_ReadOnly;
-            }
-
-            switch (physicalView)
-            {
-                case "Form":
-
-                    // We must create the WinForms designer here
-                    (pbstrEditorCaption, pguidCmdUI, ppunkDocView) = GetWinFormsDesignerData(vsHierarchy, itemid, textBuffer, readOnlyStatus, initializeView: true);
-                    break;
-
-                case "Code":
-
-                    (pbstrEditorCaption, pguidCmdUI, ppunkDocView) = GetCodeEditorData(textBuffer, readOnlyStatus, initializeView: true);
-                    break;
-
-                default:
-
-                    return VSConstants.E_INVALIDARG;
-            }
+            (pbstrEditorCaption, pguidCmdUI, ppunkDocView) = GetEditorData(textBuffer, physicalView, vsHierarchy, itemid, initializeView: true);
 
             ppunkDocData = Marshal.GetIUnknownForObject(textBuffer);
 
@@ -172,43 +137,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public string GetEditorCaption(string pszMkDocument, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, out Guid pguidCmdUI)
         {
+            Contract.ThrowIfFalse(punkDocData != IntPtr.Zero, $"Document data is null for {pszMkDocument}");
+
             var physicalView = pszPhysicalView ?? CodePhysicalViewName;
-            var readOnlyStatus = READONLYSTATUS.ROSTATUS_NotReadOnly;
-
-            IVsTextBuffer? textBuffer = null;
-            if (punkDocData != IntPtr.Zero)
-            {
-                var docData = Marshal.GetObjectForIUnknown(punkDocData);
-                textBuffer = docData as IVsTextBuffer;
-
-                if (textBuffer != null)
-                {
-                    if (ErrorHandler.Succeeded(textBuffer.GetStateFlags(out var textBufferFlags)) &&
-                        0 != (textBufferFlags & ((uint)BUFFERSTATEFLAGS.BSF_FILESYS_READONLY | (uint)BUFFERSTATEFLAGS.BSF_USER_READONLY)))
-                    {
-                        readOnlyStatus = READONLYSTATUS.ROSTATUS_ReadOnly;
-                    }
-                }
-            }
-
+            var docData = Marshal.GetObjectForIUnknown(punkDocData);
             string editorCaption;
-            switch (physicalView)
-            {
-                case FormPhysicalViewName:
 
-                    (editorCaption, pguidCmdUI, _) = GetWinFormsDesignerData(pHier, itemid: 0, textBuffer, readOnlyStatus, initializeView: false);
-                    break;
-
-                case CodePhysicalViewName:
-
-                    (editorCaption, pguidCmdUI, _) = GetCodeEditorData(textBuffer, readOnlyStatus, initializeView: false);
-                    break;
-
-                default:
-                    pguidCmdUI = Guid.Empty;
-                    editorCaption = string.Empty;
-                    break;
-            }
+            (editorCaption, pguidCmdUI, _) = GetEditorData((IVsTextBuffer)docData, physicalView, pHier, itemId: 0, initializeView: false);
 
             return editorCaption;
         }
@@ -248,7 +183,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return LoaderName;
         }
 
-        private (string editorCaption, Guid commandUI, IntPtr documentView) GetWinFormsDesignerData(IVsHierarchy vsHierarchy, uint itemid, IVsTextBuffer? textBuffer, READONLYSTATUS readOnlyStatus, bool initializeView)
+        private (string editorCaption, Guid commandUI, IntPtr documentView) GetEditorData(IVsTextBuffer textBuffer, string physicalView, IVsHierarchy vsHierarchy, uint itemId, bool initializeView)
+        {
+            // If the text buffer is marked as read-only, ensure that the padlock icon is displayed
+            // next the new window's title and that [Read Only] is appended to title.
+            var readOnlyStatus = READONLYSTATUS.ROSTATUS_NotReadOnly;
+            if (ErrorHandler.Succeeded(textBuffer.GetStateFlags(out var textBufferFlags)) &&
+                0 != (textBufferFlags & ((uint)BUFFERSTATEFLAGS.BSF_FILESYS_READONLY | (uint)BUFFERSTATEFLAGS.BSF_USER_READONLY)))
+            {
+                readOnlyStatus = READONLYSTATUS.ROSTATUS_ReadOnly;
+            }
+
+            return physicalView switch
+            {
+                FormPhysicalViewName => GetWinFormsDesignerData(vsHierarchy, itemId, textBuffer, readOnlyStatus, initializeView),
+                CodePhysicalViewName => GetCodeEditorData(textBuffer, readOnlyStatus, initializeView),
+                _ =>  (string.Empty, Guid.Empty, IntPtr.Zero),
+            };
+        }
+
+        private (string editorCaption, Guid commandUI, IntPtr documentView) GetWinFormsDesignerData(IVsHierarchy vsHierarchy, uint itemid, IVsTextBuffer textBuffer, READONLYSTATUS readOnlyStatus, bool initializeView)
         {
             var loaderName = GetWinFormsLoaderName(vsHierarchy);
             var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
@@ -273,20 +227,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return (editorCaption, commandUI, documentView);
             }
-            finally
+            catch
             {
                 designerLoader.Dispose();
+                throw;
             }
         }
 
-        private (string editorCaption, Guid commandUI, IntPtr documentView) GetCodeEditorData(IVsTextBuffer? textBuffer, READONLYSTATUS readOnlyStatus, bool initializeView)
+        private (string editorCaption, Guid commandUI, IntPtr documentView) GetCodeEditorData(IVsTextBuffer textBuffer, READONLYSTATUS readOnlyStatus, bool initializeView)
         {
             var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
             var codeWindow = editorAdaptersFactoryService.CreateVsCodeWindowAdapter(_oleServiceProvider);
 
             if (initializeView)
             {
-                codeWindow.SetBuffer(textBuffer as IVsTextLines);
+                codeWindow.SetBuffer((IVsTextLines)textBuffer);
             }
 
             codeWindow.GetEditorCaption(readOnlyStatus, out var editorCaption);
@@ -310,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
             else if (rguidLogicalView == VSConstants.LOGVIEWID.Designer_guid)
             {
-                pbstrPhysicalView = "Form";
+                pbstrPhysicalView = FormPhysicalViewName;
                 return VSConstants.S_OK;
             }
             else
