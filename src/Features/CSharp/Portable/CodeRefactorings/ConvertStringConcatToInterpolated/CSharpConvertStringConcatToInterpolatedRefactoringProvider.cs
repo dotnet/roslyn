@@ -99,21 +99,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
 
         private static async Task<Document> UpdateDocumentAsync(Document document, BinaryExpressionSyntax binaryExpression, ImmutableArray<ExpressionSyntax> concatParts, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var interpolatedStringContent = ConvertConcatPartsToInterpolatedStringContent(concatParts);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
-            var interpolatedContent = List(concatParts.Select<ExpressionSyntax, InterpolatedStringContentSyntax>(expr => expr switch
-            {
-                var expression when IsStringLiteralExpression(expression, out var literal)
-                    => InterpolatedStringText(StringLiteralTokenToInterpolatedStringTextToken(literal.Token)),
-                // ToDo: Handle expr is interpolated string
-                _ => Interpolation(expr.WithoutTrivia()) // ToDo: Use ParenthesizedExpressionSyntaxExtensions.CanRemoveParentheses to remove any superfluous paranthesis
-            }));
             var interpolated = InterpolatedStringExpression(
                 Token(SyntaxKind.InterpolatedStringStartToken),
-                interpolatedContent);
+                List(interpolatedStringContent));
             editor.ReplaceNode(binaryExpression, interpolated);
+
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 

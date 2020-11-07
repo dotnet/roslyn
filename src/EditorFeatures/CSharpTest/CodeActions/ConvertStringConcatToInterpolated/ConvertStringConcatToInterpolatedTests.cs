@@ -117,5 +117,38 @@ class Program
                 OffersEmptyRefactoring = false,
             }.RunAsync();
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertStringConcatToInterpolated)]
+        [InlineData(@"""a"" [|+|] ""b"" + (true ? ""t"" : ""f"")",
+                   @"$""ab{(true ? ""t"" : ""f"")}""")]
+        [InlineData(@"""a"" [|+|] ""b"" + ""c"" + (true ? ""t"" : ""f"")",
+                   @"$""abc{(true ? ""t"" : ""f"")}""")]
+        [InlineData(@"""a"" [|+|] ""b"" + @""c"" + (true ? ""t"" : ""f"")",
+                   @"$""ab{@""c""}{(true ? ""t"" : ""f"")}""")]
+        public async Task ContiguousStringLiteralsAreMerged(string before, string after)
+        {
+            var initialMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = {before};
+    }}
+}}";
+            var expectedMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = {after};
+    }}
+}}";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
+            }.RunAsync();
+        }
     }
 }
