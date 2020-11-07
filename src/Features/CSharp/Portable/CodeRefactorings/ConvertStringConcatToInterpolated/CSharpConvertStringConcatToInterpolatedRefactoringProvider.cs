@@ -49,13 +49,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
                 {
                     binaryExpression = parent;
                 }
-                var sematicModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (IsStringConcatenation(sematicModel, binaryExpression, cancellationToken))
+                var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                if (IsStringConcatenation(semanticModel, binaryExpression, cancellationToken))
                 {
-                    context.RegisterRefactoring(new MyCodeAction(
-                        title: "TODO",
-                        c => UpdateDocumentAsync(document, binaryExpression, c)),
-                        binaryExpression.Span);
+                    using var _ = ArrayBuilder<ExpressionSyntax>.GetInstance(out var builder);
+                    WalkBinaryExpression(semanticModel, builder, binaryExpression, cancellationToken);
+                    var concatParts = builder.ToImmutable();
+                    // Is there any expression besides string literals?
+                    if (concatParts.Any(expr => expr is not LiteralExpressionSyntax { RawKind: (int)SyntaxKind.StringLiteralExpression }))
+                    {
+                        context.RegisterRefactoring(new MyCodeAction(
+                            title: "TODO",
+                            c => UpdateDocumentAsync(document, binaryExpression, concatParts, c)),
+                            binaryExpression.Span);
+                    }
                 }
             }
         }
@@ -90,17 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
             }
         }
 
-        private static async Task<Document> UpdateDocumentAsync(Document document, BinaryExpressionSyntax binaryExpression, CancellationToken cancellationToken)
+        private static async Task<Document> UpdateDocumentAsync(Document document, BinaryExpressionSyntax binaryExpression, ImmutableArray<ExpressionSyntax> concatParts, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<ExpressionSyntax>.GetInstance(out var builder);
-            WalkBinaryExpression(semanticModel, builder, binaryExpression, cancellationToken);
-            MergeContiguousStringLiterals(builder);
-            var concatExpressions = builder.ToImmutable();
-
+            var interpolatedStringContent = ConvertConcatPartsToInterpolatedStringContent(concatParts);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
-            var interpolatedContent = List(concatExpressions.Select<ExpressionSyntax, InterpolatedStringContentSyntax>(expr => expr switch
+            var interpolatedContent = List(concatParts.Select<ExpressionSyntax, InterpolatedStringContentSyntax>(expr => expr switch
             {
                 var expression when IsStringLiteralExpression(expression, out var literal)
                     => InterpolatedStringText(StringLiteralTokenToInterpolatedStringTextToken(literal.Token)),
@@ -114,26 +117,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private static void MergeContiguousStringLiterals(ArrayBuilder<ExpressionSyntax> builder)
+        private static IEnumerable<InterpolatedStringContentSyntax> ConvertConcatPartsToInterpolatedStringContent(ImmutableArray<ExpressionSyntax> concatParts)
         {
-            ExpressionSyntax? lastElement = null;
-            var i = 0;
-            while (i < builder.Count)
+            var result = new List<InterpolatedStringContentSyntax>(concatParts.Length);
+            foreach (var part in concatParts)
             {
-                if (IsStringLiteralExpression(lastElement, out var literal1) &&
-                    IsStringLiteralExpression(builder[i], out var literal2))
+                switch (part)
                 {
-                    var valueText = $"{literal1.Token.ValueText}{literal2.Token.ValueText}";
-                    builder[i] = LiteralExpression(SyntaxKind.StringLiteralExpression, Token(TriviaList(), SyntaxKind.StringLiteralToken, $"\"{valueText}\"", valueText, TriviaList()));
-                    lastElement = builder[i];
-                    builder.RemoveAt(i - 1);
-                }
-                else
-                {
-                    lastElement = builder[i];
-                    i++;
+                    case var expression when IsStringLiteralExpression(expression, out var literal):
+                        if (result.LastOrDefault() is InterpolatedStringTextSyntax text)
+                        {
+                            var newText = text.TextToken.ValueText + literal.Token.ValueText;
+                            result[^1] = InterpolatedStringText(Token(TriviaList(), SyntaxKind.InterpolatedStringTextToken, newText, newText, TriviaList()));
+                        }
+                        else
+                        {
+                            result.Add(InterpolatedStringText(StringLiteralTokenToInterpolatedStringTextToken(literal.Token)));
+                        }
+                        break;
+                    case InterpolatedStringExpressionSyntax interpolated:
+                        // TODO: inline content
+                        result.Add(Interpolation(interpolated.WithoutTrivia()));
+                        break;
+                    default:
+                        result.Add(Interpolation(part.WithoutTrivia()));
+                        break;
                 }
             }
+
+            return result;
         }
 
         private static SyntaxToken StringLiteralTokenToInterpolatedStringTextToken(SyntaxToken stringLiteralToken)
