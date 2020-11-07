@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 rules: rules,
                 contextPosition: context.Position,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbols[0], displayText, context),
+                filterText: GetFilterText(symbol, displayText, context),
                 supportedPlatforms: supportedPlatformData);
 
             if (symbol.IsKind(SymbolKind.Method)
