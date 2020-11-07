@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
                     binaryExpression = parent;
                 }
                 var sematicModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (IsStringConcatination(sematicModel, binaryExpression, cancellationToken))
+                if (IsStringConcatenation(sematicModel, binaryExpression, cancellationToken))
                 {
                     context.RegisterRefactoring(new MyCodeAction(
                         title: "TODO",
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
             }
         }
 
-        private static bool IsStringConcatination(SemanticModel semanticModel, BinaryExpressionSyntax binaryExpression, CancellationToken cancellationToken)
+        private static bool IsStringConcatenation(SemanticModel semanticModel, BinaryExpressionSyntax binaryExpression, CancellationToken cancellationToken)
         {
             var operation = semanticModel.GetOperation(binaryExpression, cancellationToken);
             if (operation is IBinaryOperation binaryOperation)
@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
 
         private static void WalkBinaryExpression(SemanticModel semanticModel, ArrayBuilder<ExpressionSyntax> arrayBuilder, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
-            if (expression is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.AddExpression } potentialStringConcatination &&
-                IsStringConcatination(semanticModel, potentialStringConcatination, cancellationToken))
+            if (expression is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.AddExpression } potentialStringConcatenation &&
+                IsStringConcatenation(semanticModel, potentialStringConcatenation, cancellationToken))
             {
-                WalkBinaryExpression(semanticModel, arrayBuilder, potentialStringConcatination, cancellationToken);
+                WalkBinaryExpression(semanticModel, arrayBuilder, potentialStringConcatenation, cancellationToken);
             }
             else
             {

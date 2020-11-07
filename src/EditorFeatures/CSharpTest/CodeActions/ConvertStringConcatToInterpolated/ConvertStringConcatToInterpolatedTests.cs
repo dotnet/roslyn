@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertStri
     public class ConvertStringConcatToInterpolatedTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertStringConcatToInterpolated)]
-        public async Task IfExpressionAndConcatedTextAreRefactoredToInterpolated()
+        public async Task IfExpressionAndConcatenatedTextAreRefactoredToInterpolated()
         {
             const string InitialMarkup = @"
 class Program
@@ -43,7 +43,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertStringConcatToInterpolated)]
-        public async Task IfExpressionSurroundedByConcatedTextAreRefactoredToInterpolated()
+        public async Task IfExpressionSurroundedByConcatenatedTextAreRefactoredToInterpolated()
         {
             const string InitialMarkup = @"
 class Program
@@ -70,7 +70,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertStringConcatToInterpolated)]
-        public async Task TwoIfExpressionSurroundedByConcatedTextAreRefactoredToInterpolated()
+        public async Task TwoIfExpressionSurroundedByConcatenatedTextAreRefactoredToInterpolated()
         {
             const string InitialMarkup = @"
 class Program
@@ -93,6 +93,28 @@ class Program
                 TestCode = InitialMarkup,
                 FixedCode = ExpectedMarkup,
                 CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
+            }.RunAsync();
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertStringConcatToInterpolated)]
+        [InlineData(@"""a"" [|+|] ""b""")]
+        [InlineData(@"""a"" [|+|] @""b""")]
+        [InlineData(@"""a"" [|+|] @""b"" + ""c""")]
+        public async Task DontOfferIfOnlyStringLiteralsAreConcatenated(string concatenations)
+        {
+            var initialMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = {concatenations};
+    }}
+}}";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
+                OffersEmptyRefactoring = false,
             }.RunAsync();
         }
     }
