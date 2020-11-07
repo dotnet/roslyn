@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public const string Feature = nameof(Feature);
         public static class Features
         {
+            public const string CodeActionsConvertStringConcatToInterpolated = "CodeActions.ConvertStringConcatToInterpolated";
             public const string AddAwait = "Refactoring.AddAwait";
             public const string AddMissingImports = "Refactoring.AddMissingImports";
             public const string AddMissingReference = nameof(AddMissingReference);
@@ -70,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertLocalFunctionToMethod = "CodeActions.ConvertLocalFunctionToMethod";
             public const string CodeActionsConvertNumericLiteral = "CodeActions.ConvertNumericLiteral";
             public const string CodeActionsConvertQueryToForEach = "CodeActions.ConvertQueryToForEach";
-            public const string CodeActionsConvertStringConcatToInterpolated = "CodeActions.ConvertStringConcatToInterpolated";
             public const string CodeActionsConvertSwitchStatementToExpression = "CodeActions.ConvertSwitchStatementToExpression";
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
