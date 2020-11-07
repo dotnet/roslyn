@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private static readonly GetWriteValue getWriteValueForLeftSideOfAssignment =
                 (replacer, parent) =>
                 {
-                    return (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent);
+                    return (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent)!;
                 };
 
             private static readonly GetWriteValue getWriteValueForIncrementOrDecrement =

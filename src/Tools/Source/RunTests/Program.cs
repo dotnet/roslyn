@@ -354,7 +354,7 @@ namespace RunTests
 
                 if (open)
                 {
-                    ProcessRunner.OpenFile(cur.ResultsFilePath);
+                    ProcessRunner.OpenFile(cur.ResultsDisplayFilePath);
                 }
             }
         }

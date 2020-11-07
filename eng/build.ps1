@@ -374,6 +374,9 @@ function TestUsingRunTests() {
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
   }
+  else {
+    $args += " --html"
+  }
 
   if ($collectDumps) {
     $procdumpFilePath = Ensure-ProcDump

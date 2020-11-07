@@ -200,9 +200,12 @@ namespace RunTests
                 Logger.Log($"Command line {assemblyInfo.DisplayName}: {Options.DotnetFilePath} {commandLineArguments}");
                 var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
+
+                var htmlResultsFilePath = Options.IncludeHtml ? GetResultsFilePath(assemblyInfo, "html") : null;
                 var testResultInfo = new TestResultInfo(
                     exitCode: xunitProcessResult.ExitCode,
                     resultsFilePath: resultsFilePath,
+                    htmlResultsFilePath: htmlResultsFilePath,
                     elapsed: span,
                     standardOutput: standardOutput,
                     errorOutput: errorOutput);

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
@@ -163,19 +164,20 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.WorkspaceSymbolName)]
-    internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandler, ILspRequestHandler<WorkspaceSymbolParams, SymbolInformation[], Solution>
+    internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandler, ILspRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?, Solution>
     {
         private readonly ILspSolutionProvider _solutionProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptWorkspaceSymbolsHandlerShim(ILspSolutionProvider solutionProvider)
+        public TypeScriptWorkspaceSymbolsHandlerShim(ILspSolutionProvider solutionProvider, IAsynchronousOperationListenerProvider listenerProvider)
+            : base(listenerProvider)
         {
             _solutionProvider = solutionProvider;
         }
 
         [JsonRpcMethod(UseSingleObjectParameterDeserialization = true)]
-        public Task<SymbolInformation[]> HandleAsync(WorkspaceSymbolParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public Task<SymbolInformation[]?> HandleAsync(WorkspaceSymbolParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var context = this.CreateRequestContext(request, _solutionProvider, requestContext.GetClientCapabilities());
             return base.HandleRequestAsync(request, context, cancellationToken);
@@ -191,9 +193,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var textDocument = requestHandler.GetTextDocumentIdentifier(request);
 
-            var (document, solution) = provider.GetDocumentAndSolution(textDocument, clientName);
+            var (documentId, solution) = provider.GetDocumentAndSolution(textDocument, clientName);
+            var document = solution.GetDocument(documentId);
 
-            return new LSP.RequestContext(solution, clientCapabilities, clientName, document, solutionUpdater: null);
+            return new LSP.RequestContext(solution, clientCapabilities, clientName, document, documentChangeTracker: null);
         }
     }
 }

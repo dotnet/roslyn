@@ -26,47 +26,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif 
         : Cci.IReference
     {
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
 
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => AdaptedSymbol;
+
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
+        {
+            return AdaptedSymbol.GetCustomAttributesToEmit((PEModuleBuilder)context.Module);
+        }
+    }
+
+    internal partial class Symbol
+    {
 #if DEBUG
-        internal abstract Symbol AdaptedSymbol { get; }
-
-        public sealed override string ToString()
-        {
-            return AdaptedSymbol.ToString();
-        }
-
-        public sealed override bool Equals(object obj)
-        {
-            // It is not supported to rely on default equality of these CCi objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
-        }
-
-        public sealed override int GetHashCode()
-        {
-            // It is not supported to rely on default equality of these CCi objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
-        }
-
-        [Conditional("DEBUG")]
-        protected internal void CheckDefinitionInvariant() => AdaptedSymbol.CheckDefinitionInvariant();
-
-        internal bool IsDefinitionOrDistinct()
-        {
-            return AdaptedSymbol.IsDefinitionOrDistinct();
-        }
+        internal SymbolAdapter GetCciAdapter() => GetCciAdapterImpl();
+        protected virtual SymbolAdapter GetCciAdapterImpl() => throw ExceptionUtilities.Unreachable;
 #else
         internal Symbol AdaptedSymbol => this;
         internal Symbol GetCciAdapter() => this;
-#endif
+#endif 
 
-#if DEBUG
-    }
-
-    internal abstract partial class Symbol
-    {
-        internal SymbolAdapter GetCciAdapter() => GetCciAdapterImpl();
-        protected virtual SymbolAdapter GetCciAdapterImpl() => throw ExceptionUtilities.Unreachable;
-#endif
         /// <summary>
         /// Checks if this symbol is a definition and its containing module is a SourceModuleSymbol.
         /// </summary>
@@ -83,30 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         Cci.IReference CodeAnalysis.Symbols.ISymbolInternal.GetCciAdapter() => GetCciAdapter();
-#if DEBUG
-    }
 
-    internal partial class SymbolAdapter
-    {
-#endif
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => AdaptedSymbol;
-
-        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-#if DEBUG
-    }
-
-    internal abstract partial class Symbol
-    {
-#endif
         /// <summary>
         /// Return whether the symbol is either the original definition
         /// or distinct from the original. Intended for use in Debug.Assert
@@ -116,23 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.IsDefinition || !this.Equals(this.OriginalDefinition, SymbolEqualityComparer.ConsiderEverything.CompareKind);
         }
-#if DEBUG
-    }
 
-    internal partial class SymbolAdapter
-    {
-#endif
-
-        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
-        {
-            return AdaptedSymbol.GetCustomAttributesToEmit((PEModuleBuilder)context.Module);
-        }
-#if DEBUG
-    }
-
-    internal abstract partial class Symbol
-    {
-#endif
         internal virtual IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             CheckDefinitionInvariant();
@@ -218,4 +166,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
     }
+
+#if DEBUG
+    internal partial class SymbolAdapter
+    {
+        internal abstract Symbol AdaptedSymbol { get; }
+
+        public sealed override string ToString()
+        {
+            return AdaptedSymbol.ToString();
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        [Conditional("DEBUG")]
+        protected internal void CheckDefinitionInvariant() => AdaptedSymbol.CheckDefinitionInvariant();
+
+        internal bool IsDefinitionOrDistinct()
+        {
+            return AdaptedSymbol.IsDefinitionOrDistinct();
+        }
+    }
+#endif
 }

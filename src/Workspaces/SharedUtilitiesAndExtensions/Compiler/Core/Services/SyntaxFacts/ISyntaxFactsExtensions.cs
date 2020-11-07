@@ -174,13 +174,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => syntaxFacts.IsAnonymousFunction(node) ||
                syntaxFacts.IsLocalFunctionStatement(node);
 
-        public static SyntaxNode GetExpressionOfElementAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        public static SyntaxNode? GetExpressionOfElementAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out _);
             return expression;
         }
 
-        public static SyntaxNode GetArgumentListOfElementAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        public static SyntaxNode? GetArgumentListOfElementAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfElementAccessExpression(node, out _, out var argumentList);
             return argumentList;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// <summary>
         /// Checks if the position is on the header of a type (from the start of the type up through it's name).
         /// </summary>
-        public static bool IsOnTypeHeader(this ISyntaxFacts syntaxFacts, SyntaxNode root, int position, out SyntaxNode typeDeclaration)
+        public static bool IsOnTypeHeader(this ISyntaxFacts syntaxFacts, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
             => syntaxFacts.IsOnTypeHeader(root, position, fullHeader: false, out typeDeclaration);
 
         /// <summary>
