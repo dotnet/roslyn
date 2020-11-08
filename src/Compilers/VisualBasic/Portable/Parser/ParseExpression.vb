@@ -1531,13 +1531,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 End If
 
-                Dim comma As PunctuationSyntax = Nothing
-                TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma)
-                Debug.Assert(comma.Kind = SyntaxKind.CommaToken)
-
                 arguments.Add(namedArgument)
-                arguments.AddSeparator(comma)
-            Loop
+            Loop While TryParseCommaInto(arguments)
         End Sub
 
         ' File: Parser.cpp
@@ -1554,10 +1549,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             If RedimOrNewParent AndAlso CurrentToken.Kind = SyntaxKind.ToKeyword Then
-                Dim toKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
+                Dim toKeyword As KeywordSyntax = ParseKeyword()
                 Dim lowerBound As ExpressionSyntax = value
 
-                GetNextToken() ' consume tkTO
                 value = ParseExpressionCore(OperatorPrecedence.PrecedenceNone)
 
                 ' Check that lower bound is equal to 0 moved to binder.
@@ -1585,9 +1579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim keyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             Dim keywordKind As SyntaxKind = keyword.Kind
 
-            Debug.Assert(keywordKind = SyntaxKind.CTypeKeyword OrElse
-                    keywordKind = SyntaxKind.DirectCastKeyword OrElse
-                    keywordKind = SyntaxKind.TryCastKeyword,
+            Debug.Assert(keywordKind.IsIn(SyntaxKind.CTypeKeyword, SyntaxKind.DirectCastKeyword, SyntaxKind.TryCastKeyword),
                     "Expected CTYPE or DIRECTCAST or TRYCAST token.")
 
             GetNextToken()
@@ -1656,13 +1648,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 _isInIteratorMethodDeclarationHeader = False
             End If
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.FunctionKeyword OrElse
-                         CurrentToken.Kind = SyntaxKind.SubKeyword,
-                         "ParseFunctionLambda called on wrong token.")
+            Debug.Assert(CurrentToken.Kind.IsIn(SyntaxKind.FunctionKeyword, SyntaxKind.SubKeyword),
+                         NameOf(ParseFunctionOrSubLambdaHeader).CalledOnWrongToken)
+
             ' The current token is on the function or delegate's name
 
-            Dim methodKeyword = DirectCast(CurrentToken, KeywordSyntax)
-            GetNextToken()
+            Dim methodKeyword = ParseKeyword()
 
             Dim genericParams As TypeParameterListSyntax = Nothing
             Dim openParen As PunctuationSyntax = Nothing
@@ -1698,9 +1689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Parse the as clause if one exists even if this is a sub. This aids in error recovery situations. Otherwise,
             ' Sub () as integer 
             ' becomes a single line sub lambda.
-            If CurrentToken.Kind = SyntaxKind.AsKeyword Then
-                asKeyword = DirectCast(CurrentToken, KeywordSyntax)
-                GetNextToken()
+            If TryParseKeyword(SyntaxKind.AsKeyword, asKeyword) Then
 
                 If CurrentToken.Kind = SyntaxKind.LessThanToken Then
                     returnTypeAttributes = ParseAttributeLists(False)
@@ -1871,18 +1860,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Do
                 variables.Add(ParseVariable())
 
-                Dim comma As PunctuationSyntax = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
+            Loop While TryParseCommaInto(variables)
 
-                variables.AddSeparator(comma)
-            Loop
-
-            Dim result = variables.ToList
-            Me._pool.Free(variables)
-
-            Return result
+            Return variables.ToListAndFree(_pool)
         End Function
 
         Private Function ParseAwaitExpression(Optional awaitKeyword As KeywordSyntax = Nothing) As AwaitExpressionSyntax

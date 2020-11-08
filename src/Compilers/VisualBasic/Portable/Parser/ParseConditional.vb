@@ -21,8 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Function ParseConditionalCompilationStatement() As DirectiveTriviaSyntax
             ' # may be actually scanned as a date literal. This is an error.
-            If CurrentToken.Kind = SyntaxKind.DateLiteralToken OrElse
-                CurrentToken.Kind = SyntaxKind.BadToken Then
+            If CurrentToken.Kind.IsIn(SyntaxKind.DateLiteralToken, SyntaxKind.BadToken) Then
 
                 Dim missingHash = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.HashToken)
                 missingHash = missingHash.AddLeadingSyntax(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(CurrentToken))
@@ -110,10 +109,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseElseDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.ElseKeyword)
-
-            Dim elseKeyword = DirectCast(CurrentToken, KeywordSyntax)
-            GetNextToken()
+            Dim elseKeyword As KeywordSyntax = Nothing
+            Contract_ExpectingKeyword(SyntaxKind.ElseKeyword, elseKeyword)
 
             If CurrentToken.Kind <> SyntaxKind.IfKeyword Then
 
@@ -166,18 +163,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseEndDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EndKeyword)
-
-            Dim endKeyword = DirectCast(CurrentToken, KeywordSyntax)
-            GetNextToken()
+            Dim endKeyword As KeywordSyntax = Nothing
+            Contract_ExpectingKeyword(SyntaxKind.EndKeyword, endKeyword)
 
             Dim statement As DirectiveTriviaSyntax = Nothing
 
-            If CurrentToken.Kind = SyntaxKind.IfKeyword Then
-
-                Dim ifKeyword = DirectCast(CurrentToken, KeywordSyntax)
-                GetNextToken()
-
+            Dim ifKeyword As KeywordSyntax = Nothing
+            If TryParseKeyword(SyntaxKind.IfKeyword, ifKeyword) Then
                 statement = SyntaxFactory.EndIfDirectiveTrivia(hashToken, endKeyword, ifKeyword)
 
             ElseIf CurrentToken.Kind = SyntaxKind.IdentifierToken Then
@@ -208,10 +200,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseAnachronisticEndIfDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EndIfKeyword)
-
-            Dim endIfKeyword = DirectCast(CurrentToken, KeywordSyntax)
-            GetNextToken()
+            Dim endIfKeyword As KeywordSyntax = Nothing
+            Contract_ExpectingKeyword(SyntaxKind.EndIfKeyword, endIfKeyword)
 
             Dim endKeyword = InternalSyntaxFactory.MissingKeyword(SyntaxKind.EndKeyword)
             endKeyword = endKeyword.AddLeadingSyntax(endIfKeyword, ERRID.ERR_ObsoleteEndIf)
@@ -223,10 +213,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseConstDirective(hashToken As PunctuationSyntax) As ConstDirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.ConstKeyword)
-
-            Dim constKeyword = DirectCast(CurrentToken, KeywordSyntax)
-            GetNextToken()
+            Dim constKeyword As KeywordSyntax = Nothing
+            Contract_ExpectingKeyword(SyntaxKind.ConstKeyword, constKeyword)
 
             Dim Name = ParseIdentifier()
 
@@ -254,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseRegionDirective(hashToken As PunctuationSyntax) As RegionDirectiveTriviaSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind = SyntaxKind.RegionKeyword,
-                         NameOf(ParseRegionDirective) & " called with wrong token.")
+                         NameOf(ParseRegionDirective).CalledOnWrongToken)
 
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
             GetNextToken()
@@ -268,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseExternalSourceDirective(hashToken As PunctuationSyntax) As ExternalSourceDirectiveTriviaSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind = SyntaxKind.ExternalSourceKeyword,
-                         NameOf(ParseExternalSourceDirective) & " called with wrong token")
+                         NameOf(ParseExternalSourceDirective).CalledOnWrongToken)
 
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
             Dim externalSourceKeyword = _scanner.MakeKeyword(identifier)
@@ -315,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseExternalChecksumDirective(hashToken As PunctuationSyntax) As ExternalChecksumDirectiveTriviaSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind = SyntaxKind.ExternalChecksumKeyword,
-                          NameOf(ParseExternalChecksumDirective) & " called with wrong token")
+                          NameOf(ParseExternalChecksumDirective).CalledOnWrongToken)
 
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
             Dim externalChecksumKeyword = _scanner.MakeKeyword(identifier)
@@ -447,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseReferenceDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind = SyntaxKind.ReferenceKeyword,
-                         NameOf(ParseReferenceDirective) & " called with wrong token.")
+                         NameOf(ParseReferenceDirective).CalledOnWrongToken)
 
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
             GetNextToken()

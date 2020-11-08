@@ -8,10 +8,10 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Partial Friend Class Parser
+
         ' File: Parser.cpp
         ' Lines: 14199 - 14199
         ' Initializer* .Parser::ParseSelectListInitializer( [ _Inout_ bool& ErrorInConstruct ] )
-
         Private Function ParseSelectListInitializer() As ExpressionRangeVariableSyntax
 
             Dim nameEqualsOpt As VariableNameEqualsSyntax = Nothing
@@ -38,51 +38,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim expr As ExpressionSyntax = ParseExpressionCore()
 
-            Return SyntaxFactory.ExpressionRangeVariable(
-                nameEqualsOpt,
-                expr)
+            Return SyntaxFactory.ExpressionRangeVariable(nameEqualsOpt, expr)
         End Function
 
         ' File: Parser.cpp
         ' Lines: 14290 - 14290
         ' InitializerList* .Parser::ParseSelectList( [ _Inout_ bool& ErrorInConstruct ] )
-
         Private Function ParseSelectList() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
 
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
 
             Do
                 Dim rangeVar = ParseSelectListInitializer()
 
                 If rangeVar.ContainsDiagnostics Then
-                    rangeVar = ResyncAt(rangeVar, SyntaxKind.CommaToken, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
-                                                 SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
-                                                 SyntaxKind.FromKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword,
-                                                 SyntaxKind.IntoKeyword, SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
+                    rangeVar = ResyncAt(rangeVar,
+                                        SyntaxKind.CommaToken, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
+                                        SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
+                                        SyntaxKind.FromKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword,
+                                        SyntaxKind.IntoKeyword, SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
                 End If
 
                 RangeVariables.Add(rangeVar)
 
-                If CurrentToken.Kind = SyntaxKind.CommaToken Then
-                    Dim comma = DirectCast(CurrentToken, PunctuationSyntax)
-                    GetNextToken()
-                    TryEatNewLine()
-                    RangeVariables.AddSeparator(comma)
-                Else
-                    Exit Do
-                End If
-            Loop
+            Loop While TryParseCommaInto(RangeVariables)
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
-            Return result
+            Return RangeVariables.ToListAndFree(_pool)
         End Function
 
         ' File: Parser.cpp
         ' Lines: 14333 - 14333
         ' Expression* .Parser::ParseAggregationExpression( [ _Inout_ bool& ErrorInConstruct ] )
-
+        '
         Private Function ParseAggregationExpression() As AggregationSyntax
 
             If CurrentToken.Kind = SyntaxKind.IdentifierToken Then
@@ -132,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' // check that expression doesn't continue
         ' File: Parser.cpp
         ' Lines: 14420 - 14420
-
+        '
         ' bool .Parser::CheckForEndOfExpression( [ Token* Start ] [ bool& ErrorInConstruct ] )
         Private Function CheckForEndOfExpression(Of T As VisualBasicSyntaxNode)(ByRef syntax As T) As Boolean
             Debug.Assert(syntax IsNot Nothing)
@@ -168,7 +155,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 14447 - 14447
         ' Initializer* .Parser::ParseAggregateListInitializer( [ bool AllowGroupName ] [ _Inout_ bool& ErrorInConstruct ] )
-
         Private Function ParseAggregateListInitializer(AllowGroupName As Boolean) As AggregationRangeVariableSyntax
 
             Dim varName As ModifiedIdentifierSyntax = Nothing
@@ -225,9 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 variableNameEquals = SyntaxFactory.VariableNameEquals(varName, Nothing, Equals)
             End If
 
-            Return SyntaxFactory.AggregationRangeVariable(
-                variableNameEquals,
-                expr)
+            Return SyntaxFactory.AggregationRangeVariable(variableNameEquals, expr)
         End Function
 
         ' File: Parser.cpp
@@ -237,53 +221,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             AllowGroupName As Boolean,
             IsGroupJoinProjection As Boolean) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
 
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
 
             Do
                 Dim rangeVar = ParseAggregateListInitializer(AllowGroupName)
 
                 If rangeVar.ContainsDiagnostics Then
                     If IsGroupJoinProjection Then
-                        rangeVar = ResyncAt(rangeVar, SyntaxKind.CommaToken, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
-                                 SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
-                                 SyntaxKind.FromKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword,
-                                 SyntaxKind.IntoKeyword, SyntaxKind.OnKeyword, SyntaxKind.SkipKeyword,
-                                 SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
+                        rangeVar = ResyncAt(rangeVar,
+                                            SyntaxKind.CommaToken, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
+                                            SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
+                                            SyntaxKind.FromKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword,
+                                            SyntaxKind.IntoKeyword, SyntaxKind.OnKeyword, SyntaxKind.SkipKeyword,
+                                            SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
                     Else
-                        rangeVar = ResyncAt(rangeVar, SyntaxKind.CommaToken, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
-                                 SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
-                                 SyntaxKind.FromKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword,
-                                 SyntaxKind.IntoKeyword, SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword,
-                                 SyntaxKind.LetKeyword)
+                        rangeVar = ResyncAt(rangeVar,
+                                            SyntaxKind.CommaToken, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
+                                            SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
+                                            SyntaxKind.FromKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword,
+                                            SyntaxKind.IntoKeyword, SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword,
+                                            SyntaxKind.LetKeyword)
                     End If
                 End If
 
                 RangeVariables.Add(rangeVar)
 
-                If CurrentToken.Kind = SyntaxKind.CommaToken Then
-                    Dim comma = DirectCast(CurrentToken, PunctuationSyntax)
-                    GetNextToken()
-                    TryEatNewLine()
-                    RangeVariables.AddSeparator(comma)
-                Else
-                    Exit Do
-                End If
-            Loop
+            Loop While TryParseCommaInto(RangeVariables)
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
-            Return result
+            Return RangeVariables.ToListAndFree(_pool)
         End Function
 
         ' File: Parser.cpp
         ' Lines: 14666 - 14666
         ' FromList* .Parser::ParseFromList( [ bool AssignmentList ] [ _Inout_ bool& ErrorInConstruct ] )
-
+        '
         ' TODO: Merge with ParseFromControlVars. The two methods are almost identical.
         Private Function ParseLetList() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
 
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
 
             Do
                 Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifier()
@@ -295,23 +270,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' // decide how to recover.
 
                     Dim peek = PeekAheadFor(SyntaxKind.AsKeyword, SyntaxKind.InKeyword, SyntaxKind.CommaToken,
-                        SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
-                        SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
-                        SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
-                        SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
+                                            SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
+                                            SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
+                                            SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
+                                            SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
 
                     Select Case (peek)
                         Case SyntaxKind.AsKeyword,
-                            SyntaxKind.InKeyword,
-                            SyntaxKind.CommaToken
+                             SyntaxKind.InKeyword,
+                             SyntaxKind.CommaToken
 
                             varName = varName.AddTrailingSyntax(ResyncAt({peek}))
                     End Select
                 End If
 
                 If CurrentToken.Kind = SyntaxKind.QuestionToken AndAlso
-                    (PeekToken(1).Kind = SyntaxKind.InKeyword OrElse
-                      PeekToken(1).Kind = SyntaxKind.EqualsToken) Then
+                   PeekToken(1).Kind.IsIn(SyntaxKind.InKeyword, SyntaxKind.EqualsToken) Then
 
                     Dim unexpectedNullable As SyntaxToken = CurrentToken
                     varName = varName.AddTrailingSyntax(ReportSyntaxError(unexpectedNullable, ERRID.ERR_NullableTypeInferenceNotSupported))
@@ -346,8 +320,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                 SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
                         Select Case (peek)
                             Case SyntaxKind.AsKeyword,
-                                SyntaxKind.InKeyword,
-                                SyntaxKind.CommaToken
+                                 SyntaxKind.InKeyword,
+                                 SyntaxKind.CommaToken
 
                                 AsClause = AsClause.AddTrailingSyntax(ResyncAt({peek}))
                         End Select
@@ -371,11 +345,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' Fix up source
                     source = If(source, InternalSyntaxFactory.MissingExpression)
 
-                    Dim peek = PeekAheadFor(SyntaxKind.CommaToken,
-                                            SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
-                                            SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
-                                            SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
-                                            SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
+                    Dim peek = PeekAheadFor(SyntaxKind.CommaToken, SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword,
+                                            SyntaxKind.GroupKeyword, SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword,
+                                            SyntaxKind.JoinKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword,
+                                            SyntaxKind.IntoKeyword, SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword,
+                                            SyntaxKind.LetKeyword)
 
                     If peek = SyntaxKind.CommaToken Then
                         source = source.AddTrailingSyntax(ResyncAt({peek}))
@@ -383,28 +357,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 Dim rangeVar = SyntaxFactory.ExpressionRangeVariable(
-                    SyntaxFactory.VariableNameEquals(varName, AsClause, Equals),
-                    source)
+                                 SyntaxFactory.VariableNameEquals(varName, AsClause, Equals),
+                                 source)
 
                 RangeVariables.Add(rangeVar)
 
-                ' // check for list continuation
-                Dim comma As PunctuationSyntax = Nothing
-                If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    RangeVariables.AddSeparator(comma)
-                Else
-                    Exit Do
-                End If
-            Loop
+            Loop While TryParseCommaInto(RangeVariables)
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
-            Return result
+            Return RangeVariables.ToListAndFree(_pool)
         End Function
 
         Private Function ParseFromControlVars() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of CollectionRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of CollectionRangeVariableSyntax)()
 
             Do
                 Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifier()
@@ -423,16 +387,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Select Case (peek)
                         Case SyntaxKind.AsKeyword,
-                            SyntaxKind.InKeyword,
-                            SyntaxKind.CommaToken
+                             SyntaxKind.InKeyword,
+                             SyntaxKind.CommaToken
 
                             varName = varName.AddTrailingSyntax(ResyncAt({peek}))
                     End Select
                 End If
 
                 If CurrentToken.Kind = SyntaxKind.QuestionToken AndAlso
-                    (PeekToken(1).Kind = SyntaxKind.InKeyword OrElse
-                      PeekToken(1).Kind = SyntaxKind.EqualsToken) Then
+                   PeekToken(1).Kind.IsIn(SyntaxKind.InKeyword, SyntaxKind.EqualsToken) Then
 
                     Dim unexpectedNullable As SyntaxToken = CurrentToken
                     varName = varName.AddTrailingSyntax(ReportSyntaxError(unexpectedNullable, ERRID.ERR_NullableTypeInferenceNotSupported))
@@ -468,8 +431,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         Select Case (peek)
                             Case SyntaxKind.AsKeyword,
-                                SyntaxKind.InKeyword,
-                                SyntaxKind.CommaToken
+                                 SyntaxKind.InKeyword,
+                                 SyntaxKind.CommaToken
 
                                 AsClause = AsClause.AddTrailingSyntax(ResyncAt({peek}))
                         End Select
@@ -491,11 +454,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     source = If(source, InternalSyntaxFactory.MissingExpression)
 
                     ' resync
-                    Dim peek = PeekAheadFor(SyntaxKind.CommaToken,
-                                            SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
-                                            SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
-                                            SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
-                                            SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
+                    Dim peek = PeekAheadFor(SyntaxKind.CommaToken, SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword,
+                                            SyntaxKind.GroupKeyword, SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword,
+                                            SyntaxKind.JoinKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword,
+                                            SyntaxKind.IntoKeyword, SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword,
+                                            SyntaxKind.LetKeyword)
 
                     If peek = SyntaxKind.CommaToken Then
                         source = source.AddTrailingSyntax(ResyncAt({peek}))
@@ -505,19 +468,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim rangeVar = SyntaxFactory.CollectionRangeVariable(varName, AsClause, [In], source)
                 RangeVariables.Add(rangeVar)
 
-                ' // check for list continuation
-                Dim comma As PunctuationSyntax = Nothing
-                If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    RangeVariables.AddSeparator(comma)
-                Else
-                    Exit Do
-                End If
-            Loop
+            Loop While TryParseCommaInto(RangeVariables)
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
-            Return result
+            Return RangeVariables.ToListAndFree(_pool)
         End Function
 
         ' /*********************************************************************
@@ -527,14 +480,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' 'Aggregate'  We now see if we actually are on a query expression and parse it if we are.
         ' **********************************************************************/
         ' // the query expression if this is in fact a query we are on
-
+        '
         ' // [out] true = that we were on a query and that we handled it / false = not a query
         ' // [out] whether we encountered an error processing the query statement (assuming this actually is a query statement)
-
+        '
         ' Expression* .Parser::ParsePotentialQuery( [ _Inout_ ParseTree::LineContinuationState& continuationState ] [ _Out_ bool& ParsedQuery ] [ _Out_ bool& ErrorInConstruct ] )
         Private Function ParsePotentialQuery(contextualKeyword As KeywordSyntax) As ExpressionSyntax
             Debug.Assert(contextualKeyword IsNot Nothing)
-            Debug.Assert(contextualKeyword.Kind = SyntaxKind.FromKeyword OrElse contextualKeyword.Kind = SyntaxKind.AggregateKeyword)
+            Debug.Assert(contextualKeyword.Kind.IsIn(SyntaxKind.FromKeyword, SyntaxKind.AggregateKeyword))
 
             Debug.Assert(CurrentToken.Text = contextualKeyword.Text)
             ' // Look ahead and see if it looks like a query, i.e.
@@ -614,7 +567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' check for As, In or  = 
                 ' note that = may not come after EoL
                 If current.Kind <> SyntaxKind.InKeyword AndAlso
-                    current.Kind <> SyntaxKind.AsKeyword AndAlso
+                   current.Kind <> SyntaxKind.AsKeyword AndAlso
                     (newLineAfterFrom OrElse current.Kind <> SyntaxKind.EqualsToken) Then
 
                     Return Nothing
@@ -651,8 +604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 Dim rangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
                 rangeVariables.Add(InternalSyntaxFactory.ExpressionRangeVariable(Nothing, InternalSyntaxFactory.MissingExpression()))
-                keys = rangeVariables.ToList
-                Me._pool.Free(rangeVariables)
+                keys = rangeVariables.ToListAndFree(_pool)
             End If
 
             Dim intoKw As KeywordSyntax = Nothing
@@ -669,19 +621,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function MissingAggregationRangeVariables() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
-            Dim rangeVariables = Me._pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
-            rangeVariables.Add(InternalSyntaxFactory.AggregationRangeVariable(Nothing, SyntaxFactory.FunctionAggregation(InternalSyntaxFactory.MissingIdentifier(), Nothing, Nothing, Nothing)))
-            Dim result As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = rangeVariables.ToList
-            Me._pool.Free(rangeVariables)
-            Return result
+            Dim rangeVariables = _pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
+            rangeVariables.Add(InternalSyntaxFactory.AggregationRangeVariable(Nothing,
+                                    SyntaxFactory.FunctionAggregation(
+                                        InternalSyntaxFactory.MissingIdentifier(), Nothing, Nothing, Nothing)))
+            Return rangeVariables.ToListAndFree(_pool)
         End Function
 
         ' File: Parser.cpp
         ' Lines: 15016 - 15016
         ' GroupJoinExpression* .Parser::ParseGroupJoinExpression( [ _In_ Token* beginSourceToken ] [ _In_opt_ ParseTree::LinqExpression* Source ] [ _Inout_ bool& ErrorInConstruct ] )
-
         Private Function ParseInnerJoinOrGroupJoinExpression(groupKw As KeywordSyntax,
-                                                  joinKw As KeywordSyntax) As JoinClauseSyntax
+                                                             joinKw As KeywordSyntax) As JoinClauseSyntax
 
             Debug.Assert(joinKw IsNot Nothing)
 
@@ -695,9 +646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim moreJoinsBuilder = _pool.Allocate(Of JoinClauseSyntax)()
             Do
                 Dim nextJoin = ParseOptionalJoinOperator()
-                If nextJoin Is Nothing Then
-                    Exit Do
-                End If
+                If nextJoin Is Nothing Then Exit Do
                 moreJoinsBuilder.Add(nextJoin)
             Loop
 
@@ -708,14 +657,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Predicate = ParseJoinPredicateExpression()
             Else
                 Dim missingEq = SyntaxFactory.JoinCondition(InternalSyntaxFactory.MissingExpression,
-                                        InternalSyntaxFactory.MissingKeyword(SyntaxKind.EqualsKeyword),
-                                        InternalSyntaxFactory.MissingExpression)
+                                                            InternalSyntaxFactory.MissingKeyword(SyntaxKind.EqualsKeyword),
+                                                            InternalSyntaxFactory.MissingExpression)
                 Predicate = New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)(missingEq)
             End If
 
             Dim joinVarList = New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)(joinVariable)
-            Dim moreJoins = moreJoinsBuilder.ToList()
-            _pool.Free(moreJoinsBuilder)
+            Dim moreJoins = moreJoinsBuilder.ToListAndFree(_pool)
 
             If groupKw Is Nothing Then
                 Return SyntaxFactory.SimpleJoinClause(joinKw, joinVarList, moreJoins, onKw, Predicate)
@@ -738,7 +686,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 15260 - 15260
         ' LinqExpression* .Parser::ParseJoinSourceExpression( [ _Inout_ bool& ErrorInConstruct ] )
-
         Private Function ParseOptionalJoinOperator() As JoinClauseSyntax
             Dim joinKw As KeywordSyntax = Nothing
             If TryEatNewLineAndGetContextualKeyword(SyntaxKind.JoinKeyword, joinKw) Then
@@ -756,7 +703,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 15107 - 15107
         ' LinqSourceExpression* .Parser::ParseJoinControlVarExpression( [ _Inout_ bool& ErrorInConstruct ] )
-
         Private Function ParseJoinControlVar() As CollectionRangeVariableSyntax
 
             Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifier()
@@ -774,10 +720,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Select Case (peek)
                     Case SyntaxKind.AsKeyword,
-                        SyntaxKind.InKeyword,
-                        SyntaxKind.GroupKeyword,
-                        SyntaxKind.JoinKeyword,
-                        SyntaxKind.OnKeyword
+                         SyntaxKind.InKeyword,
+                         SyntaxKind.GroupKeyword,
+                         SyntaxKind.JoinKeyword,
+                         SyntaxKind.OnKeyword
 
                         varName = varName.AddTrailingSyntax(ResyncAt({peek}))
                 End Select
@@ -814,10 +760,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Select Case (peek)
                         Case SyntaxKind.EqualsToken,
-                            SyntaxKind.InKeyword,
-                            SyntaxKind.GroupKeyword,
-                            SyntaxKind.JoinKeyword,
-                            SyntaxKind.OnKeyword
+                             SyntaxKind.InKeyword,
+                             SyntaxKind.GroupKeyword,
+                             SyntaxKind.JoinKeyword,
+                             SyntaxKind.OnKeyword
 
                             AsClause = AsClause.AddTrailingSyntax(ResyncAt({peek}))
                     End Select
@@ -837,11 +783,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 source = If(source, InternalSyntaxFactory.MissingExpression)
 
                 ' resync
-                Dim peek = PeekAheadFor(SyntaxKind.CommaToken,
-                                        SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
-                                        SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
-                                        SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
-                                        SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
+                Dim peek = PeekAheadFor(SyntaxKind.CommaToken, SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword,
+                                        SyntaxKind.GroupKeyword, SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword,
+                                        SyntaxKind.JoinKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword,
+                                        SyntaxKind.IntoKeyword, SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword,
+                                        SyntaxKind.LetKeyword)
 
                 If peek = SyntaxKind.CommaToken Then
                     source = source.AddTrailingSyntax(ResyncAt({peek}))
@@ -854,10 +800,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 15293 - 15293
         ' Expression* .Parser::ParseJoinPredicateExpression( [ _Inout_ bool& ErrorInConstruct ] )
-
         Private Function ParseJoinPredicateExpression() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)
 
-            Dim Exprs = Me._pool.AllocateSeparated(Of JoinConditionSyntax)()
+            Dim Exprs = _pool.AllocateSeparated(Of JoinConditionSyntax)()
             Dim AndTk As KeywordSyntax = Nothing
 
             Do
@@ -868,12 +813,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     ' // try to recover
                     If Left.ContainsDiagnostics Then
-                        Left = ResyncAt(Left, SyntaxKind.EqualsToken, SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword,
+                        Left = ResyncAt(Left,
+                                        SyntaxKind.EqualsToken, SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword,
                                         SyntaxKind.GroupKeyword, SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword,
                                         SyntaxKind.JoinKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword,
-                                        SyntaxKind.IntoKeyword, SyntaxKind.OnKeyword, SyntaxKind.AndKeyword, SyntaxKind.AndAlsoKeyword,
-                                        SyntaxKind.OrKeyword, SyntaxKind.OrElseKeyword, SyntaxKind.SkipKeyword, SyntaxKind.SkipKeyword,
-                                        SyntaxKind.LetKeyword)
+                                        SyntaxKind.IntoKeyword, SyntaxKind.OnKeyword, SyntaxKind.AndKeyword,
+                                        SyntaxKind.AndAlsoKeyword, SyntaxKind.OrKeyword, SyntaxKind.OrElseKeyword,
+                                        SyntaxKind.SkipKeyword, SyntaxKind.SkipKeyword, SyntaxKind.LetKeyword)
                     End If
 
                     Dim eqKw As KeywordSyntax = Nothing
@@ -887,18 +833,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     element = SyntaxFactory.JoinCondition(Left, eqKw, Right)
                 Else
                     element = SyntaxFactory.JoinCondition(InternalSyntaxFactory.MissingExpression,
-                                                             InternalSyntaxFactory.MissingKeyword(SyntaxKind.EqualsKeyword),
-                                                             InternalSyntaxFactory.MissingExpression)
+                                                          InternalSyntaxFactory.MissingKeyword(SyntaxKind.EqualsKeyword),
+                                                          InternalSyntaxFactory.MissingExpression)
 
                     element = ReportSyntaxError(element, ERRID.ERR_ExpectedExpression)
                 End If
 
                 ' // try to recover
                 If element.ContainsDiagnostics Then
-                    element = ResyncAt(element, SyntaxKind.AndKeyword, SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword,
-                                       SyntaxKind.GroupKeyword, SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
-                                       SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword, SyntaxKind.OnKeyword,
-                                       SyntaxKind.AndAlsoKeyword, SyntaxKind.OrKeyword, SyntaxKind.OrElseKeyword, SyntaxKind.SkipKeyword,
+                    element = ResyncAt(element,
+                                       SyntaxKind.AndKeyword, SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword,
+                                       SyntaxKind.GroupKeyword, SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword,
+                                       SyntaxKind.JoinKeyword, SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword,
+                                       SyntaxKind.IntoKeyword, SyntaxKind.OnKeyword, SyntaxKind.AndAlsoKeyword,
+                                       SyntaxKind.OrKeyword, SyntaxKind.OrElseKeyword, SyntaxKind.SkipKeyword,
                                        SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
                 End If
 
@@ -910,28 +858,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If TryGetTokenAndEatNewLine(SyntaxKind.AndKeyword, AndTk) Then
                     Continue Do
 
-                ElseIf CurrentToken.Kind = SyntaxKind.AndAlsoKeyword OrElse
-                       CurrentToken.Kind = SyntaxKind.OrKeyword OrElse
-                       CurrentToken.Kind = SyntaxKind.OrElseKeyword Then
-
-                    Exprs(Exprs.Count - 1) = Exprs(Exprs.Count - 1).AddTrailingSyntax(CurrentToken, ERRID.ERR_ExpectedAnd)
+                ElseIf CurrentToken.Kind.IsIn(SyntaxKind.AndAlsoKeyword,
+                                              SyntaxKind.OrKeyword,
+                                              SyntaxKind.OrElseKeyword) Then
+                    Dim last = Exprs.Count - 1
+                    Exprs(last) = Exprs(last).AddTrailingSyntax(CurrentToken, ERRID.ERR_ExpectedAnd)
                     GetNextToken() ' consume bad token
                 End If
                 Exit Do
             Loop
 
-            Dim result = Exprs.ToList
-            Me._pool.Free(Exprs)
+            Dim result = Exprs.ToListAndFree(_pool)
 
             ' // try to recover
             If result.Node.ContainsDiagnostics Then
                 Dim elements = result.Node
-                elements = ResyncAt(elements, SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
-                                   SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword, SyntaxKind.DistinctKeyword,
-                                   SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword, SyntaxKind.OnKeyword, SyntaxKind.SkipKeyword,
-                                   SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
+                elements = ResyncAt(elements,
+                                    SyntaxKind.FromKeyword, SyntaxKind.WhereKeyword, SyntaxKind.GroupKeyword,
+                                    SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
+                                    SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
+                                    SyntaxKind.OnKeyword, SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword,
+                                    SyntaxKind.LetKeyword)
 
-                result = New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)(CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of JoinConditionSyntax)(CType(elements, GreenNode)), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)))
+                result = New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)(
+                    New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of JoinConditionSyntax)(elements))
             End If
 
             Return result
@@ -940,7 +890,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 14861 - 14861
         ' LinqExpression* .Parser::ParseFromExpression( [ bool StartingQuery ] [ bool ImplicitFrom ] [ _Inout_ bool& ErrorInConstruct ] )
-
         Private Function ParseFromOperator(FromKw As KeywordSyntax) As FromClauseSyntax
             Debug.Assert(FromKw IsNot Nothing)
 
@@ -964,10 +913,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '    _Inout_ ParseTree::LineContinuationState &OrderExprContinuationState, // [out] the continuation situation for the Order statement as relates to the Ascending/Descending keywords
         '    _Inout_ bool &ErrorInConstruct // [out] whether we ran into an error processing the OrderBy list.
         ')
-
+        '
         Private Function ParseOrderByList() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of OrderingSyntax)
 
-            Dim exprs = Me._pool.AllocateSeparated(Of OrderingSyntax)()
+            Dim exprs = _pool.AllocateSeparated(Of OrderingSyntax)()
 
             Do
                 Dim OrderExpression = ParseExpressionCore()
@@ -992,19 +941,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 exprs.Add(element)
 
-                Dim comma As PunctuationSyntax = Nothing
-                If TryEatNewLineAndGetToken(SyntaxKind.CommaToken, comma, createIfMissing:=False) Then
-                    TryEatNewLine()
-                    exprs.AddSeparator(comma)
-                Else
-                    Exit Do
-                End If
-            Loop
+            Loop While TryParseCommaInto(exprs)
 
-            Dim result = exprs.ToList
-            Me._pool.Free(exprs)
-
-            Return result
+            Return exprs.ToListAndFree(_pool)
         End Function
 
         ' File: Parser.cpp
@@ -1012,10 +951,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' LinqExpression* .Parser::ParseFromQueryExpression( [ bool ImplicitFrom ] [ _Inout_ bool& ErrorInConstruct ] )
         Private Sub ParseMoreQueryOperators(ByRef operators As SyntaxListBuilder(Of QueryClauseSyntax))
             Do
+                Dim last = operators.Count - 1
                 ' // try to recover
-                If operators.Count > 0 AndAlso operators(operators.Count - 1).ContainsDiagnostics Then
+                If operators.Count > 0 AndAlso operators(last).ContainsDiagnostics Then
 
-                    operators(operators.Count - 1) = ResyncAt(operators(operators.Count - 1),
+                    operators(last) = ResyncAt(operators(last),
                         SyntaxKind.FromKeyword,
                         SyntaxKind.WhereKeyword,
                         SyntaxKind.GroupKeyword,
@@ -1030,14 +970,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         SyntaxKind.LetKeyword)
                 End If
 
-                Dim clause = ParseNextQueryOperator()
-                If clause Is Nothing Then
-                    Return
-                End If
-
-                operators.Add(clause)
-            Loop
+            Loop While CanParseQueryClause(operators)
         End Sub
+
+        Private Function CanParseQueryClause(ByRef operators As SyntaxListBuilder(Of QueryClauseSyntax)) As Boolean
+            Dim clause = ParseNextQueryOperator()
+            Dim ok = clause IsNot Nothing
+            If ok Then operators.Add(clause)
+            Return ok
+        End Function
 
         Private Function ParseNextQueryOperator() As QueryClauseSyntax
             Dim Start = CurrentToken
@@ -1073,9 +1014,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case SyntaxKind.IdentifierToken
                     Dim kw As KeywordSyntax = Nothing
-                    If Not TryTokenAsContextualKeyword(Start, kw) Then
-                        Return Nothing
-                    End If
+                    If Not TryTokenAsContextualKeyword(Start, kw) Then Return Nothing
 
                     Select Case kw.Kind
 
@@ -1173,28 +1112,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseFromQueryExpression(fromKw As KeywordSyntax) As QueryExpressionSyntax
             Debug.Assert(fromKw IsNot Nothing)
 
-            Dim operators = Me._pool.Allocate(Of QueryClauseSyntax)()
-
+            Dim operators = _pool.Allocate(Of QueryClauseSyntax)()
             operators.Add(ParseFromOperator(fromKw))
             ParseMoreQueryOperators(operators)
-
-            Dim result = operators.ToList
-            Me._pool.Free(operators)
-
-            Return SyntaxFactory.QueryExpression(result)
+            Return SyntaxFactory.QueryExpression(operators.ToListAndFree(_pool))
         End Function
 
         Private Function ParseAggregateQueryExpression(AggregateKw As KeywordSyntax) As QueryExpressionSyntax
             Debug.Assert(AggregateKw IsNot Nothing)
 
-            Dim operators = Me._pool.Allocate(Of QueryClauseSyntax)()
-
+            Dim operators = _pool.Allocate(Of QueryClauseSyntax)()
             operators.Add(ParseAggregateClause(AggregateKw))
-
-            Dim result = operators.ToList
-            Me._pool.Free(operators)
-
-            Return SyntaxFactory.QueryExpression(result)
+            Return SyntaxFactory.QueryExpression( operators.ToListAndFree(_pool))
         End Function
 
         Private Function ParseAggregateClause(AggregateKw As KeywordSyntax) As AggregateClauseSyntax
@@ -1204,13 +1133,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim controlVariables = ParseFromControlVars()
 
-            Dim moreOperators = Me._pool.Allocate(Of QueryClauseSyntax)()
+            Dim moreOperators = _pool.Allocate(Of QueryClauseSyntax)()
             ParseMoreQueryOperators(moreOperators)
-            Dim operatorList = moreOperators.ToList
-            Me._pool.Free(moreOperators)
+            Dim operatorList = moreOperators.ToListAndFree(_pool)
 
             Dim intoKw As KeywordSyntax = Nothing
-            Dim variables As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = Nothing
+            Dim variables As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
             If TryEatNewLineAndGetContextualKeyword(SyntaxKind.IntoKeyword, intoKw, createIfMissing:=True) Then
                 ' //ILC:  I took the liberty of adding implicit line continuations after query keywords in addition to before them...
                 TryEatNewLine()
@@ -1218,7 +1146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' // parse result selector
                 variables = ParseAggregateList(False, False)
             Else
-                variables = Me.MissingAggregationRangeVariables()
+                variables = MissingAggregationRangeVariables()
             End If
 
             Return SyntaxFactory.AggregateClause(AggregateKw, controlVariables, operatorList, intoKw, variables)
@@ -1232,9 +1160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(pToken.Text Is PeekToken(1).Text)
 
             Dim kind As SyntaxKind = Nothing
-            If Not TryTokenAsKeyword(pToken, kind) Then
-                Return False
-            End If
+            If Not TryTokenAsKeyword(pToken, kind) Then Return False
 
             Dim isQueryKwd As Boolean = KeywordTable.IsQueryClause(kind)
 
@@ -1246,58 +1172,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' //    end select
 
                 Dim nextToken = PeekToken(2)
-                If nextToken.Kind = SyntaxKind.CaseKeyword Then
-                    isQueryKwd = False
-                End If
+                If nextToken.Kind = SyntaxKind.CaseKeyword Then isQueryKwd = False
+
             End If
 
             Return isQueryKwd
         End Function
 
-        ' File: Parser.cpp
-        ' Lines: 14918 - 14918
-        ' .::MakeSureLeftControlVarIsNamed( [ _In_opt_ ParseTree::LinqExpression* Source ] ) 
-
-        ' TODO: this should be done in semantics.
-
-        'Private Shared Sub MakeSureLeftControlVarIsNamed( _
-        '    ByVal Source As ParseTree.LinqExpression _
-        ')
-        '    While Source IsNot Nothing
-        '        Select Case (Source.Opcode)
-
-        '            Case ParseTree.Expression.Opcodes.InnerJoin, _
-        '                  ParseTree.Expression.Opcodes.GroupJoin, _
-        '                  ParseTree.Expression.Opcodes.CrossJoin, _
-        '                  ParseTree.Expression.Opcodes.From, _
-        '                  ParseTree.Expression.Opcodes.Let, _
-        '                  ParseTree.Expression.Opcodes.GroupBy, _
-        '                  ParseTree.Expression.Opcodes.Aggregate, _
-        '                  ParseTree.Expression.Opcodes.LinqSource
-        '                Return ' // these operators do not produce unnamed vars
-
-        '            Case ParseTree.Expression.Opcodes.Where, _
-        '                       ParseTree.Expression.Opcodes.SkipWhile, _
-        '                       ParseTree.Expression.Opcodes.TakeWhile, _
-        '                       ParseTree.Expression.Opcodes.Take, _
-        '                       ParseTree.Expression.Opcodes.Skip, _
-        '                       ParseTree.Expression.Opcodes.Distinct, _
-        '                       ParseTree.Expression.Opcodes.OrderBy
-        '                Source = Source.AsLinqOperator().Source ' // these operators do not declare control vars
-
-        '            Case ParseTree.Expression.Opcodes.Select
-        '                AssertIfTrue(Source.AsSelect().ForceNameInferenceForSingleElement)
-        '                Source.AsSelect().ForceNameInferenceForSingleElement = True
-        '                Return ' // done
-
-        '            Case Else
-        '                AssertIfFalse(False) ' // unknown Opcode
-        '                Return
-        '        End Select
-        '    End While
-        'End Sub
-
     End Class
+
 End Namespace
-
-

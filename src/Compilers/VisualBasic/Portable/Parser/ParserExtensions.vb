@@ -16,6 +16,111 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Module ParserExtensions
 
+        <Extension>
+        Friend Function CalledOnWrongToken(memberName As String) As String
+            Return memberName & " called on wrong token."
+        End Function
+
+#Region "IsIn Extension Overloads."
+
+
+        <Extension>
+        Friend Function IsIn(kind As SyntaxKind,
+                             kind0 As SyntaxKind, kind1 As SyntaxKind) As Boolean
+            Return (kind = kind0) Or (kind=kind1)
+        End Function
+        <Extension>
+        Friend Function IsIn(kind As SyntaxKind,
+                             kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
+            Return (kind = kind0) Or (kind = kind1) Or (kind = kind2)
+        End Function
+        
+        <Extension>
+        Friend Function IsIn(kind As SyntaxKind,
+                             kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind) As Boolean
+            Return (kind = kind0) Or (kind=kind1) Or (kind = kind2) Or (kind = kind3)
+        End Function
+
+
+        <Extension>
+        Friend Function IsIn(kind As SyntaxKind,
+                             kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind,
+                             kind3 As SyntaxKind, kind4 As SyntaxKind) As Boolean
+            Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or
+                   (kind = kind3) Or (kind = kind4)
+        End Function
+
+        <Extension>
+        Friend Function IsIn(kind As SyntaxKind,
+                             kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind,
+                             kind3 As SyntaxKind, kind4 As SyntaxKind, kind5 As SyntaxKind) As Boolean
+            Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or
+                   (kind = kind3) Or (kind = kind4) Or (kind = kind5)
+        End Function
+
+        <Extension>
+        Friend Function IsIn(kind As SyntaxKind,
+                             kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind,
+                             kind3 As SyntaxKind, kind4 As SyntaxKind, kind5 As SyntaxKind,
+                             kind6 As SyntaxKind) As Boolean
+            Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or
+                   (kind = kind3) Or (kind = kind4) Or (kind = kind5) Or
+                   (kind = kind6)
+        End Function
+        
+        <Extension>
+        Friend Function IsIn(kind As SyntaxKind,
+                             kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind,
+                             kind3 As SyntaxKind, kind4 As SyntaxKind, kind5 As SyntaxKind,
+                             kind6 As SyntaxKind, kind7 As SyntaxKind) As Boolean
+            Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or
+                   (kind = kind3) Or (kind = kind4) Or (kind = kind5) Or
+                   (kind = kind6) Or (kind = kind7)
+        End Function
+
+        <Extension>
+        Friend Function IsIn(kind As SyntaxKind,
+                             kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind,
+                             kind3 As SyntaxKind, kind4 As SyntaxKind, kind5 As SyntaxKind,
+                             kind6 As SyntaxKind, kind7 As SyntaxKind, kind8 As SyntaxKind) As Boolean
+            Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or
+                   (kind = kind3) Or (kind = kind4) Or (kind = kind5) Or
+                   (kind = kind6) Or (kind = kind7) Or (kind = kind8)
+        End Function
+
+        <Extension>
+        Friend Function IsIn(kind As SyntaxKind,
+                             kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind,
+                             kind3 As SyntaxKind, kind4 As SyntaxKind, kind5 As SyntaxKind,
+                             kind6 As SyntaxKind, kind7 As SyntaxKind, kind8 As SyntaxKind,
+                             kind9 As SyntaxKind) As Boolean
+            Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or
+                   (kind = kind3) Or (kind = kind4) Or (kind = kind5) Or
+                   (kind = kind6) Or (kind = kind7) Or (kind = kind8) Or
+                   (kind = kind9)
+        End Function
+#end region
+
+#Region "ToListAndFree Overloads"
+
+        <Extension>
+        Friend Function ToListAndFree(Of T As GreenNode)(thisList As SeparatedSyntaxListBuilder(Of T),
+                                                         thisPool As SyntaxListPool) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of T)
+            Dim tmp = thisList.ToList()
+            thisPool.Free(thisList)
+            Return tmp
+        End Function
+
+        <Extension>
+        Friend Function ToListAndFree(Of T As GreenNode)(thisList As SyntaxListBuilder(Of T),
+                                                         thisPool As SyntaxListPool) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of T)
+            Dim tmp = thisList.ToList()
+            thisPool.Free(thisList)
+            Return tmp
+        End Function
+
+#End Region
+
         <Extension()>
         Friend Function Any(Of T As VisualBasicSyntaxNode)(this As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of T),
                                                     ParamArray kinds As SyntaxKind()) As Boolean

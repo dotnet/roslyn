@@ -208,7 +208,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return index
         End Function
 
-        Private Function PeekAheadFor(Of TArg)(predicate As Func(Of SyntaxToken, TArg, Boolean), arg As TArg, <Out()> ByRef token As SyntaxToken) As Integer
+        Private Function PeekAheadFor(Of TArg)(predicate As Func(Of SyntaxToken, TArg, Boolean),
+                                               arg       As TArg,
+                                   <Out> ByRef token     As SyntaxToken) As Integer
             Dim nextToken = CurrentToken
 
             Dim i As Integer = 0
@@ -269,14 +271,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Function ResyncAt(state As ScannerState, resyncTokens As SyntaxKind()) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)
-            Dim skippedTokens = Me._pool.Allocate(Of SyntaxToken)()
+            Dim skippedTokens = _pool.Allocate(Of SyntaxToken)()
 
             ResyncAt(skippedTokens, state, resyncTokens)
 
-            Dim result = skippedTokens.ToList()
-            Me._pool.Free(skippedTokens)
-
-            Return result
+            Return skippedTokens.ToListAndFree(_pool)
         End Function
 
         ''' <summary>
@@ -300,10 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 GetNextToken(ScannerState.VB)
             End If
 
-            Dim result = skippedTokens.ToList()
-            Me._pool.Free(skippedTokens)
-
-            Return result
+            Return skippedTokens.ToListAndFree(_pool)
         End Function
 
         Friend Function ResyncAt() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)
@@ -368,7 +364,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' the token we want to check for on start of the next line
         ' [in] whether the tokenType represents a query operator token
         ' .Parser::EatNewLineIfFollowedBy( [ tokens tokenType ] [ ParseTree::LineContinuationState& continuationState ] [ bool isQueryOp ] )
-
         Private Function TryEatNewLineIfFollowedBy(kind As SyntaxKind) As Boolean
             Debug.Assert(CanUseInTryGetToken(kind))
 
@@ -429,8 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function NextLineStartsWithStatementTerminator(Optional offset As Integer = 0) As Boolean
             Debug.Assert(If(offset = 0, CurrentToken, PeekToken(offset)).IsEndOfLine)
 
-            Dim kind = PeekToken(offset + 1).Kind
-            Return kind = SyntaxKind.EmptyToken OrElse kind = SyntaxKind.EndOfFileToken
+            Return PeekToken(offset + 1).Kind.IsIn(SyntaxKind.EmptyToken, SyntaxKind.EndOfFileToken)
         End Function
 
         Private Shared Function CanUseInTryGetToken(kind As SyntaxKind) As Boolean

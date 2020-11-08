@@ -2153,7 +2153,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseVariableDeclaration(allowAsNewWith As Boolean) As CoreInternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)
             Dim declarations = _pool.AllocateSeparated(Of VariableDeclaratorSyntax)()
 
-            Dim comma As PunctuationSyntax
             Dim checkForCustom As Boolean = True
 
             Dim declarators = _pool.AllocateSeparated(Of ModifiedIdentifierSyntax)()
@@ -2175,14 +2174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     declarators.Add(declarator)
 
-                    comma = Nothing
-                    If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        Exit Do
-                    End If
-
-                    declarators.AddSeparator(comma)
-
-                Loop
+                Loop While TryParseCommaInto(declarators)
 
                 Dim names = declarators.ToList
 
@@ -2201,13 +2193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 declarations.Add(declaration)
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                declarations.AddSeparator(comma)
-            Loop
+            Loop While TryParseCommaInto(declarations)
 
             _pool.Free(declarators)
 
@@ -2424,14 +2410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     expressions.Add(Initializer)
 
-                    Dim comma As PunctuationSyntax = Nothing
-                    If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        expressions.AddSeparator(comma)
-                    Else
-                        Exit Do
-                    End If
-
-                Loop
+                Loop While TryParseCommaInto(expressions)
 
                 initializers = expressions.ToList
                 _pool.Free(expressions)
@@ -2524,14 +2503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     expressions.Add(initializer)
 
-                    Dim comma As PunctuationSyntax = Nothing
-                    If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        expressions.AddSeparator(comma)
-                    Else
-                        Exit Do
-                    End If
-
-                Loop
+                Loop While TryParseCommaInto(expressions)
 
                 initializers = expressions.ToList
                 _pool.Free(expressions)
@@ -2983,9 +2955,7 @@ checkNullable:
                 elementBuilder.Add(element)
 
 
-                Dim commaToken As PunctuationSyntax = Nothing
-                If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, commaToken) Then
-                    elementBuilder.AddSeparator(commaToken)
+                If TryParseCommaInto(elementBuilder) Then
                     Continue Do
 
                 ElseIf CurrentToken.Kind = SyntaxKind.CloseParenToken OrElse MustEndStatement(CurrentToken) Then
@@ -2999,11 +2969,10 @@ checkNullable:
                         skipped = ReportSyntaxError(skipped, ERRID.ERR_ArgumentSyntax)
                     End If
 
-                    If CurrentToken.Kind = SyntaxKind.CommaToken Then
-                        commaToken = DirectCast(CurrentToken, PunctuationSyntax)
+                    Dim commaToken As PunctuationSyntax = Nothing
+                    If TryParseComma(commaToken) Then
                         commaToken = commaToken.AddLeadingSyntax(skipped)
                         elementBuilder.AddSeparator(commaToken)
-                        GetNextToken()
                     Else
                         unexpected = skipped
                         Exit Do
@@ -3153,7 +3122,6 @@ checkNullable:
 
             Dim typeNames = _pool.AllocateSeparated(Of TypeSyntax)()
             Dim typeName As TypeSyntax
-            Dim comma As PunctuationSyntax
 
             Do
                 typeName = Nothing
@@ -3192,15 +3160,7 @@ checkNullable:
 
                 typeNames.Add(typeName)
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                Debug.Assert(comma IsNot Nothing)
-
-                typeNames.AddSeparator(comma)
-            Loop While True
+            Loop While TryParseCommaInto(typeNames)
 
             If openParen IsNot Nothing Then
                 TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
@@ -3383,8 +3343,6 @@ checkNullable:
 
         ' In Dev10 this was ParseArgument.
         Private Function ParseArgumentList() As CoreInternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
-            Dim comma As PunctuationSyntax
-
             Dim arguments = _pool.AllocateSeparated(Of ArgumentSyntax)()
 
             Do
@@ -3420,13 +3378,7 @@ checkNullable:
 
                 arguments.Add(arg)
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                arguments.AddSeparator(comma)
-            Loop
+            Loop While TryParseCommaInto(arguments)
 
             Dim result = arguments.ToList
             _pool.Free(arguments)
@@ -3500,8 +3452,6 @@ checkNullable:
             Dim ImplementsClauses As SeparatedSyntaxListBuilder(Of QualifiedNameSyntax) =
                 Me._pool.AllocateSeparated(Of QualifiedNameSyntax)()
 
-            Dim comma As PunctuationSyntax
-
             GetNextToken()
 
             Do
@@ -3526,13 +3476,7 @@ checkNullable:
 
                 ImplementsClauses.Add(term)
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                ImplementsClauses.AddSeparator(comma)
-            Loop
+            Loop While TryParseCommaInto(ImplementsClauses)
 
             Dim result = ImplementsClauses.ToList
             Me._pool.Free(ImplementsClauses)
@@ -3549,7 +3493,6 @@ checkNullable:
 
             Dim handlesKeyword = DirectCast(CurrentToken, KeywordSyntax)
             Dim handlesClauseItems As SeparatedSyntaxListBuilder(Of HandlesClauseItemSyntax) = Me._pool.AllocateSeparated(Of HandlesClauseItemSyntax)()
-            Dim comma As PunctuationSyntax
 
             GetNextToken() ' get off the handles / comma token
             Do
@@ -3610,13 +3553,7 @@ checkNullable:
 
                 handlesClauseItems.Add(item)
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                handlesClauseItems.AddSeparator(comma)
-            Loop
+            Loop While TryParseCommaInto(handlesClauseItems)
 
             Dim result = handlesClauseItems.ToList
             Me._pool.Free(handlesClauseItems)
@@ -4331,7 +4268,6 @@ checkNullable:
             Dim openParen As PunctuationSyntax = Nothing
             Dim ofKeyword As KeywordSyntax = Nothing
             Dim closeParen As PunctuationSyntax = Nothing
-            Dim comma As PunctuationSyntax = Nothing
 
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
 
@@ -4402,13 +4338,7 @@ checkNullable:
 
                             constraints.Add(constraint)
 
-                            comma = Nothing
-                            If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                                constraints.AddSeparator(comma)
-                            Else
-                                Exit Do
-                            End If
-                        Loop
+                        Loop While TryParseCommaInto(constraints)
 
                         Dim closeBrace As PunctuationSyntax = Nothing
                         TryEatNewLineAndGetToken(SyntaxKind.CloseBraceToken, closeBrace, createIfMissing:=True)
@@ -4434,13 +4364,7 @@ checkNullable:
 
                 typeParameters.Add(typeParameter)
 
-                comma = Nothing
-                If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    typeParameters.AddSeparator(comma)
-                Else
-                    Exit Do
-                End If
-            Loop
+            Loop While TryParseCommaInto(typeParameters)
 
             If openParen IsNot Nothing Then
                 If Not TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=False) Then
@@ -4761,13 +4685,7 @@ checkNullable:
 
                 importsClauses.Add(ImportsClause)
 
-                Dim comma As PunctuationSyntax = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                importsClauses.AddSeparator(comma)
-            Loop
+            Loop While TryParseCommaInto(importsClauses)
 
             Dim result = importsClauses.ToList
             Me._pool.Free(importsClauses)
@@ -4921,14 +4839,7 @@ checkNullable:
 
                 typeNames.Add(typeName)
 
-                'Eat a new line after "," but not "INHERITS" or "IMPLEMENTS"
-                Dim comma As PunctuationSyntax = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                typeNames.AddSeparator(comma)
-            Loop
+            Loop While TryParseCommaInto(typeNames)
 
             Dim separatedTypeNames = typeNames.ToList
             Me._pool.Free(typeNames)
@@ -5485,10 +5396,7 @@ checkNullable:
             Dim attributes = _pool.AllocateSeparated(Of AttributeSyntax)()
 
             Dim typeName = SyntaxFactory.IdentifierName(ReportSyntaxError(InternalSyntaxFactory.MissingIdentifier(), ERRID.ERR_ExpectedIdentifier))
-            Dim attribute = SyntaxFactory.Attribute(
-                Nothing,
-                typeName,
-                Nothing)
+            Dim attribute = SyntaxFactory.Attribute(Nothing, typeName, Nothing)
 
             attributes.Add(attribute)
             attributeBlocks.Add(SyntaxFactory.AttributeList(lessThan, attributes.ToList(), greaterThan))
@@ -5588,13 +5496,7 @@ checkNullable:
 
                     attributes.Add(attribute)
 
-                    Dim comma As PunctuationSyntax = Nothing
-                    If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        Exit Do
-                    End If
-
-                    attributes.AddSeparator(comma)
-                Loop
+                Loop While TryParseCommaInto(attributes)
 
                 ResetCurrentToken(ScannerState.VB)
 
@@ -5624,9 +5526,7 @@ checkNullable:
         End Function
 
         Private Function GetTokenAsAssemblyOrModuleKeyword(token As SyntaxToken) As KeywordSyntax
-            If token.Kind = SyntaxKind.ModuleKeyword Then
-                Return DirectCast(token, KeywordSyntax)
-            End If
+            If token.Kind = SyntaxKind.ModuleKeyword Then Return DirectCast(token, KeywordSyntax)
 
             Dim keyword As KeywordSyntax = Nothing
             TryTokenAsContextualKeyword(token, SyntaxKind.AssemblyKeyword, keyword)
@@ -5636,7 +5536,6 @@ checkNullable:
         ' File:Parser.cpp
         ' Lines: 486 - 486
         ' Opcodes .::GetBinaryOperatorHelper( [ _In_ Token* T ] )
-
         Friend Shared Function GetBinaryOperatorHelper(t As SyntaxToken) As SyntaxKind
             Debug.Assert(t IsNot Nothing)
             Return SyntaxFacts.GetBinaryExpression(t.Kind)
@@ -5645,7 +5544,6 @@ checkNullable:
         ' File:Parser.cpp
         ' Lines: 19755 - 19755
         ' bool .Parser::StartsValidConditionalCompilationExpr( [ _In_ Token* T ] )
-
         Private Shared Function StartsValidConditionalCompilationExpr(t As SyntaxToken) As Boolean
             Select Case (t.Kind)
                 ' Identifiers - note that only simple identifiers are allowed.
@@ -5705,7 +5603,6 @@ checkNullable:
         ' File:Parser.cpp
         ' Lines: 19816 - 19816
         ' bool .Parser::IsValidOperatorForConditionalCompilationExpr( [ _In_ Token* T ] )
-
         Private Shared Function IsValidOperatorForConditionalCompilationExpr(t As SyntaxToken) As Boolean
             Select Case (t.Kind)
 
@@ -5856,7 +5753,12 @@ checkNullable:
             End Select
         End Sub
 
-        Friend Function IsNextStatementInsideLambda(context As BlockContext, lambdaContext As BlockContext, allowLeadingMultilineTrivia As Boolean) As Boolean
+        Friend Function IsNextStatementInsideLambda(context As BlockContext,
+                                                    lambdaContext As BlockContext,
+                                                    allowLeadingMultilineTrivia As Boolean
+                                                   ) As Boolean
+
+
             Debug.Assert(context.IsWithinLambda)
             Debug.Assert(SyntaxFacts.IsTerminator(CurrentToken.Kind))
 
@@ -5903,18 +5805,15 @@ checkNullable:
         End Function
 
         Private Function TryGetToken(Of T As SyntaxToken)(kind As SyntaxKind, ByRef token As T) As Boolean
-            If CurrentToken.Kind = kind Then
-                token = DirectCast(CurrentToken, T)
-                GetNextToken()
-                Return True
-            End If
-
-            Return False
+            If CurrentToken.Kind <> kind Then Return False
+            token = DirectCast(CurrentToken, T)
+            GetNextToken()
+            Return True
         End Function
 
         Private Function TryGetContextualKeyword(
-            kind As SyntaxKind,
-            ByRef keyword As KeywordSyntax,
+                     kind As SyntaxKind,
+               ByRef keyword As KeywordSyntax,
             Optional createIfMissing As Boolean = False) As Boolean
 
             If TryTokenAsContextualKeyword(CurrentToken, kind, keyword) Then
@@ -5922,34 +5821,30 @@ checkNullable:
                 Return True
             End If
 
-            If createIfMissing Then
-                keyword = HandleUnexpectedKeyword(kind)
-            End If
+            If createIfMissing Then keyword = HandleUnexpectedKeyword(kind)
+
             Return False
         End Function
 
         ' This is for contextual keywords like "From"
         Private Function TryGetContextualKeywordAndEatNewLine(
-            kind As SyntaxKind,
-            ByRef keyword As KeywordSyntax,
-            Optional createIfMissing As Boolean = False) As Boolean
-
+                     kind As SyntaxKind,
+               ByRef keyword As KeywordSyntax,
+            Optional createIfMissing As Boolean = False
+                   ) As Boolean
             Dim result = TryGetContextualKeyword(kind, keyword, createIfMissing)
-            If result Then
-                TryEatNewLine()
-            End If
+            If result Then TryEatNewLine()
             Return result
         End Function
 
         ' This is for contextual keywords like "From"
         Private Function TryEatNewLineAndGetContextualKeyword(
-            kind As SyntaxKind,
-            ByRef keyword As KeywordSyntax,
-            Optional createIfMissing As Boolean = False) As Boolean
+                     kind As SyntaxKind,
+               ByRef keyword As KeywordSyntax,
+            Optional createIfMissing As Boolean = False
+                   ) As Boolean
 
-            If TryGetContextualKeyword(kind, keyword, createIfMissing) Then
-                Return True
-            End If
+            If TryGetContextualKeyword(kind, keyword, createIfMissing) Then Return True
 
             If CurrentToken.Kind = SyntaxKind.StatementTerminatorToken AndAlso
                 TryTokenAsContextualKeyword(PeekToken(1), kind, keyword) Then
@@ -5959,17 +5854,17 @@ checkNullable:
                 Return True
             End If
 
-            If createIfMissing Then
-                keyword = HandleUnexpectedKeyword(kind)
-            End If
+            If createIfMissing Then keyword = HandleUnexpectedKeyword(kind)
+
             Return False
         End Function
 
         Private Function TryGetTokenAndEatNewLine(Of T As SyntaxToken)(
-            kind As SyntaxKind,
-            ByRef token As T,
+                     kind As SyntaxKind,
+               ByRef token As T,
             Optional createIfMissing As Boolean = False,
-            Optional state As ScannerState = ScannerState.VB) As Boolean
+            Optional state As ScannerState = ScannerState.VB
+                   ) As Boolean
 
             Debug.Assert(CanUseInTryGetToken(kind))
 
@@ -5990,10 +5885,11 @@ checkNullable:
         End Function
 
         Private Function TryEatNewLineAndGetToken(Of T As SyntaxToken)(
-            kind As SyntaxKind,
-            ByRef token As T,
+                     kind As SyntaxKind,
+               ByRef token As T,
             Optional createIfMissing As Boolean = False,
-            Optional state As ScannerState = ScannerState.VB) As Boolean
+            Optional state As ScannerState = ScannerState.VB
+                   ) As Boolean
 
             Debug.Assert(CanUseInTryGetToken(kind))
 
@@ -6082,10 +5978,10 @@ checkNullable:
 
         '============ Methods to test properties of NodeKind. ====================
         '
-
+        '
         ' IdentifierAsKeyword returns the token type of a identifier token,
         ' interpreting non-bracketed identifiers as (non-reserved) keywords as appropriate.
-
+        '
         Private Shared Function TryIdentifierAsContextualKeyword(id As SyntaxToken, ByRef kind As SyntaxKind) As Boolean
             Debug.Assert(id IsNot Nothing)
             Debug.Assert(DirectCast(id, IdentifierTokenSyntax) IsNot Nothing)
@@ -6129,9 +6025,78 @@ checkNullable:
             End If
         End Function
 
+#Region "IsToken Overloads"
+
+        Private Shared Function IsToken(token As SyntaxToken,
+                                        kind0 As SyntaxKind, kind1 As SyntaxKind,
+                                        kind2 As SyntaxKind, kind3 As SyntaxKind,
+                                        kind4 As SyntaxKind, kind5 As SyntaxKind,
+                                        kind6 As SyntaxKind, kind7 As SyntaxKind,
+                                        kind8 As SyntaxKind, kind9 As SyntaxKind) As Boolean
+            Return token.Kind.IsIn(kind0, kind1, kind2, kind3, kind4, kind5, kind6, kind7, kind8, kind9)
+        End Function
+
+        Private Shared Function IsToken(token As SyntaxToken,
+                                        kind0 As SyntaxKind, kind1 As SyntaxKind,
+                                        kind2 As SyntaxKind, kind3 As SyntaxKind,
+                                        kind4 As SyntaxKind, kind5 As SyntaxKind,
+                                        kind6 As SyntaxKind, kind7 As SyntaxKind,
+                                        kind8 As SyntaxKind) As Boolean
+            Return token.Kind.IsIn(kind0, kind1, kind2, kind3, kind4, kind5, kind6, kind7, kind8)
+        End Function
+        
+        Private Shared Function IsToken(token As SyntaxToken,
+                                        kind0 As SyntaxKind, kind1 As SyntaxKind,
+                                        kind2 As SyntaxKind, kind3 As SyntaxKind,
+                                        kind4 As SyntaxKind, kind5 As SyntaxKind,
+                                        kind6 As SyntaxKind, kind7 As SyntaxKind) As Boolean
+            Return token.Kind.IsIn(kind0, kind1, kind2, kind3, kind4, kind5, kind6, kind7)
+        End Function
+        
+        Private Shared Function IsToken(token As SyntaxToken,
+                                        kind0 As SyntaxKind, kind1 As SyntaxKind,
+                                        kind2 As SyntaxKind, kind3 As SyntaxKind,
+                                        kind4 As SyntaxKind, kind5 As SyntaxKind,
+                                        kind6 As SyntaxKind) As Boolean
+            Return token.Kind.IsIn(kind0, kind1, kind2, kind3, kind4, kind5, kind6)
+        End Function
+        
+        Private Shared Function IsToken(token As SyntaxToken,
+                                        kind0 As SyntaxKind, kind1 As SyntaxKind,
+                                        kind2 As SyntaxKind, kind3 As SyntaxKind,
+                                        kind4 As SyntaxKind, kind5 As SyntaxKind) As Boolean
+            Return token.Kind.IsIn(kind0, kind1, kind2, kind3, kind4, kind5)
+        End Function
+        
+        Private Shared Function IsToken(token As SyntaxToken,
+                                        kind0 As SyntaxKind, kind1 As SyntaxKind,
+                                        kind2 As SyntaxKind, kind3 As SyntaxKind,
+                                        kind4 As SyntaxKind) As Boolean
+            Return token.Kind.IsIn(kind0, kind1, kind2, kind3, kind4)
+        End Function
+        
+        Private Shared Function IsToken(token As SyntaxToken,
+                                        kind0 As SyntaxKind, kind1 As SyntaxKind,
+                                        kind2 As SyntaxKind, kind3 As SyntaxKind) As Boolean
+            Return token.Kind.IsIn(kind0, kind1, kind2, kind3)
+        End Function
+        
+        Private Shared Function IsToken(token As SyntaxToken,
+                                        kind0 As SyntaxKind, kind1 As SyntaxKind,
+                                        kind2 As SyntaxKind) As Boolean
+            Return token.Kind.IsIn(kind0, kind1, kind2)
+        End Function
+
+        Private Shared Function IsToken(token As SyntaxToken,
+                                        kind0 As SyntaxKind, kind1 As SyntaxKind) As Boolean
+            Return token.Kind.IsIn(kind0, kind1)
+        End Function
+
         Private Shared Function IsToken(token As SyntaxToken, ParamArray kinds As SyntaxKind()) As Boolean
             Return kinds.Contains(token.Kind)
         End Function
+
+#End Region
 
         Friend Function ConsumeUnexpectedTokens(Of TNode As VisualBasicSyntaxNode)(node As TNode) As TNode
             If Me.CurrentToken.Kind = SyntaxKind.EndOfFileToken Then Return node
@@ -6144,63 +6109,6 @@ checkNullable:
             Return node.AddTrailingSyntax(b.ToList(), ERRID.ERR_Syntax)
         End Function
 
-        ''' <summary>
-        ''' Check to see if the given <paramref name="feature"/> is available with the <see cref="LanguageVersion"/>
-        ''' of the parser.  If it is not available a diagnostic will be added to the returned value.
-        ''' </summary>
-        Private Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode) As TNode
-            Return CheckFeatureAvailability(feature, node, _scanner.Options.LanguageVersion)
-        End Function
-
-        Friend Shared Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode, languageVersion As LanguageVersion) As TNode
-            If CheckFeatureAvailability(languageVersion, feature) Then
-                Return node
-            End If
-
-            Return ReportFeatureUnavailable(feature, node, languageVersion)
-        End Function
-
-        Private Shared Function ReportFeatureUnavailable(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode, languageVersion As LanguageVersion) As TNode
-            Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-            Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
-            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName, requiredVersion)
-        End Function
-
-        Friend Function ReportFeatureUnavailable(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode) As TNode
-            Return ReportFeatureUnavailable(feature, node, _scanner.Options.LanguageVersion)
-        End Function
-
-        Friend Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Return CheckFeatureAvailability(_scanner.Options.LanguageVersion, feature)
-        End Function
-
-        Friend Shared Function CheckFeatureAvailability(languageVersion As LanguageVersion, feature As Feature) As Boolean
-            Dim required = feature.GetLanguageVersion()
-            Return required <= languageVersion
-        End Function
-
-        ''' <summary>
-        ''' Returns false and reports an error if the feature is un-available
-        ''' </summary>
-        Friend Shared Function CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature) As Boolean
-            If Not CheckFeatureAvailability(languageVersion, feature) Then
-                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-                Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
-                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName, requiredVersion)
-                Return False
-            End If
-            Return True
-        End Function
-
     End Class
-
-    'TODO - These should be removed.  Checks should be in binding.
-    <Flags()>
-    Friend Enum ParameterSpecifiers
-        [ByRef] = &H1
-        [ByVal] = &H2
-        [Optional] = &H4
-        [ParamArray] = &H8
-    End Enum
 
 End Namespace

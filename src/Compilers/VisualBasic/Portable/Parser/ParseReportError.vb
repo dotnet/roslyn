@@ -61,11 +61,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function ReportUnrecognizedStatementError(
-            ErrorId As ERRID,
-            attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
-            modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax),
-            Optional createMissingIdentifier As Boolean = False,
-            Optional forceErrorOnFirstToken As Boolean = False) As StatementSyntax
+                            ErrorId    As ERRID,
+                            attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+                            modifiers  As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax),
+                   Optional createMissingIdentifier As Boolean = False,
+                   Optional forceErrorOnFirstToken  As Boolean = False
+                          ) As StatementSyntax
             ' // Create a statement with no operands. It will end up with its error flag set.
 
             Dim tokens = ResyncAt()
@@ -111,11 +112,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return badStmt
         End Function
 
-        Private Function ReportModifiersOnStatementError(attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
+        Private Function ReportModifiersOnStatementError(
+                            attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+                            modifiers  As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax),
+                            keyword    As KeywordSyntax
+                          ) As KeywordSyntax
             Return ReportModifiersOnStatementError(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, attributes, modifiers, keyword)
         End Function
 
-        Private Function ReportModifiersOnStatementError(errorId As ERRID, attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
+        Private Function ReportModifiersOnStatementError(
+                            errorId    As ERRID,
+                            attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+                            modifiers  As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax),
+                            keyword    As KeywordSyntax
+                          ) As KeywordSyntax
             If modifiers.Any Then
                 keyword = keyword.AddLeadingSyntax(modifiers.Node, errorId)
             End If
@@ -126,51 +136,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Return keyword
         End Function
-
-        ' /*****************************************************************************************
-        ' ;ReportSyntaxErrorForLanguageFeature
-        ' 
-        ' Reports errors for cases where a feature was introduced after the version specified by
-        ' the /LangVersion switch.  
-        ' 
-        ' The reason that this function is separate from the normal error reporting functions is
-        ' that we don't want the ErrorInConstruct flag set to true.  When ErrorInConstruct is true
-        ' the parser tries to resynchronize, and we don't want that to happen because we are happily
-        ' parsing the text and wish to continue doing so unimpeded--we have just noted that the
-        ' version of the compiler being targeted doesn't support the language feature, is all.
-        ' ******************************************************************************************/
-
-        ' // the error to log.  
-        ' // We log the error at the location contained in this token 
-        ' // A FEATUREID_* constant defined in errors.inc
-        ' // the string for the version that /LangVersion is targeting
-        ' .Parser::ReportSyntaxErrorForLanguageFeature( [ unsigned Errid ] [ _In_ Token* Start ] [ unsigned Feature ] [ _In_opt_z_ const WCHAR* wszVersion ] )
-        Private Sub ReportSyntaxErrorForLanguageFeature(
-            Errid As ERRID,
-            Start As SyntaxToken,
-            Feature As UInteger,
-            wszVersion As String
-        )
-#If UNDONE Then 'davidsch
-            m_ErrorCount += 1
-
-            '// We want the statement to be marked as having a syntax error so that decompilation will
-            '// work correctly when the issue is fixed (dev10 #647657)
-            m_CurrentStatementInError = True
-
-            If Not IsErrorDisabled() Then
-                Dim [Error] As New ParseError
-
-                [Error].Errid = Errid
-                SetErrorLocation([Error], Start, Start)
-
-                Dim wszLoad As String
-                wszLoad = ResLoadString(Feature)
-
-                AddError([Error], wszLoad, wszVersion)
-            End If
-#End If
-        End Sub
 
     End Class
 
