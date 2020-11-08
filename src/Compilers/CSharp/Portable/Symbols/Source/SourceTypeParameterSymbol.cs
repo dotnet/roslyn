@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsReferenceTypeFromConstraintTypes
         {
-            get 
+            get
             {
                 var constraints = this.GetConstraintKinds();
                 return (constraints & TypeParameterConstraintKind.ReferenceTypeFromConstraintTypes) != 0;
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsReferenceTypeFromConstraintTypes
         {
-            get 
+            get
             {
                 var constraints = this.GetConstraintKinds();
                 return (constraints & TypeParameterConstraintKind.ReferenceTypeFromConstraintTypes) != 0;

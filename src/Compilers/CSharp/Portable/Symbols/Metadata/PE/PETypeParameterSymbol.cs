@@ -563,10 +563,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsValueTypeFromConstraintTypes
         {
-            get 
+            get
             {
                 Debug.Assert(!HasValueTypeConstraint);
-                return CalculateIsValueTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics); 
+                return CalculateIsValueTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
             }
         }
 
