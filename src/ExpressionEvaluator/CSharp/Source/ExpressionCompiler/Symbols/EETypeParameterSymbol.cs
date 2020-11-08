@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override bool IsReferenceTypeFromConstraintTypes
         {
-            get 
+            get
             {
                 return _sourceTypeParameter.IsReferenceTypeFromConstraintTypes || CalculateIsReferenceTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
             }
