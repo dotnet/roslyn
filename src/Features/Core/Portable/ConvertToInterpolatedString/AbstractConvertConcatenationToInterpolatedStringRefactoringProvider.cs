@@ -155,7 +155,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutQuotes)));
                     }
                 }
-                else if (syntaxFacts.IsInterpolatedStringExpression(piece))
+                else if (syntaxFacts.IsInterpolatedStringExpression(piece) &&
+                    syntaxFacts.IsVerbatimInterpolatedStringExpression(piece) == isVerbatimStringLiteral)
                 {
                     syntaxFacts.GetPartsOfInterpolationExpression(piece, out var _, out var contentParts, out var _);
                     foreach (var contentPart in contentParts)

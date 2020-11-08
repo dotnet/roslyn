@@ -2140,5 +2140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             content = interpolatedStringExpression.Contents;
             stringEndToken = interpolatedStringExpression.StringEndToken;
         }
+
+        public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
+        {
+            var interpolatedStringExpression = (InterpolatedStringExpressionSyntax)node;
+            return interpolatedStringExpression.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+        }
     }
 }

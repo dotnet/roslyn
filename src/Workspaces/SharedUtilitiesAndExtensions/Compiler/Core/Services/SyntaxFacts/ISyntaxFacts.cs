@@ -146,6 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         void GetPartsOfInterpolationExpression(SyntaxNode node,
             out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> content, out SyntaxToken stringEndToken);
+        bool IsVerbatimInterpolatedStringExpression(SyntaxNode node);
 
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
         SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);

@@ -930,18 +930,24 @@ class C
 }");
         }
 
-        [WorkItem(0, "https://github.com/dotnet/roslyn/issues/0")]
+        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         [InlineData(@"[|""a"" + $""{1:000}""|]",
-                   @"$""a{1:000}""")]
+                      @"$""a{1:000}""")]
         [InlineData(@"[|""a"" + $""b{1:000}""|]",
-                   @"$""ab{1:000}""")]
+                      @"$""ab{1:000}""")]
         [InlineData(@"[|$""a{1:000}"" + ""b""|]",
-                   @"$""a{1:000}b""")]
+                      @"$""a{1:000}b""")]
         [InlineData(@"[|""a"" + $""b{1:000}c"" + ""d""|]",
-                   @"$""ab{1:000}cd""")]
+                      @"$""ab{1:000}cd""")]
         [InlineData(@"[|""a"" + $""{1:000}"" + $""{2:000}"" + ""b""|]",
-                   @"$""a{1:000}{2:000}b""")]
+                      @"$""a{1:000}{2:000}b""")]
+        [InlineData(@"[|@""a"" + @$""{1:000}""|]",
+                      @"$@""a{1:000}""")]
+        [InlineData(@"[|@""a"" + $""{1:000}""|]",
+                      @"$@""a{$""{1:000}""}""")]
+        [InlineData(@"[|""a"" + @$""{1:000}""|]",
+                      @"$""a{@$""{1:000}""}""")]
         public async Task TestInliningOfInterpolatedString(string initialMarkup, string expected)
         {
             await TestInRegularAndScriptAsync(initialMarkup, expected);
