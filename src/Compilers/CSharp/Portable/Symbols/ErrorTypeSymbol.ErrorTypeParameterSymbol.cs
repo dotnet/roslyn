@@ -63,6 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            public override bool IsReferenceTypeFromConstraintTypes
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
             internal override bool? ReferenceTypeConstraintIsNullable
             {
                 get
@@ -76,6 +84,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override bool? IsNotNullable => null;
 
             public override bool HasValueTypeConstraint
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            public override bool IsValueTypeFromConstraintTypes
             {
                 get
                 {

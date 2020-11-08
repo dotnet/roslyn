@@ -125,7 +125,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get { return false; }
+        }
+
         public override bool HasReferenceTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool IsReferenceTypeFromConstraintTypes
         {
             get { return false; }
         }

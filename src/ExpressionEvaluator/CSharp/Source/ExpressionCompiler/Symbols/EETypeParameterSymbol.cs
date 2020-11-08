@@ -59,6 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.HasReferenceTypeConstraint; }
         }
 
+        public override bool IsReferenceTypeFromConstraintTypes
+        {
+            get 
+            {
+                return _sourceTypeParameter.IsReferenceTypeFromConstraintTypes || CalculateIsReferenceTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
+            }
+        }
+
         internal override bool? ReferenceTypeConstraintIsNullable
         {
             get { return _sourceTypeParameter.ReferenceTypeConstraintIsNullable; }
@@ -85,6 +93,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override bool HasValueTypeConstraint
         {
             get { return _sourceTypeParameter.HasValueTypeConstraint; }
+        }
+
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get
+            {
+                return _sourceTypeParameter.IsValueTypeFromConstraintTypes || CalculateIsValueTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
+            }
         }
 
         public override bool HasUnmanagedTypeConstraint

@@ -468,6 +468,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return newTypeWithModifiers;
             }
 
+            if (newTypeWithModifiers.Type is PlaceholderTypeArgumentSymbol)
+            {
+                return newTypeWithModifiers;
+            }
+
             NullableAnnotation newAnnotation;
 
             Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());

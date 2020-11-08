@@ -119,4 +119,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : Hash.Combine(_name, _errorInfo.Code);
         }
     }
+
+    /// <summary>
+    /// Used for lightweight binding of type constraints. Instead of binding type arguments,
+    /// we'll just use these placeholders instead. That's good enough binding to compute
+    /// <see cref="TypeSymbol.IsValueType"/> with minimal binding.
+    /// </summary>
+    internal sealed class PlaceholderTypeArgumentSymbol : ErrorTypeSymbol
+    {
+        private static readonly TypeWithAnnotations s_instance = TypeWithAnnotations.Create(new PlaceholderTypeArgumentSymbol());
+
+        public static ImmutableArray<TypeWithAnnotations> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters)
+        {
+            return typeParameters.SelectAsArray(_ => s_instance);
+        }
+
+        private PlaceholderTypeArgumentSymbol()
+        {
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override string Name
+        {
+            get
+            {
+                return string.Empty;
+            }
+        }
+
+        internal override bool MangleName
+        {
+            get
+            {
+                Debug.Assert(Arity == 0);
+                return false;
+            }
+        }
+
+        internal override DiagnosticInfo? ErrorInfo
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        {
+            return (object)t2 == this;
+        }
+
+        public override int GetHashCode()
+        {
+            return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
+        }
+    }
 }
