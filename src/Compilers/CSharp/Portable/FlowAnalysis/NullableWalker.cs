@@ -970,7 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.
                         Diagnostics.Add(ErrorCode.WRN_ParameterNotNullIfNotNull, location, outputParam.Name, inputParam.Name);
                     }
-                    else
+                    else if (CurrentSymbol is MethodSymbol { IsAsync: false })
                     {
                         // Return value must be non-null because parameter '{0}' is non-null.
                         Diagnostics.Add(ErrorCode.WRN_ReturnNotNullIfNotNull, location, inputParam.Name);
@@ -1791,7 +1791,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case NullableFlowState.NotNull:
                     return false;
                 case NullableFlowState.MaybeNull:
-                    // https://github.com/dotnet/roslyn/issues/46044: Skip the following check if /langversion > 8?
                     if (type.Type.IsTypeParameterDisallowingAnnotationInCSharp8() && !(type.Type is TypeParameterSymbol { IsNotNullable: true }))
                     {
                         return false;
@@ -1842,7 +1841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (value.ConstantValue?.IsNull == true && !useLegacyWarnings)
             {
                 // Report warning converting null literal to non-nullable reference type.
-                // target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
+                // target (e.g.: `object F() => null;` or calling `void F(object y)` with `F(null)`).
                 ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, location);
             }
             else if (assignmentKind == AssignmentKind.Argument)
@@ -1853,8 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (useLegacyWarnings)
             {
-                // https://github.com/dotnet/roslyn/issues/46044: Skip the following check if /langversion > 8?
-                if (isMaybeDefaultValue(valueType))
+                if (isMaybeDefaultValue(valueType) && !allowUnconstrainedTypeParameterAnnotations(compilation))
                 {
                     // No W warning reported assigning or casting [MaybeNull]T value to T
                     // because there is no syntax for declaring the target type as [MaybeNull]T.
@@ -1872,15 +1870,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return valueType.Type?.TypeKind == TypeKind.TypeParameter &&
                     valueType.State == NullableFlowState.MaybeDefault;
             }
+
+            static bool allowUnconstrainedTypeParameterAnnotations(CSharpCompilation compilation)
+            {
+                // Check IDS_FeatureDefaultTypeParameterConstraint feature since `T?` and `where ... : default`
+                // are treated as a single feature, even though the errors reported for the two cases are distinct.
+                var requiredVersion = MessageID.IDS_FeatureDefaultTypeParameterConstraint.RequiredVersion();
+                return requiredVersion <= compilation.LanguageVersion;
+            }
         }
 
         internal static bool AreParameterAnnotationsCompatible(
-                RefKind refKind,
-                TypeWithAnnotations overriddenType,
-                FlowAnalysisAnnotations overriddenAnnotations,
-                TypeWithAnnotations overridingType,
-                FlowAnalysisAnnotations overridingAnnotations,
-                bool forRef = false)
+            RefKind refKind,
+            TypeWithAnnotations overriddenType,
+            FlowAnalysisAnnotations overriddenAnnotations,
+            TypeWithAnnotations overridingType,
+            FlowAnalysisAnnotations overridingAnnotations,
+            bool forRef = false)
         {
             // We've already checked types and annotations, let's check nullability attributes as well
             // Return value is treated as an `out` parameter (or `ref` if it is a `ref` return)

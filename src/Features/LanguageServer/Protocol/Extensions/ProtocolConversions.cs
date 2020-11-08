@@ -137,6 +137,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
         }
 
+        public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangeEvent changeEvent, SourceText text)
+            => new TextChange(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
+
         public static LSP.Position LinePositionToPosition(LinePosition linePosition)
             => new LSP.Position { Line = linePosition.Line, Character = linePosition.Character };
 

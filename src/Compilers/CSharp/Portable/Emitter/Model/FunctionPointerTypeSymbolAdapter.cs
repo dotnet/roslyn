@@ -21,55 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
         IFunctionPointerTypeReference
     {
-#if DEBUG
-        internal FunctionPointerTypeSymbolAdapter(FunctionPointerTypeSymbol underlyingFunctionPointerTypeSymbol)
-        {
-            AdaptedFunctionPointerTypeSymbol = underlyingFunctionPointerTypeSymbol;
-        }
-
-        internal sealed override Symbol AdaptedSymbol => AdaptedFunctionPointerTypeSymbol;
-        internal FunctionPointerTypeSymbol AdaptedFunctionPointerTypeSymbol { get; }
-#else
-        internal FunctionPointerTypeSymbol AdaptedFunctionPointerTypeSymbol => this;
-#endif 
-    }
-
-    internal partial class FunctionPointerTypeSymbol
-    {
-#if DEBUG
-        private FunctionPointerTypeSymbolAdapter? _lazyAdapter;
-
-        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
-#endif
-        internal new
-#if DEBUG
-            FunctionPointerTypeSymbolAdapter
-#else
-            FunctionPointerTypeSymbol
-#endif
-            GetCciAdapter()
-        {
-#if DEBUG
-            if (_lazyAdapter is null)
-            {
-                return InterlockedOperations.Initialize(ref _lazyAdapter, new FunctionPointerTypeSymbolAdapter(this));
-            }
-
-            return _lazyAdapter;
-#else
-            return this;
-#endif
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        FunctionPointerTypeSymbolAdapter
-#else
-        FunctionPointerTypeSymbol
-#endif
-    {
-
         private FunctionPointerMethodSignature? _lazySignature;
         ISignature IFunctionPointerTypeReference.Signature
         {
@@ -130,14 +81,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool Equals(object? obj)
             {
-                // It is not supported to rely on default equality of these CCi objects, an explicit way to compare and hash them should be used.
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
                 throw ExceptionUtilities.Unreachable;
             }
 
-            // It is not supported to rely on default equality of these CCi objects, an explicit way to compare and hash them should be used.
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
             public override int GetHashCode() => throw ExceptionUtilities.Unreachable;
 
             public override string ToString() => _underlying.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
         }
     }
+
+    internal partial class FunctionPointerTypeSymbol
+    {
+#if DEBUG
+        private FunctionPointerTypeSymbolAdapter? _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new FunctionPointerTypeSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new FunctionPointerTypeSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal FunctionPointerTypeSymbol AdaptedFunctionPointerTypeSymbol => this;
+
+        internal new FunctionPointerTypeSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif 
+    }
+
+#if DEBUG
+    internal partial class FunctionPointerTypeSymbolAdapter
+    {
+        internal FunctionPointerTypeSymbolAdapter(FunctionPointerTypeSymbol underlyingFunctionPointerTypeSymbol)
+        {
+            AdaptedFunctionPointerTypeSymbol = underlyingFunctionPointerTypeSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedFunctionPointerTypeSymbol;
+        internal FunctionPointerTypeSymbol AdaptedFunctionPointerTypeSymbol { get; }
+    }
+#endif
 }

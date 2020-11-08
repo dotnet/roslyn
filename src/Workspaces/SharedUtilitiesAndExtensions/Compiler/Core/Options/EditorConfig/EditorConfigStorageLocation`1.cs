@@ -111,10 +111,10 @@ namespace Microsoft.CodeAnalysis.Options
             }
             else
             {
-                typedValue = (T)value;
+                typedValue = (T)value!;
             }
 
-            return GetEditorConfigStringValue(typedValue!, optionSet);
+            return GetEditorConfigStringValue(typedValue, optionSet);
         }
     }
 }
