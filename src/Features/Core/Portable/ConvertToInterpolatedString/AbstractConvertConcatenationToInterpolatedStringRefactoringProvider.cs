@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
@@ -152,6 +153,36 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         // This is either the first string literal we have encountered or it is the most recent one we've seen
                         // after adding an interpolation.  Add a new interpolated-string-text-node to the list.
                         content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutQuotes)));
+                    }
+                }
+                else if (syntaxFacts.IsInterpolatedStringExpression(piece))
+                {
+                    syntaxFacts.GetPartsOfInterpolationExpression(piece, out var _, out var contentParts, out var _);
+                    foreach (var contentPart in contentParts)
+                    {
+                        if (syntaxFacts.IsInterpolation(contentPart))
+                        {
+                            content.Add(contentPart);
+                            previousContentWasStringLiteralExpression = false;
+                        }
+                        else if (syntaxFacts.IsInterpolatedStringText(contentPart))
+                        {
+                            if (previousContentWasStringLiteralExpression)
+                            {
+                                var contentTextToken = contentPart.GetFirstToken();
+                                var newText = ConcatinateTextToTextNode(generator, content.Last(), contentTextToken.Text);
+                                content[^1] = newText;
+                            }
+                            else
+                            {
+                                content.Add(contentPart);
+                            }
+                            previousContentWasStringLiteralExpression = true;
+                        }
+                        else
+                        {
+                            Contract.Fail();
+                        }
                     }
                 }
                 else
