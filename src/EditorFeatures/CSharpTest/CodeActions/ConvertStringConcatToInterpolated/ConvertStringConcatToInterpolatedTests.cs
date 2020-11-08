@@ -226,5 +226,42 @@ class Program
                 CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertStringConcatToInterpolated)]
+        [InlineData(@"""\t"" [|+|] (1 + 1)",
+                   @"$""\t{1 + 1}""")]
+        [InlineData(@"""😀"" [|+|] (1 + 1)",
+                   @"$""😀{1 + 1}""")]
+        [InlineData(@"""\u2764"" [|+|] (1 + 1)",
+                   @"$""\u2764{1 + 1}""")]
+        [InlineData(@"""\"""" [|+|] (1 + 1)",
+                   @"$""\""{1 + 1}""")]
+        [InlineData(@"""{}"" [|+|] (1 + 1)",
+                   @"$""{{}}{1 + 1}""")]
+        public async Task EscapedStringsAreMergedProperly(string before, string after)
+        {
+            var initialMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = {before};
+    }}
+}}";
+            var expectedMarkup = @$"
+class Program
+{{
+    public static void Main()
+    {{
+        var x = {after};
+    }}
+}}";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
+            }.RunAsync();
+        }
     }
 }

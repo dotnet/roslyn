@@ -156,13 +156,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
                     case var expression when IsStringLiteralExpression(expression, out var literal):
                         if (result.LastOrDefault() is InterpolatedStringTextSyntax text)
                         {
-                            // Merge the string literal with the last InterpolatedStringTextSyntax
-                            var newText = text.TextToken.ValueText + literal.Token.ValueText;
-                            result[^1] = InterpolatedStringText(InterpolatedStringTextToken(newText));
+                            result[^1] = InterpolatedStringText(ConvertTokensToInterpolatedStringTextToken(text.TextToken, literal.Token));
                         }
                         else
                         {
-                            result.Add(InterpolatedStringText(InterpolatedStringTextToken(literal.Token.ValueText)));
+                            result.Add(InterpolatedStringText(ConvertTokensToInterpolatedStringTextToken(literal.Token)));
                         }
                         break;
                     case InterpolatedStringExpressionSyntax interpolated when !interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken):
@@ -175,8 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
                             {
                                 // The last added content was a text and the first part in interpolated is a text. We can merge these two.
                                 // "a" + $"b{expr}" -> "a" and "b" can be merged
-                                var newText = previousText.TextToken.ValueText + textFromOther.TextToken.ValueText;
-                                result[^1] = InterpolatedStringText(InterpolatedStringTextToken(newText));
+                                result[^1] = InterpolatedStringText(ConvertTokensToInterpolatedStringTextToken(previousText.TextToken, textFromOther.TextToken));
                             }
                             else
                             {
@@ -193,6 +190,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertStringConcatToIn
             }
 
             return result;
+        }
+
+        private static SyntaxToken ConvertTokensToInterpolatedStringTextToken(params SyntaxToken[] tokens)
+        {
+            var (text, valueText) = tokens.Aggregate((text: "", valueText: ""), (acc, token) =>
+              {
+                  var currentText = MergeTokenTextForInterpolated(acc.text, token);
+                  var currentValueText = MergeTokenValueTextForInterpolated(acc.valueText, token);
+                  return (currentText, currentValueText);
+              });
+
+            return Token(TriviaList(), SyntaxKind.InterpolatedStringTextToken, text, valueText, TriviaList());
+
+            static string MergeTokenTextForInterpolated(string currentText, SyntaxToken token)
+                => (SyntaxKind)token.RawKind switch
+                {
+                    SyntaxKind.StringLiteralToken => EscapeInterpolated(token.Text[1..^1]),
+                    SyntaxKind.InterpolatedStringTextToken => token.Text,
+                    _ => throw new InvalidOperationException("Unsupported SyntaxKind"),
+                };
+
+            static string MergeTokenValueTextForInterpolated(string currentValueText, SyntaxToken token)
+                => $"{currentValueText}{EscapeInterpolated(token.ValueText)}";
+
+            static string EscapeInterpolated(string text)
+                => text.Replace("{", "{{").Replace("}", "}}");
         }
 
         private static SyntaxToken InterpolatedStringTextToken(string text)
