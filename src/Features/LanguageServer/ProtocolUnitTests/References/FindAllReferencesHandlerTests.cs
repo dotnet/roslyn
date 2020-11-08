@@ -214,12 +214,18 @@ class A
 
         private static async Task<LSP.VSReferenceItem[]> RunFindAllReferencesAsync(Solution solution, LSP.Location caret, IProgress<object> progress = null)
         {
+            var queue = CreateRequestQueue(solution);
+
+            return await RunFindAllReferencesAsync(queue, solution, caret, progress);
+        }
+
+        internal static async Task<LSP.VSReferenceItem[]> RunFindAllReferencesAsync(Handler.RequestExecutionQueue queue, Solution solution, LSP.Location caret, IProgress<object> progress = null)
+        {
             var vsClientCapabilities = new LSP.VSClientCapabilities
             {
                 SupportsVisualStudioExtensions = true
             };
 
-            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(queue, LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), vsClientCapabilities, null, CancellationToken.None);
         }

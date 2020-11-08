@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
@@ -94,6 +95,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
+                // Let LSP handle producing tags in the cloud scenario
+                if (documentSnapshotSpan.Document.IsInCloudEnvironmentClientContext())
+                {
+                    return;
+                }
+
                 var outliningService = AbstractStructureTaggerProvider<TRegionTag>.TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {
@@ -119,6 +126,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
+                // Let LSP handle producing tags in the cloud scenario
+                if (documentSnapshotSpan.Document.IsInCloudEnvironmentClientContext())
+                {
+                    return;
+                }
+
                 var outliningService = AbstractStructureTaggerProvider<TRegionTag>.TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {

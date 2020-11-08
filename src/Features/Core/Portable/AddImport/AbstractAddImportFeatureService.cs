@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -544,13 +545,11 @@ namespace Microsoft.CodeAnalysis.AddImport
         private static ITypeSymbol? GetAwaitInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
         {
             var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
-
-            var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(awaitExpression);
-
-            if (innerExpression is null)
-            {
+            if (awaitExpression is null)
                 return null;
-            }
+
+            Debug.Assert(syntaxFactsService.IsAwaitExpression(awaitExpression));
+            var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(awaitExpression);
 
             return semanticModel.GetTypeInfo(innerExpression).Type;
         }

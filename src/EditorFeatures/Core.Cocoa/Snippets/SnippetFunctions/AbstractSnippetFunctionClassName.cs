@@ -5,7 +5,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
@@ -13,8 +13,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     {
         protected readonly string FieldName;
 
-        public AbstractSnippetFunctionClassName(AbstractSnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string fieldName)
-            : base(snippetExpansionClient, textView, subjectBuffer)
+        public AbstractSnippetFunctionClassName(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string fieldName)
+            : base(snippetExpansionClient, subjectBuffer)
         {
             this.FieldName = fieldName;
         }
@@ -30,9 +30,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var surfaceBufferFieldSpan = snippetExpansionClient.ExpansionSession.GetFieldSpan(FieldName);
+            Contract.ThrowIfNull(_snippetExpansionClient.ExpansionSession);
 
-            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan, out var subjectBufferFieldSpan))
+            var surfaceBufferFieldSpan = _snippetExpansionClient.ExpansionSession.GetFieldSpan(FieldName);
+
+            if (!_snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan, out var subjectBufferFieldSpan))
             {
                 return;
             }

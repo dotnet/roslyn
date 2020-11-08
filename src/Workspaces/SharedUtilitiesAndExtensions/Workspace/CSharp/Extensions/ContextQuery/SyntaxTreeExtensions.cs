@@ -2987,14 +2987,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 .FindTokenOnLeftOfPosition(position, cancellationToken)
                 .GetPreviousTokenIfTouchingWord(position);
 
-            if (!token.IsKind(SyntaxKind.DotToken) ||
-                !token.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (!token.IsKind(SyntaxKind.DotToken))
             {
                 return false;
             }
 
-            var memberAccess = (MemberAccessExpressionSyntax)token.Parent;
-            var leftHandBinding = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken);
+            SymbolInfo leftHandBinding;
+            if (token.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            {
+                var memberAccess = (MemberAccessExpressionSyntax)token.Parent;
+                leftHandBinding = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken);
+            }
+            else if (token.Parent.IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName) &&
+                token.Parent.IsParentKind(SyntaxKind.IsExpression, out BinaryExpressionSyntax? binaryExpression) &&
+                binaryExpression.Right == qualifiedName)
+            {
+                // The right-hand side of an is expression could be an enum
+                leftHandBinding = semanticModel.GetSymbolInfo(qualifiedName.Left, cancellationToken);
+            }
+            else if (token.Parent.IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName1) &&
+                token.Parent.IsParentKind(SyntaxKind.DeclarationPattern, out DeclarationPatternSyntax? declarationExpression) &&
+                declarationExpression.Type == qualifiedName1)
+            {
+                // The right-hand side of an is declaration expression could be an enum
+                leftHandBinding = semanticModel.GetSymbolInfo(qualifiedName1.Left, cancellationToken);
+            }
+            else
+            {
+                return false;
+            }
+
             var symbol = leftHandBinding.GetBestOrAllSymbols().FirstOrDefault();
 
             if (symbol == null)
