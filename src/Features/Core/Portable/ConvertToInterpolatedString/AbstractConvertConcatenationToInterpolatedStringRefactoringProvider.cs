@@ -163,14 +163,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     syntaxFacts.GetPartsOfInterpolationExpression(piece, out var _, out var contentParts, out var _);
                     foreach (var contentPart in contentParts)
                     {
-                        if (syntaxFacts.IsInterpolation(contentPart))
-                        {
-                            content.Add(contentPart);
-                            previousContentWasStringLiteralExpression = false;
-                            // currentContentIsStringOrCharacterLiteral needs to be updated in this loop
-                            currentContentIsStringOrCharacterLiteral = false;
-                        }
-                        else if (syntaxFacts.IsInterpolatedStringText(contentPart))
+                        currentContentIsStringOrCharacterLiteral = syntaxFacts.IsInterpolatedStringText(contentPart);
+                        if (currentContentIsStringOrCharacterLiteral)
                         {
                             // if the piece starts with a text and the previous part was a string, merge the two parts (see also above)
                             if (previousContentWasStringLiteralExpression)
@@ -183,7 +177,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                             {
                                 content.Add(contentPart);
                             }
-                            currentContentIsStringOrCharacterLiteral = true;
+                        }
+                        else if (syntaxFacts.IsInterpolation(contentPart))
+                        {
+                            content.Add(contentPart);
+                            previousContentWasStringLiteralExpression = false;
                         }
                         else
                         {
