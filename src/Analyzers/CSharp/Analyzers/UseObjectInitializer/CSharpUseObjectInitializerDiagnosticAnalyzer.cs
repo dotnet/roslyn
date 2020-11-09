@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
 
         protected override bool IsValidContainingStatement(StatementSyntax node)
-            => node is not LocalDeclarationStatementSyntax localDecl
-            || localDecl.UsingKeyword == default;
+            => node is not LocalDeclarationStatementSyntax localDecl ||
+               localDecl.UsingKeyword == default;
     }
 }
