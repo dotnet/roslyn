@@ -981,7 +981,7 @@ class C
                    @"$""\""{1}""")]
         [InlineData(@"""{}"" [|+|] 1",
                    @"$""{{}}{1}""")]
-        public async Task TestUncodeAndEscapeHandling(string before, string after)
+        public async Task TestUnicodeAndEscapeHandling(string before, string after)
         {
             var initialMarkup = $@"
 class C
