@@ -2413,6 +2413,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Function IsVerbatimInterpolatedStringExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVerbatimInterpolatedStringExpression
             Return False
         End Function
-
     End Class
 End Namespace
