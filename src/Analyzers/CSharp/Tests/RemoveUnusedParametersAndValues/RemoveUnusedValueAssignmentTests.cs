@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -17,12 +15,13 @@ using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestHelpers;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues.CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues.CSharpRemoveUnusedValuesCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer,
+        CSharpRemoveUnusedValuesCodeFixProvider>;
+
     public class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
     {
         public RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
@@ -137,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(UnusedValuePreference.DiscardVariable)]
         [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-        public async Task Initialization_ConstantValue_DontCopyLeadingTriviaDirectives(object option)
+        public async Task Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives(object option)
         {
             var source =
 @"class C {
@@ -6040,7 +6039,7 @@ $@"class C
                       while(i++ < 10)",
                          "x = 2;")]
         public async Task Loops_Overwritten_InSomeControlFlowPaths(
-            string loopHeader, string loopBody, string loopFooter = null)
+            string loopHeader, string loopBody, string? loopFooter = null)
         {
             await TestMissingInRegularAndScriptWithAllOptionsAsync(
 $@"class C

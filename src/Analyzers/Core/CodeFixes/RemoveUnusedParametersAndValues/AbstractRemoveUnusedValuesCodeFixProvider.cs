@@ -671,34 +671,21 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
                 else if (insertionNode is TStatementSyntax)
                 {
-                    // If the insertion node is being removed, keep the leading trivia with the new declaration.
+                    // If the insertion node is being removed, keep the leading trivia (following any directives) with
+                    // the new declaration.
                     if (nodesToRemove.Contains(insertionNode) && !processedNodes.Contains(insertionNode))
                     {
                         // Fix 48070 - The Leading Trivia of the insertion node needs to be filtered
                         // to only include trivia after Directives (if there are any)
                         var leadingTrivia = insertionNode.GetLeadingTrivia();
-                        var leadingTriviaContainsDirective = leadingTrivia.Any(t => t.IsDirective);
-                        if (leadingTriviaContainsDirective)
-                        {
-                            var lastDirectiveTriviaIndex = 0;
-                            for (var i = 0; i < leadingTrivia.Count; i++)
-                            {
-                                if (leadingTrivia[i].IsDirective)
-                                {
-                                    lastDirectiveTriviaIndex = i;
-                                }
-                            }
-
-                            declarationStatement = declarationStatement.WithLeadingTrivia(insertionNode.GetLeadingTrivia().Skip(lastDirectiveTriviaIndex + 1));
-                        }
-                        else
-                        {
-                            declarationStatement = declarationStatement.WithLeadingTrivia(insertionNode.GetLeadingTrivia());
-                        }
+                        var lastDirective = leadingTrivia.LastOrDefault(t => t.IsDirective);
+                        var lastDirectiveIndex = leadingTrivia.IndexOf(lastDirective);
+                        declarationStatement = declarationStatement.WithLeadingTrivia(leadingTrivia.Skip(lastDirectiveIndex + 1));
 
                         // Mark the node as processed so that the trivia only gets added once.
                         processedNodes.Add(insertionNode);
                     }
+
                     editor.InsertBefore(insertionNode, declarationStatement);
                 }
             }
