@@ -34,18 +34,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
             => new WorkspaceDiagnosticReport { TextDocument = identifier, Diagnostics = diagnostics, ResultId = resultId };
 
+        /// <summary>
+        /// Collect all the opened documents from solution. 
+        /// In XamlLanguageService, we are only able to retrieve diagnostic information for opened documents. 
+        /// So this is the same error experience we have now in full VS scenario.
+        /// </summary>
         protected override ImmutableArray<Document> GetDocuments(RequestContext context)
         {
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
-
-            // Collect all the opened documents from solution. 
-            // In XamlLanguageService, we are only able to retrieve diagnostic information for opened documents. 
-            // So this is the same error experience we have now in full VS scenario.
             var projects = context.Solution.GetXamlProjects();
-
             foreach (var project in projects)
             {
-                // For XamlProject, project.Documents only inlucdes opened documents, so just add them to the result.
                 result.AddRange(project.Documents);
             }
 
