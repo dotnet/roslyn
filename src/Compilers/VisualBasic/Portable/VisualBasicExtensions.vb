@@ -1381,7 +1381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function GetConversion(conversionExpression As IConversionOperation) As Conversion
             If conversionExpression.Language = LanguageNames.VisualBasic Then
-                Return DirectCast(DirectCast(conversionExpression, BaseConversionOperation).ConversionConvertible, Conversion)
+                Return DirectCast(DirectCast(conversionExpression, ConversionOperation).ConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
                                                           NameOf(IConversionOperation)),
@@ -1439,7 +1439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If compoundAssignment.Language = LanguageNames.VisualBasic Then
-                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentOperation).InConversionConvertible, Conversion)
+                Return DirectCast(DirectCast(compoundAssignment, CompoundAssignmentOperation).InConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),
@@ -1461,7 +1461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If compoundAssignment.Language = LanguageNames.VisualBasic Then
-                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentOperation).OutConversionConvertible, Conversion)
+                Return DirectCast(DirectCast(compoundAssignment, CompoundAssignmentOperation).OutConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),

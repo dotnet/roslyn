@@ -127,7 +127,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="LoopKind" Type="LoopKind">
+    <Property Name="LoopKind" Type="LoopKind" MakeAbstract="true">
       <Comments>
         <summary>Kind of the loop.</summary>
       </Comments>
@@ -183,7 +183,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="Info" Type="ForEachLoopOperationInfo" Internal="true" SkipGeneration="true" />
+    <Property Name="Info" Type="ForEachLoopOperationInfo?" Internal="true" />
     <Property Name="IsAsynchronous" Type="bool">
       <Comments>
         <summary>
@@ -218,7 +218,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="Condition" Type="IOperation">
+    <Property Name="Condition" Type="IOperation?">
       <Comments>
         <summary>Condition of the loop. For C#, this comes from the second clause of the for statement.</summary>
       </Comments>
@@ -288,9 +288,9 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Condition" Type="IOperation">
+    <Property Name="Condition" Type="IOperation?">
       <Comments>
-        <summary>Condition of the loop.</summary>
+        <summary>Condition of the loop. This can only be null in error scenarios.</summary>
       </Comments>
     </Property>
     <Property Name="ConditionIsTop" Type="bool">
@@ -306,7 +306,7 @@
         <summary>True if the loop has 'Until' loop semantics and the loop is executed while <see cref="Condition" /> is false.</summary>
       </Comments>
     </Property>
-    <Property Name="IgnoredCondition" Type="IOperation">
+    <Property Name="IgnoredCondition" Type="IOperation?">
       <Comments>
         <summary>
           Additional conditional supplied for loop in error cases, which is ignored by the compiler.
@@ -590,7 +590,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IConversionOperation" Base="IOperation">
+  <Node Name="IConversionOperation" Base="IOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a type conversion.
@@ -606,7 +606,7 @@
         <summary>Value to be converted.</summary>
       </Comments>
     </Property>
-    <Property Name="OperatorMethod" Type="IMethodSymbol" SkipGeneration="true">
+    <Property Name="OperatorMethod" Type="IMethodSymbol?" SkipGeneration="true">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>
@@ -742,7 +742,7 @@
       </Comments>
     </Property>
   </Node>
-  <AbstractNode Name="IMemberReferenceOperation" Base="IOperation">
+  <AbstractNode Name="IMemberReferenceOperation" Base="IOperation" >
     <Comments>
       <summary>
         Represents a reference to a member of a class, struct, or interface.
@@ -753,7 +753,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Instance" Type="IOperation">
+    <Property Name="Instance" Type="IOperation?">
       <Comments>
         <summary>Instance of the type. Null if the reference is to a static/shared member.</summary>
       </Comments>
@@ -764,7 +764,7 @@
       </Comments>
     </Property>
   </AbstractNode>
-  <Node Name="IFieldReferenceOperation" Base="IMemberReferenceOperation">
+  <Node Name="IFieldReferenceOperation" Base="IMemberReferenceOperation" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a reference to a field.
@@ -790,7 +790,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IMethodReferenceOperation" Base="IMemberReferenceOperation">
+  <Node Name="IMethodReferenceOperation" Base="IMemberReferenceOperation" HasType="true">
     <Comments>
       <summary>
         Represents a reference to a method other than as the target of an invocation.
@@ -812,7 +812,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IPropertyReferenceOperation" Base="IMemberReferenceOperation" ChildrenOrder="Instance,Arguments">
+  <Node Name="IPropertyReferenceOperation" Base="IMemberReferenceOperation" ChildrenOrder="Instance,Arguments" HasType="true">
     <Comments>
       <summary>
         Represents a reference to a property.
@@ -838,7 +838,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IEventReferenceOperation" Base="IMemberReferenceOperation">
+  <Node Name="IEventReferenceOperation" Base="IMemberReferenceOperation" HasType="true">
     <Comments>
       <summary>
         Represents a reference to an event.
@@ -1232,7 +1232,7 @@
       </Comments>
     </Property>
   </AbstractNode>
-  <Node Name="ISimpleAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value">
+  <Node Name="ISimpleAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a simple assignment operation.
@@ -1249,7 +1249,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICompoundAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value">
+  <Node Name="ICompoundAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value" HasType="true">
     <Comments>
       <summary>
         Represents a compound assignment that mutates the target with the result of a binary operation.
@@ -1294,7 +1294,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="OperatorMethod" Type="IMethodSymbol">
+    <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>
@@ -1525,7 +1525,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDynamicObjectCreationOperation" Base="IOperation" SkipClassGeneration="true" ChildrenOrder="Arguments,Initializer">
+  <Node Name="IDynamicObjectCreationOperation" Base="IOperation" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents an object creation with a dynamically bound constructor.
@@ -1536,7 +1536,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">
+    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation?">
       <Comments>
         <summary>Object or collection initializer, if any.</summary>
       </Comments>
@@ -1547,7 +1547,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDynamicMemberReferenceOperation" Base="IOperation">
+  <Node Name="IDynamicMemberReferenceOperation" Base="IOperation" HasType="true">
     <Comments>
       <summary>
         Represents a reference to a member of a class, struct, or module that is dynamically bound.
@@ -1558,9 +1558,9 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Instance" Type="IOperation">
+    <Property Name="Instance" Type="IOperation?">
       <Comments>
-        <summary>Instance receiver. In VB, this can be null.</summary>
+        <summary>Instance receiver, if it exists.</summary>
       </Comments>
     </Property>
     <Property Name="MemberName" Type="string">
@@ -1573,7 +1573,7 @@
         <summary>Type arguments.</summary>
       </Comments>
     </Property>
-    <Property Name="ContainingType" Type="ITypeSymbol">
+    <Property Name="ContainingType" Type="ITypeSymbol?">
       <Comments>
         <summary>
           The containing type of the referenced member, if different from type of the <see cref="Instance" />.
@@ -1581,7 +1581,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDynamicInvocationOperation" Base="IOperation" SkipClassGeneration="true" ChildrenOrder="Operation,Arguments">
+  <Node Name="IDynamicInvocationOperation" Base="IOperation" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents a invocation that is dynamically bound.
@@ -1610,7 +1610,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDynamicIndexerAccessOperation" Base="IOperation" SkipClassGeneration="true" ChildrenOrder="Operation,Arguments">
+  <Node Name="IDynamicIndexerAccessOperation" Base="IOperation" SkipClassGeneration="true">
     <Comments>
       <summary>
         Represents an indexer access that is dynamically bound.
@@ -1820,7 +1820,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IDeconstructionAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value">
+  <Node Name="IDeconstructionAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value" HasType="true">
     <Comments>
       <summary>
         Represents a assignment with a deconstruction.
@@ -1985,7 +1985,7 @@
         <summary>Symbol declared by this variable declaration</summary>
       </Comments>
     </Property>
-    <Property Name="Initializer" Type="IVariableInitializerOperation">
+    <Property Name="Initializer" Type="IVariableInitializerOperation?">
       <Comments>
         <summary>Optional initializer of the variable.</summary>
         <remarks>
@@ -2030,7 +2030,7 @@
         </remarks>
       </Comments>
     </Property>
-    <Property Name="Initializer" Type="IVariableInitializerOperation">
+    <Property Name="Initializer" Type="IVariableInitializerOperation?">
       <Comments>
         <summary>Optional initializer of the variable.</summary>
         <remarks>In C#, this will always be null.</remarks>
@@ -2179,12 +2179,12 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="CaseKind" Type="CaseKind">
+    <Property Name="CaseKind" Type="CaseKind" MakeAbstract="true">
       <Comments>
         <summary>Kind of the clause.</summary>
       </Comments>
     </Property>
-    <Property Name="Label" Type="ILabelSymbol">
+    <Property Name="Label" Type="ILabelSymbol?">
       <Comments>
         <summary>Label associated with the case clause, if any.</summary>
       </Comments>
@@ -2203,7 +2203,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IPatternCaseClauseOperation" Base="ICaseClauseOperation" SkipClassGeneration="true">
+  <Node Name="IPatternCaseClauseOperation" Base="ICaseClauseOperation" ChildrenOrder="Pattern,Guard">
     <OperationKind Include="false" />
     <Comments>
       <summary>
@@ -2216,9 +2216,9 @@
     </Comments>
     <Property Name="Label" Type="ILabelSymbol" New="true">
       <Comments>
+        <!-- It would be a binary breaking change to remove this -->
         <summary>
           Label associated with the case clause.
-          https://github.com/dotnet/roslyn/issues/27602: Similar property was added to the base interface, consider if we can remove this one.
         </summary>
       </Comments>
     </Property>
@@ -2227,7 +2227,7 @@
         <summary>Pattern associated with case clause.</summary>
       </Comments>
     </Property>
-    <Property Name="Guard" Type="IOperation">
+    <Property Name="Guard" Type="IOperation?">
       <Comments>
         <summary>Guard associated with the pattern case clause.</summary>
       </Comments>
@@ -2340,12 +2340,12 @@
         <summary>Expression of the interpolation.</summary>
       </Comments>
     </Property>
-    <Property Name="Alignment" Type="IOperation">
+    <Property Name="Alignment" Type="IOperation?">
       <Comments>
         <summary>Optional alignment of the interpolation.</summary>
       </Comments>
     </Property>
-    <Property Name="FormatString" Type="IOperation">
+    <Property Name="FormatString" Type="IOperation?">
       <Comments>
         <summary>Optional format string of the interpolation.</summary>
       </Comments>
@@ -2398,7 +2398,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="MatchedType" Type="ITypeSymbol">
+    <Property Name="MatchedType" Type="ITypeSymbol?">
       <Comments>
         <summary>
           The type explicitly specified, or null if it was inferred (e.g. using <code>var</code> in C#).
@@ -2414,7 +2414,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="DeclaredSymbol" Type="ISymbol">
+    <Property Name="DeclaredSymbol" Type="ISymbol?">
       <Comments>
         <summary>Symbol declared by the pattern, if any.</summary>
       </Comments>
@@ -2460,12 +2460,12 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="BlockBody" Type="IBlockOperation">
+    <Property Name="BlockBody" Type="IBlockOperation?">
       <Comments>
         <summary>Method body corresponding to BaseMethodDeclarationSyntax.Body or AccessorDeclarationSyntax.Body</summary>
       </Comments>
     </Property>
-    <Property Name="ExpressionBody" Type="IBlockOperation">
+    <Property Name="ExpressionBody" Type="IBlockOperation?">
       <Comments>
         <summary>Method body corresponding to BaseMethodDeclarationSyntax.ExpressionBody or AccessorDeclarationSyntax.ExpressionBody</summary>
       </Comments>
@@ -2505,7 +2505,7 @@
         <summary>Local declarations contained within the <see cref="Initializer" />.</summary>
       </Comments>
     </Property>
-    <Property Name="Initializer" Type="IOperation">
+    <Property Name="Initializer" Type="IOperation?">
       <Comments>
         <summary>Constructor initializer, if any.</summary>
       </Comments>
@@ -2526,7 +2526,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IFlowCaptureOperation" Base="IOperation" Namespace="FlowAnalysis" SkipClassGeneration="true">
+  <Node Name="IFlowCaptureOperation" Base="IOperation" Namespace="FlowAnalysis" SkipInCloner="true">
     <Comments>
       <summary>
         Represents that an intermediate result is being captured.
@@ -2544,7 +2544,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IFlowCaptureReferenceOperation" Base="IOperation" Namespace="FlowAnalysis">
+  <Node Name="IFlowCaptureReferenceOperation" Base="IOperation" Namespace="FlowAnalysis" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents a point of use of an intermediate result captured earlier.
@@ -2558,7 +2558,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IIsNullOperation" Base="IOperation" Namespace="FlowAnalysis" SkipClassGeneration="true">
+  <Node Name="IIsNullOperation" Base="IOperation" Namespace="FlowAnalysis" SkipInCloner="true" HasType="true" HasConstantValue="true">
     <Comments>
       <summary>
         Represents result of checking whether the <see cref="Operand" /> is null.
@@ -2574,7 +2574,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICaughtExceptionOperation" Base="IOperation" Namespace="FlowAnalysis">
+  <Node Name="ICaughtExceptionOperation" Base="IOperation" Namespace="FlowAnalysis" SkipInCloner="true" HasType="true">
     <Comments>
       <summary>
         Represents a exception instance passed by an execution environment to an exception filter or handler.
@@ -2582,7 +2582,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IStaticLocalInitializationSemaphoreOperation" Base="IOperation" Namespace="FlowAnalysis">
+  <Node Name="IStaticLocalInitializationSemaphoreOperation" Base="IOperation" Namespace="FlowAnalysis" SkipInCloner="true" HasType="true">
     <Comments>
       <summary>
         Represents the check during initialization of a VB static local that is initialized on the first call of the function, and never again.
@@ -2616,7 +2616,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICoalesceAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value">
+  <Node Name="ICoalesceAssignmentOperation" Base="IAssignmentOperation" ChildrenOrder="Target,Value" HasType="true">
     <Comments>
       <summary>
         Represents a coalesce assignment operation with a target and a conditionally-evaluated value:
@@ -2720,7 +2720,7 @@
         <summary>The type accepted for the recursive pattern.</summary>
       </Comments>
     </Property>
-    <Property Name="DeconstructSymbol" Type="ISymbol">
+    <Property Name="DeconstructSymbol" Type="ISymbol?">
       <Comments>
         <summary>
           The symbol, if any, used for the fetching values for subpatterns. This is either a <code>Deconstruct</code>
@@ -2739,7 +2739,7 @@
         <summary>This contains the (symbol, property) pairs within a property subpattern.</summary>
       </Comments>
     </Property>
-    <Property Name="DeclaredSymbol" Type="ISymbol">
+    <Property Name="DeclaredSymbol" Type="ISymbol?">
       <Comments>
         <summary>Symbol declared by the pattern.</summary>
       </Comments>

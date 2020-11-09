@@ -75,6 +75,10 @@ namespace IOperationGenerator
         public string? SkipChildrenGenerationText;
         public bool SkipChildrenGeneration => SkipChildrenGenerationText == "true";
 
+        [XmlAttribute(AttributeName = "SkipInCloner")]
+        public string? SkipInClonerText;
+        public bool SkipInCloner => SkipInClonerText == "true";
+
         [XmlAttribute]
         public string? ChildrenOrder;
 
@@ -114,6 +118,10 @@ namespace IOperationGenerator
         [XmlAttribute(AttributeName = "SkipGeneration")]
         public string? SkipGenerationText;
         public bool SkipGeneration => SkipGenerationText == "true";
+
+        [XmlAttribute(AttributeName = "MakeAbstract")]
+        public string? MakeAbstractText;
+        public bool MakeAbstract => MakeAbstractText == "true";
 
         [XmlElement(ElementName = "Comments", Type = typeof(Comments))]
         public Comments? Comments;

@@ -21,16 +21,8 @@ namespace Microsoft.CodeAnalysis
         protected static readonly IOperation s_unset = new EmptyOperation(semanticModel: null, syntax: null!, isImplicit: true);
         protected static readonly IBlockOperation s_unsetBlock = new BlockOperation(
             operations: ImmutableArray<IOperation>.Empty, locals: default, semanticModel: null, syntax: null!, isImplicit: true);
-        protected static readonly IEventReferenceOperation s_unsetEventReference = new EventReferenceOperation(
-            @event: null, instance: null, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IObjectOrCollectionInitializerOperation s_unsetObjectOrCollectionInitializer = new ObjectOrCollectionInitializerOperation(
             initializers: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null!, type: null, isImplicit: true);
-        protected static readonly IPatternOperation s_unsetPattern = new ConstantPatternOperation(
-            value: null, inputType: null, narrowedType: null, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
-        protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(
-            declarations: ImmutableArray<IVariableDeclarationOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
-        protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(
-            locals: ImmutableArray<ILocalSymbol>.Empty, value: null, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: false);
         private readonly SemanticModel? _owningSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once
@@ -142,7 +134,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract void Accept(OperationVisitor visitor);
 
-        public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
+        public abstract TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
 
         protected void SetParentOperation(IOperation? parent)
         {
@@ -166,7 +158,7 @@ namespace Microsoft.CodeAnalysis
             return operation;
         }
 
-        public static ImmutableArray<T> SetParentOperation<T>(ImmutableArray<T> operations, IOperation parent) where T : IOperation
+        public static ImmutableArray<T> SetParentOperation<T>(ImmutableArray<T> operations, IOperation? parent) where T : IOperation
         {
             // check quick bail out case first
             if (operations.Length == 0)

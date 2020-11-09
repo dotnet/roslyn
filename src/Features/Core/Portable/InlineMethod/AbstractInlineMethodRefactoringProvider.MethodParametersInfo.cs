@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .Concat(operationsWithDefaultValue)
                     .ToImmutableDictionary(
                         // We excluded arglist callees, so Parameter will always be non null
-                        keySelector: argument => (argument.Parameter!),
+                        keySelector: argument => argument.Parameter!,
                         elementSelector: argument => GenerateArgumentExpression(syntaxGenerator, argument));
 
                 // Use array instead of dictionary because using dictionary will make the parameter becomes unordered.
