@@ -100,6 +100,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 IsConstant = Document.SemanticModel.GetConstantValue(Expression, cancellationToken).HasValue;
 
                 // Note: the ordering of these clauses are important.  They go, generally, from 
+                if (_service.IsConstantDefinition(Expression))
+                {
+                    // Don't introduce constant for another constant.
+                    // Doesn't apply to sub-expression of constant.
+                    return false;
+                }
+
                 // innermost to outermost order.  
                 if (IsInQueryContext(cancellationToken))
                 {

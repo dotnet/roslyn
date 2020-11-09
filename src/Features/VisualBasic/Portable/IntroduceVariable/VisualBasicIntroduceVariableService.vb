@@ -28,6 +28,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return destination.GetInsertionIndices(cancellationToken)
         End Function
 
+        Protected Overrides Function IsConstantDefinition(expressionSyntax As ExpressionSyntax) As Boolean
+            Dim declarator = TryCast(TryCast(expressionSyntax.Parent, EqualsValueSyntax)?.Parent, VariableDeclaratorSyntax)
+
+            If declarator Is Nothing Then
+                Return False
+            End If
+
+            If declarator.GetAncestorOrThis(Of LocalDeclarationStatementSyntax)?.Modifiers.Any(SyntaxKind.ConstKeyword) = True OrElse
+               declarator.GetAncestorOrThis(Of FieldDeclarationSyntax)?.Modifiers.Any(SyntaxKind.ConstKeyword) = True Then
+                Return True
+            End If
+
+            Return False
+        End Function
+
         Protected Overrides Function IsInAttributeArgumentInitializer(expression As ExpressionSyntax) As Boolean
             If expression.GetAncestorOrThis(Of ArgumentSyntax)() Is Nothing Then
                 Return False

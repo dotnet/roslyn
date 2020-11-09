@@ -28,6 +28,24 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
         }
 
+        protected override bool IsConstantDefinition(ExpressionSyntax expressionSyntax)
+        {
+            if (expressionSyntax.WalkUpParentheses() is not
+                {
+                    Parent: EqualsValueClauseSyntax
+                    {
+                        Parent: VariableDeclaratorSyntax declarator
+                    }
+                })
+            {
+                // Sub-expression
+                return false;
+            }
+
+            return declarator.GetAncestorOrThis<LocalDeclarationStatementSyntax>()?.IsConst == true
+                || declarator.GetAncestorOrThis<FieldDeclarationSyntax>()?.Modifiers.Any(SyntaxKind.ConstKeyword) == true;
+        }
+
         protected override bool IsInNonFirstQueryClause(ExpressionSyntax expression)
         {
             var query = expression.GetAncestor<QueryExpressionSyntax>();
