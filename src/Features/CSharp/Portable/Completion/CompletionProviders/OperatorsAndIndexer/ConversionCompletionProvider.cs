@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Contract.ThrowIfFalse(item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var typeName));
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var (tokenAtPosition, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(position, root);
+            var (tokenAtPosition, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(root, position);
             // syntax tree manipulations are too complicated if a mixture of conditionals is involved. Some text
             // manipulation is easier here.
 
