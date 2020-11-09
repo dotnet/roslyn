@@ -1006,6 +1006,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;
 
+            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParams, out var defaultArgumentsOpt, expanded, enableCallerInfo: true, diagnostics);
+
             // It is possible that overload resolution succeeded, but we have chosen an
             // instance method and we're in a static method. A careful reading of the
             // overload resolution spec shows that the "final validation" stage allows an
@@ -1140,23 +1142,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
-                        argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
+                        argsToParamsOpt: argsToParams, defaultArgumentsOpt, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
         }
 
 #nullable enable
 
-        private static SourceLocation? GetCallerLocation(SyntaxNode syntax, ThreeState enableCallerInfo)
+        private static SourceLocation GetCallerLocation(SyntaxNode syntax)
         {
-            switch (enableCallerInfo)
-            {
-                case ThreeState.False:
-                    return null;
-                case ThreeState.True:
-                    return new SourceLocation(syntax.GetFirstToken());
-            }
-
-            Debug.Assert(enableCallerInfo == ThreeState.Unknown);
-
             switch (syntax.Kind())
             {
                 case SyntaxKind.InvocationExpression:
@@ -1170,194 +1162,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new SourceLocation(((PrimaryConstructorBaseTypeSyntax)syntax).ArgumentList.OpenParenToken);
                 case SyntaxKind.ElementAccessExpression:
                     return new SourceLocation(((ElementAccessExpressionSyntax)syntax).ArgumentList.OpenBracketToken);
-                case SyntaxKind.FromClause:
-                case SyntaxKind.GroupClause:
-                case SyntaxKind.JoinClause:
-                case SyntaxKind.JoinIntoClause:
-                case SyntaxKind.LetClause:
-                case SyntaxKind.OrderByClause:
-                case SyntaxKind.SelectClause:
-                case SyntaxKind.WhereClause:
-                    return new SourceLocation(syntax.GetFirstToken());
                 default:
-                    return null;
+                    return new SourceLocation(syntax.GetFirstToken());
             }
         }
 
-        /// <summary>
-        /// Gets the default value for the <paramref name="parameter"/>.
-        /// </summary>
-        /// <param name="syntax">
-        /// A syntax node corresponding to the invocation.
-        /// </param>
-        /// <param name="parameter">
-        /// A parameter to get the default value for.
-        /// </param>
-        /// <param name="enableCallerInfo">
-        /// Indicates if caller info is to be enabled when processing this optional parameter.
-        /// The value <see cref="ThreeState.Unknown"/> means the decision is to be made based on the shape of the <paramref name="syntax"/> node.
-        /// </param>
-        /// <remarks>
-        /// DELIBERATE SPEC VIOLATION: When processing an implicit invocation of an <c>Add</c> method generated
-        /// for an element-initializer in a collection-initializer, the parameter <paramref name="enableCallerInfo"/> 
-        /// is set to <see cref="ThreeState.True"/>. It means that if the optional parameter is annotated with <see cref="CallerLineNumberAttribute"/>,
-        /// <see cref="CallerFilePathAttribute"/> or <see cref="CallerMemberNameAttribute"/>, and there is no explicit argument corresponding to it,
-        /// we will provide caller information as a value of this parameter.
-        /// This is done to match the native compiler behavior and user requests (see http://roslyn.codeplex.com/workitem/171). This behavior
-        /// does not match the C# spec that currently requires to provide caller information only in explicit invocations and query expressions.
-        /// </remarks>  
-        private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter, ThreeState enableCallerInfo)
+        internal BoundExpression BindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, DiagnosticBag diagnostics)
         {
-            return GetDefaultParameterValue(syntax, parameter, enableCallerInfo, this, null, this._diagnostics);
-        }
-
-        /// <summary>
-        /// This helper is used by both LocalRewriter and IOperation. 
-        ///   - For lowering, 'localRewriter' must be passed in as an argument, and set 'binder' and 'diagnostics' to null.
-        ///   - For deriving argument expression for IArgument operation, 'localRewriter' must be null, and 'compilation', 'diagnostics' 
-        ///     must be passed in, where 'callerMemberName' must not be null if 'parameter.IsCallerMemberName' is 'true'.
-        /// </summary>
-        internal static BoundExpression GetDefaultParameterValue(
-            SyntaxNode syntax,
-            ParameterSymbol parameter,
-            ThreeState enableCallerInfo,
-            LocalRewriter? localRewriter,
-            Binder? binder,
-            DiagnosticBag diagnostics)
-        {
-            Debug.Assert(localRewriter == null ^ binder == null);
-            Debug.Assert(diagnostics != null);
-
-            bool isLowering;
-            CSharpCompilation compilation;
-
-            if (localRewriter != null)
-            {
-                isLowering = true;
-                compilation = localRewriter._compilation;
-            }
-            else
-            {
-                isLowering = false;
-                compilation = binder!.Compilation;
-            }
-
-            // TODO: Ideally, the enableCallerInfo parameter would be of just bool type with only 'true' and 'false' values, and all callers
-            // explicitly provided one of those values, so that we do not rely on shape of syntax nodes in the rewriter. There are not many immediate callers, 
-            // but often the immediate caller does not have the required information, so all possible call chains should be analyzed and possibly updated
-            // to pass this information, and this might be a big task. We should consider doing this when the time permits.
+            Debug.Assert(parameter.IsOptional);
 
             TypeSymbol parameterType = parameter.Type;
-            Debug.Assert(parameter.IsOptional);
-            ConstantValue defaultConstantValue = parameter.ExplicitDefaultConstantValue;
+
+            var defaultConstantValue = parameter.ExplicitDefaultConstantValue switch
+            {
+                // Bad default values are implicitly replaced with default(T) at call sites.
+                { IsBad: true } => ConstantValue.Null,
+                var constantValue => constantValue
+            };
+
+            var callerSourceLocation = enableCallerInfo ? GetCallerLocation(syntax) : null;
             BoundExpression defaultValue;
-            SourceLocation? callerSourceLocation;
-
-            // For compatibility with the native compiler we treat all bad imported constant
-            // values as default(T). However, we don't do this for IOperation purpose, in which case
-            // we will expose the bad node.
-            if (defaultConstantValue != null && defaultConstantValue.IsBad && isLowering)
+            bool allowFailingConversion;
+            if (defaultConstantValue == ConstantValue.Unset)
             {
-                defaultConstantValue = ConstantValue.Null;
+                // This is only expected to occur in recursive error scenarios, for example: `void F(object param = F()) { }`
+                defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                allowFailingConversion = false;
             }
-
-            if (parameter.IsCallerLineNumber && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
+            else if (callerSourceLocation is object && parameter.IsCallerLineNumber)
             {
-                int line = callerSourceLocation.SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
-
-                BoundExpression lineLiteral = MakeLiteral(syntax, ConstantValue.Create(line), compilation.GetSpecialType(SpecialType.System_Int32), localRewriter);
-
-                if (parameterType.IsNullableType())
-                {
-                    TypeSymbol nullableType = parameterType.GetNullableUnderlyingType();
-                    defaultValue = MakeConversionNode(lineLiteral, nullableType, @checked: false);
-
-                    // wrap it in a nullable ctor.
-                    defaultValue = new BoundObjectCreationExpression(
-                        syntax,
-                        UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor, compilation, diagnostics),
-                        null,
-                        defaultValue)
-                    { WasCompilerGenerated = true };
-                }
-                else
-                {
-                    defaultValue = MakeConversionNode(lineLiteral, parameterType, @checked: false);
-                }
+                int line = GetCallerLocation(syntax).SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
+                defaultValue = new BoundLiteral(syntax, ConstantValue.Create(line), Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
+                allowFailingConversion = true;
             }
-            else if (parameter.IsCallerFilePath && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
+            else if (callerSourceLocation is object && parameter.IsCallerFilePath)
             {
-                string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, compilation.Options.SourceReferenceResolver);
-                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(path), compilation.GetSpecialType(SpecialType.System_String), localRewriter);
-                defaultValue = MakeConversionNode(memberNameLiteral, parameterType, @checked: false);
+                string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, Compilation.Options.SourceReferenceResolver);
+                defaultValue = new BoundLiteral(syntax, ConstantValue.Create(path), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                allowFailingConversion = true;
             }
-            else if (parameter.IsCallerMemberName && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
+            else if (callerSourceLocation is object && parameter.IsCallerMemberName)
             {
-                string? memberName;
-
-                if (isLowering)
-                {
-                    Debug.Assert(localRewriter is { });
-                    MethodSymbol? topLevelMethod = localRewriter._factory.TopLevelMethod;
-                    Debug.Assert(topLevelMethod is { });
-                    switch (topLevelMethod.MethodKind)
-                    {
-                        case MethodKind.Constructor:
-                        case MethodKind.StaticConstructor:
-                            // See if the code is actually part of a field, field-like event or property initializer and return the name of the corresponding member.
-                            var memberDecl = syntax.Ancestors().OfType<MemberDeclarationSyntax>().FirstOrDefault();
-
-                            if (memberDecl != null)
-                            {
-                                BaseFieldDeclarationSyntax? fieldDecl;
-
-                                if (memberDecl.Kind() == SyntaxKind.PropertyDeclaration)
-                                {
-                                    var propDecl = (PropertyDeclarationSyntax)memberDecl;
-                                    EqualsValueClauseSyntax? initializer = propDecl.Initializer;
-
-                                    if (initializer != null && initializer.Span.Contains(syntax.Span))
-                                    {
-                                        memberName = propDecl.Identifier.ValueText;
-                                        break;
-                                    }
-                                }
-                                else if ((fieldDecl = memberDecl as BaseFieldDeclarationSyntax) != null)
-                                {
-                                    memberName = null;
-
-                                    foreach (VariableDeclaratorSyntax varDecl in fieldDecl.Declaration.Variables)
-                                    {
-                                        EqualsValueClauseSyntax? initializer = varDecl.Initializer;
-
-                                        if (initializer != null && initializer.Span.Contains(syntax.Span))
-                                        {
-                                            memberName = varDecl.Identifier.ValueText;
-                                            break;
-                                        }
-                                    }
-
-                                    if (memberName != null)
-                                    {
-                                        break;
-                                    }
-                                }
-                            }
-
-                            goto default;
-
-                        default:
-                            memberName = topLevelMethod.GetMemberCallerName();
-                            break;
-                    }
-                }
-                else
-                {
-                    memberName = binder!.ContainingMember().GetMemberCallerName();
-                }
-
-                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), compilation.GetSpecialType(SpecialType.System_String), localRewriter);
-                defaultValue = MakeConversionNode(memberNameLiteral, parameterType, @checked: false);
+                var memberName = containingMember.GetMemberCallerName();
+                defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                allowFailingConversion = true;
             }
             else if (defaultConstantValue == ConstantValue.NotAvailable)
             {
@@ -1365,93 +1213,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (parameterType.IsDynamic() || parameterType.SpecialType == SpecialType.System_Object)
                 {
                     // We have something like M([Optional] object x). We have special handling for such situations.
-                    defaultValue = isLowering
-                        ? localRewriter!.GetDefaultParameterSpecial(syntax, parameter)
-                        : GetDefaultParameterSpecialForIOperation(syntax, parameter, compilation, diagnostics);
+                    defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, Compilation);
                 }
                 else
                 {
                     // The argument to M([Optional] int x) becomes default(int)
                     defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
                 }
+                allowFailingConversion = false;
             }
             else if (defaultConstantValue.IsNull)
             {
-                if (parameterType.IsValueType || (parameterType.IsNullableType() && parameterType.IsErrorType()))
-                {
-                    // We have something like M(int? x = null) or M(S x = default(S)),
-                    // so replace the argument with default(int?).
-                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
-                }
-                else
-                {
-                    defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType, localRewriter);
-                }
-            }
-            else if (defaultConstantValue.IsBad)
-            {
-                defaultValue = new BoundBadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, parameterType, hasErrors: true) { WasCompilerGenerated = true };
-            }
-            else if (parameterType.IsNullableType())
-            {
-                // We have something like M(double? x = 1.23), so replace the argument
-                // with new double?(1.23).
-
-                TypeSymbol constantType = compilation.GetSpecialType(defaultConstantValue.SpecialType);
-                defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType, localRewriter);
-
-                // The parameter's underlying type might not match the constant type. For example, we might have
-                // a default value of 5 (an integer) but a parameter type of decimal?.
-
-                defaultValue = MakeConversionNode(defaultValue, parameterType.GetNullableUnderlyingType(), @checked: false, acceptFailingConversion: true);
-
-                // Finally, wrap it in a nullable ctor.
-                defaultValue = new BoundObjectCreationExpression(
-                    syntax,
-                    UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor, compilation, diagnostics),
-                    null,
-                    defaultValue)
-                { WasCompilerGenerated = true };
+                defaultValue = parameterType.IsValueType || (parameterType.IsNullableType() && parameterType.IsErrorType())
+                    ? new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true }
+                    : new BoundLiteral(syntax, defaultConstantValue, parameterType) { WasCompilerGenerated = true };
+                allowFailingConversion = false;
             }
             else
             {
-                // We have something like M(double x = 1.23), so replace the argument with 1.23.
-
-                TypeSymbol constantType = compilation.GetSpecialType(defaultConstantValue.SpecialType);
-                defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType, localRewriter);
-                // The parameter type might not match the constant type.                                                                                                                    
-                defaultValue = MakeConversionNode(defaultValue, parameterType, @checked: false, acceptFailingConversion: true);
+                TypeSymbol constantType = Compilation.GetSpecialType(defaultConstantValue.SpecialType);
+                defaultValue = new BoundLiteral(syntax, defaultConstantValue, constantType) { WasCompilerGenerated = true };
+                allowFailingConversion = defaultConstantValue.SpecialType is SpecialType.System_Decimal or SpecialType.System_DateTime;
             }
 
-            // CONSIDER: it feels like determining the exact value that will be emitted for a
-            // parameter default value is something that should be figured out at binding time, not in lowering.
-            defaultValue = defaultValue.WithSuppression(syntax.IsKind(SyntaxKind.SuppressNullableWarningExpression));
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            Conversion conversion = Conversions.ClassifyConversionFromExpression(defaultValue, parameterType, ref useSiteDiagnostics);
+            diagnostics.Add(syntax, useSiteDiagnostics);
+
+            if (!conversion.IsValid)
+            {
+                if (!allowFailingConversion)
+                {
+                    GenerateImplicitConversionError(diagnostics, syntax, conversion, defaultValue, parameterType);
+                }
+
+                defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+            }
+            else
+            {
+                defaultValue = CreateConversion(defaultValue, conversion, parameterType, diagnostics);
+            }
 
             return defaultValue;
-
-            BoundExpression MakeConversionNode(BoundExpression operand, TypeSymbol type, bool @checked, bool acceptFailingConversion = false)
-            {
-                if (isLowering)
-                {
-                    return localRewriter!.MakeConversionNode(operand, type, @checked, acceptFailingConversion);
-                }
-                else
-                {
-                    return MakeConversionForIOperation(operand, type, syntax, compilation, diagnostics, @checked, acceptFailingConversion);
-                }
-            }
-        }
-
-        private BoundExpression GetDefaultParameterSpecial(SyntaxNode syntax, ParameterSymbol parameter)
-        {
-            BoundExpression defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, this._compilation);
-            return MakeConversionNode(defaultValue, parameter.Type, @checked: false);
-        }
-
-        private static BoundExpression GetDefaultParameterSpecialForIOperation(SyntaxNode syntax, ParameterSymbol parameter, CSharpCompilation compilation, DiagnosticBag diagnostics)
-        {
-            BoundExpression defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, compilation);
-            return MakeConversionForIOperation(defaultValue, parameter.Type, syntax, compilation, diagnostics, @checked: false);
         }
 
         private static BoundExpression GetDefaultParameterSpecialNoConversion(SyntaxNode syntax, ParameterSymbol parameter, CSharpCompilation compilation)
@@ -1499,6 +1302,116 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return defaultValue;
+        }
+
+        private static ParameterSymbol? GetCorrespondingParameter(
+            int argumentOrdinal,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
+        {
+            int n = parameters.Length;
+            ParameterSymbol? parameter;
+
+            if (argsToParamsOpt.IsDefault)
+            {
+                if (argumentOrdinal < n)
+                {
+                    parameter = parameters[argumentOrdinal];
+                }
+                else if (expanded)
+                {
+                    parameter = parameters[n - 1];
+                }
+                else
+                {
+                    parameter = null;
+                }
+            }
+            else
+            {
+                int parameterOrdinal = argsToParamsOpt[argumentOrdinal];
+
+                if (parameterOrdinal < n)
+                {
+                    parameter = parameters[parameterOrdinal];
+                }
+                else
+                {
+                    parameter = null;
+                }
+            }
+
+            return parameter;
+        }
+
+        internal void BindDefaultArguments(
+            SyntaxNode node,
+            ImmutableArray<ParameterSymbol> parameters,
+            ArrayBuilder<BoundExpression> argumentsBuilder,
+            ArrayBuilder<RefKind> argumentRefKindsBuilder,
+            ref ImmutableArray<int> argsToParamsOpt,
+            out BitVector defaultArgumentsOpt,
+            bool expanded,
+            bool enableCallerInfo,
+            DiagnosticBag diagnostics)
+        {
+            var containingMember = ContainingMember() switch
+            {
+                FieldSymbol { AssociatedSymbol: { } symbol } => symbol,
+                var c => c
+            };
+
+            var visitedParameters = BitVector.Create(parameters.Length);
+            for (var i = 0; i < argumentsBuilder.Count; i++)
+            {
+                var parameter = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                if (parameter is not null)
+                {
+                    visitedParameters[parameter.Ordinal] = true;
+                }
+            }
+
+            // only proceed with binding default arguments if we know there is some optional parameter that has not been matched by an explicit argument
+            if (!parameters.Any(static (param, visitedParameters) => !visitedParameters[param.Ordinal] && param.IsOptional, visitedParameters))
+            {
+                defaultArgumentsOpt = default;
+                return;
+            }
+
+            defaultArgumentsOpt = BitVector.Create(parameters.Length);
+            ArrayBuilder<int>? argsToParamsBuilder = null;
+            if (!argsToParamsOpt.IsDefault)
+            {
+                argsToParamsBuilder = ArrayBuilder<int>.GetInstance(argsToParamsOpt.Length);
+                argsToParamsBuilder.AddRange(argsToParamsOpt);
+            }
+
+            // Go over missing parameters, inserting default values for optional parameters
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var parameter = parameters[i];
+                if (!visitedParameters[parameter.Ordinal] && parameter.IsOptional)
+                {
+                    defaultArgumentsOpt[argumentsBuilder.Count] = true;
+                    argumentsBuilder.Add(BindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics));
+
+                    if (argumentRefKindsBuilder.Count > 0)
+                    {
+                        argumentRefKindsBuilder.Add(RefKind.None);
+                    }
+
+                    argsToParamsBuilder?.Add(parameter.Ordinal);
+                }
+            }
+            Debug.Assert(argumentRefKindsBuilder.Count == 0 || argumentRefKindsBuilder.Count == argumentsBuilder.Count);
+            Debug.Assert(argsToParamsBuilder is null || argsToParamsBuilder.Count == argumentsBuilder.Count);
+
+            if (argsToParamsBuilder is object)
+            {
+                argsToParamsOpt = argsToParamsBuilder.ToImmutableOrNull();
+                argsToParamsBuilder.Free();
+            }
         }
 
 #nullable disable

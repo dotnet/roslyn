@@ -255,6 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 node.Expanded,
                 node.InvokedAsExtensionMethod,
                 node.ArgsToParamsOpt,
+                node.DefaultArgumentsOpt,
                 node.ResultKind,
                 node.BinderOpt,
                 rewrittenType);
@@ -381,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _placeholderMap.Remove(awaitablePlaceholder);
 
-            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult);
+            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult, node.BinderOpt);
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
@@ -483,6 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     rewritten.ArgumentRefKindsOpt,
                     rewritten.Expanded,
                     rewritten.ArgsToParamsOpt,
+                    rewritten.DefaultArgumentsOpt,
                     rewritten.ConstantValueOpt,
                     rewritten.InitializerExpressionOpt,
                     rewritten.BinderOpt,
@@ -619,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, receiverType, node.Binder, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArgumentsOpt, node.ResultKind, receiverType, node.Binder, type);
         }
 
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)

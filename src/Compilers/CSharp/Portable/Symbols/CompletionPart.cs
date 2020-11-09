@@ -80,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         FinishMethodChecks = 1 << 14,
         MethodSymbolAll = Attributes | ReturnTypeAttributes | Parameters | Type | TypeParameters | StartMethodChecks | FinishMethodChecks | StartAsyncMethodChecks | FinishAsyncMethodChecks,
 
+        // For complex parameter symbols
+        StartDefaultSyntaxValue = 1 << 11,
+        EndDefaultSyntaxValue = 1 << 12,
+        ComplexParameterSymbolAll = Attributes | StartDefaultSyntaxValue | EndDefaultSyntaxValue,
+
         // For type parameter symbols
         TypeParameterConstraints = 1 << 11,
         TypeParameterSymbolAll = Attributes | TypeParameterConstraints,

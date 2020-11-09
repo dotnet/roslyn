@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     currentCreation.ArgumentRefKindsOpt,
                     currentCreation.Expanded,
                     currentCreation.ArgsToParamsOpt,
+                    currentCreation.DefaultArgumentsOpt,
                     currentCreation.ConstantValue,
                     currentCreation.InitializerExpressionOpt,
                     currentCreation.BinderOpt,

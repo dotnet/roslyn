@@ -2354,5 +2354,77 @@ public class C
             // TODO: Guess - RefEmit doesn't like DateTime constants.
             CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
+
+        [Fact]
+        public void InvalidConversionForDefaultArgument_InIL()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit P
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method P::.ctor
+
+  .method public hidebysig instance int32  M1([opt] int32 s) cil managed
+  {
+    .param [1] = ""abc""
+    // Code size 2 (0x2)
+    .maxstack 8
+
+    IL_0000: ldarg.1
+    IL_0001: ret
+  } // end of method P::M1
+} // end of class P
+";
+
+            var csharp = @"
+class C
+{
+    public static void Main()
+    {
+         P p = new P();
+         System.Console.Write(p.M1());
+    }
+}
+";
+            var comp = CreateCompilationWithIL(csharp, il, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,31): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //          System.Console.Write(p.M1());
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "p.M1()").WithArguments("string", "int").WithLocation(7, 31));
+        }
+
+        [Fact]
+        public void DefaultValue_Boxing()
+        {
+            var csharp = @"
+class C
+{
+    void M1(object obj = 1) // 1
+    {
+    }
+
+    C(object obj = System.DayOfWeek.Monday) // 2
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,20): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M1(object obj = 1) // 1
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(4, 20),
+                // (8,14): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     C(object obj = System.DayOfWeek.Monday) // 2
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(8, 14));
+        }
     }
 }

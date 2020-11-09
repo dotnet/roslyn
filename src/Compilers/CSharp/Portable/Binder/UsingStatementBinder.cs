@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (awaitableTypeOpt is null)
                 {
-                    awaitOpt = new BoundAwaitableInfo(syntax, awaitableInstancePlaceholder: null, isDynamic: true, getAwaiter: null, isCompleted: null, getResult: null) { WasCompilerGenerated = true };
+                    awaitOpt = new BoundAwaitableInfo(syntax, awaitableInstancePlaceholder: null, isDynamic: true, getAwaiter: null, isCompleted: null, getResult: null, originalBinder) { WasCompilerGenerated = true };
                 }
                 else
                 {

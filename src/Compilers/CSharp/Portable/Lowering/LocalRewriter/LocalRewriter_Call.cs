@@ -178,7 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 rewrittenArguments,
                 method,
-                method,
                 expanded,
                 argsToParamsOpt,
                 ref argumentRefKindsOpt,
@@ -236,6 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expanded: false,
                     invokedAsExtensionMethod: invokedAsExtensionMethod,
                     argsToParamsOpt: default(ImmutableArray<int>),
+                    defaultArgumentsOpt: default(BitVector),
                     resultKind: resultKind,
                     binderOpt: null,
                     type: type);
@@ -252,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     false,
                     node.InvokedAsExtensionMethod,
                     default(ImmutableArray<int>),
+                    default(BitVector),
                     node.ResultKind,
                     node.BinderOpt,
                     node.Type);
@@ -372,16 +373,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// It is assumed that each argument has already been lowered, but we may need
         /// additional rewriting for the arguments, such as generating a params array, re-ordering
         /// arguments based on <paramref name="argsToParamsOpt"/> map, inserting arguments for optional parameters, etc.
-        /// <paramref name="optionalParametersMethod"/> is the method used for values of any optional parameters.
-        /// For indexers, this method must be an accessor, and for methods it must be the method
-        /// itself. <paramref name="optionalParametersMethod"/> is needed for indexers since getter and setter
-        /// may have distinct optional parameter values.
         /// </summary>
         private ImmutableArray<BoundExpression> MakeArguments(
             SyntaxNode syntax,
             ImmutableArray<BoundExpression> rewrittenArguments,
             Symbol methodOrIndexer,
-            MethodSymbol optionalParametersMethod,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
@@ -389,18 +385,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool invokedAsExtensionMethod = false,
             ThreeState enableCallerInfo = ThreeState.Unknown)
         {
-            // Either the methodOrIndexer is a property, in which case the method used
-            // for optional parameters is an accessor of that property (or an overridden
-            // property), or the methodOrIndexer is used for optional parameters directly.
-            Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && optionalParametersMethod.IsAccessor()) ||
-                ReferenceEquals(methodOrIndexer, optionalParametersMethod));
 
             // We need to do a fancy rewrite under the following circumstances:
             // (1) a params array is being used; we need to generate the array.
             // (2) there were named arguments that reordered the arguments; we might
             //     have to generate temporaries to ensure that the arguments are 
             //     evaluated in source code order, not the actual call order.
-            // (3) there were optional parameters that had no corresponding arguments.
             //
             // If none of those are the case then we can just take an early out.
 
@@ -496,9 +486,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 actualArguments[actualArguments.Length - 1] = BuildParamsArray(syntax, methodOrIndexer, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
             }
 
-            // Step three: Now fill in the optional arguments.
-            InsertMissingOptionalArguments(syntax, optionalParametersMethod.Parameters, actualArguments, refKinds, enableCallerInfo);
-
             if (isComReceiver)
             {
                 RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temporariesBuilder);
@@ -515,6 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             argumentRefKindsOpt = GetRefKindsOrNull(refKinds);
             refKinds.Free();
 
+            Debug.Assert(actualArguments.All(static arg => arg is not null));
             return actualArguments.AsImmutableOrNull();
         }
 
@@ -570,22 +558,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             ImmutableArray<BoundExpression> arguments,
             Symbol methodOrIndexer,
-            MethodSymbol optionalParametersMethod,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArgumentsOpt,
             bool invokedAsExtensionMethod)
         {
-            // Either the methodOrIndexer is a property, in which case the method used
-            // for optional parameters is an accessor of that property (or an overridden
-            // property), or the methodOrIndexer is used for optional parameters directly.
-            Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) &&
-                (optionalParametersMethod.IsAccessor() ||
-                 ((PropertySymbol)methodOrIndexer).MustCallMethodsDirectly)) || // This condition is a temporary workaround for https://github.com/dotnet/roslyn/issues/23852
-                (object)methodOrIndexer == optionalParametersMethod);
-
             // We need to do a fancy rewrite under the following circumstances:
             // (1) a params array is being used; we need to generate the array. 
-            // (2) there were optional parameters that had no corresponding arguments.
+            // (2) named arguments were provided out-of-order of the parameters.
             //
             // If neither of those are the case then we can just take an early out.
 
@@ -600,7 +580,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int i = 0;
                 for (; i < parameters.Length; ++i)
                 {
-                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i].GetPublicSymbol(), arguments[i]));
+                    var argumentKind = defaultArgumentsOpt[i] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
+                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(argumentKind, parameters[i].GetPublicSymbol(), arguments[i]));
                 }
 
                 // TODO: In case of __arglist, we will have more arguments than parameters, 
@@ -608,7 +589,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //       https://github.com/dotnet/roslyn/issues/19673
                 for (; i < arguments.Length; ++i)
                 {
-                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(ArgumentKind.Explicit, null, arguments[i]));
+                    var argumentKind = defaultArgumentsOpt[i] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
+                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(argumentKind, null, arguments[i]));
                 }
 
                 Debug.Assert(methodOrIndexer.GetIsVararg() ^ parameters.Length == arguments.Length);
@@ -622,9 +604,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operationFactory,
                 syntax,
                 methodOrIndexer,
-                optionalParametersMethod,
                 expanded,
                 argsToParamsOpt,
+                defaultArgumentsOpt,
                 arguments,
                 binder);
         }
@@ -771,9 +753,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpOperationFactory operationFactory,
             SyntaxNode syntax,
             Symbol methodOrIndexer,
-            MethodSymbol optionalParametersMethod,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArgumentsOpt,
             ImmutableArray<BoundExpression> arguments,
             Binder binder)
         {
@@ -781,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayBuilder<IArgumentOperation> argumentsInEvaluationBuilder = ArrayBuilder<IArgumentOperation>.GetInstance(parameters.Length);
 
-            PooledHashSet<int> processedParameters = PooledHashSet<int>.GetInstance();
+            bool visitedLastParam = false;
 
             // First, fill in all the explicitly provided arguments.
             for (int a = 0; a < arguments.Length; ++a)
@@ -791,11 +773,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
                 var parameter = parameters[p];
 
-                Debug.Assert(!processedParameters.Contains(p));
+                if (!visitedLastParam)
+                {
+                    visitedLastParam = p == parameters.Length - 1;
+                }
 
-                processedParameters.Add(p);
-
-                ArgumentKind kind = ArgumentKind.Explicit;
+                ArgumentKind kind = defaultArgumentsOpt[a] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
 
                 if (IsBeginningOfParamArray(p, a, expanded, parameters.Length, arguments, argsToParamsOpt, out int paramArrayArgumentCount))
                 {
@@ -819,23 +802,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
             }
 
-            // Collect parameters with missing arguments.   
-            ArrayBuilder<ParameterSymbol> missingParametersBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
-            for (int i = 0; i < parameters.Length; ++i)
+            // Finally, append the missing empty params array if necessary.
+            var lastParam = !parameters.IsEmpty ? parameters[^1] : null;
+            if (expanded && lastParam is object && !visitedLastParam)
             {
-                if (!processedParameters.Contains(i))
-                {
-                    missingParametersBuilder.Add(parameters[i]);
-                }
+                Debug.Assert(lastParam.IsParams);
+
+                // Create an empty array for omitted param array argument.
+                BoundExpression argument = CreateParamArrayArgument(syntax, lastParam.Type, ImmutableArray<BoundExpression>.Empty, null, binder);
+                ArgumentKind kind = ArgumentKind.ParamArray;
+
+                argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, lastParam.GetPublicSymbol(), argument));
             }
 
-            processedParameters.Free();
-
-            // Finally, append default value as arguments.
-            AppendMissingOptionalArguments(operationFactory, syntax, methodOrIndexer, optionalParametersMethod, expanded, binder, missingParametersBuilder, argumentsInEvaluationBuilder);
-
-            missingParametersBuilder.Free();
-
+            Debug.Assert(argumentsInEvaluationBuilder.All(static arg => arg is not null));
             return argumentsInEvaluationBuilder.ToImmutableAndFree();
         }
 
@@ -932,6 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expanded: false,
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: default(ImmutableArray<int>),
+                        defaultArgumentsOpt: default(BitVector),
                         resultKind: LookupResultKind.Viable,
                         binderOpt: null,
                         type: arrayEmpty.ReturnType);
@@ -1094,86 +1075,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(firstUnclaimedStore == tempStores.Count, "not all side-effects were claimed");
             return tempsRemainedInUse;
         }
-
-        private void InsertMissingOptionalArguments(SyntaxNode syntax,
-            ImmutableArray<ParameterSymbol> parameters,
-            BoundExpression[] arguments,
-            ArrayBuilder<RefKind> refKinds,
-            ThreeState enableCallerInfo = ThreeState.Unknown)
-        {
-            Debug.Assert(refKinds.Count == arguments.Length);
-
-            for (int p = 0; p < arguments.Length; ++p)
-            {
-                if (arguments[p] == null)
-                {
-                    ParameterSymbol parameter = parameters[p];
-                    Debug.Assert(parameter.IsOptional);
-
-                    arguments[p] = GetDefaultParameterValue(syntax, parameter, enableCallerInfo);
-                    Debug.Assert(TypeSymbol.Equals(arguments[p].Type, parameter.Type, TypeCompareKind.ConsiderEverything2));
-
-                    if (parameters[p].RefKind == RefKind.In)
-                    {
-                        Debug.Assert(refKinds[p] == RefKind.None);
-                        refKinds[p] = RefKind.In;
-                    }
-                }
-            }
-        }
-
-        private static void AppendMissingOptionalArguments(
-            CSharpOperationFactory operationFactory,
-            SyntaxNode syntax,
-            Symbol methodOrIndexer,
-            MethodSymbol optionalParametersMethod,
-            bool expanded,
-            Binder binder,
-            ArrayBuilder<ParameterSymbol> missingParameters,
-            ArrayBuilder<IArgumentOperation> argumentsBuilder)
-        {
-            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
-            ImmutableArray<ParameterSymbol> parametersOfOptionalParametersMethod = optionalParametersMethod.Parameters;
-
-            foreach (ParameterSymbol parameter in missingParameters)
-            {
-                BoundExpression argument;
-                ArgumentKind kind;
-
-                // In case of indexer access, missing parameters are corresponding to the indexer symbol, we need to 
-                // get default values based on actual accessor method parameter symbols (but still want to tie resulted IArgument 
-                // to the indexer parameter.)
-                ParameterSymbol parameterOfOptionalParametersMethod = parametersOfOptionalParametersMethod[parameter.Ordinal];
-
-                if (expanded && parameterOfOptionalParametersMethod.Ordinal == parameters.Length - 1)
-                {
-                    Debug.Assert(parameterOfOptionalParametersMethod.IsParams);
-
-                    // Create an empty array for omitted param array argument.
-                    argument = CreateParamArrayArgument(syntax, parameterOfOptionalParametersMethod.Type, ImmutableArray<BoundExpression>.Empty, null, binder);
-                    kind = ArgumentKind.ParamArray;
-                }
-                else
-                {
-                    Debug.Assert(parameterOfOptionalParametersMethod.IsOptional);
-
-                    var unusedDiagnostics = DiagnosticBag.GetInstance();
-
-                    argument = GetDefaultParameterValue(syntax,
-                        parameterOfOptionalParametersMethod,
-                        enableCallerInfo: ThreeState.Unknown,
-                        localRewriter: null,
-                        binder: binder,
-                        diagnostics: unusedDiagnostics);
-                    kind = ArgumentKind.DefaultValue;
-
-                    unusedDiagnostics.Free();
-                }
-
-                argumentsBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
-            }
-        }
-
 
         // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.
         // We should have ignored the 'ref' on the parameter during overload resolution for the given method call.

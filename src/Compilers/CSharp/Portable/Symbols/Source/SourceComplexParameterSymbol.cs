@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
-            ConstantValue defaultSyntaxValue,
             bool isParams,
             bool isExtensionMethodThis)
             : base(owner, parameterType, ordinal, refKind, name, locations)
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _parameterSyntaxKind |= ParameterSyntaxKind.DefaultParameter;
             }
 
-            _lazyDefaultSyntaxValue = defaultSyntaxValue;
+            _lazyDefaultSyntaxValue = ConstantValue.Unset;
         }
 
         private Binder ParameterBinderOpt => (ContainingSymbol as LocalFunctionSymbol)?.ParameterBinder;
@@ -198,30 +197,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyDefaultSyntaxValue == ConstantValue.Unset)
+                if (state.HasComplete(CompletionPart.EndDefaultSyntaxValue))
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
-
-                    if (Interlocked.CompareExchange(
-                        ref _lazyDefaultSyntaxValue,
-                        MakeDefaultExpression(diagnostics, out var binder, out var parameterEqualsValue),
-                        ConstantValue.Unset) == ConstantValue.Unset)
-                    {
-                        if (binder is not null && parameterEqualsValue is not null && !_lazyDefaultSyntaxValue.IsBad)
-                        {
-                            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
-                        }
-                        NullableAnalyzeParameterDefaultValueFromAttributes(diagnostics);
-
-                        // This is a race condition where the thread that loses
-                        // the compare exchange tries to access the diagnostics
-                        // before the thread which won the race finishes adding
-                        // them. https://github.com/dotnet/roslyn/issues/17243
-                        AddDeclarationDiagnostics(diagnostics);
-                    }
-
-                    diagnostics.Free();
+                    return _lazyDefaultSyntaxValue;
                 }
+
+                if (!state.NotePartComplete(CompletionPart.StartDefaultSyntaxValue))
+                {
+                    // In certain recursive error scenarios we need to return a placeholder value.
+                    // e.g. `void F(object param = F()) { }`
+                    return ConstantValue.Unset;
+                }
+
+                var diagnostics = DiagnosticBag.GetInstance();
+                var previousValue = Interlocked.CompareExchange(
+                    ref _lazyDefaultSyntaxValue,
+                    MakeDefaultExpression(diagnostics),
+                    ConstantValue.Unset);
+                Debug.Assert(previousValue == ConstantValue.Unset);
+
+                AddDeclarationDiagnostics(diagnostics);
+
+                diagnostics.Free();
+                state.NotePartComplete(CompletionPart.EndDefaultSyntaxValue);
 
                 return _lazyDefaultSyntaxValue;
             }
@@ -244,8 +242,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return binder;
         }
 
-        private void NullableAnalyzeParameterDefaultValueFromAttributes(DiagnosticBag diagnostics)
+        private void NullableAnalyzeParameterDefaultValueFromAttributes()
         {
+            if (!NullableWalker.NeedsAnalysis(DeclaringCompilation))
+            {
+                return;
+            }
+
             var defaultValue = DefaultValueFromAttributes;
             if (defaultValue == null || defaultValue.IsBad)
             {
@@ -275,14 +278,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // we will just get a bad constant value above and return early.
                 new BoundLiteral(parameterSyntax, defaultValue, Type));
 
+            var diagnostics = DiagnosticBag.GetInstance();
             NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
+            AddDeclarationDiagnostics(diagnostics);
+            diagnostics.Free();
         }
 
-        private ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, out Binder binder, out BoundParameterEqualsValue parameterEqualsValue)
+        private ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics)
         {
-            binder = null;
-            parameterEqualsValue = null;
-
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
             {
@@ -295,13 +298,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ConstantValue.NotAvailable;
             }
 
-            binder = GetBinder(defaultSyntax);
+            var binder = GetBinder(defaultSyntax);
             Binder binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
             Debug.Assert(binderForDefault.InParameterDefaultValue);
             Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
 
-            BoundExpression valueBeforeConversion;
-            parameterEqualsValue = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out valueBeforeConversion);
+            var parameterEqualsValue = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out var valueBeforeConversion);
             if (valueBeforeConversion.HasErrors)
             {
                 return ConstantValue.Bad;
@@ -326,6 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         valueBeforeConversion, diagnostics, isDefaultParameter: true);
                 }
             }
+
+            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
 
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
@@ -517,6 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (bagCreatedOnThisThread)
                 {
+                    NullableAnalyzeParameterDefaultValueFromAttributes();
                     state.NotePartComplete(CompletionPart.Attributes);
                 }
             }
@@ -1140,10 +1145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            base.ForceComplete(locationOpt, cancellationToken);
-
-            // Force binding of default value.
-            var unused = this.ExplicitDefaultConstantValue;
+            _ = this.GetAttributes();
+            _ = this.ExplicitDefaultConstantValue;
+            state.SpinWaitComplete(CompletionPart.ComplexParameterSymbolAll, cancellationToken);
         }
     }
 
@@ -1160,10 +1164,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
-            ConstantValue defaultSyntaxValue,
             bool isParams,
             bool isExtensionMethodThis)
-            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, defaultSyntaxValue, isParams, isExtensionMethodThis)
+            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis)
         {
             Debug.Assert(!refCustomModifiers.IsEmpty);
 
