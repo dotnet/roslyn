@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,41 +36,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             bool isAccessedByConditionalAccess,
             CancellationToken cancellationToken)
         {
-            // We only want to suggest indexer accessible from the cursor position, so we need the containing type at the cursor position,
-            // because the within parameter of GetAccessibleMembersInThisAndBaseTypes() must be an IAssemblySymbol or an INamedTypeSymbol.
-            var containingTypeAtCursorPosition = semanticModel.GetEnclosingSymbol(position, cancellationToken)?.GetContainingTypeOrThis();
-            // We may not be able to identify a containing type, in which case we are conservative and suggest only public indexers
-            var indexers = containingTypeAtCursorPosition is null
-                ? from t in container.GetBaseTypesAndThis()
-                  from i in t.GetIndexers()
-                  where i.HasPublicResultantVisibility()
-                  select i
-                : from p in container.GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(containingTypeAtCursorPosition)
-                  where p.IsIndexer
-                  select p;
-            var indexerList = indexers.ToImmutableArray();
-            if (indexerList.Any())
+            var containingType = semanticModel.GetEnclosingNamedType(position, cancellationToken);
+            if (containingType != null)
             {
-                var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: "this",
-                    displayTextSuffix: "[]",
-                    filterText: "this",
-                    sortText: "this",
-                    symbols: indexerList,
-                    rules: CompletionItemRules.Default,
-                    contextPosition: position);
-                return ImmutableArray.Create(indexerCompletion);
+                foreach (var property in container.GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(containingType))
+                {
+                    if (property.IsIndexer)
+                    {
+                        var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
+                            displayText: "this",
+                            displayTextSuffix: "[]",
+                            filterText: "this",
+                            sortText: "this",
+                            symbols: indexerList,
+                            rules: CompletionItemRules.Default,
+                            contextPosition: position);
+                        return ImmutableArray.Create(indexerCompletion);
+                    }
+                }
             }
 
             return ImmutableArray<CompletionItem>.Empty;
         }
 
-        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item,
-            TextSpan completionListSpan, char? commitKey, bool disallowAddingImports,
+        internal override async Task<CompletionChange> GetChangeAsync(
+            Document document,
+            CompletionItem item,
+            TextSpan completionListSpan,
+            char? commitKey,
+            bool disallowAddingImports,
             CancellationToken cancellationToken)
         {
-            return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: "[]", removeConditionalAccess: false,
-                positionOffset: -1, cancellationToken).ConfigureAwait(false);
+            return await ReplaceDotAndTokenAfterWithTextAsync(
+                document, item, text: "[]", removeConditionalAccess: false, positionOffset: -1, cancellationToken).ConfigureAwait(false);
         }
     }
 }
