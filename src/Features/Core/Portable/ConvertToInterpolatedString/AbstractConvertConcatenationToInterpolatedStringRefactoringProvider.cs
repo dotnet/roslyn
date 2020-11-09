@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 else if (syntaxFacts.IsInterpolatedStringExpression(piece) &&
                     syntaxFacts.IsVerbatimInterpolatedStringExpression(piece) == isVerbatimStringLiteral)
                 {
-                    // The piece is itself an interpolated string (of the same "verbatimity" as the new interpolated string)
+                    // "piece" is itself an interpolated string (of the same "verbatimity" as the new interpolated string)
                     // "a" + $"{1+ 1}" -> instead of $"a{$"{1 + 1}"}" inline the interpolated part: $"a{1 + 1}"
                     syntaxFacts.GetPartsOfInterpolationExpression(piece, out var _, out var contentParts, out var _);
                     foreach (var contentPart in contentParts)
