@@ -106,8 +106,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
-                context.RegisterRefactorings(await GetRefactoringsForSingleParameterAsync(
-                    document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+                var refactorings = await GetRefactoringsForSingleParameterAsync(
+                    document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
+                context.RegisterRefactorings(refactorings, context.Span);
             }
 
             // List with parameterNodes that pass all checks
@@ -125,9 +126,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 // Looks like we can offer a refactoring for more than one parameter. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
-                context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
+                var refactorings = await GetRefactoringsForAllParametersAsync(
                     document, functionDeclaration, methodSymbol, blockStatementOpt,
-                    listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, cancellationToken).ConfigureAwait(false));
+                    listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, cancellationToken).ConfigureAwait(false);
+                context.RegisterRefactorings(refactorings, context.Span);
             }
 
             return;

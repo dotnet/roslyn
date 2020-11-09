@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Collection of names of members declared within this type.
+        /// Collection of names of members declared within this type. May return duplicates.
         /// </summary>
         public abstract IEnumerable<string> MemberNames { get; }
 
@@ -510,6 +510,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>An ImmutableArray containing all the members of this symbol with the given name. If there are
         /// no members with this name, returns an empty ImmutableArray. Never returns null.</returns>
         public abstract override ImmutableArray<Symbol> GetMembers(string name);
+
+        /// <summary>
+        /// A lightweight check for whether this type has a possible clone method. This is less costly than GetMembers,
+        /// particularly for PE symbols, and can be used as a cheap heuristic for whether to fully search through all
+        /// members of this type for a valid clone method.
+        /// </summary>
+        internal abstract bool HasPossibleWellKnownCloneMethod();
 
         internal virtual ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {

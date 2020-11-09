@@ -3819,6 +3819,20 @@ $$    using ([|var vv = goo()|])
         }
 
         [Fact]
+        [WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
+        public void OnPropertyAccessor5()
+        {
+            TestSpan(
+@"class C
+{
+  int Goo
+  {
+    [|in$$it;|]
+  }
+}");
+        }
+
+        [Fact]
         public void OnProperty1()
         {
             TestSpan(

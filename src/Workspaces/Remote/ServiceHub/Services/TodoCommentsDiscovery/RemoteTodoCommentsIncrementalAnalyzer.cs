@@ -14,19 +14,20 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteCallback<ITodoCommentsListener> _callback;
+        private readonly RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> _callback;
+        private readonly RemoteServiceCallbackId _callbackId;
 
-        public RemoteTodoCommentsIncrementalAnalyzer(RemoteCallback<ITodoCommentsListener> callback)
-            => _callback = callback;
+        public RemoteTodoCommentsIncrementalAnalyzer(RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> callback, RemoteServiceCallbackId callbackId)
+        {
+            _callback = callback;
+            _callbackId = callbackId;
+        }
 
         protected override async ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
         {
-            // cancel whenever the analyzer runner cancels or the client disconnects and the request is canceled:
-            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
-
             await _callback.InvokeAsync(
-                (callback, cancellationToken) => callback.ReportTodoCommentDataAsync(documentId, data, cancellationToken),
-                linkedSource.Token).ConfigureAwait(false);
+                (callback, cancellationToken) => callback.ReportTodoCommentDataAsync(_callbackId, documentId, data, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
     }
 }

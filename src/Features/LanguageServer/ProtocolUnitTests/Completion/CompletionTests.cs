@@ -127,7 +127,7 @@ namespace M
 
             var results = (LSP.VSCompletionList)await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             Assert.True(results.Items.Any());
-            Assert.True(results.SuggesstionMode);
+            Assert.True(results.SuggestionMode);
         }
 
         [Fact]
@@ -161,6 +161,28 @@ class A
     void M()
     {
         new Regex(""\\{|caret:|}"");
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(), triggerCharacter: "\\", triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+            var expected = CreateCompletionItem("\\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, sortText: "0000");
+
+            var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
+            AssertJsonEquals(expected, results.Items.First());
+        }
+
+        [Fact]
+        [WorkItem(47743, "https://github.com/dotnet/roslyn/issues/47743")]
+        public async Task TestGetRegexCompletionsTargetTypedAsync()
+        {
+            var markup =
+@"using System.Text.RegularExpressions;
+class A
+{
+    void M()
+    {
+        Regex r = new(""\\{|caret:|}"");
     }
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);

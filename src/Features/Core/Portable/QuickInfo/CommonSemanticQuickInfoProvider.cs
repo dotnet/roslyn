@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                         var builder = ImmutableArray.CreateBuilder<TaggedText>();
                         builder.AddText(FeaturesResources.Awaited_task_returns_0.Substring(0, symbolIndex));
                         builder.AddRange(mainDescriptionTaggedParts);
-                        builder.AddText(FeaturesResources.Awaited_task_returns_0.Substring(symbolIndex + defaultSymbol.Length));
+                        builder.AddText(FeaturesResources.Awaited_task_returns_0[(symbolIndex + defaultSymbol.Length)..]);
 
                         AddSection(QuickInfoSectionKinds.Description, builder.ToImmutable());
                     }
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var symbol = tokenInformation.Symbols.First();
 
             // if generating quick info for an attribute, bind to the class instead of the constructor
-            if (syntaxFactsService.IsAttributeName(token.Parent) &&
+            if (syntaxFactsService.IsAttributeName(token.Parent!) &&
                 symbol.ContainingType?.IsAttribute() == true)
             {
                 symbol = symbol.ContainingType;

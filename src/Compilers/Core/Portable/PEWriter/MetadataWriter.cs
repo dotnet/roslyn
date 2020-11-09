@@ -106,7 +106,7 @@ namespace Microsoft.Cci
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
-            _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions); //ignores field signatures
+            _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions, ReferenceEqualityComparer.Instance); //ignores field signatures
 
             _numTypeDefsEstimate = module.HintNumberOfMethodDefinitions / 6;
 
@@ -443,17 +443,17 @@ namespace Microsoft.Cci
         private readonly DynamicAnalysisDataWriter _dynamicAnalysisDataWriterOpt;
 
         private readonly Dictionary<ICustomAttribute, BlobHandle> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobHandle>();
-        private readonly Dictionary<ITypeReference, BlobHandle> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobHandle>();
+        private readonly Dictionary<ITypeReference, BlobHandle> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobHandle>(ReferenceEqualityComparer.Instance);
         private readonly Dictionary<string, int> _fileRefIndex = new Dictionary<string, int>(32);  // more than enough in most cases, value is a RowId
         private readonly List<IFileReference> _fileRefList = new List<IFileReference>(32);
-        private readonly Dictionary<IFieldReference, BlobHandle> _fieldSignatureIndex = new Dictionary<IFieldReference, BlobHandle>();
+        private readonly Dictionary<IFieldReference, BlobHandle> _fieldSignatureIndex = new Dictionary<IFieldReference, BlobHandle>(ReferenceEqualityComparer.Instance);
 
         // We need to keep track of both the index of the signature and the actual blob to support VB static local naming scheme.
         private readonly Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>> _signatureIndex;
 
         private readonly Dictionary<IMarshallingInformation, BlobHandle> _marshallingDescriptorIndex = new Dictionary<IMarshallingInformation, BlobHandle>();
         protected readonly List<MethodImplementation> methodImplList = new List<MethodImplementation>();
-        private readonly Dictionary<IGenericMethodInstanceReference, BlobHandle> _methodInstanceSignatureIndex = new Dictionary<IGenericMethodInstanceReference, BlobHandle>();
+        private readonly Dictionary<IGenericMethodInstanceReference, BlobHandle> _methodInstanceSignatureIndex = new Dictionary<IGenericMethodInstanceReference, BlobHandle>(ReferenceEqualityComparer.Instance);
 
         // Well known dummy cor library types whose refs are used for attaching assembly attributes off within net modules
         // There is no guarantee the types actually exist in a cor library
@@ -1451,7 +1451,18 @@ namespace Microsoft.Cci
 
         private static Location GetNamedEntityLocation(INamedEntity errorEntity)
         {
-            return GetSymbolLocation(errorEntity as ISymbolInternal);
+            ISymbolInternal symbol;
+
+            if (errorEntity is Cci.INamespace ns)
+            {
+                symbol = ns.GetInternalSymbol();
+            }
+            else
+            {
+                symbol = (errorEntity as Cci.IReference)?.GetInternalSymbol();
+            }
+
+            return GetSymbolLocation(symbol);
         }
 
         protected static Location GetSymbolLocation(ISymbolInternal symbolOpt)
@@ -4131,7 +4142,34 @@ namespace Microsoft.Cci
             }
         }
 
-        protected sealed class InstanceAndStructuralReferenceIndex<T> : HeapOrReferenceIndexBase<T> where T : IReference
+        protected sealed class TypeReferenceIndex : HeapOrReferenceIndexBase<ITypeReference>
+        {
+            private readonly Dictionary<ITypeReference, int> _index;
+
+            public TypeReferenceIndex(MetadataWriter writer, int lastRowId = 0)
+                : this(writer, new Dictionary<ITypeReference, int>(ReferenceEqualityComparer.Instance), lastRowId)
+            {
+            }
+
+            private TypeReferenceIndex(MetadataWriter writer, Dictionary<ITypeReference, int> index, int lastRowId)
+                : base(writer, lastRowId)
+            {
+                Debug.Assert(index.Count == 0);
+                _index = index;
+            }
+
+            public override bool TryGetValue(ITypeReference item, out int index)
+            {
+                return _index.TryGetValue(item, out index);
+            }
+
+            protected override void AddItem(ITypeReference item, int index)
+            {
+                _index.Add(item, index);
+            }
+        }
+
+        protected sealed class InstanceAndStructuralReferenceIndex<T> : HeapOrReferenceIndexBase<T> where T : class, IReference
         {
             private readonly Dictionary<T, int> _instanceIndex;
             private readonly Dictionary<T, int> _structuralIndex;
@@ -4139,7 +4177,7 @@ namespace Microsoft.Cci
             public InstanceAndStructuralReferenceIndex(MetadataWriter writer, IEqualityComparer<T> structuralComparer, int lastRowId = 0)
                 : base(writer, lastRowId)
             {
-                _instanceIndex = new Dictionary<T, int>();
+                _instanceIndex = new Dictionary<T, int>(ReferenceEqualityComparer.Instance);
                 _structuralIndex = new Dictionary<T, int>(structuralComparer);
             }
 

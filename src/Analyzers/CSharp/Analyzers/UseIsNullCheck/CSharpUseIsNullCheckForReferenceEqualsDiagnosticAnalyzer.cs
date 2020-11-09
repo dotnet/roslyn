@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         protected override bool IsLanguageVersionSupported(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
+        protected override bool IsUnconstrainedGenericSupported(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp8;
+
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
     }

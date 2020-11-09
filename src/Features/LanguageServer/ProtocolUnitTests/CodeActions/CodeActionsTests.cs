@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, caretLocation),
+                priority: PriorityLevel.Low,
+                groupName: "Roslyn1",
+                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
 
             var results = await RunGetCodeActionsAsync(workspace.CurrentSolution, caretLocation);
@@ -70,6 +73,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     caretLocation),
+                priority: PriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 12 }, End = new Position { Line = 4, Character = 12 } },
                 diagnostics: null);
 
             var results = await RunGetCodeActionsAsync(workspace.CurrentSolution, caretLocation);
@@ -136,9 +142,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             // 4. Changing the document should generate a new cached item.
             var currentDocText = await document.GetTextAsync();
             var changedSourceText = currentDocText.WithChanges(new TextChange(new TextSpan(0, 0), "class D { } \n"));
-            var docId = ((TestWorkspace)workspace).Documents.First().Id;
-            ((TestWorkspace)workspace).ChangeDocument(docId, changedSourceText);
-            UpdateSolutionProvider((TestWorkspace)workspace, workspace.CurrentSolution);
+            var docId = workspace.Documents.First().Id;
+            workspace.ChangeDocument(docId, changedSourceText);
+            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
             var updatedDocument = GetDocument(workspace, CreateTextDocumentIdentifier(caretLocation.Uri));
 
             await RunCodeActionsAndAssertActionsInCacheAsync(workspace, cache, caretLocation, updatedDocument);
@@ -215,6 +221,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         internal static LSP.VSCodeAction CreateCodeAction(
             string title, LSP.CodeActionKind kind, LSP.VSCodeAction[] children,
             CodeActionResolveData data, LSP.Diagnostic[] diagnostics,
+            LSP.PriorityLevel? priority, string groupName, LSP.Range applicableRange,
             LSP.WorkspaceEdit edit = null, LSP.Command command = null)
         {
             var action = new LSP.VSCodeAction
@@ -225,6 +232,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 Data = JToken.FromObject(data),
                 Diagnostics = diagnostics,
                 Edit = edit,
+                Group = groupName,
+                Priority = priority,
+                ApplicableRange = applicableRange,
                 Command = command
             };
 

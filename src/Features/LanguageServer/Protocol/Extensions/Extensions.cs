@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return GetDocuments<Document>(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
         }
 
-        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
+        public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
         {
-            return GetDocuments<TextDocument>(solution, documentUri, (s, i) => s.GetRequiredTextDocument(i));
+            return GetDocuments<DocumentId>(solution, documentUri, (s, i) => i);
         }
 
-        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri documentUri, Func<Solution, DocumentId, T> getDocument) where T : TextDocument
+        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri documentUri, Func<Solution, DocumentId, T> getDocument)
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documentIds.SelectAsArray(id => getDocument(solution, id));
         }
 
-        public static (Document?, Solution) GetDocumentAndSolution(this ILspSolutionProvider provider, TextDocumentIdentifier? textDocument, string? clientName)
+        public static (DocumentId?, Solution) GetDocumentAndSolution(this ILspSolutionProvider provider, TextDocumentIdentifier? textDocument, string? clientName)
         {
             var solution = provider.GetCurrentSolutionForMainWorkspace();
             if (textDocument != null)
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var document = provider.GetDocument(textDocument, clientName);
                 var solutionOfDocument = document?.Project.Solution;
 
-                return (document, solutionOfDocument ?? solution);
+                return (document?.Id, solutionOfDocument ?? solution);
             }
 
             return (null, solution);
@@ -66,11 +66,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
         {
             return GetDocuments<Document>(solutionProvider, uri, (s, u, c) => s.GetDocuments(u), clientName);
-        }
-
-        public static ImmutableArray<TextDocument> GetTextDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
-        {
-            return GetDocuments<TextDocument>(solutionProvider, uri, (s, u, c) => s.GetTextDocuments(u), clientName);
         }
 
         private static ImmutableArray<T> GetDocuments<T>(this ILspSolutionProvider solutionProvider, Uri uri, Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments, string? clientName) where T : TextDocument
@@ -99,11 +94,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static Document? GetDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
         {
             return GetDocument<Document>(solutionProvider, documentIdentifier, (s, d, c) => s.GetDocuments(d, c), clientName);
-        }
-
-        public static TextDocument? GetTextDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
-        {
-            return GetDocument<TextDocument>(solutionProvider, documentIdentifier, (s, d, c) => s.GetTextDocuments(d, c), clientName);
         }
 
         private static T? GetDocument<T>(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments, string? clientName = null) where T : TextDocument
@@ -174,5 +164,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
             => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
+
+        public static bool IsRazorDocument(this Document document)
+        {
+            // Only razor docs have an ISpanMappingService, so we can use the presence of that to determine if this doc
+            // belongs to them.
+            var spanMapper = document.Services.GetService<ISpanMappingService>();
+            return spanMapper != null;
+        }
     }
 }

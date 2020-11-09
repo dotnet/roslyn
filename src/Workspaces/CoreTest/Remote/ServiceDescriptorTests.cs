@@ -15,19 +15,26 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
+    [UseExportProvider]
     public class ServiceDescriptorTests
     {
+        public static IEnumerable<object[]> AllServiceDescriptors
+            => ServiceDescriptors.Instance.GetTestAccessor().Descriptors
+                .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptor32, descriptor.Value.descriptor64, descriptor.Value.descriptor64ServerGC });
+
         private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
         {
             var interfaces = new List<Type>();
 
-            foreach (var (serviceType, (descriptor, _)) in ServiceDescriptors.Descriptors)
+            foreach (var (serviceType, (descriptor, _, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
             {
                 interfaces.Add(serviceType);
                 if (descriptor.ClientInterface != null)
@@ -122,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public void TypesUsedInRemoteApisMustBeMessagePackSerializable()
         {
             var types = GetAllParameterTypesOfRemoteApis();
-            var resolver = ServiceDescriptor.TestAccessor.Options.Resolver;
+            var resolver = MessagePackFormatters.DefaultResolver;
 
             var errors = new List<string>();
 
@@ -156,13 +163,30 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             AssertEx.Empty(errors, "Types are not MessagePack-serializable");
         }
 
-        [Fact]
-        public void GetFeatureName()
+        [Theory]
+        [MemberData(nameof(AllServiceDescriptors))]
+        internal void GetFeatureDisplayName(Type serviceInterface, ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)
         {
-            foreach (var (serviceType, _) in ServiceDescriptors.Descriptors)
-            {
-                Assert.NotEmpty(ServiceDescriptors.GetFeatureName(serviceType));
-            }
+            Assert.NotNull(serviceInterface);
+
+            var expectedName = descriptor32.GetFeatureDisplayName();
+            Assert.NotEmpty(expectedName);
+
+            Assert.Equal(expectedName, descriptor64.GetFeatureDisplayName());
+            Assert.Equal(expectedName, descriptor64ServerGC.GetFeatureDisplayName());
+        }
+
+        [Fact]
+        public void CallbackDispatchers()
+        {
+            var hostServices = FeaturesTestCompositions.Features.WithTestHostParts(Testing.TestHost.OutOfProcess).GetHostServices();
+            var callbackDispatchers = ((IMefHostExportProvider)hostServices).GetExports<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>();
+
+            var descriptorsWithCallbackServiceTypes = ServiceDescriptors.Instance.GetTestAccessor().Descriptors
+                .Where(d => d.Value.descriptor32.ClientInterface != null).Select(d => d.Key);
+
+            var callbackDispatcherServiceTypes = callbackDispatchers.Select(d => d.Metadata.ServiceInterface);
+            AssertEx.SetEqual(descriptorsWithCallbackServiceTypes, callbackDispatcherServiceTypes);
         }
     }
 }
