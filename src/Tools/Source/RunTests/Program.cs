@@ -32,7 +32,7 @@ namespace RunTests
 
         private const long MaxTotalDumpSizeInMegabytes = 4096;
 
-        internal static int Main(string[] args)
+        internal static async Task<int> Main(string[] args)
         {
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
@@ -43,33 +43,60 @@ namespace RunTests
                 return ExitFailure;
             }
 
-            // Setup cancellation for ctrl-c key presses
-            var cts = new CancellationTokenSource();
-            Console.CancelKeyPress += delegate
+            if (options.CollectDumps)
             {
-                cts.Cancel();
-            };
+                if (!DumpUtil.IsAdministrator())
+                {
+                    ConsoleUtil.WriteLine(ConsoleColor.Yellow, "Dump collection specified but user is not administrator so cannot modify registry");
+                }
+                else
+                {
+                    DumpUtil.EnableRegistryDumpCollection(options.LogFilesDirectory);
+                }
+            }
 
-            var result = Run(options, cts.Token).GetAwaiter().GetResult();
-            CheckTotalDumpFilesSize();
-            return result;
+            try
+            {
+                // Setup cancellation for ctrl-c key presses
+                using var cts = new CancellationTokenSource();
+                Console.CancelKeyPress += delegate
+                {
+                    cts.Cancel();
+                    DisableRegistryDumpCollection();
+                };
+
+                int result;
+                if (options.Timeout is { } timeout)
+                {
+                    result = await RunAsync(options, timeout, cts.Token);
+                }
+                else
+                {
+                    result = await RunAsync(options, cts.Token);
+                }
+
+                CheckTotalDumpFilesSize();
+                return result;
+            }
+            finally
+            {
+                DisableRegistryDumpCollection();
+            }
+
+            void DisableRegistryDumpCollection()
+            {
+                if (options.CollectDumps && DumpUtil.IsAdministrator())
+                {
+                    DumpUtil.DisableRegistryDumpCollection();
+                }
+            }
         }
 
-        private static async Task<int> Run(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            if (options.Timeout == null)
-            {
-                return await RunCore(options, cancellationToken);
-            }
-
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var runTask = RunAsync(options, cts.Token);
             var timeoutTask = Task.Delay(options.Timeout.Value, cancellationToken);
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var runTask = RunCore(options, cts.Token);
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return ExitFailure;
-            }
 
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
@@ -94,7 +121,7 @@ namespace RunTests
             return await runTask;
         }
 
-        private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
         {
             if (!CheckAssemblyList(options))
             {
@@ -219,24 +246,18 @@ namespace RunTests
                 }
             }
 
-            ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
-            var procDumpInfo = GetProcDumpInfo(options);
-            if (procDumpInfo != null)
+            if (options.CollectDumps && GetProcDumpInfo(options) is { } procDumpInfo)
             {
+                ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
+
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
                 {
-                    var dumpDir = PrimaryProcessNames.Contains(proc.ProcessName)
-                        ? procDumpInfo.Value.DumpDirectory
-                        : procDumpInfo.Value.SecondaryDumpDirectory;
+                    var dumpDir = procDumpInfo.DumpDirectory;
                     var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    await DumpProcess(proc, procDumpInfo.Value.ProcDumpFilePath, dumpFilePath);
+                    await DumpProcess(proc, procDumpInfo.ProcDumpFilePath, dumpFilePath);
                     counter++;
                 }
-            }
-            else
-            {
-                ConsoleUtil.WriteLine("Could not locate procdump");
             }
 
             WriteLogFile(options);
@@ -246,7 +267,7 @@ namespace RunTests
         {
             if (!string.IsNullOrEmpty(options.ProcDumpFilePath))
             {
-                return new ProcDumpInfo(options.ProcDumpFilePath, options.LogFilesDirectory, options.LogFilesSecondaryDirectory);
+                return new ProcDumpInfo(options.ProcDumpFilePath, options.LogFilesDirectory);
             }
 
             return null;
@@ -318,7 +339,7 @@ namespace RunTests
 
                 if (open)
                 {
-                    ProcessRunner.OpenFile(cur.ResultsFilePath);
+                    ProcessRunner.OpenFile(cur.ResultsDisplayFilePath);
                 }
             }
         }
@@ -327,7 +348,7 @@ namespace RunTests
         {
             var testExecutionOptions = new TestExecutionOptions(
                 dotnetFilePath: options.DotnetFilePath,
-                procDumpInfo: options.UseProcDump ? GetProcDumpInfo(options) : null,
+                procDumpInfo: options.CollectDumps ? GetProcDumpInfo(options) : null,
                 testResultsDirectory: options.TestResultsDirectory,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
