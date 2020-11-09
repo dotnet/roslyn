@@ -1201,14 +1201,21 @@ namespace Microsoft.CodeAnalysis.Testing
                 foreach (var diagnostic in analyzer.SupportedDiagnostics)
                 {
                     // make sure the analyzers we are testing are enabled
-                    supportedDiagnosticsSpecificOptions[diagnostic.Id] = diagnostic.DefaultSeverity switch
+                    if (diagnostic.IsEnabledByDefault)
                     {
-                        DiagnosticSeverity.Hidden => ReportDiagnostic.Hidden,
-                        DiagnosticSeverity.Info => ReportDiagnostic.Info,
-                        DiagnosticSeverity.Warning => ReportDiagnostic.Warn,
-                        DiagnosticSeverity.Error => ReportDiagnostic.Error,
-                        _ => throw new InvalidOperationException(),
-                    };
+                        supportedDiagnosticsSpecificOptions[diagnostic.Id] = ReportDiagnostic.Default;
+                    }
+                    else
+                    {
+                        supportedDiagnosticsSpecificOptions[diagnostic.Id] = diagnostic.DefaultSeverity switch
+                        {
+                            DiagnosticSeverity.Hidden => ReportDiagnostic.Hidden,
+                            DiagnosticSeverity.Info => ReportDiagnostic.Info,
+                            DiagnosticSeverity.Warning => ReportDiagnostic.Warn,
+                            DiagnosticSeverity.Error => ReportDiagnostic.Error,
+                            _ => throw new InvalidOperationException(),
+                        };
+                    }
                 }
             }
 
