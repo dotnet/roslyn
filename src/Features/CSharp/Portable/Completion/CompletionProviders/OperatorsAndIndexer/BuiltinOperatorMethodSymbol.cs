@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection.Metadata;
-using System.Text;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -26,6 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     /// </summary>
     internal class BuiltinOperatorMethodSymbol : IMethodSymbol
     {
+        private static readonly SymbolDisplayFormat s_displayFormat = new(
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+
         public BuiltinOperatorMethodSymbol(ITypeSymbol returnType, INamedTypeSymbol containingType)
         {
             ReturnType = returnType;
@@ -44,20 +44,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
+
             // Explicit conversion of <see cref="T:{0}"/> to <see cref="T:{1}"/>.
             var template = @$"
 <summary>
-    {CSharpFeaturesResources.Explicit_conversion_of_see_cref_T_0_to_see_cref_T_1}
+    {string.Format(
+        CSharpFeaturesResources.Explicit_conversion_of_see_cref_T_0_to_see_cref_T_1,
+        CreateSeeTag(ContainingType),
+        CreateSeeTag(ReturnType))}
 </summary>
 ";
-            // "global::" is added by the cref formatter.
-            var displayFormat = new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
-            return string.Format(template,
-                ContainingType.ToDisplayString(displayFormat),
-                ReturnType.ToDisplayString(displayFormat));
+            return template;
+
+            string CreateSeeTag(ISymbol symbol)
+            {
+                return $@"<see cref=""T:{symbol.ToDisplayParts(s_displayFormat)}""/>";
+            }
         }
 
         public string? GetDocumentationCommentId() => null;
