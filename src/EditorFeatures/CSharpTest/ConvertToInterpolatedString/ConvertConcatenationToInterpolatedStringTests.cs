@@ -950,8 +950,53 @@ class C
                       @"$@""a{$""{1:000}""}""")]
         [InlineData(@"[|""a"" + @$""{1:000}""|]",
                       @"$""a{@$""{1:000}""}""")]
-        public async Task TestInliningOfInterpolatedString(string initialMarkup, string expected)
+        public async Task TestInliningOfInterpolatedString(string before, string after)
         {
+            var initialMarkup = $@"
+class C
+{{
+    void M() {{
+        {before}
+    }}
+}}";
+            var expected = $@"
+class C
+{{
+    void M() {{
+        {after}
+    }}
+}}";
+            await TestInRegularAndScriptAsync(initialMarkup, expected);
+        }
+
+        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [InlineData(@"""\t"" [|+|] 1",
+                   @"$""\t{1}""")]
+        [InlineData(@"""😀"" [|+|] 1",
+                   @"$""😀{1}""")]
+        [InlineData(@"""\u2764"" [|+|] 1",
+                   @"$""\u2764{1}""")]
+        [InlineData(@"""\"""" [|+|] 1",
+                   @"$""\""{1}""")]
+        [InlineData(@"""{}"" [|+|] 1",
+                   @"$""{{}}{1}""")]
+        public async Task TestUncodeAndEscapeHandling(string before, string after)
+        {
+            var initialMarkup = $@"
+class C
+{{
+    void M() {{
+        {before}
+    }}
+}}";
+            var expected = $@"
+class C
+{{
+    void M() {{
+        {after}
+    }}
+}}";
             await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
     }
