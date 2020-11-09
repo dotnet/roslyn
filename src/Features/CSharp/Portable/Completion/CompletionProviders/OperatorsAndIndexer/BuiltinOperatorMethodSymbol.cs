@@ -48,10 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Explicit conversion of <see cref="T:{0}"/> to <see cref="T:{1}"/>.
             var template = @$"
 <summary>
-    {string.Format(
-        CSharpFeaturesResources.Explicit_conversion_of_see_cref_T_0_to_see_cref_T_1,
-        CreateSeeTag(ContainingType),
-        CreateSeeTag(ReturnType))}
+    {string.Format(CSharpFeaturesResources.Explicit_conversion_of_0_to_1, CreateSeeTag(ContainingType), CreateSeeTag(ReturnType))}
 </summary>
 ";
 
