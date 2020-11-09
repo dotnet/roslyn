@@ -8780,5 +8780,163 @@ class C : IGoo<int>
 }
 ");
         }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestConstrainedGenericInstantiatedWithValueType()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface IGoo<T> where T : struct
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<int>|]
+{
+}
+",
+@"
+interface IGoo<T> where T : struct
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<int>
+{
+    public void Bar(int? x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnconstrainedGenericInstantiatedWithReferenceType()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnconstrainedGenericInstantiatedWithReferenceType_NullableEnable()
+        {
+            await TestInRegularAndScriptAsync(@"
+#nullable enable
+
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+#nullable enable
+
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string? x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestConstrainedGenericInstantiatedWithReferenceType()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestConstrainedGenericInstantiatedWithReferenceType_NullableEnable()
+        {
+            await TestInRegularAndScriptAsync(@"
+#nullable enable
+
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+#nullable enable
+
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string? x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
     }
 }
