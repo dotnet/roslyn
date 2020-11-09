@@ -5,7 +5,6 @@
 #pragma warning disable CS0618 // Type or member is obsolete
 
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -44,9 +43,5 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
 
         public IVsContainedLanguageHost Host
             => _underlyingObject.ContainedLanguageHost;
-
-        internal IVisualStudioHostDocument HostDocument
-            => _underlyingObject;
-
     }
 }

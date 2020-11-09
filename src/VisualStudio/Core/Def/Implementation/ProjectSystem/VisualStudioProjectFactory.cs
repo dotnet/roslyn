@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Telemetry;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [Export(typeof(VisualStudioProjectFactory))]
+    [Export(typeof(IVsTypeScriptVisualStudioProjectFactory))]
     internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProjectFactory
     {
         private const string SolutionContextName = "Solution";

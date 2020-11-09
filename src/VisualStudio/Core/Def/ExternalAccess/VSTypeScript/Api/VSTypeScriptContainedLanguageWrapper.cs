@@ -49,11 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
             uint itemid,
             Guid languageServiceGuid)
         {
-            if (project.IsDefault)
-            {
-                throw new ArgumentException($"A non-default {nameof(VSTypeScriptVisualStudioProjectWrapper)} is required.");
-            }
-
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
 
@@ -61,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
                 bufferCoordinator,
                 componentModel,
                 workspace,
-                project.Project!.Id, // ! is safe due to IsDefault check.
+                project.Project.Id,
                 project.Project,
                 filePath,
                 languageServiceGuid,
