@@ -1589,6 +1589,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_DuplicateInterfaceWithTupleNamesInBaseList" xml:space="preserve">
     <value>'{0}' is already listed in the interface list on type '{2}' with different tuple element names, as '{1}'.</value>
   </data>
+  <data name="ERR_DuplicateInterfaceWithDifferencesInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</value>
+  </data>
   <data name="ERR_CycleInInterfaceInheritance" xml:space="preserve">
     <value>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</value>
   </data>
@@ -6563,6 +6566,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
+  <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
+    <value>Record equality contract property '{0}' must have a get accessor.</value>
+  </data>
   <data name="WRN_AnalyzerReferencesFramework" xml:space="preserve">
     <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
     <comment>{1} is the type that was loaded, {0} is the containing assembly.</comment>
@@ -6570,7 +6576,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
+  <data name="ERR_BadFieldTypeInRecord" xml:space="preserve">
+    <value>The type '{0}' may not be used for a field of a record.</value>
+  </data>
   <data name="ERR_FunctionPointersCannotBeCalledWithNamedArguments" xml:space="preserve">
     <value>A function pointer cannot be called with named arguments.</value>
+  </data>
+  <data name="WRN_UnreadRecordParameter" xml:space="preserve">
+    <value>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</value>
+  </data>
+  <data name="WRN_UnreadRecordParameter_Title" xml:space="preserve">
+    <value>Parameter is unread. Did you forget to use it to initialize the property with that name?</value>
   </data>
 </root>

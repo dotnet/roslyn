@@ -1380,7 +1380,7 @@ class C : B<string>
             var sourceType = type as SourceNamedTypeSymbol;
             if ((object)sourceType != null)
             {
-                var fieldDefinition = (Microsoft.Cci.IFieldDefinition)field;
+                var fieldDefinition = (Microsoft.Cci.IFieldDefinition)field.GetCciAdapter();
                 Assert.False(fieldDefinition.IsSpecialName);
                 Assert.False(fieldDefinition.IsRuntimeSpecial);
             }
@@ -1415,9 +1415,9 @@ class C : B<string>
 
                 var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
-                var typeDefinition = (Microsoft.Cci.ITypeDefinition)type;
+                var typeDefinition = (Microsoft.Cci.ITypeDefinition)type.GetCciAdapter();
                 var fieldDefinition = typeDefinition.GetFields(context).First();
-                Assert.Same(fieldDefinition, field); // Dev10: value__ field is the first field.
+                Assert.Same(fieldDefinition.GetInternalSymbol(), field); // Dev10: value__ field is the first field.
                 Assert.True(fieldDefinition.IsSpecialName);
                 Assert.True(fieldDefinition.IsRuntimeSpecial);
                 context.Diagnostics.Verify();

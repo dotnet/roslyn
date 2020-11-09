@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -69,7 +67,7 @@ namespace RunTests
                             if (!testResult.Succeeded)
                             {
                                 failures++;
-                                ConsoleUtil.WriteLine(ConsoleColor.Red, "Test failure log: " + testResult.ResultsFilePath);
+                                ConsoleUtil.WriteLine(ConsoleColor.Red, "Test failure log: " + testResult.ResultsDisplayFilePath);
                             }
 
                             completed.Add(testResult);
@@ -149,14 +147,14 @@ namespace RunTests
             ConsoleUtil.WriteLine("Extra run diagnostics for logging, did not impact run results");
             foreach (var testResult in testResults.Where(x => !string.IsNullOrEmpty(x.Diagnostics)))
             {
-                ConsoleUtil.WriteLine(testResult.Diagnostics);
+                ConsoleUtil.WriteLine(testResult.Diagnostics!);
             }
         }
 
         private void PrintFailedTestResult(TestResult testResult)
         {
             // Save out the error output for easy artifact inspecting
-            var outputLogPath = Path.Combine(_options.LogFilesOutputDirectory, $"xUnitFailure-{testResult.DisplayName}.log");
+            var outputLogPath = Path.Combine(_options.LogFilesDirectory, $"xUnitFailure-{testResult.DisplayName}.log");
 
             ConsoleUtil.WriteLine($"Errors {testResult.AssemblyName}");
             ConsoleUtil.WriteLine(testResult.ErrorOutput);
@@ -177,9 +175,10 @@ namespace RunTests
             }
 
             // If the results are html, use Process.Start to open in the browser.
-            if (_options.IncludeHtml && !string.IsNullOrEmpty(testResult.ResultsFilePath))
+            var htmlResultsFilePath = testResult.TestResultInfo.HtmlResultsFilePath;
+            if (!string.IsNullOrEmpty(htmlResultsFilePath))
             {
-                Process.Start(testResult.ResultsFilePath);
+                Process.Start(htmlResultsFilePath);
             }
         }
     }

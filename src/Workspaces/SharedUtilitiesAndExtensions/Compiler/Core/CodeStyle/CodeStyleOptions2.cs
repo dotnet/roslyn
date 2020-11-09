@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             if (option.Notification == null)
             {
                 Debug.Assert(s_accessibilityModifiersRequiredMap.ContainsValue(AccessibilityModifiersRequired.Never));
-                return s_accessibilityModifiersRequiredMap.GetKeyOrDefault(AccessibilityModifiersRequired.Never);
+                return s_accessibilityModifiersRequiredMap.GetKeyOrDefault(AccessibilityModifiersRequired.Never)!;
             }
 
             Debug.Assert(s_accessibilityModifiersRequiredMap.ContainsValue(option.Value));
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             Debug.Assert(s_parenthesesPreferenceMap.ContainsValue(option.Value));
             var value = s_parenthesesPreferenceMap.GetKeyOrDefault(option.Value) ?? s_parenthesesPreferenceMap.GetKeyOrDefault(ParenthesesPreference.AlwaysForClarity);
-            return option.Notification == null ? value : $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
+            return option.Notification == null ? value! : $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
         }
 
         private static CodeStyleOption2<UnusedParametersPreference> ParseUnusedParametersPreference(string optionString, CodeStyleOption2<UnusedParametersPreference> defaultValue)
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             Debug.Assert(s_unusedParametersPreferenceMap.ContainsValue(option.Value));
             var value = s_unusedParametersPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedParametersPreferenceMap.GetKeyOrDefault(defaultValue.Value);
-            return option.Notification == null ? value : $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
+            return option.Notification == null ? value! : $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
         }
     }
 

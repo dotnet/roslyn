@@ -42,5 +42,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             return SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
         }
+
+        Symbols.ISymbolInternal? IReference.GetInternalSymbol() => null;
     }
 }

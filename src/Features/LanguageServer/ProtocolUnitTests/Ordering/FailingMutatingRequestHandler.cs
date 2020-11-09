@@ -30,13 +30,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
             await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
 
-            // Mutate the solution
-            var solution = context.Solution;
-            solution = solution.WithNewWorkspace(solution.Workspace, solution.WorkspaceVersion + 1);
-            context.UpdateSolution(solution);
-
-            await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
-
             throw new InvalidOperationException();
         }
     }

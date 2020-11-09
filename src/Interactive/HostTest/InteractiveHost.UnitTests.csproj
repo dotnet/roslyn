@@ -13,7 +13,7 @@
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
-    <ProjectReference Include="..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj">
       <Aliases>InteractiveHost</Aliases>
     </ProjectReference>
@@ -50,11 +50,7 @@
   -->
   <Target Name="_DeployInteractiveHosts" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
 
-    <MSBuild
-        Projects="@(CopyPublishedOutputProjectReference)"
-        Targets="PublishProjectOutputGroup"
-        BuildInParallel="$(BuildInParallel)"
-        Properties="%(CopyPublishedOutputProjectReference.SetTargetFramework)">
+    <MSBuild Projects="@(CopyPublishedOutputProjectReference)" Targets="PublishProjectOutputGroup" BuildInParallel="$(BuildInParallel)" Properties="%(CopyPublishedOutputProjectReference.SetTargetFramework)">
 
       <Output TaskParameter="TargetOutputs" ItemName="%(CopyPublishedOutputProjectReference.OutputItemType)" />
     </MSBuild>

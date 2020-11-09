@@ -1696,18 +1696,29 @@ namespace System.Runtime.CompilerServices
 
             public override string VisualizeSymbol(uint token, OperandType operandType)
             {
-                Cci.IReference reference = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)token));
+                Symbol reference = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)token));
                 return string.Format("\"{0}\"", (reference is Symbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : (object)reference);
             }
 
             public override string VisualizeLocalType(object type)
             {
+                Symbol symbol;
+
                 if (type is int)
                 {
-                    type = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)type));
+                    symbol = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)type));
+                }
+                else
+                {
+                    symbol = type as Symbol;
+
+                    if (symbol is null)
+                    {
+                        symbol = (type as Cci.IReference)?.GetInternalSymbol() as Symbol;
+                    }
                 }
 
-                return (type is Symbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
+                return symbol?.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) ?? type.ToString();
             }
         }
 

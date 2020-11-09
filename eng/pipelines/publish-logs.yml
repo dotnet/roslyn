@@ -15,4 +15,3 @@ steps:
       artifactName: '${{ parameters.jobName }} Logs'
     continueOnError: true
     condition: not(succeeded())
-

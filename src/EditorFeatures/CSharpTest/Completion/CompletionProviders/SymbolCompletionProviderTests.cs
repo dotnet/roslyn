@@ -10758,5 +10758,168 @@ class C
                 markup, "",
                 matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterPatternMatch()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m is RankedMusicians.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterPatternMatchWithDeclaration()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m is RankedMusicians.$$ r)
+            {
+            }
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterPropertyPatternMatch()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+        public RankedMusicians R;
+
+		void M(C m)
+		{
+			if (m is { R: RankedMusicians.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ChildClassAfterPatternMatch()
+        {
+            var markup =
+@"namespace N
+{
+	public class D { public class E { } }
+
+	class C
+	{
+		void M(object m)
+		{
+			if (m is D.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "E");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterBinaryExpression()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m == RankedMusicians.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterBinaryExpressionWithDeclaration()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m == RankedMusicians.$$ r)
+            {
+            }
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
     }
 }

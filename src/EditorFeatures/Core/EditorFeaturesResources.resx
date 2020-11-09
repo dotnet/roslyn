@@ -945,4 +945,7 @@ Do you want to proceed?</value>
   <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
     <value>Error creating instance of CodeFixProvider</value>
   </data>
+  <data name="User_Types_Records" xml:space="preserve">
+    <value>User Types - Records</value>
+  </data>
 </root>

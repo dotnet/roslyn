@@ -12476,6 +12476,36 @@ class C
             Directory.Delete(dir.Path, true);
         }
 
+        [Fact]
+        public void SourceGenerators_OverwriteGeneratedSources()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource1 = "class D { } class E { }";
+            var generator1 = new SingleFileTestGenerator(generatedSource1, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator1 }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator1);
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource1 } } } });
+
+            var generatedSource2 = "public class D { }";
+            var generator2 = new SingleFileTestGenerator(generatedSource2, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator2 }, analyzers: null);
+
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource2 } } } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
         [Theory]
         [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file2.cs")] // different files, different names
         [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file1.cs")] // different files, same names

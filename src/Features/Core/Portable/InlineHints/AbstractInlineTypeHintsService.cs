@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -65,6 +66,18 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 var parts = type.ToDisplayParts(s_minimalTypeStyle);
 
                 AddParts(anonymousTypeService, finalParts, parts, semanticModel, span.Start);
+
+                // If we have nothing to show, then don't bother adding this hint.
+                if (finalParts.Sum(p => p.ToString().Length) == 0)
+                    continue;
+
+                if (span.Length == 0)
+                {
+                    // if this is a hint that is placed in-situ (i.e. it's not overwriting text like 'var'), then place
+                    // a space after it to make things feel less cramped.
+                    finalParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));
+                }
+
                 result.Add(new InlineHint(
                     span, finalParts.ToTaggedText(),
                     InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey())));

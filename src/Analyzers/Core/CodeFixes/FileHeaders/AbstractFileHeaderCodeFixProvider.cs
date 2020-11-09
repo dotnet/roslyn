@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, tree, out string fileHeaderTemplate)
+            if (!document.Project.AnalyzerOptions.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out var fileHeaderTemplate)
                 || string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 // This exception would show up as a gold bar, but as indicated we do not believe this is reachable.
