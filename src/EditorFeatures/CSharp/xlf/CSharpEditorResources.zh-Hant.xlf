@@ -47,6 +47,11 @@
         <target state="translated">找到單一組件: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">產生事件訂閱</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">載入來源: '{0}'</target>

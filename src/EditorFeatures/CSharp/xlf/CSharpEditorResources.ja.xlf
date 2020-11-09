@@ -52,6 +52,11 @@
         <target state="translated">読み込み元: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">イベント サブスクリプションの生成</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Module_not_found">
         <source>Module not found!</source>
         <target state="translated">モジュールが見つかりません</target>

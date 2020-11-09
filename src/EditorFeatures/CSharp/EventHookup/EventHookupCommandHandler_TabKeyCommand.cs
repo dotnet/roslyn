@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 formattedDocument.Id, formattedDocument.GetTextSynchronously(cancellationToken));
         }
 
-        private Document AddMethodNameAndAnnotationsToSolution(
+        private static Document AddMethodNameAndAnnotationsToSolution(
             Document document,
             string eventHandlerMethodName,
             int position,
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             return documentWithNameAdded.WithSyntaxRoot(rootWithUpdatedEventHookupExpression);
         }
 
-        private SyntaxNode AddGeneratedHandlerMethodToSolution(
+        private static SyntaxNode AddGeneratedHandlerMethodToSolution(
             SemanticDocument document,
             string eventHandlerMethodName,
             SyntaxAnnotation plusEqualsTokenAnnotation,
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             return root.ReplaceNode(typeDecl, typeDeclWithMethodAdded);
         }
 
-        private IMethodSymbol GetMethodSymbol(
+        private static IMethodSymbol GetMethodSymbol(
             SemanticDocument semanticDocument,
             string eventHandlerMethodName,
             AssignmentExpressionSyntax eventHookupExpression,
